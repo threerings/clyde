@@ -508,6 +508,29 @@ public class UserInterface extends Container
     }
 
     /**
+     * Get the first ComboBox with the specified tag.
+     */
+    public ComboBox<String> getComboBox (String tag)
+    {
+        @SuppressWarnings("unchecked") // safe because the UI editor will put Strings in it
+        ComboBox<String> box = (ComboBox<String>)getComponent(tag, ComboBox.class);
+        return box;
+    }
+
+    /**
+     * Clear the items and return the first ComboBox with the specified tag.
+     */
+    public <T> ComboBox<T> getAndClearComboBox (String tag)
+    {
+        @SuppressWarnings("unchecked") // safe because we will clear it
+        ComboBox<T> box = (ComboBox<T>)getComponent(tag, ComboBox.class);
+        if (box != null) {
+            box.clearItems();
+        }
+        return box;
+    }
+
+    /**
      * Returns a reference to the tagged component map.
      */
     public Map<String, Collection<Component>> getTagged ()
