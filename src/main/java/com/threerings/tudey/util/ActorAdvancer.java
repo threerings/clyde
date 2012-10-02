@@ -65,6 +65,11 @@ public class ActorAdvancer
         public boolean collides (Actor actor, Shape shape);
 
         /**
+         * Checks the specified mask for a collision.
+         */
+        public boolean collides (int mask, Shape shape);
+
+        /**
          * Returns the direction flags affecting the actor.
          */
         public int getDirections (Actor actor, Shape shape);

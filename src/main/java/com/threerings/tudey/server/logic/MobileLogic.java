@@ -105,6 +105,12 @@ public class MobileLogic extends ActorLogic
     }
 
     // documentation inherited from ActorAdvancer.Environment
+    public boolean collides (int mask, Shape shape)
+    {
+        return _scenemgr.collides(mask, shape);
+    }
+
+    // documentation inherited from ActorAdvancer.Environment
     public int getDirections (Actor actor, Shape shape)
     {
         return _scenemgr.getDirections(actor, shape);
