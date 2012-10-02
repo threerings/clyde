@@ -1090,7 +1090,7 @@ public class ActorSprite extends Sprite
         if (model == _model || model == null) {
             return;
         }
-        if (_attachedModels.remove(model) && _impl != null && _attachedVisible) {
+        if (_attachedModels.remove(model) != null && _impl != null && _attachedVisible) {
             _view.getScene().remove(model);
         }
     }
