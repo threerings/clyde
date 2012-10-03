@@ -691,6 +691,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
         _delete.setEnabled(column || row && getLength() > _min);
         _copy.setEnabled(column || row && getLength() < _max);
+        _add.setEnabled(getLength() < _max);
         if (_opanel != null) {
             if (selection == null) {
                 _opanel.setVisible(false);
