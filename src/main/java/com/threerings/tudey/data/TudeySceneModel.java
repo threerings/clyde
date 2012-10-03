@@ -1403,6 +1403,14 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Returns a reference to the set of coordinates that have a tile on them.
+     */
+    public Set<Coord> getTileCoords ()
+    {
+        return _tileCoords.keySet();
+    }
+
+    /**
      * Returns a reference to the map containing the tile collision flags.
      */
     public CoordIntMap getCollisionFlags ()
