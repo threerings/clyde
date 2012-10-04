@@ -219,7 +219,7 @@ public abstract class Shape
     public abstract boolean intersects (Compound compound);
 
     /**
-     * Shapes can never intserct none.
+     * Shapes can never intersect none.
      */
     public boolean intersects (None none)
     {
