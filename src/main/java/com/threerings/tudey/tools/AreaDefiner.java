@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Predicate;
 
 import com.samskivert.swing.GroupLayout;
@@ -81,6 +82,12 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         public void applySnap (Vector3f isect)
         {
             // the NONE implementation: do nothing!
+        }
+
+        @Override
+        public String toString ()
+        {
+            return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
         }
     }
 
