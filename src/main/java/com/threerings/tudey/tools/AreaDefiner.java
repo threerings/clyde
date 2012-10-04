@@ -27,8 +27,12 @@ package com.threerings.tudey.tools;
 
 import java.awt.event.MouseEvent;
 
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+
 import com.google.common.base.Predicate;
 
+import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
@@ -52,11 +56,43 @@ import com.threerings.tudey.data.TudeySceneModel.Vertex;
 public class AreaDefiner extends ConfigTool<AreaConfig>
 {
     /**
+     * Snap styles.
+     */
+    enum SnapStyle
+    {
+        CENTER {
+            @Override public void applySnap (Vector3f isect) {
+                EDGE.applySnap(isect);
+                isect.x += 0.5f;
+                isect.y += 0.5f;
+            }
+        },
+        EDGE {
+            @Override public void applySnap (Vector3f isect) {
+                isect.x = FloatMath.floor(isect.x);
+                isect.y = FloatMath.floor(isect.y);
+            }
+        },
+        NONE;
+
+        /**
+         * Snap just the x/y values of the provided vector.
+         */
+        public void applySnap (Vector3f isect)
+        {
+            // the NONE implementation: do nothing!
+        }
+    }
+
+    /**
      * Creates the area definer tool.
      */
     public AreaDefiner (SceneEditor editor)
     {
         super(editor, AreaConfig.class, new AreaReference());
+
+        _snapStyle = new JComboBox(SnapStyle.values());
+        add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED);
     }
 
     @Override // documentation inherited
@@ -172,11 +208,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
      */
     protected void setMouseLocation (Vertex vertex)
     {
-        // snap to tile grid if shift not held down
-        if (!_editor.isShiftDown()) {
-            _isect.x = FloatMath.floor(_isect.x) + 0.5f;
-            _isect.y = FloatMath.floor(_isect.y) + 0.5f;
-        }
+        ((SnapStyle)_snapStyle.getSelectedItem()).applySnap(_isect);
         vertex.set(_isect.x, _isect.y, _editor.getGrid().getZ());
     }
 
@@ -236,6 +268,9 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
             area = ref;
         }
     }
+
+    /** Our current snap style. */
+    protected JComboBox _snapStyle;
 
     /** The entry containing the vertex we're moving, if any. */
     protected AreaEntry _entry;
