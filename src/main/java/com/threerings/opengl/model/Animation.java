@@ -116,6 +116,14 @@ public class Animation extends SimpleScope
         }
 
         /**
+         * Sets a modifier to the speed at which to play the animation.
+         */
+        public void setSpeedModifier (float speedModifier)
+        {
+            // nothing by default
+        }
+
+        /**
          * Updates this animation based on the elapsed time in seconds.
          *
          * @return true if the animation has completed.
@@ -748,6 +756,7 @@ public class Animation extends SimpleScope
                 AnimationConfig.ComponentAnimation comp = config.animations[ii];
                 anim.setConfig(null, comp.animation);
                 anim.setSpeed(comp.speed);
+                anim.setSpeedModifier(((Animation)_parentScope).getSpeedModifier());
             }
             if (oanims != null) {
                 if (_aidx >= _animations.length) {
@@ -756,6 +765,14 @@ public class Animation extends SimpleScope
                 for (int ii = _animations.length; ii < oanims.length; ii++) {
                     oanims[ii].dispose();
                 }
+            }
+        }
+
+        @Override // documentation inherited
+        public void setSpeedModifier (float speedModifier)
+        {
+            for (Animation anim : _animations) {
+                anim.setSpeedModifier(speedModifier);
             }
         }
 
@@ -905,11 +922,28 @@ public class Animation extends SimpleScope
     }
 
     /**
-     * Returns the speed at which the animation is being played.
+     * Returns the modified speed at which the animation is being played.
      */
     public float getSpeed ()
     {
-        return _speed;
+        return _speed * _speedModifier;
+    }
+
+    /**
+     * Sets a modifier to the speed at which to play the animation.
+     */
+    public void setSpeedModifier (float speedModifier)
+    {
+        _speedModifier = speedModifier;
+        _impl.setSpeedModifier(speedModifier);
+    }
+
+    /**
+     * Returns the speed modifier.
+     */
+    public float getSpeedModifier ()
+    {
+        return _speedModifier;
     }
 
     /**
@@ -1254,6 +1288,9 @@ public class Animation extends SimpleScope
 
     /** The speed at which to play the animation. */
     protected float _speed = 1f;
+
+    /** A speed modifier. */
+    protected float _speedModifier = 1f;
 
     /** The animation implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
