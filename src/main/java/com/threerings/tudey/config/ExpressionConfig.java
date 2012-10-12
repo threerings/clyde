@@ -37,6 +37,8 @@ import com.threerings.expr.ExpressionParser;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.probs.FloatVariable;
+
 /**
  * Configurations for (weakly typed) server-side expressions.
  */
@@ -51,7 +53,8 @@ import com.threerings.util.DeepOmit;
     ExpressionConfig.Or.class, ExpressionConfig.Xor.class,
     ExpressionConfig.Less.class, ExpressionConfig.Greater.class,
     ExpressionConfig.Equals.class, ExpressionConfig.LessEquals.class,
-    ExpressionConfig.GreaterEquals.class, ExpressionConfig.NumTargets.class })
+    ExpressionConfig.GreaterEquals.class, ExpressionConfig.Variable.class,
+    ExpressionConfig.NumTargets.class })
 @Strippable
 public abstract class ExpressionConfig extends DeepObject
     implements Exportable, Streamable
@@ -188,6 +191,22 @@ public abstract class ExpressionConfig extends DeepObject
         public void invalidate ()
         {
             target.invalidate();
+        }
+    }
+
+    /**
+     * A float variable.
+     */
+    public static class Variable extends ExpressionConfig
+    {
+        /** The variable. */
+        @Editable
+        public FloatVariable variable = new FloatVariable.Constant(0f);
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Variable";
         }
     }
 

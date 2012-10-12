@@ -147,6 +147,18 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
+     * Evaluates a variable expression.
+     */
+    public static class Variable extends ExpressionLogic
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return ((ExpressionConfig.Variable)_config).variable.getValue();
+        }
+    }
+
+    /**
      * Evaluates a constant expression.
      */
     public static class Previous extends ExpressionLogic
