@@ -42,8 +42,11 @@ public class ToggleButton extends Button
     /** Indicates that this button is in the selected state and hovered. */
     public static final int HOVER_SELECTED = Button.STATE_COUNT + 1;
 
+    /** Indicates that this button is in the selected state and pressed. */
+    public static final int DOWN_SELECTED = Button.STATE_COUNT + 2;
+
     /** Indicates that this button is in the selected state and is disabled. */
-    public static final int DISSELECTED = Button.STATE_COUNT + 2;
+    public static final int DISSELECTED = Button.STATE_COUNT + 3;
 
     /**
      * Creates a button with the specified textual label.
@@ -102,6 +105,8 @@ public class ToggleButton extends Button
             return DISSELECTED;
         } else if (state == HOVER) {
             return HOVER_SELECTED;
+        } else if (_armed) {
+            return DOWN_SELECTED;
         } else {
             return SELECTED;
         }
@@ -126,7 +131,10 @@ public class ToggleButton extends Button
     // documentation inherited
     protected int getFallbackState (int state)
     {
-        return (state == HOVER_SELECTED || state == DISSELECTED) ? SELECTED : DEFAULT;
+        return (state == HOVER_SELECTED ||
+                state == DOWN_SELECTED ||
+                state == DISSELECTED) ?
+                SELECTED : DEFAULT;
     }
 
     // documentation inherited
@@ -141,7 +149,7 @@ public class ToggleButton extends Button
     /** Used to track whether we are selected or not. */
     protected boolean _selected;
 
-    protected static final int STATE_COUNT = Button.STATE_COUNT + 3;
+    protected static final int STATE_COUNT = Button.STATE_COUNT + 4;
     protected static final String[] STATE_PCLASSES = {
-        "Selected", "HoverSelected", "Disselected" };
+        "Selected", "HoverSelected", "DownSelected", "Disselected" };
 }

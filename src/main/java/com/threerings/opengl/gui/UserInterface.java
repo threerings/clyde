@@ -44,6 +44,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
+import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
 
@@ -764,8 +765,46 @@ public class UserInterface extends Container
         }
     }
 
+    protected class UIScope
+        extends DynamicScope
+    {
+        public UIScope (Object owner, String name)
+        {
+            super(owner, name, null);
+        }
+
+        @Override
+        public <T> T get (String name, Class<T> clazz)
+        {
+            int dot = name.indexOf('.');
+            if (dot != -1) {
+                Component c = getComponent(name.substring(0, dot));
+                Object value = null;
+                if (c != null) {
+                    String arg = name.substring(dot + 1);
+
+                    if (arg.equals("visible")) {
+                        value = new MutableBoolean(c.isVisible());
+                    } else if (arg.equals("enabled")) {
+                        value = new MutableBoolean(c.isEnabled());
+                    } else if (arg.equals("added")) {
+                        value = new MutableBoolean(c.isAdded());
+                    } else if (arg.equals("hoverable")) {
+                        value = new MutableBoolean(c.isHoverable());
+                    } else if (arg.equals("selected") && c instanceof ToggleButton) {
+                        value = new MutableBoolean(((ToggleButton)c).isSelected());
+                    }
+                }
+                if (clazz.isInstance(value)) {
+                    return clazz.cast(value);
+                }
+            }
+            return super.get(name, clazz);
+        }
+    }
+
     /** The user interface scope. */
-    protected DynamicScope _scope = new DynamicScope(this, "interface");
+    protected DynamicScope _scope = new UIScope(this, "interface");
 
     /** The configuration of this interface. */
     protected UserInterfaceConfig _config;
