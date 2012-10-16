@@ -941,6 +941,7 @@ public class Animation extends SimpleScope
     /**
      * Returns the speed modifier.
      */
+    @Scoped
     public float getSpeedModifier ()
     {
         return _speedModifier;

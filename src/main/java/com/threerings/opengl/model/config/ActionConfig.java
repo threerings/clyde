@@ -46,9 +46,12 @@ import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.model.Articulated;
+import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
+
+import static com.threerings.opengl.Log.*;
 
 /**
  * Configurations for actions taken by models.
@@ -89,8 +92,12 @@ public abstract class ActionConfig extends DeepObject
     public static class SpawnTransient extends ActionConfig
     {
         /** Whether or not to move the transient with its origin. */
-        @Editable
+        @Editable(hgroup="u")
         public boolean moveWithOrigin;
+
+        /** Whether or not to propogate animation speed modifiers. */
+        @Editable(hgroup="u")
+        public boolean modifyAnimSpeed;
 
         /** The model to spawn. */
         @Editable(nullable=true)
@@ -120,15 +127,26 @@ public abstract class ActionConfig extends DeepObject
             final Transform3D parent = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
+            final Function getSpeedModifier = modifyAnimSpeed ?
+                ScopeUtil.resolve(scope, "getSpeedModifier", Function.NULL) :
+                null;
             return new Executor() {
                 public void execute () {
                     final Scene.Transient spawned = (Scene.Transient)spawnTransient.call(
                         model, parent.compose(transform, _world));
-                    if (moveWithOrigin && spawned != null) {
+                    if ((moveWithOrigin || getSpeedModifier != null) && spawned != null) {
                         // install an updater to update the transform
                         spawned.setUpdater(new Updater() {
                             public void update () {
-                                spawned.setLocalTransform(parent.compose(transform, _world));
+                                if (moveWithOrigin) {
+                                    spawned.setLocalTransform(parent.compose(transform, _world));
+                                }
+                                if (getSpeedModifier != null) {
+                                    float mod = (Float)getSpeedModifier.call();
+                                    for (Animation anim : spawned.getPlayingAnimations()) {
+                                        anim.setSpeedModifier(mod);
+                                    }
+                                }
                             }
                         });
                     }
