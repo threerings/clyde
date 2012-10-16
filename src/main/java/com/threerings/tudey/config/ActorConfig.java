@@ -71,6 +71,11 @@ public class ActorConfig extends ParameterizedConfig
         public abstract Original getOriginal (ConfigManager cfgmgr);
 
         /**
+         * Get the shape config for this config.
+         */
+        public abstract ShapeConfig getShape (ConfigManager cfgmgr);
+
+        /**
          * Creates or updates a sprite implementation for this configuration.
          *
          * @param scope the actor's expression scope.
@@ -99,7 +104,7 @@ public class ActorConfig extends ParameterizedConfig
         @Editable
         public ActorSpriteConfig sprite = new ActorSpriteConfig.Default();
 
-        /** The shape of the actor. */
+        /** The shape of the actor. Use getShape() to access this. */
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
@@ -178,6 +183,12 @@ public class ActorConfig extends ParameterizedConfig
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
+        }
+
+        @Override
+        public ShapeConfig getShape (ConfigManager cfgmgr)
+        {
+            return shape;
         }
 
         @Override // documentation inherited
@@ -332,6 +343,12 @@ public class ActorConfig extends ParameterizedConfig
         {
             ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
             return (config == null) ? null : config.getOriginal(cfgmgr);
+        }
+
+        @Override
+        public ShapeConfig getShape (ConfigManager cfgmgr)
+        {
+            return getOriginal(cfgmgr).getShape(cfgmgr);
         }
 
         @Override // documentation inherited

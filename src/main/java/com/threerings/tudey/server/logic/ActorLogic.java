@@ -83,7 +83,7 @@ public class ActorLogic extends Logic
         } else {
             _actor = (Actor)actor.clone();
         }
-        _shape = new ShapeElement(config.shape);
+        _shape = new ShapeElement(config.getShape(scenemgr.getConfigManager()));
         _shape.setUserObject(this);
         updateShape();
         updateCollisionFlags();

@@ -155,7 +155,8 @@ public class ActorAdvancer
     protected void updateShape ()
     {
         _transform.set(_actor.getTranslation(), _actor.getRotation(), 1f);
-        _shape = _actor.getOriginal().shape.getShape().transform(_transform, _shape);
+        _shape = _actor.getOriginal().getShape(_environment.getSceneModel().getConfigManager())
+            .getShape().transform(_transform, _shape);
     }
 
     /** The actor's environment. */

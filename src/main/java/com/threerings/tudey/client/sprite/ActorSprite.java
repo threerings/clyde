@@ -975,7 +975,7 @@ public class ActorSprite extends Sprite
         _model.setUserObject(this);
         _attachedModels = Maps.newHashMap();
         _attachedModels.put(_model, true);
-        _shape = new ShapeElement(_actor.getOriginal().shape);
+        _shape = new ShapeElement(_actor.getOriginal().getShape(ctx.getConfigManager()));
         _shape.setUserObject(this);
 
         // register as tick participant
@@ -1494,7 +1494,8 @@ public class ActorSprite extends Sprite
     protected void updateShape ()
     {
         _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
-        _shape.setConfig(_actor.getOriginal().shape); // also updates the bounds
+        // resetting the config also updates the bounds
+        _shape.setConfig(_actor.getOriginal().getShape(_ctx.getConfigManager()));
     }
 
     /**
