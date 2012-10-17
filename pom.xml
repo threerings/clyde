@@ -4,7 +4,7 @@
   <groupId>com.threerings</groupId>
   <artifactId>clyde</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.18</version>
+  <version>1.0.19</version>
   <name>clyde</name>
   <description>A collection of Java packages for making networked 3D games.</description>
   <url>http://code.google.com/p/clyde/</url>
@@ -64,7 +64,7 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>nenya</artifactId>
-      <version>1.4</version>
+      <version>1.4.2</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
