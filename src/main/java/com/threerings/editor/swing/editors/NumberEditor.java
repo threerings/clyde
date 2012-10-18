@@ -30,6 +30,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.google.common.primitives.Primitives;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.PropertyEditor;
@@ -101,19 +103,73 @@ public class NumberEditor extends PropertyEditor
      */
     protected Number fromDouble (double value)
     {
-        Class<?> type = _property.getType();
-        if (type == Byte.TYPE || type == Byte.class) {
+        Class<?> type = Primitives.unwrap(_property.getType());
+        if (type == Byte.TYPE) {
             return (byte)value;
-        } else if (type == Double.TYPE || type == Double.class) {
+        } else if (type == Double.TYPE) {
             return value;
-        } else if (type == Float.TYPE || type == Float.class) {
+        } else if (type == Float.TYPE) {
             return (float)value;
-        } else if (type == Integer.TYPE || type == Integer.class) {
+        } else if (type == Integer.TYPE) {
             return (int)value;
-        } else if (type == Long.TYPE || type == Long.class) {
+        } else if (type == Long.TYPE) {
             return (long)value;
-        } else { // type == Short.TYPE || type == Short.class
+        } else { // type == Short.TYPE
             return (short)value;
+        }
+    }
+
+    @Override
+    protected double getMinimum ()
+    {
+        return Math.max(super.getMinimum(), getTypeMinimum());
+    }
+
+    @Override
+    protected double getMaximum ()
+    {
+        return Math.min(super.getMaximum(), getTypeMaximum());
+    }
+
+    /**
+     * Get an overridden minimum based on the type of the property we're editing.
+     */
+    protected double getTypeMinimum ()
+    {
+        Class<?> type = Primitives.unwrap(_property.getType());
+        if (type == Byte.TYPE) {
+            return Byte.MIN_VALUE;
+        } else if (type == Double.TYPE) {
+            return -Double.MAX_VALUE;
+        } else if (type == Float.TYPE) {
+            return -Float.MAX_VALUE;
+        } else if (type == Integer.TYPE) {
+            return Integer.MIN_VALUE;
+        } else if (type == Long.TYPE) {
+            return Long.MIN_VALUE;
+        } else { // type == Short.TYPE
+            return Short.MIN_VALUE;
+        }
+    }
+
+    /**
+     * Get an overridden maximum based on the type of the property we're editing.
+     */
+    protected double getTypeMaximum ()
+    {
+        Class<?> type = Primitives.unwrap(_property.getType());
+        if (type == Byte.TYPE) {
+            return Byte.MAX_VALUE;
+        } else if (type == Double.TYPE) {
+            return Double.MAX_VALUE;
+        } else if (type == Float.TYPE) {
+            return Float.MAX_VALUE;
+        } else if (type == Integer.TYPE) {
+            return Integer.MAX_VALUE;
+        } else if (type == Long.TYPE) {
+            return Long.MAX_VALUE;
+        } else { // type == Short.TYPE
+            return Short.MAX_VALUE;
         }
     }
 
