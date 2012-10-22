@@ -70,7 +70,6 @@ import com.threerings.editor.swing.editors.NumberEditor;
 import com.threerings.editor.swing.editors.ObjectEditor;
 import com.threerings.editor.swing.editors.ObjectPanelArrayListEditor;
 import com.threerings.editor.swing.editors.PathTableArrayListEditor;
-import com.threerings.editor.swing.editors.PropertyViewer;
 import com.threerings.editor.swing.editors.QuaternionEditor;
 import com.threerings.editor.swing.editors.ResourceEditor;
 import com.threerings.editor.swing.editors.StringEditor;
@@ -380,7 +379,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass("mask", MaskEditor.class);
         registerEditorClass("paths", PathTableArrayListEditor.class);
         registerEditorClass("getPath", GetPathEditor.class);
-        registerEditorClass("viewer", PropertyViewer.class);
         registerEditorClass("datetime", DateTimeEditor.class);
         registerEditorClass("date", DateTimeEditor.DateOnlyEditor.class);
         registerEditorClass("time", DateTimeEditor.TimeOnlyEditor.class);
