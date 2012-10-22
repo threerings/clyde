@@ -169,9 +169,8 @@ public class DateTimeEditor extends PropertyEditor
 
         configureFormat();
 
-        if (_property.getAnnotation().constant()) {
-            _field.setEnabled(false);
-        }
+        // disable the field if we're in constant mode
+        _field.setEnabled(!_property.getAnnotation().constant());
     }
 
     /**
