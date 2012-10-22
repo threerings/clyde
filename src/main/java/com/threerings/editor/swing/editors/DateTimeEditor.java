@@ -168,6 +168,10 @@ public class DateTimeEditor extends PropertyEditor
         addUnits(this);
 
         configureFormat();
+
+        if (_property.getAnnotation().constant()) {
+            _field.setEnabled(false);
+        }
     }
 
     /**
