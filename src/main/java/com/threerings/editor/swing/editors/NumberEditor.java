@@ -66,6 +66,10 @@ public class NumberEditor extends PropertyEditor
     public void update ()
     {
         double value = ((Number)_property.get(_object)).doubleValue() / _scale;
+        if (_property.getAnnotation().constant()) {
+            _value.setText(String.valueOf(value));
+            return;
+        }
         _spinner.setValue(value);
         if (_slider != null) {
             _slider.setValue((int)Math.round(value / _step));
@@ -80,21 +84,26 @@ public class NumberEditor extends PropertyEditor
         double max = getMaximum();
         _step = getStep();
         _scale = getScale();
-        if (getMode().equals("wide") && min != -Double.MAX_VALUE &&
-                max != +Double.MAX_VALUE) {
-            add(_slider = new JSlider(
-                (int)Math.round(min / _step),
-                (int)Math.round(max / _step)));
-            _slider.setBackground(null);
-            _slider.addChangeListener(this);
+        if (_property.getAnnotation().constant()) {
+            add(_value = new JLabel(" "));
+            return;
+        } else {
+            if (getMode().equals("wide") && min != -Double.MAX_VALUE &&
+                    max != +Double.MAX_VALUE) {
+                add(_slider = new JSlider(
+                    (int)Math.round(min / _step),
+                    (int)Math.round(max / _step)));
+                _slider.setBackground(null);
+                _slider.addChangeListener(this);
+            }
+            add(_spinner = new DraggableSpinner(min, min, max, _step));
+            if (getMode().equals("sized")) {
+                ((DraggableSpinner.NumberEditor)_spinner.getEditor()).getTextField().setColumns(
+                    _property.getAnnotation().width());
+                _spinner.setPreferredSize(null);
+            }
+            _spinner.addChangeListener(this);
         }
-        add(_spinner = new DraggableSpinner(min, min, max, _step));
-        if (getMode().equals("sized")) {
-            ((DraggableSpinner.NumberEditor)_spinner.getEditor()).getTextField().setColumns(
-                _property.getAnnotation().width());
-            _spinner.setPreferredSize(null);
-        }
-        _spinner.addChangeListener(this);
         addUnits(this);
     }
 
@@ -178,6 +187,9 @@ public class NumberEditor extends PropertyEditor
 
     /** The spinner. */
     protected DraggableSpinner _spinner;
+
+    /** The label when in constant mode. */
+    protected JLabel _value;
 
     /** The step size as retrieved from the annotation. */
     protected double _step;
