@@ -128,7 +128,8 @@ public class ComboBox<T> extends Label
     {
         clearCache();
         _items.clear();
-        _selidx = -1;
+        // if we previously had a selection, be sure to clear the label
+        setSelectedIndex(-1);
     }
 
     /**
@@ -217,6 +218,10 @@ public class ComboBox<T> extends Label
         // maybe adjust the selected index
         if (index <= _selidx) {
             _selidx++;
+
+        } else if (_items.size() == 1) {
+            // first item added: select it
+            setSelectedIndex(0);
         }
         clearCache();
     }
@@ -242,7 +247,7 @@ public class ComboBox<T> extends Label
     // from Selectable<T>
     public void setSelectedIndex (int index)
     {
-        selectItem(index, 0L, 0);
+        selectItem(index, System.currentTimeMillis(), 0);
     }
 
     /**
