@@ -51,6 +51,7 @@ import com.threerings.tudey.util.Coord;
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
     ActionConfig.SpawnTransformedActor.class, ActionConfig.SpawnRandomTranslatedActor.class,
+    ActionConfig.SpawnFacingActor.class,
     ActionConfig.DestroyActor.class, ActionConfig.RotateActor.class,
     ActionConfig.WarpActor.class, ActionConfig.WarpTransformedActor.class,
     ActionConfig.FireEffect.class,
@@ -214,6 +215,28 @@ public abstract class ActionConfig extends DeepObject
             collisionSource.invalidate();
         }
 
+    }
+
+    /**
+     * Spawns a new actor facing a target.
+     */
+    public static class SpawnFacingActor extends SpawnActor
+    {
+        /** The location where we'll face the spawned actor. */
+        @Editable
+        public TargetConfig facing = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$SpawnFacingActor";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            facing.invalidate();
+        }
     }
 
     /**

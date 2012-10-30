@@ -260,6 +260,52 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a spawn facing actor action.
+     */
+    public static class SpawnFacingActor extends SpawnActor
+    {
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _facing.transfer(((SpawnFacingActor)source)._facing, refs);
+        }
+
+        @Override // documentation inherited
+        protected boolean spawnActor (
+                int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
+        {
+            _facing.resolve(activator, _faces);
+            boolean result = super.spawnActor(timestamp, actor, target, activator);
+            _faces.clear();
+            return result;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+            _facing = createTarget(((ActionConfig.SpawnFacingActor)_config).facing, _source);
+        }
+
+        @Override // documentation inherited
+        protected float getRotation (Logic target)
+        {
+            if (_faces.size() > 0) {
+                Logic face = _faces.get(0);
+                return target.getTranslation().direction(face.getTranslation());
+            }
+            return super.getRotation(target);
+        }
+
+        /** The possible facing targets. */
+        protected ArrayList<Logic> _faces = Lists.newArrayList();
+
+        /** The facing location. */
+        protected TargetLogic _facing;
+    }
+
+    /**
      * Handles a destroy actor action.
      */
     public static class DestroyActor extends Targeted
