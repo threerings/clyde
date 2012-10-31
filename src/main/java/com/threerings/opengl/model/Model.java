@@ -943,6 +943,12 @@ public class Model extends DynamicScope
     }
 
     // documentation inherited from interface SceneElement
+    public boolean isInfluenceable ()
+    {
+        return _impl.getInfluenceFlags() != 0;
+    }
+
+    // documentation inherited from interface SceneElement
     public boolean updateLastVisit (int visit)
     {
         if (_lastVisit == visit) {

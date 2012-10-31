@@ -61,4 +61,9 @@ public interface SceneElement extends SceneObject, Tickable, Intersectable, Comp
      * Sets the influences affecting this element.
      */
     public void setInfluences (SceneInfluenceSet influences);
+
+    /**
+     * Returns true in this element is influenceable.
+     */
+    public boolean isInfluenceable ();
 }

@@ -587,7 +587,9 @@ public abstract class Scene extends DynamicScope
             for (int ii = 0; ii < _updateInfluencesCount; ii++) {
                 SceneElement element = _updateArray[ii];
                 boolean contains = _updateInfluences.contains(element);
-                getInfluences(element.getBounds(), _influences);
+                if (element.isInfluenceable()) {
+                    getInfluences(element.getBounds(), _influences);
+                }
                 dumpInfluence(element, "set influences", 0);
                 element.setInfluences(_influences);
                 _influences.clear();

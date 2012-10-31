@@ -167,6 +167,12 @@ public abstract class SimpleSceneElement extends SimpleTransformable
         _influences.addAll(influences);
     }
 
+    // documentation inherited from interface SceneElement
+    public boolean isInfluenceable ()
+    {
+        return true;
+    }
+
     // documentation inherited from interface SceneObject
     public Box getBounds ()
     {
