@@ -86,7 +86,9 @@ public class InputFrame extends DeepObject
      */
     public Vector2f getTranslation ()
     {
-        return _translation;
+        // currently disabled
+        //return _translation;
+        return null;
     }
 
     /**
