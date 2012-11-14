@@ -4,7 +4,7 @@
   <groupId>com.threerings</groupId>
   <artifactId>clyde</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.20</version>
+  <version>1.1-SNAPSHOT</version>
   <name>clyde</name>
   <description>A collection of Java packages for making networked 3D games.</description>
   <url>http://code.google.com/p/clyde/</url>
