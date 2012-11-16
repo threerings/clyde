@@ -963,7 +963,7 @@ public class TudeySceneManager extends SceneManager
             Logic entrance = (portalKey instanceof EntityKey.Actor) ?
                 getActorLogic(((EntityKey.Actor)portalKey).getId()) : (Logic)portalKey;
             if (entrance != null && entrance.isActive()) {
-                return new Transform2D(entrance.getTranslation(), entrance.getRotation());
+                return entrance.getPortalTransform();
             }
         } else if (portalKey instanceof String) {
             Logic entrance = Randoms.RAND.pick(getTagged((String)portalKey), null);

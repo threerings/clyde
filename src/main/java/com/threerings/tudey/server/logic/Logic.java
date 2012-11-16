@@ -145,6 +145,14 @@ public abstract class Logic extends ShallowObject
     }
 
     /**
+     * Returns the transform to use when a portal.
+     */
+    public Transform2D getPortalTransform ()
+    {
+        return getTransform();
+    }
+
+    /**
      * Returns the translation of this logic for the purpose of spawning actors, etc.
      */
     public Vector2f getTranslation ()
