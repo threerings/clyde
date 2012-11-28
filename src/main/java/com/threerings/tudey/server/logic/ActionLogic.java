@@ -813,6 +813,17 @@ public abstract class ActionLogic extends Logic
     public static class Compound extends ActionLogic
     {
         @Override // documentation inherited
+        public boolean shouldExecute (Logic activator)
+        {
+            for (ActionLogic action : _actions) {
+                if (action.shouldExecute(activator)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
         {
             boolean success = false;
