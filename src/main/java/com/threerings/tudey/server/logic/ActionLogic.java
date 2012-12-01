@@ -88,6 +88,18 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles the "none" action.
+     */
+    public static class None extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            return true;
+        }
+    }
+
+    /**
      * Handles a spawn actor action.
      */
     public static class SpawnActor extends ActionLogic

@@ -49,7 +49,7 @@ import com.threerings.tudey.util.Coord;
  * Configurations for server-side actions.
  */
 @EditorTypes({
-    ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
+    ActionConfig.None.class, ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
     ActionConfig.SpawnTransformedActor.class, ActionConfig.SpawnRandomTranslatedActor.class,
     ActionConfig.SpawnFacingActor.class,
     ActionConfig.DestroyActor.class, ActionConfig.RotateActor.class,
@@ -80,6 +80,18 @@ public abstract class ActionConfig extends DeepObject
          * Pre-executes the action on the owning client.
          */
         public void preExecute (TudeySceneView view, ActorSprite sprite, int timestamp);
+    }
+
+    /**
+     * A non-action.
+     */
+    public static class None extends ActionConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$None";
+        }
     }
 
     /**
