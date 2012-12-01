@@ -45,6 +45,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -1608,6 +1609,14 @@ public class TudeySceneModel extends SceneModel
                 return _tiles.size() + _entries.size();
             }
         };
+    }
+
+    /**
+     * Return an Iterable over only the entry types specified.
+     */
+    public <E extends Entry> Iterable<E> getEntries (Class<E> clazz)
+    {
+        return Iterables.filter(getEntries(), clazz);
     }
 
     /**
