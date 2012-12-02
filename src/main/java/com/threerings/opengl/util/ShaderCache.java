@@ -69,7 +69,7 @@ public class ShaderCache extends ResourceCache
      */
     public Shader getShader (String path, String... defs)
     {
-        return getShader(path, defs, new String[0]);
+        return getShader(path, defs, ArrayUtil.EMPTY_STRING);
     }
 
     /**

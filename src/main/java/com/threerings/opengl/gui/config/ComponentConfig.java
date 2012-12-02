@@ -27,6 +27,7 @@ package com.threerings.opengl.gui.config;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigReference;
@@ -410,7 +411,7 @@ public abstract class ComponentConfig extends DeepObject
     {
         /** The items available for selection. */
         @Editable
-        public String[] items = new String[0];
+        public String[] items = ArrayUtil.EMPTY_STRING;
 
         /** The index of the selected item. */
         @Editable(min=0)

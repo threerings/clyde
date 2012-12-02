@@ -31,6 +31,8 @@ import org.lwjgl.opengl.GLContext;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
@@ -194,8 +196,8 @@ public abstract class ShaderStateConfig extends DeepObject
     public void populateDescriptor (GlContext ctx, PassDescriptor desc)
     {
         desc.coordSpace = CoordSpace.OBJECT;
-        desc.hints = new String[0];
-        desc.vertexAttribs = new String[0];
+        desc.hints = ArrayUtil.EMPTY_STRING;
+        desc.vertexAttribs = ArrayUtil.EMPTY_STRING;
     }
 
     /**

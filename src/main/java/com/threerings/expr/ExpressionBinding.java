@@ -29,6 +29,7 @@ import java.util.ArrayList;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.Tuple;
 
 import com.threerings.config.ConfigManager;
@@ -201,11 +202,11 @@ public abstract class ExpressionBinding extends DeepObject
 
     /** The paths of the bound variables. */
     @Editable(width=40)
-    public String[] paths = new String[0];
+    public String[] paths = ArrayUtil.EMPTY_STRING;
 
     /** The paths of any dirty flags to set. */
     @Editable(width=40)
-    public String[] flags = new String[0];
+    public String[] flags = ArrayUtil.EMPTY_STRING;
 
     /**
      * Creates a value updater for the supplied context and target object.

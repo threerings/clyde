@@ -34,6 +34,7 @@ import java.util.ArrayList;
 
 import proguard.annotation.Keep;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 
 import com.threerings.editor.ArgumentPathProperty;
@@ -67,7 +68,7 @@ public abstract class Parameter extends DeepObject
         /** The reference paths of the properties that this parameter adjusts.  The first valid
          * path determines the type and default value. */
         @Editable(width=40, editor="paths")
-        public String[] paths = new String[0];
+        public String[] paths = ArrayUtil.EMPTY_STRING;
 
         @Override // documentation inherited
         public boolean validatePaths (String where, ParameterizedConfig reference, PrintStream out)

@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.config;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
@@ -41,7 +43,7 @@ public class TagConfig extends DeepObject
 {
     /** The base tag array. */
     @Editable
-    public String[] tags = new String[0];
+    public String[] tags = ArrayUtil.EMPTY_STRING;
 
     /** The derived tag config. */
     @Editable(editor="getPath", nullable=true)

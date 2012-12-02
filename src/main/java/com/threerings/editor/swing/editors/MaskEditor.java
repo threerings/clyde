@@ -44,6 +44,7 @@ import javax.swing.event.DocumentListener;
 
 import com.google.common.collect.Maps;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.Config;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
@@ -219,7 +220,7 @@ public class MaskEditor extends PropertyEditor
         Config config = new Config("/rsrc/config/editor/mask");
         for (Iterator<String> it = config.keys(); it.hasNext(); ) {
             String key = it.next();
-            _modes.put(key, config.getValue(key, new String[0]));
+            _modes.put(key, config.getValue(key, ArrayUtil.EMPTY_STRING));
         }
     }
 }

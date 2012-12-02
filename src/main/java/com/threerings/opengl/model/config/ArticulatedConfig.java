@@ -33,6 +33,7 @@ import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ComparableTuple;
 import com.samskivert.util.QuickSort;
 
@@ -526,7 +527,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
     public String[] getNodeNames ()
     {
         if (root == null) {
-            return new String[0];
+            return ArrayUtil.EMPTY_STRING;
         }
         ArrayList<String> names = new ArrayList<String>();
         root.getNames(names);

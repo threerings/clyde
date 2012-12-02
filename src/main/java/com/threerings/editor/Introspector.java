@@ -51,7 +51,7 @@ public class Introspector
     {
         String[] categories = _categories.get(clazz);
         if (categories == null) {
-            categories = new String[0];
+            categories = ArrayUtil.EMPTY_STRING;
             for (Property prop : getProperties(clazz)) {
                 String category = prop.getAnnotation().category();
                 if (!ListUtil.contains(categories, category)) {

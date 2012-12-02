@@ -51,6 +51,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntSet;
 import com.samskivert.util.Interator;
 import com.samskivert.util.ObserverList;
@@ -1937,7 +1938,7 @@ public class TudeySceneModel extends SceneModel
         if (_exportLayers) {
             int layerCount = _layers.size();
             out.write("layers", _layers.toArray(new String[layerCount]),
-                new String[0], String[].class);
+                ArrayUtil.EMPTY_STRING, String[].class);
             // invert the layerMap to output it...
             List<List<Integer>> layers = Lists.newArrayList();
             for (int ii = 0; ii < layerCount; ii++) {
@@ -2003,7 +2004,7 @@ public class TudeySceneModel extends SceneModel
         }
 
         // read in the layer information
-        _layers = Lists.newArrayList(in.read("layers", new String[0], String[].class));
+        _layers = Lists.newArrayList(in.read("layers", ArrayUtil.EMPTY_STRING, String[].class));
         _layerMap = Maps.newHashMap();
         int[] DEFAULT = new int[0];
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {

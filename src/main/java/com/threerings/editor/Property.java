@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ClassUtil;
 import com.samskivert.util.Config;
 import com.samskivert.util.ListUtil;
@@ -735,7 +736,7 @@ public abstract class Property extends DeepObject
         for (Iterator<String> it = config.keys(); it.hasNext(); ) {
             String key = it.next();
             ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
-            for (String cname : config.getValue(key, new String[0])) {
+            for (String cname : config.getValue(key, ArrayUtil.EMPTY_STRING)) {
                 try {
                     addSubtypes(Class.forName(cname), classes);
                 } catch (ClassNotFoundException e) {

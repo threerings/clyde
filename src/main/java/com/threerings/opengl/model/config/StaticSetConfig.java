@@ -32,6 +32,7 @@ import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ComparableTuple;
 
 import com.threerings.editor.Editable;
@@ -66,8 +67,8 @@ public class StaticSetConfig extends ModelConfig.Imported
     @Keep
     public String[] getModelOptions ()
     {
-        return (meshes == null) ?
-            new String[0] : meshes.keySet().toArray(new String[meshes.size()]);
+        return ((meshes == null) || meshes.isEmpty()) ?
+            ArrayUtil.EMPTY_STRING : meshes.keySet().toArray(new String[meshes.size()]);
     }
 
     @Override // documentation inherited

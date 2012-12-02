@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.model.config;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -393,7 +395,7 @@ public class AnimationConfig extends ParameterizedConfig
     {
         /** The nodes to affect. */
         @Editable
-        public String[] targets = new String[0];
+        public String[] targets = ArrayUtil.EMPTY_STRING;
 
         /** The expression that determines the transform. */
         @Editable

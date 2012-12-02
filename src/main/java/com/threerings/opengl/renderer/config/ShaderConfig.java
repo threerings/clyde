@@ -32,6 +32,8 @@ import java.util.HashSet;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -137,11 +139,11 @@ public class ShaderConfig extends ParameterizedConfig
     {
         /** Hints to pass to the geometry handler. */
         @Editable(width=15)
-        public String[] hints = new String[0];
+        public String[] hints = ArrayUtil.EMPTY_STRING;
 
         /** The names of the attributes required by this shader. */
         @Editable(width=15)
-        public String[] attributes = new String[0];
+        public String[] attributes = ArrayUtil.EMPTY_STRING;
 
         /** The coordinate space in which the shader operates. */
         @Editable(hgroup="t")
