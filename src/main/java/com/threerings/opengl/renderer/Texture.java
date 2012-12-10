@@ -52,6 +52,7 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.SGISGenerateMipmap;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.IntListUtil;
 
 /**
@@ -530,7 +531,7 @@ public abstract class Texture
     protected int _depthMode = GL11.GL_LUMINANCE;
 
     /** The number of bytes occupied by each mipmap level. */
-    protected int[] _bytes = new int[0];
+    protected int[] _bytes = ArrayUtil.EMPTY_INT;
 
     /** A buffer for floating point values. */
     protected static FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);

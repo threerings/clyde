@@ -1947,9 +1947,8 @@ public class TudeySceneModel extends SceneModel
             for (Map.Entry<Integer, Integer> entry : _layerMap.entrySet()) {
                 layers.get(entry.getValue() - 1).add(entry.getKey());
             }
-            int[] DEFAULT = new int[0];
             for (int ii = 0; ii < layerCount; ii++) {
-                out.write("layer" + (ii + 1), Ints.toArray(layers.get(ii)), DEFAULT);
+                out.write("layer" + (ii + 1), Ints.toArray(layers.get(ii)), ArrayUtil.EMPTY_INT);
             }
         }
     }
@@ -2006,10 +2005,9 @@ public class TudeySceneModel extends SceneModel
         // read in the layer information
         _layers = Lists.newArrayList(in.read("layers", ArrayUtil.EMPTY_STRING, String[].class));
         _layerMap = Maps.newHashMap();
-        int[] DEFAULT = new int[0];
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             Integer layer = (ii + 1);
-            for (int key : in.read("layer" + layer, DEFAULT)) {
+            for (int key : in.read("layer" + layer, ArrayUtil.EMPTY_INT)) {
                 _layerMap.put(key, layer);
             }
         }
