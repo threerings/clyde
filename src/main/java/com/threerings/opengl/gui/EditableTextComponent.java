@@ -526,7 +526,7 @@ public abstract class EditableTextComponent extends TextComponent
         if (!hasFocus() && usePlaceholder()) {
             return _placeholder;
         }
-        return _text.getText();
+        return getText();
     }
 
     /**
