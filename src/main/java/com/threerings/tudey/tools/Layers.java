@@ -29,6 +29,8 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
@@ -56,7 +58,6 @@ import javax.swing.table.TableColumnModel;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.primitives.Ints;
 
 import com.samskivert.swing.GroupLayout;
 
@@ -146,8 +147,17 @@ public class Layers extends EditorTool
     {
         int layerCount = _table.getRowCount();
         int layer = (getSelectedLayer() + (next ? 1 : layerCount - 1)) % layerCount;
-        _tableModel.setVisibilities(0, layer);
+        setVisibleLayers(Arrays.asList(0, layer));
         setSelectedLayer(layer);
+    }
+
+    /**
+     * Set the visible layers.
+     * If a layer index is not in the collection, it will be invisible.
+     */
+    public void setVisibleLayers (Collection<Integer> layersToMakeVisible)
+    {
+        _tableModel.setVisibilities(layersToMakeVisible);
     }
 
     /**
@@ -428,11 +438,10 @@ class LayerTableModel extends AbstractTableModel
     /**
      * Update the visibilities of each layer, en masse.
      */
-    public void setVisibilities (int... visibleLayers)
+    public void setVisibilities (Collection<Integer> visibleLayers)
     {
-        List<Integer> viz = Ints.asList(visibleLayers);
         for (int ii = 0, nn = _vis.size(); ii < nn; ii++) {
-            _vis.set(ii, viz.contains(ii));
+            _vis.set(ii, visibleLayers.contains(ii));
         }
         fireTableDataChanged();
         // update every damn entry
