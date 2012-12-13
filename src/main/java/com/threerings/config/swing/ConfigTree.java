@@ -28,7 +28,8 @@ package com.threerings.config.swing;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.JComponent;
@@ -42,6 +43,11 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
@@ -158,6 +164,9 @@ public class ConfigTree extends JTree
         }
         try {
             ManagedConfig config = event.getConfig();
+            if (!_filter.apply(config)) {
+                return;
+            }
             ConfigTreeNode root = (ConfigTreeNode)getModel().getRoot();
             Tuple<ConfigTreeNode, ConfigTreeNode> point =
                 root.getInsertionPoint(config, config.getName());
@@ -383,29 +392,44 @@ public class ConfigTree extends JTree
             }
         });
 
-        // build the tree model and listen for updates
-        ConfigTreeNode root = (ConfigTreeNode)getModel().getRoot();
+        // start listening on each group
         for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : group.getConfigs()) {
-                root.insertConfig(config, config.getName());
-            }
             group.addListener(this);
         }
-        ((DefaultTreeModel)getModel()).reload();
+
+        readExpanded();
+        updateFiltered();
+    }
+
+    /**
+     * Update the filtered view of the tree. Remakes the entire tree.
+     */
+    protected void updateFiltered ()
+    {
+        DefaultTreeModel model = (DefaultTreeModel)getModel();
+
+        // build the tree model and listen for updates
+        ConfigTreeNode root = new ConfigTreeNode(null, null);
+        model.setRoot(root);
+        for (ConfigGroup<ManagedConfig> group : _groups) {
+            for (ManagedConfig config : Iterables.filter(group.getConfigs(), _filter)) {
+                root.insertConfig(config, config.getName());
+            }
+        }
+        model.reload();
 
         // the root is always expanded
         root.setExpanded(true);
 
-        // read in the names of the paths to expand
-        String names = _prefs.get(_groups[0].getName() + ".expanded", null);
-        if (names == null) {
+        // expand any paths needing it
+        if (_expanded.isEmpty()) {
             // just expand to a default level
             root.expandPaths(this, 1);
+
         } else {
-            for (String name : StringUtil.parseStringArray(names)) {
+            for (String name : _expanded) {
                 ConfigTreeNode node = root.getNode(name);
                 if (node != null) {
-                    _expanded.add(name);
                     node.setExpanded(true);
                 }
             }
@@ -453,6 +477,17 @@ public class ConfigTree extends JTree
     {
         if (_expanded.remove(name)) {
             writeExpanded();
+        }
+    }
+
+    /**
+     * Read in the set of expanded nodes from the preferences.
+     */
+    protected void readExpanded ()
+    {
+        String names = _prefs.get(_groups[0].getName() + ".expanded", null);
+        if (names != null) {
+            _expanded.addAll(Arrays.asList(StringUtil.parseStringArray(names)));
         }
     }
 
@@ -517,13 +552,16 @@ public class ConfigTree extends JTree
     protected ConfigGroup<ManagedConfig>[] _groups;
 
     /** The set of paths currently expanded. */
-    protected HashSet<String> _expanded = new HashSet<String>();
+    protected Set<String> _expanded = Sets.newHashSet();
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
     protected ChangeBlock _block = new ChangeBlock();
 
     /** The configuration that we're listening to, if any. */
     protected ManagedConfig _lconfig;
+
+    /** The current config filter. */
+    protected Predicate<? super ManagedConfig> _filter = Predicates.alwaysTrue();
 
     /** The package preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigTree.class);
