@@ -157,7 +157,9 @@ public class Layers extends EditorTool
      */
     public void setVisibleLayers (Collection<Integer> layersToMakeVisible)
     {
+        int selected = getSelectedLayer();
         _tableModel.setVisibilities(layersToMakeVisible);
+        setSelectedLayer(selected);
     }
 
     /**
