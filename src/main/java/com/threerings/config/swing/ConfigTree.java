@@ -52,7 +52,6 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
-import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 import com.samskivert.util.Tuple;
 
@@ -74,23 +73,6 @@ import static com.threerings.ClydeLog.*;
 public class ConfigTree extends JTree
     implements ConfigGroupListener<ManagedConfig>, ConfigUpdateListener<ManagedConfig>
 {
-    /**
-     * Base class for Observers of a ConfigTree.
-     */
-    public static abstract class Observer
-    {
-        /**
-         * Called when the filter is reset (because a new node has been inserted).
-         */
-        public void filterWasReset () {}
-//
-//        /**
-//         * Called when the selected configuration has been modified by a source <em>other</em> than
-//         * {@link ConfigTree#selectedConfigChanged}.
-//         */
-//        public void selectedConfigUpdated () {}
-    }
-
     /**
      * Creates a new config tree to display the configurations in the specified groups.
      */
@@ -121,22 +103,6 @@ public class ConfigTree extends JTree
             _filter = filter;
             updateFiltered();
         }
-    }
-
-    /**
-     * Add an observer.
-     */
-    public void addObserver (Observer obs)
-    {
-        _observers.add(obs);
-    }
-
-    /**
-     * Remove an observer.
-     */
-    public void removeObserver (Observer obs)
-    {
-        _observers.remove(obs);
     }
 
     /**
@@ -455,6 +421,13 @@ public class ConfigTree extends JTree
      */
     protected void updateFiltered ()
     {
+        // if something was selected, remember its path; otherwise don't overwrite our last
+        // selected path
+        ConfigTreeNode selected = getSelectedNode();
+        if (selected != null) {
+            _lastFilterSelectedPath = selected.getName();
+        }
+
         DefaultTreeModel model = (DefaultTreeModel)getModel();
 
         // build the tree model and listen for updates
@@ -483,6 +456,14 @@ public class ConfigTree extends JTree
                 }
             }
             root.expandPaths(this);
+        }
+
+        // if we have a last-selected path, see if it's available in our new filtered view
+        if (_lastFilterSelectedPath != null) {
+            ConfigTreeNode newSelect = root.getNode(_lastFilterSelectedPath);
+            if (newSelect != null) {
+                setSelectionPath(new TreePath(newSelect.getPath()));
+            }
         }
     }
 
@@ -612,8 +593,8 @@ public class ConfigTree extends JTree
     /** The current config filter. */
     protected Predicate<? super ManagedConfig> _filter;
 
-    /** Our observers. */
-    protected ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
+    /** The last non-null selected path when the filter changed. */
+    protected String _lastFilterSelectedPath;
 
     /** The package preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigTree.class);

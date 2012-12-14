@@ -625,6 +625,9 @@ public class ConfigEditor extends BaseConfigEditor
              */
             protected void newNode (ManagedConfig config)
             {
+                // presently we must clear the filter
+                _filterPanel.clearFilter();
+
                 // find the parent under which we want to add the node
                 ConfigTreeNode snode = _tree.getSelectedNode();
                 ConfigTreeNode parent = (ConfigTreeNode)(snode == null ?

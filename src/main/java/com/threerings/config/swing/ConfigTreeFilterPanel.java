@@ -36,25 +36,30 @@ public class ConfigTreeFilterPanel extends JPanel
     }
 
     /**
+     * Clear the current filter, if not already.
+     */
+    public void clearFilter ()
+    {
+        _input.setText("");
+    }
+
+    /**
      * Set the tree for which we're operating.
      */
     public void setTree (ConfigTree tree)
     {
-        if (_tree != null) {
-            // shit: should we reset the filter on this tree?
-            _tree.removeObserver(_treeObserver);
-        }
+        // Thought: should we reset the filter on the old tree? Right now: no
+//        if (_tree != null) {
+//            _tree.setFilter(null);
+//        }
         _tree = tree;
-        if (_tree != null) {
-            _tree.addObserver(_treeObserver);
-        }
-        resetFilter();
+        setFilter();
     }
 
     /**
      * Set our filter on the tree.
      */
-    protected void resetFilter ()
+    protected void setFilter ()
     {
         if (_tree != null) {
             _tree.setFilter(_filter);
@@ -70,17 +75,11 @@ public class ConfigTreeFilterPanel extends JPanel
     /** The actual filter we're configured with. */
     protected Predicate<ManagedConfig> _filter = null;
 
-    /** Do we want to block changes to the input listener? */
-    protected boolean _block;
-
     /** Listens for changes on the filter document. */
     protected DocumentAdapter _inputListener = new DocumentAdapter() {
         @Override
         public void documentChanged ()
         {
-            if (_block) {
-                return;
-            }
             final String text = _input.getText().trim().toLowerCase();
             _filter = "".equals(text)
                 ? null
@@ -89,22 +88,7 @@ public class ConfigTreeFilterPanel extends JPanel
                         return cfg.getName().toLowerCase().contains(text);
                     }
                 };
-            resetFilter();
-        }
-    };
-
-    /** Observes our tree. */
-    protected ConfigTree.Observer _treeObserver = new ConfigTree.Observer() {
-        @Override
-        public void filterWasReset ()
-        {
-            _block = true;
-            try {
-                _input.setText("");
-
-            } finally {
-                _block = false;
-            }
+            setFilter();
         }
     };
 }
