@@ -462,7 +462,9 @@ public class ConfigTree extends JTree
         if (_lastFilterSelectedPath != null) {
             ConfigTreeNode newSelect = root.getNode(_lastFilterSelectedPath);
             if (newSelect != null) {
-                setSelectionPath(new TreePath(newSelect.getPath()));
+                TreePath path = new TreePath(newSelect.getPath());
+                setSelectionPath(path);
+                scrollPathToVisible(path);
             }
         }
     }
