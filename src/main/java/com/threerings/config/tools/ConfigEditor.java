@@ -94,6 +94,7 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.swing.ConfigTree;
+import com.threerings.config.swing.ConfigTreeFilterPanel;
 import com.threerings.config.swing.ConfigTreeNode;
 
 import static com.threerings.ClydeLog.*;
@@ -436,6 +437,7 @@ public class ConfigEditor extends BaseConfigEditor
                     imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
                 }
                 _pane.setViewportView(_tree);
+                _filterPanel.setTree(_tree);
                 _paste.setEnabled(_clipclass == group.getConfigClass());
                 updateSelection();
             }
@@ -677,6 +679,10 @@ public class ConfigEditor extends BaseConfigEditor
             gpanel.add(gbox = new JComboBox(items));
             gbox.addItemListener(this);
 
+            // add the filtering panel
+            add(_filterPanel = new ConfigTreeFilterPanel(_msgs.get("l.filter_config")),
+                    VGroupLayout.FIXED);
+
             // add the pane that will contain the group tree
             add(_pane = new JScrollPane());
 
@@ -788,6 +794,9 @@ public class ConfigEditor extends BaseConfigEditor
         {
             ((GroupItem)gbox.getSelectedItem()).configChanged();
         }
+
+        /** Holds a configuration filtering panel. */
+        protected ConfigTreeFilterPanel _filterPanel;
 
         /** The scroll pane that holds the group trees. */
         protected JScrollPane _pane;

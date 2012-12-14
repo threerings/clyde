@@ -44,6 +44,7 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
@@ -51,6 +52,7 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 import com.samskivert.util.Tuple;
 
@@ -73,6 +75,23 @@ public class ConfigTree extends JTree
     implements ConfigGroupListener<ManagedConfig>, ConfigUpdateListener<ManagedConfig>
 {
     /**
+     * Base class for Observers of a ConfigTree.
+     */
+    public static abstract class Observer
+    {
+        /**
+         * Called when the filter is reset (because a new node has been inserted).
+         */
+        public void filterWasReset () {}
+//
+//        /**
+//         * Called when the selected configuration has been modified by a source <em>other</em> than
+//         * {@link ConfigTree#selectedConfigChanged}.
+//         */
+//        public void selectedConfigUpdated () {}
+    }
+
+    /**
      * Creates a new config tree to display the configurations in the specified groups.
      */
     public ConfigTree (ConfigGroup... groups)
@@ -88,6 +107,36 @@ public class ConfigTree extends JTree
     public ConfigTree (ConfigGroup group, boolean editable)
     {
         this(new ConfigGroup[] { group }, editable);
+    }
+
+    /**
+     * Set the filter to use.
+     */
+    public void setFilter (Predicate<? super ManagedConfig> filter)
+    {
+        if (filter == null) {
+            filter = Predicates.alwaysTrue();
+        }
+        if (!filter.equals(_filter)) {
+            _filter = filter;
+            updateFiltered();
+        }
+    }
+
+    /**
+     * Add an observer.
+     */
+    public void addObserver (Observer obs)
+    {
+        _observers.add(obs);
+    }
+
+    /**
+     * Remove an observer.
+     */
+    public void removeObserver (Observer obs)
+    {
+        _observers.remove(obs);
     }
 
     /**
@@ -398,7 +447,7 @@ public class ConfigTree extends JTree
         }
 
         readExpanded();
-        updateFiltered();
+        setFilter(null);
     }
 
     /**
@@ -561,7 +610,10 @@ public class ConfigTree extends JTree
     protected ManagedConfig _lconfig;
 
     /** The current config filter. */
-    protected Predicate<? super ManagedConfig> _filter = Predicates.alwaysTrue();
+    protected Predicate<? super ManagedConfig> _filter;
+
+    /** Our observers. */
+    protected ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
 
     /** The package preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigTree.class);
