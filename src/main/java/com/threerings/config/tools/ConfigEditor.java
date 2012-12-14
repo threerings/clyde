@@ -680,8 +680,7 @@ public class ConfigEditor extends BaseConfigEditor
             gbox.addItemListener(this);
 
             // add the filtering panel
-            add(_filterPanel = new ConfigTreeFilterPanel(_msgs.get("l.filter_config")),
-                    VGroupLayout.FIXED);
+            add(_filterPanel = new ConfigTreeFilterPanel(_msgmgr), VGroupLayout.FIXED);
 
             // add the pane that will contain the group tree
             add(_pane = new JScrollPane());

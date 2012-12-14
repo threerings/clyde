@@ -188,6 +188,10 @@ public abstract class ConfigChooser extends JPanel
             _groups = cfgmgr.getGroups(cclass);
 
             setLayout(new BorderLayout());
+
+            _filterPanel = new ConfigTreeFilterPanel(msgmgr);
+            add(_filterPanel, BorderLayout.NORTH);
+
             JPanel bpanel = new JPanel();
             add(bpanel, BorderLayout.SOUTH);
             bpanel.add(_ok = new JButton(_msgs.get("m.ok")));
@@ -209,6 +213,7 @@ public abstract class ConfigChooser extends JPanel
             final ConfigTree tree = new ConfigTree(_groups);
             JScrollPane pane = new JScrollPane(tree);
             add(pane, BorderLayout.CENTER);
+            _filterPanel.setTree(tree);
 
             // add button listeners
             final boolean[] result = new boolean[1];
@@ -269,6 +274,9 @@ public abstract class ConfigChooser extends JPanel
 
         /** The group label. */
         protected String _label;
+
+        /** The config filtering panel. */
+        protected ConfigTreeFilterPanel _filterPanel;
 
         /** The configuration groups. */
         protected ConfigGroup[] _groups;

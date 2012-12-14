@@ -35,9 +35,12 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
+import com.samskivert.swing.GroupLayout;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.swing.ConfigTree;
+import com.threerings.config.swing.ConfigTreeFilterPanel;
 import com.threerings.config.swing.ConfigTreeNode;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.Exportable;
@@ -59,6 +62,10 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         super(editor);
         _clazz = clazz;
         _eref = eref;
+
+        // add the filter panel for configs
+        _filterPanel = new ConfigTreeFilterPanel(editor.getMessageManager());
+        add(_filterPanel, GroupLayout.FIXED);
 
         // create and add the split pane
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
@@ -112,6 +119,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         _pane.setViewportView(_tree = new ConfigTree(scene.getConfigManager().getGroups(_clazz)));
         _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         _tree.addTreeSelectionListener(this);
+        _filterPanel.setTree(_tree);
     }
 
     /**
@@ -150,6 +158,9 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
 
     /** The tree of configs. */
     protected ConfigTree _tree;
+
+    /** The filter panel for the config tree. */
+    protected ConfigTreeFilterPanel _filterPanel;
 
     /** The editor panel that we use to adjust placeable arguments. */
     protected EditorPanel _epanel;

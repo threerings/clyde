@@ -12,6 +12,8 @@ import com.google.common.base.Predicate;
 import com.samskivert.swing.HGroupLayout;
 import com.samskivert.swing.event.DocumentAdapter;
 
+import com.threerings.util.MessageManager;
+
 import com.threerings.config.ManagedConfig;
 
 /**
@@ -19,14 +21,17 @@ import com.threerings.config.ManagedConfig;
  */
 public class ConfigTreeFilterPanel extends JPanel
 {
-    public ConfigTreeFilterPanel (String label)
+    /**
+     * Create a ConfigTreeFilterPanel.
+     */
+    public ConfigTreeFilterPanel (MessageManager msgmgr)
     {
         super(new HGroupLayout(HGroupLayout.STRETCH));
 
         _input = new JTextField();
         _input.getDocument().addDocumentListener(_inputListener);
 
-        add(new JLabel(label), HGroupLayout.FIXED);
+        add(new JLabel(msgmgr.getBundle("config").get("l.filter_config")), HGroupLayout.FIXED);
         add(_input);
     }
 
