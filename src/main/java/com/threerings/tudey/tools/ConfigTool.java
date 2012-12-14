@@ -45,6 +45,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.swing.ConfigTree;
 import com.threerings.config.swing.ConfigTreeFilterPanel;
 import com.threerings.config.swing.ConfigTreeNode;
+import com.threerings.config.swing.RecentConfigList;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -66,12 +67,20 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         _clazz = clazz;
         _eref = eref;
 
-        JList recentList = new JList();
+        _recentConfigs = new RecentConfigList();
+        _recentConfigs.addObserver(new RecentConfigList.Observer() {
+            @Override
+            public void configSelected (ConfigReference<?> ref) {
+                @SuppressWarnings("unchecked") // we only add the right type
+                ConfigReference<T> casted = (ConfigReference<T>)ref;
+                setReference(casted);
+            }
+        });
 
         JPanel panel = new JPanel(
             new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         JSplitPane recentSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
-            recentList, panel);
+            _recentConfigs, panel);
         add(recentSplit);
 
         // add the filter panel for configs
@@ -94,7 +103,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
      */
     public void addAsRecent (ConfigReference<?> ref)
     {
-        System.err.println("Add as recent: " + ref);
+        _recentConfigs.addRecent(ref);
     }
 
     /**
@@ -170,6 +179,9 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
 
     /** The config class for the brush. */
     protected Class<T> _clazz;
+
+    /** Our recent configs. */
+    protected RecentConfigList _recentConfigs;
 
     /** The editable reference. */
     protected EditableReference<T> _eref;
