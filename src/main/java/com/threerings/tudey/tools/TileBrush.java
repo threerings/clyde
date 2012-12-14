@@ -176,6 +176,7 @@ public class TileBrush extends ConfigTool<TileConfig>
     @Override // documentation inherited
     protected void referenceChanged (ConfigReference<TileConfig> ref)
     {
+        super.referenceChanged(ref);
         _entry.tile = ref;
     }
 

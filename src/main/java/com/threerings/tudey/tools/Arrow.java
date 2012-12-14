@@ -57,6 +57,7 @@ public class Arrow extends EditorTool
     public void edit (Entry entry)
     {
         _editor.setSelection(entry);
+        _editor.setSelectionAsRecent();
         _epanel.setObject(entry.clone());
     }
 

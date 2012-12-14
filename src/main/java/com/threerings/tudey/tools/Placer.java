@@ -161,6 +161,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override // documentation inherited
     protected void referenceChanged (ConfigReference<PlaceableConfig> ref)
     {
+        super.referenceChanged(ref);
         _entry.placeable = ref;
     }
 

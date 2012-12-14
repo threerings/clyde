@@ -103,6 +103,8 @@ import com.samskivert.util.RunAnywhere;
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.media.image.ImageUtil;
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
@@ -589,6 +591,21 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
+     * Set the selected entries as "recent" in their appropriate tools.
+     * This is separated from setSelection because the Selector tool updates
+     * selection every tick until the mouse is finally released.
+     */
+    public void setSelectionAsRecent ()
+    {
+        for (Entry entry : getSelection()) {
+            ConfigTool<?> tool = getToolForEntry(entry);
+            if (tool != null) {
+                tool.addAsRecent((ConfigReference<?>)entry.getReference());
+            }
+        }
+    }
+
+    /**
      * Returns the selected elements.
      */
     public Entry[] getSelection ()
@@ -641,26 +658,28 @@ public class SceneEditor extends TudeyTool
     public void useMouseEntry ()
     {
         Entry entry = getMouseEntry();
+
+        @SuppressWarnings("unchecked") // safe: ConfigTool is <T extends ManagedConfig>
+        ConfigTool<ManagedConfig> tool = (ConfigTool<ManagedConfig>)getToolForEntry(entry);
+        if (tool == null) {
+            return;
+        }
+
+        // set it as active and jam the reference in
+        setActiveTool(tool);
+        @SuppressWarnings("unchecked") // safe: all ConfigReferences are <T extends ManagedConfig>
+        // ... and we know that the entry type works with the tool
+        ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)entry.getReference();
+        tool.setReference(ref);
+
+        // and we need to customize some stuff for a few tools
         if (entry instanceof PlaceableEntry) {
-            setActiveTool(_placer);
-            PlaceableEntry pentry = (PlaceableEntry)entry;
-            _placer.setReference(pentry.placeable);
-            pentry.transform.update(Transform3D.RIGID);
-            _placer.setAngle(pentry.transform.getRotation().getRotationZ());
-
-        } else if (entry instanceof AreaEntry) {
-            setActiveTool(_areaDefiner);
-            _areaDefiner.setReference(((AreaEntry)entry).area);
-
-        } else if (entry instanceof PathEntry) {
-            setActiveTool(_pathDefiner);
-            _pathDefiner.setReference(((PathEntry)entry).path);
+            _placer.setAngle(((PlaceableEntry)entry).transform
+                    .update(Transform3D.RIGID)
+                    .getRotation().getRotationZ());
 
         } else if (entry instanceof TileEntry) {
-            setActiveTool(_tileBrush);
-            TileEntry tentry = (TileEntry)entry;
-            _tileBrush.setReference(tentry.tile);
-            _tileBrush.setRotation(tentry.rotation);
+            _tileBrush.setRotation(((TileEntry)entry).rotation);
         }
     }
 
@@ -1734,6 +1753,28 @@ public class SceneEditor extends TudeyTool
             }
         }
         return -1;
+    }
+
+    /**
+     * Get the ConfigTool associated with the specified Entry, if any.
+     */
+    protected ConfigTool<?> getToolForEntry (Entry entry)
+    {
+        if (entry instanceof PlaceableEntry) {
+            return _placer;
+
+        } else if (entry instanceof TileEntry) {
+            return _tileBrush;
+
+        } else if (entry instanceof AreaEntry) {
+            return _areaDefiner;
+
+        } else if (entry instanceof PathEntry) {
+            return _pathDefiner;
+
+        } else {
+            return null;
+        }
     }
 
     /**

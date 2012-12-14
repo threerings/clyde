@@ -99,6 +99,12 @@ public class Selector extends EditorTool
         }
     }
 
+    @Override
+    public void mouseReleased (MouseEvent event)
+    {
+        _editor.setSelectionAsRecent();
+    }
+
     /**
      * Updates the selection based on the position of the mouse cursor.
      */

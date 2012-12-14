@@ -28,6 +28,8 @@ package com.threerings.tudey.tools;
 import java.awt.Dimension;
 
 import javax.swing.BorderFactory;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
@@ -36,6 +38,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
 import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
@@ -63,18 +66,35 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         _clazz = clazz;
         _eref = eref;
 
+        JList recentList = new JList();
+
+        JPanel panel = new JPanel(
+            new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+        JSplitPane recentSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
+            recentList, panel);
+        add(recentSplit);
+
         // add the filter panel for configs
         _filterPanel = new ConfigTreeFilterPanel(editor.getMessageManager());
-        add(_filterPanel, GroupLayout.FIXED);
+        panel.add(_filterPanel, GroupLayout.FIXED);
 
         // create and add the split pane
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
             _pane = new JScrollPane(), _epanel = new EditorPanel(editor));
         split.setResizeWeight(1.0);
-        add(split);
+        panel.add(split);
         _epanel.setMinimumSize(new Dimension(120, 120));
         _epanel.setObject(eref);
         _epanel.addChangeListener(this);
+    }
+
+    /**
+     * Add the specified reference as a "recent" one, even if it was not directly selected
+     * by this tool.
+     */
+    public void addAsRecent (ConfigReference<?> ref)
+    {
+        System.err.println("Add as recent: " + ref);
     }
 
     /**
@@ -127,7 +147,8 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
      */
     protected void referenceChanged (ConfigReference<T> ref)
     {
-        // nothing by default
+        // add it as a recent reference
+        addAsRecent(ref);
     }
 
     /**
