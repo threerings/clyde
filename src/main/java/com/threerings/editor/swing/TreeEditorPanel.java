@@ -25,6 +25,8 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.datatransfer.Clipboard;
@@ -489,11 +491,17 @@ public class TreeEditorPanel extends BaseEditorPanel
     @Override // documentation inherited
     protected String getMousePath (Point pt)
     {
-        pt = _tree.getMousePosition();
-        TreePath path = (pt == null) ? null : _tree.getPathForLocation(pt.x, pt.y);
+        TreePath path = null;
+        Point treePt = _tree.getMousePosition();
+        if (treePt != null) {
+            path = _tree.getPathForLocation(treePt.x, treePt.y);
+        } else {
+            path = _tree.getSelectionPath();
+        }
         if (path == null) {
             return "";
         }
+
         StringBuilder buf = new StringBuilder();
         for (int ii = 1, nn = path.getPathCount(); ii < nn; ii++) {
             NodeObject obj = (NodeObject)((DefaultMutableTreeNode)
@@ -506,6 +514,25 @@ public class TreeEditorPanel extends BaseEditorPanel
                 buf.append('.').append(obj.property.getName());
             }
         }
+
+        if (treePt == null) {
+            for (Container cont = _panel; cont != null; ) {
+                Component comp = cont.getComponentAt(pt);
+                if (comp == cont || !(comp instanceof Container)) {
+                    break;
+                } else if (comp instanceof PropertyEditor) {
+                    PropertyEditor editor = (PropertyEditor)comp;
+                    String subElement = editor.getMousePath();
+                    if (!subElement.isEmpty()) {
+                        buf.append('.').append(subElement);
+                    }
+                    break;
+                }
+                cont = (Container)comp;
+                pt = cont.getMousePosition();
+            }
+        }
+
         return buf.toString();
     }
 
