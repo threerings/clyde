@@ -67,7 +67,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         _clazz = clazz;
         _eref = eref;
 
-        _recentConfigs = new RecentConfigList();
+        _recentConfigs = new RecentConfigList(getClass().getSimpleName());
         _recentConfigs.addObserver(new RecentConfigList.Observer() {
             @Override
             public void configSelected (ConfigReference<?> ref) {
@@ -157,7 +157,9 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     protected void referenceChanged (ConfigReference<T> ref)
     {
         // add it as a recent reference
-        addAsRecent(ref);
+        if (ref != null) {
+            addAsRecent(ref);
+        }
     }
 
     /**
