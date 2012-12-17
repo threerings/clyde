@@ -3,9 +3,15 @@
 
 package com.threerings.config.swing;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 
 import com.google.common.base.Predicate;
 
@@ -33,6 +39,7 @@ public class ConfigTreeFilterPanel extends JPanel
 
         add(new JLabel(msgmgr.getBundle("config").get("l.filter_config")), HGroupLayout.FIXED);
         add(_input);
+        add(new JButton(_clearAction), HGroupLayout.FIXED);
     }
 
     /**
@@ -72,6 +79,19 @@ public class ConfigTreeFilterPanel extends JPanel
     /** The input field. */
     protected JTextField _input;
 
+    /** An action for clearing the filter. */
+    protected Action _clearAction = new AbstractAction(
+            "", UIManager.getIcon("InternalFrame.closeIcon")) {
+        { // initializer
+            setEnabled(false);
+        }
+
+        @Override
+        public void actionPerformed (ActionEvent event) {
+            clearFilter();
+        }
+    };
+
     /** The actual filter we're configured with. */
     protected Predicate<ManagedConfig> _filter = null;
 
@@ -89,6 +109,7 @@ public class ConfigTreeFilterPanel extends JPanel
                     }
                 };
             setFilter();
+            _clearAction.setEnabled(_filter != null);
         }
     };
 }
