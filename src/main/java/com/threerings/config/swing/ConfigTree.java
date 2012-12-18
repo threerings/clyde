@@ -315,13 +315,17 @@ public class ConfigTree extends JTree
             public void treeExpanded (TreeExpansionEvent event) {
                 ConfigTreeNode node = (ConfigTreeNode)event.getPath().getLastPathComponent();
                 node.setExpanded(true);
-                addExpanded(node.getName());
+                if (!isFiltered()) {
+                    addExpanded(node.getName());
+                }
                 node.expandPaths(ConfigTree.this);
             }
             public void treeCollapsed (TreeExpansionEvent event) {
                 ConfigTreeNode node = (ConfigTreeNode)event.getPath().getLastPathComponent();
                 node.setExpanded(false);
-                removeExpanded(node.getName());
+                if (!isFiltered()) {
+                    removeExpanded(node.getName());
+                }
             }
         });
 
@@ -448,6 +452,10 @@ public class ConfigTree extends JTree
             // just expand to a default level
             root.expandPaths(this, 1);
 
+        } else if (isFiltered()) {
+            // expand all the filtered findings
+            root.expandPaths(this, Integer.MAX_VALUE);
+
         } else {
             for (String name : _expanded) {
                 ConfigTreeNode node = root.getNode(name);
@@ -467,6 +475,14 @@ public class ConfigTree extends JTree
                 scrollPathToVisible(path);
             }
         }
+    }
+
+    /**
+     * Are we displaying a filtered view?
+     */
+    protected boolean isFiltered ()
+    {
+        return (_filter != Predicates.alwaysTrue());
     }
 
     /**
