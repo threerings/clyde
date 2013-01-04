@@ -51,6 +51,10 @@ public class ScriptedConfig extends ModelConfig.Implementation
         @Editable(min=0, step=0.01)
         public float time;
 
+        /** The expected duration of the action (or 0 for 'unknown'). */
+        @Editable(min=0, step=0.01)
+        public float duration;
+
         /** The action to perform. */
         @Editable
         public ActionConfig action = new ActionConfig.CallFunction();

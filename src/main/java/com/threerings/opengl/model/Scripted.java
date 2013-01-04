@@ -29,6 +29,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 
@@ -74,6 +75,12 @@ public class Scripted extends Model.Implementation
         _completed = false;
     }
 
+    @Override
+    public void wasAdded ()
+    {
+        _lastAddedTimestamp = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
+    }
+
     @Override // documentation inherited
     public int getInfluenceFlags ()
     {
@@ -116,10 +123,16 @@ public class Scripted extends Model.Implementation
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange(this);
         }
-        if (_completed) {
+        if (_completed || _lastAddedTimestamp == 0) {
+            // Don't bother ticking until we're added to the scene.
             return;
         }
-        _time += elapsed;
+        if (elapsed != 0) {
+            // Don't bother updating the time if this is a zero-tick.
+            // (Non-ticking elements do actually get ticked with a 0 elapsed.)
+            _time = (ScopeUtil.resolveTimestamp(this, Scope.NOW).value -
+                _lastAddedTimestamp) / 1000f;
+        }
         executeActions();
 
         // check for loop or completion
@@ -145,7 +158,8 @@ public class Scripted extends Model.Implementation
         for (int ii = 0; ii < _executors.length; ii++) {
             ScriptedConfig.TimeAction action = _config.actions[ii];
             _executors[ii] = new TimeExecutor(
-                action.time, action.action.createExecutor(_ctx, this));
+                action.time, action.duration,
+                action.action.createExecutor(_ctx, this));
         }
 
         // update the influence flags
@@ -172,7 +186,13 @@ public class Scripted extends Model.Implementation
     protected void executeActions ()
     {
         for (; _eidx < _executors.length && _executors[_eidx].time < _time; _eidx++) {
-            _executors[_eidx].executor.execute();
+            if ((_time - _executors[_eidx].time) > LONG_ELAPSED_TIME) {
+                // TODO: Debug message.
+            }
+            if (_executors[_eidx].duration == 0f ||
+                    _time < (_executors[_eidx].time + _executors[_eidx].duration)) {
+                _executors[_eidx].executor.execute();
+            }
         }
     }
 
@@ -184,12 +204,16 @@ public class Scripted extends Model.Implementation
         /** The time at which to execute the action. */
         public float time;
 
+        /** The length of the executed action. */
+        public float duration;
+
         /** The action executor. */
         public Executor executor;
 
-        public TimeExecutor (float time, Executor executor)
+        public TimeExecutor (float time, float duration, Executor executor)
         {
             this.time = time;
+            this.duration = duration;
             this.executor = executor;
         }
     }
@@ -225,6 +249,9 @@ public class Scripted extends Model.Implementation
     @Scoped
     protected Box _bounds = new Box();
 
+    /** The last timestamp for our tick. */
+    protected long _lastAddedTimestamp;
+
     /** Holds the bounds of the model when updating. */
     protected Box _nbounds = new Box();
 
@@ -236,4 +263,7 @@ public class Scripted extends Model.Implementation
 
     /** If true, the script has completed. */
     protected boolean _completed;
+
+    /** The time over which we spit out a debug message. */
+    protected static float LONG_ELAPSED_TIME = 1f;
 }
