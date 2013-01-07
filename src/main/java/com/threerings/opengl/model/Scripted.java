@@ -25,6 +25,9 @@
 
 package com.threerings.opengl.model;
 
+import com.samskivert.swing.RuntimeAdjust;
+import com.samskivert.util.PrefsConfig;
+
 import com.threerings.expr.Bound;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
@@ -36,6 +39,8 @@ import com.threerings.math.Transform3D;
 import com.threerings.opengl.model.config.ScriptedConfig;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
+
+import static com.threerings.ClydeLog.log;
 
 /**
  * A scripted model implementation.
@@ -185,9 +190,12 @@ public class Scripted extends Model.Implementation
      */
     protected void executeActions ()
     {
+        boolean showDebug = _scriptedDebug.getValue();
         for (; _eidx < _executors.length && _executors[_eidx].time < _time; _eidx++) {
-            if ((_time - _executors[_eidx].time) > LONG_ELAPSED_TIME) {
-                // TODO: Debug message.
+            if (showDebug && _executors[_eidx].duration == 0f &&
+                    (_time - _executors[_eidx].time) > LONG_ELAPSED_TIME) {
+                log.warning("Long Elapsed Time from Scripted",
+                    "config", _config);
             }
             if (_executors[_eidx].duration == 0f ||
                     _time < (_executors[_eidx].time + _executors[_eidx].duration)) {
@@ -263,6 +271,11 @@ public class Scripted extends Model.Implementation
 
     /** If true, the script has completed. */
     protected boolean _completed;
+
+    /** Tells us whether or not to enable debug output for long scripted events. */
+    protected static RuntimeAdjust.BooleanAdjust _scriptedDebug =
+            new RuntimeAdjust.BooleanAdjust("Enables debug messages for long scripted effects.",
+                    "clyde.client.scriptedDebug", new PrefsConfig("clyde"), false);
 
     /** The time over which we spit out a debug message. */
     protected static float LONG_ELAPSED_TIME = 1f;
