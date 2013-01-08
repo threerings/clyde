@@ -750,14 +750,13 @@ public abstract class ComponentConfig extends DeepObject
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
-            Component ochild = (comp instanceof com.threerings.opengl.gui.ScrollPane) ?
+            _ochild = (comp instanceof com.threerings.opengl.gui.ScrollPane) ?
                 ((com.threerings.opengl.gui.ScrollPane)comp).getChild() : null;
-            if (ochild != null) {
-                ochild.getParent().remove(ochild);
+            if (_ochild != null) {
+                _ochild.getParent().remove(_ochild);
             }
-            return new com.threerings.opengl.gui.ScrollPane(
-                ctx, child.getComponent(ctx, scope, msgs, ochild),
-                vertical, horizontal, snap, buttons);
+            // Don't initialize the scroll pane here, do it after configuration.
+            return new com.threerings.opengl.gui.ScrollPane(ctx);
         }
 
         @Override // documentation inherited
@@ -765,9 +764,14 @@ public abstract class ComponentConfig extends DeepObject
         {
             super.configure(ctx, scope, msgs, comp);
             com.threerings.opengl.gui.ScrollPane pane = (com.threerings.opengl.gui.ScrollPane)comp;
+            pane.init(child.getComponent(ctx, scope, msgs, _ochild),
+                vertical, horizontal, snap, buttons);
             pane.setShowScrollbarAlways(showScrollbarAlways);
             pane.setViewportStyleConfig(viewportStyle);
         }
+
+        /** The original child of this scroll pane, if any. */
+        protected Component _ochild;
     }
 
     /**

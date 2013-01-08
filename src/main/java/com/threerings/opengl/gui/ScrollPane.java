@@ -46,50 +46,77 @@ import static com.threerings.opengl.Log.*;
  */
 public class ScrollPane extends Container
 {
+    /**
+     * Non-initializing constructor for config init.
+     */
+    public ScrollPane (GlContext ctx)
+    {
+        super(ctx, new BorderLayout(0, 0));
+    }
+
+    /**
+     * Initializing constructor.
+     */
     public ScrollPane (GlContext ctx, Component child)
     {
         this(ctx, child, true, false);
     }
 
+    /**
+     * Initializing constructor.
+     */
     public ScrollPane (GlContext ctx, Component child, boolean vert, boolean horiz)
     {
         this(ctx, child, vert, horiz, -1);
     }
 
+    /**
+     * Initializing constructor.
+     */
     public ScrollPane (
         GlContext ctx, Component child, boolean vert, boolean horiz, int snap)
     {
         this(ctx, child, vert, horiz, snap, false);
     }
 
+    /**
+     * Initializing constructor. 
+     */
     public ScrollPane (
         GlContext ctx, Component child, boolean vert, boolean horiz, int snap, boolean buttons)
     {
         super(ctx, new BorderLayout(0, 0));
+        init(child, vert, horiz, snap, buttons);
+    }
 
-        add(_vport = new Viewport(ctx, child, vert, horiz, snap),
-            BorderLayout.CENTER);
+    /**
+     * Initialization for Scroll Pane
+     */
+    public void init (Component child, boolean vert, boolean horiz, int snap, boolean buttons)
+    {
+        add(_vport = new Viewport(_ctx, child, vert, horiz, snap),
+                BorderLayout.CENTER);
         _showAlways = buttons;
         if (vert) {
             if (buttons) {
-                add(_vlbtn = new ScrollButton(ctx, true, ScrollBar.VERTICAL,
-                            _vport.getVModel()), BorderLayout.NORTH);
-                add(_vmbtn = new ScrollButton(ctx, false, ScrollBar.VERTICAL,
-                            _vport.getVModel()), BorderLayout.SOUTH);
+                add(_vlbtn = new ScrollButton(_ctx, true, ScrollBar.VERTICAL,
+                        _vport.getVModel()), BorderLayout.NORTH);
+                add(_vmbtn = new ScrollButton(_ctx, false, ScrollBar.VERTICAL,
+                        _vport.getVModel()), BorderLayout.SOUTH);
             } else {
-                add(_vbar = new ScrollBar(ctx, ScrollBar.VERTICAL,
-                    _vport.getVModel()), BorderLayout.EAST);
+                add(_vbar = new ScrollBar(_ctx, ScrollBar.VERTICAL,
+                        _vport.getVModel()), BorderLayout.EAST);
             }
         }
         if (horiz) {
             if (buttons) {
-                add(_hlbtn = new ScrollButton(ctx, true, ScrollBar.HORIZONTAL,
-                            _vport.getHModel()), BorderLayout.WEST);
-                add(_hmbtn = new ScrollButton(ctx, false, ScrollBar.HORIZONTAL,
-                            _vport.getHModel()), BorderLayout.EAST);
+                add(_hlbtn = new ScrollButton(_ctx, true, ScrollBar.HORIZONTAL,
+                        _vport.getHModel()), BorderLayout.WEST);
+                add(_hmbtn = new ScrollButton(_ctx, false, ScrollBar.HORIZONTAL,
+                        _vport.getHModel()), BorderLayout.EAST);
             } else {
-                add(_hbar = new ScrollBar(ctx, ScrollBar.HORIZONTAL,
-                    _vport.getHModel()), BorderLayout.SOUTH);
+                add(_hbar = new ScrollBar(_ctx, ScrollBar.HORIZONTAL,
+                        _vport.getHModel()), BorderLayout.SOUTH);
             }
         }
     }
