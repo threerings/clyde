@@ -46,7 +46,7 @@ public class ToggleButton extends Button
     public static final int DOWN_SELECTED = Button.STATE_COUNT + 2;
 
     /** Indicates that this button is in the selected state and is disabled. */
-    public static final int DISSELECTED = Button.STATE_COUNT + 3;
+    public static final int DISABLED_SELECTED = Button.STATE_COUNT + 3;
 
     /**
      * Creates a button with the specified textual label.
@@ -102,7 +102,7 @@ public class ToggleButton extends Button
         if (!_selected) {
             return state;
         } else if (state == DISABLED) {
-            return DISSELECTED;
+            return DISABLED_SELECTED;
         } else if (state == HOVER) {
             return HOVER_SELECTED;
         } else if (_armed) {
@@ -133,7 +133,7 @@ public class ToggleButton extends Button
     {
         return (state == HOVER_SELECTED ||
                 state == DOWN_SELECTED ||
-                state == DISSELECTED) ?
+                state == DISABLED_SELECTED) ?
                 SELECTED : DEFAULT;
     }
 
@@ -151,5 +151,5 @@ public class ToggleButton extends Button
 
     protected static final int STATE_COUNT = Button.STATE_COUNT + 4;
     protected static final String[] STATE_PCLASSES = {
-        "Selected", "HoverSelected", "DownSelected", "Disselected" };
+        "Selected", "HoverSelected", "DownSelected", "DisabledSelected" };
 }
