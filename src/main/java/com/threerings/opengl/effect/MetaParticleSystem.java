@@ -148,6 +148,15 @@ public class MetaParticleSystem extends BaseParticleSystem
             }
         }
 
+        @Override // documentaiton inherited
+        public void wasAdded ()
+        {
+            super.wasAdded();
+            for (Model model : _models) {
+                model.wasAdded(((MetaParticleSystem)_parentScope).getScene());
+            }
+        }
+
         @Override // documentation inherited
         public boolean tick (float elapsed)
         {

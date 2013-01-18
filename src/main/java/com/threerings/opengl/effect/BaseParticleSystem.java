@@ -46,6 +46,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig.TransientPolicy;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
+import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
@@ -119,6 +120,22 @@ public abstract class BaseParticleSystem extends Model.Implementation
         public Camera getCamera ()
         {
             return _ctx.getCompositor().getCamera();
+        }
+
+        /**
+         * Notes that the layer was added to the scene.
+         */
+        public void wasAdded ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the layer will be removed from the scene.
+         */
+        public void willBeRemoved ()
+        {
+            // nothing by default
         }
 
         /**
@@ -494,6 +511,24 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void wasAdded ()
+    {
+        super.wasAdded();
+        for (Layer layer : _layers) {
+            layer.wasAdded();
+        }
+    }
+
+    @Override // documentation inherited
+    public void willBeRemoved ()
+    {
+        super.willBeRemoved();
+        for (Layer layer : _layers) {
+            layer.willBeRemoved();
+        }
+    }
+
+    @Override // documentation inherited
     public void tick (float elapsed)
     {
         // if we're completed, there's nothing more to do
@@ -591,6 +626,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         // (re)create the layers
         BaseParticleSystemConfig.Layer[] configs = _config.getLayers();
         _layers = new Layer[configs.length];
+        Scene scene = getScene();
         for (int ii = 0; ii < _layers.length; ii++) {
             BaseParticleSystemConfig.Layer config = configs[ii];
             Layer layer = olayers.remove(config.identity);
@@ -600,13 +636,24 @@ public abstract class BaseParticleSystem extends Model.Implementation
                 layer = createLayer(config);
             }
             _layers[ii] = layer;
+            if (scene != null) {
+                layer.wasAdded();
+            }
         }
         for (Layer layer : olayers.values()) {
+            if (scene != null) {
+                layer.willBeRemoved();
+            }
             layer.dispose(); // dispose of the unrecycled old layers
         }
 
         // update the bounds
         updateBounds();
+    }
+
+    protected Scene getScene ()
+    {
+        return ((Model)_parentScope).getScene(this);
     }
 
     /**
