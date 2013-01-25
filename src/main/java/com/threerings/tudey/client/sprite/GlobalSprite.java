@@ -149,7 +149,16 @@ public class GlobalSprite extends EntrySprite
             if (_camcfg != null) {
                 _view.removeCameraConfig(_camcfg);
             }
+            if (_camcfgs != null) {
+                for (CameraConfig cc : _camcfgs) {
+                    _view.removeCameraConfig(cc, 0f, null);
+                }
+            }
             _view.addCameraConfig(_camcfg = config.camera);
+            _camcfgs = config.cameras;
+            for (CameraConfig cc : _camcfgs) {
+                _view.addCameraConfig(cc, 0f, null);
+            }
         }
 
         @Override // documentation inherited
@@ -157,10 +166,16 @@ public class GlobalSprite extends EntrySprite
         {
             super.dispose();
             _view.removeCameraConfig(_camcfg);
+            for (CameraConfig cc : _camcfgs) {
+                _view.removeCameraConfig(cc, 0f, null);
+            }
         }
 
         /** The added camera, if any. */
         protected CameraConfig _camcfg;
+
+        /** The added cameras. */
+        protected CameraConfig[] _camcfgs;
 
         /** The scene view. */
         @Bound

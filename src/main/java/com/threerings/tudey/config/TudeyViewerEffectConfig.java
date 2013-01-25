@@ -61,6 +61,10 @@ public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
         @Editable
         public CameraConfig camera = new CameraConfig();
 
+        /** More camera configurations!  For backwards compatibility we keep the original. */
+        @Editable
+        public CameraConfig[] cameras = new CameraConfig[0];
+
         @Override // documentation inherited
         public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
@@ -73,25 +77,39 @@ public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
                 public void setConfig (Camera camera) {
                     if (_activated) {
                         view.removeCameraConfig(_camcfg, 0f, null);
+                        for (CameraConfig cc : _camcfgs) {
+                            view.removeCameraConfig(cc, 0f, null);
+                        }
                     }
                     _transition = camera.transition;
                     _easing = camera.easing;
                     _camcfg = camera.camera;
+                    _camcfgs = camera.cameras;
                     if (_activated) {
                         view.addCameraConfig(_camcfg, 0f, null);
+                        for (CameraConfig cc : _camcfgs) {
+                            view.addCameraConfig(cc, 0f, null);
+                        }
                     }
                 }
                 public void activate (Scene scene) {
                     _activated = true;
                     view.addCameraConfig(_camcfg, _transition, _easing);
+                    for (CameraConfig cc : _camcfgs) {
+                        view.addCameraConfig(cc, 0f, null);
+                    }
                 }
                 public void deactivate () {
                     view.removeCameraConfig(_camcfg, _transition, _easing);
+                    for (CameraConfig cc : _camcfgs) {
+                        view.removeCameraConfig(cc, 0f, null);
+                    }
                     _activated = false;
                 }
                 protected float _transition = transition;
                 protected Easing _easing = easing;
                 protected CameraConfig _camcfg = camera;
+                protected CameraConfig[] _camcfgs = cameras;
                 protected boolean _activated;
             }
             if (effect instanceof CameraEffect) {

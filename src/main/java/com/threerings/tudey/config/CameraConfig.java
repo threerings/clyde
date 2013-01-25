@@ -44,8 +44,12 @@ public class CameraConfig extends DeepObject
     implements Exportable, Streamable
 {
     /** The priority of the parameters, for when multiple configs are active. */
-    @Editable
+    @Editable(hgroup="p")
     public int priority;
+
+    /** The zoom level this camera responds to. */
+    @Editable(hgroup="p")
+    public int zoom;
 
     /** The camera's vertical field of view, in radians. */
     @Editable(min=0.0, max=180.0, scale=Math.PI/180.0, hgroup="f")
@@ -67,9 +71,10 @@ public class CameraConfig extends DeepObject
      * Creates a new config with the supplied values.
      */
     public CameraConfig (
-        int priority, float fov, float near, float far, SphereCoords coords, Vector3f offset)
+        int priority, int zoom, float fov, float near, float far,
+        SphereCoords coords, Vector3f offset)
     {
-        set(priority, fov, near, far, coords, offset);
+        set(priority, zoom, fov, near, far, coords, offset);
     }
 
     /**
@@ -126,6 +131,7 @@ public class CameraConfig extends DeepObject
     public CameraConfig lerp (CameraConfig other, float t, CameraConfig result)
     {
         result.priority = priority;
+        result.zoom = zoom;
         result.fov = FloatMath.lerp(fov, other.fov, t);
         result.near = FloatMath.lerp(near, other.near, t);
         result.far = FloatMath.lerp(far, other.far, t);
@@ -141,7 +147,8 @@ public class CameraConfig extends DeepObject
      */
     public CameraConfig set (CameraConfig other)
     {
-        return set(other.priority, other.fov, other.near, other.far, other.coords, other.offset);
+        return set(other.priority, other.zoom, other.fov, other.near, other.far,
+                other.coords, other.offset);
     }
 
     /**
@@ -150,9 +157,11 @@ public class CameraConfig extends DeepObject
      * @return a reference to this config, for chaining.
      */
     public CameraConfig set (
-        int priority, float fov, float near, float far, SphereCoords coords, Vector3f offset)
+        int priority, int zoom, float fov, float near, float far,
+        SphereCoords coords, Vector3f offset)
     {
         this.priority = priority;
+        this.zoom = zoom;
         this.fov = fov;
         this.near = near;
         this.far = far;

@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
@@ -38,6 +39,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.TreeBasedTable;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntMap;
@@ -946,13 +948,14 @@ public class TudeySceneView extends DynamicScope
      */
     public void addCameraConfig (CameraConfig camcfg, float transition, Easing easing)
     {
-        for (int ii = _camcfgs.size() - 1; ii >= 0; ii--) {
-            if (_camcfgs.get(ii).priority <= camcfg.priority) {
-                _camcfgs.add(ii + 1, camcfg);
-                if (ii == _camcfgs.size() - 2) {
-                    setCameraConfig(camcfg, transition, easing);
-                }
-            }
+        List<CameraConfig> cfgs = _camcfgs.get(camcfg.priority, camcfg.zoom);
+        if (cfgs == null) {
+            cfgs = Lists.newArrayList();
+            _camcfgs.put(camcfg.priority, camcfg.zoom, cfgs);
+        }
+        cfgs.add(camcfg);
+        if (getTopCameraConfig() == camcfg) {
+            setCameraConfig(camcfg, transition, easing);
         }
     }
 
@@ -969,16 +972,36 @@ public class TudeySceneView extends DynamicScope
      */
     public void removeCameraConfig (CameraConfig camcfg, float transition, Easing easing)
     {
-        // use referential equality to find the config; don't bother going all the way to the
-        // bottom of the list, because that's the default config which we don't ever want
-        // to remove
-        for (int ii = _camcfgs.size() - 1; ii > 0; ii--) {
-            if (_camcfgs.get(ii) == camcfg) {
-                _camcfgs.remove(ii);
-                if (ii == _camcfgs.size()) {
-                    setCameraConfig(_camcfgs.get(ii - 1), transition, easing);
-                }
+        CameraConfig topcfg = getTopCameraConfig();
+        List<CameraConfig> cfgs = _camcfgs.get(camcfg.priority, camcfg.zoom);
+        if (cfgs != null && cfgs.remove(camcfg)) {
+            if (cfgs.size() == 0) {
+                _camcfgs.remove(camcfg.priority, camcfg.zoom);
             }
+            if (camcfg == topcfg) {
+                setCameraConfig(getTopCameraConfig(), transition, easing);
+            }
+        }
+    }
+
+    /**
+     * Sets the preferred zoom level.
+     */
+    public void setPreferredZoom (int zoom)
+    {
+        setPreferredZoom(zoom, 0f, null);
+    }
+
+    /**
+     * Sets the preferred zoom level.
+     */
+    public void setPreferredZoom (int zoom, float transition, Easing easing)
+    {
+        CameraConfig topcfg = getTopCameraConfig();
+        _zoom = zoom;
+        CameraConfig cfg = getTopCameraConfig();
+        if (topcfg != cfg) {
+            setCameraConfig(cfg, transition, easing);
         }
     }
 
@@ -1608,6 +1631,31 @@ public class TudeySceneView extends DynamicScope
                 _ctx.getSceneDirector().getScene() != null;
     }
 
+    /**
+     * Returns the camera config that should be currently active.
+     */
+    protected CameraConfig getTopCameraConfig ()
+    {
+        if (_camcfgs.isEmpty()) {
+            return TudeySceneMetrics.getDefaultCameraConfig();
+        }
+        Integer priority = _camcfgs.rowKeySet().last();
+        SortedMap<Integer, List<CameraConfig>> map = _camcfgs.row(priority);
+        Integer zoom = _zoom;
+        List<CameraConfig> cfgs = map.get(_zoom);
+        if (cfgs == null) {
+            SortedMap<Integer, List<CameraConfig>> submap = map.headMap(_zoom);
+            zoom = submap.isEmpty() ? null : submap.lastKey();
+            if (zoom != null) {
+                cfgs = map.get(zoom);
+            } else {
+                zoom = map.tailMap(_zoom).firstKey();
+                cfgs = map.get(zoom);
+            }
+        }
+        return cfgs.get(cfgs.size() - 1);
+    }
+
     protected void dumpTicker (TickParticipant tp, long time)
     {
         time /= 1000L;
@@ -1793,9 +1841,16 @@ public class TudeySceneView extends DynamicScope
     /** The sprite that the user is controlling. */
     protected ActorSprite _controlledSprite;
 
+    /** Thre preferred zoom level. */
+    protected int _zoom = 0;
+
+    /** A table of ordered camera configs. */
+    protected TreeBasedTable<Integer, Integer, List<CameraConfig>> _camcfgs =
+        TreeBasedTable.create();
+
     /** The priority-ordered list of active camera configs. */
-    protected List<CameraConfig> _camcfgs = Lists.newArrayList(
-        TudeySceneMetrics.getDefaultCameraConfig());
+    //protected List<CameraConfig> _camcfgs = Lists.newArrayList(
+    //    TudeySceneMetrics.getDefaultCameraConfig());
 
     /** The current camera config. */
     protected CameraConfig _camcfg = new CameraConfig(

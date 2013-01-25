@@ -181,6 +181,10 @@ public class SceneGlobalConfig extends ParameterizedConfig
         @Editable
         public CameraConfig camera = new CameraConfig();
 
+        /** More camera configurations!  For backwards compatibility we keep the original. */
+        @Editable
+        public CameraConfig[] cameras = new CameraConfig[0];
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
