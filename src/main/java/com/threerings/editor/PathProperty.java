@@ -55,6 +55,9 @@ import static com.threerings.editor.Log.*;
  */
 public class PathProperty extends Property
 {
+    /** A setting to disable get property warnings. */
+    public static boolean showGetPropertyWarning = true;
+
     /**
      * Attempts to resolve the provided path into a property chain, returning <code>null</code>
      * on failure.
@@ -288,7 +291,9 @@ public class PathProperty extends Property
                 return getProperty(cfgmgr, object, new MethodProperty(method, method), tok);
             } catch (NoSuchMethodException e) { }
         }
-        log.warning("Failed to find property.", "name", name, "object", object);
+        if (showGetPropertyWarning) {
+            log.warning("Failed to find property.", "name", name, "object", object);
+        }
         return null;
     }
 
