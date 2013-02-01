@@ -946,6 +946,11 @@ public abstract class ActionLogic extends Logic
         @Override // documentation inherited
         public boolean execute (int timestamp, final Logic activator)
         {
+            if (!_scenemgr.isRunning()) {
+                log.warning("Attempting to execute Delayed action on shutdown SceneManager");
+                Thread.dumpStack();
+                return false;
+            }
             Interval interval = new Interval(_scenemgr) {
                 public void expired () {
                     _intervals.remove(this);
