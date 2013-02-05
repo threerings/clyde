@@ -59,7 +59,7 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>narya</artifactId>
-      <version>1.12.7</version>
+      <version>1.14-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
