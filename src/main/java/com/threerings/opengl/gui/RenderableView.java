@@ -218,6 +218,15 @@ public class RenderableView extends Component
         }
     }
 
+    /**
+     * Get access to the image onto which we've rendered, which is only valid
+     * if we're static and a call has been made to render(). Otherwise null will be returned.
+     */
+    public Image getImage ()
+    {
+        return _image;
+    }
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
