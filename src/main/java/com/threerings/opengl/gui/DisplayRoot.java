@@ -94,16 +94,7 @@ public class DisplayRoot extends Root
             int key = Keyboard.getEventKey();
             boolean pressed = Keyboard.getEventKeyState();
             if (pressed) {
-                // LWJGL presently has a bug on Mac for the ` key: it's not mapped through
-                // from AWT into LWJGL's keyboard. So a key event comes through, but is
-                // not identified. However, we still get the character of the key, so we can
-                // use that to artificially create the correct event. When/if LWJGL updates
-                // to native, this problem should go away and so should this patch.
-                char ec = Keyboard.getEventCharacter();
-                if (key == Keyboard.KEY_NONE && (ec == '`' || ec == '~')) {
-                    key = Keyboard.KEY_GRAVE;
-                }
-                keyPressed(_tickStamp, ec, key, false);
+                keyPressed(_tickStamp, Keyboard.getEventCharacter(), key, false);
             } else {
                 keyReleased(_tickStamp, Keyboard.getEventCharacter(), key, false);
             }
