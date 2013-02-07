@@ -253,10 +253,11 @@ public class ConfigTree extends JTree
                 TreePath selection = getSelectionPath();
 
                 // remove and reinsert with a unique name in sorted order
+                String name = ((String)newValue).trim();
                 ConfigTreeNode node = (ConfigTreeNode)path.getLastPathComponent();
                 ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
                 removeNodeFromParent(node);
-                node.setUserObject(parent.findNameForChild((String)newValue));
+                node.setUserObject(parent.findNameForChild(name));
                 insertNodeInto(node, parent, parent.getInsertionIndex(node));
 
                 // re-expand paths, reapply the selection
