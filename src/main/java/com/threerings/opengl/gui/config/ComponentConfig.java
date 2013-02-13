@@ -40,6 +40,7 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
@@ -770,8 +771,9 @@ public abstract class ComponentConfig extends DeepObject
             pane.setViewportStyleConfig(viewportStyle);
         }
 
-        /** The original child of this scroll pane, if any. */
-        protected Component _ochild;
+        /** The cached original child of this scroll pane, if any. */
+        @DeepOmit
+        protected transient Component _ochild;
     }
 
     /**
