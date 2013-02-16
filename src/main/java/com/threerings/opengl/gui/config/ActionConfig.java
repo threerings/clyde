@@ -59,12 +59,13 @@ import static com.threerings.opengl.gui.Log.*;
  */
 @EditorTypes({
     ActionConfig.CallFunction.class, ActionConfig.PlaySound.class, ActionConfig.SetEnabled.class,
-    ActionConfig.SetVisible.class, ActionConfig.SetAlpha.class, ActionConfig.FadeAlpha.class,
-    ActionConfig.AnimateAlpha.class, ActionConfig.SetOffset.class, ActionConfig.MoveOffset.class,
-    ActionConfig.AnimateOffset.class, ActionConfig.SetSelected.class, ActionConfig.SetText.class,
-    ActionConfig.SetStyle.class, ActionConfig.SetConfig.class, ActionConfig.RunScript.class,
-    ActionConfig.PlayAnimation.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
-    ActionConfig.AddHandler.class, ActionConfig.Conditional.class, ActionConfig.Compound.class })
+    ActionConfig.SetVisible.class, ActionConfig.SetHoverable.class, ActionConfig.SetAlpha.class,
+    ActionConfig.FadeAlpha.class, ActionConfig.AnimateAlpha.class, ActionConfig.SetOffset.class,
+    ActionConfig.MoveOffset.class, ActionConfig.AnimateOffset.class, ActionConfig.SetSelected.class,
+    ActionConfig.SetText.class, ActionConfig.SetStyle.class, ActionConfig.SetConfig.class,
+    ActionConfig.RunScript.class, ActionConfig.RunInitScript.class, ActionConfig.PlayAnimation.class,
+    ActionConfig.RequestFocus.class, ActionConfig.Wait.class, ActionConfig.AddHandler.class,
+    ActionConfig.Conditional.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -162,6 +163,22 @@ public abstract class ActionConfig extends DeepObject
     }
 
     /**
+     * Renders a component visible or invisible.
+     */
+    public static class SetHoverable extends Targeted
+    {
+        /** Whether or not the component should be visible. */
+        @Editable(hgroup="t")
+        public boolean hoverable = true;
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, Component comp)
+        {
+            comp.setHoverable(hoverable);
+        }
+    }
+
+    /**
      * Set's a component's transparency.
      */
     public static class SetAlpha extends Targeted
@@ -202,7 +219,7 @@ public abstract class ActionConfig extends DeepObject
         public void apply (UserInterface iface, final Component comp)
         {
             iface.addScript(iface.new TickableScript() {
-                @Override public void tick (float elapsed) {
+                public void tick (float elapsed) {
                     if ((_time += elapsed) < interval) {
                         comp.setAlpha(FloatMath.lerp(start, end,
                             easing.getTime(_time / interval)));
@@ -237,7 +254,7 @@ public abstract class ActionConfig extends DeepObject
         {
             final FloatExpression.Evaluator eval = value.createEvaluator(iface.getScope());
             iface.addScript(iface.new TickableScript() {
-                @Override public void tick (float elapsed) {
+                public void tick (float elapsed) {
                     if (duration == 0f || (_time += elapsed) < duration) {
                         comp.setAlpha(eval.evaluate());
                     } else {
@@ -296,7 +313,7 @@ public abstract class ActionConfig extends DeepObject
         public void apply (UserInterface iface, final Component comp)
         {
             iface.addScript(iface.new TickableScript() {
-                @Override public void tick (float elapsed) {
+                public void tick (float elapsed) {
                     if ((_time += elapsed) < interval) {
                         comp.setOffset(start.lerp(end, easing.getTime(_time / interval), _offset));
                     } else {
@@ -332,7 +349,7 @@ public abstract class ActionConfig extends DeepObject
             final ObjectExpression.Evaluator<Transform2D> eval =
                 value.createEvaluator(iface.getScope());
             iface.addScript(iface.new TickableScript() {
-                @Override public void tick (float elapsed) {
+                public void tick (float elapsed) {
                     if (duration == 0f || (_time += elapsed) < duration) {
                         comp.setOffset(eval.evaluate());
                     } else {
@@ -434,6 +451,24 @@ public abstract class ActionConfig extends DeepObject
         {
             if (comp instanceof UserInterface) {
                 ((UserInterface)comp).runScript(interfaceScript);
+            }
+        }
+    }
+
+    /**
+     * Runs a script on a user interface.
+     */
+    public static class RunInitScript extends Targeted
+    {
+        /** The script to run on the interface. */
+        @Editable(nullable=true)
+        public ConfigReference<InterfaceScriptConfig> interfaceScript;
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, Component comp)
+        {
+            if (comp instanceof UserInterface) {
+                ((UserInterface)comp).runInitScript(interfaceScript);
             }
         }
     }

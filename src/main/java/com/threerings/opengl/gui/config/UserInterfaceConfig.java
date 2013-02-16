@@ -130,6 +130,10 @@ public class UserInterfaceConfig extends ParameterizedConfig
             directory="sound_dir")
         public String removeSound;
 
+        /** The action to perform on initialization, if any. */
+        @Editable(nullable=true)
+        public ActionConfig initAction;
+
         /** The action to perform on addition, if any. */
         @Editable(nullable=true)
         public ActionConfig addAction;
@@ -165,6 +169,9 @@ public class UserInterfaceConfig extends ParameterizedConfig
         public void invalidate ()
         {
             root.invalidate();
+            if (initAction != null) {
+                initAction.invalidate();
+            }
             if (addAction != null) {
                 addAction.invalidate();
             }

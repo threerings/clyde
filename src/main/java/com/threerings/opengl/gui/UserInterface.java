@@ -118,6 +118,66 @@ public class UserInterface extends Container
     }
 
     /**
+     * A script that runs actions only once.
+     */
+    public class InitScript extends Script
+            implements ConfigUpdateListener<InterfaceScriptConfig>
+    {
+        public InitScript (InterfaceScriptConfig config)
+        {
+            if ((_config = config) != null) {
+                _config.addListener(this);
+            }
+            updateFromConfig();
+        }
+
+        @Override // documentation inherited
+        public void init ()
+        {
+            if (_original == null) {
+                return;
+            }
+
+            // Init scripts are fire-and-forget.
+            for (int ii = 0; ii < _original.actions.length; ii++) {
+                _original.actions[ii].action.execute(UserInterface.this, null);
+            }
+        }
+
+        @Override // documentation inherited
+        public void cleanup ()
+        {
+            super.cleanup();
+            if (_config != null) {
+                _config.removeListener(this);
+            }
+        }
+
+        // documentation inherited from interface ConfigUpdateListener
+        public void configUpdated (ConfigEvent<InterfaceScriptConfig> event)
+        {
+            updateFromConfig();
+        }
+
+        /**
+         * Updates the state in response to a change in the config.
+         */
+        protected void updateFromConfig ()
+        {
+            if (_config != null &&
+                    (_original = _config.getOriginal(_ctx.getConfigManager())) == null) {
+                _original = new InterfaceScriptConfig.Original();
+            }
+        }
+
+        /** The script configuration. */
+        protected InterfaceScriptConfig _config;
+
+        /** The original configuration. */
+        protected InterfaceScriptConfig.Original _original;
+    }
+
+    /**
      * A script that should be ticked at every frame.
      */
     public abstract class TickableScript extends Script
@@ -598,11 +658,20 @@ public class UserInterface extends Container
     }
 
     /**
+     * Runs an initialization script on the interface.
+     */
+    public void runInitScript(ConfigReference<InterfaceScriptConfig> ref)
+    {
+        addScript(new InitScript(
+            _ctx.getConfigManager().getConfig(InterfaceScriptConfig.class, ref)));
+    }
+
+    /**
      * Adds a script to the interface.
      */
     public void addScript (Script script)
     {
-        if (_root == null) {
+        if (_root == null && !(script instanceof InitScript)) {
             throw new IllegalStateException("Can't add script to non-added interface.");
         }
         _scripts.add(script);
@@ -705,7 +774,8 @@ public class UserInterface extends Container
             add(ncomp, BorderLayout.CENTER);
         }
 
-        String controller = getOriginal().controller;
+        UserInterfaceConfig.Original original = getOriginal();
+        String controller = original.controller;
         if (!"".equals(controller)) {
             try {
                 Controller c = (Controller)Class.forName(controller).newInstance();
@@ -720,6 +790,11 @@ public class UserInterface extends Container
                 log.warning("Error initializing controller", "controller", controller, e);
                 _controller = null;
             }
+        }
+
+        // perform the init action, if any
+        if (original.initAction != null) {
+            original.initAction.execute(this, null);
         }
     }
 
