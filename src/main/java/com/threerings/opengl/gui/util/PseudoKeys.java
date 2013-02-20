@@ -545,4 +545,23 @@ public class PseudoKeys
     {
         return (key >> 16) & 0xFF;
     }
+
+    /**
+     * Is the specified key an analog control that can be "pressed" by values between 0f and 1f?
+     */
+    public static boolean isAnalogKey (int key)
+    {
+        switch (getType(key)) {
+        case KEY_CONTROLLER_AXIS_POSITIVE:
+        case KEY_CONTROLLER_AXIS_NEGATIVE:
+        case KEY_CONTROLLER_POV_X_POSITIVE:
+        case KEY_CONTROLLER_POV_X_NEGATIVE:
+        case KEY_CONTROLLER_POV_Y_POSITIVE:
+        case KEY_CONTROLLER_POV_Y_NEGATIVE:
+            return true;
+
+        default:
+            return false;
+        }
+    }
 }
