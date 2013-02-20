@@ -501,12 +501,20 @@ public class Component
     }
 
     /**
-     * Returns true if this component is both added to the interface hierarchy and visible, false
-     * if not.
+     * Returns true if this component is added to the interface hierarchy, visible, and all of its
+     * parents up the hierarchy are also visible.
      */
     public boolean isShowing ()
     {
-        return isAdded() && isVisible();
+        if (!isAdded()) {
+            return false;
+        }
+        for (Component c = this; c != null; c = c.getParent()) {
+            if (!c.isVisible()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
