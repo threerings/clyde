@@ -38,31 +38,31 @@ import com.threerings.opengl.gui.util.Dimension;
 public class AnchorLayout extends LayoutManager
 {
     /** Anchors the lower-left of the component to the lower-left of the container. */
-    public static final Anchor SOUTHWEST = new Anchor(0f, 0f, 0f, 0f, false);
+    public static final Anchor SOUTHWEST = new Anchor(0f, 0f, 0f, 0f, 0, 0, false);
 
     /** Anchors the lower-center of the component to the lower-center of the container. */
-    public static final Anchor SOUTH = new Anchor(0.5f, 0f, 0.5f, 0f, false);
+    public static final Anchor SOUTH = new Anchor(0.5f, 0f, 0.5f, 0f, 0, 0, false);
 
     /** Anchors the lower-right of the component to the lower-right of the container. */
-    public static final Anchor SOUTHEAST = new Anchor(1f, 0f, 1f, 0f, false);
+    public static final Anchor SOUTHEAST = new Anchor(1f, 0f, 1f, 0f, 0, 0, false);
 
     /** Anchors the right-center of the component to the right-center of the container. */
-    public static final Anchor EAST = new Anchor(1f, 0.5f, 1f, 0.5f, false);
+    public static final Anchor EAST = new Anchor(1f, 0.5f, 1f, 0.5f, 0, 0, false);
 
     /** Anchors the upper-right of the component to the upper-right of the container. */
-    public static final Anchor NORTHEAST = new Anchor(1f, 1f, 1f, 1f, false);
+    public static final Anchor NORTHEAST = new Anchor(1f, 1f, 1f, 1f, 0, 0, false);
 
     /** Anchors the upper-center of the component to the upper-center of the container. */
-    public static final Anchor NORTH = new Anchor(0.5f, 1f, 0.5f, 1f, false);
+    public static final Anchor NORTH = new Anchor(0.5f, 1f, 0.5f, 1f, 0, 0, false);
 
     /** Anchors the upper-left of the component to the upper-left of the container. */
-    public static final Anchor NORTHWEST = new Anchor(0f, 1f, 0f, 1f, false);
+    public static final Anchor NORTHWEST = new Anchor(0f, 1f, 0f, 1f, 0, 0, false);
 
     /** Anchors the left-center of the component to the left-center of the container. */
-    public static final Anchor WEST = new Anchor(0f, 0.5f, 0f, 0.5f, false);
+    public static final Anchor WEST = new Anchor(0f, 0.5f, 0f, 0.5f, 0, 0, false);
 
     /** Anchors the center of the component to the center of the container. */
-    public static final Anchor CENTER = new Anchor(0.5f, 0.5f, 0.5f, 0.5f, false);
+    public static final Anchor CENTER = new Anchor(0.5f, 0.5f, 0.5f, 0.5f, 0, 0, false);
 
     /**
      * Represents the location of an anchor binding a point of the child component to a point on
@@ -79,6 +79,9 @@ public class AnchorLayout extends LayoutManager
         /** If we use the container dimensions for sizing. */
         public boolean fitToContainer;
 
+        /** The fixed offset from the parent anchor to the child anchor. */
+        public int ox, oy;
+
         /**
          * Creates a new anchor.
          *
@@ -87,12 +90,15 @@ public class AnchorLayout extends LayoutManager
          * @param px the proportional x location of the anchor on the parent component.
          * @param py the proportional y location of the anchor on the parent component.
          */
-        public Anchor (float cx, float cy, float px, float py, boolean fitToContainer)
+        public Anchor (
+                float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer)
         {
             this.cx = cx;
             this.cy = cy;
             this.px = px;
             this.py = py;
+            this.ox = ox;
+            this.oy = oy;
             this.fitToContainer = fitToContainer;
         }
     }
@@ -154,7 +160,7 @@ public class AnchorLayout extends LayoutManager
                 comp.getPreferredSize(width, height) : comp.getPreferredSize(-1, -1);
             int cx = Math.round(size.width * anchor.cx);
             int cy = Math.round(size.height * anchor.cy);
-            comp.setBounds(px - cx, py - cy, size.width, size.height);
+            comp.setBounds(px - cx + anchor.ox, py - cy + anchor.oy, size.width, size.height);
         }
     }
 

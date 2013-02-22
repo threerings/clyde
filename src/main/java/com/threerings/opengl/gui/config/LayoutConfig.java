@@ -312,6 +312,10 @@ public abstract class LayoutConfig extends DeepObject
             @Editable(step=0.01, hgroup="p")
             public float parentX = 0.5f, parentY = 0.5f;
 
+            /** The fixed offset from parent to child anchors. */
+            @Editable(hgroup="o")
+            public int offsetX = 0, offsetY = 0;
+
             /** If the container hints are passed to children. */
             @Editable
             public boolean fitToContainer;
@@ -325,7 +329,8 @@ public abstract class LayoutConfig extends DeepObject
              */
             public Object createConstraints ()
             {
-                return new AnchorLayout.Anchor(childX, childY, parentX, parentY, fitToContainer);
+                return new AnchorLayout.Anchor(
+                        childX, childY, parentX, parentY, offsetX, offsetY, fitToContainer);
             }
         }
 
