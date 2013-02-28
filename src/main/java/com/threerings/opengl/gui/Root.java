@@ -546,7 +546,18 @@ public abstract class Root extends SimpleOverlay
         _daction = action;
         _dicon = handler.getVisualRepresentation(_ddata);
 
-        _ccomponent = null;
+        // We're just about to clear the click component, but it may be armed.
+        // Once we clear it, it won't get any more mouse events and will continue to think
+        // it is armed unless we fake up some events...
+        long now = System.currentTimeMillis();
+        dispatchMouseEvent(_ccomponent,
+            new MouseEvent(this, now, 0, MouseEvent.MOUSE_DRAGGED,
+                Integer.MIN_VALUE, Integer.MIN_VALUE));
+        dispatchMouseEvent(_ccomponent,
+            new MouseEvent(this, now, 0, MouseEvent.MOUSE_RELEASED,
+                MouseEvent.BUTTON1, Integer.MIN_VALUE, Integer.MIN_VALUE, 1));
+
+        _ccomponent = null; // now clear the click component
         updateCursor(null);
         updateHoverComponent(_mouseX, _mouseY);
     }
