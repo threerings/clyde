@@ -516,6 +516,16 @@ public class UserInterface extends Container
     }
 
     /**
+     * Sets the alpha for all components with the specified tag.
+     */
+    public void setAlpha (String tag, float alpha)
+    {
+        for (Component comp : getComponents(tag)) {
+            comp.setAlpha(alpha);
+        }
+    }
+
+    /**
      * Returns a reference to the first component registered with the specified tag, or
      * <code>null</code> if there are no such components.
      */
@@ -678,6 +688,18 @@ public class UserInterface extends Container
         script.init();
     }
 
+    /**
+     * Clears all scripts running on the interface.
+     */
+    public void clearScripts ()
+    {
+        // clean up any remaining scripts
+        for (Script script : _scripts) {
+            script.cleanup();
+        }
+        _scripts.clear();
+    }
+
     @Override
     public void setEnabled (boolean enabled)
     {
@@ -747,11 +769,8 @@ public class UserInterface extends Container
             original.removeAction.execute(this, null);
         }
 
-        // clean up any remaining scripts
-        for (Script script : _scripts) {
-            script.cleanup();
-        }
-        _scripts.clear();
+        clearScripts();
+
         _root = null;
     }
 
