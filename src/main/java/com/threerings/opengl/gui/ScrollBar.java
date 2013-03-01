@@ -181,12 +181,21 @@ public class ScrollBar extends Container
         int extent = Math.max(_model.getExtent(), 1); // avoid div0
         if (_orient == HORIZONTAL) {
             int wellSize = twidth;
-            tx = _model.getValue() * wellSize / range;
             twidth = extent * wellSize / range;
+            if (twidth < THUMB_RATIO * theight) {
+                wellSize -= (THUMB_RATIO * theight - twidth);
+                twidth = THUMB_RATIO * theight;
+            }
+            tx = _model.getValue() * wellSize / range;
         } else {
             int wellSize = theight;
-            ty = (range-extent-_model.getValue()) * wellSize / range;
             theight = extent * wellSize / range;
+            int off = 0;
+            if (theight < THUMB_RATIO * twidth) {
+                wellSize -= (THUMB_RATIO * twidth - theight);
+                theight = THUMB_RATIO * twidth;
+            }
+            ty = (range-extent-_model.getValue()) * wellSize / range;
         }
         _thumb.setBounds(_well.getX() + winsets.left + tx,
                          _well.getY() + winsets.bottom + ty, twidth, theight);
@@ -284,4 +293,6 @@ public class ScrollBar extends Container
     protected Component _well, _thumb;
 
     protected MouseWheelListener _wheelListener;
+
+    protected static final int THUMB_RATIO = 2;
 }
