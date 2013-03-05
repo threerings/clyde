@@ -266,10 +266,9 @@ public class Container extends Component
         mx -= _x;
         my -= _y;
 
-        Component hit = null;
         for (int ii = getComponentCount() - 1; ii >= 0; ii--) {
-            Component child = getComponent(ii);
-            if ((hit = child.getHitComponent(mx, my)) != null) {
+            Component hit = getComponent(ii).getHitComponent(mx, my);
+            if (hit != null) {
                 return hit;
             }
         }
