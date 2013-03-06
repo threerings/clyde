@@ -26,7 +26,9 @@
 package com.threerings.opengl.gui.layout;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Container;
@@ -300,5 +302,5 @@ public class TableLayout extends LayoutManager
     protected boolean[] _fixedColumns;
 
     // TODO: expire from this cache (rarely needed)
-    protected HashMap<Component,Dimension> _pscache = new HashMap<Component,Dimension>();
+    protected Map<Component,Dimension> _pscache = Maps.newIdentityHashMap();
 }

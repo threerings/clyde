@@ -25,7 +25,9 @@
 
 package com.threerings.opengl.gui.layout;
 
-import java.util.HashMap;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 
 import com.threerings.opengl.util.GlContext;
 
@@ -192,7 +194,7 @@ public abstract class GroupLayout extends LayoutManager
         if (constraints != null) {
             if (constraints instanceof Constraints) {
                 if (_constraints == null) {
-                    _constraints = new HashMap<Component, Object>();
+                    _constraints = Maps.newIdentityHashMap();
                 }
                 _constraints.put(comp, constraints);
 
@@ -219,30 +221,14 @@ public abstract class GroupLayout extends LayoutManager
 
     protected boolean isFixed (Component child)
     {
-        if (_constraints == null) {
-            return false;
-        }
-
-        Constraints c = (Constraints)_constraints.get(child);
-        if (c != null) {
-            return c.fixed;
-        }
-
-        return false;
+        Constraints c = (Constraints)getConstraints(child);
+        return (c != null) && c.fixed;
     }
 
     protected int getWeight (Component child)
     {
-        if (_constraints == null) {
-            return 1;
-        }
-
-        Constraints c = (Constraints)_constraints.get(child);
-        if (c != null) {
-            return c.weight;
-        }
-
-        return 1;
+        Constraints c = (Constraints)getConstraints(child);
+        return (c != null) ? c.weight : 1;
     }
 
     /**
@@ -456,5 +442,5 @@ public abstract class GroupLayout extends LayoutManager
     protected Justification _justification = CENTER;
     protected Justification _offjust = CENTER;
 
-    protected HashMap<Component, Object> _constraints;
+    protected Map<Component, Object> _constraints;
 }

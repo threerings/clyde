@@ -25,7 +25,9 @@
 
 package com.threerings.opengl.gui.layout;
 
-import java.util.HashMap;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Container;
@@ -150,6 +152,5 @@ public class AbsoluteLayout extends LayoutManager
     }
 
     protected boolean _flipped;
-    protected HashMap<Component, Object> _spots =
-        new HashMap<Component, Object>();
+    protected Map<Component, Object> _spots = Maps.newIdentityHashMap();
 }

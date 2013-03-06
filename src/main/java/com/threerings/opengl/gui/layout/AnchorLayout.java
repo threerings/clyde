@@ -25,7 +25,9 @@
 
 package com.threerings.opengl.gui.layout;
 
-import java.util.HashMap;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Container;
@@ -165,5 +167,5 @@ public class AnchorLayout extends LayoutManager
     }
 
     /** The anchors of the components to be layed out. */
-    protected HashMap<Component, Anchor> _anchors = new HashMap<Component, Anchor>();
+    protected Map<Component, Anchor> _anchors = Maps.newIdentityHashMap();
 }
