@@ -80,7 +80,7 @@ public class List extends Container
     {
         // list entries can be selected by clicking on them, but unselected
         // only by clicking another entry
-        ToggleButton button = new ToggleButton(_ctx, value.toString()) {
+        ToggleButton button = new ToggleButton(_ctx, String.valueOf(value)) {
             protected void fireAction (long when, int modifiers) {
                 if (!_selected) {
                     super.fireAction(when, modifiers);
@@ -163,7 +163,7 @@ public class List extends Container
             if (_selidx != -1) {
                 ((ToggleButton)_children.get(_selidx)).setSelected(false);
             }
-            _selidx = _children.indexOf(e.getSource());
+            _selidx = getComponentIndex((ToggleButton)e.getSource());
             emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
                 SELECT, getSelected()));
         }
