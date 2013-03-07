@@ -25,6 +25,7 @@
 
 package com.threerings.opengl.gui;
 
+import java.util.List;
 import java.util.ArrayList;
 
 import com.threerings.opengl.renderer.Renderer;
@@ -64,6 +65,12 @@ public class Container extends Component
      */
     public void setLayoutManager (LayoutManager layout)
     {
+        if (_layout != null) {
+            // clean up the old layout manager in case it's shared by multiple containers
+            for (int ii = getComponentCount() - 1; ii >= 0; ii--) {
+                _layout.removeLayoutComponent(getComponent(ii));
+            }
+        }
         _layout = layout;
     }
 
@@ -97,7 +104,7 @@ public class Container extends Component
      */
     public void add (Component child, Object constraints)
     {
-        add(_children.size(), child, constraints);
+        add(getComponentCount(), child, constraints);
     }
 
     /**
@@ -128,8 +135,7 @@ public class Container extends Component
      */
     public void remove (int index)
     {
-        Component child = getComponent(index);
-        _children.remove(index);
+        Component child = _children.remove(index);
         if (_layout != null) {
             _layout.removeLayoutComponent(child);
         }
@@ -143,6 +149,17 @@ public class Container extends Component
 
         // we need to be relayed out
         invalidate();
+    }
+
+    /**
+     * Removes the specified child from this container.
+     */
+    public void remove (Component child)
+    {
+        int idx = getComponentIndex(child);
+        if (idx != -1) {
+            remove(idx);
+        }
     }
 
     /**
@@ -152,38 +169,14 @@ public class Container extends Component
      */
     public boolean replace (Component oldc, Component newc)
     {
-        int idx = _children.indexOf(oldc);
-        if (idx >= 0) {
-            Object constraints = (_layout == null) ? null : _layout.getConstraints(oldc);
-            remove(idx);
-            add(idx, newc, constraints);
-            return true;
+        int idx = getComponentIndex(oldc);
+        if (idx == -1) {
+            return false;
         }
-        return false;
-    }
-
-    /**
-     * Removes the specified child from this container.
-     */
-    public void remove (Component child)
-    {
-        if (!_children.remove(child)) {
-            // if the component was not our child, stop now
-            return;
-        }
-        if (_layout != null) {
-            _layout.removeLayoutComponent(child);
-        }
-        child.setParent(null);
-
-        // if we're part of the hierarchy we call wasRemoved() on the
-        // child now (which will be propagated to all of its children)
-        if (isAdded()) {
-            child.wasRemoved();
-        }
-
-        // we need to be relayed out
-        invalidate();
+        Object constraints = (_layout == null) ? null : _layout.getConstraints(oldc);
+        remove(idx);
+        add(idx, newc, constraints);
+        return true;
     }
 
     /**
@@ -208,7 +201,13 @@ public class Container extends Component
      */
     public int getComponentIndex (Component component)
     {
-        return _children.indexOf(component);
+        // use reference equality to find the child
+        for (int ii = 0, nn = _children.size(); ii < nn; ii++) {
+            if (_children.get(ii) == component) {
+                return ii;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -217,7 +216,7 @@ public class Container extends Component
     public void removeAll ()
     {
         for (int ii = getComponentCount() - 1; ii >= 0; ii--) {
-            remove(getComponent(ii));
+            remove(ii);
         }
     }
 
@@ -283,11 +282,7 @@ public class Container extends Component
                 layout(); // lay ourselves out
 
                 // now validate our children
-                applyOperation(new ChildOp() {
-                    public void apply (Component child) {
-                        child.validate();
-                    }
-                });
+                applyOperation(CommonChildOps.VALIDATE);
             }
             _valid = true; // finally mark ourselves as valid
         }
@@ -313,7 +308,7 @@ public class Container extends Component
         super.renderComponent(renderer);
 
         // render our children
-        for (int ii = 0, ll = getComponentCount(); ii < ll; ii++) {
+        for (int ii = 0, nn = getComponentCount(); ii < nn; ii++) {
             getComponent(ii).render(renderer);
         }
     }
@@ -321,11 +316,9 @@ public class Container extends Component
     // documentation inherited
     protected Dimension computePreferredSize (int whint, int hhint)
     {
-        if (_layout != null) {
-            return _layout.computePreferredSize(this, whint, hhint);
-        } else {
-            return super.computePreferredSize(whint, hhint);
-        }
+        return (_layout != null)
+            ? _layout.computePreferredSize(this, whint, hhint)
+            : super.computePreferredSize(whint, hhint);
     }
 
     // documentation inherited
@@ -335,11 +328,7 @@ public class Container extends Component
 
         // call wasAdded() on all of our existing children; if they are added later (after we are
         // added), they will automatically have wasAdded() called on them at that time
-        applyOperation(new ChildOp() {
-            public void apply (Component child) {
-                child.wasAdded();
-            }
-        });
+        applyOperation(CommonChildOps.WAS_ADDED);
     }
 
     // documentation inherited
@@ -348,11 +337,7 @@ public class Container extends Component
         super.wasRemoved();
 
         // call wasRemoved() on all of our children
-        applyOperation(new ChildOp() {
-            public void apply (Component child) {
-                child.wasRemoved();
-            }
-        });
+        applyOperation(CommonChildOps.WAS_REMOVED);
     }
 
     /**
@@ -423,7 +408,8 @@ public class Container extends Component
      */
     protected void applyOperation (ChildOp op)
     {
-        for (Component child : _children) {
+        for (int ii = 0, nn = getComponentCount(); ii < nn; ii++) {
+            Component child = getComponent(ii);
             try {
                 op.apply(child);
             } catch (Exception e) {
@@ -432,12 +418,34 @@ public class Container extends Component
         }
     }
 
-    /** Used in {@link #wasAdded} and {@link #wasRemoved}. */
+    /** A child operation that is best done by protecting against exceptions. */
     protected static interface ChildOp
     {
         public void apply (Component child);
     }
 
-    protected ArrayList<Component> _children = new ArrayList<Component>();
+    /** Enumerates common child ops. */
+    protected static enum CommonChildOps
+        implements ChildOp
+    {
+        WAS_ADDED {
+            @Override public void apply (Component child) {
+                child.wasAdded();
+            }
+        },
+        WAS_REMOVED {
+            @Override public void apply (Component child) {
+                child.wasRemoved();
+            }
+        },
+        VALIDATE {
+            @Override public void apply (Component child) {
+                child.validate();
+            }
+        },
+        ;
+    }
+
+    protected List<Component> _children = new ArrayList<Component>();
     protected LayoutManager _layout;
 }
