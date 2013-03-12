@@ -239,7 +239,6 @@ public class PathProperty extends Property
                 obj = path[jj].get(obj);
             }
             // use some simple coercion rules on the paths after the first
-            Property plast = path[last];
             setProperty(obj, value, path[last], ii == 0);
         }
     }
