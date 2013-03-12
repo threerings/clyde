@@ -65,13 +65,14 @@ public class ArgumentPathProperty extends PathProperty
     {
         @SuppressWarnings("unchecked") Map<Object, Object> map =
             (Map<Object, Object>)object;
+        Object value = map.get(_name);
         // If we don't have a value for this key, or it's invalid, use the default
-        if (!map.containsKey(_name) || !isLegalValue(map.get(_name))) {
-            Object value = DeepUtil.copy(super.get(_reference));
+        boolean noValue = (value == null) && !map.containsKey(_name);
+        if (noValue || !isLegalValue(value)) {
+            value = DeepUtil.copy(super.get(_reference));
             map.put(_name, value);
-            return value;
         }
-        return map.get(_name);
+        return value;
     }
 
     @Override // documentation inherited
