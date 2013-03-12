@@ -31,6 +31,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import proguard.annotation.Keep;
 
@@ -165,8 +166,20 @@ public abstract class Parameter extends DeepObject
             {
                 if (Choice.this != outer) {
                     ReflectionUtil.setOuter(this, outer);
-                    log.warning("Fixed invalid outer reference.", "where", where,
-                        "parameter", outer.name, "option", name);
+                    log.warning("Fixed invalid outer reference.",
+                        "where", where, "parameter", outer.name, "option", name);
+                }
+                VALIDATE_ARGS:
+                for (Iterator<String> it = _arguments.keySet().iterator(); it.hasNext(); ) {
+                    String arg = it.next();
+                    for (Direct d : directs) {
+                        if (arg.equals(d.name)) {
+                            continue VALIDATE_ARGS;
+                        }
+                    }
+                    log.warning("Removing invalid option argument.",
+                        "where", where, "parameter", outer.name, "option", name, "arg", arg);
+                    it.remove();
                 }
             }
 
