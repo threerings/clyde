@@ -675,15 +675,9 @@ public abstract class Property extends DeepObject
             }
             type = ClassUtil.objectEquivalentOf(type);
         }
-        if (!(value == null || type.isInstance(value))) {
-            return false;
-        }
-        Editable annotation = getAnnotation();
-        if (value == null && !annotation.nullable()) {
-            return false;
-        }
-        // TODO: check other constraints
-        return true;
+        return (value == null)
+            ? getAnnotation().nullable()
+            : type.isInstance(value);
     }
 
     /**
