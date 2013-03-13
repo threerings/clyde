@@ -32,6 +32,11 @@ import java.lang.reflect.Type;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import proguard.annotation.Keep;
 
@@ -183,6 +188,30 @@ public abstract class Parameter extends DeepObject
                 }
             }
 
+            /**
+             * Update the arguments: copying something to the new name if it makes sense.
+             */
+            protected void updateArguments ()
+            {
+                Set<String> directNames = Sets.newHashSet();
+                for (Direct d : directs) {
+                    directNames.add(d.name);
+                }
+                List<String> added = Lists.newArrayList(
+                    Sets.difference(directNames, _arguments.keySet()));
+                List<String> removed = Lists.newArrayList(
+                    Sets.difference(_arguments.keySet(), directNames));
+                // If a direct was added at the same time as a direct was removed, it's likely
+                // that someone just edited the name: copy the value over to the new name
+                if (added.size() == 1 && removed.size() == 1) {
+                    _arguments.put(added.get(0), _arguments.remove(removed.get(0)));
+
+                } else {
+                    // otherwise, remove all stale values
+                    _arguments.keySet().removeAll(removed);
+                }
+            }
+
             // documentation inherited from interface DynamicallyEditable
             public Property[] getDynamicProperties ()
             {
@@ -241,6 +270,9 @@ public abstract class Parameter extends DeepObject
             super.invalidateProperties();
             for (Direct direct : directs) {
                 direct.invalidateProperties();
+            }
+            for (Option option : options) {
+                option.updateArguments();
             }
             _optionProperties = null;
         }
