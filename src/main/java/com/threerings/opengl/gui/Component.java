@@ -238,10 +238,10 @@ public class Component
                 return new AbstractIterator<Container>() {
                     Component c = Component.this;
                     protected Container computeNext () {
-                        if (c == null) {
+                        Container p = c.getParent();
+                        if (p == null) {
                             return endOfData();
                         }
-                        Container p = c.getParent();
                         c = p;
                         return p;
                     }
