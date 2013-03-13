@@ -282,6 +282,14 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Get the enclosing ActorSprite.
+         */
+        public final ActorSprite getActorSprite ()
+        {
+            return (ActorSprite)getParentScope();
+        }
+
+        /**
          * (Re)configures the implementation.
          */
         public void setConfig (ActorSpriteConfig config)
@@ -337,13 +345,13 @@ public class ActorSprite extends Sprite
         @Override // documentation inherited
         public void wasCreated ()
         {
-            ((ActorSprite)getParentScope()).spawnTransientModel(_config.creationTransient);
+            getActorSprite().spawnTransientModel(_config.creationTransient);
         }
 
         @Override // documentation inherited
         public void willBeDestroyed ()
         {
-            ((ActorSprite)getParentScope()).spawnTransientModel(_config.destructionTransient);
+            getActorSprite().spawnTransientModel(_config.destructionTransient);
         }
 
         /**
@@ -369,7 +377,7 @@ public class ActorSprite extends Sprite
          */
         protected boolean isControlled ()
         {
-            return ((ActorSprite)getParentScope()).getAdvancer() != null;
+            return getActorSprite().getAdvancer() != null;
         }
 
         /** The renderer context. */
