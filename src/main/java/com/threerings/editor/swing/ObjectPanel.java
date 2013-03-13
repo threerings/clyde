@@ -206,9 +206,9 @@ public class ObjectPanel extends BasePropertyEditor
     }
 
     @Override // documentation inherited
-    public String getMousePath (Point pt)
+    public String getPointPath (Point pt)
     {
-        return _panel.getMousePath(SwingUtilities.convertPoint(this, pt, _panel));
+        return _panel.getPointPath(SwingUtilities.convertPoint(this, pt, _panel));
     }
 
     /**

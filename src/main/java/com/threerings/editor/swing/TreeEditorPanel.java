@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
@@ -490,13 +491,14 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     @Override // documentation inherited
-    public String getMousePath (Point pt)
+    public String getPointPath (Point pt)
     {
         TreePath path = null;
-        Point treePt = _tree.getMousePosition();
-        if (treePt != null) {
+        Point treePt = SwingUtilities.convertPoint(this, pt, _tree);
+        if ((new Rectangle(_tree.getSize())).contains(treePt)) {
             path = _tree.getPathForLocation(treePt.x, treePt.y);
         } else {
+            treePt = null;
             path = _tree.getSelectionPath();
         }
         if (path == null) {
@@ -517,21 +519,25 @@ public class TreeEditorPanel extends BaseEditorPanel
         }
 
         if (treePt == null) {
+            Point orig = new Point(pt);
             for (Container cont = _panel; cont != null; ) {
+                pt = SwingUtilities.convertPoint(this, orig, cont);
                 Component comp = cont.getComponentAt(pt);
                 if (comp == cont || !(comp instanceof Container)) {
                     break;
-                } else if (comp instanceof PropertyEditor) {
-                    PropertyEditor editor = (PropertyEditor)comp;
-                    String subElement = editor.getMousePath(
-                            SwingUtilities.convertPoint(this, pt, comp));
+                } else if (comp instanceof BasePropertyEditor) {
+                    BasePropertyEditor editor = (BasePropertyEditor)comp;
+                    String subElement = editor.getPointPath(
+                            SwingUtilities.convertPoint(this, orig, comp));
                     if (!subElement.isEmpty()) {
-                        buf.append('.').append(subElement);
+                        if (!subElement.startsWith(".")) {
+                            buf.append('.');
+                        }
+                        buf.append(subElement);
                     }
                     break;
                 }
                 cont = (Container)comp;
-                pt = cont.getMousePosition();
             }
         }
 

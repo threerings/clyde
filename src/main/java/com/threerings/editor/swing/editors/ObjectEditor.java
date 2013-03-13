@@ -59,6 +59,12 @@ public class ObjectEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public String getPointPath (Point pt)
+    {
+        return _panel.getPointPath(SwingUtilities.convertPoint(this, pt, _panel));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         makeCollapsible(_ctx, getPropertyLabel(), true);
@@ -71,12 +77,6 @@ public class ObjectEditor extends PropertyEditor
     protected void setTreeModeEnabled (boolean enabled)
     {
         _panel.setTreeModeEnabled(enabled);
-    }
-
-    @Override // documentation inherited
-    public String getMousePath (Point pt)
-    {
-        return _panel.getMousePath(SwingUtilities.convertPoint(this, pt, _panel));
     }
 
     /** The object panel. */

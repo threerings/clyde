@@ -144,7 +144,17 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     public String getMousePath ()
     {
         Point pt = getMousePosition();
-        return (pt == null) ? "" : getMousePath(pt);
+        return (pt == null) ? "" : getPointPath(pt);
+    }
+
+    /**
+     * Returns the path of the property under the point relative to this property.
+     *
+     * @param pt the location of the mouse cursor.
+     */
+    public String getPointPath (Point pt)
+    {
+        return "";
     }
 
     // documentation inherited from interface ActionListener
@@ -173,16 +183,6 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     protected void setTreeModeEnabled (boolean enabled)
     {
         // nothing by default
-    }
-
-    /**
-     * Returns the path of the property under the mouse cursor relative to this property.
-     *
-     * @param pt the location of the mouse cursor.
-     */
-    public String getMousePath (Point pt)
-    {
-        return "";
     }
 
     /**

@@ -200,6 +200,21 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
+    public String getPointPath (Point pt)
+    {
+        Point cpt = SwingUtilities.convertPoint(this, pt, _content);
+        if (_content.getComponentAt(cpt) == _opanel) {
+            return "[" + _table.getSelectedRow() + "]" +
+                _opanel.getPointPath(SwingUtilities.convertPoint(this, pt, _opanel));
+        }
+        pt = SwingUtilities.convertPoint(this, pt, _table);
+        int row = _table.rowAtPoint(pt);
+        int col = _table.columnAtPoint(pt);
+        return ((row == -1 || col == -1) ? "" :
+            ("[" + row + "]" + _columns[col].getPathComponent()));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
@@ -398,21 +413,6 @@ public class TableArrayListEditor extends ArrayListEditor
         if (_opanel != null) {
             _content.add(_opanel);
         }
-    }
-
-    @Override // documentation inherited
-    public String getMousePath (Point pt)
-    {
-        Point cpt = SwingUtilities.convertPoint(this, pt, _content);
-        if (_content.getComponentAt(cpt) == _opanel) {
-            return "[" + _table.getSelectedRow() + "]" +
-                _opanel.getMousePath(SwingUtilities.convertPoint(this, pt, _opanel));
-        }
-        pt = SwingUtilities.convertPoint(this, pt, _table);
-        int row = _table.rowAtPoint(pt);
-        int col = _table.columnAtPoint(pt);
-        return ((row == -1 || col == -1) ? "" :
-            ("[" + row + "]" + _columns[col].getPathComponent()));
     }
 
     @Override // documentation inherited

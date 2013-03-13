@@ -73,9 +73,9 @@ public class ObjectPanelArrayListEditor extends PanelArrayListEditor
         }
 
         @Override // documentation inherited
-        public String getMousePath (Point pt)
+        public String getPointPath (Point pt)
         {
-            return ((ObjectPanel)_content).getMousePath(
+            return ((ObjectPanel)_content).getPointPath(
                     SwingUtilities.convertPoint(this, pt, _content));
         }
 

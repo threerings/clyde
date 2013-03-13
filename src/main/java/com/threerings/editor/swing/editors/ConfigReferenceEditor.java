@@ -138,6 +138,18 @@ public class ConfigReferenceEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public String getPointPath (Point pt)
+    {
+        Component comp = _arguments.getComponentAt(
+            SwingUtilities.convertPoint(this, pt, _arguments));
+        String arg = (comp instanceof PropertyEditor) ?
+            ((PropertyEditor)comp).getProperty().getName() : null;
+        return (arg == null) ? "" :
+            ("[\"" + arg.replace("\"", "\\\"") + "\"]" +
+             ((PropertyEditor)comp).getPointPath(SwingUtilities.convertPoint(this, pt, comp)));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         if (_property.getAnnotation().constant()) {
@@ -165,18 +177,6 @@ public class ConfigReferenceEditor extends PropertyEditor
         _content.add(_arguments = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         _arguments.setBackground(null);
-    }
-
-    @Override // documentation inherited
-    public String getMousePath (Point pt)
-    {
-        Component comp = _arguments.getComponentAt(
-            SwingUtilities.convertPoint(this, pt, _arguments));
-        String arg = (comp instanceof PropertyEditor) ?
-            ((PropertyEditor)comp).getProperty().getName() : null;
-        return (arg == null) ? "" :
-            ("[\"" + arg.replace("\"", "\\\"") + "\"]" +
-             ((PropertyEditor)comp).getMousePath(SwingUtilities.convertPoint(this, pt, comp)));
     }
 
     /**

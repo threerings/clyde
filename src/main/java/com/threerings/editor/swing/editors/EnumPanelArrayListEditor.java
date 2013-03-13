@@ -111,7 +111,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
         }
 
         @Override // documentation inherited
-        public String getMousePath (Point pt)
+        public String getPointPath (Point pt)
         {
             return "";
         }

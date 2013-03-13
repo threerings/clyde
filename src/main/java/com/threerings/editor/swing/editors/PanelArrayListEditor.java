@@ -92,6 +92,15 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
+    public String getPointPath (Point pt)
+    {
+        Component comp = _panels.getComponentAt(
+            SwingUtilities.convertPoint(this, pt, _panels));
+        int idx = _panels.getComponentZOrder(comp);
+        return (idx == -1) ? "" : ("[" + idx + "]" + ((EntryPanel)comp).getPointPath(pt));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
@@ -107,15 +116,6 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             bpanel.add(_add = new JButton(getActionLabel("new")));
             _add.addActionListener(this);
         }
-    }
-
-    @Override // documentation inherited
-    public String getMousePath (Point pt)
-    {
-        Component comp = _panels.getComponentAt(
-            SwingUtilities.convertPoint(this, pt, _panels));
-        int idx = _panels.getComponentZOrder(comp);
-        return (idx == -1) ? "" : ("[" + idx + "]" + ((EntryPanel)comp).getMousePath(pt));
     }
 
     @Override // documentation inherited
@@ -231,7 +231,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             return "";
         }
         Point pt = SwingUtilities.convertPoint(this, 1, 1, editor);
-        String path = editor.getMousePath(pt);
+        String path = editor.getPointPath(pt);
         if (path.startsWith(".")) {
             path = path.substring(1);
         }
@@ -349,7 +349,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         /**
          * Get the mouse path.
          */
-        public abstract String getMousePath (Point pt);
+        public abstract String getPointPath (Point pt);
 
         /**
          * Updates the state of the buttons.

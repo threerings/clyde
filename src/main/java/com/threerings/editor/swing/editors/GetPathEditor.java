@@ -63,6 +63,15 @@ public class GetPathEditor extends ObjectEditor
     }
 
     @Override // documentation inherited
+    public String getPointPath (Point pt)
+    {
+        if (_panel != null) {
+            return super.getPointPath(pt);
+        }
+        return "";
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         if (_property instanceof PathProperty) {
@@ -72,14 +81,5 @@ public class GetPathEditor extends ObjectEditor
             add(getPath);
             getPath.addActionListener(this);
         }
-    }
-
-    @Override // documentation inherited
-    public String getMousePath (Point pt)
-    {
-        if (_panel != null) {
-            return super.getMousePath(pt);
-        }
-        return "";
     }
 }
