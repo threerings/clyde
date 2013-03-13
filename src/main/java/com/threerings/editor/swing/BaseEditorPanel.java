@@ -132,12 +132,11 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
         if (path.length() > 0 && _object instanceof ParameterizedConfig) {
             String name = path.substring(path.lastIndexOf(".") + 1);
             if (name.endsWith("]")) {
-                int end = name.lastIndexOf('[');
-                if (end < name.lastIndexOf('"')) {
-                    name = name.substring(end + 2, name.lastIndexOf('"'));
-                } else {
-                    name = name.substring(0, end);
-                }
+                int brack1 = name.lastIndexOf('[');
+                int quote2 = name.lastIndexOf('"');
+                name = (quote2 > brack1) // is there a " within the []?
+                    ? name.substring(brack1 + 2, quote2) // get what's within the quotes
+                    : name.substring(0, brack1); // everything up to the [
             }
             if (_ddialog == null) {
                 _ddialog = DirectDialog.createDialog(this, _ctx);

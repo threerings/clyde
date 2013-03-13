@@ -49,6 +49,7 @@ import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
@@ -165,13 +166,15 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         if (idx2 == -1) {
             ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
             builder.put(path + "[" + idx1 + "]", "");
-            for (int ii = idx1; ii < _panels.getComponentCount(); ii++) {
+            for (int ii = idx1, nn = _panels.getComponentCount(); ii < nn; ii++) {
+                // shift down
                 builder.put(path + "[" + (ii + 1) + "]", path + "[" + ii + "]");
             }
             replace = builder.build();
 
         } else {
             replace = ImmutableMap.<String, String>builder()
+                // swap
                 .put(path + "[" + idx1 + "]", path + "[" + idx2 + "]")
                 .put(path + "[" + idx2 + "]", path + "[" + idx1 + "]")
                 .build();
@@ -183,7 +186,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
                 updateDirect((Parameter.Direct)param, replace);
             } else if (param instanceof Parameter.Choice) {
                 for (Parameter.Direct direct : ((Parameter.Choice)param).directs) {
-                    updated = updateDirect(direct, replace) || updated;
+                    updated |= updateDirect(direct, replace);
                 }
             }
         }
@@ -198,15 +201,18 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     protected boolean updateDirect (Parameter.Direct direct, Map<String, String> replace)
     {
         boolean updated = false;
-        for (int ii = 0; ii < direct.paths.length; ii++) {
+        for (int ii = 0, nn = direct.paths.length; ii < nn; ii++) {
+            String path = direct.paths[ii];
             for (Map.Entry<String, String> entry : replace.entrySet()) {
-                if (direct.paths[ii].startsWith(entry.getKey())) {
-                    String old = direct.paths[ii];
-                    direct.paths[ii] = entry.getValue().length() == 0 ?
-                        "" :
-                        entry.getValue() + direct.paths[ii].substring(entry.getKey().length());
+                String match = entry.getKey();
+                if (path.startsWith(match)) {
+                    String repl = entry.getValue();
+                    // Store the new path. No need to update 'path' because we break
+                    direct.paths[ii] = (repl.length() == 0)
+                        ? ""
+                        : repl + path.substring(match.length());
                     log.info("Updating direct path",
-                            "old", old, "new", direct.paths[ii]);
+                            "old", path, "new", direct.paths[ii]);
                     updated = true;
                     break;
                 }
@@ -220,13 +226,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
      */
     protected String getPropertyPath ()
     {
-        BaseEditorPanel editor = null;
-        for (Component comp = this; comp != null; ) {
-            if (comp instanceof BaseEditorPanel) {
-                editor = (BaseEditorPanel)comp;
-            }
-            comp = comp.getParent();
-        }
+        BaseEditorPanel editor = findBaseEditor();
         if (editor == null) {
             return "";
         }
@@ -243,14 +243,24 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
      */
     protected ParameterizedConfig getRootConfig ()
     {
-        Object obj = null;
-        for (Component comp = this; comp != null; ) {
-            if (comp instanceof BaseEditorPanel) {
-                obj = ((BaseEditorPanel)comp).getObject();
+        BaseEditorPanel bep = findBaseEditor();
+        return (bep == null)
+            ? null
+            : ObjectUtil.as(bep.getObject(), ParameterizedConfig.class);
+    }
+
+    /**
+     * Find the topmost BaseEditorPanel in our component ancestry.
+     */
+    protected BaseEditorPanel findBaseEditor ()
+    {
+        BaseEditorPanel bep = null;
+        for (Component c = this; c != null; c = c.getParent()) {
+            if (c instanceof BaseEditorPanel) {
+                bep = (BaseEditorPanel)c;
             }
-            comp = comp.getParent();
         }
-        return (obj instanceof ParameterizedConfig) ? (ParameterizedConfig)obj : null;
+        return bep;
     }
 
     /**
