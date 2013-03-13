@@ -324,7 +324,7 @@ public class EditorPanel extends BaseEditorPanel
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
         for (Container cont = this; cont != null; ) {
             Component comp = cont.getComponentAt(pt);
@@ -332,10 +332,11 @@ public class EditorPanel extends BaseEditorPanel
                 return "";
             } else if (comp instanceof PropertyEditor) {
                 PropertyEditor editor = (PropertyEditor)comp;
-                return "." + editor.getProperty().getName() + editor.getMousePath();
+                Point npt = new Point(pt);
+                return "." + editor.getProperty().getName() +
+                    editor.getMousePath(SwingUtilities.convertPoint(this, npt, editor));
             }
             cont = (Container)comp;
-            pt = cont.getMousePosition();
         }
         return "";
     }

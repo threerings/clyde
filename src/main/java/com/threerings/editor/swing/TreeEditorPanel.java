@@ -58,6 +58,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -489,7 +490,7 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
         TreePath path = null;
         Point treePt = _tree.getMousePosition();
@@ -522,7 +523,8 @@ public class TreeEditorPanel extends BaseEditorPanel
                     break;
                 } else if (comp instanceof PropertyEditor) {
                     PropertyEditor editor = (PropertyEditor)comp;
-                    String subElement = editor.getMousePath();
+                    String subElement = editor.getMousePath(
+                            SwingUtilities.convertPoint(this, pt, comp));
                     if (!subElement.isEmpty()) {
                         buf.append('.').append(subElement);
                     }

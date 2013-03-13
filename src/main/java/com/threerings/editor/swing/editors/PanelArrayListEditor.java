@@ -33,6 +33,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import java.util.Map;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -40,12 +43,20 @@ import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import com.google.common.collect.ImmutableMap;
+
 import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.util.ListUtil;
 
+import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Parameter;
+import com.threerings.editor.swing.BaseEditorPanel;
+import com.threerings.editor.swing.BasePropertyEditor;
 import com.threerings.editor.swing.ObjectPanel;
+
+import static com.threerings.editor.Log.*;
 
 /**
  * An editor for arrays or lists of objects.  Uses embedded panels.
@@ -98,7 +109,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
         Component comp = _panels.getComponentAt(
             SwingUtilities.convertPoint(this, pt, _panels));
@@ -120,6 +131,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         super.removeValue(idx);
         _panels.remove(idx);
         updatePanels();
+        updatePaths(idx, -1);
     }
 
     /**
@@ -133,6 +145,112 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         _panels.setComponentZOrder(_panels.getComponent(idx1), idx2);
         fireStateChanged(true);
         updatePanels();
+        updatePaths(idx1, idx2);
+    }
+
+    /**
+     * Updates direct paths that reference this location in the array.
+     *
+     * @param idx1 The index being modified
+     * @param idx2 The index being swapped, of -1 if idx1 is being removed.
+     */
+    protected void updatePaths (int idx1, int idx2)
+    {
+        String path = getPropertyPath();
+        ParameterizedConfig pc = getRootConfig();
+        if (pc == null) {
+            return;
+        }
+        Map<String, String> replace;
+        if (idx2 == -1) {
+            ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
+            builder.put(path + "[" + idx1 + "]", "");
+            for (int ii = idx1; ii < _panels.getComponentCount(); ii++) {
+                builder.put(path + "[" + (ii + 1) + "]", path + "[" + ii + "]");
+            }
+            replace = builder.build();
+
+        } else {
+            replace = ImmutableMap.<String, String>builder()
+                .put(path + "[" + idx1 + "]", path + "[" + idx2 + "]")
+                .put(path + "[" + idx2 + "]", path + "[" + idx1 + "]")
+                .build();
+        }
+
+        boolean updated = false;
+        for (Parameter param : pc.parameters) {
+            if (param instanceof Parameter.Direct) {
+                updateDirect((Parameter.Direct)param, replace);
+            } else if (param instanceof Parameter.Choice) {
+                for (Parameter.Direct direct : ((Parameter.Choice)param).directs) {
+                    updated = updateDirect(direct, replace) || updated;
+                }
+            }
+        }
+        if (updated) {
+            pc.wasUpdated();
+        }
+    }
+
+    /**
+     * Updates all paths in a direct parameter with the replacements specified in replace.
+     */
+    protected boolean updateDirect (Parameter.Direct direct, Map<String, String> replace)
+    {
+        boolean updated = false;
+        for (int ii = 0; ii < direct.paths.length; ii++) {
+            for (Map.Entry<String, String> entry : replace.entrySet()) {
+                if (direct.paths[ii].startsWith(entry.getKey())) {
+                    String old = direct.paths[ii];
+                    direct.paths[ii] = entry.getValue().length() == 0 ?
+                        "" :
+                        entry.getValue() + direct.paths[ii].substring(entry.getKey().length());
+                    log.info("Updating direct path",
+                            "old", old, "new", direct.paths[ii]);
+                    updated = true;
+                    break;
+                }
+            }
+        }
+        return updated;
+    }
+
+    /**
+     * Get the property path for the array.
+     */
+    protected String getPropertyPath ()
+    {
+        BaseEditorPanel editor = null;
+        for (Component comp = this; comp != null; ) {
+            if (comp instanceof BaseEditorPanel) {
+                editor = (BaseEditorPanel)comp;
+            }
+            comp = comp.getParent();
+        }
+        if (editor == null) {
+            return "";
+        }
+        Point pt = SwingUtilities.convertPoint(this, 1, 1, editor);
+        String path = editor.getMousePath(pt);
+        if (path.startsWith(".")) {
+            path = path.substring(1);
+        }
+        return path;
+    }
+
+    /**
+     * Get the root parameterized config if there is one.
+     */
+    protected ParameterizedConfig getRootConfig ()
+    {
+        Object obj = null;
+        for (Component comp = this; comp != null; ) {
+            if (comp instanceof BaseEditorPanel) {
+                obj = ((BaseEditorPanel)comp).getObject();
+            }
+            comp = comp.getParent();
+        }
+        return (obj instanceof ParameterizedConfig) ? (ParameterizedConfig)obj : null;
     }
 
     /**

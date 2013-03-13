@@ -35,6 +35,7 @@ import java.util.Arrays;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -205,9 +206,9 @@ public class ObjectPanel extends BasePropertyEditor
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
-        return _panel.getMousePath();
+        return _panel.getMousePath(SwingUtilities.convertPoint(this, pt, _panel));
     }
 
     /**

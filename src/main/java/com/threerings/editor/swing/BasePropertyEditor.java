@@ -180,7 +180,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
      *
      * @param pt the location of the mouse cursor.
      */
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
         return "";
     }

@@ -28,6 +28,7 @@ package com.threerings.editor.swing.editors;
 import java.awt.Point;
 
 import javax.swing.BorderFactory;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -73,9 +74,9 @@ public class ObjectEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
-        return _panel.getMousePath();
+        return _panel.getMousePath(SwingUtilities.convertPoint(this, pt, _panel));
     }
 
     /** The object panel. */

@@ -168,14 +168,15 @@ public class ConfigReferenceEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
         Component comp = _arguments.getComponentAt(
             SwingUtilities.convertPoint(this, pt, _arguments));
         String arg = (comp instanceof PropertyEditor) ?
             ((PropertyEditor)comp).getProperty().getName() : null;
         return (arg == null) ? "" :
-            ("[\"" + arg.replace("\"", "\\\"") + "\"]" + ((PropertyEditor)comp).getMousePath());
+            ("[\"" + arg.replace("\"", "\\\"") + "\"]" +
+             ((PropertyEditor)comp).getMousePath(SwingUtilities.convertPoint(this, pt, comp)));
     }
 
     /**

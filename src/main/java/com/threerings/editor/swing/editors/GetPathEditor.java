@@ -75,7 +75,7 @@ public class GetPathEditor extends ObjectEditor
     }
 
     @Override // documentation inherited
-    protected String getMousePath (Point pt)
+    public String getMousePath (Point pt)
     {
         if (_panel != null) {
             return super.getMousePath(pt);
