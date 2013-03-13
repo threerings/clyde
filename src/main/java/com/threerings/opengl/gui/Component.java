@@ -26,6 +26,7 @@
 package com.threerings.opengl.gui;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -229,7 +230,8 @@ public class Component
     }
 
     /**
-     * Return an Iterable over our parent containers.
+     * Return an Iterable over parent, it's parent, and so on.
+     * Nulls will not be returned.
      */
     public Iterable<Container> getParents ()
     {
@@ -251,7 +253,23 @@ public class Component
     }
 
     /**
-     * Return an Iterable over ourselves and our parent components.
+     * Return a live List "view" over the *direct* children of this Component.
+     */
+    public List<Component> getChildren ()
+    {
+        return ImmutableList.of();
+    }
+
+    /**
+     * Return an Iterable over our children, and their children, and so on.
+     */
+    public Iterable<Component> getDescendants ()
+    {
+        return ImmutableList.of();
+    }
+
+    /**
+     * Return an Iterable over ourselves each ancestor parent.
      */
     public Iterable<Component> getUpwards ()
     {
@@ -259,15 +277,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable over all descendant components.
-     */
-    public Iterable<Component> getChildren ()
-    {
-        return ImmutableList.of();
-    }
-
-    /**
-     * Return an Iterable starting with ourselves and extending to all children.
+     * Return an Iterable starting with ourselves and extending to all descendants.
      */
     public Iterable<Component> getDownwards ()
     {

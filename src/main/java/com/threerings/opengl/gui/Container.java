@@ -27,6 +27,7 @@ package com.threerings.opengl.gui;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -184,7 +185,13 @@ public class Container extends Component
     }
 
     @Override
-    public Iterable<Component> getChildren ()
+    public List<Component> getChildren ()
+    {
+        return Collections.unmodifiableList(_children);
+    }
+
+    @Override
+    public Iterable<Component> getDescendants ()
     {
         return Iterables.concat(Iterables.transform(_children,
             new Function<Component, Iterable<Component>>() {
@@ -197,7 +204,7 @@ public class Container extends Component
     @Override
     public Iterable<Component> getDownwards ()
     {
-        return Iterables.concat(ImmutableList.of(this), getChildren());
+        return Iterables.concat(ImmutableList.of(this), getDescendants());
     }
 
     /**
