@@ -26,7 +26,12 @@
 package com.threerings.opengl.gui;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -221,6 +226,52 @@ public class Component
     public Container getParent ()
     {
         return _parent;
+    }
+
+    /**
+     * Return an Iterable over our parent containers.
+     */
+    public Iterable<Container> getParents ()
+    {
+        return new Iterable<Container>() {
+            public Iterator<Container> iterator () {
+                return new AbstractIterator<Container>() {
+                    Component c = Component.this;
+                    protected Container computeNext () {
+                        if (c == null) {
+                            return endOfData();
+                        }
+                        Container p = c.getParent();
+                        c = p;
+                        return p;
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Return an Iterable over ourselves and our parent components.
+     */
+    public Iterable<Component> getUpwards ()
+    {
+        return Iterables.concat(ImmutableList.of(this), getParents());
+    }
+
+    /**
+     * Return an Iterable over all descendant components.
+     */
+    public Iterable<Component> getChildren ()
+    {
+        return ImmutableList.of();
+    }
+
+    /**
+     * Return an Iterable starting with ourselves and extending to all children.
+     */
+    public Iterable<Component> getDownwards ()
+    {
+        return ImmutableList.of(this);
     }
 
     /**

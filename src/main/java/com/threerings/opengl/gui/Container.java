@@ -28,6 +28,10 @@ package com.threerings.opengl.gui;
 import java.util.List;
 import java.util.ArrayList;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
@@ -177,6 +181,23 @@ public class Container extends Component
         remove(idx);
         add(idx, newc, constraints);
         return true;
+    }
+
+    @Override
+    public Iterable<Component> getChildren ()
+    {
+        return Iterables.concat(Iterables.transform(_children,
+            new Function<Component, Iterable<Component>>() {
+                public Iterable<Component> apply (Component c) {
+                    return c.getDownwards();
+                }
+            }));
+    }
+
+    @Override
+    public Iterable<Component> getDownwards ()
+    {
+        return Iterables.concat(ImmutableList.of(this), getChildren());
     }
 
     /**
