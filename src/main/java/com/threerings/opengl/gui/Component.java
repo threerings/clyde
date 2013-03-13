@@ -265,6 +265,9 @@ public class Component
      */
     public Iterable<Component> getDescendants ()
     {
+        // Note: Container's implementation of this method would work here too
+        // (as long as it replaced _children with getChildren()).
+        // This is an optimized implementation for Component.
         return ImmutableList.of();
     }
 
@@ -281,6 +284,8 @@ public class Component
      */
     public Iterable<Component> getDownwards ()
     {
+        // Note: Container's implementation of this method would work here too.
+        // This is an optimized implementation for Component.
         return ImmutableList.of(this);
     }
 
