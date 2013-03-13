@@ -32,6 +32,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.collect.Maps;
 
@@ -459,29 +460,27 @@ public class ScopeUtil
     }
 
     /**
-     * Retrieves the mapping from name to member for all scoped members of the specified
-     * class.
+     * Retrieves the mapping from name to member for all scoped members of the specified class.
      */
     protected static HashMap<String, Member> getScoped (Class<?> clazz)
     {
         HashMap<String, Member> members = _scoped.get(clazz);
         if (members == null) {
-            _scoped.put(clazz, members = createScoped(clazz));
+            populateScoped(clazz, members = Maps.newHashMap());
+            _scoped.put(clazz, members);
         }
         return members;
     }
 
     /**
-     * Creates the mapping from name to member for all scoped members of the specified
-     * class.
+     * Populates the mapping from name to member for all scoped members of the specified class.
      */
-    protected static HashMap<String, Member> createScoped (Class<?> clazz)
+    protected static void populateScoped (Class<?> clazz, Map<String, Member> members)
     {
-        // add the superclass members
-        HashMap<String, Member> members = new HashMap<String, Member>();
+        // add the superclass members first
         Class<?> sclazz = clazz.getSuperclass();
         if (sclazz != null) {
-            members.putAll(getScoped(sclazz));
+            populateScoped(sclazz, members);
         }
         // add all scoped fields (stripping off the leading underscore, if present)
         for (Field field : clazz.getDeclaredFields()) {
@@ -497,7 +496,6 @@ public class ScopeUtil
                 members.put(method.getName(), method);
             }
         }
-        return members;
     }
 
     /**
