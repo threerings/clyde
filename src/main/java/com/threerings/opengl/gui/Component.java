@@ -253,7 +253,7 @@ public class Component
     }
 
     /**
-     * Return a live List "view" over the *direct* children of this Component.
+     * Returns a live List "view" of the *direct* children of this Component.
      */
     public List<Component> getChildren ()
     {
@@ -261,7 +261,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable over our children, and their children, and so on.
+     * Returns an Iterable over our children, and their children, and so on.
      */
     public Iterable<Component> getDescendants ()
     {
@@ -272,7 +272,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable starting with this Component and continuing as with getParents().
+     * Returns an Iterable starting with this Component and continuing as with getParents().
      */
     public Iterable<Component> getUpwards ()
     {
@@ -280,7 +280,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable starting with this Component and continuing as with getDescendants().
+     * Returns an Iterable starting with this Component and continuing as with getDescendants().
      */
     public Iterable<Component> getDownwards ()
     {
