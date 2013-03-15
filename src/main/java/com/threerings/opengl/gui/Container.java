@@ -193,12 +193,7 @@ public class Container extends Component
     @Override
     public Iterable<Component> getDescendants ()
     {
-        return Iterables.concat(Iterables.transform(_children,
-            new Function<Component, Iterable<Component>>() {
-                public Iterable<Component> apply (Component c) {
-                    return c.getDownwards();
-                }
-            }));
+        return getDescendants(_children);
     }
 
     @Override
@@ -444,6 +439,20 @@ public class Container extends Component
                 log.warning("Child operation choked.", "op", op, "child", child, e);
             }
         }
+    }
+
+    /**
+     * Helper method for getDescendants(), so it can also be shared by Root's version of the same.
+     */
+    protected static Iterable<Component> getDescendants (
+            Iterable<? extends Component> directChildren)
+    {
+        return Iterables.concat(Iterables.transform(directChildren,
+            new Function<Component, Iterable<Component>>() {
+                public Iterable<Component> apply (Component c) {
+                    return c.getDownwards();
+                }
+            }));
     }
 
     /** A child operation that is best done by protecting against exceptions. */

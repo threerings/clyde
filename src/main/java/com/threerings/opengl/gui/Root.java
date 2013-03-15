@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 
 import org.lwjgl.opengl.GL11;
 
@@ -458,12 +456,7 @@ public abstract class Root extends SimpleOverlay
      */
     public Iterable<Component> getDescendants ()
     {
-        return Iterables.concat(Iterables.transform(_windows,
-            new Function<Component, Iterable<Component>>() {
-                public Iterable<Component> apply (Component c) {
-                    return c.getDownwards();
-                }
-            }));
+        return Container.getDescendants(_windows);
     }
 
     /**
