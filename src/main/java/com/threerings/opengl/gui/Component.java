@@ -230,7 +230,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable over parent, it's parent, and so on.
+     * Return an Iterable over our parent, its parent, and so on.
      * Nulls will not be returned.
      */
     public Iterable<Container> getParents ()
@@ -272,7 +272,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable over ourselves each ancestor parent.
+     * Return an Iterable starting with this Component and continuing as with getParents().
      */
     public Iterable<Component> getUpwards ()
     {
@@ -280,7 +280,7 @@ public class Component
     }
 
     /**
-     * Return an Iterable starting with ourselves and extending to all descendants.
+     * Return an Iterable starting with this Component and continuing as with getDescendants().
      */
     public Iterable<Component> getDownwards ()
     {
