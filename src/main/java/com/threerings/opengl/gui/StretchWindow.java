@@ -53,15 +53,25 @@ public class StretchWindow extends Window
         super.wasAdded();
 
         // update size and register as observer
-        Renderer renderer = _ctx.getRenderer();
-        setSize(renderer.getWidth(), renderer.getHeight());
-        renderer.addObserver(this);
+        if (isStretching()) {
+            Renderer renderer = _ctx.getRenderer();
+            setSize(renderer.getWidth(), renderer.getHeight());
+            renderer.addObserver(this);
+        }
     }
 
     @Override // documentation inherited
     protected void wasRemoved ()
     {
         super.wasRemoved();
-        _ctx.getRenderer().removeObserver(this);
+        _ctx.getRenderer().removeObserver(this); // safe to remove even if never added
+    }
+
+    /**
+     * Are we actually using the stretching capability?
+     */
+    protected boolean isStretching ()
+    {
+        return true;
     }
 }

@@ -37,8 +37,7 @@ import com.threerings.opengl.gui.layout.BorderLayout;
 /**
  * A window that contains a user interface.
  */
-public class UserInterfaceWindow extends Window
-    implements Renderer.Observer
+public class UserInterfaceWindow extends StretchWindow
 {
     /**
      * Creates a new user interface window.
@@ -82,12 +81,12 @@ public class UserInterfaceWindow extends Window
         GlContext ctx, boolean stretch, ConfigReference<UserInterfaceConfig> ref)
     {
         super(ctx, new BorderLayout());
+        _stretch = stretch;
         _scope.setParentScope(ctx.getScope());
         _interface = createInterface();
         _interface.getScope().setParentScope(_scope);
         _interface.setConfig(ref);
         add(_interface, BorderLayout.CENTER);
-        _stretch = stretch;
     }
 
     /**
@@ -114,40 +113,18 @@ public class UserInterfaceWindow extends Window
         return _interface.getComponent(name);
     }
 
-    // documentation inherited from interface Renderer.Observer
-    public void sizeChanged (int width, int height)
-    {
-        setSize(width, height);
-    }
-
-    @Override // documentation inherited
-    protected void wasAdded ()
-    {
-        super.wasAdded();
-
-        // update size and register as observer
-        if (_stretch) {
-            Renderer renderer = _ctx.getRenderer();
-            setSize(renderer.getWidth(), renderer.getHeight());
-            renderer.addObserver(this);
-        }
-    }
-
-    @Override // documentation inherited
-    protected void wasRemoved ()
-    {
-        super.wasRemoved();
-        if (_stretch) {
-            _ctx.getRenderer().removeObserver(this);
-        }
-    }
-
     /**
      * Creates the user interface for the window.
      */
     protected UserInterface createInterface ()
     {
         return new UserInterface(_ctx);
+    }
+
+    @Override
+    protected boolean isStretching ()
+    {
+        return _stretch;
     }
 
     /** The window scope. */
