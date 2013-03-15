@@ -28,7 +28,6 @@ package com.threerings.opengl.gui;
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
 
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
