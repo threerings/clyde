@@ -32,9 +32,12 @@ import java.awt.datatransfer.Transferable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 
 import org.lwjgl.opengl.GL11;
 
@@ -440,6 +443,27 @@ public abstract class Root extends SimpleOverlay
     public Window getWindow (int index)
     {
         return _windows.get(index);
+    }
+
+    /**
+     * Returns a live List "view" of the windows added to this node.
+     */
+    public List<Window> getWindows ()
+    {
+        return Collections.unmodifiableList(_windows);
+    }
+
+    /**
+     * Returns an Iterable over our Windows, their children, their children's children, and so on.
+     */
+    public Iterable<Component> getDescendants ()
+    {
+        return Iterables.concat(Iterables.transform(_windows,
+            new Function<Component, Iterable<Component>>() {
+                public Iterable<Component> apply (Component c) {
+                    return c.getDownwards();
+                }
+            }));
     }
 
     /**
