@@ -61,6 +61,8 @@ import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
+import com.threerings.util.ArrayDeque;
+
 import static com.threerings.opengl.gui.Log.*;
 
 /**
@@ -388,7 +390,7 @@ public abstract class Root extends SimpleOverlay
     {
         // add the component to the list of invalid roots
         if (!_invalidRoots.contains(root)) {
-            _invalidRoots.add(root);
+            _invalidRoots.addLast(root);
         }
     }
 
@@ -615,8 +617,8 @@ public abstract class Root extends SimpleOverlay
 
         // validate all invalid roots
         boolean updateHover = false;
-        while (_invalidRoots.size() > 0) {
-            Component root = _invalidRoots.remove(0);
+        while (!_invalidRoots.isEmpty()) {
+            Component root = _invalidRoots.removeFirst();
             // make sure the root is still added to the view hierarchy
             if (root.isAdded()) {
                 root.validate();
@@ -1238,7 +1240,7 @@ public abstract class Root extends SimpleOverlay
     protected CopyOnWriteArrayList<EventListener> _globals =
         new CopyOnWriteArrayList<EventListener>();
 
-    protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
+    protected ArrayDeque<Component> _invalidRoots = new ArrayDeque<Component>();
 
     /** A sound group for feedback effects. */
     protected SoundGroup _soundGroup;
