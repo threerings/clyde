@@ -64,6 +64,13 @@ public abstract class ActivityLogic extends Logic
     }
 
     /**
+     * Stops the activity.
+     */
+    public void stop (int timestamp)
+    {
+    }
+
+    /**
      * Updates the activity.
      */
     public void tick (int timestamp)

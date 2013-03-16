@@ -69,6 +69,10 @@ public class ActiveLogic extends MobileLogic
         // update the activity
         Active active = (Active)_actor;
         ActivityLogic activity = _activities.get(active.getActivity());
+        if (_lastTickedActivity != activity && _lastTickedActivity != null) {
+            _lastTickedActivity.stop(timestamp);
+        }
+        _lastTickedActivity = activity;
         if (activity != null) {
             int started = active.getActivityStarted();
             if (started > _lastActivityStarted) {
@@ -92,4 +96,7 @@ public class ActiveLogic extends MobileLogic
 
     /** The time at which the last activity started. */
     protected int _lastActivityStarted;
+
+    /** The last activity we ticked. */
+    protected ActivityLogic _lastTickedActivity;
 }
