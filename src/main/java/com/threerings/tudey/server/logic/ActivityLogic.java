@@ -55,15 +55,6 @@ public abstract class ActivityLogic extends Logic
     }
 
     /**
-     * @deprecated Mark needs to check in the real code.
-     */
-    @Deprecated
-    public void stop (int timestamp)
-    {
-        System.err.println("TODO");
-    }
-
-    /**
      * Stops the activity.
      */
     public void stop (int timestamp)
