@@ -52,7 +52,7 @@ public class ParameterizedConfig extends ManagedConfig
 {
     /** The parameters of the configuration. */
     @Editable(weight=1)
-    public Parameter[] parameters = new Parameter[0];
+    public Parameter[] parameters = Parameter.EMPTY_ARRAY;
 
     /**
      * Returns a reference to the parameter with the supplied name, or <code>null</code> if it

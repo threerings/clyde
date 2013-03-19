@@ -66,11 +66,17 @@ import static com.threerings.ClydeLog.*;
 public abstract class Parameter extends DeepObject
     implements Exportable
 {
+    /** An empty (and thus immutable and sharable) Parameter array. */
+    public static final Parameter[] EMPTY_ARRAY = new Parameter[0];
+
     /**
      * A parameter that directly controls a number of fields identified by paths.
      */
     public static class Direct extends Parameter
     {
+        /** An empty (and thus immutable and sharable) Direct array. */
+        public static final Direct[] EMPTY_ARRAY = new Direct[0];
+
         /** The reference paths of the properties that this parameter adjusts.  The first valid
          * path determines the type and default value. */
         @Editable(width=40, editor="paths")
@@ -146,6 +152,9 @@ public abstract class Parameter extends DeepObject
     public static class Choice extends Parameter
         implements Inner
     {
+        /** An empty (and thus immutable and sharable) Option array. */
+        public static final Option[] EMPTY_OPTION_ARRAY = new Option[0];
+
         /**
          * An option available for selection.
          */
@@ -224,11 +233,11 @@ public abstract class Parameter extends DeepObject
 
         /** The direct controls for each option. */
         @Editable
-        public Direct[] directs = new Direct[0];
+        public Direct[] directs = Direct.EMPTY_ARRAY;
 
         /** The options available for selection. */
         @Editable(depends={ "directs" })
-        public Option[] options = new Option[0];
+        public Option[] options = EMPTY_OPTION_ARRAY;
 
         /** The selected option. */
         @Editable(editor="choice", depends={ "options" })
