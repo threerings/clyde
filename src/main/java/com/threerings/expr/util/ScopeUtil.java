@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import com.threerings.expr.Scope;
@@ -462,11 +463,14 @@ public class ScopeUtil
     /**
      * Retrieves the mapping from name to member for all scoped members of the specified class.
      */
-    protected static HashMap<String, Member> getScoped (Class<?> clazz)
+    protected static Map<String, Member> getScoped (Class<?> clazz)
     {
-        HashMap<String, Member> members = _scoped.get(clazz);
+        Map<String, Member> members = _scoped.get(clazz);
         if (members == null) {
-            populateScoped(clazz, members = Maps.newHashMap());
+            // populate a mutable HashMap, but then copy it into an ImmutableMap
+            members = Maps.newHashMap();
+            populateScoped(clazz, members);
+            members = ImmutableMap.copyOf(members);
             _scoped.put(clazz, members);
         }
         return members;
@@ -486,14 +490,22 @@ public class ScopeUtil
         for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(Scoped.class)) {
                 field.setAccessible(true);
-                members.put(stripUnderscore(field.getName()), field);
+                Object oldValue = members.put(stripUnderscore(field.getName()), field);
+                if (oldValue != null) {
+                    log.warning("Scoped field overwrote member from superclass",
+                        "clazz", clazz, "name", field.getName());
+                }
             }
         }
         // add all scoped methods
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(Scoped.class)) {
                 method.setAccessible(true);
-                members.put(method.getName(), method);
+                Object oldValue = members.put(method.getName(), method);
+                if (oldValue != null) {
+                    log.warning("Scoped method overwrote member from superclass",
+                        "clazz", clazz, "name", method.getName());
+                }
             }
         }
     }
@@ -507,8 +519,8 @@ public class ScopeUtil
     }
 
     /** Cached bound fields. */
-    protected static HashMap<Class<?>, Field[]> _bound = Maps.newHashMap();
+    protected static Map<Class<?>, Field[]> _bound = Maps.newHashMap();
 
     /** Cached scoped members. */
-    protected static HashMap<Class<?>, HashMap<String, Member>> _scoped = Maps.newHashMap();
+    protected static Map<Class<?>, Map<String, Member>> _scoped = Maps.newHashMap();
 }
