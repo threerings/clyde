@@ -80,21 +80,13 @@ public abstract class ComponentConfig extends DeepObject
         HORIZONTAL(UIConstants.HORIZONTAL),
         VERTICAL(UIConstants.VERTICAL);
 
-        /**
-         * Returns the corresponding UI constant.
-         */
-        public int getConstant ()
-        {
-            return _constant;
-        }
+        /** The UI constant that we correspond to. */
+        public final int constant;
 
         Orientation (int constant)
         {
-            _constant = constant;
+            this.constant = constant;
         }
-
-        /** The corresponding UI constant. */
-        protected int _constant;
     }
 
     /**
@@ -157,7 +149,7 @@ public abstract class ComponentConfig extends DeepObject
             label.setText(getMessage(msgs, text));
             label.setIconTextGap(iconTextGap);
             label.setTextRotation(textRotation);
-            label.setOrientation(orientation.getConstant());
+            label.setOrientation(orientation.constant);
             label.setFit(fit);
             label.setPreferredWidth(preferredWidth);
         }
@@ -704,7 +696,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return new com.threerings.opengl.gui.Slider(
-                ctx, orientation.getConstant(), model.createBoundedRangeModel());
+                ctx, orientation.constant, model.createBoundedRangeModel());
         }
     }
 
@@ -794,7 +786,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return new com.threerings.opengl.gui.ScrollBar(
-                ctx, orientation.getConstant(), model.createBoundedRangeModel());
+                ctx, orientation.constant, model.createBoundedRangeModel());
         }
     }
 
