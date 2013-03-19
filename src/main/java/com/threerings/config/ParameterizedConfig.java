@@ -80,35 +80,38 @@ public class ParameterizedConfig extends ManagedConfig
             return getBound(scope);
         }
         // filter the arguments, removing any non-parameters
-        ArgumentMap oargs = args;
+        ArgumentMap filteredArgs = args;
+        ArgumentMap derivedArgs = null;
         for (String name : args.keySet()) {
             if (getParameter(name) == null) {
-                args = new ArgumentMap();
-                break;
-            }
-        }
-        if (args != oargs) {
-            for (Map.Entry<String, Object> entry : oargs.entrySet()) {
-                String name = entry.getKey();
-                if (getParameter(name) != null) {
-                    args.put(name, entry.getValue());
+                // We found an argument with no corresponding parameter: make a new args map.
+                // Normally derivedArgs will be a clone, but we don't a clone of a fresh copy
+                filteredArgs = derivedArgs = new ArgumentMap();
+                for (Map.Entry<String, Object> entry : args.entrySet()) {
+                    name = entry.getKey();
+                    if (getParameter(name) != null) {
+                        filteredArgs.put(name, entry.getValue());
+                    }
                 }
-            }
-            if (args.isEmpty()) {
-                return getBound(scope);
+                if (filteredArgs.isEmpty()) {
+                    return getBound(scope);
+                }
+                break;
             }
         }
         if (_derived == null) {
             _derived = new SoftCache<ArgumentMap, ParameterizedConfig>(1);
         }
-        ParameterizedConfig instance = _derived.get(args);
+        ParameterizedConfig instance = _derived.get(filteredArgs);
         if (instance == null) {
-            ArgumentMap cargs = args.clone();
-            _derived.put(cargs, instance = (ParameterizedConfig)clone());
+            if (derivedArgs == null) {
+                derivedArgs = filteredArgs.clone();
+            }
+            _derived.put(derivedArgs, instance = (ParameterizedConfig)clone());
             instance.init(_cfgmgr);
             instance._base = this;
-            instance._args = cargs;
-            applyArguments(instance, args);
+            instance._args = derivedArgs;
+            applyArguments(instance, derivedArgs);
         }
         return instance.getBound(scope);
     }
