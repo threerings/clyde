@@ -238,9 +238,4 @@ public class Image
     protected BufferedImage _image;
 
     protected TextureUnit[] _units;
-
-    protected static boolean _supportsNonPowerOfTwo;
-    static {
-        _supportsNonPowerOfTwo = GLContext.getCapabilities().GL_ARB_texture_non_power_of_two;
-    }
 }
