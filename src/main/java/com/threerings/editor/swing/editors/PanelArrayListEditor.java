@@ -97,7 +97,8 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         Component comp = _panels.getComponentAt(
             SwingUtilities.convertPoint(this, pt, _panels));
         int idx = _panels.getComponentZOrder(comp);
-        return (idx == -1) ? "" : ("[" + idx + "]" + ((EntryPanel)comp).getPointPath(pt));
+        return (idx == -1) ? "" : ("[" + idx + "]" + ((EntryPanel)comp).getPointPath(
+                    SwingUtilities.convertPoint(this, pt, comp)));
     }
 
     @Override // documentation inherited
