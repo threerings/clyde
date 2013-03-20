@@ -35,7 +35,6 @@ import java.util.TreeSet;
 import proguard.annotation.Keep;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -211,7 +210,7 @@ public class ModelConfig extends ParameterizedConfig
                 this.tag = tag;
 
                 this.material = new ConfigReference<MaterialConfig>(
-                    Objects.firstNonNull(DEFAULT_MATERIALS.get(tag), DEFAULT_MATERIAL),
+                    SKINNED_TAG.equals(tag) ? SKINNED_MATERIAL : DEFAULT_MATERIAL,
                     "Texture", new ConfigReference<TextureConfig>(DEFAULT_TEXTURE, "File", path));
             }
 
@@ -777,9 +776,6 @@ public class ModelConfig extends ParameterizedConfig
      * representing the texture image path). */
     protected static final String DEFAULT_TEXTURE = "2D/File/Default";
 
-    /** Maps tags to default materials (each of which we expect to take a single parameter,
-     * "Texture," representing the texture reference). */
-    protected static final Map<String, String> DEFAULT_MATERIALS = ImmutableMap.of(
-        DEFAULT_TAG, DEFAULT_MATERIAL,
-        SKINNED_TAG, "Model/Skinned/Opaque");
+    /** The material to use for SKINNED_TAG. */
+    protected static final String SKINNED_MATERIAL = "Model/Skinned/Opaque";
 }
