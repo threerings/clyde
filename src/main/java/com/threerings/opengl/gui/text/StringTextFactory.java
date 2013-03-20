@@ -45,6 +45,7 @@ import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -185,7 +186,7 @@ public class StringTextFactory extends TextFactory
 
         // MacOS font rendering is buggy, so we must compute the outline and use that for bounds
         // computation and rendering
-        if (effect == OUTLINE || effect == GLOW || _isMacOS) {
+        if (effect == OUTLINE || effect == GLOW || RunAnywhere.isMacOS()) {
             bounds = layout.getOutline(null).getBounds();
         }
         if (useAdvance) {
@@ -273,7 +274,7 @@ public class StringTextFactory extends TextFactory
                     gfx.setComposite(AlphaComposite.SrcOut);
                     // on the MacOS we're not using the TextLayout to render, so we have to
                     // explicitly activate anti-aliasing
-                    if (_isMacOS) {
+                    if (RunAnywhere.isMacOS()) {
                         gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                              RenderingHints.VALUE_ANTIALIAS_ON);
                     }
@@ -285,7 +286,7 @@ public class StringTextFactory extends TextFactory
                                            effectColor.b, effectColor.a));
                     float tx = effectSize - 1;
                     float ty = layout.getAscent() + effectSize;
-                    if (_isMacOS) {
+                    if (RunAnywhere.isMacOS()) {
                         gfx.translate(tx, ty);
                         gfx.fill(layout.getOutline(null));
                         gfx.translate(-tx, -ty);
@@ -297,7 +298,7 @@ public class StringTextFactory extends TextFactory
                 }
 
                 gfx.setColor(new Color(color.r, color.g, color.b, color.a));
-                if (_isMacOS) {
+                if (RunAnywhere.isMacOS()) {
                     gfx.translate(dx, layout.getAscent());
                     gfx.fill(layout.getOutline(null));
                 } else {
@@ -643,16 +644,6 @@ public class StringTextFactory extends TextFactory
 
     // to avoid exercising the garbage collector
     protected GlowKey _gkey = new GlowKey();
-
-    protected static boolean _isMacOS;
-    static {
-        try {
-            String osname = StringUtil.deNull(System.getProperty("os.name"));
-            _isMacOS = osname.contains("Mac OS") || osname.contains("MacOS");
-        } catch (Exception e) {
-            // oh well
-        }
-    }
 
     protected static final char NONE = '!';
     protected static final char BOLD = 'b';
