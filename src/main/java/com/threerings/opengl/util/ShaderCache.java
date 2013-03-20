@@ -32,13 +32,16 @@ import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
 
 import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBVertexShader;
 
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.SoftCache;
+
+import com.threerings.util.CacheUtil;
 
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Shader;
@@ -192,7 +195,7 @@ public class ShaderCache extends ResourceCache
         protected Shader loadResource (ShaderKey key) {
             String path = key.path;
             String ext = path.substring(path.lastIndexOf('.') + 1);
-            Integer type = _types.get(ext);
+            Integer type = TYPES.get(ext);
             if (type == null) {
                 log.warning("Unknown shader extension.", "path", path);
                 return null;
@@ -244,14 +247,12 @@ public class ShaderCache extends ResourceCache
     };
 
     /** The set of linked shader programs. */
-    protected SoftCache<ProgramKey, Program> _programs = new SoftCache<ProgramKey, Program>();
+    protected Map<ProgramKey, Program> _programs = CacheUtil.softValues();
 
     /** Maps file extensions to shader types. */
-    protected static final HashMap<String, Integer> _types = new HashMap<String, Integer>();
-    static {
-        _types.put("vert", ARBVertexShader.GL_VERTEX_SHADER_ARB);
-        _types.put("frag", ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
-    }
+    protected static final Map<String, Integer> TYPES = ImmutableMap.of(
+        "vert", ARBVertexShader.GL_VERTEX_SHADER_ARB,
+        "frag", ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
 
     /** Whether or not we should check the logs even if the shader compiles/links successfully. */
     protected static final boolean CHECK_LOGS = true;

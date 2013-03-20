@@ -25,13 +25,9 @@
 
 package com.threerings.config;
 
-import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
-import java.util.Iterator;
 import java.util.Map;
-
-import com.samskivert.util.SoftCache;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.ExpressionBinding;
@@ -39,6 +35,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.ScopeUpdateListener;
 import com.threerings.expr.Updater;
+import com.threerings.util.CacheUtil;
 import com.threerings.util.DeepOmit;
 
 /**
@@ -65,7 +62,7 @@ public class BoundConfig extends ParameterizedConfig
             return this;
         }
         if (_bound == null) {
-            _bound = new SoftCache<ScopeKey, BoundConfig>(1);
+            _bound = CacheUtil.softValues(1);
         }
         ScopeKey key = new ScopeKey(scope);
         BoundConfig bound = _bound.get(key);
@@ -97,22 +94,14 @@ public class BoundConfig extends ParameterizedConfig
         super.wasUpdated();
 
         // update the bound instances
-        if (_bound == null) {
-            return;
-        }
-        for (Iterator<Map.Entry<ScopeKey, SoftReference<BoundConfig>>> it =
-                _bound.getMap().entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<ScopeKey, SoftReference<BoundConfig>> entry = it.next();
-            BoundConfig bound = entry.getValue().get();
-            if (bound == null) {
-                it.remove();
-                continue;
+        if (_bound != null) {
+            for (BoundConfig bound : _bound.values()) {
+                copy(bound);
+                bound.wasUpdated();
             }
-            copy(bound);
-            bound.wasUpdated();
-        }
-        if (_bound.getMap().isEmpty()) {
-            _bound = null;
+            if (_bound.isEmpty()) {
+                _bound = null;
+            }
         }
     }
 
@@ -161,5 +150,5 @@ public class BoundConfig extends ParameterizedConfig
 
     /** Maps scopes to bound instances. */
     @DeepOmit
-    protected transient SoftCache<ScopeKey, BoundConfig> _bound;
+    protected transient Map<ScopeKey, BoundConfig> _bound;
 }

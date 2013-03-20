@@ -35,12 +35,10 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 
-import com.samskivert.util.SoftCache;
-import com.samskivert.util.Tuple;
-
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
 import com.threerings.expr.Scope;
+import com.threerings.util.CacheUtil;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
 
@@ -100,7 +98,7 @@ public class ParameterizedConfig extends ManagedConfig
             }
         }
         if (_derived == null) {
-            _derived = new SoftCache<ArgumentMap, ParameterizedConfig>(1);
+            _derived = CacheUtil.softValues(1);
         }
         ParameterizedConfig instance = _derived.get(filteredArgs);
         if (instance == null) {
@@ -127,36 +125,17 @@ public class ParameterizedConfig extends ManagedConfig
         // fire the event
         super.wasUpdated();
 
-        // take a snapshot of the derived instances
-        if (_derived == null) {
-            return;
-        }
-        Map<ArgumentMap, SoftReference<ParameterizedConfig>> map = _derived.getMap();
-        List<Tuple<ArgumentMap, ParameterizedConfig>> list =
-            Lists.newArrayListWithExpectedSize(map.size());
-        for (Iterator<Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>>> it =
-                map.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>> entry = it.next();
-            ParameterizedConfig instance = entry.getValue().get();
-            if (instance == null) {
-                it.remove();
-            } else {
-                list.add(Tuple.newTuple(entry.getKey(), instance));
+        // update derived instances
+        if (_derived != null) {
+            for (Map.Entry<ArgumentMap, ParameterizedConfig> entry : _derived.entrySet()) {
+                ParameterizedConfig instance = entry.getValue();
+                copy(instance);
+                applyArguments(instance, entry.getKey());
+                instance.wasUpdated();
             }
-        }
-        int size = list.size();
-        if (size == 0) {
-            _derived = null;
-            return;
-        }
-
-        // update and fire events
-        for (int ii = 0; ii < size; ii++) {
-            Tuple<ArgumentMap, ParameterizedConfig> tuple = list.get(ii);
-            ParameterizedConfig instance = tuple.right;
-            copy(instance);
-            applyArguments(instance, tuple.left);
-            instance.wasUpdated();
+            if (_derived.isEmpty()) {
+                _derived = null;
+            }
         }
     }
 
@@ -249,5 +228,5 @@ public class ParameterizedConfig extends ManagedConfig
 
     /** Maps arguments to derived instances. */
     @DeepOmit
-    protected transient SoftCache<ArgumentMap, ParameterizedConfig> _derived;
+    protected transient Map<ArgumentMap, ParameterizedConfig> _derived;
 }

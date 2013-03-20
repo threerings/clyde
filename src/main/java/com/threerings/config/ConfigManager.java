@@ -29,13 +29,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import java.lang.ref.SoftReference;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.collect.Lists;
@@ -45,7 +44,6 @@ import com.samskivert.util.ListUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.PropertiesUtil;
 import com.samskivert.util.QuickSort;
-import com.samskivert.util.SoftCache;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
@@ -55,6 +53,7 @@ import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
+import com.threerings.util.CacheUtil;
 import com.threerings.util.Copyable;
 import com.threerings.util.MessageManager;
 
@@ -108,7 +107,7 @@ public class ConfigManager
         }
 
         // create the resource cache
-        _resources = new SoftCache<String, ManagedConfig>();
+        _resources = CacheUtil.softValues();
 
         // register the global groups
         Class<?>[] classes = _classes.get("global");
@@ -540,8 +539,7 @@ public class ConfigManager
         }
 
         // otherwise, refresh the resource configs
-        for (SoftReference<ManagedConfig> ref : Lists.newArrayList(_resources.getMap().values())) {
-            ManagedConfig oconfig = ref.get();
+        for (ManagedConfig oconfig : Lists.newArrayList(_resources.values())) {
             if (!clazz.isInstance(oconfig)) {
                 continue;
             }
@@ -705,7 +703,7 @@ public class ConfigManager
     protected HashMap<Class<?>, ConfigGroup> _groups = new HashMap<Class<?>, ConfigGroup>();
 
     /** Resource-loaded configs mapped by path. */
-    protected SoftCache<String, ManagedConfig> _resources;
+    protected Map<String, ManagedConfig> _resources;
 
     /** Maps manager types to their classes (as read from the manager properties). */
     protected HashMap<String, Class<?>[]> _classes;

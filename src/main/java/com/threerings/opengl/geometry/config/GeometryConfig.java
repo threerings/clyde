@@ -43,7 +43,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
-import com.samskivert.util.SoftCache;
 
 import com.threerings.export.Exportable;
 import com.threerings.expr.Function;
@@ -54,6 +53,7 @@ import com.threerings.math.Matrix4f;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.util.ArrayKey;
+import com.threerings.util.CacheUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.IdentityKey;
 import com.threerings.util.Shallow;
@@ -189,7 +189,7 @@ public abstract class GeometryConfig extends DeepObject
         public float[] getFloatArray (boolean align, ClientArrayConfig... arrays)
         {
             if (_floatArrays == null) {
-                _floatArrays = new SoftCache<IdentityKey, float[]>(1);
+                _floatArrays = CacheUtil.softValues(1);
             }
             IdentityKey key = new IdentityKey(align, (Object[])arrays);
             float[] array = _floatArrays.get(key);
@@ -217,7 +217,7 @@ public abstract class GeometryConfig extends DeepObject
         public int[] getIntArray (boolean align, ClientArrayConfig... arrays)
         {
             if (_intArrays == null) {
-                _intArrays = new SoftCache<IdentityKey, int[]>(1);
+                _intArrays = CacheUtil.softValues(1);
             }
             IdentityKey key = new IdentityKey(align, (Object[])arrays);
             int[] array = _intArrays.get(key);
@@ -356,7 +356,7 @@ public abstract class GeometryConfig extends DeepObject
             // otherwise, if we're to use a static vbo, look it up
             } else if (staticVBO) {
                 if (_arrayBuffers == null) {
-                    _arrayBuffers = new SoftCache<PassSummary, BufferObject>(1);
+                    _arrayBuffers = CacheUtil.softValues(1);
                 }
                 arrayBuffer = _arrayBuffers.get(summary);
                 if (arrayBuffer == null) {
@@ -628,7 +628,7 @@ public abstract class GeometryConfig extends DeepObject
         protected DrawCommand[] getListCommands (GlContext ctx, PassDescriptor[] passes)
         {
             if (_listCommands == null) {
-                _listCommands = new SoftCache<PassDescriptor, DrawCommand>(1);
+                _listCommands = CacheUtil.softValues(1);
             }
             DrawCommand[] commands = new DrawCommand[passes.length];
             for (int ii = 0; ii < passes.length; ii++) {
@@ -688,16 +688,16 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /** Cached array buffers. */
-        protected transient SoftCache<PassSummary, BufferObject> _arrayBuffers;
+        protected transient Map<PassSummary, BufferObject> _arrayBuffers;
 
         /** Cached display list commands. */
-        protected transient SoftCache<PassDescriptor, DrawCommand> _listCommands;
+        protected transient Map<PassDescriptor, DrawCommand> _listCommands;
 
         /** Cached float arrays. */
-        protected transient SoftCache<IdentityKey, float[]> _floatArrays;
+        protected transient Map<IdentityKey, float[]> _floatArrays;
 
         /** Cached int arrays. */
-        protected transient SoftCache<IdentityKey, int[]> _intArrays;
+        protected transient Map<IdentityKey, int[]> _intArrays;
     }
 
     /**
@@ -1006,6 +1006,5 @@ public abstract class GeometryConfig extends DeepObject
         GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
 
     /** Cached generated configs. */
-    protected static SoftCache<ArrayKey, GeometryConfig> _generated =
-        new SoftCache<ArrayKey, GeometryConfig>();
+    protected static Map<ArrayKey, GeometryConfig> _generated = CacheUtil.softValues();
 }

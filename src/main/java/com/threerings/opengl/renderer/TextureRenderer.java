@@ -27,6 +27,8 @@ package com.threerings.opengl.renderer;
 
 import java.lang.ref.WeakReference;
 
+import java.util.Map;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ARBDepthTexture;
 import org.lwjgl.opengl.ARBTextureCubeMap;
@@ -38,8 +40,7 @@ import org.lwjgl.opengl.Pbuffer;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.opengl.RenderTexture;
 
-import com.samskivert.util.SoftCache;
-
+import com.threerings.util.CacheUtil;
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
@@ -578,6 +579,5 @@ public class TextureRenderer
     protected int _odraw, _oread;
 
     /** The shared texture renderer instances. */
-    protected static SoftCache<InstanceKey, TextureRenderer> _instances =
-        new SoftCache<InstanceKey, TextureRenderer>();
+    protected static Map<InstanceKey, TextureRenderer> _instances = CacheUtil.softValues();
 }

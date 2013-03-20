@@ -26,12 +26,12 @@
 package com.threerings.opengl.renderer.util;
 
 import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
-import com.samskivert.util.SoftCache;
-
 import com.threerings.util.ArrayKey;
+import com.threerings.util.CacheUtil;
 
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.TextureUnit;
@@ -378,16 +378,14 @@ public class SnippetUtil
     }
 
     /** Cached fog param snippets. */
-    protected static SoftCache<ArrayKey, String> _fogParams = new SoftCache<ArrayKey, String>();
+    protected static Map<ArrayKey, String> _fogParams = CacheUtil.softValues();
 
     /** Cached tex coord snippets. */
-    protected static SoftCache<ArrayKey, String> _texCoords = new SoftCache<ArrayKey, String>();
+    protected static Map<ArrayKey, String> _texCoords = CacheUtil.softValues();
 
     /** Cached vertex lighting snippets. */
-    protected static SoftCache<ArrayKey, String> _vertexLighting =
-        new SoftCache<ArrayKey, String>();
+    protected static Map<ArrayKey, String> _vertexLighting = CacheUtil.softValues();
 
     /** Cached fragment lighting snippets. */
-    protected static SoftCache<ArrayKey, String> _fragmentLighting =
-        new SoftCache<ArrayKey, String>();
+    protected static Map<ArrayKey, String> _fragmentLighting = CacheUtil.softValues();
 }
