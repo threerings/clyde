@@ -29,13 +29,13 @@ import java.io.PrintStream;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -210,9 +210,8 @@ public class ModelConfig extends ParameterizedConfig
                 this.texture = texture;
                 this.tag = tag;
 
-                String material = DEFAULT_MATERIALS.get(tag);
                 this.material = new ConfigReference<MaterialConfig>(
-                    (material == null) ? DEFAULT_MATERIAL : material,
+                    Objects.firstNonNull(DEFAULT_MATERIALS.get(tag), DEFAULT_MATERIAL),
                     "Texture", new ConfigReference<TextureConfig>(DEFAULT_TEXTURE, "File", path));
             }
 
@@ -780,9 +779,7 @@ public class ModelConfig extends ParameterizedConfig
 
     /** Maps tags to default materials (each of which we expect to take a single parameter,
      * "Texture," representing the texture reference). */
-    protected static final HashMap<String, String> DEFAULT_MATERIALS = Maps.newHashMap();
-    static {
-        DEFAULT_MATERIALS.put(DEFAULT_TAG, DEFAULT_MATERIAL);
-        DEFAULT_MATERIALS.put(SKINNED_TAG, "Model/Skinned/Opaque");
-    }
+    protected static final Map<String, String> DEFAULT_MATERIALS = ImmutableMap.of(
+        DEFAULT_TAG, DEFAULT_MATERIAL,
+        SKINNED_TAG, "Model/Skinned/Opaque");
 }
