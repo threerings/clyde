@@ -119,20 +119,9 @@ public abstract class Delta
 
     /** Streamer for raw class references. */
     protected static Streamer _classStreamer;
-
-    /** Maps primitive types to {@link Streamer} instances for corresponding wrappers. */
-    protected static HashMap<Class<?>, Streamer> _wrapperStreamers = Maps.newHashMap();
     static {
         try {
             _classStreamer = Streamer.getStreamer(Class.class);
-            _wrapperStreamers.put(Boolean.TYPE, Streamer.getStreamer(Boolean.class));
-            _wrapperStreamers.put(Byte.TYPE, Streamer.getStreamer(Byte.class));
-            _wrapperStreamers.put(Character.TYPE, Streamer.getStreamer(Character.class));
-            _wrapperStreamers.put(Double.TYPE, Streamer.getStreamer(Double.class));
-            _wrapperStreamers.put(Float.TYPE, Streamer.getStreamer(Float.class));
-            _wrapperStreamers.put(Integer.TYPE, Streamer.getStreamer(Integer.class));
-            _wrapperStreamers.put(Long.TYPE, Streamer.getStreamer(Long.class));
-            _wrapperStreamers.put(Short.TYPE, Streamer.getStreamer(Short.class));
         } catch (IOException e) {
             throw new RuntimeException("Failed to initialize ReflectiveDelta class", e);
         }

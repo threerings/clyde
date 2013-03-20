@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Primitives;
 
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
@@ -129,7 +130,9 @@ public class ArrayDelta extends Delta
 
         // read the changed elements
         Class<?> ctype = _clazz.getComponentType();
-        Streamer streamer = ctype.isPrimitive() ? _wrapperStreamers.get(ctype) : null;
+        Streamer streamer = ctype.isPrimitive()
+            ? Streamer.getStreamer(Primitives.wrap(ctype))
+            : null;
         List<Object> values = Lists.newArrayList();
         for (int ii = 0; ii < _length; ii++) {
             if (!_mask.isSet(ii)) {
