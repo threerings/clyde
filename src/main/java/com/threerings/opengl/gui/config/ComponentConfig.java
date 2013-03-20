@@ -94,7 +94,7 @@ public abstract class ComponentConfig extends DeepObject
         }
 
         /** The corresponding UI constant. */
-        protected int _constant;
+        protected final int _constant;
     }
 
     /**
