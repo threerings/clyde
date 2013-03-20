@@ -102,7 +102,7 @@ public abstract class GeometryConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /**

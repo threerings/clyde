@@ -68,7 +68,7 @@ public class ClientArrayConfig extends DeepObject
             _bytes = bytes;
         }
 
-        protected int _constant, _bytes;
+        protected final int _constant, _bytes;
     }
 
     /** The number of components in each element. */

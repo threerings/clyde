@@ -124,10 +124,10 @@ public abstract class BackgroundConfig extends DeepObject
             }
 
             /** The corresponding {@link ImageBackground} constant. */
-            protected int _constant;
+            protected final int _constant;
 
             /** Whether this is one of the frame modes. */
-            protected boolean _frame;
+            protected final boolean _frame;
         }
 
         /** The various tile anchors. */
@@ -151,7 +151,7 @@ public abstract class BackgroundConfig extends DeepObject
             }
 
             /** The corresponding {@link ImageBackground} constant. */
-            protected int _constant;
+            protected final int _constant;
         }
 
         /** The background image. */

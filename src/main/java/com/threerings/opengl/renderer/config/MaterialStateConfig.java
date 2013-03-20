@@ -66,7 +66,7 @@ public abstract class MaterialStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Color material face constants. */
@@ -86,7 +86,7 @@ public abstract class MaterialStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /**

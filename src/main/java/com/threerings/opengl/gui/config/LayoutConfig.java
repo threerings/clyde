@@ -78,7 +78,7 @@ public abstract class LayoutConfig extends DeepObject
         }
 
         /** The constant corresponding to this location. */
-        protected Integer _constant;
+        protected final Integer _constant;
     }
 
     /**
@@ -105,7 +105,7 @@ public abstract class LayoutConfig extends DeepObject
         }
 
         /** The corresponding alignment object. */
-        protected TableLayout.Alignment _alignment;
+        protected final TableLayout.Alignment _alignment;
     }
 
     /**
@@ -131,7 +131,7 @@ public abstract class LayoutConfig extends DeepObject
         }
 
         /** The corresponding alignment object. */
-        protected TableLayout.Alignment _alignment;
+        protected final TableLayout.Alignment _alignment;
     }
 
     /**
@@ -157,7 +157,7 @@ public abstract class LayoutConfig extends DeepObject
         }
 
         /** The corresponding group policy. */
-        protected GroupLayout.Policy _policy;
+        protected final GroupLayout.Policy _policy;
     }
 
     /**
@@ -184,7 +184,7 @@ public abstract class LayoutConfig extends DeepObject
         }
 
         /** The corresponding group policy. */
-        protected GroupLayout.Policy _policy;
+        protected final GroupLayout.Policy _policy;
     }
 
     /**
@@ -212,7 +212,7 @@ public abstract class LayoutConfig extends DeepObject
         }
 
         /** The corresponding group justification. */
-        protected GroupLayout.Justification _justification;
+        protected final GroupLayout.Justification _justification;
     }
 
     /**

@@ -61,7 +61,7 @@ public class DepthStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** The depth test function. */

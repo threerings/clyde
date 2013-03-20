@@ -166,9 +166,9 @@ public class TextureConfig extends ParameterizedConfig
             _depth = depth;
         }
 
-        protected int _constant;
-        protected int _uncompressed;
-        protected boolean _depth;
+        protected final int _constant;
+        protected final int _uncompressed;
+        protected final boolean _depth;
     }
 
     /** Minification filter constants. */
@@ -197,8 +197,8 @@ public class TextureConfig extends ParameterizedConfig
             _mipmapped = mipmapped;
         }
 
-        protected int _constant;
-        protected boolean _mipmapped;
+        protected final int _constant;
+        protected final boolean _mipmapped;
     }
 
     /** Magnification filter constants. */
@@ -217,7 +217,7 @@ public class TextureConfig extends ParameterizedConfig
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Wrap constants. */
@@ -273,7 +273,7 @@ public class TextureConfig extends ParameterizedConfig
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Compare mode constants. */
@@ -301,7 +301,7 @@ public class TextureConfig extends ParameterizedConfig
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Compare function constants. */
@@ -320,7 +320,7 @@ public class TextureConfig extends ParameterizedConfig
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Depth mode constants. */
@@ -340,7 +340,7 @@ public class TextureConfig extends ParameterizedConfig
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /**

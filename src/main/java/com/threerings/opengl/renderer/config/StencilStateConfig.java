@@ -61,7 +61,7 @@ public class StencilStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Stencil ops. */
@@ -84,7 +84,7 @@ public class StencilStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** The stencil test function. */

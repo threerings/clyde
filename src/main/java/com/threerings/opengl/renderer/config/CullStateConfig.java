@@ -57,7 +57,7 @@ public class CullStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** The cull face. */

@@ -69,7 +69,7 @@ public class StyleConfig extends ParameterizedConfig
         }
 
         /** The UI constant. */
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Vertical alignment modes. */
@@ -93,7 +93,7 @@ public class StyleConfig extends ParameterizedConfig
         }
 
         /** The UI constant. */
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Text effects. */
@@ -119,7 +119,7 @@ public class StyleConfig extends ParameterizedConfig
         }
 
         /** The UI constant. */
-        protected int _constant;
+        protected final int _constant;
     }
 
     /**

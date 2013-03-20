@@ -61,7 +61,7 @@ public class AlphaStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Source blend factor constants. */
@@ -87,7 +87,7 @@ public class AlphaStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Dest blend factor constants. */
@@ -112,7 +112,7 @@ public class AlphaStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** The alpha test function. */

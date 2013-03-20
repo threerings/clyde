@@ -56,7 +56,7 @@ public class PolygonStateConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** The front polygon mode. */

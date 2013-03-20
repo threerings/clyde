@@ -83,7 +83,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Alpha combination modes. */
@@ -106,7 +106,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Combine sources. */
@@ -127,7 +127,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** RGB combination operands. */
@@ -148,7 +148,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** Alpha combination operands. */
@@ -167,7 +167,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             _constant = constant;
         }
 
-        protected int _constant;
+        protected final int _constant;
     }
 
     /** The combination scale values. */
@@ -187,7 +187,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             _value = value;
         }
 
-        protected float _value;
+        protected final float _value;
     }
 
     /**

@@ -77,8 +77,8 @@ public enum Direction
     }
 
     /** The x and y offsets corresponding to the direction. */
-    protected int _x, _y;
+    protected final int _x, _y;
 
     /** The vector representation. */
-    protected Vector2f _vec;
+    protected final Vector2f _vec;
 }

@@ -82,7 +82,7 @@ public class FontConfig extends ManagedConfig
         }
 
         /** The AWT flags corresponding to the style. */
-        protected int _flags;
+        protected final int _flags;
     }
 
     @EditorTypes({ FontConfig.Default.class })

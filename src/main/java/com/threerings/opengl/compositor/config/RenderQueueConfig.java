@@ -98,7 +98,7 @@ public class RenderQueueConfig extends ManagedConfig
         }
 
         /** The comparator used to sort the batches. */
-        protected Comparator<Batch> _comparator;
+        protected final Comparator<Batch> _comparator;
     }
 
     /**
