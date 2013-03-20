@@ -50,7 +50,7 @@ public class BoundConfig extends ParameterizedConfig
 {
     /** The config bindings. */
     @Editable(weight=1)
-    public ExpressionBinding[] bindings = new ExpressionBinding[0];
+    public ExpressionBinding[] bindings = ExpressionBinding.EMPTY_ARRAY;
 
     // documentation inherited from interface ScopeUpdateListener
     public void scopeUpdated (ScopeEvent event)

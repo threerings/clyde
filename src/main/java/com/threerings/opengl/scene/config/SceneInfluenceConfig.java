@@ -178,11 +178,11 @@ public abstract class SceneInfluenceConfig extends DeepObject
 
     /** The static expression bindings for this influence. */
     @Editable(weight=1)
-    public ExpressionBinding[] staticBindings = new ExpressionBinding[0];
+    public ExpressionBinding[] staticBindings = ExpressionBinding.EMPTY_ARRAY;
 
     /** The dynamic expression bindings for this influence. */
     @Editable(weight=1)
-    public ExpressionBinding[] dynamicBindings = new ExpressionBinding[0];
+    public ExpressionBinding[] dynamicBindings = ExpressionBinding.EMPTY_ARRAY;
 
     /**
      * Creates the scene influence corresponding to this config.

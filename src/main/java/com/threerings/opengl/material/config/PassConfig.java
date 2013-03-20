@@ -123,11 +123,11 @@ public class PassConfig extends DeepObject
 
     /** The static expression bindings for this pass. */
     @Editable
-    public ExpressionBinding[] staticBindings = new ExpressionBinding[0];
+    public ExpressionBinding[] staticBindings = ExpressionBinding.EMPTY_ARRAY;
 
     /** The dynamic expression bindings for this pass. */
     @Editable
-    public ExpressionBinding[] dynamicBindings = new ExpressionBinding[0];
+    public ExpressionBinding[] dynamicBindings = ExpressionBinding.EMPTY_ARRAY;
 
     /** Whether or not to ignore the vertex colors. */
     @Editable

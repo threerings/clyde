@@ -59,6 +59,9 @@ import static com.threerings.ClydeLog.*;
 public abstract class ExpressionBinding extends DeepObject
     implements Exportable
 {
+    /** An empty (and thus immutable and sharable) ExpressionBinding array. */
+    public static final ExpressionBinding[] EMPTY_ARRAY = new ExpressionBinding[0];
+
     /**
      * A float binding.
      */
