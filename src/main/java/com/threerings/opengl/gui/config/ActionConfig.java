@@ -215,8 +215,12 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public Easing easing = new Easing.None();
 
+        /** The actions to perform when animation is completed. */
+        @Editable
+        public ActionConfig[] completedActions = new ActionConfig[0];
+
         @Override // documentation inherited
-        public void apply (UserInterface iface, final Component comp)
+        public void apply (final UserInterface iface, final Component comp)
         {
             iface.addScript(iface.new TickableScript() {
                 public void tick (float elapsed) {
@@ -230,6 +234,11 @@ public abstract class ActionConfig extends DeepObject
                 @Override public void cleanup () {
                     super.cleanup();
                     comp.setAlpha(end);
+                    for (ActionConfig ac : completedActions) {
+                        // This will annoy the 'wait' action, but that
+                        // shouldn't be used here anyway.
+                        ac.execute(iface, null);
+                    }
                 }
                 protected float _time;
             });
@@ -309,8 +318,12 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public Easing easing = new Easing.None();
 
+        /** The actions to perform when animation is completed. */
+        @Editable
+        public ActionConfig[] completedActions = new ActionConfig[0];
+
         @Override // documentation inherited
-        public void apply (UserInterface iface, final Component comp)
+        public void apply (final UserInterface iface, final Component comp)
         {
             iface.addScript(iface.new TickableScript() {
                 public void tick (float elapsed) {
@@ -323,6 +336,11 @@ public abstract class ActionConfig extends DeepObject
                 @Override public void cleanup () {
                     super.cleanup();
                     comp.setOffset(_offset.set(end));
+                    for (ActionConfig ac : completedActions) {
+                        // This will annoy the 'wait' action, but that
+                        // shouldn't be used here anyway.
+                        ac.execute(iface, null);
+                    }
                 }
                 protected float _time;
                 protected Transform2D _offset = new Transform2D();
