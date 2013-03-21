@@ -63,12 +63,15 @@ import static com.threerings.opengl.gui.Log.*;
     ActionConfig.FadeAlpha.class, ActionConfig.AnimateAlpha.class, ActionConfig.SetOffset.class,
     ActionConfig.MoveOffset.class, ActionConfig.AnimateOffset.class, ActionConfig.SetSelected.class,
     ActionConfig.SetText.class, ActionConfig.SetStyle.class, ActionConfig.SetConfig.class,
-    ActionConfig.RunScript.class, ActionConfig.RunInitScript.class, ActionConfig.PlayAnimation.class,
-    ActionConfig.RequestFocus.class, ActionConfig.Wait.class, ActionConfig.AddHandler.class,
-    ActionConfig.Conditional.class, ActionConfig.Compound.class })
+    ActionConfig.RunScript.class, ActionConfig.RunInitScript.class,
+    ActionConfig.PlayAnimation.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
+    ActionConfig.AddHandler.class, ActionConfig.Conditional.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
+    /** An empty (and thus immutable and sharable) ActionConfig array. */
+    public static final ActionConfig[] EMPTY_ARRAY = new ActionConfig[0];
+
     /**
      * Calls a scoped function.
      */
@@ -217,7 +220,7 @@ public abstract class ActionConfig extends DeepObject
 
         /** The actions to perform when animation is completed. */
         @Editable
-        public ActionConfig[] completedActions = new ActionConfig[0];
+        public ActionConfig[] completedActions = EMPTY_ARRAY;
 
         @Override // documentation inherited
         public void apply (final UserInterface iface, final Component comp)
@@ -320,7 +323,7 @@ public abstract class ActionConfig extends DeepObject
 
         /** The actions to perform when animation is completed. */
         @Editable
-        public ActionConfig[] completedActions = new ActionConfig[0];
+        public ActionConfig[] completedActions = EMPTY_ARRAY;
 
         @Override // documentation inherited
         public void apply (final UserInterface iface, final Component comp)
@@ -571,7 +574,7 @@ public abstract class ActionConfig extends DeepObject
 
         /** The actions to perform. */
         @Editable
-        public ActionConfig[] actions = new ActionConfig[0];
+        public ActionConfig[] actions = EMPTY_ARRAY;
 
         @Override // documentation inherited
         public void execute (final UserInterface iface, final ConfigScript script)
@@ -652,7 +655,7 @@ public abstract class ActionConfig extends DeepObject
     {
         /** The actions to perform. */
         @Editable
-        public ActionConfig[] actions = new ActionConfig[0];
+        public ActionConfig[] actions = EMPTY_ARRAY;
 
         @Override // documentation inherited
         public void execute (UserInterface iface, ConfigScript script)
