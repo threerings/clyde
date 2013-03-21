@@ -219,8 +219,8 @@ public abstract class ActionConfig extends DeepObject
         public Easing easing = new Easing.None();
 
         /** The actions to perform when animation is completed. */
-        @Editable
-        public ActionConfig[] completedActions = EMPTY_ARRAY;
+        @Editable(nullable=true)
+        public ActionConfig actionOnComplete;
 
         @Override // documentation inherited
         public void apply (final UserInterface iface, final Component comp)
@@ -237,10 +237,10 @@ public abstract class ActionConfig extends DeepObject
                 @Override public void cleanup () {
                     super.cleanup();
                     comp.setAlpha(end);
-                    for (ActionConfig ac : completedActions) {
+                    if (actionOnComplete != null) {
                         // This will annoy the 'wait' action, but that
                         // shouldn't be used here anyway.
-                        ac.execute(iface, null);
+                        actionOnComplete.execute(iface, null);
                     }
                 }
                 protected float _time;
@@ -322,8 +322,8 @@ public abstract class ActionConfig extends DeepObject
         public Easing easing = new Easing.None();
 
         /** The actions to perform when animation is completed. */
-        @Editable
-        public ActionConfig[] completedActions = EMPTY_ARRAY;
+        @Editable(nullable=true)
+        public ActionConfig actionOnComplete;
 
         @Override // documentation inherited
         public void apply (final UserInterface iface, final Component comp)
@@ -339,10 +339,10 @@ public abstract class ActionConfig extends DeepObject
                 @Override public void cleanup () {
                     super.cleanup();
                     comp.setOffset(_offset.set(end));
-                    for (ActionConfig ac : completedActions) {
+                    if (actionOnComplete != null) {
                         // This will annoy the 'wait' action, but that
                         // shouldn't be used here anyway.
-                        ac.execute(iface, null);
+                        actionOnComplete.execute(iface, null);
                     }
                 }
                 protected float _time;
