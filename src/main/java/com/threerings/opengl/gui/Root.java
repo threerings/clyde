@@ -608,6 +608,9 @@ public abstract class Root extends SimpleOverlay
         // update the tick stamp
         _tickStamp = System.currentTimeMillis();
 
+        // notify our tick participants
+        _tickParticipants.apply(_tickOp.init(elapsed));
+
         // repeat keys as necessary
         if (!_pressedKeys.isEmpty()) {
             for (KeyRecord key : _pressedKeys.values()) {
@@ -630,9 +633,6 @@ public abstract class Root extends SimpleOverlay
         if (updateHover) {
             updateHoverComponent(_mouseX, _mouseY);
         }
-
-        // notify our tick participants
-        _tickParticipants.apply(_tickOp.init(elapsed));
 
         // check to see if we need to pop up a tooltip
         _lastMoveTime += elapsed;

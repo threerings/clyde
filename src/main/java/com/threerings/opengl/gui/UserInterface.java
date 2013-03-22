@@ -677,6 +677,35 @@ public class UserInterface extends Container
     }
 
     /**
+     * Runs a script on the interface after the current tick.
+     */
+    public void runScriptLater (String name) {
+        runScriptLater(_ctx.getConfigManager().getConfig(InterfaceScriptConfig.class, name));
+    }
+
+    /**
+     * Runs a script on the interface after the current tick.
+     */
+    public void runScriptLater (
+            String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        runScriptLater(_ctx.getConfigManager().getConfig(InterfaceScriptConfig.class,
+                name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Runs a script on the interface after the current tick.
+     */
+    public void runScriptLater (InterfaceScriptConfig config)
+    {
+        if (_scriptQueue == null) {
+            // Lazy-instantiate this so it's not sitting on every UI.
+            _scriptQueue = new ScriptQueue();
+        }
+        _scriptQueue.add(config);
+    }
+
+    /**
      * Adds a script to the interface.
      */
     public void addScript (Script script)
@@ -897,6 +926,35 @@ public class UserInterface extends Container
         }
     }
 
+    protected class ScriptQueue
+    {
+        public void add (InterfaceScriptConfig config) {
+            _queue.add(config);
+            if (!_running) {
+                _ctx.getApp().getRunQueue().postRunnable(_runnable);
+                _running = true;
+            }
+        }
+
+        /** The queue of scripts to add. */
+        protected List<InterfaceScriptConfig> _queue = Lists.newArrayList();
+
+        /** Whether the runnable has been posted. */
+        protected boolean _running;
+
+        /** The actual runnable. */
+        protected Runnable _runnable = new Runnable() {
+            public void run () {
+                for (InterfaceScriptConfig config : _queue) {
+                    runScript(config);
+                }
+                _queue.clear();
+                _running = false;
+            }
+        };
+
+    }
+
     /** The user interface scope. */
     protected DynamicScope _scope = new UIScope(this, "interface");
 
@@ -914,6 +972,9 @@ public class UserInterface extends Container
 
     /** The scripts currently running on the interface. */
     protected List<Script> _scripts = Lists.newArrayList();
+
+    /** The scripts queued to start execution on the next tick. */
+    protected ScriptQueue _scriptQueue;
 
     /** A container for the interface epoch. */
     @Scoped
