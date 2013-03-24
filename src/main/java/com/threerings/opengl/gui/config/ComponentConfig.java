@@ -996,10 +996,6 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="c")
         public boolean starters;
 
-        /** The dimensions of the color swatches. */
-        @Editable(min=1, hgroup="s")
-        public int swatchWidth = 9, swatchHeight = 9;
-
         /** The index of the initially selected color. */
         @Editable(min=0)
         public int selected;
@@ -1021,7 +1017,6 @@ public abstract class ComponentConfig extends DeepObject
 
             // configure the component
             picker.setColorClass(colorClass, starters);
-            picker.setSwatchSize(swatchWidth, swatchHeight);
             picker.setSelectedIndex(selected);
         }
     }

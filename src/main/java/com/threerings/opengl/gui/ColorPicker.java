@@ -58,15 +58,11 @@ public class ColorPicker extends Component
      * Creates a new color picker.
      *
      * @param colorClass the color class from which we select.
-     * @param swatchWidth the width of the swatches.
-     * @param swatchHeight the height of the swatches.
      */
-    public ColorPicker (GlContext ctx, String colorClass, int swatchWidth, int swatchHeight)
+    public ColorPicker (GlContext ctx, String colorClass)
     {
         super(ctx);
         setColorClass(colorClass);
-        _swatchWidth = swatchWidth;
-        _swatchHeight = swatchHeight;
     }
 
     /**
@@ -86,12 +82,22 @@ public class ColorPicker extends Component
     }
 
     /**
+     * Gets the color class from this color picker.
+     */
+    public String getColorClass ()
+    {
+        return _colorClass;
+    }
+
+    /**
      * Sets the color class from which we select.
      *
      * @param starters if true, only allow the starter colors.
      */
     public void setColorClass (String colorClass, boolean starters)
     {
+        _colorClass = colorClass;
+
         // retrieve and sort the colors
         ClassRecord crec = _ctx.getColorPository().getClassRecord(colorClass);
         if (crec == null) {
@@ -118,15 +124,6 @@ public class ColorPicker extends Component
         for (int ii = 0; ii < _colors.length; ii++) {
             _colorizedRoots[ii] = new Color4f(_colors[ii].getColorization().getColorizedRoot());
         }
-    }
-
-    /**
-     * Sets the dimensions of the swatches.
-     */
-    public void setSwatchSize (int swatchWidth, int swatchHeight)
-    {
-        _swatchWidth = swatchWidth;
-        _swatchHeight = swatchHeight;
     }
 
     // from Selectable<ColorRecord>
@@ -159,7 +156,8 @@ public class ColorPicker extends Component
         if (isEnabled() && event instanceof MouseEvent) {
             MouseEvent mev = (MouseEvent)event;
             int oidx = _sidx;
-            int midx = (mev.getX() - getAbsoluteX()) / _swatchWidth;
+            float swatchWidth = (float)getWidth() / _colors.length;
+            int midx = (int)((float)(mev.getX() - getAbsoluteX()) / swatchWidth);
             switch (mev.getType()) {
             case MouseEvent.MOUSE_PRESSED:
                 if (mev.getButton() == MouseEvent.BUTTON1) {
@@ -193,38 +191,40 @@ public class ColorPicker extends Component
     @Override // documentation inherited
     protected Dimension computePreferredSize (int whint, int hhint)
     {
-        return new Dimension(_swatchWidth * _colors.length, _swatchHeight);
+        return new Dimension(_colors.length, 1);
     }
 
     @Override // documentation inherited
     protected void renderComponent (Renderer renderer)
     {
         renderer.setTextureState(null);
+        float swatchWidth = (float)getWidth() / _colors.length;
+        int height = getHeight();
 
         // render the swatches
         Insets insets = getInsets();
-        int x = insets.left, y = insets.bottom;
+        float x = insets.left, y = insets.bottom;
         GL11.glBegin(GL11.GL_QUADS);
         for (int ii = 0; ii < _colors.length; ii++) {
             Color4f color = _colorizedRoots[ii];
             GL11.glColor4f(color.r * _alpha, color.g * _alpha, color.b * _alpha, color.a * _alpha);
             GL11.glVertex2f(x, y);
-            GL11.glVertex2f(x + _swatchWidth, y);
-            GL11.glVertex2f(x + _swatchWidth, y + _swatchHeight);
-            GL11.glVertex2f(x, y + _swatchHeight);
-            x += _swatchWidth;
+            GL11.glVertex2f(x + swatchWidth, y);
+            GL11.glVertex2f(x + swatchWidth, y + height);
+            GL11.glVertex2f(x, y + height);
+            x += swatchWidth;
         }
         GL11.glEnd();
 
         // outline the selected swatch
-        x = insets.left + (_sidx * _swatchWidth);
+        x = insets.left + (_sidx * swatchWidth);
         GL11.glLineWidth(2f);
         GL11.glBegin(GL11.GL_LINE_LOOP);
         GL11.glColor4f(_alpha, _alpha, _alpha, _alpha);
         GL11.glVertex2f(x, y);
-        GL11.glVertex2f(x + _swatchWidth, y);
-        GL11.glVertex2f(x + _swatchWidth, y + _swatchHeight);
-        GL11.glVertex2f(x, y + _swatchHeight);
+        GL11.glVertex2f(x + swatchWidth, y);
+        GL11.glVertex2f(x + swatchWidth, y + height);
+        GL11.glVertex2f(x, y + height);
         GL11.glEnd();
         GL11.glLineWidth(1f);
         renderer.invalidateColorState();
@@ -236,8 +236,8 @@ public class ColorPicker extends Component
     /** The colorized roots corresponding to each record. */
     protected Color4f[] _colorizedRoots;
 
-    /** The dimensions of the swatches. */
-    protected int _swatchWidth, _swatchHeight;
+    /** The color class. */
+    protected String _colorClass;
 
     /** The currently selected index. */
     protected int _sidx;
