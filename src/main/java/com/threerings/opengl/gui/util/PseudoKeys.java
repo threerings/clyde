@@ -564,4 +564,24 @@ public class PseudoKeys
             return false;
         }
     }
+
+    /**
+     * Is the specified key a mouse button or mouse wheel key?
+     */
+    public static boolean isMouseKey (int key)
+    {
+        switch (getType(key)) {
+        case KEY_BUTTON1:
+        case KEY_BUTTON2:
+        case KEY_BUTTON3:
+        case KEY_BUTTON4:
+        case KEY_BUTTON5:
+        case KEY_WHEEL_UP:
+        case KEY_WHEEL_DOWN:
+            return true;
+
+        default:
+            return false;
+        }
+    }
 }
