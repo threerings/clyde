@@ -27,6 +27,7 @@ package com.threerings.opengl.effect;
 
 import com.threerings.io.Streamable;
 
+import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -37,8 +38,10 @@ import com.threerings.util.DeepObject;
  * API.  TODO: Allow control over the amount/duration of easing?
  */
 @EditorTypes({
-    Easing.None.class, Easing.QuadraticIn.class,
-    Easing.QuadraticOut.class, Easing.QuadraticInAndOut.class })
+    Easing.None.class,
+    Easing.QuadraticIn.class, Easing.QuadraticOut.class, Easing.QuadraticInAndOut.class,
+    Easing.CubicIn.class, Easing.CubicOut.class, Easing.CubicInAndOut.class,
+    Easing.CubicInOvershoot.class, Easing.CubicOutOvershoot.class })
 public abstract class Easing extends DeepObject
     implements Exportable, Streamable
 {
@@ -104,13 +107,126 @@ public abstract class Easing extends DeepObject
         @Override
         public float getTime (float t)
         {
-            return (t <= 0.5f) ? (2f*t*t) : (2f*t*(2f - t) - 1f);
+            return (t <= .5f) ? (2f*t*t) : (2f*t*(2f - t) - 1f);
         }
 
         @Override
         public Easing copy (Easing result)
         {
             return (result instanceof QuadraticInAndOut) ? result : new QuadraticInAndOut();
+        }
+    }
+
+    /**
+     * Performs a simple cubic ease-in.
+     */
+    public static class CubicIn extends Easing
+    {
+        @Override
+        public float getTime (float t)
+        {
+            return t*t*t;
+        }
+
+        @Override
+        public Easing copy (Easing result)
+        {
+            return (result instanceof CubicIn) ? result : new CubicIn();
+        }
+    }
+
+    /**
+     * Performs a simple cubic ease-out.
+     */
+    public static class CubicOut extends Easing
+    {
+        @Override
+        public float getTime (float t)
+        {
+            t -= 1f;
+            return t*t*t + 1f;
+        }
+
+        @Override
+        public Easing copy (Easing result)
+        {
+            return (result instanceof CubicOut) ? result : new CubicOut();
+        }
+    }
+
+    /**
+     * Performs a simple cubic ease-in and ease-out.
+     */
+    public static class CubicInAndOut extends Easing
+    {
+        @Override
+        public float getTime (float t)
+        {
+            t *= 2f;
+            if (t < 1f) {
+                return .5f*t*t*t;
+            }
+            t -= 2f;
+            return .5f * (t*t*t + 2f);
+        }
+
+        @Override
+        public Easing copy (Easing result)
+        {
+            return (result instanceof CubicInAndOut) ? result : new CubicInAndOut();
+        }
+    }
+
+    /**
+     * Performs a simple in and back ease.
+     */
+    public static class CubicInOvershoot extends Easing
+    {
+        /** The amount of overshoot: the default value produces about 10 percent overshoot. */
+        @Editable(min=0, step=.00001)
+        public float overshoot = 1.70158f;
+
+        @Override
+        public float getTime (float t)
+        {
+            return t*t*((overshoot + 1)*t - overshoot);
+        }
+
+        @Override
+        public Easing copy (Easing result)
+        {
+            CubicInOvershoot that = (result instanceof CubicInOvershoot)
+                ? (CubicInOvershoot)result
+                : new CubicInOvershoot();
+            that.overshoot = this.overshoot;
+            return that;
+        }
+    }
+
+    /**
+     * Performs a simple cubic ease out with overshoot.
+     */
+    public static class CubicOutOvershoot extends Easing
+    {
+        /** The amount of overshoot: the default value produces about 10 percent overshoot. */
+        @Editable(min=0, step=.00001)
+        public float overshoot = 1.70158f;
+
+        @Override
+        public float getTime (float t)
+        {
+            t -= 1f;
+            return t*t*((overshoot + 1)*t + overshoot) + 1;
+        }
+
+        @Override
+        public Easing copy (Easing result)
+        {
+            CubicOutOvershoot that = (result instanceof CubicOutOvershoot)
+                ? (CubicOutOvershoot)result
+                : new CubicOutOvershoot();
+            that.overshoot = this.overshoot;
+            return that;
         }
     }
 
