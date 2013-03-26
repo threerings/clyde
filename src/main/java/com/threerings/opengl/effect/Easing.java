@@ -47,13 +47,13 @@ public abstract class Easing extends DeepObject
      */
     public static class None extends Easing
     {
-        @Override // documentation inherited
+        @Override
         public float getTime (float t)
         {
             return t;
         }
 
-        @Override // documentation inherited
+        @Override
         public Easing copy (Easing result)
         {
             return (result instanceof None) ? result : new None();
@@ -65,13 +65,13 @@ public abstract class Easing extends DeepObject
      */
     public static class QuadraticIn extends Easing
     {
-        @Override // documentation inherited
+        @Override
         public float getTime (float t)
         {
             return t*t;
         }
 
-        @Override // documentation inherited
+        @Override
         public Easing copy (Easing result)
         {
             return (result instanceof QuadraticIn) ? result : new QuadraticIn();
@@ -83,13 +83,13 @@ public abstract class Easing extends DeepObject
      */
     public static class QuadraticOut extends Easing
     {
-        @Override // documentation inherited
+        @Override
         public float getTime (float t)
         {
             return t*(2f - t);
         }
 
-        @Override // documentation inherited
+        @Override
         public Easing copy (Easing result)
         {
             return (result instanceof QuadraticOut) ? result : new QuadraticOut();
@@ -101,13 +101,13 @@ public abstract class Easing extends DeepObject
      */
     public static class QuadraticInAndOut extends Easing
     {
-        @Override // documentation inherited
+        @Override
         public float getTime (float t)
         {
             return (t <= 0.5f) ? (2f*t*t) : (2f*t*(2f - t) - 1f);
         }
 
-        @Override // documentation inherited
+        @Override
         public Easing copy (Easing result)
         {
             return (result instanceof QuadraticInAndOut) ? result : new QuadraticInAndOut();
