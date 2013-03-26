@@ -328,13 +328,13 @@ public abstract class ManagedConfig extends DeepObject
     protected transient WeakObserverList<ConfigUpdateListener<ManagedConfig>> _listeners;
 
     /** The list of configs to which we are listening for updates.
-     * This is typically null and is only used when the client creates a DConfigDirector,
+     * This is usually null and is typically only used when the client creates a DConfigDirector,
      * in dev environments. */
     @DeepOmit
     protected transient ArrayList<ManagedConfig> _updateConfigs;
 
     /** The list of resources to which we are listening for modifications.
-     * This is typically null and is only used when the client creates a DConfigDirector,
+     * This is usually null and is typically only used when the client creates a DConfigDirector,
      * in dev environments. */
     @DeepOmit
     protected transient HashSet<String> _updateResources;
