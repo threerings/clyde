@@ -25,9 +25,9 @@
 
 package com.threerings.config;
 
-import java.lang.ref.WeakReference;
-
 import java.util.Map;
+
+import com.google.common.cache.CacheBuilder;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.ExpressionBinding;
@@ -35,7 +35,6 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.ScopeUpdateListener;
 import com.threerings.expr.Updater;
-import com.threerings.util.CacheUtil;
 import com.threerings.util.DeepOmit;
 
 /**
@@ -62,12 +61,16 @@ public class BoundConfig extends ParameterizedConfig
             return this;
         }
         if (_bound == null) {
-            _bound = CacheUtil.softValues(1);
+            _bound = CacheBuilder.newBuilder()
+                .concurrencyLevel(1)
+                .softValues()
+                .weakKeys()
+                .initialCapacity(1)
+                .<Scope, BoundConfig>build().asMap();
         }
-        ScopeKey key = new ScopeKey(scope);
-        BoundConfig bound = _bound.get(key);
+        BoundConfig bound = _bound.get(scope);
         if (bound == null) {
-            _bound.put(key, bound = (BoundConfig)clone());
+            _bound.put(scope, bound = (BoundConfig)clone());
             bound.init(_cfgmgr);
             bound._base = this;
             bound.bind(scope);
@@ -118,37 +121,11 @@ public class BoundConfig extends ParameterizedConfig
         scope.addListener(this);
     }
 
-    /**
-     * Identifies a scope.
-     */
-    protected static class ScopeKey
-    {
-        public ScopeKey (Scope scope)
-        {
-            _scope = new WeakReference<Scope>(scope);
-        }
-
-        @Override // documentation inherited
-        public int hashCode ()
-        {
-            return System.identityHashCode(_scope.get());
-        }
-
-        @Override // documentation inherited
-        public boolean equals (Object other)
-        {
-            return _scope.get() == ((ScopeKey)other)._scope.get();
-        }
-
-        /** The scope. */
-        protected WeakReference<Scope> _scope;
-    }
-
     /** Updaters for our bindings. */
     @DeepOmit
     protected transient Updater[] _updaters;
 
     /** Maps scopes to bound instances. */
     @DeepOmit
-    protected transient Map<ScopeKey, BoundConfig> _bound;
+    protected transient Map<Scope, BoundConfig> _bound;
 }
