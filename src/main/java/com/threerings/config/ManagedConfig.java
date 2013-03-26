@@ -297,6 +297,27 @@ public abstract class ManagedConfig extends DeepObject
         for (String path : _updateResources) {
             rsrcmgr.addModificationObserver(path, this);
         }
+
+        if (_updateResources.isEmpty()) {
+            _emptyRsrcs.add(this);
+            _rsrcs.remove(this);
+        } else {
+            _emptyRsrcs.remove(this);
+            _rsrcs.add(this);
+        }
+        if (_updateConfigs.isEmpty()) {
+            _emptyCfgs.add(this);
+            _cfgs.remove(this);
+        } else {
+            _emptyCfgs.remove(this);
+            _cfgs.add(this);
+        }
+
+        System.err.println("Configs: " + 
+            _emptyCfgs.size() + " empty configs, " +
+            _cfgs.size() + " non-empty; " +
+            _emptyRsrcs.size() + " empty rsrcs, " +
+            _rsrcs.size() + " non-empty.");
     }
 
     /**
@@ -316,6 +337,11 @@ public abstract class ManagedConfig extends DeepObject
         _updateResources = null;
     }
 
+    protected static final Set<ManagedConfig> _emptyCfgs = Sets.newIdentityHashSet();
+    protected static final Set<ManagedConfig> _cfgs = Sets.newIdentityHashSet();
+    protected static final Set<ManagedConfig> _emptyRsrcs = Sets.newIdentityHashSet();
+    protected static final Set<ManagedConfig> _rsrcs = Sets.newIdentityHashSet();
+
     /** The name of this configuration. */
     protected String _name;
 
@@ -327,11 +353,15 @@ public abstract class ManagedConfig extends DeepObject
     @DeepOmit
     protected transient WeakObserverList<ConfigUpdateListener<ManagedConfig>> _listeners;
 
-    /** The list of configs to which we are listening for updates. */
+    /** The list of configs to which we are listening for updates.
+     * This is typically null and is only used when the client creates a DConfigDirector,
+     * in dev environments. */
     @DeepOmit
     protected transient ArrayList<ManagedConfig> _updateConfigs;
 
-    /** The list of resources to which we are listening for modifications. */
+    /** The list of resources to which we are listening for modifications.
+     * This is typically null and is only used when the client creates a DConfigDirector,
+     * in dev environments. */
     @DeepOmit
     protected transient HashSet<String> _updateResources;
 }
