@@ -276,12 +276,8 @@ public class ScrollBar extends Container
 
     protected ActionListener _buttoner = new ActionListener() {
         public void actionPerformed (ActionEvent event) {
-            int delta = _model.getScrollIncrement();
-            if (event.getAction().equals("less")) {
-                _model.setValue(_model.getValue() - delta);
-            } else {
-                _model.setValue(_model.getValue() + delta);
-            }
+            int delta = ("less".equals(event.getAction()) ? -1 : 1) * _model.getScrollIncrement();
+            _model.setValue(_model.getValue() + delta);
         }
     };
 
