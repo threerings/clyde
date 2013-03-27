@@ -164,12 +164,21 @@ public class ScrollBar extends Container
         if (!isAdded()) {
             return;
         }
+
+        // enable/disable the buttons
+        int value = _model.getValue();
+        int extent = _model.getExtent();
+        int range = _model.getRange();
+        _less.setEnabled(value > _model.getMinimum());
+        _more.setEnabled(value + extent < _model.getMaximum());
+        _thumb.setEnabled(range > extent);
+
         Insets winsets = _well.getInsets();
         int tx = 0, ty = 0;
         int twidth = _well.getWidth() - winsets.getHorizontal();
         int theight = _well.getHeight() - winsets.getVertical();
-        int range = Math.max(_model.getRange(), 1); // avoid div0
-        int extent = Math.max(_model.getExtent(), 1); // avoid div0
+        range = Math.max(1, range); // avoid div0
+
         if (_orient == HORIZONTAL) {
             int wellSize = twidth;
             twidth = extent * wellSize / range;
@@ -177,16 +186,15 @@ public class ScrollBar extends Container
                 wellSize -= (THUMB_RATIO * theight - twidth);
                 twidth = THUMB_RATIO * theight;
             }
-            tx = _model.getValue() * wellSize / range;
+            tx = value * wellSize / range;
         } else {
             int wellSize = theight;
             theight = extent * wellSize / range;
-            int off = 0;
             if (theight < THUMB_RATIO * twidth) {
                 wellSize -= (THUMB_RATIO * twidth - theight);
                 theight = THUMB_RATIO * twidth;
             }
-            ty = (range-extent-_model.getValue()) * wellSize / range;
+            ty = (range - extent - value) * wellSize / range;
         }
         _thumb.setBounds(_well.getX() + winsets.left + tx,
                          _well.getY() + winsets.bottom + ty, twidth, theight);
