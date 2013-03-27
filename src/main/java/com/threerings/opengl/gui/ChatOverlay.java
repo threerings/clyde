@@ -66,38 +66,22 @@ public class ChatOverlay extends Container
             }
         });
 
-        Container bcont = GroupLayout.makeVBox(ctx, GroupLayout.BOTTOM);
-        add(bcont, GroupLayout.FIXED);
+        Container sideCont = new Container(ctx, GroupLayout.makeVStretch());
+        add(sideCont, GroupLayout.FIXED);
         add(_area);
 
-        // create the action listener for the buttons
-        ActionListener al = new ActionListener() {
-            public void actionPerformed (ActionEvent event) {
-                Object source = event.getSource();
-                if (source == _less) {
-                    model.setValue(model.getValue() - 1);
-                } else if (source == _more) {
-                    model.setValue(model.getValue() + 1);
-                } else if (source == _end) {
-                    model.setValue(model.getMaximum() - model.getExtent());
-                }
-            }
-        };
+        _scrollbar = new ScrollBar(ctx, ScrollBar.VERTICAL, model);
+        sideCont.add(_scrollbar);
 
-        _less = new Button(_ctx, "", al, "less");
-        _less.setStyleConfig(prefix + "Less");
-        _less.setEnabled(false);
-        bcont.add(_less);
-
-        _more = new Button(_ctx, "", al, "more");
-        _more.setStyleConfig(prefix + "More");
-        _more.setEnabled(false);
-        bcont.add(_more);
-
-        _end = new Button(_ctx, "", al, "end");
+        _end = new Button(_ctx, "");
         _end.setStyleConfig(prefix + "End");
         _end.setEnabled(false);
-        bcont.add(_end);
+        _end.addListener(new ActionListener() {
+            public void actionPerformed (ActionEvent event) {
+                model.setValue(model.getMaximum() - model.getExtent());
+            }
+        });
+        sideCont.add(_end, GroupLayout.FIXED);
     }
 
     /**
@@ -162,8 +146,9 @@ public class ChatOverlay extends Container
     public Component getHitComponent (int mx, int my)
     {
         Component comp = super.getHitComponent(mx, my);
-        return ((comp == _less || comp == _more || comp == _end) && comp.isEnabled()) ?
-            comp : null;
+        return (((comp == _end) || _scrollbar.getChildren().contains(comp)) && comp.isEnabled())
+            ? comp
+            : null;
     }
 
     @Override // documentation inherited
@@ -208,18 +193,11 @@ public class ChatOverlay extends Container
      */
     protected void updateButtons ()
     {
-        if (!isEnabled()) {
-            _less.setEnabled(false);
-            _more.setEnabled(false);
-            _end.setEnabled(false);
-            return;
-        }
         BoundedRangeModel model = _area.getScrollModel();
-        int value = model.getValue();
-        _less.setEnabled(value > model.getMinimum());
-        boolean more = value + model.getExtent() < model.getMaximum();
-        _more.setEnabled(more);
-        _end.setEnabled(more);
+        boolean notAtEnd = model.getValue() + model.getExtent() < model.getMaximum();
+        boolean enabled = isEnabled();
+        _scrollbar.setEnabled(enabled);
+        _end.setEnabled(enabled && notAtEnd);
     }
 
     @Override
@@ -238,8 +216,11 @@ public class ChatOverlay extends Container
     /** The colors to use for each system message level. */
     protected Color4f[] _systemColors = new Color4f[3];
 
-    /** The less, more, and end buttons. */
-    protected Button _less, _more, _end;
+    /** The end button. */
+    protected Button _end;
+
+    /** The scrollbar. */
+    protected ScrollBar _scrollbar;
 
     /** The chat entry text area. */
     protected TextArea _area;
