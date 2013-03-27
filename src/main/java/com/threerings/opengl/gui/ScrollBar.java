@@ -217,6 +217,7 @@ public class ScrollBar extends Container
     };
 
     protected MouseListener _wellListener = new MouseAdapter() {
+        @Override
         public void mousePressed (MouseEvent event) {
             // if we're above the thumb, scroll up by a page, if we're
             // below, scroll down a page
@@ -239,16 +240,25 @@ public class ScrollBar extends Container
                 dv *= Math.max(1, _model.getExtent());
                 _model.setValue(_model.getValue() + dv);
             }
+            event.consume();
+        }
+
+        @Override
+        public void mouseDragged (MouseEvent event) {
+            event.consume();
         }
     };
 
     protected MouseAdapter _thumbListener = new MouseAdapter() {
+        @Override
         public void mousePressed (MouseEvent event) {
             _sv = _model.getValue();
             _sx = event.getX() - getAbsoluteX();
             _sy = event.getY() - getAbsoluteY();
+            event.consume();
         }
 
+        @Override
         public void mouseDragged (MouseEvent event) {
             int dv = 0;
             if (_horz) {
@@ -264,6 +274,7 @@ public class ScrollBar extends Container
             if (dv != 0) {
                 _model.setValue(_sv + dv);
             }
+            event.consume();
         }
 
         protected int _sx, _sy, _sv;
