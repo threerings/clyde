@@ -140,6 +140,13 @@ public class ScrollBar extends Container
         _well = _thumb = _less = _more = null;
     }
 
+    @Override
+    public void setEnabled (boolean enabled)
+    {
+        super.setEnabled(enabled);
+        update();
+    }
+
     // documentation inherited
     public Component getHitComponent (int mx, int my)
     {
@@ -164,9 +171,10 @@ public class ScrollBar extends Container
         int value = _model.getValue();
         int extent = _model.getExtent();
         int range = _model.getRange();
-        _less.setEnabled(value > _model.getMinimum());
-        _more.setEnabled(value + extent < _model.getMaximum());
-        _thumb.setEnabled(range > extent);
+        boolean enabled = isEnabled();
+        _less.setEnabled(enabled && value > _model.getMinimum());
+        _more.setEnabled(enabled && value + extent < _model.getMaximum());
+        _thumb.setEnabled(enabled && range > extent);
 
         Insets winsets = _well.getInsets();
         int tx = 0, ty = 0;
