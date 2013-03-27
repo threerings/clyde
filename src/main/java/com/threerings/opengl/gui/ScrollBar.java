@@ -101,25 +101,25 @@ public class ScrollBar extends Container
         addListener(_wheelListener = _model.createWheelListener());
 
         // create our buttons and backgrounds
-        String oprefix = "Default/ScrollBar" + (_horz ? "H" : "V");
+        String stylePrefix = _styleConfigs[0].getName() + (_horz ? "H" : "V");
         _well = new Component(_ctx);
-        _well.setStyleConfig(oprefix + "Well");
+        _well.setStyleConfig(stylePrefix + "Well");
         add(_well, BorderLayout.CENTER);
         _well.addListener(_wellListener);
 
         _thumb = new Component(_ctx);
-        _thumb.setStyleConfig(oprefix + "Thumb");
+        _thumb.setStyleConfig(stylePrefix + "Thumb");
         add(_thumb, BorderLayout.IGNORE);
         _thumb.addListener(_thumbListener);
 
         _less = new Button(_ctx, "");
-        _less.setStyleConfig(oprefix + "Less");
+        _less.setStyleConfig(stylePrefix + "Less");
         add(_less, _horz ? BorderLayout.WEST : BorderLayout.NORTH);
         _less.addListener(_buttoner);
         _less.setAction("less");
 
         _more = new Button(_ctx, "");
-        _more.setStyleConfig(oprefix + "More");
+        _more.setStyleConfig(stylePrefix + "More");
         add(_more, _horz ? BorderLayout.EAST : BorderLayout.SOUTH);
         _more.addListener(_buttoner);
         _more.setAction("more");
