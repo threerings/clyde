@@ -132,26 +132,17 @@ public class ScrollBar extends Container
     {
         super.wasRemoved();
 
-        if (_wheelListener != null) {
-            removeListener(_wheelListener);
-            _wheelListener = null;
-        }
-        if (_well != null) {
-            remove(_well);
-            _well = null;
-        }
-        if (_thumb != null) {
-            remove(_thumb);
-            _thumb = null;
-        }
-        if (_less != null) {
-            remove(_less);
-            _less = null;
-        }
-        if (_more != null) {
-            remove(_more);
-            _more = null;
-        }
+        removeListener(_wheelListener);
+        _wheelListener = null;
+
+        remove(_well);
+        _well = null;
+        remove(_thumb);
+        _thumb = null;
+        remove(_less);
+        _less = null;
+        remove(_more);
+        _more = null;
     }
 
     // documentation inherited
