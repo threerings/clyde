@@ -79,7 +79,7 @@ public class ScrollBar extends Container
     public ScrollBar (GlContext ctx, int orientation, BoundedRangeModel model)
     {
         super(ctx, new BorderLayout());
-        _orient = orientation;
+        _horz = (orientation == HORIZONTAL);
         _model = model;
         _model.addChangeListener(_updater);
     }
@@ -101,7 +101,7 @@ public class ScrollBar extends Container
         addListener(_wheelListener = _model.createWheelListener());
 
         // create our buttons and backgrounds
-        String oprefix = "Default/ScrollBar" + ((_orient == HORIZONTAL) ? "H" : "V");
+        String oprefix = "Default/ScrollBar" + (_horz ? "H" : "V");
         _well = new Component(_ctx);
         _well.setStyleConfig(oprefix + "Well");
         add(_well, BorderLayout.CENTER);
@@ -114,15 +114,13 @@ public class ScrollBar extends Container
 
         _less = new Button(_ctx, "");
         _less.setStyleConfig(oprefix + "Less");
-        add(_less, _orient == HORIZONTAL ?
-            BorderLayout.WEST : BorderLayout.NORTH);
+        add(_less, _horz ? BorderLayout.WEST : BorderLayout.NORTH);
         _less.addListener(_buttoner);
         _less.setAction("less");
 
         _more = new Button(_ctx, "");
         _more.setStyleConfig(oprefix + "More");
-        add(_more, _orient == HORIZONTAL ?
-            BorderLayout.EAST : BorderLayout.SOUTH);
+        add(_more, _horz ? BorderLayout.EAST : BorderLayout.SOUTH);
         _more.addListener(_buttoner);
         _more.setAction("more");
     }
@@ -136,13 +134,10 @@ public class ScrollBar extends Container
         _wheelListener = null;
 
         remove(_well);
-        _well = null;
         remove(_thumb);
-        _thumb = null;
         remove(_less);
-        _less = null;
         remove(_more);
-        _more = null;
+        _well = _thumb = _less = _more = null;
     }
 
     // documentation inherited
@@ -179,7 +174,7 @@ public class ScrollBar extends Container
         int theight = _well.getHeight() - winsets.getVertical();
         range = Math.max(1, range); // avoid div0
 
-        if (_orient == HORIZONTAL) {
+        if (_horz) {
             int wellSize = twidth;
             twidth = extent * wellSize / range;
             if (twidth < THUMB_RATIO * theight) {
@@ -227,7 +222,7 @@ public class ScrollBar extends Container
             // below, scroll down a page
             int mx = event.getX() - getAbsoluteX(),
                 my = event.getY() - getAbsoluteY(), dv = 0;
-            if (_orient == HORIZONTAL) {
+            if (_horz) {
                 if (mx < _thumb.getX()) {
                     dv = -1;
                 } else if (mx > _thumb.getX() + _thumb.getWidth()) {
@@ -256,7 +251,7 @@ public class ScrollBar extends Container
 
         public void mouseDragged (MouseEvent event) {
             int dv = 0;
-            if (_orient == HORIZONTAL) {
+            if (_horz) {
                 int mx = event.getX() - getAbsoluteX();
                 dv = (mx - _sx) * _model.getRange() /
                     (_well.getWidth() - _well.getInsets().getHorizontal());
@@ -282,7 +277,7 @@ public class ScrollBar extends Container
     };
 
     protected BoundedRangeModel _model;
-    protected int _orient;
+    protected boolean _horz;
 
     protected Button _less, _more;
     protected Component _well, _thumb;
