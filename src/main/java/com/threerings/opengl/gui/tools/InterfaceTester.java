@@ -44,6 +44,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -313,8 +314,9 @@ public class InterfaceTester extends GlCanvasTool
     /** The user interface component. */
     protected UserInterface _userInterface;
 
-    /** Maps shown components by the configuration that created them. */
-    protected Set<Component> _highlights = Sets.newIdentityHashSet();
+    /** Components that should be drawn highlighted. */
+    protected Set<Component> _highlights = Sets.newSetFromMap(
+        new MapMaker().concurrencyLevel(1).weakKeys().<Component, Boolean>makeMap());
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(InterfaceTester.class);
