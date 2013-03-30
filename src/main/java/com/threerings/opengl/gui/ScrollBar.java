@@ -25,8 +25,11 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.config.ConfigReference;
+
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.ChangeEvent;
@@ -82,6 +85,22 @@ public class ScrollBar extends Container
         _horz = (orientation == HORIZONTAL);
         _model = model;
         _model.addChangeListener(_updater);
+        _wheelListener = _model.createWheelListener();
+
+        // create our buttons and backgrounds
+        _well = new Component(_ctx);
+        _well.addListener(_wellListener);
+        _thumb = new Component(_ctx);
+        _thumb.addListener(_thumbListener);
+        _less = new Button(_ctx, "");
+        _less.addListener(_buttoner);
+        _more = new Button(_ctx, "");
+        _more.addListener(_buttoner);
+
+        add(_well, BorderLayout.CENTER);
+        add(_thumb, BorderLayout.IGNORE);
+        add(_less, _horz ? BorderLayout.WEST : BorderLayout.NORTH);
+        add(_more, _horz ? BorderLayout.EAST : BorderLayout.SOUTH);
     }
 
     /**
@@ -92,52 +111,36 @@ public class ScrollBar extends Container
         return _model;
     }
 
-    // documentation inherited
-    public void wasAdded ()
+    @Override
+    public void setStyleConfig (ConfigReference<StyleConfig> ref)
+    {
+        String prefix = (ref == null)
+            ? getDefaultStyleConfig()
+            : ref.getName();
+        // set the styles of our sub-components
+        _well.setStyleConfig(prefix + "Well");
+        _thumb.setStyleConfig(prefix + "Thumb");
+        _less.setStyleConfig(prefix + "Less");
+        _more.setStyleConfig(prefix + "More");
+
+        super.setStyleConfig(ref);
+    }
+
+    @Override
+    protected void wasAdded ()
     {
         super.wasAdded();
 
         // listen for mouse wheel events
-        addListener(_wheelListener = _model.createWheelListener());
-
-        // create our buttons and backgrounds
-        String stylePrefix = _styleConfigs[0].getName() + (_horz ? "H" : "V");
-        _well = new Component(_ctx);
-        _well.setStyleConfig(stylePrefix + "Well");
-        add(_well, BorderLayout.CENTER);
-        _well.addListener(_wellListener);
-
-        _thumb = new Component(_ctx);
-        _thumb.setStyleConfig(stylePrefix + "Thumb");
-        add(_thumb, BorderLayout.IGNORE);
-        _thumb.addListener(_thumbListener);
-
-        _less = new Button(_ctx, "");
-        _less.setStyleConfig(stylePrefix + "Less");
-        add(_less, _horz ? BorderLayout.WEST : BorderLayout.NORTH);
-        _less.addListener(_buttoner);
-        _less.setAction("less");
-
-        _more = new Button(_ctx, "");
-        _more.setStyleConfig(stylePrefix + "More");
-        add(_more, _horz ? BorderLayout.EAST : BorderLayout.SOUTH);
-        _more.addListener(_buttoner);
-        _more.setAction("more");
+        addListener(_wheelListener);
     }
 
-    // documentation inherited
-    public void wasRemoved ()
+    @Override
+    protected void wasRemoved ()
     {
         super.wasRemoved();
 
         removeListener(_wheelListener);
-        _wheelListener = null;
-
-        remove(_well);
-        remove(_thumb);
-        remove(_less);
-        remove(_more);
-        _well = _thumb = _less = _more = null;
     }
 
     @Override
@@ -150,7 +153,7 @@ public class ScrollBar extends Container
     // documentation inherited
     public Component getHitComponent (int mx, int my)
     {
-        // we do special processing for the thumb
+        // the thumb takes priority over the well
         if (_thumb.getHitComponent(mx - _x, my - _y) != null) {
             return _thumb;
         }
@@ -206,7 +209,7 @@ public class ScrollBar extends Container
     @Override // documentation inherited
     protected String getDefaultStyleConfig ()
     {
-        return "Default/ScrollBar";
+        return "Default/ScrollBar" + (_horz ? "H" : "V");
     }
 
     // documentation inherited
@@ -290,7 +293,7 @@ public class ScrollBar extends Container
 
     protected ActionListener _buttoner = new ActionListener() {
         public void actionPerformed (ActionEvent event) {
-            int delta = ("less".equals(event.getAction()) ? -1 : 1) * _model.getScrollIncrement();
+            int delta = ((_less == event.getSource()) ? -1 : 1) * _model.getScrollIncrement();
             _model.setValue(_model.getValue() + delta);
         }
     };
