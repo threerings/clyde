@@ -516,7 +516,14 @@ public class TextArea extends Container
     protected Color4f[] _effcols = new Color4f[getStateCount()];
     protected TextFactory[][] _textfacts = new TextFactory[getStateCount()][];
 
-    protected BoundedRangeModel _model = new BoundedRangeModel(0, 0, 0, 0);
+    protected BoundedRangeModel _model = new BoundedRangeModel(0, 0, 0, 0) {
+        @Override
+        public int getScrollIncrement ()
+        {
+            return 1;
+        }
+    };
+
     protected int _prefWidth = -1;
 
     protected ArrayList<Run> _runs = new ArrayList<Run>();
