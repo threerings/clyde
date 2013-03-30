@@ -46,6 +46,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableLong;
+import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 
 import com.threerings.opengl.gui.config.InterfaceScriptConfig;
@@ -341,8 +342,16 @@ public class UserInterface extends Container
      */
     public UserInterface (GlContext ctx, UserInterfaceConfig config)
     {
+        this(ctx, config, ctx.getScope());
+    }
+
+    /**
+     * Creates a new interface for use with the InterfaceTester.
+     */
+    public UserInterface (GlContext ctx, UserInterfaceConfig config, Scope parentScope)
+    {
         super(ctx, new BorderLayout());
-        _scope.setParentScope(ctx.getScope());
+        _scope.setParentScope(parentScope);
 
         _ctx = new GlContextWrapper(ctx) {
             public ConfigManager getConfigManager () {

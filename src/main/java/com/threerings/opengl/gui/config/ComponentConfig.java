@@ -74,6 +74,10 @@ import com.threerings.opengl.util.GlContext;
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
+    /** Are we highlighted in the editor? */
+    @DeepOmit
+    public transient boolean editorHighlight;
+
     /** Available label orientations. */
     public enum Orientation
     {
@@ -1119,6 +1123,14 @@ public abstract class ComponentConfig extends DeepObject
     @Editable(weight=1, nullable=true)
     public DimensionConfig preferredSize;
 
+    @Override
+    public Object copy (Object dest, Object outer)
+    {
+        ComponentConfig result = (ComponentConfig)super.copy(dest, outer);
+        result.editorHighlight = this.editorHighlight;
+        return result;
+    }
+
     /**
      * Creates or updates a component for this configuration.
      *
@@ -1133,6 +1145,7 @@ public abstract class ComponentConfig extends DeepObject
         if (!StringUtil.isBlank(tag)) {
             ScopeUtil.call(scope, "registerComponent", tag, comp);
         }
+        ScopeUtil.call(scope, "editorHighlight", comp, editorHighlight);
         return comp;
     }
 

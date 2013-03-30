@@ -30,6 +30,7 @@ import java.awt.event.KeyEvent;
 
 import java.io.File;
 
+import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -42,6 +43,12 @@ import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import org.lwjgl.opengl.GL11;
+
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
 
@@ -50,14 +57,22 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.swing.ObjectPanel;
+import com.threerings.editor.swing.editors.ObjectEditor;
+import com.threerings.expr.Scoped;
 import com.threerings.util.ChangeBlock;
 
 import com.threerings.opengl.GlCanvasTool;
+import com.threerings.opengl.gui.CanvasRoot;
+import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.UserInterface;
+import com.threerings.opengl.gui.config.ComponentConfig;
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
 import com.threerings.opengl.renderer.Color4f;
+
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Tool for testing user interfaces.
@@ -137,6 +152,50 @@ public class InterfaceTester extends GlCanvasTool
         _epanel.addChangeListener(this);
     }
 
+    @Override
+    public Root createRoot ()
+    {
+        if (_canvasRoot == null) {
+            _canvasRoot = new CanvasRoot(this, _canvas) {
+                @Override
+                protected void draw ()
+                {
+                    super.draw();
+
+                    if (_highlights.isEmpty()) {
+                        return;
+                    }
+                    _ctx.getRenderer().setTextureState(null);
+
+                    GL11.glLineWidth(2f);
+                    GL11.glEnable(GL11.GL_COLOR_LOGIC_OP);
+                    GL11.glLogicOp(GL11.GL_XOR);
+
+                    // draw a frickin box for highlighted components
+                    for (Component comp : _highlights) {
+                        if (!comp.isAdded() || !comp.isVisible()) {
+                            continue;
+                        }
+                        int x = comp.getAbsoluteX();
+                        int y = comp.getAbsoluteY();
+                        int w = comp.getWidth();
+                        int h = comp.getHeight();
+
+                        GL11.glBegin(GL11.GL_LINE_LOOP);
+                        GL11.glVertex2f(x, y);
+                        GL11.glVertex2f(x + w, y);
+                        GL11.glVertex2f(x + w, y + h);
+                        GL11.glVertex2f(x, y + h);
+                        GL11.glEnd();
+                    }
+
+                    GL11.glDisable(GL11.GL_COLOR_LOGIC_OP);
+                }
+            };
+        }
+        return _canvasRoot;
+    }
+
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
@@ -206,8 +265,7 @@ public class InterfaceTester extends GlCanvasTool
         config.init(_cfgmgr);
         config.implementation = (UserInterfaceConfig.Derived)_epanel.getObject();
         config.addListener(this);
-        window.add(_userInterface = new UserInterface(this, config));
-        _userInterface.getScope().setParentScope(this);
+        window.add(_userInterface = new UserInterface(this, config, this));
     }
 
     @Override // documentation inherited
@@ -222,6 +280,19 @@ public class InterfaceTester extends GlCanvasTool
     {
         super.compositeView();
         _root.composite();
+    }
+
+    /**
+     * Tracks components by their originating ComponentConfig.
+     */
+    @Scoped
+    protected void editorHighlight (Component comp, boolean highlight)
+    {
+        if (highlight) {
+            _highlights.add(comp);
+        } else {
+            _highlights.remove(comp);
+        }
     }
 
     /** The panel that holds the control bits. */
@@ -241,6 +312,9 @@ public class InterfaceTester extends GlCanvasTool
 
     /** The user interface component. */
     protected UserInterface _userInterface;
+
+    /** Maps shown components by the configuration that created them. */
+    protected Set<Component> _highlights = Sets.newIdentityHashSet();
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(InterfaceTester.class);

@@ -38,6 +38,8 @@ import com.samskivert.swing.VGroupLayout;
 import com.threerings.editor.swing.ObjectPanel;
 import com.threerings.editor.swing.PropertyEditor;
 
+import com.threerings.opengl.gui.config.ComponentConfig;
+
 /**
  * An editor for objects with editable properties.
  */
@@ -47,7 +49,12 @@ public class ObjectEditor extends PropertyEditor
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        _property.set(_object, _panel.getValue());
+        Object value = _panel.getValue();
+        if (value instanceof ComponentConfig) {
+            ((ComponentConfig)value).editorHighlight = _highlighted;
+        }
+
+        _property.set(_object, value);
         fireStateChanged();
     }
 
@@ -77,6 +84,15 @@ public class ObjectEditor extends PropertyEditor
     protected void setTreeModeEnabled (boolean enabled)
     {
         _panel.setTreeModeEnabled(enabled);
+    }
+
+    @Override
+    protected void toggleHighlight ()
+    {
+        super.toggleHighlight();
+        if (_panel.getValue() instanceof ComponentConfig) {
+            stateChanged(null);
+        }
     }
 
     /** The object panel. */

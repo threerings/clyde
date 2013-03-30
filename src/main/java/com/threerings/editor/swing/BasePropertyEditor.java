@@ -162,8 +162,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     {
         Object source = event.getSource();
         if (source == _highlight) {
-            _highlighted = !_highlighted;
-            updateBorder(((TitledBorder)getBorder()).getTitle());
+            toggleHighlight();
             invalidate();
 
         } else if (source == _tree) {
@@ -296,8 +295,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         addMouseListener(new MouseAdapter() {
             public void mouseClicked (MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
-                    _highlighted = !_highlighted;
-                    updateBorder(title);
+                    toggleHighlight();
                 }
             }
         });
@@ -414,6 +412,15 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             StringSelection contents = new StringSelection(path);
             getToolkit().getSystemClipboard().setContents(contents, contents);
         }
+    }
+
+    /**
+     * Toggle the highlighting of this editor.
+     */
+    protected void toggleHighlight ()
+    {
+        _highlighted = !_highlighted;
+        updateBorder(((TitledBorder)getBorder()).getTitle());
     }
 
     /**
