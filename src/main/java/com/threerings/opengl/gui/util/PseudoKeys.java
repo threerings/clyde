@@ -486,7 +486,7 @@ public class PseudoKeys
                     String.valueOf(getControllerIndex(key)));
             default:
                 String name = getName(key);
-                String mkey = "m." + StringUtil.toUSLowerCase(name);
+                String mkey = "k." + StringUtil.toUSLowerCase(name);
                 return msgs.exists(mkey) ? msgs.get(mkey) : name;
         }
     }
