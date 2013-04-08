@@ -187,15 +187,19 @@ public class UserInterface extends Container
         @Override // documentation inherited
         public void init ()
         {
-            _root.addTickParticipant(this);
+            _scriptRoot = getRoot();
+            _scriptRoot.addTickParticipant(this);
             tick(0f); // tick once to initialize
         }
 
         @Override // documentation inherited
         public void cleanup ()
         {
-            _root.removeTickParticipant(this);
+            _scriptRoot.removeTickParticipant(this);
         }
+
+        /** The root used by this script. */
+        protected transient Root _scriptRoot;
     }
 
     /**
@@ -224,9 +228,9 @@ public class UserInterface extends Container
                 return; // no-op
             }
             if (_paused = paused) {
-                _root.removeTickParticipant(this);
+                _scriptRoot.removeTickParticipant(this);
             } else {
-                _root.addTickParticipant(this);
+                _scriptRoot.addTickParticipant(this);
             }
         }
 
