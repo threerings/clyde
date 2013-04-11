@@ -1848,10 +1848,6 @@ public class TudeySceneView extends DynamicScope
     protected TreeBasedTable<Integer, Integer, List<CameraConfig>> _camcfgs =
         TreeBasedTable.create();
 
-    /** The priority-ordered list of active camera configs. */
-    //protected List<CameraConfig> _camcfgs = Lists.newArrayList(
-    //    TudeySceneMetrics.getDefaultCameraConfig());
-
     /** The current camera config. */
     protected CameraConfig _camcfg = new CameraConfig(
         TudeySceneMetrics.getDefaultCameraConfig());
