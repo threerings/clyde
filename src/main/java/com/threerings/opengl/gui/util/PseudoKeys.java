@@ -584,4 +584,20 @@ public class PseudoKeys
             return false;
         }
     }
+
+    /**
+     * Is the specified key a keyboard key?
+     */
+    public static boolean isKeyboardKey (int key)
+    {
+        return (key < Keyboard.KEYBOARD_SIZE && key != Keyboard.KEY_NONE);
+    }
+
+    /**
+     * Is the specified key a controller key?
+     */
+    public static boolean isControllerKey (int key)
+    {
+        return (isAnalogKey(key) || (getType(key) == KEY_CONTROLLER_BUTTON));
+    }
 }
