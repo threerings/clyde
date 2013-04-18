@@ -115,7 +115,7 @@ public class Document
     /** Returns a subset of the text of the document. */
     public String getText (int offset, int length)
     {
-        return _text.substring(offset, offset + length);
+        return getText().substring(offset, offset + length);
     }
 
     /**
