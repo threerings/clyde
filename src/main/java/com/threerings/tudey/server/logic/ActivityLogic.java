@@ -31,6 +31,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Logic classes for activities.
@@ -91,6 +92,24 @@ public abstract class ActivityLogic extends Logic
     public float getRotation ()
     {
         return _source.getRotation();
+    }
+
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _source.getShape();
+    }
+
+    @Override // documentation inherited
+    public void addShapeObserver (ShapeObserver observer)
+    {
+        _source.addShapeObserver(observer);
+    }
+
+    @Override // documentation inherited
+    public void removeShapeObserver (ShapeObserver observer)
+    {
+        _source.removeShapeObserver(observer);
     }
 
     @Override // documentation inherited
