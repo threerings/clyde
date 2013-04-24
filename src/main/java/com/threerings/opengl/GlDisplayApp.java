@@ -195,7 +195,6 @@ public abstract class GlDisplayApp extends GlApp
         // create the input devices
         try {
             Keyboard.create();
-            DisplayCanvas.patchLwjglKeyboard();
         } catch (LWJGLException e) {
             log.warning("Failed to create keyboard.", e);
         }
