@@ -25,6 +25,10 @@
 
 package com.threerings.opengl.model;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
 import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
@@ -77,6 +81,12 @@ public class Compound extends Model.Implementation
     {
         // update the view transform
         _parentViewTransform.compose(_localTransform, _viewTransform);
+    }
+
+    @Override
+    public List<Model> getChildren ()
+    {
+        return Lists.newArrayList(_models);
     }
 
     @Override // documentation inherited

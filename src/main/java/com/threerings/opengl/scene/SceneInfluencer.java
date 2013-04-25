@@ -87,17 +87,24 @@ public class SceneInfluencer extends Model.Implementation
     @Override // documentation inherited
     public void setVisible (boolean visible)
     {
-        if (_visible != visible) {
-            _visible = visible;
-            Scene scene = ((Model)_parentScope).getScene(this);
-            if (scene != null && _influence != null) {
-                if (visible) {
-                    scene.add(_influence);
-                } else {
-                    scene.remove(_influence);
-                }
-            }
+        if (_visible == visible) {
+            return;
         }
+
+        _visible = visible;
+        updateVis();
+    }
+
+    @Override
+    public void visibilityWasSet ()
+    {
+        boolean parentVis = ((Model)_parentScope).isShowing();
+        if (_parentVis == parentVis) {
+            return;
+        }
+
+        _parentVis = parentVis;
+        updateVis();
     }
 
     @Override // documentation inherited
@@ -157,8 +164,9 @@ public class SceneInfluencer extends Model.Implementation
     public void wasAdded ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (_visible && scene != null && _influence != null) {
+        if (_visible && _parentVis && !_added && scene != null && _influence != null) {
             scene.add(_influence);
+            _added = true;
         }
     }
 
@@ -166,8 +174,9 @@ public class SceneInfluencer extends Model.Implementation
     public void willBeRemoved ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (_visible && scene != null && _influence != null) {
+        if (_added && scene != null && _influence != null) {
             scene.remove(_influence);
+            _added = false;
         }
     }
 
@@ -178,14 +187,32 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     /**
+     * Updates the visibility of the model.
+     */
+    protected void updateVis ()
+    {
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (scene != null && _influence != null) {
+            if (_visible && _parentVis && !_added) {
+                scene.add(_influence);
+                _added = true;
+            } else if (!(_visible && _parentVis) && _added) {
+                scene.remove(_influence);
+                _added = false;
+            }
+        }
+    }
+
+    /**
      * Updates the model to match its new or modified configuration.
      */
     protected void updateFromConfig ()
     {
         // remove the old influence, if any
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (_visible && scene != null && _influence != null) {
+        if (_added && scene != null && _influence != null) {
             scene.remove(_influence);
+            _added = false;
         }
 
         // update the influence flags
@@ -198,8 +225,9 @@ public class SceneInfluencer extends Model.Implementation
         _updaters = updaters.toArray(new Updater[updaters.size()]);
 
         // add to scene if we're in one
-        if (_visible && scene != null) {
+        if (_visible && _parentVis && !_added && scene != null) {
             scene.add(_influence);
+            _added = true;
         }
 
         // update the bounds
@@ -250,4 +278,10 @@ public class SceneInfluencer extends Model.Implementation
 
     /** Are we visible? */
     protected boolean _visible = true;
+
+    /** Is our parent visible? */
+    protected boolean _parentVis = true;
+
+    /** Whether or not we've been added (to prevent adding multiple times). */
+    protected boolean _added = false;
 }

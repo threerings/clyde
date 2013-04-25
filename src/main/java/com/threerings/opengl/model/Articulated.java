@@ -31,6 +31,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.threerings.expr.Bound;
@@ -439,6 +440,14 @@ public class Articulated extends Model.Implementation
     {
         // update the view transform
         _parentViewTransform.compose(_localTransform, _viewTransform);
+    }
+
+    @Override
+    public List<Model> getChildren ()
+    {
+        List<Model> m = Lists.newArrayList(_configAttachments);
+        m.addAll(_userAttachments);
+        return m;
     }
 
     @Override // documentation inherited

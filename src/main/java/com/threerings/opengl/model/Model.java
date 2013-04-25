@@ -105,6 +105,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Gets a list of children from this implementation.
+         */
+        public List<Model> getChildren ()
+        {
+            return Collections.<Model>emptyList();
+        }
+
+        /**
          * Returns a reference to the world transform of the given point.
          */
         public Transform3D getPointWorldTransform (String point)
@@ -185,6 +193,14 @@ public class Model extends DynamicScope
         {
             // Model will not composite() us if it is not visible, so typically nothing
             // is needed here. Certain subclasses need this method, however.
+        }
+
+        /**
+         * Handles events where visibility of a parent has been set.
+         */
+        public void visibilityWasSet ()
+        {
+            // nothing by default
         }
 
         /**
@@ -426,6 +442,14 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Gets the children for this model.
+     */
+    public List<Model> getChildren ()
+    {
+        return _impl.getChildren();
+    }
+
+    /**
      * Sets the local transform to the specified value and promotes it to
      * {@link Transform3D#UNIFORM}, then updates the bounds of the model.
      */
@@ -536,6 +560,20 @@ public class Model extends DynamicScope
     {
         _visible = visible;
         _impl.setVisible(visible);
+        visibilityWasSet();
+    }
+
+    /**
+     * Notifies children that visibility was set.
+     */
+    public void visibilityWasSet ()
+    {
+        _impl.visibilityWasSet();
+
+        List<Model> children = getChildren();
+        for (Model m : children) {
+            m.visibilityWasSet();
+        }
     }
 
     /**
@@ -544,6 +582,28 @@ public class Model extends DynamicScope
     public boolean isVisible ()
     {
         return _visible;
+    }
+
+    /**
+     * Check if we're 'showing' - us visible && parents showing.
+     */
+    public boolean isShowing ()
+    {
+        // Manually short-circuit.
+        if (!_visible) {
+            return _visible;
+        }
+
+        Scope curScope = _parentScope;
+        boolean parentVis = true;
+        while (curScope != null && !(curScope instanceof Model)) {
+            curScope = curScope.getParentScope();
+        }
+        if (curScope instanceof Model) {
+            parentVis = ((Model)curScope).isShowing();
+        }
+
+        return parentVis;
     }
 
     /**

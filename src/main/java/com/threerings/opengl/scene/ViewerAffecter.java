@@ -70,15 +70,24 @@ public class ViewerAffecter extends Model.Implementation
     @Override // documentation inherited
     public void setVisible (boolean visible)
     {
-        if (_visible != visible) {
-            _visible = visible;
-            Scene scene = ((Model)_parentScope).getScene(this);
-            if (visible) {
-                scene.add(_effect);
-            } else {
-                scene.remove(_effect);
-            }
+        if (_visible == visible) {
+            return;
         }
+
+        _visible = visible;
+        updateVis();
+    }
+
+    @Override
+    public void visibilityWasSet ()
+    {
+        boolean parentVis = ((Model)_parentScope).isShowing();
+        if (_parentVis == parentVis) {
+            return;
+        }
+
+        _parentVis = parentVis;
+        updateVis();
     }
 
     @Override // documentation inherited
@@ -137,16 +146,34 @@ public class ViewerAffecter extends Model.Implementation
     @Override // documentation inherited
     public void wasAdded ()
     {
-        if (_visible) {
-            ((Model)_parentScope).getScene(this).add(_effect);
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (_visible && _parentVis && !_added && scene != null) {
+            scene.add(_effect);
+            _added = true;
         }
     }
 
     @Override // documentation inherited
     public void willBeRemoved ()
     {
-        if (_visible) {
-            ((Model)_parentScope).getScene(this).remove(_effect);
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (_added && scene != null) {
+            scene.remove(_effect);
+            _added = false;
+        }
+    }
+
+    protected void updateVis ()
+    {
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (scene != null) {
+            if (_visible && _parentVis && !_added) {
+                scene.add(_effect);
+                _added = true;
+            } else if (!(_visible && _parentVis) && _added) {
+                scene.remove(_effect);
+                _added = false;
+            }
         }
     }
 
@@ -157,8 +184,9 @@ public class ViewerAffecter extends Model.Implementation
     {
         // remove the old effect, if any
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (_visible && scene != null && _effect != null) {
+        if (_added && scene != null && _effect != null) {
             scene.remove(_effect);
+            _added = false;
         }
 
         // update the influence flags
@@ -169,8 +197,9 @@ public class ViewerAffecter extends Model.Implementation
         _effect.getBounds().set(_bounds);
 
         // add to scene if we're in one
-        if (_visible && scene != null) {
+        if (_visible && _parentVis && !_added && scene != null) {
             scene.add(_effect);
+            _added = true;
         }
 
         // update the bounds
@@ -210,4 +239,10 @@ public class ViewerAffecter extends Model.Implementation
 
     /** Are we visible? */
     protected boolean _visible = true;
+
+    /** Is our parent visible? */
+    protected boolean _parentVis = true;
+
+    /** Whether or not we've been added (to prevent adding multiple times). */
+    protected boolean _added = false;
 }

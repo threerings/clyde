@@ -45,6 +45,12 @@ public class Wrapper extends Model.Implementation
         _impl = impl;
     }
 
+    @Override
+    public List<Model> getChildren ()
+    {
+        return _impl.getChildren();
+    }
+
     @Override // documentation inherited
     public Transform3D getPointWorldTransform (String point)
     {
@@ -104,6 +110,12 @@ public class Wrapper extends Model.Implementation
     public void setVisible (boolean visible)
     {
         _impl.setVisible(visible);
+    }
+
+    @Override
+    public void visibilityWasSet ()
+    {
+        _impl.visibilityWasSet();
     }
 
     @Override // documentation inherited
