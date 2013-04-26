@@ -128,6 +128,16 @@ public class BehaviorConfig extends ParameterizedConfig
     }
 
     /**
+     * Base class for pathing behaviors.
+     */
+    public static abstract class Pathing extends Evaluating
+    {
+        /** The variable that determines the facing angle required to start moving. */
+        @Editable(min=0, max=360, scale=Math.PI/180.0)
+        public float moveFaceRange = 0;
+    }
+
+    /**
      * Base for wander behaviors.
      */
     public abstract static class BaseWander extends Evaluating
@@ -187,7 +197,7 @@ public class BehaviorConfig extends ParameterizedConfig
     /**
      * Patrols a path, area, etc.
      */
-    public static class Patrol extends Evaluating
+    public static class Patrol extends Pathing
     {
         /** The target to patrol. */
         @Editable
@@ -213,7 +223,7 @@ public class BehaviorConfig extends ParameterizedConfig
     /**
      * Follows another actor.
      */
-    public static class Follow extends Evaluating
+    public static class Follow extends Pathing
     {
         /** The target to follow. */
         @Editable

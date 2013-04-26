@@ -412,9 +412,12 @@ public abstract class BehaviorLogic extends Logic
             // make sure we're facing the right direction
             Vector2f node = _path[_pidx];
             float rot = FloatMath.atan2(node.y - trans.y, node.x - trans.x);
-            if (FloatMath.getAngularDistance(_agent.getRotation(), rot) > 0.0001f) {
-                _agent.stopMoving();
+            float dist = FloatMath.getAngularDistance(_agent.getRotation(), rot);
+            if (dist > 0.0001f) {
                 _agent.setTargetRotation(rot);
+            }
+            if (dist > _moveFaceRange) {
+                _agent.stopMoving();
             } else {
                 _agent.startMoving();
             }
@@ -480,11 +483,23 @@ public abstract class BehaviorLogic extends Logic
             // nothing by default
         }
 
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _moveFaceRange = ((BehaviorConfig.Pathing)_config).moveFaceRange;
+            if (_moveFaceRange == 0f) {
+                _moveFaceRange = 0.001f;
+            }
+        }
+
         /** The waypoints of the path being followed. */
         protected Vector2f[] _path;
 
         /** The index of the next point on the path. */
         protected int _pidx;
+
+        /** The angular range we need to be within before starting to move. */
+        protected float _moveFaceRange;
     }
 
     /**
