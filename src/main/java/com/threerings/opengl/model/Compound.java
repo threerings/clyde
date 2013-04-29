@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.model;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -86,7 +88,7 @@ public class Compound extends Model.Implementation
     @Override
     public List<Model> getChildren ()
     {
-        return Lists.newArrayList(_models);
+        return Collections.unmodifiableList(Arrays.asList(_models));
     }
 
     @Override // documentation inherited

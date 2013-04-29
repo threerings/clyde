@@ -26,6 +26,7 @@
 package com.threerings.opengl.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -447,7 +448,7 @@ public class Articulated extends Model.Implementation
     {
         List<Model> m = Lists.newArrayList(_configAttachments);
         m.addAll(_userAttachments);
-        return m;
+        return Collections.unmodifiableList(m);
     }
 
     @Override // documentation inherited
