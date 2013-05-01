@@ -500,6 +500,8 @@ public class PseudoKeys
             case KEY_BUTTON1: return "BUTTON1";
             case KEY_BUTTON2: return "BUTTON2";
             case KEY_BUTTON3: return "BUTTON3";
+            case KEY_BUTTON4: return "BUTTON4";
+            case KEY_BUTTON5: return "BUTTON5";
             case KEY_WHEEL_UP: return "WHEEL_UP";
             case KEY_WHEEL_DOWN: return "WHEEL_DOWN";
             case KEY_CONTROLLER_BUTTON:
