@@ -266,6 +266,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             _origin.set(_agent.getTranslation());
         }
 
@@ -335,6 +336,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             _rotation = _agent.getActor().getRotation();
         }
 
@@ -486,6 +488,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             _moveFaceRange = ((BehaviorConfig.Pathing)_config).moveFaceRange;
             if (_moveFaceRange == 0f) {
                 _moveFaceRange = 0.001f;
@@ -526,6 +529,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             _target = createTarget(((BehaviorConfig.Patrol)_config).target, _agent);
         }
 
@@ -646,6 +650,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             _target = createTarget(((BehaviorConfig.Follow)_config).target, _agent);
         }
 
@@ -758,6 +763,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             WeightedBehavior[] wbehaviors = ((BehaviorConfig.Random)_config).behaviors;
             _behaviors = new BehaviorLogic[wbehaviors.length];
             _behaviorWeights = Maps.newHashMap();
@@ -975,6 +981,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             BehaviorConfig.Combined config = (BehaviorConfig.Combined)_config;
             _first = _agent.createBehavior(config.first);
             if (_first != null) {
