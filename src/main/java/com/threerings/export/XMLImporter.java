@@ -224,7 +224,10 @@ public class XMLImporter extends Importer
         throws IOException
     {
         String ref = element.getAttribute("ref");
-        if (ref.length() > 0) {
+        String rdepth = element.getAttribute("rdepth");
+        if (rdepth.length() > 0) {
+            return _depths.get(rdepth);
+        } else if (ref.length() > 0) {
             return _objects.get(ref);
         } else if (element.getFirstChild() == null) {
             return null;
@@ -241,6 +244,7 @@ public class XMLImporter extends Importer
     {
         // see if we can read the value from a string
         String id = element.getAttribute("id");
+        String depth = element.getAttribute("depth");
         String cstr = element.getAttribute("class");
         Class<?> cclazz;
         if (cstr.length() > 0) {
@@ -263,6 +267,9 @@ public class XMLImporter extends Importer
                 }
             } catch (Exception e) {
                 log.warning("Failed to parse string.", "string", string, "class", cclazz, e);
+            }
+            if (depth.length() > 0 && value != null) {
+                putObjectDepth(depth, value);
             }
             if (id.length() > 0 && value != null) {
                 putObject(id, value);
@@ -294,6 +301,9 @@ public class XMLImporter extends Importer
                 value = ReflectionUtil.newInstance(cclazz,
                     ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
             }
+            if (depth.length() > 0 && value != null) {
+                putObjectDepth(depth, value);
+            }
             if (id.length() > 0) {
                 putObject(id, value);
             }
@@ -317,6 +327,9 @@ public class XMLImporter extends Importer
 
         } finally {
             _element = oelement;
+            if (depth.length() > 0) {
+                _depths.remove(depth);
+            }
         }
     }
 
@@ -328,6 +341,17 @@ public class XMLImporter extends Importer
         Object ovalue = _objects.put(id, value);
         if (ovalue != null) {
             log.warning("Duplicate id detected.", "id", id, "ovalue", ovalue, "nvalue", value);
+        }
+    }
+
+    /**
+     * Stores an object in the map, logging a warning if we overwrite an existing entry.
+     */
+    protected void putObjectDepth (String depth, Object value)
+    {
+        Object ovalue = _depths.put(depth, value);
+        if (ovalue != null) {
+            log.warning("Duplicate depth detected.", "depth", depth, "ovalue", ovalue, "nvalue", value);
         }
     }
 
@@ -438,4 +462,5 @@ public class XMLImporter extends Importer
 
     /** Mappings from ids to referenced objects. */
     protected HashMap<String, Object> _objects = new HashMap<String, Object>();
+    protected HashMap<String, Object> _depths = new HashMap<String, Object>();
 }
