@@ -127,11 +127,11 @@ public class ViewerAffecter extends Model.Implementation
 
             // update the effect bounds if we're in a scene
             Scene scene = ((Model)_parentScope).getScene(this);
-            if (scene != null) {
+            if (scene != null && _added) {
                 scene.boundsWillChange(_effect);
             }
             _effect.getBounds().set(_nbounds);
-            if (scene != null) {
+            if (scene != null && _added) {
                 scene.boundsDidChange(_effect);
             }
         }

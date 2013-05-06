@@ -558,9 +558,12 @@ public class Model extends DynamicScope
      */
     public void setVisible (boolean visible)
     {
+        boolean oldVis = _visible;
         _visible = visible;
         _impl.setVisible(visible);
-        visibilityWasSet();
+        if (oldVis != visible) {
+            visibilityWasSet();
+        }
     }
 
     /**

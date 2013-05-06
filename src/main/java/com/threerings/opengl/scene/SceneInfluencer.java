@@ -138,11 +138,11 @@ public class SceneInfluencer extends Model.Implementation
 
             // update the influence bounds if we're in a scene
             Scene scene = ((Model)_parentScope).getScene(this);
-            if (scene != null) {
+            if (scene != null && _added) {
                 scene.boundsWillChange(_influence);
             }
             _influence.getBounds().set(_nbounds);
-            if (scene != null) {
+            if (scene != null && _added) {
                 scene.boundsDidChange(_influence);
             }
         }
