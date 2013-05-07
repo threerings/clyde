@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
 
 import com.threerings.export.BinaryImporter;
 
@@ -45,16 +45,18 @@ public class ExportFileUtil
     public static <T> T readObject (File file, Class<T> clazz)
         throws IOException
     {
-        BinaryImporter in = null;
+        Closer closer = Closer.create();
         try {
-            in = new BinaryImporter(new BufferedInputStream(new FileInputStream(file)));
+            BinaryImporter in = closer.register(
+                new BinaryImporter(new BufferedInputStream(new FileInputStream(file))));
             return clazz.cast(in.readObject());
 
         } catch (ClassCastException cce) {
             String msg = "File " + file + " doesn't contain a " + clazz;
-            throw (IOException)new IOException(msg).initCause(cce);
+            throw closer.rethrow((IOException)new IOException(msg).initCause(cce));
+
         } finally {
-            Closeables.closeQuietly(in);
+            closer.close();
         }
     }
 }
