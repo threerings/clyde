@@ -35,11 +35,9 @@
   </developers>
 
   <scm>
-    <connection>scm:svn:http://clyde.googlecode.com/svn/trunk/</connection>
-    <developerConnection>
-      scm:svn:svn+ssh://src.earth.threerings.net/clyde/trunk/
-    </developerConnection>
-    <url>http://clyde.googlecode.com/svn/trunk/</url>
+    <connection>scm:git:git://github.com/threerings/clyde.git</connection>
+    <developerConnection>scm:git:git@github.com:threerings/clyde.git</developerConnection>
+    <url>http://github.com/threerings/clyde/</url>
   </scm>
 
   <repositories>
@@ -54,22 +52,22 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>ooo-util</artifactId>
-      <version>1.3</version>
+      <version>1.3.2</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>narya</artifactId>
-      <version>1.13.2</version>
+      <version>1.14</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>nenya</artifactId>
-      <version>1.4.2</version>
+      <version>1.5</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>vilya</artifactId>
-      <version>1.4</version>
+      <version>1.5</version>
     </dependency>
     <dependency>
       <groupId>org.lwjgl.lwjgl</groupId>
