@@ -546,16 +546,19 @@ public class PseudoKeys
     public static final int KEY_BUTTON5 = Keyboard.KEYBOARD_SIZE + 13;
 
     /** A special "key" mapping for modifier key 1. */
-    public static final int KEY_MODIFIER1 = 0x10000000;
+    public static final int KEY_MODIFIER1 = 1 << 28;
 
     /** A special "key" mapping for modifier key 2. */
-    public static final int KEY_MODIFIER2 = 0x20000000;
+    public static final int KEY_MODIFIER2 = 2 << 28;
 
     /** A special "key" mapping for modifier key 3. */
-    public static final int KEY_MODIFIER3 = 0x40000000;
+    public static final int KEY_MODIFIER3 = 4 << 28;
 
     /** A special "key" mapping for modifier key 4. */
-    public static final int KEY_MODIFIER4 = 0x80000000;
+    public static final int KEY_MODIFIER4 = 8 << 28;
+
+    /** A mask for the modifier keys. */
+    public static final int KEY_MODIFIER_MASK = 0xF << 28;
 
     /** An array for modifiers. */
     public static final int[] KEY_MODIFIERS = {
@@ -721,7 +724,7 @@ public class PseudoKeys
      */
     public static int getControllerIndex (int key)
     {
-        return (key & (0xFFFFFFF)) >>> 24;
+        return (getBaseKey(key)) >>> 24;
     }
 
     /**
@@ -792,7 +795,7 @@ public class PseudoKeys
      */
     public static int getBaseKey (int key)
     {
-        return key & 0xFFFFFFF;
+        return key & ~KEY_MODIFIER_MASK;
     }
 
     /**
@@ -808,6 +811,7 @@ public class PseudoKeys
      */
     public static boolean hasAnyModifierKeys (int key)
     {
-        return (key & 0xF0000000) != 0;
+        return (key & KEY_MODIFIER_MASK) != 0;
     }
+
 }
