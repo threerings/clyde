@@ -25,8 +25,12 @@
 
 package com.threerings.opengl.gui.util;
 
+import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
+import com.samskivert.util.HashIntSet;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
 import org.lwjgl.input.Keyboard;
@@ -124,8 +128,30 @@ public class PseudoKeys
          */
         public void keyPressed (long when, int key, float amount)
         {
-            if (_observer != null) {
+            if (_observer == null) {
+                return;
+            }
+
+            int modKey = getModifierKey(key);
+            if (modKey == 0 && !_modifierUsers.contains(key)) {
+                // Not a modifier, and we don't care about modifiers.
                 _observer.keyPressed(when, key, amount);
+                return;
+            }
+
+            if (modKey == 0) {
+                key = applyModifierKeys(key);
+                _pressedKeys.add(key);
+                _observer.keyPressed(when, key, amount);
+            } else {
+                holdModifierKey(modKey, true);
+                for (int m : currentPressedKeys()) {
+                    _observer.keyReleased(when, m);
+                    _pressedKeys.remove(m);
+                    m = applyModifierKeys(m);
+                    _pressedKeys.add(m);
+                    _observer.keyPressed(when, m, amount);
+                }
             }
         }
 
@@ -135,8 +161,32 @@ public class PseudoKeys
          */
         public void keyReleased (long when, int key)
         {
-            if (_observer != null) {
+            if (_observer == null) {
+                return;
+            }
+
+            int modKey = getModifierKey(key);
+            if (modKey == 0 && !_modifierUsers.contains(key)) {
+                // Not a modifier, and we don't care about modifiers.
                 _observer.keyReleased(when, key);
+                return;
+            }
+
+            if (modKey == 0) {
+                key = applyModifierKeys(key);
+                _observer.keyReleased(when, key);
+                _pressedKeys.remove(key);
+            } else {
+                holdModifierKey(modKey, false);
+                for (int m : currentPressedKeys()) {
+                    if (PseudoKeys.hasModifierKey(m, modKey)) {
+                        _observer.keyReleased(when, m);
+                        _pressedKeys.remove(m);
+                        m = applyModifierKeys(getBaseKey(m));
+                        _pressedKeys.add(m);
+                        _observer.keyPressed(when, m, 1);
+                    }
+                }
             }
         }
 
@@ -343,6 +393,88 @@ public class PseudoKeys
             }
         }
 
+        /**
+         * Adds a key to the list of keys which care about modifiers.
+         */
+        public void addModifierUser (int key)
+        {
+            if (!_modifierUsers.contains(key)) {
+                _modifierUsers.add(key);
+            }
+        }
+
+        /**
+         * Adds a modifier key to the map.
+         */
+        public void addModifierKey (int key, int modKey)
+        {
+            _modifierMap.put(key, modKey);
+        }
+
+        /**
+         * Clears any existing modifier users.
+         */
+        public void clearModifierUsers ()
+        {
+            clearHeldKeys();
+            _modifierUsers.clear();
+        }
+
+        /**
+         * Clears any existing modifier keys.
+         */
+        public void clearModifierKeys ()
+        {
+            clearHeldKeys();
+            _modifierMap.clear();
+        }
+
+        /**
+         * Clears any held keys.
+         */
+        protected void clearHeldKeys ()
+        {
+            _pressedModifiers = 0;
+            _pressedKeys.clear();
+        }
+
+        /**
+         * Returns the current set of pressed keys.
+         */
+        protected HashIntSet currentPressedKeys ()
+        {
+            return new HashIntSet(_pressedKeys);
+        }
+
+        /**
+         * Returns any associated modifier key with this key.
+         */
+        protected int getModifierKey (int key)
+        {
+            Integer retVal = _modifierMap.get(key);
+            return (retVal == null) ? 0 : retVal;
+        }
+
+        /**
+         * Adds the modifier key flags into the current key.
+         */
+        protected int applyModifierKeys (int key)
+        {
+            return _pressedModifiers | key;
+        }
+
+        /**
+         * Holds/releases a modifier key.
+         */
+        protected void holdModifierKey (int modKey, boolean held)
+        {
+            if (held) {
+                _pressedModifiers |= modKey;
+            } else {
+                _pressedModifiers &= ~modKey;
+            }
+        }
+
         /** The observer that we notify, if any. */
         protected Observer _observer;
 
@@ -354,6 +486,18 @@ public class PseudoKeys
 
         /** Stores the "keys" pressed for pov y. */
         protected Map<Integer, Integer> _povy = Maps.newHashMap();
+
+        /** Stores any pressed keys. */
+        protected HashIntSet _pressedKeys = new HashIntSet();
+
+        /** Stores any pressed modifiers. */
+        protected int _pressedModifiers;
+
+        /** Stores mappings of modifiers to keys. */
+        protected Map<Integer, Integer> _modifierMap = Maps.newHashMap();
+
+        /** Stores a list of keys that actually care about modifier keys. */
+        protected HashIntSet _modifierUsers = new HashIntSet();
 
         /** If we consume all events. */
         protected boolean _consume;
@@ -401,6 +545,22 @@ public class PseudoKeys
     /** A special "key" mapping for the 5th mouse button. */
     public static final int KEY_BUTTON5 = Keyboard.KEYBOARD_SIZE + 13;
 
+    /** A special "key" mapping for modifier key 1. */
+    public static final int KEY_MODIFIER1 = 0x10000000;
+
+    /** A special "key" mapping for modifier key 2. */
+    public static final int KEY_MODIFIER2 = 0x20000000;
+
+    /** A special "key" mapping for modifier key 3. */
+    public static final int KEY_MODIFIER3 = 0x40000000;
+
+    /** A special "key" mapping for modifier key 4. */
+    public static final int KEY_MODIFIER4 = 0x80000000;
+
+    /** An array for modifiers. */
+    public static final int[] KEY_MODIFIERS = {
+        KEY_MODIFIER1, KEY_MODIFIER2, KEY_MODIFIER3, KEY_MODIFIER4 };
+
     /**
      * Returns the "key" mapping for the identified mouse button.
      */
@@ -421,7 +581,7 @@ public class PseudoKeys
      */
     public static int getControllerKey (int type, int controllerIndex, int controlIndex)
     {
-        return (controllerIndex << 24) | (controlIndex << 16) | type;
+        return 0xFFFFFFF & ((controllerIndex << 24) | (controlIndex << 16) | type);
     }
 
     /**
@@ -459,36 +619,60 @@ public class PseudoKeys
     public static String getDesc (MessageBundle msgs, int key)
     {
         int idx;
+        String result;
+
+        List<String> modifiers = Lists.newArrayList();
+        for (int ii = 0; ii < KEY_MODIFIERS.length; ii++) {
+            if (hasModifierKey(key, KEY_MODIFIERS[ii])) {
+                modifiers.add("k.modifier_" + (ii + 1));
+            }
+        }
+
+        key = getBaseKey(key);
         switch (getType(key)) {
             case KEY_CONTROLLER_BUTTON:
                 idx = getControllerIndex(key);
-                return msgs.get("m.controller_button", String.valueOf(idx),
+                result = MessageBundle.compose("m.controller_button", String.valueOf(idx),
                     Controllers.getController(idx).getButtonName(getControlIndex(key)));
+                break;
             case KEY_CONTROLLER_AXIS_POSITIVE:
                 idx = getControllerIndex(key);
-                return msgs.get("m.controller_axis_positive", String.valueOf(idx),
+                result = MessageBundle.compose("m.controller_axis_positive", String.valueOf(idx),
                     Controllers.getController(idx).getAxisName(getControlIndex(key)));
+                break;
             case KEY_CONTROLLER_AXIS_NEGATIVE:
                 idx = getControllerIndex(key);
-                return msgs.get("m.controller_axis_negative", String.valueOf(idx),
+                result = MessageBundle.compose("m.controller_axis_negative", String.valueOf(idx),
                     Controllers.getController(idx).getAxisName(getControlIndex(key)));
+                break;
             case KEY_CONTROLLER_POV_X_POSITIVE:
-                return msgs.get("m.controller_pov_x_positive",
+                result = MessageBundle.compose("m.controller_pov_x_positive",
                     String.valueOf(getControllerIndex(key)));
+                break;
             case KEY_CONTROLLER_POV_X_NEGATIVE:
-                return msgs.get("m.controller_pov_x_negative",
+                result = MessageBundle.compose("m.controller_pov_x_negative",
                     String.valueOf(getControllerIndex(key)));
+                break;
             case KEY_CONTROLLER_POV_Y_POSITIVE:
-                return msgs.get("m.controller_pov_y_positive",
+                result = MessageBundle.compose("m.controller_pov_y_positive",
                     String.valueOf(getControllerIndex(key)));
+                break;
             case KEY_CONTROLLER_POV_Y_NEGATIVE:
-                return msgs.get("m.controller_pov_y_negative",
+                result = MessageBundle.compose("m.controller_pov_y_negative",
                     String.valueOf(getControllerIndex(key)));
+                break;
             default:
                 String name = getName(key);
                 String mkey = "k." + StringUtil.toUSLowerCase(name);
-                return msgs.exists(mkey) ? msgs.get(mkey) : name;
+                result = msgs.exists(mkey) ? mkey : MessageBundle.taint(name);
         }
+
+        if (!modifiers.isEmpty()) {
+            modifiers.add(result);
+            result = MessageBundle.compose(
+                "m.control-list." + modifiers.size(), modifiers.toArray());
+        }
+        return msgs.xlate(result);
     }
 
     /**
@@ -537,7 +721,7 @@ public class PseudoKeys
      */
     public static int getControllerIndex (int key)
     {
-        return key >>> 24;
+        return (key & (0xFFFFFFF)) >>> 24;
     }
 
     /**
@@ -601,5 +785,29 @@ public class PseudoKeys
     public static boolean isControllerKey (int key)
     {
         return (isAnalogKey(key) || (getType(key) == KEY_CONTROLLER_BUTTON));
+    }
+
+    /**
+     * Returns the base key for a given int.
+     */
+    public static int getBaseKey (int key)
+    {
+        return key & 0xFFFFFFF;
+    }
+
+    /**
+     * Returns whether the given modifier is held in the given key.
+     */
+    public static boolean hasModifierKey (int key, int modifier)
+    {
+        return (key & modifier) != 0;
+    }
+
+    /**
+     * Returns whether the given key has ANY modifiers on it.
+     */
+    public static boolean hasAnyModifierKeys (int key)
+    {
+        return (key & 0xF0000000) != 0;
     }
 }

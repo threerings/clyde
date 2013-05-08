@@ -463,6 +463,8 @@ public class TudeySceneController extends SceneController
      */
     protected void bindKeys ()
     {
+        _unifier.clearModifierKeys();
+        _unifier.clearModifierUsers();
         if (_controlledId > 0) {
             bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, _relativeMovePresses, 0);
             bindKeyMovement(Keyboard.KEY_W, _absoluteMoveAmounts, _absoluteMovePresses, 0);
@@ -640,6 +642,10 @@ public class TudeySceneController extends SceneController
             _keyObservers.put(key, list = ObserverList.newFastUnsafe());
         }
         list.add(observer);
+
+        if (PseudoKeys.hasAnyModifierKeys(key)) {
+            _unifier.addModifierUser(PseudoKeys.getBaseKey(key));
+        }
     }
 
     /**
