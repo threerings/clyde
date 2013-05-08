@@ -549,16 +549,17 @@ public class PseudoKeys
     public static final int KEY_MODIFIER1 = 1 << 28;
 
     /** A special "key" mapping for modifier key 2. */
-    public static final int KEY_MODIFIER2 = 2 << 28;
+    public static final int KEY_MODIFIER2 = 1 << 29;
 
     /** A special "key" mapping for modifier key 3. */
-    public static final int KEY_MODIFIER3 = 4 << 28;
+    public static final int KEY_MODIFIER3 = 1 << 30;
 
     /** A special "key" mapping for modifier key 4. */
-    public static final int KEY_MODIFIER4 = 8 << 28;
+    public static final int KEY_MODIFIER4 = 1 << 31;
 
     /** A mask for the modifier keys. */
-    public static final int KEY_MODIFIER_MASK = 0xF << 28;
+    public static final int KEY_MODIFIER_MASK =
+        KEY_MODIFIER1 | KEY_MODIFIER2 | KEY_MODIFIER3 | KEY_MODIFIER4;
 
     /** An array for modifiers. */
     public static final int[] KEY_MODIFIERS = {
@@ -724,7 +725,7 @@ public class PseudoKeys
      */
     public static int getControllerIndex (int key)
     {
-        return (getBaseKey(key)) >>> 24;
+        return getBaseKey(key) >>> 24;
     }
 
     /**
