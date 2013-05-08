@@ -58,7 +58,11 @@ public class TagConfig extends DeepObject
             return tags;
         }
         String[] concat = new String[getLength()];
-        buildConcat(concat, 0);
+        int idx = 0;
+        for (TagConfig tc = this; tc != null; tc = tc.derived) {
+            System.arraycopy(tc.tags, 0, concat, idx, tc.tags.length);
+            idx += tc.tags.length;
+        }
         return concat;
     }
 
@@ -73,17 +77,4 @@ public class TagConfig extends DeepObject
         }
         return length;
     }
-    /**
-     * Concatenates the tags onto the supplied array starting at the specified index.
-     */
-    protected void buildConcat (String[] concat, int idx)
-    {
-        for (int ii = 0; ii < tags.length; ii++) {
-            concat[ii + idx] = tags[ii];
-        }
-        if (derived != null) {
-            derived.buildConcat(concat, idx + tags.length);
-        }
-    }
 }
-
