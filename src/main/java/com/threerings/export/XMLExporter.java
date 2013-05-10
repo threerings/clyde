@@ -211,19 +211,16 @@ public class XMLExporter extends Exporter
         }
         Element previous = _elements.get(value);
         if (previous != null) {
-            /*
-            String id = previous.getAttribute("id");
-            if (id.length() == 0) {
-                previous.setAttribute("id", id = Integer.toString(++_lastObjectId));
-            }
-            element.setAttribute("ref", id);
-            */
             Integer depth = _depths.get(value);
             if (depth != null) {
                 previous.setAttribute("depth", depth.toString());
                 element.setAttribute("rdepth", depth.toString());
             } else {
-                log.warning("Failed to find outer depth", "value", value);
+                String id = previous.getAttribute("id");
+                if (id.length() == 0) {
+                    previous.setAttribute("id", id = Integer.toString(++_lastObjectId));
+                }
+                element.setAttribute("ref", id);
             }
 
         } else {
@@ -376,6 +373,9 @@ public class XMLExporter extends Exporter
     /** Maps exported objects to their corresponding elements. */
     protected IdentityHashMap<Object, Element> _elements = new IdentityHashMap<Object, Element>();
     protected IdentityHashMap<Object, Integer> _depths = new IdentityHashMap<Object, Integer>();
+
+    /** The last object id assigned. */
+    protected int _lastObjectId;
 
     /** The current depth of the element being written. */
     protected int _depth;
