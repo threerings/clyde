@@ -544,6 +544,17 @@ public class PseudoKeys
 
     /** A special "key" mapping for the 5th mouse button. */
     public static final int KEY_BUTTON5 = Keyboard.KEYBOARD_SIZE + 13;
+    public static final int KEY_BUTTON6 = Keyboard.KEYBOARD_SIZE + 14;
+    public static final int KEY_BUTTON7 = Keyboard.KEYBOARD_SIZE + 15;
+    public static final int KEY_BUTTON8 = Keyboard.KEYBOARD_SIZE + 16;
+    public static final int KEY_BUTTON9 = Keyboard.KEYBOARD_SIZE + 17;
+    public static final int KEY_BUTTON10 = Keyboard.KEYBOARD_SIZE + 18;
+    public static final int KEY_BUTTON11 = Keyboard.KEYBOARD_SIZE + 19;
+    public static final int KEY_BUTTON12 = Keyboard.KEYBOARD_SIZE + 20;
+    public static final int KEY_BUTTON13 = Keyboard.KEYBOARD_SIZE + 21;
+    public static final int KEY_BUTTON14 = Keyboard.KEYBOARD_SIZE + 22;
+    public static final int KEY_BUTTON15 = Keyboard.KEYBOARD_SIZE + 23;
+    public static final int KEY_BUTTON16 = Keyboard.KEYBOARD_SIZE + 24;
 
     /** A special "key" mapping for modifier key 1. */
     public static final int KEY_MODIFIER1 = 1 << 28;
@@ -576,6 +587,17 @@ public class PseudoKeys
             case MouseEvent.BUTTON3: return KEY_BUTTON3;
             case MouseEvent.BUTTON4: return KEY_BUTTON4;
             case MouseEvent.BUTTON5: return KEY_BUTTON5;
+            case MouseEvent.BUTTON6: return KEY_BUTTON6;
+            case MouseEvent.BUTTON7: return KEY_BUTTON7;
+            case MouseEvent.BUTTON8: return KEY_BUTTON8;
+            case MouseEvent.BUTTON9: return KEY_BUTTON9;
+            case MouseEvent.BUTTON10: return KEY_BUTTON10;
+            case MouseEvent.BUTTON11: return KEY_BUTTON11;
+            case MouseEvent.BUTTON12: return KEY_BUTTON12;
+            case MouseEvent.BUTTON13: return KEY_BUTTON13;
+            case MouseEvent.BUTTON14: return KEY_BUTTON14;
+            case MouseEvent.BUTTON15: return KEY_BUTTON15;
+            case MouseEvent.BUTTON16: return KEY_BUTTON15;
             default: return Keyboard.KEY_NONE;
         }
     }

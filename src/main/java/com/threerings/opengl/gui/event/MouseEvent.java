@@ -70,6 +70,19 @@ public class MouseEvent extends InputEvent
 
     /** A constant representing the 5th mouse button. */
     public static final int BUTTON5 = 4;
+    public static final int BUTTON6 = 5;
+    public static final int BUTTON7 = 6;
+    public static final int BUTTON8 = 7;
+    public static final int BUTTON9 = 8;
+    public static final int BUTTON10 = 9;
+    public static final int BUTTON11 = 10;
+    public static final int BUTTON12 = 11;
+    public static final int BUTTON13 = 12;
+    public static final int BUTTON14 = 13;
+    public static final int BUTTON15 = 14;
+    public static final int BUTTON16 = 15;
+
+    public static final int MAX_BUTTONS = 16;
 
     public MouseEvent (Object source, long when, int modifiers, int type,
                        int mx, int my)

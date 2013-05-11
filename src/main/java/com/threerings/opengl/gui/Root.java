@@ -894,8 +894,10 @@ public abstract class Root extends SimpleOverlay
         // note press/release events
         int type = event.getType();
         if (type == MouseEvent.MOUSE_PRESSED) {
+            log.info(" PRESS : " + event.getButton());
             _buttons[event.getButton()].wasPressed(target, event);
         } else if (type == MouseEvent.MOUSE_RELEASED) {
+            log.info("release: " + event.getButton());
             _buttons[event.getButton()].wasReleased(target, event);
         }
         return dispatched;
@@ -1249,9 +1251,12 @@ public abstract class Root extends SimpleOverlay
     protected Cursor _cursor;
 
     /** Mouse button information. */
-    protected ButtonRecord[] _buttons = new ButtonRecord[] {
-        new ButtonRecord(), new ButtonRecord(), new ButtonRecord(),
-        new ButtonRecord(), new ButtonRecord() };
+    protected ButtonRecord[] _buttons = new ButtonRecord[MouseEvent.MAX_BUTTONS];
+    { // initializer
+        for (int ii = 0; ii < _buttons.length; ii++) {
+            _buttons[ii] = new ButtonRecord();
+        }
+    }
 
     /** Keys currently pressed, mapped by key code. */
     protected HashIntMap<KeyRecord> _pressedKeys = new HashIntMap<KeyRecord>();
