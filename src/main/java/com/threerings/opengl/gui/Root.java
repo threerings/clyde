@@ -894,10 +894,8 @@ public abstract class Root extends SimpleOverlay
         // note press/release events
         int type = event.getType();
         if (type == MouseEvent.MOUSE_PRESSED) {
-            log.info(" PRESS : " + event.getButton());
             _buttons[event.getButton()].wasPressed(target, event);
         } else if (type == MouseEvent.MOUSE_RELEASED) {
-            log.info("release: " + event.getButton());
             _buttons[event.getButton()].wasReleased(target, event);
         }
         return dispatched;
