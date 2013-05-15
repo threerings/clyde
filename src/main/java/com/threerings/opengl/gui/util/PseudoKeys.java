@@ -31,6 +31,8 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.HashIntSet;
+
+import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
 import org.lwjgl.input.Keyboard;
@@ -49,6 +51,8 @@ import com.threerings.opengl.gui.event.KeyListener;
 import com.threerings.opengl.gui.event.MouseAdapter;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseWheelListener;
+
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * Provides a unified system for handling keys, mouse buttons, and other key-like features.  The
@@ -617,6 +621,15 @@ public class PseudoKeys
     public static boolean isValid (int key)
     {
         int controllerIndex;
+
+        if (!Controllers.isCreated()) {
+            try {
+                Controllers.create();
+            } catch (LWJGLException e) {
+                log.warning("Failed to create controllers.", e);
+            }
+        }
+
         switch (getType(key)) {
             case KEY_CONTROLLER_BUTTON:
                 controllerIndex = getControllerIndex(key);
@@ -646,49 +659,71 @@ public class PseudoKeys
     {
         int idx;
         String result;
+        int baseKey = getBaseKey(key);
 
         List<String> modifiers = Lists.newArrayList();
+
+        OUTER:
         for (int ii = 0; ii < KEY_MODIFIERS.length; ii++) {
             if (hasModifierKey(key, KEY_MODIFIERS[ii])) {
-                modifiers.add("k.modifier_" + (ii + 1));
+                List<Integer> keys = _modifierToKeyMap.get(KEY_MODIFIERS[ii]);
+                if (keys == null || keys.isEmpty()) {
+                    // Modified key with no modifier association. Return default.
+                    modifiers.add("k.modifier_" + (ii + 1));
+                    continue;
+                }
+                boolean isController = isControllerKey(baseKey);
+                boolean isMouse = isControllerKey(baseKey);
+                boolean isKey = isKeyboardKey(baseKey);
+                for (int k : keys) {
+                    if ((isController == isControllerKey(k)) ||
+                            (isMouse == isMouseKey(k)) ||
+                            (isKey == isKeyboardKey(k))) {
+                        // If we have a modifier that matches the button type, use it.
+                        modifiers.add(MessageBundle.taint(getDesc(msgs, k)));
+                        continue OUTER;
+                    }
+                }
+                // Otherwise just use the first one.
+                modifiers.add(MessageBundle.taint(getDesc(msgs, keys.iterator().next())));
             }
+
         }
 
-        key = getBaseKey(key);
-        switch (getType(key)) {
+        switch (getType(baseKey)) {
             case KEY_CONTROLLER_BUTTON:
-                idx = getControllerIndex(key);
-                result = MessageBundle.compose("m.controller_button", String.valueOf(idx),
-                    Controllers.getController(idx).getButtonName(getControlIndex(key)));
+                idx = getControllerIndex(baseKey);
+                result = MessageBundle.tcompose("m.controller_button", String.valueOf(idx),
+                    Controllers.getController(idx).getButtonName(getControlIndex(baseKey)));
                 break;
             case KEY_CONTROLLER_AXIS_POSITIVE:
-                idx = getControllerIndex(key);
-                result = MessageBundle.compose("m.controller_axis_positive", String.valueOf(idx),
-                    Controllers.getController(idx).getAxisName(getControlIndex(key)));
+                idx = getControllerIndex(baseKey);
+                result = MessageBundle.tcompose("m.controller_axis_positive", String.valueOf(idx),
+                    Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
                 break;
             case KEY_CONTROLLER_AXIS_NEGATIVE:
-                idx = getControllerIndex(key);
-                result = MessageBundle.compose("m.controller_axis_negative", String.valueOf(idx),
-                    Controllers.getController(idx).getAxisName(getControlIndex(key)));
+                idx = getControllerIndex(baseKey);
+                result = MessageBundle.tcompose("m.controller_axis_negative", String.valueOf(idx),
+                    Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
                 break;
             case KEY_CONTROLLER_POV_X_POSITIVE:
-                result = MessageBundle.compose("m.controller_pov_x_positive",
-                    String.valueOf(getControllerIndex(key)));
+                result = MessageBundle.tcompose("m.controller_pov_x_positive",
+                    String.valueOf(getControllerIndex(baseKey)));
                 break;
             case KEY_CONTROLLER_POV_X_NEGATIVE:
-                result = MessageBundle.compose("m.controller_pov_x_negative",
-                    String.valueOf(getControllerIndex(key)));
+                result = MessageBundle.tcompose("m.controller_pov_x_negative",
+                    String.valueOf(getControllerIndex(baseKey)));
                 break;
             case KEY_CONTROLLER_POV_Y_POSITIVE:
-                result = MessageBundle.compose("m.controller_pov_y_positive",
-                    String.valueOf(getControllerIndex(key)));
+                result = MessageBundle.tcompose("m.controller_pov_y_positive",
+                    String.valueOf(getControllerIndex(baseKey)));
                 break;
             case KEY_CONTROLLER_POV_Y_NEGATIVE:
-                result = MessageBundle.compose("m.controller_pov_y_negative",
-                    String.valueOf(getControllerIndex(key)));
+                result = MessageBundle.tcompose("m.controller_pov_y_negative",
+                    String.valueOf(getControllerIndex(baseKey)));
                 break;
             default:
-                String name = getName(key);
+                String name = getName(baseKey);
                 String mkey = "k." + StringUtil.toUSLowerCase(name);
                 result = msgs.exists(mkey) ? mkey : MessageBundle.taint(name);
         }
@@ -837,4 +872,22 @@ public class PseudoKeys
         return (key & KEY_MODIFIER_MASK) != 0;
     }
 
+    public static void addModifierKeyToMap (int key, int modKey)
+    {
+        List<Integer> keys = _modifierToKeyMap.get(modKey);
+        if (keys == null) {
+            keys = Lists.newArrayList();
+        }
+        if (!keys.contains(key)) {
+            keys.add(key);
+        }
+        _modifierToKeyMap.put(modKey, keys);
+    }
+
+    public static void clearModifierKeyMap ()
+    {
+        _modifierToKeyMap.clear();
+    }
+
+    protected static Map<Integer, List<Integer>> _modifierToKeyMap = Maps.newHashMap();
 }
