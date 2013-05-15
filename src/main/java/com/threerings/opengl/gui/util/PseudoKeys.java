@@ -458,7 +458,7 @@ public class PseudoKeys
         protected int getModifierKey (int key)
         {
             Integer retVal = _modifierMap.get(key);
-            return (retVal == null) ? 0 : retVal;
+            return (retVal == null) ? Keyboard.KEY_NONE : retVal;
         }
 
         /**
@@ -676,11 +676,11 @@ public class PseudoKeys
                 }
                 boolean isController = isControllerKey(baseKey);
                 boolean isMouse = isMouseKey(baseKey);
-                boolean isKey = isKeyboardKey(baseKey);
+                boolean isKeyboard = isKeyboardKey(baseKey);
                 for (int k : keys) {
-                    if ((isController == isControllerKey(k)) ||
-                            (isMouse == isMouseKey(k)) ||
-                            (isKey == isKeyboardKey(k))) {
+                    if ((isController && isControllerKey(k)) ||
+                            (isMouse && isMouseKey(k)) ||
+                            (isKeyboard && isKeyboardKey(k))) {
                         // If we have a modifier that matches the button type, use it.
                         modifiers.add(MessageBundle.taint(getDesc(msgs, k)));
                         continue OUTER;
@@ -839,6 +839,7 @@ public class PseudoKeys
      */
     public static boolean isKeyboardKey (int key)
     {
+        key = getBaseKey(key);
         return (key < Keyboard.KEYBOARD_SIZE && key != Keyboard.KEY_NONE);
     }
 
