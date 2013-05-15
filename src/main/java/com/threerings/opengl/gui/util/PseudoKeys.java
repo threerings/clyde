@@ -28,7 +28,9 @@ package com.threerings.opengl.gui.util;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.ListMultimap;
 
 import com.samskivert.util.HashIntSet;
 
@@ -666,14 +668,14 @@ public class PseudoKeys
         OUTER:
         for (int ii = 0; ii < KEY_MODIFIERS.length; ii++) {
             if (hasModifierKey(key, KEY_MODIFIERS[ii])) {
-                List<Integer> keys = _modifierToKeyMap.get(KEY_MODIFIERS[ii]);
-                if (keys == null || keys.isEmpty()) {
+                List<Integer> keys = _modifierToKeys.get(KEY_MODIFIERS[ii]);
+                if (keys.isEmpty()) {
                     // Modified key with no modifier association. Return default.
                     modifiers.add("k.modifier_" + (ii + 1));
                     continue;
                 }
                 boolean isController = isControllerKey(baseKey);
-                boolean isMouse = isControllerKey(baseKey);
+                boolean isMouse = isMouseKey(baseKey);
                 boolean isKey = isKeyboardKey(baseKey);
                 for (int k : keys) {
                     if ((isController == isControllerKey(k)) ||
@@ -872,22 +874,24 @@ public class PseudoKeys
         return (key & KEY_MODIFIER_MASK) != 0;
     }
 
-    public static void addModifierKeyToMap (int key, int modKey)
+    /**
+     * Add a mapping for the specified key as one of the modifiers.
+     */
+    public static void addModifierKey (int key, int modKey)
     {
-        List<Integer> keys = _modifierToKeyMap.get(modKey);
-        if (keys == null) {
-            keys = Lists.newArrayList();
+        if (!_modifierToKeys.containsEntry(modKey, key)) {
+            _modifierToKeys.put(modKey, key);
         }
-        if (!keys.contains(key)) {
-            keys.add(key);
-        }
-        _modifierToKeyMap.put(modKey, keys);
     }
 
-    public static void clearModifierKeyMap ()
+    /**
+     * Clear all modifier keys.
+     */
+    public static void clearModifierKeys ()
     {
-        _modifierToKeyMap.clear();
+        _modifierToKeys.clear();
     }
 
-    protected static Map<Integer, List<Integer>> _modifierToKeyMap = Maps.newHashMap();
+    /** Maps the modifier key constant to the key value. */
+    protected static ListMultimap<Integer, Integer> _modifierToKeys = ArrayListMultimap.create();
 }
