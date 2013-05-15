@@ -879,9 +879,7 @@ public class PseudoKeys
      */
     public static void addModifierKey (int key, int modKey)
     {
-        if (!_modifierToKeys.containsEntry(modKey, key)) {
-            _modifierToKeys.put(modKey, key);
-        }
+        _modifierToKeys.put(modKey, key);
     }
 
     /**
