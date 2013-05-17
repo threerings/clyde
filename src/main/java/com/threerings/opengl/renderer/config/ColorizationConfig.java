@@ -54,7 +54,7 @@ public abstract class ColorizationConfig extends DeepObject
     /**
      * Creates a colorization config
      */
-    public static ColorizationConfig createConfig (
+    public static ColorizationConfig.CustomOffsets createConfig (
             int clazz, float hue, float saturation, float value)
     {
         ColorizationConfig.CustomOffsets config = new ColorizationConfig.CustomOffsets();
@@ -68,7 +68,7 @@ public abstract class ColorizationConfig extends DeepObject
     /**
      * Creates a normal colorization config.
      */
-    public static ColorizationConfig createConfig (int colorization)
+    public static ColorizationConfig.Normal createConfig (int colorization)
     {
         ColorizationConfig.Normal config = new ColorizationConfig.Normal();
         config.colorization = colorization;
