@@ -66,6 +66,16 @@ public abstract class ColorizationConfig extends DeepObject
     }
 
     /**
+     * Creates a normal colorization config.
+     */
+    public static ColorizationConfig createConfig (int colorization)
+    {
+        ColorizationConfig.Normal config = new ColorizationConfig.Normal();
+        config.colorization = colorization;
+        return config;
+    }
+
+    /**
      * A reference to a pository colorization.
      */
     public static class Normal extends ColorizationConfig
