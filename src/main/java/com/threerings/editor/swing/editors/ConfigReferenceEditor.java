@@ -27,7 +27,6 @@ package com.threerings.editor.swing.editors;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -138,15 +137,12 @@ public class ConfigReferenceEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
-    public String getPointPath (Point pt)
+    public String getComponentPath (Component comp, boolean mouse)
     {
-        Component comp = _arguments.getComponentAt(
-            SwingUtilities.convertPoint(this, pt, _arguments));
-        String arg = (comp instanceof PropertyEditor) ?
-            ((PropertyEditor)comp).getProperty().getName() : null;
-        return (arg == null) ? "" :
-            ("[\"" + arg.replace("\"", "\\\"") + "\"]" +
-             ((PropertyEditor)comp).getPointPath(SwingUtilities.convertPoint(this, pt, comp)));
+        PropertyEditor editor = getNextChildComponent(PropertyEditor.class, comp);
+        return editor == null ? "" :
+            ("[\"" + editor.getProperty().getName().replace("\"", "\\\"") + "\"]" +
+             editor.getComponentPath(comp, mouse));
     }
 
     @Override // documentation inherited

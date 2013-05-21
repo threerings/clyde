@@ -491,53 +491,36 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     @Override // documentation inherited
-    public String getPointPath (Point pt)
+    public String getMousePath ()
     {
+        Point treePt = SwingUtilities.convertPoint(this, getMousePosition(), _tree);
         TreePath path = null;
-        Point treePt = SwingUtilities.convertPoint(this, pt, _tree);
         if ((new Rectangle(_tree.getSize())).contains(treePt)) {
             path = _tree.getPathForLocation(treePt.x, treePt.y);
         } else {
-            treePt = null;
-            path = _tree.getSelectionPath();
+            super.getMousePath();
         }
+        return path == null ? "" : convertTreePath(path).toString();
+    }
+
+    @Override // documentation inherited
+    public String getComponentPath (Component comp, boolean mouse)
+    {
+        TreePath path = _tree.getSelectionPath();
         if (path == null) {
             return "";
         }
 
-        StringBuilder buf = new StringBuilder();
-        for (int ii = 1, nn = path.getPathCount(); ii < nn; ii++) {
-            NodeObject obj = (NodeObject)((DefaultMutableTreeNode)
-                path.getPathComponent(ii)).getUserObject();
-            if (obj.comp instanceof Integer) {
-                buf.append('[').append(obj.comp).append(']');
-            } else if (obj.comp instanceof String) {
-                buf.append("[\"").append(((String)obj.comp).replace("\"", "\\\"")).append("\"]");
-            } else { // obj.comp == null
-                buf.append('.').append(obj.property.getName());
-            }
-        }
+        StringBuilder buf = convertTreePath(path);
 
-        if (treePt == null) {
-            Point orig = new Point(pt);
-            for (Container cont = _panel; cont != null; ) {
-                pt = SwingUtilities.convertPoint(this, orig, cont);
-                Component comp = cont.getComponentAt(pt);
-                if (comp == cont || !(comp instanceof Container)) {
-                    break;
-                } else if (comp instanceof BasePropertyEditor) {
-                    BasePropertyEditor editor = (BasePropertyEditor)comp;
-                    String subElement = editor.getPointPath(
-                            SwingUtilities.convertPoint(this, orig, comp));
-                    if (!subElement.isEmpty()) {
-                        if (!subElement.startsWith(".")) {
-                            buf.append('.');
-                        }
-                        buf.append(subElement);
-                    }
-                    break;
+        BasePropertyEditor editor = getNextChildComponent(BasePropertyEditor.class, comp);
+        if (editor != null) {
+            String subElement = editor.getComponentPath(comp, mouse);
+            if (!subElement.isEmpty()) {
+                if (!subElement.startsWith(".")) {
+                    buf.append('.');
                 }
-                cont = (Container)comp;
+                buf.append(subElement);
             }
         }
 
@@ -937,6 +920,26 @@ public class TreeEditorPanel extends BaseEditorPanel
             node.setUserObject(new NodeObject(label, value, property, comp));
             updatePropertyNodes(node, value);
         }
+    }
+
+    /**
+     * Convert a TreePath to a StringBuilder reprensentation.
+     */
+    protected StringBuilder convertTreePath (TreePath path)
+    {
+        StringBuilder buf = new StringBuilder();
+        for (int ii = 1, nn = path.getPathCount(); ii < nn; ii++) {
+            NodeObject obj = (NodeObject)((DefaultMutableTreeNode)
+                path.getPathComponent(ii)).getUserObject();
+            if (obj.comp instanceof Integer) {
+                buf.append('[').append(obj.comp).append(']');
+            } else if (obj.comp instanceof String) {
+                buf.append("[\"").append(((String)obj.comp).replace("\"", "\\\"")).append("\"]");
+            } else { // obj.comp == null
+                buf.append('.').append(obj.property.getName());
+            }
+        }
+        return buf;
     }
 
     /**

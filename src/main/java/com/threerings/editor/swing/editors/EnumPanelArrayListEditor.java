@@ -28,7 +28,7 @@ package com.threerings.editor.swing.editors;
 import java.util.Arrays;
 import java.util.List;
 
-import java.awt.Point;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -111,7 +111,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
         }
 
         @Override // documentation inherited
-        public String getPointPath (Point pt)
+        public String getComponentPath (Component comp, boolean mouse)
         {
             return "";
         }

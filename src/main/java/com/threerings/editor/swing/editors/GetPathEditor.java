@@ -26,7 +26,6 @@
 package com.threerings.editor.swing.editors;
 
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -63,10 +62,10 @@ public class GetPathEditor extends ObjectEditor
     }
 
     @Override // documentation inherited
-    public String getPointPath (Point pt)
+    public String getComponentPath (Component comp, boolean mouse)
     {
         if (_panel != null) {
-            return super.getPointPath(pt);
+            return super.getComponentPath(comp, mouse);
         }
         return "";
     }

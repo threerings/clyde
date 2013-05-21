@@ -25,9 +25,8 @@
 
 package com.threerings.editor.swing.editors;
 
-import java.awt.Point;
+import java.awt.Component;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -73,10 +72,9 @@ public class ObjectPanelArrayListEditor extends PanelArrayListEditor
         }
 
         @Override // documentation inherited
-        public String getPointPath (Point pt)
+        public String getComponentPath (Component comp, boolean mouse)
         {
-            return ((ObjectPanel)_content).getPointPath(
-                    SwingUtilities.convertPoint(this, pt, _content));
+            return ((ObjectPanel)_content).getComponentPath(comp, mouse);
         }
 
         @Override // documentation inherited

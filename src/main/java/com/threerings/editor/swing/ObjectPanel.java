@@ -25,7 +25,7 @@
 
 package com.threerings.editor.swing;
 
-import java.awt.Point;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -206,9 +206,9 @@ public class ObjectPanel extends BasePropertyEditor
     }
 
     @Override // documentation inherited
-    public String getPointPath (Point pt)
+    public String getComponentPath (Component comp, boolean mouse)
     {
-        return _panel.getPointPath(SwingUtilities.convertPoint(this, pt, _panel));
+        return _panel.getComponentPath(comp, mouse);
     }
 
     /**

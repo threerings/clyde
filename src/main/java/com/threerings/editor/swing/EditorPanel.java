@@ -324,22 +324,11 @@ public class EditorPanel extends BaseEditorPanel
     }
 
     @Override // documentation inherited
-    public String getPointPath (Point pt)
+    public String getComponentPath (Component comp, boolean mouse)
     {
-        Point orig = new Point(pt);
-        for (Container cont = this; cont != null; ) {
-            Component comp = cont.getComponentAt(pt);
-            if (comp == cont || !(comp instanceof Container)) {
-                return "";
-            } else if (comp instanceof PropertyEditor) {
-                PropertyEditor editor = (PropertyEditor)comp;
-                return "." + editor.getProperty().getName() +
-                    editor.getPointPath(SwingUtilities.convertPoint(this, orig, editor));
-            }
-            pt = SwingUtilities.convertPoint(cont, pt, comp);
-            cont = (Container)comp;
-        }
-        return "";
+        PropertyEditor pe = getNextChildComponent(PropertyEditor.class, comp);
+        return pe == null ?
+            "" : "." + pe.getProperty().getName() + pe.getComponentPath(comp, mouse);
     }
 
     /**

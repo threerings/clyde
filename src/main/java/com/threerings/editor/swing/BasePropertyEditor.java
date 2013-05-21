@@ -26,6 +26,7 @@
 package com.threerings.editor.swing;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
@@ -144,15 +145,16 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     public String getMousePath ()
     {
         Point pt = getMousePosition();
-        return (pt == null) ? "" : getPointPath(pt);
+        Component c = pt == null ? null : findComponentAt(pt);
+        return c == null ? "" : getComponentPath(c, true);
     }
 
     /**
-     * Returns the path of the property under the point relative to this property.
+     * Returns the path of the property for the child component.
      *
-     * @param pt the location of the mouse cursor.
+     * @param comp the component we're getting the path to.
      */
-    public String getPointPath (Point pt)
+    public String getComponentPath (Component comp, boolean mouse)
     {
         return "";
     }
@@ -432,6 +434,23 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
                 BorderFactory.createLineBorder(Color.black, 2), title) :
             BorderFactory.createTitledBorder(title);
         setBorder(border);
+    }
+
+    /**
+     * Follows a component up the parent path to find the nearest parent of class clazz.
+     */
+    protected <T extends Component> T getNextChildComponent (Class<T> clazz, Component comp)
+    {
+        T nearest = null;
+        for (Component c = comp; c != this; c = c.getParent()) {
+            if (c == null) {
+                return null;
+            }
+            if (clazz.isInstance(c)) {
+                nearest = clazz.cast(c);
+            }
+        }
+        return nearest;
     }
 
     /** Provides access to common services. */

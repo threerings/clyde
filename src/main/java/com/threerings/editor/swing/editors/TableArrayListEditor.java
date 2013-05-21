@@ -26,6 +26,7 @@
 package com.threerings.editor.swing.editors;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -200,14 +201,17 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
-    public String getPointPath (Point pt)
+    public String getComponentPath (Component comp, boolean mouse)
     {
-        Point cpt = SwingUtilities.convertPoint(this, pt, _content);
-        if (_content.getComponentAt(cpt) == _opanel) {
-            return "[" + _table.getSelectedRow() + "]" +
-                _opanel.getPointPath(SwingUtilities.convertPoint(this, pt, _opanel));
+        if (_opanel != null && _opanel.isAncestorOf(comp)) {
+            return "[" + _table.getSelectedRow() + "]" + _opanel.getComponentPath(comp, mouse);
+        } else if (!mouse) {
+            return "";
         }
-        pt = SwingUtilities.convertPoint(this, pt, _table);
+        Point pt = _table.getMousePosition();
+        if (pt == null) {
+            return "";
+        }
         int row = _table.rowAtPoint(pt);
         int col = _table.columnAtPoint(pt);
         return ((row == -1 || col == -1) ? "" :
