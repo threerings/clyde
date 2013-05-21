@@ -199,7 +199,7 @@ public class ActorLogic extends Logic
      */
     public void bodyWillLeave (BodyObject body)
     {
-        destroy(_scenemgr.getNextTimestamp(), this);
+        destroy(_scenemgr.getNextTimestamp(), this, false);
     }
 
     /**
@@ -350,8 +350,11 @@ public class ActorLogic extends Logic
 
     /**
      * Destroys the actor.
+     *
+     * @param endScene If the scene is being destroyed (will prevent some shutdown handlers
+     * from running)
      */
-    public void destroy (int timestamp, Logic activator)
+    public void destroy (int timestamp, Logic activator, boolean endScene)
     {
         // make sure we're not already destroyed
         if (_destroyed) {
@@ -366,7 +369,7 @@ public class ActorLogic extends Logic
 
         // notify handlers
         for (HandlerLogic handler : _handlers) {
-            handler.shutdown(timestamp, activator);
+            handler.shutdown(timestamp, activator, endScene);
         }
 
         wasDestroyed();

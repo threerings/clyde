@@ -66,7 +66,7 @@ public class EntryLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void wasRemoved ()
+        protected void wasRemoved (boolean endScene)
         {
             _scenemgr.setDefaultLocalInterest(TudeySceneMetrics.getDefaultLocalInterest());
         }
@@ -100,10 +100,10 @@ public class EntryLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void wasRemoved ()
+        protected void wasRemoved (boolean endScene)
         {
             if (_actor != null) {
-                _actor.destroy(_scenemgr.getNextTimestamp(), this);
+                _actor.destroy(_scenemgr.getNextTimestamp(), this, endScene);
             }
         }
 
@@ -165,18 +165,21 @@ public class EntryLogic extends Logic
 
     /**
      * Notes that the entry has been removed from the scene.
+     *
+     * @param endScene Set to true if the scene is being destroyed (will prevent some shutdown
+     * handles from running)
      */
-    public void removed ()
+    public void removed (boolean endScene)
     {
         // notify the handlers
         int timestamp = _scenemgr.getNextTimestamp();
         for (HandlerLogic handler : _handlers) {
-            handler.shutdown(timestamp, this);
+            handler.shutdown(timestamp, this, endScene);
             handler.removed();
         }
 
         // give subclasses a chance to cleanup
-        wasRemoved();
+        wasRemoved(endScene);
     }
 
     @Override // documentation inherited
@@ -289,7 +292,7 @@ public class EntryLogic extends Logic
     /**
      * Override to perform custom cleanup.
      */
-    protected void wasRemoved ()
+    protected void wasRemoved (boolean endScene)
     {
         // nothing by default
     }

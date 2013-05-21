@@ -261,6 +261,10 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
+        /** If this is considered an end of scene destroy. */
+        @Editable
+        public boolean endScene = false;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {

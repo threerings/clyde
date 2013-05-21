@@ -76,9 +76,11 @@ public abstract class HandlerLogic extends Logic
     public static class Shutdown extends ActionHandlerLogic
     {
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
-            execute(timestamp, activator);
+            if (!endScene) {
+                execute(timestamp, activator);
+            }
         }
     }
 
@@ -96,10 +98,10 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             if (_handler != null) {
-                _handler.shutdown(timestamp, activator);
+                _handler.shutdown(timestamp, activator, endScene);
             }
         }
 
@@ -170,7 +172,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.removeTickParticipant(this);
         }
@@ -199,7 +201,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _interval.cancel();
             _interval = null;
@@ -247,9 +249,9 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
-            super.shutdown(timestamp, activator);
+            super.shutdown(timestamp, activator, endScene);
             if (_warnInterval != null) {
                 _warnInterval.cancel();
                 _warnInterval = null;
@@ -345,7 +347,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.removeTickParticipant(this);
             _added = false;
@@ -470,7 +472,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             if (_shape != null) {
                 _scenemgr.getSensorSpace().remove(_shape);
@@ -758,7 +760,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.removeActorObserver(this);
         }
@@ -841,7 +843,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp, Logic activator)
+        public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.getPlaceObject().removeListener(_placelist);
         }
@@ -988,8 +990,10 @@ public abstract class HandlerLogic extends Logic
 
     /**
      * Shuts down the handler.
+     *
+     * @param endScene Allows non essential handler shutdown operations to be skipped
      */
-    public void shutdown (int timestamp, Logic activator)
+    public void shutdown (int timestamp, Logic activator, boolean endScene)
     {
         // nothing by default
     }

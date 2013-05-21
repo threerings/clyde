@@ -1284,14 +1284,14 @@ public class TudeySceneManager extends SceneManager
         ActorLogic[] actors = _actors.values().toArray(new ActorLogic[_actors.size()]);
         int timestamp = getNextTimestamp();
         for (ActorLogic logic : actors) {
-            logic.destroy(timestamp, logic);
+            logic.destroy(timestamp, logic, true);
             logic.remove();
         }
         _actors.clear();
 
         // remove all scene entries
         for (EntryLogic logic : _entries.values()) {
-            logic.removed();
+            logic.removed(true);
         }
 
         _shutdownObservers.apply(_shutdownOp);
@@ -1409,7 +1409,7 @@ public class TudeySceneManager extends SceneManager
         EntryLogic logic = _entries.remove(key);
         if (logic != null) {
             removeMappings(logic);
-            logic.removed();
+            logic.removed(false);
         }
     }
 
