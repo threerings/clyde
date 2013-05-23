@@ -54,7 +54,7 @@ public abstract class EffectSpriteConfig extends DeepObject
      */
     public static class Default extends EffectSpriteConfig
     {
-        @Override // documentation inherited
+        @Override
         public EffectSprite.Implementation createImplementation (
             TudeyContext ctx, Scope scope, Effect effect)
         {
@@ -71,7 +71,7 @@ public abstract class EffectSpriteConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
 
-         @Override // documentation inherited
+         @Override
         public EffectSprite.Implementation createImplementation (
             TudeyContext ctx, Scope scope, Effect effect)
         {

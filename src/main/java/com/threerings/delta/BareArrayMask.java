@@ -44,14 +44,14 @@ public class BareArrayMask extends ArrayMask
         super(length);
     }
 
-    @Override // documentation inherited
+    @Override
     public void writeTo (ObjectOutputStream out)
         throws IOException
     {
         out.write(_mask);
     }
 
-    @Override // documentation inherited
+    @Override
     public void readFrom (ObjectInputStream in)
         throws IOException
     {

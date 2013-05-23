@@ -62,7 +62,7 @@ public abstract class BackgroundConfig extends DeepObject
         @Editable(mode="alpha")
         public Color4f color = new Color4f(Color4f.BLACK);
 
-        @Override // documentation inherited
+        @Override
         protected Background createBackground (GlContext ctx)
         {
             return new TintedBackground(color);
@@ -174,7 +174,7 @@ public abstract class BackgroundConfig extends DeepObject
         @Editable(nullable=true)
         public InsetsConfig frame;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (file != null) {
@@ -182,7 +182,7 @@ public abstract class BackgroundConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected Background createBackground (GlContext ctx)
         {
             return (file == null) ? new BlankBackground() :
@@ -209,7 +209,7 @@ public abstract class BackgroundConfig extends DeepObject
         @Editable
         public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
-        @Override // documentation inherited
+        @Override
         protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
         {
             return IconConfig.getImage(ctx, file, colorizations);
@@ -221,7 +221,7 @@ public abstract class BackgroundConfig extends DeepObject
      */
     public static class Blank extends BackgroundConfig
     {
-        @Override // documentation inherited
+        @Override
         protected Background createBackground (GlContext ctx)
         {
             return new BlankBackground();

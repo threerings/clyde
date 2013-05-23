@@ -65,13 +65,13 @@ public class RenderSchemeConfig extends ManagedConfig
      */
     public static class Normal extends Implementation
     {
-        @Override // documentation inherited
+        @Override
         public boolean isCompatibleWith (RenderSchemeConfig other)
         {
             return other == null || other.implementation instanceof Normal;
         }
 
-        @Override // documentation inherited
+        @Override
         public MaterialRewriter getMaterialRewriter ()
         {
             return null;
@@ -88,13 +88,13 @@ public class RenderSchemeConfig extends ManagedConfig
         @Editable(nullable=true)
         public MaterialRewriter materialRewriter;
 
-        @Override // documentation inherited
+        @Override
         public boolean isCompatibleWith (RenderSchemeConfig other)
         {
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public MaterialRewriter getMaterialRewriter ()
         {
             return materialRewriter;

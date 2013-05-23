@@ -44,7 +44,7 @@ public class ToolSceneRepository extends DummySceneRepository
         _sceneModel = model;
     }
 
-    @Override // documentation inherited
+    @Override
     public SceneModel loadSceneModel (int sceneId)
     {
         return _sceneModel;

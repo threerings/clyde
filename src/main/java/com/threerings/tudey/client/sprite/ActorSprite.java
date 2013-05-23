@@ -260,7 +260,7 @@ public class ActorSprite extends Sprite
             return actor.getOriginal().isStatic;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -299,25 +299,25 @@ public class ActorSprite extends Sprite
             _model.getLocalTransform().setScale(config.scale);
         }
 
-        @Override // documentation inherited
+        @Override
         public int getFloorFlags ()
         {
             return _config.floorFlags;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getFloorMask ()
         {
             return _config.floorMask;
         }
 
-        @Override // documentation inherited
+        @Override
         public Component createTooltipComponent (String tiptext)
         {
             return Component.createDefaultTooltipComponent(_ctx, tiptext);
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (Actor actor)
         {
             // update the model transform
@@ -342,13 +342,13 @@ public class ActorSprite extends Sprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void wasCreated ()
         {
             getActorSprite().spawnTransientModel(_config.creationTransient);
         }
 
-        @Override // documentation inherited
+        @Override
         public void willBeDestroyed ()
         {
             getActorSprite().spawnTransientModel(_config.destructionTransient);
@@ -416,7 +416,7 @@ public class ActorSprite extends Sprite
             setConfig(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (ActorSpriteConfig config)
         {
             super.setConfig(config);
@@ -428,7 +428,7 @@ public class ActorSprite extends Sprite
             _rotations = resolve(mconfig.rotations);
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (Actor actor)
         {
             super.update(actor);
@@ -440,13 +440,13 @@ public class ActorSprite extends Sprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public float getAttachedScale ()
         {
             return ((ActorSpriteConfig.Moving)_config).attachedScale;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isStatic (Actor actor)
         {
             return false;
@@ -668,7 +668,7 @@ public class ActorSprite extends Sprite
             setConfig(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (Actor actor)
         {
             // update the activity
@@ -694,7 +694,7 @@ public class ActorSprite extends Sprite
             super.update(actor);
         }
 
-        @Override // documentation inherited
+        @Override
         protected Animation getBase (Mobile actor)
         {
             // activities at priority zero override default base animation
@@ -860,7 +860,7 @@ public class ActorSprite extends Sprite
             setConfig(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (ActorSpriteConfig config)
         {
             super.setConfig(config);
@@ -881,7 +881,7 @@ public class ActorSprite extends Sprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (Actor actor)
         {
             super.update(actor);
@@ -925,7 +925,7 @@ public class ActorSprite extends Sprite
             setConfig(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (ActorSpriteConfig config)
         {
             super.setConfig(config);
@@ -936,7 +936,7 @@ public class ActorSprite extends Sprite
             _entryModel = (esprite == null) ? null : esprite.getModel();
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (Actor actor)
         {
             super.update(actor);
@@ -1310,13 +1310,13 @@ public class ActorSprite extends Sprite
         return _actor;
     }
 
-    @Override // documentation inherited
+    @Override
     public Model getModel ()
     {
         return _model;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getFloorFlags ()
     {
         return _impl.getFloorFlags();
@@ -1328,49 +1328,49 @@ public class ActorSprite extends Sprite
         return _impl.getFloorMask();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isHoverable ()
     {
         return _impl.isHoverable();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isClickable ()
     {
         return _impl.isClickable();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getTooltipText ()
     {
         return _impl.getTooltipText();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getTooltipTimeout ()
     {
         return _impl.getTooltipTimeout();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getTooltipWindowStyle ()
     {
         return _impl.getTooltipWindowStyle();
     }
 
-    @Override // documentation inherited
+    @Override
     public Component createTooltipComponent (String tiptext)
     {
         return _impl.createTooltipComponent(tiptext);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean dispatchEvent (Event event)
     {
         return _impl.dispatchEvent(event);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

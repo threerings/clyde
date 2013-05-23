@@ -498,7 +498,7 @@ public abstract class Property extends DeepObject
      */
     public abstract void set (Object object, Object value);
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return _name;

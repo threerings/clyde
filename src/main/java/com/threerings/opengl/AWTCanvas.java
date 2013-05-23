@@ -69,7 +69,7 @@ public class AWTCanvas extends AWTGLCanvas
         // no-op
     }
 
-    @Override // documentation inherited
+    @Override
     public void makeCurrent ()
     {
         try {
@@ -79,7 +79,7 @@ public class AWTCanvas extends AWTGLCanvas
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void swapBuffers ()
     {
         try {
@@ -89,14 +89,14 @@ public class AWTCanvas extends AWTGLCanvas
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
         stopUpdating();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void initGL ()
     {
         // hackery: increment the reentry count so that the context is never released
@@ -119,7 +119,7 @@ public class AWTCanvas extends AWTGLCanvas
         startUpdating();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void paintGL ()
     {
         renderView();

@@ -310,7 +310,7 @@ public class ModelDef
      */
     public static class NodeDef extends SpatialDef
     {
-        @Override // documentation inherited
+        @Override
         public ArticulatedConfig.Node createNode (
             ArticulatedConfig config, boolean haveCollisionMesh)
         {
@@ -363,7 +363,7 @@ public class ModelDef
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ArticulatedConfig.Node createNode (
             ArticulatedConfig config, boolean haveCollisionMesh)
         {
@@ -381,7 +381,7 @@ public class ModelDef
                 (haveCollisionMesh && !isCollisionMesh) ? null : createCollisionMesh());
         }
 
-        @Override // documentation inherited
+        @Override
         public void mergeMeshes (HashMap<Object, TriMeshDef> meshes)
         {
             // multiply world times offset to form vertex transform
@@ -404,7 +404,7 @@ public class ModelDef
             super.mergeMeshes(meshes);
         }
 
-        @Override // documentation inherited
+        @Override
         public void mergeMeshes (TriMeshDef mesh)
         {
             // merge with existing
@@ -560,7 +560,7 @@ public class ModelDef
                 colorArray, normalArray, vertexArray, 0, vertices.size() - 1, createIndexBuffer());
         }
 
-        @Override // documentation inherited
+        @Override
         protected boolean containsCollisionMesh ()
         {
             return name.contains("collision") || super.containsCollisionMesh();
@@ -704,14 +704,14 @@ public class ModelDef
             colored = other.colored;
         }
 
-        @Override // documentation inherited
+        @Override
         public void addVertex (Vertex vertex)
         {
             super.addVertex(vertex);
             mbones.addAll(((SkinVertex)vertex).getBones());
         }
 
-        @Override // documentation inherited
+        @Override
         public void mergeSkinMeshes (HashMap<Object, SkinMeshDef> meshes, HashSet<String> bones)
         {
             // multiply world times offset to form vertex transform
@@ -737,7 +737,7 @@ public class ModelDef
             super.mergeSkinMeshes(meshes, bones);
         }
 
-        @Override // documentation inherited
+        @Override
         public void removeBoneWeights (String bone)
         {
             super.removeBoneWeights(bone);
@@ -746,7 +746,7 @@ public class ModelDef
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void mergeSkinMeshes (TriMeshDef mesh)
         {
             // merge with existing
@@ -756,7 +756,7 @@ public class ModelDef
             super.mergeSkinMeshes(mesh);
         }
 
-        @Override // documentation inherited
+        @Override
         public ArticulatedConfig.Node createNode (
             ArticulatedConfig config, boolean haveCollisionMesh)
         {
@@ -799,7 +799,7 @@ public class ModelDef
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected AttributeArrayConfig[] createVertexAttribArrays (ModelConfig.Imported config)
         {
             AttributeArrayConfig[] arrays = new AttributeArrayConfig[] {
@@ -809,13 +809,13 @@ public class ModelDef
             return (sarrays == null) ? arrays : ArrayUtil.concatenate(arrays, sarrays);
         }
 
-        @Override // documentation inherited
+        @Override
         protected String getDefaultTag ()
         {
             return ModelConfig.SKINNED_TAG;
         }
 
-        @Override // documentation inherited
+        @Override
         protected GeometryConfig createGeometry (
             Box bounds, AttributeArrayConfig[] vertexAttribArrays,
             ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
@@ -947,14 +947,14 @@ public class ModelDef
             score = pscore + 2f * FloatMath.pow(triangles.size(), -0.5f);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return Arrays.hashCode(location) ^ Arrays.hashCode(normal) ^
                 Arrays.hashCode(tcoords) ^ Arrays.hashCode(color);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object obj)
         {
             Vertex overt = (Vertex)obj;
@@ -965,7 +965,7 @@ public class ModelDef
                 extras.equals(overt.extras);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return StringUtil.toString(location);
@@ -980,7 +980,7 @@ public class ModelDef
         /** The extra texture coordinates. */
         public float[] tcoords;
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return Arrays.equals(tcoords, ((Extra)other).tcoords);
@@ -1057,7 +1057,7 @@ public class ModelDef
             super.get(vbuf);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object obj)
         {
             return super.equals(obj) && boneWeights.equals(((SkinVertex)obj).boneWeights);
@@ -1094,13 +1094,13 @@ public class ModelDef
             return Float.compare(weight, other.weight);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return weight == ((BoneWeight)other).weight;
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return bone + " " + weight;
@@ -1263,21 +1263,21 @@ public class ModelDef
      */
     protected static class HashArrayList<E> extends ArrayList<E>
     {
-        @Override // documentation inherited
+        @Override
         public boolean add (E element)
         {
             add(size(), element);
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void add (int idx, E element)
         {
             super.add(idx, element);
             remapFrom(idx);
         }
 
-        @Override // documentation inherited
+        @Override
         public E remove (int idx)
         {
             E element = super.remove(idx);
@@ -1286,27 +1286,27 @@ public class ModelDef
             return element;
         }
 
-        @Override // documentation inherited
+        @Override
         public void clear ()
         {
             super.clear();
             _indices.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public int indexOf (Object obj)
         {
             Integer idx = _indices.get(obj);
             return (idx == null ? -1 : idx);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean contains (Object obj)
         {
             return _indices.containsKey(obj);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean remove (Object obj)
         {
             Integer idx = _indices.remove(obj);

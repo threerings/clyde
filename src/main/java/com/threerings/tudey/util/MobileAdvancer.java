@@ -44,7 +44,7 @@ public class MobileAdvancer extends ActorAdvancer
         super(environment, mobile, timestamp);
     }
 
-    @Override // documentation inherited
+    @Override
     public void init (Actor actor, int timestamp)
     {
         super.init(actor, timestamp);
@@ -58,7 +58,7 @@ public class MobileAdvancer extends ActorAdvancer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void step (float elapsed)
     {
         takeSubsteps(elapsed);

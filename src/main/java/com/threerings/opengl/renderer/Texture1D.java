@@ -141,13 +141,13 @@ public class Texture1D extends Texture
         GL11.glCopyTexSubImage1D(GL11.GL_TEXTURE_1D, level, xoffset, x, y, width);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getWidth ()
     {
         return _width;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getHeight ()
     {
         return 1;

@@ -99,13 +99,13 @@ public class FogState extends RenderState
         return _fogColor;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return FOG_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         if (_fogMode == GL11.GL_LINEAR) {

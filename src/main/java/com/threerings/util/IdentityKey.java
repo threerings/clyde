@@ -48,7 +48,7 @@ public class IdentityKey
         System.arraycopy(otherElements, 0, _elements, 1, otherElements.length);
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         int hash = 1;
@@ -58,7 +58,7 @@ public class IdentityKey
         return hash;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof IdentityKey)) {

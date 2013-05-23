@@ -86,7 +86,7 @@ public class RectangleElement extends SimpleSceneElement
         return _elevation;
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();
@@ -95,7 +95,7 @@ public class RectangleElement extends SimpleSceneElement
         return states;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void computeBounds (Box result)
     {
         float z = TudeySceneMetrics.getTileZ(_elevation);
@@ -104,7 +104,7 @@ public class RectangleElement extends SimpleSceneElement
         result.transformLocal(_transform);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         float lx = _region.x, ux = _region.x + _region.width;

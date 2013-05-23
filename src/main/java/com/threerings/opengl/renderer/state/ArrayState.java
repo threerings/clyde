@@ -110,13 +110,13 @@ public class ArrayState extends RenderState
         return _elementArrayBuffer;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return ARRAY_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setArrayState(

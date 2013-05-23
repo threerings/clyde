@@ -49,7 +49,7 @@ public class TudeyBodyObject extends BodyObject
     /** The id of the player's pawn. */
     public int pawnId;
 
-    @Override // documentation inherited
+    @Override
     public OccupantInfo createOccupantInfo (PlaceObject plobj)
     {
         return new TudeyOccupantInfo(this);

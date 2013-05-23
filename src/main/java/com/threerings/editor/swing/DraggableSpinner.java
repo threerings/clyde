@@ -137,7 +137,7 @@ public class DraggableSpinner extends JSpinner
         return ((Number)getValue()).intValue();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireStateChanged ()
     {
         if (!_suppressStateChanged) {
@@ -156,7 +156,7 @@ public class DraggableSpinner extends JSpinner
             setValue(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setValue (Object value)
         {
             if (value instanceof Float && ((Float)value) == 0f) {

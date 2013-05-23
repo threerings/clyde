@@ -102,7 +102,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED);
     }
 
-    @Override // documentation inherited
+    @Override
     public void deactivate ()
     {
         // release any vertex being moved
@@ -112,14 +112,14 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void sceneChanged (TudeySceneModel scene)
     {
         super.sceneChanged(scene);
         _entry = null;
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (_editor.isSpecialDown()) {
@@ -183,7 +183,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isSpecialDown()) {
@@ -194,7 +194,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         _editor.updateEntries(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryUpdated (Entry oentry, Entry nentry)
     {
         if (_entry != null && _entry.getKey().equals(oentry.getKey()) && _entry != nentry) {
@@ -202,7 +202,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryRemoved (Entry oentry)
     {
         if (_entry != null && _entry.getKey().equals(oentry.getKey())) {
@@ -263,13 +263,13 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         @Editable(nullable=true)
         public ConfigReference<AreaConfig> area;
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<AreaConfig> getReference ()
         {
             return area;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference<AreaConfig> ref)
         {
             area = ref;

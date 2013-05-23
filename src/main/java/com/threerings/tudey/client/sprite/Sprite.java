@@ -144,7 +144,7 @@ public abstract class Sprite extends SimpleScope
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public String getScopeName ()
     {
         return "sprite";

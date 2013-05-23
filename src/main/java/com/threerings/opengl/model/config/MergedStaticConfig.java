@@ -85,7 +85,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         this.models = models;
     }
 
-    @Override // documentation inherited
+    @Override
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         for (ComponentModel cmodel : models) {
@@ -93,7 +93,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -109,7 +109,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         _resolved = null;

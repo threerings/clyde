@@ -71,7 +71,7 @@ public class Point
         return this;
     }
 
-    @Override // documentation inherited
+    @Override
     public Point clone ()
     {
         try {
@@ -81,13 +81,13 @@ public class Point
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return x*31 + y;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Point)) {
@@ -97,7 +97,7 @@ public class Point
         return x == opoint.x && y == opoint.y;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return (x >= 0 ? "+" : "") + x + (y >= 0 ? "+" : "") + y;

@@ -162,14 +162,14 @@ public abstract class BaseConfigEditor extends JFrame
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void addNotify ()
     {
         super.addNotify();
         ToolUtil.windowAdded();
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();

@@ -59,7 +59,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
         super(editor, PathConfig.class, new PathReference());
     }
 
-    @Override // documentation inherited
+    @Override
     public void deactivate ()
     {
         // release any vertex being moved
@@ -69,14 +69,14 @@ public class PathDefiner extends ConfigTool<PathConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void sceneChanged (TudeySceneModel scene)
     {
         super.sceneChanged(scene);
         _entry = null;
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (_editor.isSpecialDown()) {
@@ -140,7 +140,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isSpecialDown()) {
@@ -151,7 +151,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
         _editor.updateEntries(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryUpdated (Entry oentry, Entry nentry)
     {
         if (_entry != null && _entry.getKey().equals(oentry.getKey()) && _entry != nentry) {
@@ -159,7 +159,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryRemoved (Entry oentry)
     {
         if (_entry != null && _entry.getKey().equals(oentry.getKey())) {
@@ -224,13 +224,13 @@ public class PathDefiner extends ConfigTool<PathConfig>
         @Editable(nullable=true)
         public ConfigReference<PathConfig> path;
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<PathConfig> getReference ()
         {
             return path;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference<PathConfig> ref)
         {
             path = ref;

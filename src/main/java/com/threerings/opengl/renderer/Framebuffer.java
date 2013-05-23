@@ -264,7 +264,7 @@ public class Framebuffer
         _renderer.setFramebuffer(obuffer);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void finalize ()
         throws Throwable
     {

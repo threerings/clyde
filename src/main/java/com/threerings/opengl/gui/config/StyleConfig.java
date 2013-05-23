@@ -241,7 +241,7 @@ public class StyleConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public BackgroundConfig selectionBackground;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             if (cursor != null) {
@@ -252,7 +252,7 @@ public class StyleConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (feedbackSound != null) {
@@ -269,13 +269,13 @@ public class StyleConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (GlContext ctx)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             if (background != null) {
@@ -302,13 +302,13 @@ public class StyleConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<StyleConfig> style;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(StyleConfig.class, style);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (GlContext ctx)
         {
             StyleConfig config = ctx.getConfigManager().getConfig(StyleConfig.class, style);
@@ -328,7 +328,7 @@ public class StyleConfig extends ParameterizedConfig
         return implementation.getOriginal(ctx);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -336,13 +336,13 @@ public class StyleConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateResources (HashSet<String> paths)
     {
         implementation.getUpdateResources(paths);

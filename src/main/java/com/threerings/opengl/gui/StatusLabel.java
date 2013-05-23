@@ -99,13 +99,13 @@ public class StatusLabel extends Label
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/StatusLabel";
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         super.updateFromStyleConfig(state, config);

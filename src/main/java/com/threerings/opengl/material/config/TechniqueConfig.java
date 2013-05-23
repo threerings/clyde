@@ -96,13 +96,13 @@ public class TechniqueConfig extends DeepObject
      */
     public static class StencilReflectionDependency extends TechniqueDependency
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return ctx.getRenderer().getStencilBits() > 0;
         }
 
-        @Override // documentation inherited
+        @Override
         public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             final Dependency.StencilReflection dependency = new Dependency.StencilReflection(ctx);
@@ -125,13 +125,13 @@ public class TechniqueConfig extends DeepObject
         @Editable(step=0.01)
         public float ratio = 1f;
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return ctx.getRenderer().getStencilBits() > 0;
         }
 
-        @Override // documentation inherited
+        @Override
         public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             final Dependency.StencilRefraction dependency = new Dependency.StencilRefraction(ctx);
@@ -154,7 +154,7 @@ public class TechniqueConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<RenderEffectConfig> renderEffect;
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             RenderEffectConfig config = ctx.getConfigManager().getConfig(
@@ -162,7 +162,7 @@ public class TechniqueConfig extends DeepObject
             return config != null && config.getTechnique(ctx, null) != null;
         }
 
-        @Override // documentation inherited
+        @Override
         public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             final Dependency.RenderEffect dependency = new Dependency.RenderEffect(ctx);
@@ -184,7 +184,7 @@ public class TechniqueConfig extends DeepObject
      */
     public static class SkipColorClearDependency extends TechniqueDependency
     {
-        @Override // documentation inherited
+        @Override
         public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             return new Dependency.Adder() {
@@ -259,7 +259,7 @@ public class TechniqueConfig extends DeepObject
         @Editable
         public PassConfig[] passes = new PassConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (PassConfig pass : passes) {
@@ -267,7 +267,7 @@ public class TechniqueConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (PassConfig pass : passes) {
@@ -278,13 +278,13 @@ public class TechniqueConfig extends DeepObject
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueuer rewrite (MaterialRewriter rewriter)
         {
             return rewriter.rewrite(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getDescriptors (GlContext ctx, List<PassDescriptor> list)
         {
             for (PassConfig pass : passes) {
@@ -292,7 +292,7 @@ public class TechniqueConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, final Geometry geometry, boolean update,
             RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx)
@@ -351,7 +351,7 @@ public class TechniqueConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (PassConfig pass : passes) {
@@ -442,7 +442,7 @@ public class TechniqueConfig extends DeepObject
         @Editable
         public Enqueuer[] enqueuers = new Enqueuer[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -450,7 +450,7 @@ public class TechniqueConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -461,13 +461,13 @@ public class TechniqueConfig extends DeepObject
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueuer rewrite (MaterialRewriter rewriter)
         {
             return rewriter.rewrite(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getDescriptors (GlContext ctx, List<PassDescriptor> list)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -475,7 +475,7 @@ public class TechniqueConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, final Geometry geometry, boolean update,
             RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx)
@@ -505,7 +505,7 @@ public class TechniqueConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -527,13 +527,13 @@ public class TechniqueConfig extends DeepObject
         @Editable(weight=-1, hgroup="q")
         public int group;
 
-        @Override // documentation inherited
+        @Override
         public Enqueuer rewrite (MaterialRewriter rewriter)
         {
             return rewriter.rewrite(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, Geometry geometry, boolean update,
             RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx)
@@ -556,31 +556,31 @@ public class TechniqueConfig extends DeepObject
             _wrapped = wrapped;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             _wrapped.getUpdateReferences(refs);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return _wrapped.isSupported(ctx, fallback);
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueuer rewrite (MaterialRewriter rewriter)
         {
             return _wrapped.rewrite(rewriter);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getDescriptors (GlContext ctx, List<PassDescriptor> list)
         {
             _wrapped.getDescriptors(ctx, list);
         }
 
-        @Override // documentation inherited
+        @Override
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, Geometry geometry, boolean update, RenderQueue.Group group,
             List<Dependency.Adder> adders, MutableInteger pidx)
@@ -589,7 +589,7 @@ public class TechniqueConfig extends DeepObject
                 ctx, scope, geometry, update, group, adders, pidx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _wrapped.invalidate();

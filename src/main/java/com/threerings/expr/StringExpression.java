@@ -50,7 +50,7 @@ public abstract class StringExpression extends ObjectExpression<String>
         @Editable
         public String expression = "";
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<String> createEvaluator (Scope scope)
         {
             if (_expr == null) {
@@ -66,7 +66,7 @@ public abstract class StringExpression extends ObjectExpression<String>
             return _expr.createEvaluator(scope);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _expr = null;
@@ -101,7 +101,7 @@ public abstract class StringExpression extends ObjectExpression<String>
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<String> createEvaluator (Scope scope)
         {
             return new Evaluator<String>() {
@@ -125,7 +125,7 @@ public abstract class StringExpression extends ObjectExpression<String>
         @Editable
         public String defvalue = "";
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<String> createEvaluator (Scope scope)
         {
             // first look for a builder reference, then for a variable

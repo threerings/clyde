@@ -43,7 +43,7 @@ public class EntryStateLogic extends ActorLogic
         ((EntryState)_actor).setKey(entry.getEntry().getKey());
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);

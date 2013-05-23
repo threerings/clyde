@@ -115,7 +115,7 @@ public class HashScene extends Scene
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public SceneElement getIntersection (
         Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter)
     {
@@ -189,97 +189,97 @@ public class HashScene extends Scene
         return closest;
     }
 
-    @Override // documentation inherited
+    @Override
     public void getElements (Box bounds, Collection<SceneElement> results)
     {
         getIntersecting(_elements, _oversizedElements, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getInfluences (Box bounds, Collection<SceneInfluence> results)
     {
         getIntersecting(_influences, _oversizedInfluences, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getEffects (Box bounds, Collection<ViewerEffect> results)
     {
         getIntersecting(_effects, _oversizedEffects, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsWillChange (SceneElement element)
     {
         super.boundsWillChange(element);
         removeFromSpatial(element);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsDidChange (SceneElement element)
     {
         super.boundsDidChange(element);
         addToSpatial(element);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsWillChange (SceneInfluence influence)
     {
         super.boundsWillChange(influence);
         removeFromSpatial(influence);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsDidChange (SceneInfluence influence)
     {
         super.boundsDidChange(influence);
         addToSpatial(influence);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsWillChange (ViewerEffect effect)
     {
         super.boundsWillChange(effect);
         removeFromSpatial(effect);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsDidChange (ViewerEffect effect)
     {
         super.boundsDidChange(effect);
         addToSpatial(effect);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (SceneElement element)
     {
         add(_elements, _oversizedElements, element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (SceneElement element)
     {
         remove(_elements, _oversizedElements, element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (SceneInfluence influence)
     {
         add(_influences, _oversizedInfluences, influence);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (SceneInfluence influence)
     {
         remove(_influences, _oversizedInfluences, influence);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (ViewerEffect effect)
     {
         add(_effects, _oversizedEffects, effect);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (ViewerEffect effect)
     {
         remove(_effects, _oversizedEffects, effect);
@@ -676,7 +676,7 @@ public class HashScene extends Scene
             _levels = levels;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isEmpty ()
         {
             if (!super.isEmpty()) {
@@ -690,7 +690,7 @@ public class HashScene extends Scene
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void add (T object, int level)
         {
             if (level == 0) {
@@ -714,7 +714,7 @@ public class HashScene extends Scene
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void remove (T object, int level)
         {
             if (level == 0) {
@@ -735,7 +735,7 @@ public class HashScene extends Scene
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public T getIntersection (Ray3D ray, Vector3f location, Predicate<? super T> filter)
         {
             T closest = super.getIntersection(ray, location, filter);
@@ -755,13 +755,13 @@ public class HashScene extends Scene
             return closest;
         }
 
-        @Override // documentation inherited
+        @Override
         public void returnToPool ()
         {
             _internalNodePool.add(this);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void compositeAll ()
         {
             super.compositeAll();
@@ -772,7 +772,7 @@ public class HashScene extends Scene
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void compositeIntersecting (Frustum frustum)
         {
             super.compositeIntersecting(frustum);
@@ -783,7 +783,7 @@ public class HashScene extends Scene
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void getAll (Collection<T> results)
         {
             super.getAll(results);
@@ -794,7 +794,7 @@ public class HashScene extends Scene
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void getIntersecting (Box bounds, Collection<T> results)
         {
             super.getIntersecting(bounds, results);
@@ -849,7 +849,7 @@ public class HashScene extends Scene
      */
     protected class LeafNode<T extends SceneObject> extends Node<T>
     {
-        @Override // documentation inherited
+        @Override
         public void returnToPool ()
         {
             _leafNodePool.add(this);
@@ -893,7 +893,7 @@ public class HashScene extends Scene
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public Coord clone ()
         {
             try {
@@ -903,13 +903,13 @@ public class HashScene extends Scene
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return x + 31*(y + 31*z);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             Coord ocoord = (Coord)other;

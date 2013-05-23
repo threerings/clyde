@@ -230,7 +230,7 @@ public class InterfaceTester extends GlCanvasTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected JComponent createCanvasContainer ()
     {
         JSplitPane pane = new JSplitPane(
@@ -241,13 +241,13 @@ public class InterfaceTester extends GlCanvasTool
         return pane;
     }
 
-    @Override // documentation inherited
+    @Override
     protected CanvasToolPrefs createEditablePrefs ()
     {
         return new CanvasToolPrefs(_prefs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -269,14 +269,14 @@ public class InterfaceTester extends GlCanvasTool
         window.add(_userInterface = new UserInterface(this, config, this));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
         _root.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void compositeView ()
     {
         super.compositeView();

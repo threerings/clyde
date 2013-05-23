@@ -90,19 +90,19 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void merge (Dependency dependency)
         {
             bounds.addLocal(((Planar)dependency).bounds);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return worldPlane.hashCode();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return getClass() == other.getClass() && ((Planar)other).worldPlane.equals(worldPlane);
@@ -140,7 +140,7 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return super.equals(other) && ((StencilRefraction)other).ratio == ratio;
@@ -166,7 +166,7 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void merge (Dependency dependency)
         {
             super.merge(dependency);
@@ -175,7 +175,7 @@ public abstract class Dependency
             config = odep.config;
         }
 
-        @Override // documentation inherited
+        @Override
         public void cleanup ()
         {
             config.returnToPool(_ctx, texture);
@@ -195,7 +195,7 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void resolve ()
         {
             Compositor compositor = _ctx.getCompositor();
@@ -244,7 +244,7 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void resolve ()
         {
             Compositor compositor = _ctx.getCompositor();
@@ -277,7 +277,7 @@ public abstract class Dependency
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return super.equals(other) && ((RefractionTexture)other).ratio == ratio;
@@ -315,7 +315,7 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void merge (Dependency dependency)
         {
             CubeTexture odep = (CubeTexture)dependency;
@@ -326,7 +326,7 @@ public abstract class Dependency
             faces |= odep.faces;
         }
 
-        @Override // documentation inherited
+        @Override
         public void resolve ()
         {
             Compositor compositor = _ctx.getCompositor();
@@ -358,19 +358,19 @@ public abstract class Dependency
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void cleanup ()
         {
             config.returnToPool(_ctx, texture);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return origin.hashCode();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return getClass() == other.getClass() && ((CubeTexture)other).origin.equals(origin);
@@ -393,19 +393,19 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void resolve ()
         {
             data.updater.update();
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return data.hashCode();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return getClass() == other.getClass() && ((Shadows)other).data.equals(data);
@@ -451,7 +451,7 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void merge (Dependency dependency)
         {
             ShadowTexture odep = (ShadowTexture)dependency;
@@ -461,7 +461,7 @@ public abstract class Dependency
             depthConfig = odep.depthConfig;
         }
 
-        @Override // documentation inherited
+        @Override
         public void resolve ()
         {
             super.resolve();
@@ -544,7 +544,7 @@ public abstract class Dependency
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void cleanup ()
         {
             if (colorConfig != null) {
@@ -572,19 +572,19 @@ public abstract class Dependency
             super(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void resolve ()
         {
             _ctx.getCompositor().addDependencyEffect(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return System.identityHashCode(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof RenderEffect && ((RenderEffect)other).config == config;

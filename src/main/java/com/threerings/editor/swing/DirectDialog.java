@@ -192,7 +192,7 @@ public class DirectDialog extends JDialog
         pack();
     }
 
-    @Override // documentation inherited
+    @Override
     protected JRootPane createRootPane ()
     {
         KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);

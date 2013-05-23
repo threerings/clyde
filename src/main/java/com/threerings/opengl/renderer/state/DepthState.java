@@ -92,13 +92,13 @@ public class DepthState extends RenderState
         return _depthMask;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return DEPTH_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setDepthState(_depthTestFunc, _depthMask);

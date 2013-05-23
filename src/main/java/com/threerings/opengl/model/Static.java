@@ -75,19 +75,19 @@ public class Static extends Model.Implementation
         _transformState.setDirty(true);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _config.influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         // update the world transform
@@ -106,19 +106,19 @@ public class Static extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dumpInfo (String prefix)
     {
         System.out.println(prefix + "Static: " + _worldTransform + " " + _bounds);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
@@ -132,7 +132,7 @@ public class Static extends Model.Implementation
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         // add an enqueueable to initialize the shared state

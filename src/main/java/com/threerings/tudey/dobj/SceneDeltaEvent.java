@@ -148,14 +148,14 @@ public class SceneDeltaEvent extends DEvent
         return _effectsFired;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean applyToObject (DObject target)
         throws ObjectAccessException
     {
         return true; // nothing to do here
     }
 
-    @Override // documentation inherited
+    @Override
     protected void notifyListener (Object listener)
     {
         if (listener instanceof SceneDeltaListener) {
@@ -163,7 +163,7 @@ public class SceneDeltaEvent extends DEvent
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void toString (StringBuilder buf)
     {
         buf.append("DELTA:");

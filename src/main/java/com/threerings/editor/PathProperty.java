@@ -126,27 +126,27 @@ public class PathProperty extends Property
         _paths = list.toArray(new Property[list.size()][]);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean shouldTranslateName ()
     {
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public String getColorName ()
     {
         Property[] path = _paths[0];
         return path[path.length - 1].getColorName();
     }
 
-    @Override // documentation inherited
+    @Override
     public Member getMember ()
     {
         Property[] path = _paths[0];
         return path[path.length - 1].getMember();
     }
 
-    @Override // documentation inherited
+    @Override
     public Object getMemberObject (Object object)
     {
         Property[] path = _paths[0];
@@ -157,69 +157,69 @@ public class PathProperty extends Property
         return path[last].getMemberObject(object);
     }
 
-    @Override // documentation inherited
+    @Override
     public Class<?> getType ()
     {
         Property[] path = _paths[0];
         return path[path.length - 1].getType();
     }
 
-    @Override // documentation inherited
+    @Override
     public Type getGenericType ()
     {
         Property[] path = _paths[0];
         return path[path.length - 1].getGenericType();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getMode ()
     {
         return PropertyUtil.getMode(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public String getUnits ()
     {
         return PropertyUtil.getUnits(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public double getMinimum ()
     {
         return PropertyUtil.getMinimum(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public double getMaximum ()
     {
         return PropertyUtil.getMaximum(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public double getStep ()
     {
         return PropertyUtil.getStep(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public double getScale ()
     {
         return PropertyUtil.getScale(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getMinSize ()
     {
         return PropertyUtil.getMinSize(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getMaxSize ()
     {
         return PropertyUtil.getMaxSize(_paths[0]);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object get (Object object)
     {
         for (Property property : _paths[0]) {
@@ -228,7 +228,7 @@ public class PathProperty extends Property
         return object;
     }
 
-    @Override // documentation inherited
+    @Override
     public void set (Object object, Object value)
     {
         for (int ii = 0; ii < _paths.length; ii++) {
@@ -499,25 +499,25 @@ public class PathProperty extends Property
             _name = (_base = base).getName() + "[" + idx + "]";
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean shouldTranslateName ()
         {
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public Member getMember ()
         {
             return _base.getMember();
         }
 
-        @Override // documentation inherited
+        @Override
         public Class<?> getType ()
         {
             return _base.getComponentType();
         }
 
-        @Override // documentation inherited
+        @Override
         public Type getGenericType ()
         {
             return _base.getGenericComponentType();

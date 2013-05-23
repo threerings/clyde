@@ -69,7 +69,7 @@ public abstract class LightConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         protected Updater createUpdater (
             GlContext ctx, Scope scope, boolean world, final Light light)
         {
@@ -117,7 +117,7 @@ public abstract class LightConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Light createLight (
             GlContext ctx, Scope scope, boolean world, List<Updater> updaters)
         {
@@ -129,7 +129,7 @@ public abstract class LightConfig extends DeepObject
             return light;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Updater createUpdater (
             GlContext ctx, Scope scope, boolean world, final Light light)
         {
@@ -173,7 +173,7 @@ public abstract class LightConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Light createLight (
             GlContext ctx, Scope scope, boolean world, List<Updater> updaters)
         {
@@ -183,7 +183,7 @@ public abstract class LightConfig extends DeepObject
             return light;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Updater createUpdater (
             GlContext ctx, Scope scope, boolean world, final Light light)
         {

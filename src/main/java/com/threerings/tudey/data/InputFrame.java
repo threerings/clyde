@@ -152,7 +152,7 @@ public class InputFrame extends DeepObject
         // in.readBareObject(_translation = new Vector2f());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[timestamp=" + _timestamp + ", translation=" + _translation + ", rotation=" +

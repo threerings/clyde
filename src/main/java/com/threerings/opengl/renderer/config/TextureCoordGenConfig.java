@@ -67,7 +67,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
         @Editable(step=0.01, hgroup="p")
         public float w;
 
-        @Override // documentation inherited
+        @Override
         public boolean usesNormals ()
         {
             return false;
@@ -79,7 +79,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class ObjectLinear extends Linear
     {
-        @Override // documentation inherited
+        @Override
         public int getModeAndPlane (Vector4f plane)
         {
             plane.set(x, y, z, w);
@@ -92,7 +92,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class EyeLinear extends Linear
     {
-        @Override // documentation inherited
+        @Override
         public int getModeAndPlane (Vector4f plane)
         {
             plane.set(x, y, z, w);
@@ -105,7 +105,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class SphereMap extends TextureCoordGenConfig
     {
-        @Override // documentation inherited
+        @Override
         public int getModeAndPlane (Vector4f plane)
         {
             return GL11.GL_SPHERE_MAP;
@@ -117,13 +117,13 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class NormalMap extends TextureCoordGenConfig
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_cube_map;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getModeAndPlane (Vector4f plane)
         {
             return ARBTextureCubeMap.GL_NORMAL_MAP_ARB;
@@ -135,13 +135,13 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class ReflectionMap extends TextureCoordGenConfig
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_cube_map;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getModeAndPlane (Vector4f plane)
         {
             return ARBTextureCubeMap.GL_REFLECTION_MAP_ARB;

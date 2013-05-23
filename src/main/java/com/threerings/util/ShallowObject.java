@@ -31,13 +31,13 @@ package com.threerings.util;
  */
 public abstract class ShallowObject
 {
-    @Override // documentation inherited
+    @Override
     public final boolean equals (Object other)
     {
         return super.equals(other);
     }
 
-    @Override // documentation inherited
+    @Override
     public final int hashCode ()
     {
         return super.hashCode();

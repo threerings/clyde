@@ -584,19 +584,19 @@ public final class Vector2f
         set(in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[" + x + ", " + y + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(x) ^ Float.floatToIntBits(y);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Vector2f)) {

@@ -41,7 +41,7 @@ public class PopupWindow extends Window
         _parentWindow = parent;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean shouldShadeBehind ()
     {
         return false;
@@ -82,7 +82,7 @@ public class PopupWindow extends Window
         setLocation(x, y);
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/PopupWindow";

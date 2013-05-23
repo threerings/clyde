@@ -127,7 +127,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
             elementArrayBuffer = null;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean shouldRotateOrientations ()
         {
             return alignment == Alignment.FIXED;
@@ -172,7 +172,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
             return 1f;
         }
 
-        @Override // documentation inherited
+        @Override
         public Box getBounds ()
         {
             return Box.EMPTY; // not used
@@ -184,13 +184,13 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
      */
     public static class Points extends ParticleGeometryConfig
     {
-        @Override // documentation inherited
+        @Override
         public float getRadius (GlContext ctx)
         {
             return 0f;
         }
 
-        @Override // documentation inherited
+        @Override
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -220,19 +220,19 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public int getSegments ()
         {
             return segments;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean getMoveTrailsWithParticles ()
         {
             return moveTrailsWithParticles;
         }
 
-        @Override // documentation inherited
+        @Override
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -264,19 +264,19 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public int getSegments ()
         {
             return segments;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean getMoveTrailsWithParticles ()
         {
             return moveTrailsWithParticles;
         }
 
-        @Override // documentation inherited
+        @Override
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -295,20 +295,20 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         @Editable(mode="compact", nullable=true)
         public ConfigReference<ModelConfig> model;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ModelConfig.class, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public float getRadius (GlContext ctx)
         {
             GeometryConfig geom = getParticleGeometry(ctx);
             return (geom == null) ? 0f : geom.getBounds().getDiagonalLength() * 0.5f;
         }
 
-        @Override // documentation inherited
+        @Override
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -344,13 +344,13 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
     @Editable(editor="table")
     public Layer[] layers = new Layer[0];
 
-    @Override // documentation inherited
+    @Override
     public BaseParticleSystemConfig.Layer[] getLayers ()
     {
         return layers;
     }
 
-    @Override // documentation inherited
+    @Override
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         for (Layer layer : layers) {
@@ -358,7 +358,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -370,7 +370,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         for (Layer layer : layers) {

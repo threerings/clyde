@@ -322,7 +322,7 @@ public class ExpressionParser<T>
             wordChars(':', ':');
         }
 
-        @Override // documentation inherited
+        @Override
         public int nextToken ()
             throws IOException
         {
@@ -423,7 +423,7 @@ public class ExpressionParser<T>
             super(name);
         }
 
-        @Override // documentation inherited
+        @Override
         public <T> T handle (ExpressionParser<T> parser)
             throws Exception
         {
@@ -444,7 +444,7 @@ public class ExpressionParser<T>
             super(name);
         }
 
-        @Override // documentation inherited
+        @Override
         public <T> T handle (ExpressionParser<T> parser)
             throws Exception
         {
@@ -477,7 +477,7 @@ public class ExpressionParser<T>
             this.arity = arity;
         }
 
-        @Override // documentation inherited
+        @Override
         public <T> T handle (ExpressionParser<T> parser)
             throws Exception
         {

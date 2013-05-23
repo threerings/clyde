@@ -191,7 +191,7 @@ public class Palette extends BaseMover
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void calculateElevation (int minElevation, int maxElevation)
     {
         _elevation = _editor.getGrid().getElevation();

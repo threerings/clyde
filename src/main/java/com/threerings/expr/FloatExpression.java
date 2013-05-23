@@ -64,7 +64,7 @@ public abstract class FloatExpression extends DeepObject
         @Editable(width=20)
         public String expression = "0.0";
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             if (_expr == null) {
@@ -80,7 +80,7 @@ public abstract class FloatExpression extends DeepObject
             return _expr.createEvaluator(scope);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _expr = null;
@@ -115,7 +115,7 @@ public abstract class FloatExpression extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return new Evaluator() {
@@ -139,7 +139,7 @@ public abstract class FloatExpression extends DeepObject
         @Editable(step=0.01, hgroup="n")
         public float defvalue;
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             // first look for a mutable reference, then for a variable
@@ -171,7 +171,7 @@ public abstract class FloatExpression extends DeepObject
         @Editable
         public String scope = "";
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             String name = this.scope.trim();
@@ -195,13 +195,13 @@ public abstract class FloatExpression extends DeepObject
         @Editable
         public FloatExpression operand = new Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return createEvaluator(operand.createEvaluator(scope));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             operand.invalidate();
@@ -218,7 +218,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Negate extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -234,7 +234,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Exp extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -250,7 +250,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Sin extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -266,7 +266,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Cos extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -282,7 +282,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Tan extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -298,7 +298,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Square extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -314,7 +314,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Triangle extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -332,7 +332,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Ramp extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -349,7 +349,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Saw extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -366,7 +366,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Noise1 extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval)
         {
             return new Evaluator() {
@@ -390,14 +390,14 @@ public abstract class FloatExpression extends DeepObject
         @Editable
         public FloatExpression secondOperand = new Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return createEvaluator(
                 firstOperand.createEvaluator(scope), secondOperand.createEvaluator(scope));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             firstOperand.invalidate();
@@ -415,7 +415,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Add extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -431,7 +431,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Subtract extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -447,7 +447,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Multiply extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -463,7 +463,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Divide extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -479,7 +479,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Remainder extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -495,7 +495,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Pow extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -511,7 +511,7 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Noise2 extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {

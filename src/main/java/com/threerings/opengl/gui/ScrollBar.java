@@ -206,7 +206,7 @@ public class ScrollBar extends Container
                          _well.getY() + winsets.bottom + ty, twidth, theight);
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/ScrollBar" + (_horz ? "H" : "V");

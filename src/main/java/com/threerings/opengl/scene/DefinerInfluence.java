@@ -40,7 +40,7 @@ public class DefinerInfluence extends SceneInfluence
         _definitions = definitions;
     }
 
-    @Override // documentation inherited
+    @Override
     public Tuple<String, Object>[] getDefinitions ()
     {
         return _definitions;

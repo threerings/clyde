@@ -54,7 +54,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         super(editor, GroundConfig.class, new GroundReference());
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _inner = new RectangleElement(_editor, true);
@@ -63,13 +63,13 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         _outer.getColor().set(0f, 0.5f, 0f, 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateCursor();
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -78,7 +78,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         int button = event.getButton();
@@ -88,7 +88,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         if (_cursorVisible) {
@@ -173,13 +173,13 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         @Editable(min=1, hgroup="d")
         public int height = 1;
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<GroundConfig> getReference ()
         {
             return ground;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference<GroundConfig> ref)
         {
             ground = ref;

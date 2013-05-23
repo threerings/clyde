@@ -118,13 +118,13 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return cmap;
     }
 
-    @Override // documentation inherited
+    @Override
     public int size ()
     {
         return _entries.size();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean containsValue (Object value)
     {
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
@@ -135,7 +135,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean containsKey (Object key)
     {
         if (!(key instanceof String)) {
@@ -144,7 +144,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return _entries.binarySearch(_key.as((String)key)) >= 0;
     }
 
-    @Override // documentation inherited
+    @Override
     public Object get (Object key)
     {
         if (!(key instanceof String)) {
@@ -154,7 +154,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return (idx >= 0) ? _entries.get(idx).getValue() : null;
     }
 
-    @Override // documentation inherited
+    @Override
     public Object put (String key, Object value)
     {
         int idx = _entries.binarySearch(_key.as(key));
@@ -166,7 +166,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Object remove (Object key)
     {
         if (!(key instanceof String)) {
@@ -176,13 +176,13 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return (idx >= 0) ? _entries.remove(idx).getValue() : null;
     }
 
-    @Override // documentation inherited
+    @Override
     public void clear ()
     {
         _entries.clear();
     }
 
-    @Override // documentation inherited
+    @Override
     public Set<Map.Entry<String, Object>> entrySet ()
     {
         return new AbstractSet<Map.Entry<String, Object>>() {
@@ -219,7 +219,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         };
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (other == this) {
@@ -247,7 +247,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         int hash = 0;
@@ -259,7 +259,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return hash;
     }
 
-    @Override // documentation inherited
+    @Override
     public ArgumentMap clone ()
     {
         return (ArgumentMap) copy(null);

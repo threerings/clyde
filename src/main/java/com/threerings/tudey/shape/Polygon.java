@@ -104,13 +104,13 @@ public class Polygon extends Shape
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         _bounds.fromPoints(_vertices);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getCenter (Vector2f result)
     {
         result.set(0f, 0f);
@@ -120,7 +120,7 @@ public class Polygon extends Shape
         return result.multLocal(1f / _vertices.length);
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape transform (Transform2D transform, Shape result)
     {
         Polygon presult = (result instanceof Polygon) ?
@@ -135,7 +135,7 @@ public class Polygon extends Shape
         return presult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape expand (float amount, Shape result)
     {
         Polygon presult = (result instanceof Polygon) ?
@@ -176,7 +176,7 @@ public class Polygon extends Shape
         return presult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape sweep (Vector2f translation, Shape result)
     {
         Vector2f[] vertices;
@@ -231,7 +231,7 @@ public class Polygon extends Shape
         return poly;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f[] getPerimeterPath ()
     {
         Vector2f[] path = new Vector2f[_vertices.length + 1];
@@ -242,7 +242,7 @@ public class Polygon extends Shape
         return path;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         // see if we start inside the polygon
@@ -264,7 +264,7 @@ public class Polygon extends Shape
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public void getNearestPoint (Vector2f point, Vector2f result)
     {
         if (contains(point)) {
@@ -289,7 +289,7 @@ public class Polygon extends Shape
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public IntersectionType getIntersectionType (Rect rect)
     {
         // make sure the bounds intersect (this is equivalent to doing a separating axis test
@@ -323,25 +323,25 @@ public class Polygon extends Shape
             IntersectionType.CONTAINS : IntersectionType.INTERSECTS;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (SpaceElement element)
     {
         return element.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Shape shape)
     {
         return shape.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Point point)
     {
         return contains(point.getLocation());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Segment segment)
     {
         // see if we start inside the polygon
@@ -362,7 +362,7 @@ public class Polygon extends Shape
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Circle circle)
     {
         // look for edges that the circle's center is outside
@@ -396,7 +396,7 @@ public class Polygon extends Shape
         return true; // center is inside all edges
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Capsule capsule)
     {
         // find the first edge that the origin is outside
@@ -435,31 +435,31 @@ public class Polygon extends Shape
         return true; // origin is inside all edges
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Polygon polygon)
     {
         return intersectsOnAxes(polygon) && polygon.intersectsOnAxes(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Shape shape, Vector2f result)
     {
         return shape.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Point point, Vector2f result)
     {
         return result.set(Vector2f.ZERO);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
         Vector2f[] cv = new Vector2f[2];
@@ -470,7 +470,7 @@ public class Polygon extends Shape
         return result.set(minDistance);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
         // look for edges that the circle's center is outside
@@ -520,7 +520,7 @@ public class Polygon extends Shape
             circle.radius + mind);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Capsule capsule, Vector2f result)
     {
         Vector2f[] cv = new Vector2f[2];
@@ -531,7 +531,7 @@ public class Polygon extends Shape
         return result.set(minDistance);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Polygon polygon, Vector2f result)
     {
         // Calculate the conves hull of the minkowski difference between the two polygons then
@@ -541,13 +541,13 @@ public class Polygon extends Shape
         return result.set(minDistance);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Compound compound, Vector2f result)
     {
         return compound.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public void draw (boolean outline)
     {
         GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
@@ -557,7 +557,7 @@ public class Polygon extends Shape
         GL11.glEnd();
     }
 
-    @Override // documentation inherited
+    @Override
     public ShapeConfig createConfig ()
     {
         ShapeConfig.Polygon polygon = new ShapeConfig.Polygon();
@@ -570,7 +570,7 @@ public class Polygon extends Shape
         return polygon;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "Poly:(" + StringUtil.join(_vertices) + ")";

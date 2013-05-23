@@ -81,7 +81,7 @@ public class MaterialConfig extends ParameterizedConfig
         @Editable
         public TechniqueConfig[] techniques = new TechniqueConfig[] { new TechniqueConfig() };
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (TechniqueConfig technique : techniques) {
@@ -89,7 +89,7 @@ public class MaterialConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public TechniqueConfig getTechnique (GlContext ctx, String scheme)
         {
             // first look for an exact match for the scheme
@@ -135,7 +135,7 @@ public class MaterialConfig extends ParameterizedConfig
             return null;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _processedTechniques = null;
@@ -189,13 +189,13 @@ public class MaterialConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<MaterialConfig> material;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(MaterialConfig.class, material);
         }
 
-        @Override // documentation inherited
+        @Override
         public TechniqueConfig getTechnique (GlContext ctx, String scheme)
         {
             if (material == null) {
@@ -221,7 +221,7 @@ public class MaterialConfig extends ParameterizedConfig
         return implementation.getTechnique(ctx, scheme);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -229,7 +229,7 @@ public class MaterialConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

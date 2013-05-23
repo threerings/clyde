@@ -40,7 +40,7 @@ public class LightInfluence extends SceneInfluence
         _light = light;
     }
 
-    @Override // documentation inherited
+    @Override
     public Light getLight ()
     {
         return _light;

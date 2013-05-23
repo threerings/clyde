@@ -135,7 +135,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         referenceChanged(ref);
     }
 
-    @Override // documentation inherited
+    @Override
     public void sceneChanged (TudeySceneModel scene)
     {
         super.sceneChanged(scene);

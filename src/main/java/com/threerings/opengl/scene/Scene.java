@@ -86,7 +86,7 @@ public abstract class Scene extends DynamicScope
             _updater = updater;
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (float elapsed)
         {
             if (_updater != null) {
@@ -615,7 +615,7 @@ public abstract class Scene extends DynamicScope
         _dumpInfluences = true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

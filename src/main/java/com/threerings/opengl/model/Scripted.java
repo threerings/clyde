@@ -66,13 +66,13 @@ public class Scripted extends Model.Implementation
         updateFromConfig();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _completed;
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         _eidx = 0;
@@ -86,31 +86,31 @@ public class Scripted extends Model.Implementation
         _lastAddedTimestamp = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         tick(0f);
     }
 
-    @Override // documentation inherited
+    @Override
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         // update the world transform

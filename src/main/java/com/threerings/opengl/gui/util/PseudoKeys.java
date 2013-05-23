@@ -377,7 +377,7 @@ public class PseudoKeys
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void mousePressed (MouseEvent event)
         {
             if (!event.isConsumed()) {
@@ -388,7 +388,7 @@ public class PseudoKeys
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void mouseReleased (MouseEvent event)
         {
             if (!event.isConsumed()) {

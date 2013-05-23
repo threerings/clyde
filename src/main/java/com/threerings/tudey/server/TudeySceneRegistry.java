@@ -107,7 +107,7 @@ public class TudeySceneRegistry extends SceneRegistry
         return _defaultTicker;
     }
 
-    @Override // documentation inherited
+    @Override
     public void moveTo (
         ClientObject caller, int sceneId, int sceneVer, SceneService.SceneMoveListener listener)
     {
@@ -123,7 +123,7 @@ public class TudeySceneRegistry extends SceneRegistry
         resolveScene(caller, sceneId, handler);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void processSuccessfulResolution (
         SceneModel model, UpdateList updates, Object extras)
     {

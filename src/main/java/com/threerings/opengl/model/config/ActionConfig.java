@@ -73,7 +73,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String name = "";
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             final Function fn = ScopeUtil.resolve(scope, name, Function.NULL);
@@ -111,7 +111,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (GlContext ctx, final Scope scope)
         {
             // get an instance from the transient pool and immediately return it, but retain a
@@ -174,7 +174,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
@@ -220,7 +220,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(step=0.01)
         public Vector3f amplitude = new Vector3f(Vector3f.UNIT_Z);
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             final Transform3D transform = ScopeUtil.resolve(
@@ -270,7 +270,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig defaultAction = new CallFunction();
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             final BooleanExpression.Evaluator[] evaluators =
@@ -320,7 +320,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig[] actions = new ActionConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             final Executor[] executors = new Executor[actions.length];
@@ -346,7 +346,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public WeightedAction[] actions = new WeightedAction[0];
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             final float[] weights = new float[actions.length];

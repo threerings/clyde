@@ -883,7 +883,7 @@ public final class Matrix3f
             in.readFloat(), in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[[" + m00 + ", " + m10 + ", " + m20 + "], " +
@@ -891,7 +891,7 @@ public final class Matrix3f
             "[" + m02 + ", " + m12 + ", " + m22 + "]]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(m00) ^ Float.floatToIntBits(m10) ^ Float.floatToIntBits(m20) ^
@@ -899,7 +899,7 @@ public final class Matrix3f
             Float.floatToIntBits(m02) ^ Float.floatToIntBits(m12) ^ Float.floatToIntBits(m22);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Matrix3f)) {

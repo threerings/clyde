@@ -80,14 +80,14 @@ public class SimpleBatch extends Batch
             return _list;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean call ()
         {
             _list.call();
             return _modifiesColorState;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPrimitiveCount ()
         {
             return _primitiveCount;
@@ -115,14 +115,14 @@ public class SimpleBatch extends Batch
             _count = count;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean call ()
         {
             GL11.glDrawArrays(_mode, _first, _count);
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPrimitiveCount ()
         {
             return SimpleBatch.getPrimitiveCount(_mode, _count);
@@ -178,21 +178,21 @@ public class SimpleBatch extends Batch
             _offset = offset;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setLimits (int offset, int length)
         {
             _count = length;
             _offset = offset * sizeof(_type);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean call ()
         {
             GL11.glDrawElements(_mode, _count, _type, _offset);
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPrimitiveCount ()
         {
             return SimpleBatch.getPrimitiveCount(_mode, _count);
@@ -219,20 +219,20 @@ public class SimpleBatch extends Batch
             _indices = indices;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setLimits (int offset, int length)
         {
             _indices.limit(offset + length).position(offset);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean call ()
         {
             GL11.glDrawElements(_mode, _indices);
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPrimitiveCount ()
         {
             return SimpleBatch.getPrimitiveCount(_mode, _indices.remaining());
@@ -253,7 +253,7 @@ public class SimpleBatch extends Batch
             setRange(start, end);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setRange (int start, int end)
         {
             _start = start;
@@ -280,21 +280,21 @@ public class SimpleBatch extends Batch
             _offset = offset;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setLimits (int offset, int length)
         {
             _count = length;
             _offset = offset * sizeof(_type);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean call ()
         {
             GL12.glDrawRangeElements(_mode, _start, _end, _count, _type, _offset);
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPrimitiveCount ()
         {
             return SimpleBatch.getPrimitiveCount(_mode, _count);
@@ -321,20 +321,20 @@ public class SimpleBatch extends Batch
             _indices = indices;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setLimits (int offset, int length)
         {
             _indices.limit(offset + length).position(offset);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean call ()
         {
             GL12.glDrawRangeElements(_mode, _start, _end, _indices);
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPrimitiveCount ()
         {
             return SimpleBatch.getPrimitiveCount(_mode, _indices.remaining());
@@ -438,20 +438,20 @@ public class SimpleBatch extends Batch
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean draw (Renderer renderer)
     {
         renderer.setStates(_states);
         return _command.call();
     }
 
-    @Override // documentation inherited
+    @Override
     public int getPrimitiveCount ()
     {
         return _command.getPrimitiveCount();
     }
 
-    @Override // documentation inherited
+    @Override
     public SimpleBatch clone ()
     {
         // make a shallow clone of the states

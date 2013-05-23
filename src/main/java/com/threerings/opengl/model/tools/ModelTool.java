@@ -76,7 +76,7 @@ public abstract class ModelTool extends GlCanvasTool
         super(msgs);
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -89,7 +89,7 @@ public abstract class ModelTool extends GlCanvasTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -106,7 +106,7 @@ public abstract class ModelTool extends GlCanvasTool
         ((ModelToolPrefs)_eprefs).updateEnvironment();
     }
 
-    @Override // documentation inherited
+    @Override
     protected DebugBounds createBounds ()
     {
         return new DebugBounds(this) {
@@ -116,14 +116,14 @@ public abstract class ModelTool extends GlCanvasTool
         };
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
         _scene.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void compositeView ()
     {
         super.compositeView();

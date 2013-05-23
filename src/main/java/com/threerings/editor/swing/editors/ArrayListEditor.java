@@ -68,7 +68,7 @@ public abstract class ArrayListEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         _min = getMinSize();

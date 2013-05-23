@@ -63,7 +63,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class Startup extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             execute(timestamp);
@@ -75,7 +75,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class Shutdown extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             if (!endScene) {
@@ -89,7 +89,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class Reference extends HandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             if (_handler != null) {
@@ -97,7 +97,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             if (_handler != null) {
@@ -105,7 +105,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void variableChanged (int timestamp, Logic activator, String name)
         {
             if (_handler != null) {
@@ -113,7 +113,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -122,7 +122,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ConfigManager cfgmgr = _scenemgr.getConfigManager();
@@ -133,7 +133,7 @@ public abstract class HandlerLogic extends Logic
             _handler = original == null ? null : createHandler(original.handler, _source);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             if (_handler != null) {
@@ -158,20 +158,20 @@ public abstract class HandlerLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             _scenemgr.addTickParticipant(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _scenemgr.addTickParticipant(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.removeTickParticipant(this);
@@ -183,7 +183,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class Timer extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             final HandlerConfig.Timer config = (HandlerConfig.Timer)_config;
@@ -200,14 +200,14 @@ public abstract class HandlerLogic extends Logic
             }).schedule((long)(initialDelay * 1000f));
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _interval.cancel();
             _interval = null;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -228,7 +228,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class WarnTimer extends Timer
     {
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             super.startup(timestamp);
@@ -248,7 +248,7 @@ public abstract class HandlerLogic extends Logic
             }).schedule((long)(initialDelay * 1000f));
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             super.shutdown(timestamp, activator, endScene);
@@ -258,7 +258,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -267,7 +267,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -289,7 +289,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class Signal extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void signal (int timestamp, Logic source, String name)
         {
             HandlerConfig.Signal config = (HandlerConfig.Signal)_config;
@@ -299,7 +299,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -346,7 +346,7 @@ public abstract class HandlerLogic extends Logic
             return (_added = !_activated.isEmpty());
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.removeTickParticipant(this);
@@ -391,7 +391,7 @@ public abstract class HandlerLogic extends Logic
             super(true, false);
         }
 
-        @Override // documentation inherited
+        @Override
         public void signal (int timestamp, Logic source, String name)
         {
             if (((HandlerConfig.SignalStart)_config).name.equals(name)) {
@@ -413,7 +413,7 @@ public abstract class HandlerLogic extends Logic
             super(false, true);
         }
 
-        @Override // documentation inherited
+        @Override
         public void signal (int timestamp, Logic source, String name)
         {
             if (((HandlerConfig.SignalStop)_config).name.equals(name)) {
@@ -450,7 +450,7 @@ public abstract class HandlerLogic extends Logic
             _shape.setLocalShape(shape);
         }
 
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             Shape shape = ((HandlerConfig.BaseIntersection)_config).shape.getShape(
@@ -464,14 +464,14 @@ public abstract class HandlerLogic extends Logic
             _source.addShapeObserver(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             startup(0);
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             if (_shape != null) {
@@ -517,7 +517,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -610,7 +610,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             super.tick(timestamp);
@@ -623,7 +623,7 @@ public abstract class HandlerLogic extends Logic
             return _lastCount != 0;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -633,7 +633,7 @@ public abstract class HandlerLogic extends Logic
             _lastCount = bsource._lastCount;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -658,7 +658,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class ThresholdIntersectionCount extends BaseIntersectionCount
     {
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -667,7 +667,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -678,7 +678,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void countChanged (int timestamp, int newCount)
         {
             HandlerConfig.ThresholdIntersectionCount config =
@@ -700,7 +700,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class Request extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void request (int timestamp, PawnLogic source, String name)
         {
             HandlerConfig.Request config = (HandlerConfig.Request)_config;
@@ -742,7 +742,7 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             _target.resolve(_source, _targets);
@@ -751,7 +751,7 @@ public abstract class HandlerLogic extends Logic
             _scenemgr.addActorObserver(this);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -759,13 +759,13 @@ public abstract class HandlerLogic extends Logic
             startup(0);
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.removeActorObserver(this);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -803,7 +803,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class ActorAdded extends BaseActorObserver
     {
-        @Override // documentation inherited
+        @Override
         protected void targetActorAdded (ActorLogic logic)
         {
             execute(_scenemgr.getTimestamp(), logic);
@@ -815,7 +815,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class ActorRemoved extends BaseActorObserver
     {
-        @Override // documentation inherited
+        @Override
         protected void targetActorRemoved (ActorLogic logic)
         {
             if (_lastCount == 1 || !((HandlerConfig.ActorRemoved)_config).all) {
@@ -829,20 +829,20 @@ public abstract class HandlerLogic extends Logic
      */
     public static abstract class BaseBodyObserver extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup (int timestamp)
         {
             _scenemgr.getPlaceObject().addListener(_placelist);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             startup(0);
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             _scenemgr.getPlaceObject().removeListener(_placelist);
@@ -881,7 +881,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class BodyEntered extends BaseBodyObserver
     {
-        @Override // documentation inherited
+        @Override
         protected void bodyEntered (int pawnId)
         {
             ActorLogic logic = _scenemgr.getActorLogic(pawnId);
@@ -896,7 +896,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class BodyLeft extends BaseBodyObserver
     {
-        @Override // documentation inherited
+        @Override
         protected void bodyLeft (int pawnId)
         {
             ActorLogic logic = _scenemgr.getActorLogic(pawnId);
@@ -911,7 +911,7 @@ public abstract class HandlerLogic extends Logic
      */
     public static class VariableChanged extends ActionHandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void variableChanged (int timestamp, Logic activator, String name)
         {
             execute(timestamp, activator);
@@ -923,14 +923,14 @@ public abstract class HandlerLogic extends Logic
      */
     protected static class ActionHandlerLogic extends HandlerLogic
     {
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _action.transfer(((ActionHandlerLogic)source)._action, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -956,7 +956,7 @@ public abstract class HandlerLogic extends Logic
             _action.execute(timestamp, activator);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             // notify the action
@@ -1015,25 +1015,25 @@ public abstract class HandlerLogic extends Logic
         wasRemoved();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();

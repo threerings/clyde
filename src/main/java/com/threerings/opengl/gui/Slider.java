@@ -73,13 +73,13 @@ public class Slider extends Component
         return _model;
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return ((_orient == HORIZONTAL) ? "Default/H" : "Default/V") + "Slider";
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         super.updateFromStyleConfig(state, config);

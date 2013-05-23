@@ -61,7 +61,7 @@ public class ParameterizedConfig extends ManagedConfig
         return getParameter(parameters, name);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigReference<? extends ManagedConfig> getReference ()
     {
         ConfigReference<? extends ManagedConfig> ref = super.getReference();
@@ -71,7 +71,7 @@ public class ParameterizedConfig extends ManagedConfig
         return ref;
     }
 
-    @Override // documentation inherited
+    @Override
     public ParameterizedConfig getInstance (Scope scope, ArgumentMap args)
     {
         if (args == null || args.isEmpty() || parameters.length == 0) {
@@ -114,7 +114,7 @@ public class ParameterizedConfig extends ManagedConfig
         return instance.getBound(scope);
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasUpdated ()
     {
         // invalidate the parameter properties
@@ -139,7 +139,7 @@ public class ParameterizedConfig extends ManagedConfig
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean validateReferences (String where, PrintStream out)
     {
         // validate the parameter paths, too
@@ -150,7 +150,7 @@ public class ParameterizedConfig extends ManagedConfig
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public void validateOuters (String where)
     {
         for (Parameter parameter : parameters) {
@@ -158,7 +158,7 @@ public class ParameterizedConfig extends ManagedConfig
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void maybeFireOnConfigManager ()
     {
         // only fire for the base config

@@ -86,7 +86,7 @@ public class ToolServer extends TudeyServer
             });
         }
 
-        @Override // documentation inherited
+        @Override
         protected boolean shouldInitConfigManager ()
         {
             return false; // will be configured on application init
@@ -127,7 +127,7 @@ public class ToolServer extends TudeyServer
         return _scenerepo;
     }
 
-    @Override // documentation inherited
+    @Override
     public void init (Injector injector)
         throws Exception
     {
@@ -185,7 +185,7 @@ public class ToolServer extends TudeyServer
      */
     protected static class ToolClientResolver extends CrowdClientResolver
     {
-        @Override // documentation inherited
+        @Override
         public ClientObject createClientObject ()
         {
             return new TudeyBodyObject();

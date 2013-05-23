@@ -141,7 +141,7 @@ public class TableArrayListEditor extends ArrayListEditor
         fireStateChanged(true);
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         Object source = event.getSource();
@@ -176,7 +176,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         int min = 0, max = Integer.MAX_VALUE;
@@ -194,13 +194,13 @@ public class TableArrayListEditor extends ArrayListEditor
         updateSelected();
     }
 
-    @Override // documentation inherited
+    @Override
     public void makeVisible (int idx)
     {
         setSelection(idx, -1);
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         if (_opanel != null && _opanel.isAncestorOf(comp)) {
@@ -218,7 +218,7 @@ public class TableArrayListEditor extends ArrayListEditor
             ("[" + row + "]" + _columns[col].getPathComponent()));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -419,7 +419,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addValue (Object value)
     {
         super.addValue(value);
@@ -430,7 +430,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void copyValue (int idx)
     {
         super.copyValue(idx);
@@ -441,7 +441,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeValue (int idx)
     {
         super.removeValue(idx);

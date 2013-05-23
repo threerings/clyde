@@ -673,20 +673,20 @@ public final class Quaternion
         set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[" + x + ", " + y + ", " + z + ", " + w + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(x) ^ Float.floatToIntBits(y) ^
             Float.floatToIntBits(z) ^ Float.floatToIntBits(w);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Quaternion)) {

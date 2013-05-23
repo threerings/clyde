@@ -123,7 +123,7 @@ public class PopupMenu extends PopupWindow
         return super.dispatchEvent(event);
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/PopupMenu";

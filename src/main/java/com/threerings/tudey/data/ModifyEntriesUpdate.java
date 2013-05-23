@@ -62,7 +62,7 @@ public class ModifyEntriesUpdate extends SceneUpdate
         this.removed = removed;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (SceneModel model)
     {
         super.apply(model);

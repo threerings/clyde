@@ -73,19 +73,19 @@ public class LineState extends RenderState
         return _lineWidth;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return LINE_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setLineState(_lineWidth);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof LineState && _lineWidth == ((LineState)other)._lineWidth;

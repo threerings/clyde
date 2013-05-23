@@ -108,7 +108,7 @@ public class ConfigKey extends SimpleStreamableObject
         return this;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof ConfigKey)) {
@@ -118,7 +118,7 @@ public class ConfigKey extends SimpleStreamableObject
         return _cclass == okey._cclass && _name.equals(okey._name);
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[cclass=" + _cclass.getName() + ", name=" + _name + "]";

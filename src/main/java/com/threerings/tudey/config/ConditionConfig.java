@@ -70,13 +70,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Tagged";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -100,13 +100,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$InstanceOf";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -134,13 +134,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public RegionConfig second = new RegionConfig.Default();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Intersecting";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             first.invalidate();
@@ -161,13 +161,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable(editor="mask", mode="collision")
         public int collisionMask;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$IntersectsScene";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             region.invalidate();
@@ -203,13 +203,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public TargetConfig second = new TargetConfig.Activator();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$DistanceWithin";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             first.invalidate();
@@ -226,7 +226,7 @@ public abstract class ConditionConfig extends DeepObject
         @Editable(min=0, max=1, step=0.01)
         public float probability = 0.5f;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Random";
@@ -242,7 +242,7 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public int limit = 1;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Limit";
@@ -258,13 +258,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ConditionConfig[] conditions = new ConditionConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$All";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (ConditionConfig condition : conditions) {
@@ -282,13 +282,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ConditionConfig[] conditions = new ConditionConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Any";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (ConditionConfig condition : conditions) {
@@ -314,13 +314,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$FlagSet";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -336,7 +336,7 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public int time = 0;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Cooldown";
@@ -352,13 +352,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ConditionConfig condition = new ConditionConfig.Tagged();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Not";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             condition.invalidate();
@@ -370,7 +370,7 @@ public abstract class ConditionConfig extends DeepObject
      */
     public static class Always extends ConditionConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Always";
@@ -386,13 +386,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ExpressionConfig expression = new ExpressionConfig.Constant();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Evaluate";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             expression.invalidate();
@@ -408,19 +408,19 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ActionConfig action = new ActionConfig.SpawnActor();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Action";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             action.getPreloads(cfgmgr, preloads);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             action.invalidate();
@@ -444,13 +444,13 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public TargetConfig source = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Is";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -471,7 +471,7 @@ public abstract class ConditionConfig extends DeepObject
         @Editable(editor="datetime", nullable=true, hgroup="a")
         public Long end;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$DateRange";

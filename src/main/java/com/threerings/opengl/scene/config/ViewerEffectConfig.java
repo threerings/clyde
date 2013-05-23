@@ -73,7 +73,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<SounderConfig> sounder;
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
@@ -134,7 +134,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable
         public Color4f color = new Color4f(0f, 0f, 0f, 1f);
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             if (effect instanceof BackgroundColorEffect) {
@@ -163,7 +163,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable(step=0.01, hgroup="t")
         public Vector3f translationOrigin = new Vector3f();
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
@@ -218,7 +218,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
@@ -270,7 +270,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<RenderEffectConfig> renderEffect;
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
@@ -317,7 +317,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable
         public Color4fExpression amount = new Color4fExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, Scope scope, ViewerEffect effect)
         {
@@ -384,7 +384,7 @@ public abstract class ViewerEffectConfig extends DeepObject
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             amount.invalidate();

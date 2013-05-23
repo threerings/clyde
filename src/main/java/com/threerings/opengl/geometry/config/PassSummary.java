@@ -62,7 +62,7 @@ public class PassSummary extends DeepObject
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         int hash = 1;
@@ -73,7 +73,7 @@ public class PassSummary extends DeepObject
         return hash;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof PassSummary)) {

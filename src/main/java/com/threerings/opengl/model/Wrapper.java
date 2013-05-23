@@ -51,62 +51,62 @@ public class Wrapper extends Model.Implementation
         return _impl.getChildren();
     }
 
-    @Override // documentation inherited
+    @Override
     public Transform3D getPointWorldTransform (String point)
     {
         return _impl.getPointWorldTransform(point);
     }
 
 
-    @Override // documentation inherited
+    @Override
     public void attach (String point, Model model, boolean replace)
     {
         _impl.attach(point, model, replace);
     }
 
-    @Override // documentation inherited
+    @Override
     public void detach (Model model)
     {
         _impl.detach(model);
     }
 
-    @Override // documentation inherited
+    @Override
     public void detachAll (String point)
     {
         _impl.detachAll(point);
     }
 
-    @Override // documentation inherited
+    @Override
     public List<Animation> getPlayingAnimations ()
     {
         return _impl.getPlayingAnimations();
     }
 
-    @Override // documentation inherited
+    @Override
     public Animation getAnimation (String name)
     {
         return _impl.getAnimation(name);
     }
 
-    @Override // documentation inherited
+    @Override
     public Animation[] getAnimations ()
     {
         return _impl.getAnimations();
     }
 
-    @Override // documentation inherited
+    @Override
     public Animation createAnimation ()
     {
         return _impl.createAnimation();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _impl.hasCompleted();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVisible (boolean visible)
     {
         _impl.setVisible(visible);
@@ -118,85 +118,85 @@ public class Wrapper extends Model.Implementation
         _impl.visibilityWasSet();
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         _impl.reset();
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _impl.getInfluenceFlags();
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _impl.getBounds();
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         _impl.updateBounds();
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         _impl.drawBounds();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setTickPolicy (TickPolicy policy)
     {
         _impl.setTickPolicy(policy);
     }
 
-    @Override // documentation inherited
+    @Override
     public TickPolicy getTickPolicy ()
     {
         return _impl.getTickPolicy();
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         _impl.wasAdded();
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         _impl.willBeRemoved();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isImplementation (Model.Implementation impl)
     {
         return _impl == impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         _impl.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         return _impl.getIntersection(ray, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _impl.composite();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getScopeName ()
     {
         return _impl.getScopeName();

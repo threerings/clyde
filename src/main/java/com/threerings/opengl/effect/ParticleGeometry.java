@@ -82,31 +82,31 @@ public abstract class ParticleGeometry extends DynamicGeometry
             init(ctx, passes);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getMode ()
         {
             return GL11.GL_POINTS;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleVertexCount ()
         {
             return 1;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleIndexCount ()
         {
             return 1;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int[] getPrototypeIndices ()
         {
             return new int[] { 0 };
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateData ()
         {
             // get everything into local variables
@@ -156,31 +156,31 @@ public abstract class ParticleGeometry extends DynamicGeometry
             init(ctx, passes);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getMode ()
         {
             return GL11.GL_LINES;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleVertexCount ()
         {
             return 2;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleIndexCount ()
         {
             return 2;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int[] getPrototypeIndices ()
         {
             return new int[] { 0, 1 };
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateData ()
         {
             // get everything in local variables
@@ -286,25 +286,25 @@ public abstract class ParticleGeometry extends DynamicGeometry
             init(ctx, passes);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getMode ()
         {
             return GL11.GL_LINES;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleVertexCount ()
         {
             return _segments + 1;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleIndexCount ()
         {
             return _segments * 2;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int[] getPrototypeIndices ()
         {
             int[] prototype = new int[_segments * 2];
@@ -315,7 +315,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             return prototype;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateData ()
         {
             // get everything in local variables
@@ -388,31 +388,31 @@ public abstract class ParticleGeometry extends DynamicGeometry
             init(ctx, passes);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getMode ()
         {
             return GL11.GL_TRIANGLES;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleVertexCount ()
         {
             return 4;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleIndexCount ()
         {
             return 6;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int[] getPrototypeIndices ()
         {
             return new int[] { 0, 1, 2, 2, 1, 3 };
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateData ()
         {
             // get everything in local variables
@@ -546,25 +546,25 @@ public abstract class ParticleGeometry extends DynamicGeometry
             init(ctx, passes);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getMode ()
         {
             return GL11.GL_TRIANGLES;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleVertexCount ()
         {
             return (_segments + 1) * 2;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleIndexCount ()
         {
             return _segments * 6;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int[] getPrototypeIndices ()
         {
             int[] prototype = new int[_segments * 6];
@@ -581,7 +581,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             return prototype;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateData ()
         {
             // get everything in local variables
@@ -776,25 +776,25 @@ public abstract class ParticleGeometry extends DynamicGeometry
             _sourceTexCoordOffset = 0;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getMode ()
         {
             return _geom.mode.getConstant();
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleVertexCount ()
         {
             return _geom.getVertexCount();
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getParticleIndexCount ()
         {
             return _geom.indices.capacity();
         }
 
-        @Override // documentation inherited
+        @Override
         protected int[] getPrototypeIndices ()
         {
             int[] prototype = new int[_geom.indices.capacity()];
@@ -804,7 +804,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             return prototype;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateData ()
         {
             // get everything in local variables
@@ -977,25 +977,25 @@ public abstract class ParticleGeometry extends DynamicGeometry
         ScopeUtil.updateBound(this, scope);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector3f getCenter ()
     {
         return _center;
     }
 
-    @Override // documentation inherited
+    @Override
     public ArrayState getArrayState (int pass)
     {
         return _arrayStates[pass];
     }
 
-    @Override // documentation inherited
+    @Override
     public DrawCommand getDrawCommand (int pass)
     {
         return _drawCommand;
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         super.update();

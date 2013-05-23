@@ -48,20 +48,20 @@ public class MutableFloat
     {
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(value);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof MutableFloat &&
             Float.floatToIntBits(((MutableFloat)other).value) == Float.floatToIntBits(value);
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return String.valueOf(value);

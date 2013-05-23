@@ -71,7 +71,7 @@ public class StaticSetConfig extends ModelConfig.Imported
             ArrayUtil.EMPTY_STRING : meshes.keySet().toArray(new String[meshes.size()]);
     }
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -94,20 +94,20 @@ public class StaticSetConfig extends ModelConfig.Imported
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         _resolved = null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected VisibleMesh getParticleMesh ()
     {
         MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
         return (mset == null || mset.visible.length == 0) ? null : mset.visible[0];
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromSource (ModelDef def)
     {
         if (def == null) {
@@ -118,7 +118,7 @@ public class StaticSetConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTextures (TreeSet<String> textures)
     {
         if (meshes != null) {
@@ -128,7 +128,7 @@ public class StaticSetConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
     {
         if (meshes != null) {

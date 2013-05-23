@@ -58,7 +58,7 @@ public class FadeLabel extends Label
         _label.tick((int)(elapsed * 1000));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasAdded ()
     {
         super.wasAdded();
@@ -66,7 +66,7 @@ public class FadeLabel extends Label
         _root.addTickParticipant(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasRemoved ()
     {
         super.wasRemoved();

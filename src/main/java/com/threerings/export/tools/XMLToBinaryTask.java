@@ -64,7 +64,7 @@ public class XMLToBinaryTask extends Task
         _filesets.add(set);
     }
 
-    @Override // documentation inherited
+    @Override
     public void execute ()
         throws BuildException
     {

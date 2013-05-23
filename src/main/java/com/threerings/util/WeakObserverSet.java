@@ -134,7 +134,7 @@ public class WeakObserverSet<T>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return _set.toString();
@@ -168,19 +168,19 @@ public class WeakObserverSet<T>
             super(referent);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return System.identityHashCode(get());
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return get() == ((ObserverRef<?>)other).get();
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return String.valueOf(get());

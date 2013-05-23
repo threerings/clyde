@@ -89,7 +89,7 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
         @Editable(nullable=true)
         public ConfigReference<MaterialConfig> material;
 
-        @Override // documentation inherited
+        @Override
         public Resolved generate (GlContext ctx, int influenceFlags)
         {
             float lx = -sizeX/2f, ux = +sizeX/2f;
@@ -116,7 +116,7 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
     @Editable
     public Generator generator = new Quad();
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -133,7 +133,7 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         _resolved = null;

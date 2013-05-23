@@ -70,7 +70,7 @@ public abstract class MaterialRewriter extends DeepObject
      */
     public static class Translucent extends MaterialRewriter
     {
-        @Override // documentation inherited
+        @Override
         protected TechniqueConfig.Enqueuer rewrite (TechniqueConfig.NormalEnqueuer enqueuer)
         {
             enqueuer = (TechniqueConfig.NormalEnqueuer)super.rewrite(enqueuer);
@@ -78,7 +78,7 @@ public abstract class MaterialRewriter extends DeepObject
             return enqueuer;
         }
 
-        @Override // documentation inherited
+        @Override
         protected TechniqueConfig.Enqueuer rewrite (TechniqueConfig.GroupedEnqueuer enqueuer)
         {
             enqueuer = (TechniqueConfig.GroupedEnqueuer)super.rewrite(enqueuer);
@@ -86,7 +86,7 @@ public abstract class MaterialRewriter extends DeepObject
             return enqueuer;
         }
 
-        @Override // documentation inherited
+        @Override
         protected AlphaStateConfig rewrite (AlphaStateConfig alphaState)
         {
             alphaState.testFunc = AlphaStateConfig.TestFunc.ALWAYS;
@@ -96,7 +96,7 @@ public abstract class MaterialRewriter extends DeepObject
             return alphaState;
         }
 
-        @Override // documentation inherited
+        @Override
         protected DepthStateConfig rewrite (DepthStateConfig depthState)
         {
             depthState.mask = false;
@@ -121,7 +121,7 @@ public abstract class MaterialRewriter extends DeepObject
         @Editable(hgroup="t")
         public boolean s, t, r, q;
 
-        @Override // documentation inherited
+        @Override
         protected PassConfig rewrite (PassConfig pass)
         {
             pass = super.rewrite(pass);
@@ -177,7 +177,7 @@ public abstract class MaterialRewriter extends DeepObject
             return pass;
         }
 
-        @Override // documentation inherited
+        @Override
         protected TextureStateConfig rewrite (TextureStateConfig textureState)
         {
             textureState = super.rewrite(textureState);
@@ -185,7 +185,7 @@ public abstract class MaterialRewriter extends DeepObject
             return textureState;
         }
 
-        @Override // documentation inherited
+        @Override
         protected TextureUnitConfig rewrite (TextureUnitConfig textureUnit)
         {
             textureUnit.coordGenS =

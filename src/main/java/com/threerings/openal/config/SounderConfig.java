@@ -164,13 +164,13 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(min=0, step=0.01, hgroup="g", weight=-1)
         public float pitch = 1f;
 
-        @Override // documentation inherited
+        @Override
         public float getGain ()
         {
             return gain;
         }
 
-        @Override // documentation inherited
+        @Override
         public float getPitch ()
         {
             return pitch;
@@ -190,13 +190,13 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(min=0, step=0.01, weight=-1)
         public FloatVariable pitch = new FloatVariable.Constant(1f);
 
-        @Override // documentation inherited
+        @Override
         public float getGain ()
         {
             return gain.getValue();
         }
 
-        @Override // documentation inherited
+        @Override
         public float getPitch ()
         {
             return pitch.getValue();
@@ -226,7 +226,7 @@ public class SounderConfig extends ParameterizedConfig
             directory="sound_dir")
         public String file;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (file != null) {
@@ -234,7 +234,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -259,7 +259,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(weight=-3)
         public PitchWeightedFile[] files = new PitchWeightedFile[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             for (WeightedFile wfile : files) {
@@ -269,7 +269,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -302,7 +302,7 @@ public class SounderConfig extends ParameterizedConfig
             directory="sound_dir")
         public String file;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (file != null) {
@@ -310,7 +310,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -375,7 +375,7 @@ public class SounderConfig extends ParameterizedConfig
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             for (QueuedFile queued : queue) {
@@ -385,7 +385,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -433,7 +433,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(min=0, step=0.01, hgroup="f")
         public float crossFade;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             for (WeightedFile wfile : files) {
@@ -443,7 +443,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -505,7 +505,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<SounderConfig> defaultSounder;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Case caze : cases) {
@@ -514,7 +514,7 @@ public class SounderConfig extends ParameterizedConfig
             refs.add(SounderConfig.class, defaultSounder);
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -526,7 +526,7 @@ public class SounderConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Case caze : cases) {
@@ -559,7 +559,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable
         public ComponentSounder[] sounders = new ComponentSounder[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (ComponentSounder comp : sounders) {
@@ -567,7 +567,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -596,7 +596,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable
         public ComponentSounder[] sounders = new ComponentSounder[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (ComponentSounder comp : sounders) {
@@ -604,7 +604,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -644,7 +644,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable
         public TimedSounder[] sounders = new TimedSounder[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (TimedSounder comp : sounders) {
@@ -652,7 +652,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -692,7 +692,7 @@ public class SounderConfig extends ParameterizedConfig
         @Editable
         public WeightedSounder[] sounders = new WeightedSounder[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (WeightedSounder comp : sounders) {
@@ -700,7 +700,7 @@ public class SounderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -740,13 +740,13 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<SounderConfig> sounder;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(SounderConfig.class, sounder);
         }
 
-        @Override // documentation inherited
+        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -773,7 +773,7 @@ public class SounderConfig extends ParameterizedConfig
         return implementation.getSounderImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -781,13 +781,13 @@ public class SounderConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateResources (HashSet<String> paths)
     {
         implementation.getUpdateResources(paths);

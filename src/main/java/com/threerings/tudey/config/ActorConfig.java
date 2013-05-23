@@ -179,7 +179,7 @@ public class ActorConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
@@ -191,14 +191,14 @@ public class ActorConfig extends ParameterizedConfig
             return shape;
         }
 
-        @Override // documentation inherited
+        @Override
         public ActorSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
             return sprite.getImplementation(ctx, scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             sprite.invalidate();
@@ -241,13 +241,13 @@ public class ActorConfig extends ParameterizedConfig
             this.isStatic = false;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.MobileLogic";
         }
 
-        @Override // documentation inherited
+        @Override
         public Actor createActor (
             ConfigReference<ActorConfig> config, int id, int created,
             Vector2f translation, float rotation)
@@ -271,13 +271,13 @@ public class ActorConfig extends ParameterizedConfig
             stasisInterval = 0;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.PawnLogic";
         }
 
-        @Override // documentation inherited
+        @Override
         public Actor createActor (
             ConfigReference<ActorConfig> config, int id, int created,
             Vector2f translation, float rotation)
@@ -301,13 +301,13 @@ public class ActorConfig extends ParameterizedConfig
         @Strippable
         public ConfigReference<BehaviorConfig> behavior;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.AgentLogic";
         }
 
-        @Override // documentation inherited
+        @Override
         public Actor createActor (
             ConfigReference<ActorConfig> config, int id, int created,
             Vector2f translation, float rotation)
@@ -316,7 +316,7 @@ public class ActorConfig extends ParameterizedConfig
                 config, id, created, translation, rotation);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(BehaviorConfig.class, behavior);
@@ -332,13 +332,13 @@ public class ActorConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ActorConfig> actor;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ActorConfig.class, actor);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
@@ -351,7 +351,7 @@ public class ActorConfig extends ParameterizedConfig
             return getOriginal(cfgmgr).getShape(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public ActorSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
@@ -386,7 +386,7 @@ public class ActorConfig extends ParameterizedConfig
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -394,7 +394,7 @@ public class ActorConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

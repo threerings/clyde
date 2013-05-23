@@ -61,7 +61,7 @@ public abstract class ClientActionConfig extends DeepObject
         @Editable
         public String argument = "";
 
-        @Override // documentation inherited
+        @Override
         public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
         {
             if (!view.getController().handleAction(source, command, argument)) {
@@ -79,7 +79,7 @@ public abstract class ClientActionConfig extends DeepObject
         @Editable
         public String name = "";
 
-        @Override // documentation inherited
+        @Override
         public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
         {
             view.getController().submitRequest(source, name);
@@ -95,7 +95,7 @@ public abstract class ClientActionConfig extends DeepObject
         @Editable
         public ClientActionConfig[] actions = new ClientActionConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
         {
             for (ClientActionConfig action : actions) {

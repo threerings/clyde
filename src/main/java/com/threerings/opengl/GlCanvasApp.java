@@ -143,13 +143,13 @@ public abstract class GlCanvasApp extends GlApp
         ((GlCanvas)_canvas).makeCurrent();
     }
 
-    @Override // documentation inherited
+    @Override
     public RunQueue getRunQueue ()
     {
         return RunQueue.AWT;
     }
 
-    @Override // documentation inherited
+    @Override
     public Root createRoot ()
     {
         if (_canvasRoot == null) {
@@ -158,13 +158,13 @@ public abstract class GlCanvasApp extends GlApp
         return _canvasRoot;
     }
 
-    @Override // documentation inherited
+    @Override
     public void startup ()
     {
         _frame.setVisible(true);
     }
 
-    @Override // documentation inherited
+    @Override
     public void shutdown ()
     {
         willShutdown();
@@ -172,13 +172,13 @@ public abstract class GlCanvasApp extends GlApp
         System.exit(0);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void initRenderer ()
     {
         _renderer.init(((GlCanvas)_canvas).getDrawable(), _canvas.getWidth(), _canvas.getHeight());
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         // enable vsync unless configured otherwise
@@ -198,7 +198,7 @@ public abstract class GlCanvasApp extends GlApp
         _keymgr.setEnabled(true);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void willShutdown ()
     {
         if (_canvasRoot != null) {

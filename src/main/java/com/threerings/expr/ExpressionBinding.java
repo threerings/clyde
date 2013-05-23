@@ -71,7 +71,7 @@ public abstract class ExpressionBinding extends DeepObject
         @Editable
         public FloatExpression expression = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             final FloatExpression.Evaluator evaluator = expression.createEvaluator(scope);
@@ -90,7 +90,7 @@ public abstract class ExpressionBinding extends DeepObject
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -107,7 +107,7 @@ public abstract class ExpressionBinding extends DeepObject
         @Editable
         public IntegerExpression expression = new IntegerExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             final IntegerExpression.Evaluator evaluator = expression.createEvaluator(scope);
@@ -126,7 +126,7 @@ public abstract class ExpressionBinding extends DeepObject
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -143,13 +143,13 @@ public abstract class ExpressionBinding extends DeepObject
         @Editable
         public Color4fExpression expression = new Color4fExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, Color4f.class);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -166,13 +166,13 @@ public abstract class ExpressionBinding extends DeepObject
         @Editable
         public StringExpression expression = new StringExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, String.class);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -189,13 +189,13 @@ public abstract class ExpressionBinding extends DeepObject
         @Editable
         public Transform3DExpression expression = new Transform3DExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, Transform3D.class);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();

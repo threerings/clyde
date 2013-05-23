@@ -69,7 +69,7 @@ public class EffectSprite extends Sprite
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";

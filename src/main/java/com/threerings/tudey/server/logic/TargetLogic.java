@@ -59,7 +59,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Source extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             results.add(_source.resolveTarget());
@@ -71,7 +71,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Activator extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             results.add(activator.resolveTarget());
@@ -83,7 +83,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class ActivatorOf extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
@@ -95,14 +95,14 @@ public abstract class TargetLogic extends Logic
             _targets.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _target.transfer(((ActivatorOf)source)._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((TargetConfig.ActivatorOf)_config).target, _source);
@@ -120,7 +120,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Tagged extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             TargetConfig.Tagged config = (TargetConfig.Tagged)_config;
@@ -133,13 +133,13 @@ public abstract class TargetLogic extends Logic
      */
     public static class InstanceOf extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             results.addAll(_scenemgr.getInstances(_logicClass));
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             try {
@@ -163,7 +163,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Intersecting extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _region.resolve(activator, _shapes);
@@ -196,14 +196,14 @@ public abstract class TargetLogic extends Logic
             _shapes.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _region.transfer(((Intersecting)source)._region, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _region = createRegion(((TargetConfig.Intersecting)_config).region, _source);
@@ -224,7 +224,7 @@ public abstract class TargetLogic extends Logic
      */
     public static abstract class Subset extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
@@ -237,14 +237,14 @@ public abstract class TargetLogic extends Logic
             _targets.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _target.transfer(((Subset)source)._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((TargetConfig.Subset)_config).target, _source);
@@ -268,7 +268,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class RandomSubset extends Subset
     {
-        @Override // documentation inherited
+        @Override
         protected void selectSubset (int size, Logic activator, Collection<Logic> results)
         {
             if (size == 1) {
@@ -285,21 +285,21 @@ public abstract class TargetLogic extends Logic
     public static abstract class DistanceSubset extends Subset
         implements Comparator<Logic>
     {
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
             _location = createTarget(((TargetConfig.DistanceSubset)_config).location, _source);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _location.transfer(((DistanceSubset)source)._location, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void selectSubset (int size, Logic activator, Collection<Logic> results)
         {
             // average the locations
@@ -362,7 +362,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Conditional extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
@@ -375,7 +375,7 @@ public abstract class TargetLogic extends Logic
             _targets.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -385,7 +385,7 @@ public abstract class TargetLogic extends Logic
             _target.transfer(csource._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             TargetConfig.Conditional config = (TargetConfig.Conditional)_config;
@@ -408,7 +408,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Compound extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             for (TargetLogic target : _targets) {
@@ -416,7 +416,7 @@ public abstract class TargetLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -427,7 +427,7 @@ public abstract class TargetLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ArrayList<TargetLogic> list = Lists.newArrayList();
@@ -449,7 +449,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Behavior extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
@@ -465,14 +465,14 @@ public abstract class TargetLogic extends Logic
             _targets.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _target.transfer(((Behavior)source)._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((TargetConfig.Behavior)_config).target, _source);
@@ -490,7 +490,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Excluding extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
@@ -505,7 +505,7 @@ public abstract class TargetLogic extends Logic
             _targets.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -515,7 +515,7 @@ public abstract class TargetLogic extends Logic
             _excluding.transfer(esource._excluding, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             TargetConfig.Excluding config = (TargetConfig.Excluding)_config;
@@ -541,7 +541,7 @@ public abstract class TargetLogic extends Logic
      */
     public static class Randomized extends TargetLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
@@ -550,14 +550,14 @@ public abstract class TargetLogic extends Logic
             _targets.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _target.transfer(((Randomized)source)._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((TargetConfig.Randomized)_config).target, _source);
@@ -590,25 +590,25 @@ public abstract class TargetLogic extends Logic
      */
     public abstract void resolve (Logic activator, Collection<Logic> results);
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();

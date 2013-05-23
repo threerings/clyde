@@ -69,7 +69,7 @@ public abstract class ColorFunctionVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction getValue (ColorFunction result)
         {
             return function.copy(result);
@@ -85,7 +85,7 @@ public abstract class ColorFunctionVariable extends DeepObject
         @Editable(mode=Editable.INHERIT_STRING)
         public ColorVariable value = new ColorVariable.Constant();
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction getValue (ColorFunction result)
         {
             ColorFunction.Constant cresult = (result instanceof ColorFunction.Constant) ?
@@ -112,7 +112,7 @@ public abstract class ColorFunctionVariable extends DeepObject
         @Editable
         public Easing easing = new Easing.None();
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction getValue (ColorFunction result)
         {
             ColorFunction.Linear lresult = (result instanceof ColorFunction.Linear) ?

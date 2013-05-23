@@ -49,7 +49,7 @@ public abstract class RegionLogic extends Logic
      */
     public static abstract class Located extends RegionLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Shape> results)
         {
             _location.resolve(activator, _locations);
@@ -57,14 +57,14 @@ public abstract class RegionLogic extends Logic
             _locations.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _location.transfer(((Located)source)._location, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _location = createTarget(((RegionConfig.Located)_config).location, _source);
@@ -87,7 +87,7 @@ public abstract class RegionLogic extends Logic
      */
     public static class Default extends Located
     {
-        @Override // documentation inherited
+        @Override
         protected void getShapes (Collection<Shape> results)
         {
             float expansion = ((RegionConfig.Default)_config).expansion;
@@ -105,7 +105,7 @@ public abstract class RegionLogic extends Logic
      */
     public static class Transformed extends Located
     {
-        @Override // documentation inherited
+        @Override
         protected void getShapes (Collection<Shape> results)
         {
             Shape shape = ((RegionConfig.Transformed)_config).shape.getShape();
@@ -124,7 +124,7 @@ public abstract class RegionLogic extends Logic
      */
     public static class Fixed extends RegionLogic
     {
-        @Override // documentation inherited
+        @Override
         public void resolve (Logic activator, Collection<Shape> results)
         {
             results.add(((RegionConfig.Fixed)_config).shape.getShape());
@@ -149,25 +149,25 @@ public abstract class RegionLogic extends Logic
      */
     public abstract void resolve (Logic activator, Collection<Shape> results);
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();

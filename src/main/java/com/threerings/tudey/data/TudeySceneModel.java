@@ -431,13 +431,13 @@ public class TudeySceneModel extends SceneModel
             return config.getDirectionFlags(_location.x, _location.y, rotation, x, y);
         }
 
-        @Override // documentation inherited
+        @Override
         public Object getKey ()
         {
             return _location;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<TileConfig> ref =
@@ -445,25 +445,25 @@ public class TudeySceneModel extends SceneModel
             tile = ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference getReference ()
         {
             return tile;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != TileConfig.NULL_ORIGINAL;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getElevation ()
         {
             return elevation;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getBounds (ConfigManager cfgmgr, Rect result)
         {
             TileConfig.Original config = getConfig(cfgmgr);
@@ -472,31 +472,31 @@ public class TudeySceneModel extends SceneModel
                 _location.x + getWidth(config), _location.y + getHeight(config));
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
         }
 
-        @Override // documentation inherited
+        @Override
         public String[] getTags (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).tags.getTags();
         }
 
-        @Override // documentation inherited
+        @Override
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isDefaultEntrance (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).defaultEntrance;
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector2f getTranslation (ConfigManager cfgmgr)
         {
             TileConfig.Original config = getConfig(cfgmgr);
@@ -504,19 +504,19 @@ public class TudeySceneModel extends SceneModel
                 _location.x + getWidth(config) * 0.5f, _location.y + getHeight(config) * 0.5f);
         }
 
-        @Override // documentation inherited
+        @Override
         public float getRotation (ConfigManager cfgmgr)
         {
             return FloatMath.normalizeAngle((rotation - 1) * FloatMath.HALF_PI);
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<ModelConfig> getModel (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).model;
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape createShape (ConfigManager cfgmgr)
         {
             TileConfig.Original config = getConfig(cfgmgr);
@@ -527,7 +527,7 @@ public class TudeySceneModel extends SceneModel
                 new Vector2f(ux, uy), new Vector2f(lx, uy));
         }
 
-        @Override // documentation inherited
+        @Override
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             // update the elevation
@@ -550,7 +550,7 @@ public class TudeySceneModel extends SceneModel
                 Math.round(center.y - getHeight(config) * 0.5f));
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(TileConfig.class, tile))) {
@@ -558,13 +558,13 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new TileCursor(ctx, view, this);
         }
 
-        @Override // documentation inherited
+        @Override
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new TileSprite(ctx, view, this);
@@ -602,7 +602,7 @@ public class TudeySceneModel extends SceneModel
             return _id - other._id;
         }
 
-        @Override // documentation inherited
+        @Override
         public Object getKey ()
         {
             return _id;
@@ -632,7 +632,7 @@ public class TudeySceneModel extends SceneModel
             return (original == null) ? SceneGlobalConfig.NULL_ORIGINAL : original;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<SceneGlobalConfig> ref =
@@ -640,37 +640,37 @@ public class TudeySceneModel extends SceneModel
             sceneGlobal = ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference getReference ()
         {
             return sceneGlobal;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != SceneGlobalConfig.NULL_ORIGINAL;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
         }
 
-        @Override // documentation inherited
+        @Override
         public String[] getTags (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).tags.getTags();
         }
 
-        @Override // documentation inherited
+        @Override
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(SceneGlobalConfig.class, sceneGlobal))) {
@@ -678,7 +678,7 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new GlobalSprite(ctx, view, this);
@@ -720,7 +720,7 @@ public class TudeySceneModel extends SceneModel
             return (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<PlaceableConfig> ref =
@@ -728,33 +728,33 @@ public class TudeySceneModel extends SceneModel
             placeable = ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference getReference ()
         {
             return placeable;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != PlaceableConfig.NULL_ORIGINAL;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getElevation ()
         {
             transform.update(Transform3D.RIGID);
             return TudeySceneMetrics.getTileElevation(transform.getTranslation().z);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getBounds (ConfigManager cfgmgr, Rect result)
         {
             Shape shape = getConfig(cfgmgr).shape.getShape().transform(new Transform2D(transform));
             result.set(shape.getBounds());
         }
 
-        @Override // documentation inherited
+        @Override
         public int getCollisionFlags (ConfigManager cfgmgr)
         {
             if (_collisionFlags == -1) {
@@ -763,7 +763,7 @@ public class TudeySceneModel extends SceneModel
             return _collisionFlags;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getDirectionFlags (ConfigManager cfgmgr)
         {
             if (_directionFlags == -1) {
@@ -776,31 +776,31 @@ public class TudeySceneModel extends SceneModel
             return _directionFlags;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
         }
 
-        @Override // documentation inherited
+        @Override
         public String[] getTags (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).tags.getTags();
         }
 
-        @Override // documentation inherited
+        @Override
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isDefaultEntrance (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).defaultEntrance;
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector2f getTranslation (ConfigManager cfgmgr)
         {
             transform.update(Transform3D.RIGID);
@@ -808,7 +808,7 @@ public class TudeySceneModel extends SceneModel
             return new Vector2f(translation.x, translation.y);
         }
 
-        @Override // documentation inherited
+        @Override
         public float getRotation (ConfigManager cfgmgr)
         {
             transform.update(Transform3D.RIGID);
@@ -816,25 +816,25 @@ public class TudeySceneModel extends SceneModel
                 transform.getRotation().getRotationZ() - FloatMath.HALF_PI);
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<ModelConfig> getModel (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).model;
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape createShape (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).shape.getShape().transform(new Transform2D(transform));
         }
 
-        @Override // documentation inherited
+        @Override
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             xform.compose(transform, transform);
         }
 
-        @Override // documentation inherited
+        @Override
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
             PlaceableConfig.Original config = getConfig(cfgmgr);
@@ -846,7 +846,7 @@ public class TudeySceneModel extends SceneModel
             return element;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(PlaceableConfig.class, placeable))) {
@@ -854,13 +854,13 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new PlaceableCursor(ctx, view, this);
         }
 
-        @Override // documentation inherited
+        @Override
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new PlaceableSprite(ctx, view, this);
@@ -896,7 +896,7 @@ public class TudeySceneModel extends SceneModel
             return (original == null) ? PathConfig.NULL_ORIGINAL : original;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<PathConfig> ref =
@@ -904,19 +904,19 @@ public class TudeySceneModel extends SceneModel
             path = ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference getReference ()
         {
             return path;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != PathConfig.NULL_ORIGINAL;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getBounds (ConfigManager cfgmgr, Rect result)
         {
             result.setToEmpty();
@@ -925,44 +925,44 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
         }
 
-        @Override // documentation inherited
+        @Override
         public String[] getTags (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).tags.getTags();
         }
 
-        @Override // documentation inherited
+        @Override
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isDefaultEntrance (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).defaultEntrance;
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector2f getTranslation (ConfigManager cfgmgr)
         {
             return (vertices.length == 0) ? Vector2f.ZERO : vertices[0].createVector();
         }
 
-        @Override // documentation inherited
+        @Override
         public float getRotation (ConfigManager cfgmgr)
         {
             return (vertices.length < 2) ? 0f : FloatMath.atan2(
                 vertices[1].y - vertices[0].y, vertices[1].x - vertices[0].x);
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape createShape (ConfigManager cfgmgr)
         {
             switch (vertices.length) {
@@ -972,7 +972,7 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector2f[] createPatrolPath (Shape shape)
         {
             if (vertices.length == 0) {
@@ -985,7 +985,7 @@ public class TudeySceneModel extends SceneModel
             return path;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
@@ -994,7 +994,7 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
             Shape shape = createShape(cfgmgr);
@@ -1006,7 +1006,7 @@ public class TudeySceneModel extends SceneModel
             return element;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(PathConfig.class, path))) {
@@ -1014,13 +1014,13 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new PathCursor(ctx, view, this);
         }
 
-        @Override // documentation inherited
+        @Override
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new PathSprite(ctx, view, this);
@@ -1062,7 +1062,7 @@ public class TudeySceneModel extends SceneModel
             return (original == null) ? AreaConfig.NULL_ORIGINAL : original;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<AreaConfig> ref =
@@ -1070,19 +1070,19 @@ public class TudeySceneModel extends SceneModel
             area = ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference getReference ()
         {
             return area;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != AreaConfig.NULL_ORIGINAL;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getBounds (ConfigManager cfgmgr, Rect result)
         {
             result.setToEmpty();
@@ -1091,31 +1091,31 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
         }
 
-        @Override // documentation inherited
+        @Override
         public String[] getTags (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).tags.getTags();
         }
 
-        @Override // documentation inherited
+        @Override
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isDefaultEntrance (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).defaultEntrance;
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector2f getTranslation (ConfigManager cfgmgr)
         {
             if (vertices.length == 0) {
@@ -1128,7 +1128,7 @@ public class TudeySceneModel extends SceneModel
             return result.multLocal(1f / vertices.length);
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape createShape (ConfigManager cfgmgr)
         {
             switch (vertices.length) {
@@ -1146,7 +1146,7 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
@@ -1155,7 +1155,7 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
             Shape shape = createShape(cfgmgr);
@@ -1167,7 +1167,7 @@ public class TudeySceneModel extends SceneModel
             return element;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(AreaConfig.class, area))) {
@@ -1175,13 +1175,13 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new AreaCursor(ctx, view, this);
         }
 
-        @Override // documentation inherited
+        @Override
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new AreaSprite(ctx, view, this);
@@ -2409,7 +2409,7 @@ public class TudeySceneModel extends SceneModel
         return direction;
     }
 
-    @Override // documentation inherited
+    @Override
     public TudeySceneModel clone ()
     {
         // start with a deep copy

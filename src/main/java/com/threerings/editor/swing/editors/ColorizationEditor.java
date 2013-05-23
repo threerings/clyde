@@ -70,7 +70,7 @@ public class ColorizationEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         int value = (Integer)_property.get(_object);
@@ -112,7 +112,7 @@ public class ColorizationEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         String mode = getMode();
@@ -192,13 +192,13 @@ public class ColorizationEditor extends PropertyEditor
             return record.classId - other.record.classId;
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return record.name;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return record == ((ClassItem)other).record;
@@ -225,13 +225,13 @@ public class ColorizationEditor extends PropertyEditor
             return record.colorId - other.record.colorId;
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return record.name;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return record == ((ColorItem)other).record;

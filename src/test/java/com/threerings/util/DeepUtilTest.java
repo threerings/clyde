@@ -41,7 +41,7 @@ public class DeepUtilTest extends TestCase
         super(name);
     }
 
-    @Override // documentation inherited
+    @Override
     public void setUp ()
     {
         // use a fixed seed so that our results are reproducible

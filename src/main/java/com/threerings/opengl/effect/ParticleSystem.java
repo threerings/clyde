@@ -97,7 +97,7 @@ public class ParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (BaseParticleSystemConfig.Layer config)
         {
             super.setConfig(config);
@@ -123,7 +123,7 @@ public class ParticleSystem extends BaseParticleSystem
             _geometryRadius = psconfig.geometry.getRadius(_ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void composite ()
         {
             if (!_config.visible || _living.value == 0) {
@@ -136,7 +136,7 @@ public class ParticleSystem extends BaseParticleSystem
             _surface.composite();
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -145,7 +145,7 @@ public class ParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void initParticle (int idx)
         {
             ParticleSystemConfig.Layer psconfig = (ParticleSystemConfig.Layer)_config;
@@ -158,7 +158,7 @@ public class ParticleSystem extends BaseParticleSystem
                     !psconfig.geometry.getMoveTrailsWithParticles()) ? _worldTransform : null);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void addBounds ()
         {
             // get the center of the bounds before transforming them
@@ -200,13 +200,13 @@ public class ParticleSystem extends BaseParticleSystem
         setConfig(ctx, config);
     }
 
-    @Override // documentation inherited
+    @Override
     protected BaseParticleSystem.Layer createLayer (BaseParticleSystemConfig.Layer config)
     {
         return new Layer(_ctx, this, config);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void resetBounds ()
     {
         super.resetBounds();

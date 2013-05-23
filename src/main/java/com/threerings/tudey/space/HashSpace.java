@@ -61,7 +61,7 @@ public class HashSpace extends Space
         _levels = levels;
     }
 
-    @Override // documentation inherited
+    @Override
     public SpaceElement getIntersection (
         Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter)
     {
@@ -126,7 +126,7 @@ public class HashSpace extends Space
         return closest;
     }
 
-    @Override // documentation inherited
+    @Override
     public void getIntersecting (Shape shape, Predicate<? super SpaceElement> filter,
             Collection<SpaceElement> results)
     {
@@ -159,33 +159,33 @@ public class HashSpace extends Space
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void getElements (Rect bounds, Collection<SpaceElement> results)
     {
         getIntersecting(_elements, _oversizedElements, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsWillChange (SpaceElement element)
     {
         super.boundsWillChange(element);
         removeFromSpatial(element);
     }
 
-    @Override // documentation inherited
+    @Override
     public void boundsDidChange (SpaceElement element)
     {
         addToSpatial(element);
         super.boundsDidChange(element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (SpaceElement element)
     {
         add(_elements, _oversizedElements, element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (SpaceElement element)
     {
         remove(_elements, _oversizedElements, element);
@@ -566,7 +566,7 @@ public class HashSpace extends Space
             _levels = levels;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isEmpty ()
         {
             if (!super.isEmpty()) {
@@ -580,7 +580,7 @@ public class HashSpace extends Space
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void add (T object, int level)
         {
             if (level == 0) {
@@ -604,7 +604,7 @@ public class HashSpace extends Space
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void remove (T object, int level)
         {
             if (level == 0) {
@@ -625,7 +625,7 @@ public class HashSpace extends Space
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public T getIntersection (Ray2D ray, Vector2f location, Predicate<? super T> filter)
         {
             T closest = super.getIntersection(ray, location, filter);
@@ -645,13 +645,13 @@ public class HashSpace extends Space
             return closest;
         }
 
-        @Override // documentation inherited
+        @Override
         public void returnToPool ()
         {
             _internalNodePool.add(this);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void getAll (Predicate<? super T> filter, Collection<T> results)
         {
             super.getAll(filter, results);
@@ -662,7 +662,7 @@ public class HashSpace extends Space
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void getIntersecting (
                 Shape shape, Predicate<? super T> filter, Collection<T> results)
         {
@@ -674,7 +674,7 @@ public class HashSpace extends Space
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void getIntersecting (
                 Rect bounds, Predicate<? super T> filter, Collection<T> results)
         {
@@ -723,7 +723,7 @@ public class HashSpace extends Space
      */
     protected class LeafNode<T extends SpaceObject> extends Node<T>
     {
-        @Override // documentation inherited
+        @Override
         public void returnToPool ()
         {
             _leafNodePool.add(this);

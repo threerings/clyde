@@ -142,19 +142,19 @@ public class UserInterfaceConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ActionConfig removeAction;
 
-        @Override // documentation inherited
+        @Override
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             return cfgmgr;
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public Component getComponent (GlContext ctx, Scope scope, Component comp)
         {
             // resolve the message bundle
@@ -165,7 +165,7 @@ public class UserInterfaceConfig extends ParameterizedConfig
             return root.getComponent(ctx, scope, msgs, comp);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             root.invalidate();
@@ -190,13 +190,13 @@ public class UserInterfaceConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<UserInterfaceConfig> userInterface;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(UserInterfaceConfig.class, userInterface);
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             UserInterfaceConfig config = cfgmgr.getConfig(
@@ -204,7 +204,7 @@ public class UserInterfaceConfig extends ParameterizedConfig
             return (config == null) ? cfgmgr : config.getConfigManager();
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             UserInterfaceConfig config = cfgmgr.getConfig(
@@ -212,7 +212,7 @@ public class UserInterfaceConfig extends ParameterizedConfig
             return (config == null) ? null : config.getOriginal();
         }
 
-        @Override // documentation inherited
+        @Override
         public Component getComponent (GlContext ctx, Scope scope, Component comp)
         {
             UserInterfaceConfig config = ctx.getConfigManager().getConfig(
@@ -246,27 +246,27 @@ public class UserInterfaceConfig extends ParameterizedConfig
         return implementation.getComponent(ctx, scope, comp);
     }
 
-    @Override // documentation inherited
+    @Override
     public void init (ConfigManager cfgmgr)
     {
         _configs.init("user_interface", cfgmgr);
         super.init(_configs);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigManager getConfigManager ()
     {
         return implementation.getConfigManager(_configs);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean validateReferences (String where, PrintStream out)
     {
         boolean valid = super.validateReferences(where, out);
         return _configs.validateReferences(where + ":", out) && valid;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -274,7 +274,7 @@ public class UserInterfaceConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -264,7 +264,7 @@ public class DeepUtil
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Object copy (Object source, Object dest, Object outer)
             throws IllegalAccessException
         {
@@ -283,7 +283,7 @@ public class DeepUtil
             return dest;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object o1, Object o2)
             throws IllegalAccessException
         {

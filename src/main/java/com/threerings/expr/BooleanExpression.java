@@ -58,7 +58,7 @@ public abstract class BooleanExpression extends DeepObject
         @Editable(width=20)
         public String expression = "false";
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             if (_expr == null) {
@@ -74,7 +74,7 @@ public abstract class BooleanExpression extends DeepObject
             return _expr.createEvaluator(scope);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _expr = null;
@@ -109,7 +109,7 @@ public abstract class BooleanExpression extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return new Evaluator() {
@@ -133,7 +133,7 @@ public abstract class BooleanExpression extends DeepObject
         @Editable(hgroup="n")
         public boolean defvalue;
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             // first look for a mutable reference, then for a variable
@@ -165,7 +165,7 @@ public abstract class BooleanExpression extends DeepObject
         @Editable
         public BooleanExpression operand = new Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             final Evaluator eval = operand.createEvaluator(scope);
@@ -176,7 +176,7 @@ public abstract class BooleanExpression extends DeepObject
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             operand.invalidate();
@@ -196,14 +196,14 @@ public abstract class BooleanExpression extends DeepObject
         @Editable
         public BooleanExpression secondOperand = new Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return createEvaluator(
                 firstOperand.createEvaluator(scope), secondOperand.createEvaluator(scope));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             firstOperand.invalidate();
@@ -221,7 +221,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class And extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -237,7 +237,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class Or extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -253,7 +253,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class Xor extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -269,7 +269,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class BooleanEquals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
         {
             return new Evaluator() {
@@ -293,14 +293,14 @@ public abstract class BooleanExpression extends DeepObject
         @Editable
         public FloatExpression secondOperand = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return createEvaluator(
                 firstOperand.createEvaluator(scope), secondOperand.createEvaluator(scope));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             firstOperand.invalidate();
@@ -319,7 +319,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class FloatLess extends FloatBinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (
             final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
         {
@@ -336,7 +336,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class FloatGreater extends FloatBinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (
             final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
         {
@@ -353,7 +353,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class FloatEquals extends FloatBinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (
             final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
         {
@@ -370,7 +370,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class FloatLessEquals extends FloatBinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (
             final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
         {
@@ -387,7 +387,7 @@ public abstract class BooleanExpression extends DeepObject
      */
     public static class FloatGreaterEquals extends FloatBinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         protected Evaluator createEvaluator (
             final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
         {
@@ -412,7 +412,7 @@ public abstract class BooleanExpression extends DeepObject
         @Editable
         public StringExpression secondOperand = new StringExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             final StringExpression.Evaluator eval1 = firstOperand.createEvaluator(scope);
@@ -424,7 +424,7 @@ public abstract class BooleanExpression extends DeepObject
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             firstOperand.invalidate();

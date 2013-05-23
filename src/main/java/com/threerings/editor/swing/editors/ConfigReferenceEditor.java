@@ -112,7 +112,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         update();
     }
 
-    @Override // documentation inherited
+    @Override
     public void addNotify ()
     {
         super.addNotify();
@@ -121,7 +121,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
@@ -130,13 +130,13 @@ public class ConfigReferenceEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         update((ConfigReference)_property.get(_object), false);
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         PropertyEditor editor = getNextChildComponent(PropertyEditor.class, comp);
@@ -145,7 +145,7 @@ public class ConfigReferenceEditor extends PropertyEditor
              editor.getComponentPath(comp, mouse));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         if (_property.getAnnotation().constant()) {

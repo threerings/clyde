@@ -121,13 +121,13 @@ public class OrbitCameraHandler extends CameraHandler
         _maxDistance = maxDistance;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector3f getViewerTranslation ()
     {
         return _target;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTransform (Transform3D transform)
     {
         float ce = FloatMath.cos(_coords.elevation);

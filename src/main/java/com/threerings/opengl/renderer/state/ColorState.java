@@ -77,19 +77,19 @@ public class ColorState extends RenderState
         return _color;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return COLOR_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setColorState(_color);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof ColorState && _color.equals(((ColorState)other)._color);

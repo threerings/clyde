@@ -51,13 +51,13 @@ public abstract class QuaternionVariable extends DeepObject
      */
     public static class Identity extends QuaternionVariable
     {
-        @Override // documentation inherited
+        @Override
         public Quaternion getValue (Quaternion result)
         {
             return result.set(Quaternion.IDENTITY);
         }
 
-        @Override // documentation inherited
+        @Override
         public Quaternion getMean (Quaternion result)
         {
             return result.set(Quaternion.IDENTITY);
@@ -88,13 +88,13 @@ public abstract class QuaternionVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Quaternion getValue (Quaternion result)
         {
             return result.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public Quaternion getMean (Quaternion result)
         {
             return result.set(value);
@@ -130,7 +130,7 @@ public abstract class QuaternionVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Quaternion getValue (Quaternion result)
         {
             // pick angles according to the surface area distribution
@@ -141,7 +141,7 @@ public abstract class QuaternionVariable extends DeepObject
                 FloatMath.random(minimum.z, maximum.z));
         }
 
-        @Override // documentation inherited
+        @Override
         public Quaternion getMean (Quaternion result)
         {
             return result.fromAngles(
@@ -156,13 +156,13 @@ public abstract class QuaternionVariable extends DeepObject
      */
     public static class Random extends QuaternionVariable
     {
-        @Override // documentation inherited
+        @Override
         public Quaternion getValue (Quaternion result)
         {
             return result.randomize();
         }
 
-        @Override // documentation inherited
+        @Override
         public Quaternion getMean (Quaternion result)
         {
             return result.set(Quaternion.IDENTITY);

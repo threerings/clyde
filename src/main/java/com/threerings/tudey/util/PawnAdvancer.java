@@ -57,7 +57,7 @@ public class PawnAdvancer extends ActiveAdvancer
         advance(frame.getTimestamp());
     }
 
-    @Override // documentation inherited
+    @Override
     public void init (Actor actor, int timestamp)
     {
         super.init(actor, timestamp);
@@ -65,7 +65,7 @@ public class PawnAdvancer extends ActiveAdvancer
         _frame = null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void step (float elapsed)
     {
         super.step(elapsed);
@@ -76,7 +76,7 @@ public class PawnAdvancer extends ActiveAdvancer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void takeSubsteps (float elapsed)
     {
         // if the input frame provides a computed position, we shall attempt to validate

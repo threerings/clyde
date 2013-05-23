@@ -47,7 +47,7 @@ public abstract class CounterConfig extends DeepObject
      */
     public static class Unlimited extends CounterConfig
     {
-        @Override // documentation inherited
+        @Override
         public Counter createCounter ()
         {
             return new Counter() {
@@ -70,7 +70,7 @@ public abstract class CounterConfig extends DeepObject
         @Editable(min=0.0, step=0.1)
         public float rate = 10f;
 
-        @Override // documentation inherited
+        @Override
         public Counter createCounter ()
         {
             return new Counter() {
@@ -97,7 +97,7 @@ public abstract class CounterConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public FloatVariable interval = new FloatVariable.Uniform(0.07f, 0.2f);
 
-        @Override // documentation inherited
+        @Override
         public Counter createCounter ()
         {
             return new Counter() {

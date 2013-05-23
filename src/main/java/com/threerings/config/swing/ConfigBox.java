@@ -98,7 +98,7 @@ public class ConfigBox extends JComboBox
         updateModel();
     }
 
-    @Override // documentation inherited
+    @Override
     public void addNotify ()
     {
         super.addNotify();
@@ -108,7 +108,7 @@ public class ConfigBox extends JComboBox
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
@@ -170,13 +170,13 @@ public class ConfigBox extends JComboBox
             return name.compareTo(other.name);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return (name == null) ? _msgs.get("m.null_value") : name;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return Objects.equal(name, ((ConfigItem)other).name);

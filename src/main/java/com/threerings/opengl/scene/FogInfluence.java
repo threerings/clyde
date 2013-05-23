@@ -40,7 +40,7 @@ public class FogInfluence extends SceneInfluence
         _fogState = state;
     }
 
-    @Override // documentation inherited
+    @Override
     public FogState getFogState ()
     {
         return _fogState;

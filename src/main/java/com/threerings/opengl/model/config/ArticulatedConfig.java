@@ -218,7 +218,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public void getTextures (TreeSet<String> textures)
         {
             super.getTextures(textures);
@@ -227,7 +227,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
         {
             super.getTextureTagPairs(pairs);
@@ -236,13 +236,13 @@ public class ArticulatedConfig extends ModelConfig.Imported
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Box getBounds ()
         {
             return (visible == null) ? collision.getBounds() : visible.geometry.getBounds();
         }
 
-        @Override // documentation inherited
+        @Override
         protected Articulated.Node createArticulatedNode (
             GlContext ctx, Scope scope, Transform3D parentWorldTransform,
             Transform3D parentViewTransform)
@@ -328,7 +328,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Editable(hgroup="b")
         public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (GlContext ctx, Articulated.Node node)
         {
             return createBillboardUpdater(
@@ -346,7 +346,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Editable
         public boolean directional;
 
-        @Override // documentation inherited
+        @Override
         public Updater createUpdater (final GlContext ctx, Articulated.Node node)
         {
             final Transform3D pworld = node.getParentWorldTransform();
@@ -555,7 +555,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -570,7 +570,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromSource (ModelDef def)
     {
         if (def == null) {
@@ -581,7 +581,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTextures (TreeSet<String> textures)
     {
         if (root != null) {
@@ -592,7 +592,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
     {
         if (root != null) {

@@ -99,7 +99,7 @@ public class BinaryExporter extends Exporter
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void writeObject (Object object)
         throws IOException
     {
@@ -120,70 +120,70 @@ public class BinaryExporter extends Exporter
         write(object, Object.class);
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, boolean value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Boolean.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, byte value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Byte.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, char value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Character.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, double value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Double.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, float value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Float.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, int value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Integer.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, long value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Long.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, short value)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, Short.TYPE));
     }
 
-    @Override // documentation inherited
+    @Override
     public <T> void write (String name, T value, Class<T> clazz)
         throws IOException
     {
         _fields.put(name, new Tuple<Object, Class<?>>(value, clazz));
     }
 
-    @Override // documentation inherited
+    @Override
     public void close ()
         throws IOException
     {
@@ -191,7 +191,7 @@ public class BinaryExporter extends Exporter
         _out.close();
     }
 
-    @Override // documentation inherited
+    @Override
     public void finish ()
         throws IOException
     {
@@ -294,7 +294,7 @@ public class BinaryExporter extends Exporter
         _out.writeByte(getFlags(getInmostComponentType(clazz)));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void writeFields (Exportable object)
         throws IOException
     {

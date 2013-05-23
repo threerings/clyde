@@ -91,13 +91,13 @@ public class Compound extends Model.Implementation
         return Collections.unmodifiableList(Arrays.asList(_models));
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _completed;
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVisible (boolean visible)
     {
         for (Model model : _models) {
@@ -105,7 +105,7 @@ public class Compound extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         for (Model model : _models) {
@@ -114,25 +114,25 @@ public class Compound extends Model.Implementation
         _completed = false;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         tick(0f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
@@ -141,7 +141,7 @@ public class Compound extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void dumpInfo (String prefix)
     {
         System.out.println(prefix + "Compound: " + _worldTransform + " " + _bounds);
@@ -151,13 +151,13 @@ public class Compound extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         // notify component models
@@ -167,7 +167,7 @@ public class Compound extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         // notify component models
@@ -176,7 +176,7 @@ public class Compound extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         // return immediately if completed
@@ -213,7 +213,7 @@ public class Compound extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // exit early if there's no bounds intersection
@@ -231,7 +231,7 @@ public class Compound extends Model.Implementation
         return (result != closest);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         // add an enqueueable to initialize the shared state

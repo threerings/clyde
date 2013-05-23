@@ -63,7 +63,7 @@ public abstract class DeformerConfig extends DeepObject
      */
     public static class Skin extends DeformerConfig
     {
-        @Override // documentation inherited
+        @Override
         public Geometry createGeometry (
             GlContext ctx, Scope scope, GeometryConfig.Stored config, PassDescriptor[] passes)
         {

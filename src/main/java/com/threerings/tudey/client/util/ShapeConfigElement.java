@@ -80,7 +80,7 @@ public class ShapeConfigElement extends SimpleSceneElement
         return cstate.getColor();
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();
@@ -90,7 +90,7 @@ public class ShapeConfigElement extends SimpleSceneElement
         return states;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // transform into model space and find the intersection (if any) with the x/y plane
@@ -109,13 +109,13 @@ public class ShapeConfigElement extends SimpleSceneElement
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     protected Box getLocalBounds ()
     {
         return _localBounds;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         // make sure we're in modelview matrix mode before calling the list

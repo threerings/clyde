@@ -75,13 +75,13 @@ public abstract class DynamicGeometry extends Geometry
         _floatArray = (floatArray == null) ? getScratchBuffer(data.length) : floatArray;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean requiresUpdate ()
     {
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         // update the vertex data

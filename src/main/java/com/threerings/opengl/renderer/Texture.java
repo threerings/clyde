@@ -335,7 +335,7 @@ public abstract class Texture
     {
     }
 
-    @Override // documentation inherited
+    @Override
     protected void finalize ()
         throws Throwable
     {

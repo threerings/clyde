@@ -47,7 +47,7 @@ public class ShapeModelConfig extends ModelConfig.Implementation
     @Editable
     public ShapeConfig shape = new ShapeConfig.Point();
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -59,7 +59,7 @@ public class ShapeModelConfig extends ModelConfig.Implementation
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         shape.invalidate();

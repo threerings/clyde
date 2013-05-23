@@ -84,7 +84,7 @@ public abstract class ColorizationConfig extends DeepObject
         @Editable(editor="colorization")
         public int colorization;
 
-        @Override // documentation inherited
+        @Override
         public Colorization getColorization (GlContext ctx)
         {
             return ctx.getColorPository().getColorization(colorization);
@@ -104,7 +104,7 @@ public abstract class ColorizationConfig extends DeepObject
         @Editable
         public Triplet offsets = new Triplet();
 
-        @Override // documentation inherited
+        @Override
         public Colorization getColorization (GlContext ctx)
         {
             ClassRecord crec = ctx.getColorPository().getClassRecord(clazz);
@@ -130,7 +130,7 @@ public abstract class ColorizationConfig extends DeepObject
         @Editable
         public Triplet offsets = new Triplet();
 
-        @Override // documentation inherited
+        @Override
         public Colorization getColorization (GlContext ctx)
         {
             return new FullyCustomColorization(
@@ -170,13 +170,13 @@ public abstract class ColorizationConfig extends DeepObject
             super(clazz << 8, source, range, offsets);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return super.hashCode() ^ Arrays.hashCode(offsets);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return super.equals(other) && Arrays.equals(offsets, ((Colorization)other).offsets);
@@ -196,13 +196,13 @@ public abstract class ColorizationConfig extends DeepObject
             super(0, source, range, offsets);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return super.hashCode() ^ Arrays.hashCode(offsets);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             Colorization ozation;

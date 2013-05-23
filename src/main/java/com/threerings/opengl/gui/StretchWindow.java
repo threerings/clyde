@@ -47,7 +47,7 @@ public class StretchWindow extends Window
         setSize(width, height);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasAdded ()
     {
         super.wasAdded();
@@ -60,7 +60,7 @@ public class StretchWindow extends Window
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasRemoved ()
     {
         super.wasRemoved();

@@ -80,7 +80,7 @@ public class Eraser extends EditorTool
         _cursor.setConfig(_options.shape, true);
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _cursor = new ShapeConfigElement(_editor);
@@ -88,13 +88,13 @@ public class Eraser extends EditorTool
         _cursor.getColor().set(1f, 0.75f, 0.75f, 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateCursor();
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -102,7 +102,7 @@ public class Eraser extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         // adjust in terms of coarse (ninety degree) or fine increments

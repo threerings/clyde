@@ -62,7 +62,7 @@ public class NumberEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         double value = ((Number)_property.get(_object)).doubleValue() / _scale;
@@ -76,7 +76,7 @@ public class NumberEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

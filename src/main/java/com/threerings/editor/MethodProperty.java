@@ -48,25 +48,25 @@ public class MethodProperty extends Property
         _name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(_setter.getName().substring(3)));
     }
 
-    @Override // documentation inherited
+    @Override
     public Member getMember ()
     {
         return _setter;
     }
 
-    @Override // documentation inherited
+    @Override
     public Class<?> getType ()
     {
         return _getter.getReturnType();
     }
 
-    @Override // documentation inherited
+    @Override
     public Type getGenericType ()
     {
         return _getter.getGenericReturnType();
     }
 
-    @Override // documentation inherited
+    @Override
     public Object get (Object object)
     {
         try {
@@ -77,7 +77,7 @@ public class MethodProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void set (Object object, Object value)
     {
         try {

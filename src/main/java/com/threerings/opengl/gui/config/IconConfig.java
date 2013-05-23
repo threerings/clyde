@@ -75,7 +75,7 @@ public abstract class IconConfig extends DeepObject
             return ctx.getImageCache().getImage(file);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (file != null) {
@@ -83,7 +83,7 @@ public abstract class IconConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected Icon createIcon (GlContext ctx)
         {
             return (file == null) ? new BlankIcon(1, 1) : new ImageIcon(getImage(ctx));
@@ -99,7 +99,7 @@ public abstract class IconConfig extends DeepObject
         @Editable
         public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public com.threerings.opengl.gui.Image getImage (GlContext ctx)
         {
             return getImage(ctx, file, colorizations);
@@ -119,7 +119,7 @@ public abstract class IconConfig extends DeepObject
         @Editable(nullable=true)
         public IconConfig icon;
 
-        @Override // documentation inherited
+        @Override
         protected Icon createIcon (GlContext ctx)
         {
             return (icon == null) ? new BlankIcon(1, 1) :
@@ -136,7 +136,7 @@ public abstract class IconConfig extends DeepObject
         @Editable(hgroup="d")
         public int width, height;
 
-        @Override // documentation inherited
+        @Override
         protected Icon createIcon (GlContext ctx)
         {
             return new BlankIcon(width, height);

@@ -159,26 +159,26 @@ public class DisplayRoot extends Root
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int getDisplayWidth ()
     {
         return Display.getDisplayMode().getWidth();
     }
 
-    @Override // documentation inherited
+    @Override
     public int getDisplayHeight ()
     {
         return Display.getDisplayMode().getHeight();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setMousePosition (int x, int y)
     {
         Mouse.setCursorPosition(x, y);
         super.setMousePosition(x, y);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateCursor (Cursor cursor)
     {
         if (cursor == null) {

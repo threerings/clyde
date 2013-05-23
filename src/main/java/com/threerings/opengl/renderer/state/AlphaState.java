@@ -152,19 +152,19 @@ public class AlphaState extends RenderState
         return _destBlendFactor;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return ALPHA_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setAlphaState(_alphaTestFunc, _alphaTestRef, _srcBlendFactor, _destBlendFactor);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         AlphaState ostate;

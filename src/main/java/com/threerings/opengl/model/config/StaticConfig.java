@@ -81,7 +81,7 @@ public class StaticConfig extends ModelConfig.Imported
     @Shallow
     public MeshSet meshes;
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -103,19 +103,19 @@ public class StaticConfig extends ModelConfig.Imported
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         _resolved = null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected VisibleMesh getParticleMesh ()
     {
         return (meshes == null || meshes.visible.length == 0) ? null : meshes.visible[0];
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromSource (ModelDef def)
     {
         if (def == null) {
@@ -125,7 +125,7 @@ public class StaticConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTextures (TreeSet<String> textures)
     {
         if (meshes != null) {
@@ -133,7 +133,7 @@ public class StaticConfig extends ModelConfig.Imported
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
     {
         if (meshes != null) {

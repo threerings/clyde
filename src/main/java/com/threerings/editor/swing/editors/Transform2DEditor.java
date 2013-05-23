@@ -57,13 +57,13 @@ public class Transform2DEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         _panel.setValue((Transform2D)_property.get(_object));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));

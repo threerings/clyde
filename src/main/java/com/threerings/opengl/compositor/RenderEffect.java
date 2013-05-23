@@ -71,7 +71,7 @@ public class RenderEffect extends DynamicScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "target";
@@ -133,7 +133,7 @@ public class RenderEffect extends DynamicScope
             _renderer = config.getTextureRenderer(_ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void render ()
         {
             _renderer.startRender();
@@ -144,7 +144,7 @@ public class RenderEffect extends DynamicScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -256,7 +256,7 @@ public class RenderEffect extends DynamicScope
         return _priority - other._priority;
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

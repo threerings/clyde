@@ -153,19 +153,19 @@ public class Texture3D extends Texture
             GL12.GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, x, y, width, height);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getWidth ()
     {
         return _width;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getHeight ()
     {
         return _height;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getDepth ()
     {
         return _depth;

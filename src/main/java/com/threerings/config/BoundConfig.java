@@ -54,7 +54,7 @@ public class BoundConfig extends ParameterizedConfig
         wasUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected BoundConfig getBound (Scope scope)
     {
         if (scope == null || bindings.length == 0) {
@@ -78,7 +78,7 @@ public class BoundConfig extends ParameterizedConfig
         return bound;
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasUpdated ()
     {
         // invalidate the bindings

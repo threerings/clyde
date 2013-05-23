@@ -60,7 +60,7 @@ public class SceneValidatorTask extends Task
         _filesets.add(set);
     }
 
-    @Override // documentation inherited
+    @Override
     public void execute ()
         throws BuildException
     {

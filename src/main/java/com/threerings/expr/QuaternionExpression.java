@@ -49,7 +49,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
         @Editable
         public Quaternion value = new Quaternion();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Quaternion> createEvaluator (Scope scope)
         {
             return new Evaluator<Quaternion>() {
@@ -73,7 +73,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
         @Editable
         public Quaternion defvalue = new Quaternion();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Quaternion> createEvaluator (Scope scope)
         {
             final Quaternion value = ScopeUtil.resolve(scope, name, defvalue);
@@ -102,7 +102,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
         @Editable
         public FloatExpression z = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Quaternion> createEvaluator (Scope scope)
         {
             final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
@@ -117,7 +117,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             x.invalidate();

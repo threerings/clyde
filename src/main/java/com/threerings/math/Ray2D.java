@@ -275,7 +275,7 @@ public final class Ray2D
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[origin=" + _origin + ", direction=" + _direction + "]";

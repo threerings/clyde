@@ -248,7 +248,7 @@ public class ResourceEditor extends BaseConfigEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -298,14 +298,14 @@ public class ResourceEditor extends BaseConfigEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
         setConfig(null, null);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigManager getConfigManager ()
     {
         Object config = _epanel.getObject();
@@ -482,7 +482,7 @@ public class ResourceEditor extends BaseConfigEditor
                 JOptionPane.WARNING_MESSAGE) == 0;
     }
 
-    @Override // documentation inherited
+    @Override
     protected BaseEditorPanel getFindEditorPanel ()
     {
         return _epanel;

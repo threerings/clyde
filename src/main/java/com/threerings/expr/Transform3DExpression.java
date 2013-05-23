@@ -52,7 +52,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         @Editable(step=0.01)
         public Transform3D value = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform3D> createEvaluator (Scope scope)
         {
             return new Evaluator<Transform3D>() {
@@ -76,7 +76,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         @Editable(step=0.01)
         public Transform3D defvalue = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform3D> createEvaluator (Scope scope)
         {
             final Transform3D value = ScopeUtil.resolve(scope, name, defvalue);
@@ -105,7 +105,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         @Editable
         public FloatExpression scale = new FloatExpression.Constant(1f);
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform3D> createEvaluator (Scope scope)
         {
             final Evaluator<Vector3f> teval = translation.createEvaluator(scope);
@@ -119,7 +119,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             translation.invalidate();
@@ -146,7 +146,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         @Editable
         public Vector3fExpression scale = new Vector3fExpression.Constant(Vector3f.UNIT_XYZ);
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform3D> createEvaluator (Scope scope)
         {
             final Evaluator<Vector3f> teval = translation.createEvaluator(scope);
@@ -160,7 +160,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             translation.invalidate();
@@ -186,7 +186,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         @Editable
         public FloatExpression frame = new FloatExpression.Constant(0f);
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform3D> createEvaluator (Scope scope)
         {
             final FloatExpression.Evaluator feval = frame.createEvaluator(scope);
@@ -207,7 +207,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             frame.invalidate();

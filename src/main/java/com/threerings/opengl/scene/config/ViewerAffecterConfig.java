@@ -51,7 +51,7 @@ public class ViewerAffecterConfig extends ModelConfig.Implementation
     @Editable
     public Extent extent = new Extent.Limited();
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -63,7 +63,7 @@ public class ViewerAffecterConfig extends ModelConfig.Implementation
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         effect.invalidate();

@@ -401,7 +401,7 @@ public class RenderQueue
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean draw (Renderer renderer)
         {
             group.renderQueues();

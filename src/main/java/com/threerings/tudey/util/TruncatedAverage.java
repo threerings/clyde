@@ -56,7 +56,7 @@ public class TruncatedAverage extends TrailingAverage
         _sorted = new int[history];
     }
 
-    @Override // documentation inherited
+    @Override
     public void record (int value)
     {
         super.record(value);
@@ -76,7 +76,7 @@ public class TruncatedAverage extends TrailingAverage
         _value = total / (last - first);
     }
 
-    @Override // documentation inherited
+    @Override
     public int value ()
     {
         return _value;

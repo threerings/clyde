@@ -39,19 +39,19 @@ import com.threerings.tudey.server.TudeySceneManager;
  */
 public class ToolSceneManager extends TudeySceneManager
 {
-    @Override // documentation inherited
+    @Override
     public boolean getDebugRegions ()
     {
         return _prefs.getBoolean("debug_regions", false);
     }
 
-    @Override // documentation inherited
+    @Override
     protected ConfigReference<ActorConfig> getPawnConfig (BodyObject body)
     {
         return new ConfigReference<ActorConfig>("Character/PC/Editor");
     }
 
-    @Override // documentation inherited
+    @Override
     protected void placeBecameEmpty ()
     {
         shutdown();

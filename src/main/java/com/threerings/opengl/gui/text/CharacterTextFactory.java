@@ -120,13 +120,13 @@ public class CharacterTextFactory extends TextFactory
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int getHeight ()
     {
         return _metrics.getHeight();
     }
 
-    @Override // documentation inherited
+    @Override
     public Text createText (
         final String text, final Color4f color, final int effect,
         final int effectSize, final Color4f effectColor, boolean useAdvance)
@@ -209,7 +209,7 @@ public class CharacterTextFactory extends TextFactory
         };
     }
 
-    @Override // documentation inherited
+    @Override
     public Text[] wrapText (String text, Color4f color, int effect, int effectSize,
                             Color4f effectColor, int maxWidth)
     {

@@ -200,7 +200,7 @@ public class AgentLogic extends ActiveLogic
         return logic;
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);
@@ -212,7 +212,7 @@ public class AgentLogic extends ActiveLogic
         _behavior.transfer(asource._behavior, refs);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean tick (int timestamp)
     {
         // advance to current time
@@ -245,14 +245,14 @@ public class AgentLogic extends ActiveLogic
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasDestroyed ()
     {
         super.wasDestroyed();
         _behavior.shutdown();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -269,7 +269,7 @@ public class AgentLogic extends ActiveLogic
         clearSpeed();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void penetratedEnvironment (Vector2f penetration)
     {
         // notify the behavior

@@ -46,13 +46,13 @@ public abstract class ActorModelConfig extends ModelConfig
         @Editable(nullable=true)
         public ConfigReference<ActorConfig> actor;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ActorConfig.class, actor);
         }
 
-        @Override // documentation inherited
+        @Override
         protected ModelConfig getModelConfig (ConfigManager cfgmgr)
         {
             ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);

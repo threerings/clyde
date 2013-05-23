@@ -99,13 +99,13 @@ public class ImageCache extends ResourceCache
             this.zations = zations;
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return path.hashCode() ^ Arrays.hashCode(zations);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             ImageKey okey = (ImageKey)other;

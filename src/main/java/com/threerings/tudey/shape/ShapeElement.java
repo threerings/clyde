@@ -86,7 +86,7 @@ public class ShapeElement extends SimpleSpaceElement
         return _worldShape;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         _worldShape = _localShape.transform(_transform, _worldShape);
@@ -98,49 +98,49 @@ public class ShapeElement extends SimpleSpaceElement
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return _worldShape.getIntersection(ray, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getNearestPoint (Vector2f point, Vector2f result)
     {
         _worldShape.getNearestPoint(point, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Point point)
     {
         return _worldShape.intersects(point);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Segment segment)
     {
         return _worldShape.intersects(segment);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Circle circle)
     {
         return _worldShape.intersects(circle);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Capsule capsule)
     {
         return _worldShape.intersects(capsule);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Polygon polygon)
     {
         return _worldShape.intersects(polygon);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Compound compound)
     {
         return _worldShape.intersects(compound);

@@ -95,7 +95,7 @@ public class TileCursor extends EntryCursor
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -132,13 +132,13 @@ public class TileCursor extends EntryCursor
             _model.setConfig((_config = config).model);
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape getShape ()
         {
             return _shape;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (TileEntry entry)
         {
             entry.getTransform(_config, _model.getLocalTransform());
@@ -156,13 +156,13 @@ public class TileCursor extends EntryCursor
             _shape.updateBounds();
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (float elapsed)
         {
             _model.tick(elapsed);
         }
 
-        @Override // documentation inherited
+        @Override
         public void composite ()
         {
             _model.composite();
@@ -198,38 +198,38 @@ public class TileCursor extends EntryCursor
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape getShape ()
     {
         return _impl.getShape();
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         setConfig((_entry = (TileEntry)entry).tile);
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         _impl.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _impl.composite();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

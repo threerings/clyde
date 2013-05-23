@@ -54,7 +54,7 @@ public class WallBrush extends ConfigTool<WallConfig>
         super(editor, WallConfig.class, new WallReference());
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _inner = new RectangleElement(_editor, true);
@@ -63,13 +63,13 @@ public class WallBrush extends ConfigTool<WallConfig>
         _outer.getColor().set(0.5f, 0.5f, 0f, 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateCursor();
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -78,7 +78,7 @@ public class WallBrush extends ConfigTool<WallConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         int button = event.getButton();
@@ -88,7 +88,7 @@ public class WallBrush extends ConfigTool<WallConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         if (_cursorVisible) {
@@ -173,13 +173,13 @@ public class WallBrush extends ConfigTool<WallConfig>
         @Editable(min=1, hgroup="d")
         public int height = 1;
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<WallConfig> getReference ()
         {
             return wall;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference<WallConfig> ref)
         {
             wall = ref;

@@ -102,13 +102,13 @@ public class FileEditor extends PropertyEditor
         fireStateChanged();
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         updateButtons(getPropertyFile());
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

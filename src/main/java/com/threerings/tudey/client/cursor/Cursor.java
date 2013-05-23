@@ -60,7 +60,7 @@ public abstract class Cursor extends SimpleScope
         // nothing by default
     }
 
-    @Override // documentation inherited
+    @Override
     public String getScopeName ()
     {
         return "cursor";

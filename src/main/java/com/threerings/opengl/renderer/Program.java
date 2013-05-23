@@ -111,13 +111,13 @@ public class Program extends ShaderObject
             this.value = value;
         }
 
-        @Override // documentation inherited
+        @Override
         public void apply ()
         {
             ARBShaderObjects.glUniform1iARB(_location, value);
         }
 
-        @Override // documentation inherited
+        @Override
         public Uniform clone (Uniform uniform)
         {
             IntegerUniform clone = (uniform instanceof IntegerUniform) ?
@@ -126,7 +126,7 @@ public class Program extends ShaderObject
             return clone;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof IntegerUniform &&
@@ -159,13 +159,13 @@ public class Program extends ShaderObject
             this.value = value;
         }
 
-        @Override // documentation inherited
+        @Override
         public void apply ()
         {
             ARBShaderObjects.glUniform1fARB(_location, value);
         }
 
-        @Override // documentation inherited
+        @Override
         public Uniform clone (Uniform uniform)
         {
             FloatUniform clone = (uniform instanceof FloatUniform) ?
@@ -174,7 +174,7 @@ public class Program extends ShaderObject
             return clone;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof FloatUniform &&
@@ -207,13 +207,13 @@ public class Program extends ShaderObject
             this.value.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public void apply ()
         {
             ARBShaderObjects.glUniform2fARB(_location, value.x, value.y);
         }
 
-        @Override // documentation inherited
+        @Override
         public Uniform clone (Uniform uniform)
         {
             Vector2fUniform clone = (uniform instanceof Vector2fUniform) ?
@@ -222,7 +222,7 @@ public class Program extends ShaderObject
             return clone;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof Vector2fUniform &&
@@ -255,13 +255,13 @@ public class Program extends ShaderObject
             this.value.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public void apply ()
         {
             ARBShaderObjects.glUniform3fARB(_location, value.x, value.y, value.z);
         }
 
-        @Override // documentation inherited
+        @Override
         public Uniform clone (Uniform uniform)
         {
             Vector3fUniform clone = (uniform instanceof Vector3fUniform) ?
@@ -270,7 +270,7 @@ public class Program extends ShaderObject
             return clone;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof Vector3fUniform &&
@@ -303,13 +303,13 @@ public class Program extends ShaderObject
             this.value.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public void apply ()
         {
             ARBShaderObjects.glUniform4fARB(_location, value.x, value.y, value.z, value.w);
         }
 
-        @Override // documentation inherited
+        @Override
         public Uniform clone (Uniform uniform)
         {
             Vector4fUniform clone = (uniform instanceof Vector4fUniform) ?
@@ -318,7 +318,7 @@ public class Program extends ShaderObject
             return clone;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof Vector4fUniform &&
@@ -351,14 +351,14 @@ public class Program extends ShaderObject
             this.value.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public void apply ()
         {
             value.get(_vbuf).rewind();
             ARBShaderObjects.glUniformMatrix4ARB(_location, false, _vbuf);
         }
 
-        @Override // documentation inherited
+        @Override
         public Uniform clone (Uniform uniform)
         {
             Matrix4fUniform clone = (uniform instanceof Matrix4fUniform) ?
@@ -367,7 +367,7 @@ public class Program extends ShaderObject
             return clone;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof Matrix4fUniform &&

@@ -261,13 +261,13 @@ public class TextArea extends Container
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/TextArea";
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         super.updateFromStyleConfig(state, config);

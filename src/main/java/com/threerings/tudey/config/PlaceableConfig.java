@@ -177,13 +177,13 @@ public class PlaceableConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public PlaceableCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl)
         {
@@ -195,7 +195,7 @@ public class PlaceableConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             shape.invalidate();
@@ -237,26 +237,26 @@ public class PlaceableConfig extends ParameterizedConfig
             this.model = new ConfigReference<ModelConfig>(model);
         }
 
-        @Override // documentation inherited
+        @Override
         public int getCollisionFlags ()
         {
             return collisionFlags;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getDirectionFlags ()
         {
             return directionFlags;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
             preloads.add(new Preloadable.Model(model));
         }
 
-        @Override // documentation inherited
+        @Override
         public PlaceableSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
@@ -294,7 +294,7 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable
         public ClientActionConfig action = new ClientActionConfig.ControllerAction();
 
-        @Override // documentation inherited
+        @Override
         public PlaceableSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
@@ -316,7 +316,7 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ActorConfig> actor;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.EntryLogic$StatefulProp";
@@ -328,7 +328,7 @@ public class PlaceableConfig extends ParameterizedConfig
      */
     public static class Marker extends Original
     {
-        @Override // documentation inherited
+        @Override
         public PlaceableSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
@@ -353,20 +353,20 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<PlaceableConfig> placeable;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(PlaceableConfig.class, placeable);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public PlaceableCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl)
         {
@@ -375,7 +375,7 @@ public class PlaceableConfig extends ParameterizedConfig
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public PlaceableSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
@@ -425,7 +425,7 @@ public class PlaceableConfig extends ParameterizedConfig
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -433,7 +433,7 @@ public class PlaceableConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -40,7 +40,7 @@ public class AmbientLightInfluence extends SceneInfluence
         _ambientLight.set(color);
     }
 
-    @Override // documentation inherited
+    @Override
     public Color4f getAmbientLight ()
     {
         return _ambientLight;

@@ -306,31 +306,31 @@ public class CoordSet extends AbstractSet<Coord>
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean add (Coord coord)
     {
         return _coords.add(coord.encode());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean remove (Object object)
     {
         return (object instanceof Coord) && _coords.remove(((Coord)object).encode());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean contains (Object object)
     {
         return (object instanceof Coord) && _coords.contains(((Coord)object).encode());
     }
 
-    @Override // documentation inherited
+    @Override
     public int size ()
     {
         return _coords.size();
     }
 
-    @Override // documentation inherited
+    @Override
     public Iterator<Coord> iterator ()
     {
         return new Iterator<Coord>() {

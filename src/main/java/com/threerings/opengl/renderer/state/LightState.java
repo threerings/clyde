@@ -70,13 +70,13 @@ public class LightState extends RenderState
         return _globalAmbient;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return LIGHT_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setLightState(_lights, _globalAmbient);

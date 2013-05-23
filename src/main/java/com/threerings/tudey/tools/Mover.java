@@ -42,7 +42,7 @@ public class Mover extends BaseMover
         super(editor);
     }
 
-    @Override // documentation inherited
+    @Override
     public void deactivate ()
     {
         // cancel any movement in process
@@ -50,7 +50,7 @@ public class Mover extends BaseMover
         clear();
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {

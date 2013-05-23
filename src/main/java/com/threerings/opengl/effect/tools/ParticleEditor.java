@@ -284,7 +284,7 @@ public class ParticleEditor extends ModelTool
         _model.getConfig().wasUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -324,7 +324,7 @@ public class ParticleEditor extends ModelTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected JComponent createCanvasContainer ()
     {
         JSplitPane pane = new JSplitPane(
@@ -335,13 +335,13 @@ public class ParticleEditor extends ModelTool
         return pane;
     }
 
-    @Override // documentation inherited
+    @Override
     protected CanvasToolPrefs createEditablePrefs ()
     {
         return new ModelToolPrefs(_prefs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -380,7 +380,7 @@ public class ParticleEditor extends ModelTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
@@ -389,7 +389,7 @@ public class ParticleEditor extends ModelTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void compositeView ()
     {
         super.compositeView();
@@ -701,25 +701,25 @@ public class ParticleEditor extends ModelTool
             return (column == 0) ? layer.name : layer.visible;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getColumnName (int column)
         {
             return _msgs.get(column == 0 ? "m.layer" : "m.visible");
         }
 
-        @Override // documentation inherited
+        @Override
         public Class<?> getColumnClass (int column)
         {
             return (column == 0) ? String.class : Boolean.class;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isCellEditable (int row, int column)
         {
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setValueAt (Object value, int row, int column)
         {
             Layer layer = getLayers()[row];

@@ -160,7 +160,7 @@ public class ClientArray
         return -1;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         ClientArray oarray = (ClientArray)other;

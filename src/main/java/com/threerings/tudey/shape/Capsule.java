@@ -111,7 +111,7 @@ public class Capsule extends Shape
         return d*d <= radius*radius * (a*a + b*b);
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         _bounds.setToEmpty();
@@ -120,13 +120,13 @@ public class Capsule extends Shape
         _bounds.expandLocal(radius, radius);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getCenter (Vector2f result)
     {
         return _start.add(_end, result).multLocal(0.5f);
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape transform (Transform2D transform, Shape result)
     {
         Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
@@ -137,7 +137,7 @@ public class Capsule extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape expand (float amount, Shape result)
     {
         Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
@@ -148,7 +148,7 @@ public class Capsule extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape sweep (Vector2f translation, Shape result)
     {
         // TODO: not supported at present; would need rounded polygons
@@ -160,13 +160,13 @@ public class Capsule extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_start, _end, radius, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getNearestPoint (Vector2f point, Vector2f result)
     {
         if (contains(point)) {
@@ -180,7 +180,7 @@ public class Capsule extends Shape
         result.set(point).add(line);
     }
 
-    @Override // documentation inherited
+    @Override
     public IntersectionType getIntersectionType (Rect rect)
     {
         // check the corners of the rectangle
@@ -220,31 +220,31 @@ public class Capsule extends Shape
         return IntersectionType.NONE;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (SpaceElement element)
     {
         return element.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Shape shape)
     {
         return shape.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Point point)
     {
         return contains(point.getLocation());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Segment segment)
     {
         return intersects(_start, _end, radius, segment.getStart(), segment.getEnd());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Circle circle)
     {
         // this test is equivalent to checking the line segment from _start to _end against
@@ -271,38 +271,38 @@ public class Capsule extends Shape
         return t >= 0f && t <= 1f;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Capsule capsule)
     {
         return intersects(
             _start, _end, radius + capsule.radius, capsule.getStart(), capsule.getEnd());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Polygon polygon)
     {
         return polygon.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Shape shape, Vector2f result)
     {
         return shape.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Point point, Vector2f result)
     {
         return result.set(Vector2f.ZERO);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
         Vector2f[] cv = new Vector2f[2];
@@ -316,7 +316,7 @@ public class Capsule extends Shape
         return result.set(minDistance);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
         Vector2f center = circle.getCenter();
@@ -330,7 +330,7 @@ public class Capsule extends Shape
             center.subtract(D, result).multLocal((circle.radius + radius) / dist - 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Capsule capsule, Vector2f result)
     {
         Vector2f[] cv = new Vector2f[2];
@@ -345,19 +345,19 @@ public class Capsule extends Shape
         return result.set(minDistance);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Polygon polygon, Vector2f result)
     {
         return polygon.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Compound compound, Vector2f result)
     {
         return compound.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public void draw (boolean outline)
     {
         float offset = FloatMath.atan2(_end.x - _start.x, _start.y - _end.y);
@@ -377,7 +377,7 @@ public class Capsule extends Shape
         GL11.glEnd();
     }
 
-    @Override // documentation inherited
+    @Override
     public ShapeConfig createConfig ()
     {
         ShapeConfig.Capsule capsule = new ShapeConfig.Capsule();
@@ -391,7 +391,7 @@ public class Capsule extends Shape
         return compound;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[start=" + _start.toString() + ", end=" + _end.toString() + ", radius=" + radius +

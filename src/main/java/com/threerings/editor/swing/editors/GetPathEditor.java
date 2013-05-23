@@ -53,7 +53,7 @@ public class GetPathEditor extends ObjectEditor
         copyPropertyPath(editor.getMousePath());
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         if (_panel != null) {
@@ -61,7 +61,7 @@ public class GetPathEditor extends ObjectEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         if (_panel != null) {
@@ -70,7 +70,7 @@ public class GetPathEditor extends ObjectEditor
         return "";
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         if (_property instanceof PathProperty) {

@@ -63,7 +63,7 @@ public class XMLExporter extends Exporter
         _out = out;
     }
 
-    @Override // documentation inherited
+    @Override
     public void writeObject (Object object)
         throws IOException
     {
@@ -83,63 +83,63 @@ public class XMLExporter extends Exporter
         write("object", object, Object.class);
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, boolean value)
         throws IOException
     {
         setValue(name, Boolean.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, byte value)
         throws IOException
     {
         setValue(name, Byte.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, char value)
         throws IOException
     {
         setValue(name, Character.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, double value)
         throws IOException
     {
         setValue(name, Double.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, float value)
         throws IOException
     {
         setValue(name, Float.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, int value)
         throws IOException
     {
         setValue(name, Integer.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, long value)
         throws IOException
     {
         setValue(name, Long.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (String name, short value)
         throws IOException
     {
         setValue(name, Short.toString(value));
     }
 
-    @Override // documentation inherited
+    @Override
     public <T> void write (String name, T value, Class<T> clazz)
         throws IOException
     {
@@ -156,7 +156,7 @@ public class XMLExporter extends Exporter
         append(name, value, clazz);
     }
 
-    @Override // documentation inherited
+    @Override
     public void close ()
         throws IOException
     {
@@ -165,7 +165,7 @@ public class XMLExporter extends Exporter
         _out.close();
     }
 
-    @Override // documentation inherited
+    @Override
     public void finish ()
         throws IOException
     {

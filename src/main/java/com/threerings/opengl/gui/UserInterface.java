@@ -132,7 +132,7 @@ public class UserInterface extends Container
             updateFromConfig();
         }
 
-        @Override // documentation inherited
+        @Override
         public void init ()
         {
             if (_original == null) {
@@ -145,7 +145,7 @@ public class UserInterface extends Container
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void cleanup ()
         {
             super.cleanup();
@@ -184,7 +184,7 @@ public class UserInterface extends Container
     public abstract class TickableScript extends Script
         implements Tickable
     {
-        @Override // documentation inherited
+        @Override
         public void init ()
         {
             _scriptRoot = getRoot();
@@ -192,7 +192,7 @@ public class UserInterface extends Container
             tick(0f); // tick once to initialize
         }
 
-        @Override // documentation inherited
+        @Override
         public void cleanup ()
         {
             _scriptRoot.removeTickParticipant(this);
@@ -261,7 +261,7 @@ public class UserInterface extends Container
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void cleanup ()
         {
             super.cleanup();
@@ -757,7 +757,7 @@ public class UserInterface extends Container
         checkController();
     }
 
-    @Override // documentation inherited
+    @Override
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
         if (event.getConfig() instanceof UserInterfaceConfig) {
@@ -767,7 +767,7 @@ public class UserInterface extends Container
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasAdded ()
     {
         super.wasAdded();
@@ -791,7 +791,7 @@ public class UserInterface extends Container
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasRemoved ()
     {
         super.wasRemoved();

@@ -152,7 +152,7 @@ public class PlaceableSprite extends EntrySprite
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -195,19 +195,19 @@ public class PlaceableSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Component createTooltipComponent (String tiptext)
         {
             return Component.createDefaultTooltipComponent(_ctx, tiptext);
         }
 
-        @Override // documentation inherited
+        @Override
         public Model getModel ()
         {
             return _model;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (PlaceableEntry entry)
         {
             _model.setLocalTransform(entry.transform);
@@ -216,7 +216,7 @@ public class PlaceableSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -262,14 +262,14 @@ public class PlaceableSprite extends EntrySprite
             setConfig(config);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (PlaceableConfig.Original config)
         {
             super.setConfig(config);
             _config = (PlaceableConfig.Prop)config;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getFloorFlags ()
         {
             return _config.floorFlags;
@@ -302,7 +302,7 @@ public class PlaceableSprite extends EntrySprite
             _model.setColorState(_cstate);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (PlaceableConfig.Original config)
         {
             super.setConfig(config);
@@ -317,19 +317,19 @@ public class PlaceableSprite extends EntrySprite
             setHover(_hover);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isHoverable ()
         {
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isClickable ()
         {
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean dispatchEvent (Event event)
         {
             if (!(event instanceof MouseEvent)) {
@@ -423,7 +423,7 @@ public class PlaceableSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
@@ -431,74 +431,74 @@ public class PlaceableSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getFloorFlags ()
     {
         return _impl.getFloorFlags();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isHoverable ()
     {
         return _impl.isHoverable();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isClickable ()
     {
         return _impl.isClickable();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getTooltipText ()
     {
         return _impl.getTooltipText();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getTooltipTimeout ()
     {
         return _impl.getTooltipTimeout();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getTooltipWindowStyle ()
     {
         return _impl.getTooltipWindowStyle();
     }
 
-    @Override // documentation inherited
+    @Override
     public Component createTooltipComponent (String tiptext)
     {
         return _impl.createTooltipComponent(tiptext);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean dispatchEvent (Event event)
     {
         return _impl.dispatchEvent(event);
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         setConfig((_entry = (PlaceableEntry)entry).placeable);
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Model getModel ()
     {
         return _impl.getModel();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setSelected (boolean selected)
     {
         super.setSelected(selected);
@@ -506,7 +506,7 @@ public class PlaceableSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

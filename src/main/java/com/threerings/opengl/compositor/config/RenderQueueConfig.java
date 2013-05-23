@@ -129,7 +129,7 @@ public class RenderQueueConfig extends ManagedConfig
      */
     public static class Ortho extends RenderMode
     {
-        @Override // documentation inherited
+        @Override
         public void render (GlContext ctx, RenderQueue queue) {
             // make sure we have something to render
             if (queue.isEmpty()) {
@@ -170,7 +170,7 @@ public class RenderQueueConfig extends ManagedConfig
         @Editable(min=0, step=0.01)
         public float fovScale = 1f;
 
-        @Override // documentation inherited
+        @Override
         public void render (GlContext ctx, RenderQueue queue) {
             // make sure we have something to render
             if (queue.isEmpty()) {

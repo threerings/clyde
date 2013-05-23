@@ -86,7 +86,7 @@ public abstract class ShaderObject
         _renderer.shaderObjectDeleted();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void finalize ()
         throws Throwable
     {

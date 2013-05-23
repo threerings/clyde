@@ -140,20 +140,20 @@ public class FontConfig extends ManagedConfig
         @Editable(hgroup="m")
         public boolean allowNegativeSpacing = true;
 
-        @Override // documentation inherited
+        @Override
         public TextFactory getTextFactory (GlContext ctx, int style, int size)
         {
             return CharacterTextFactory.getInstance(
                     getFont(ctx, style, size), antialias, descentModifier);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate()
         {
             _fonts.clear();
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (file != null) {
@@ -161,7 +161,7 @@ public class FontConfig extends ManagedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public int adjustSpacing (int spacing)
         {
             return allowNegativeSpacing ? spacing : Math.max(0, spacing);
@@ -233,7 +233,7 @@ public class FontConfig extends ManagedConfig
         return implementation.adjustSpacing(spacing);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate
@@ -241,7 +241,7 @@ public class FontConfig extends ManagedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateResources (HashSet<String> paths)
     {
         implementation.getUpdateResources(paths);

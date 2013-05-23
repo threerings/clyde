@@ -153,7 +153,7 @@ public class Mobile extends Actor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Actor extrapolate (float elapsed, int timestamp, Actor result)
     {
         super.extrapolate(elapsed, timestamp, result);
@@ -164,13 +164,13 @@ public class Mobile extends Actor
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
     {
         return new MobileAdvancer(environment, this, timestamp);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object copy (Object dest)
     {
         Mobile result = (Mobile)super.copy(dest);
@@ -178,7 +178,7 @@ public class Mobile extends Actor
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!super.equals(other)) {
@@ -188,7 +188,7 @@ public class Mobile extends Actor
         return _direction == omobile._direction;
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         int hash = super.hashCode();

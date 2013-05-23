@@ -135,14 +135,14 @@ public class ChatOverlay extends Container
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void setEnabled (boolean enabled)
     {
         super.setEnabled(enabled);
         updateButtons();
     }
 
-    @Override // documentation inherited
+    @Override
     public Component getHitComponent (int mx, int my)
     {
         Component comp = super.getHitComponent(mx, my);
@@ -151,7 +151,7 @@ public class ChatOverlay extends Container
             : null;
     }
 
-    @Override // documentation inherited
+    @Override
     public void validate ()
     {
         // If the overlay is resized, ensure we maintain our end state

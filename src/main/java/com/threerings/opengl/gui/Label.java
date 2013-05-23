@@ -168,7 +168,7 @@ public class Label extends TextComponent
         return _label.getText();
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/Label";

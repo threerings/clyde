@@ -205,7 +205,7 @@ public class ObjectPanel extends BasePropertyEditor
         fireStateChanged();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         return _panel.getComponentPath(comp, mouse);

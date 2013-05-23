@@ -88,7 +88,7 @@ public abstract class DebugBounds extends SimpleTransformable
         super(ctx, RenderQueue.OPAQUE, 0, true, 0);
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();

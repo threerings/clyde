@@ -93,13 +93,13 @@ public class ShapeModel extends Model.Implementation
         updateFromConfig();
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _element.getBounds();
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         // update the world transform
@@ -113,19 +113,19 @@ public class ShapeModel extends Model.Implementation
         _element.updateBounds();
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_element.getBounds(), Color4f.WHITE);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         return _element.getIntersection(ray, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _element.composite();

@@ -160,7 +160,7 @@ public class Button extends AbstractButton
             : state; // most likely HOVER
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/Button";
@@ -182,7 +182,7 @@ public class Button extends AbstractButton
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         super.updateFromStyleConfig(state, config);

@@ -251,7 +251,7 @@ public class Articulated extends Model.Implementation
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "node";
@@ -313,7 +313,7 @@ public class Articulated extends Model.Implementation
             setConfig(config, parentWorldTransform, parentViewTransform);
         }
 
-        @Override // documentation inherited
+        @Override
         public void createSurfaces (
             GlContext ctx, MaterialMapping[] materialMappings,
             Map<String, MaterialConfig> materialConfigs)
@@ -326,7 +326,7 @@ public class Articulated extends Model.Implementation
                 createSurface(ctx, this, mesh, materialMappings, materialConfigs);
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             super.update();
@@ -336,7 +336,7 @@ public class Articulated extends Model.Implementation
                 _config.getBounds().transform(_worldTransform, _bounds));
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             // transform the ray into model space before checking against the collision mesh
@@ -350,13 +350,13 @@ public class Articulated extends Model.Implementation
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void dumpInfo (String prefix)
         {
             System.out.println(prefix + _config.name + ": " + _worldTransform + " " + _bounds);
         }
 
-        @Override // documentation inherited
+        @Override
         public void composite ()
         {
             super.composite();
@@ -365,14 +365,14 @@ public class Articulated extends Model.Implementation
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void enqueue ()
         {
             super.enqueue();
             _transformState.setDirty(true);
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -451,14 +451,14 @@ public class Articulated extends Model.Implementation
         return Collections.unmodifiableList(m);
     }
 
-    @Override // documentation inherited
+    @Override
     public Transform3D getPointWorldTransform (String point)
     {
         Node node = _nodesByName.get(point);
         return (node == null) ? null : node.getWorldTransform();
     }
 
-    @Override // documentation inherited
+    @Override
     public void attach (String point, Model model, boolean replace)
     {
         Node node = getAttachmentNode(point);
@@ -479,7 +479,7 @@ public class Articulated extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void detach (Model model)
     {
         Scene scene = ((Model)_parentScope).getScene(this);
@@ -495,43 +495,43 @@ public class Articulated extends Model.Implementation
         log.warning("Missing attachment to remove.", "model", model);
     }
 
-    @Override // documentation inherited
+    @Override
     public void detachAll (String point)
     {
         detachAll(_nodesByName.get(point));
     }
 
-    @Override // documentation inherited
+    @Override
     public List<Animation> getPlayingAnimations ()
     {
         return _playing;
     }
 
-    @Override // documentation inherited
+    @Override
     public Animation getAnimation (String name)
     {
         return _animationsByName.get(name);
     }
 
-    @Override // documentation inherited
+    @Override
     public Animation[] getAnimations ()
     {
         return _animations;
     }
 
-    @Override // documentation inherited
+    @Override
     public Animation createAnimation ()
     {
         return new Animation(_ctx, this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _completed;
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         for (Model model : _configAttachments) {
@@ -544,25 +544,25 @@ public class Articulated extends Model.Implementation
         _completed = false;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         tick(0f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
@@ -574,7 +574,7 @@ public class Articulated extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void dumpInfo (String prefix)
     {
         System.out.println(prefix + "Articulated: " + _worldTransform + " " + _bounds);
@@ -593,13 +593,13 @@ public class Articulated extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         // notify configured attachments
@@ -614,7 +614,7 @@ public class Articulated extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         // notify configured attachments
@@ -628,7 +628,7 @@ public class Articulated extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         // return immediately if completed
@@ -711,7 +711,7 @@ public class Articulated extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // exit early if there's no bounds intersection
@@ -745,7 +745,7 @@ public class Articulated extends Model.Implementation
         return (result != closest);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         // add an enqueueable to initialize the shared state

@@ -72,7 +72,7 @@ public class BinaryImporter extends Importer
         _stringClass = getClassWrapper(String.class);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object readObject ()
         throws IOException
     {
@@ -101,7 +101,7 @@ public class BinaryImporter extends Importer
         return read(_objectClass);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean read (String name, boolean defvalue)
         throws IOException
     {
@@ -114,7 +114,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public byte read (String name, byte defvalue)
         throws IOException
     {
@@ -127,7 +127,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public char read (String name, char defvalue)
         throws IOException
     {
@@ -140,7 +140,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public double read (String name, double defvalue)
         throws IOException
     {
@@ -153,7 +153,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public float read (String name, float defvalue)
         throws IOException
     {
@@ -166,7 +166,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int read (String name, int defvalue)
         throws IOException
     {
@@ -179,7 +179,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public long read (String name, long defvalue)
         throws IOException
     {
@@ -192,7 +192,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public short read (String name, short defvalue)
         throws IOException
     {
@@ -205,7 +205,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public <T> T read (String name, T defvalue, Class<T> clazz)
         throws IOException
     {
@@ -219,7 +219,7 @@ public class BinaryImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void close ()
         throws IOException
     {
@@ -546,13 +546,13 @@ public class BinaryImporter extends Importer
             return _clazz;
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return _name.hashCode();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return ((ClassWrapper)other)._name.equals(_name);

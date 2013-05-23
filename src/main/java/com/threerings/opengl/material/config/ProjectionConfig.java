@@ -60,13 +60,13 @@ public abstract class ProjectionConfig extends DeepObject
         @Editable(min=0.0, step=0.01, hgroup="d")
         public float near = 1f;
 
-        @Override // documentation inherited
+        @Override
         protected String getScheme ()
         {
             return RenderScheme.PROJECTION_STQ;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Updater createUpdater (GlContext ctx, Scope scope, final Projection projection)
         {
             final Transform3D viewTransform = ScopeUtil.resolve(
@@ -97,13 +97,13 @@ public abstract class ProjectionConfig extends DeepObject
      */
     public static class Orthographic extends ProjectionConfig
     {
-        @Override // documentation inherited
+        @Override
         protected String getScheme ()
         {
             return RenderScheme.PROJECTION_ST;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Updater createUpdater (GlContext ctx, Scope scope, final Projection projection)
         {
             final Transform3D viewTransform = ScopeUtil.resolve(

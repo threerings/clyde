@@ -94,7 +94,7 @@ public class PlaceableCursor extends EntryCursor
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -132,13 +132,13 @@ public class PlaceableCursor extends EntryCursor
             _localShape = config.shape.getShape();
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape getShape ()
         {
             return _worldShape;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (PlaceableEntry entry)
         {
             _model.setLocalTransform(entry.transform);
@@ -147,13 +147,13 @@ public class PlaceableCursor extends EntryCursor
             _worldShape = _localShape.transform(_transform, _worldShape);
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (float elapsed)
         {
             _model.tick(elapsed);
         }
 
-        @Override // documentation inherited
+        @Override
         public void composite ()
         {
             _model.composite();
@@ -192,38 +192,38 @@ public class PlaceableCursor extends EntryCursor
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape getShape ()
     {
         return _impl.getShape();
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         setConfig((_entry = (PlaceableEntry)entry).placeable);
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         _impl.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _impl.composite();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

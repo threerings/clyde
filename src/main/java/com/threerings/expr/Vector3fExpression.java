@@ -64,7 +64,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Vector3f> createEvaluator (Scope scope)
         {
             return new Evaluator<Vector3f>() {
@@ -88,7 +88,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         @Editable(step=0.01)
         public Vector3f defvalue = new Vector3f();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Vector3f> createEvaluator (Scope scope)
         {
             final Vector3f value = ScopeUtil.resolve(scope, name, defvalue);
@@ -117,7 +117,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         @Editable
         public FloatExpression z = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Vector3f> createEvaluator (Scope scope)
         {
             final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
@@ -131,7 +131,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             x.invalidate();

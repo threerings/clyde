@@ -79,14 +79,14 @@ public abstract class SimpleOverlay extends SimpleRenderable
         super(ctx, queue, priority, modifiesColorState, primitiveCount);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         // only add as enqueueable on primary render
         _ctx.getCompositor().addEnqueueable(this, 0);
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();

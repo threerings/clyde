@@ -62,20 +62,20 @@ public class Selector extends EditorTool
         epanel.setObject(_options);
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _cursor = new ShapeSceneElement(_editor, true);
         _cursor.setShape(new Polygon(4));
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateSelection();
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -83,7 +83,7 @@ public class Selector extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {

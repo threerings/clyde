@@ -227,7 +227,7 @@ public class BoundedRangeModel
         };
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "Bounded Range (min:" + _min + ", max:" + _max + ", value:" + _value +

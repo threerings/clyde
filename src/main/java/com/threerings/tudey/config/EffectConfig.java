@@ -142,20 +142,20 @@ public class EffectConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public EffectSprite.Implementation createSpriteImplementation (
             TudeyContext ctx, Scope scope, Effect effect)
         {
             return sprite.createImplementation(ctx, scope, effect);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             shape.invalidate();
@@ -174,20 +174,20 @@ public class EffectConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<EffectConfig> effect;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(EffectConfig.class, effect);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             EffectConfig config = cfgmgr.getConfig(EffectConfig.class, effect);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public EffectSprite.Implementation createSpriteImplementation (
             TudeyContext ctx, Scope scope, Effect effect)
         {
@@ -222,7 +222,7 @@ public class EffectConfig extends ParameterizedConfig
         return implementation.createSpriteImplementation(ctx, scope, effect);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -230,7 +230,7 @@ public class EffectConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

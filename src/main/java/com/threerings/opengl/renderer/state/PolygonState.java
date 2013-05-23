@@ -114,20 +114,20 @@ public class PolygonState extends RenderState
         return _polygonOffsetUnits;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return POLYGON_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setPolygonState(
             _frontPolygonMode, _backPolygonMode, _polygonOffsetFactor, _polygonOffsetUnits);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         PolygonState ostate;

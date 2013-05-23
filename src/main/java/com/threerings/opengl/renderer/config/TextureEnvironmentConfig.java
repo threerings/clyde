@@ -195,7 +195,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Modulate extends TextureEnvironmentConfig
     {
-        @Override // documentation inherited
+        @Override
         public int getMode ()
         {
             return GL11.GL_MODULATE;
@@ -207,7 +207,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Decal extends TextureEnvironmentConfig
     {
-        @Override // documentation inherited
+        @Override
         public int getMode ()
         {
             return GL11.GL_DECAL;
@@ -219,7 +219,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Blend extends TextureEnvironmentConfig
     {
-        @Override // documentation inherited
+        @Override
         public int getMode ()
         {
             return GL11.GL_BLEND;
@@ -231,7 +231,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Replace extends TextureEnvironmentConfig
     {
-        @Override // documentation inherited
+        @Override
         public int getMode ()
         {
             return GL11.GL_REPLACE;
@@ -243,13 +243,13 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Add extends TextureEnvironmentConfig
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_env_add;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getMode ()
         {
             return GL11.GL_ADD;
@@ -301,13 +301,13 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         @Editable(category="alpha")
         public Scale alphaScale = Scale.ONE;
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_env_combine;
         }
 
-        @Override // documentation inherited
+        @Override
         public void configure (TextureUnit unit)
         {
             super.configure(unit);
@@ -329,7 +329,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             unit.alphaScale = alphaScale.getValue();
         }
 
-        @Override // documentation inherited
+        @Override
         public int getMode ()
         {
             return ARBTextureEnvCombine.GL_COMBINE_ARB;

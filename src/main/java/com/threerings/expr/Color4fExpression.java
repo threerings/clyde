@@ -49,7 +49,7 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
         @Editable(mode="alpha")
         public Color4f value = new Color4f();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Color4f> createEvaluator (Scope scope)
         {
             return new Evaluator<Color4f>() {
@@ -73,7 +73,7 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
         @Editable(mode="alpha")
         public Color4f defvalue = new Color4f();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Color4f> createEvaluator (Scope scope)
         {
             final Color4f value = ScopeUtil.resolve(scope, name, defvalue);
@@ -102,7 +102,7 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
         @Editable
         public FloatExpression blendFactor = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Color4f> createEvaluator (Scope scope)
         {
             final Evaluator<Color4f> eval1 = firstColor.createEvaluator(scope);
@@ -116,7 +116,7 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             firstColor.invalidate();

@@ -77,19 +77,19 @@ public class EffectLogic extends Logic
         return _shape;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isVisible (ActorLogic actor)
     {
         return !_config.targetOnly || _target == actor;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _effect.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _effect.getRotation();

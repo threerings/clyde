@@ -183,13 +183,13 @@ public class GlobalEditor extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean allowsMouseCamera ()
     {
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void sceneChanged (TudeySceneModel scene)
     {
         super.sceneChanged(scene);
@@ -207,7 +207,7 @@ public class GlobalEditor extends EditorTool
         updateShownGlobals();
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryAdded (Entry entry)
     {
         if (_ignoreAdd || !(entry instanceof GlobalEntry)) {
@@ -226,7 +226,7 @@ public class GlobalEditor extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryUpdated (Entry oentry, Entry nentry)
     {
         if (_ignoreUpdate || !(oentry instanceof GlobalEntry)) {
@@ -243,7 +243,7 @@ public class GlobalEditor extends EditorTool
         } // else: probably a different layer
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryRemoved (Entry oentry)
     {
         if (_ignoreRemove || !(oentry instanceof GlobalEntry)) {

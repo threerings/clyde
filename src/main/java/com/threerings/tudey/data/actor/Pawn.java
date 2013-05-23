@@ -56,13 +56,13 @@ public class Pawn extends Active
     {
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isClientControlled (TudeyContext ctx, TudeySceneView view)
     {
         return super.isClientControlled(ctx, view) || view.getController().isControlledId(_id);
     }
 
-    @Override // documentation inherited
+    @Override
     public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
     {
         return new PawnAdvancer(environment, this, timestamp);

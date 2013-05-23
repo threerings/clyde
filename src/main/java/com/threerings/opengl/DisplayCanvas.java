@@ -268,21 +268,21 @@ public class DisplayCanvas extends JPanel
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public void addNotify ()
     {
         super.addNotify();
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
         KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public Point getMousePosition ()
     {
         return _canvas.getMousePosition();

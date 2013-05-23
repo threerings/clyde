@@ -319,7 +319,7 @@ public class TextureRenderer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void finalize ()
         throws Throwable
     {
@@ -512,14 +512,14 @@ public class TextureRenderer
             _depth = new WeakReference<Texture>(depth);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return System.identityHashCode(_color.get()) ^
                 System.identityHashCode(_depth.get());
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             InstanceKey okey = (InstanceKey)other;

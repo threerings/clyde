@@ -265,7 +265,7 @@ public class Container extends Component
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setHoverable (boolean hoverable)
     {
         super.setHoverable(hoverable);
@@ -311,7 +311,7 @@ public class Container extends Component
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/Container";
@@ -399,7 +399,7 @@ public class Container extends Component
         return getPreviousFocus();
     }
 
-    @Override // documentation inherited
+    @Override
     protected Component getFirstDescendantFocus ()
     {
         if (acceptsFocus()) {
@@ -414,7 +414,7 @@ public class Container extends Component
         return null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected Component getLastDescendantFocus ()
     {
         for (int ii = getComponentCount() - 1; ii >= 0; ii--) {

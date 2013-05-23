@@ -87,7 +87,7 @@ public abstract class ActionConfig extends DeepObject
      */
     public static class None extends ActionConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$None";
@@ -107,13 +107,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig location = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnActor";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(ActorConfig.class, actor))) {
@@ -124,7 +124,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             location.invalidate();
@@ -160,7 +160,7 @@ public abstract class ActionConfig extends DeepObject
         @Strippable
         public float rotationVariance = 0;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnRotatedActor";
@@ -177,7 +177,7 @@ public abstract class ActionConfig extends DeepObject
         @Strippable
         public Vector2f translation = new Vector2f();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnTransformedActor";
@@ -214,13 +214,13 @@ public abstract class ActionConfig extends DeepObject
         @Strippable
         public TargetConfig collisionSource = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnRandomTranslatedActor";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -238,13 +238,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig facing = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnFacingActor";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             facing.invalidate();
@@ -265,13 +265,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public boolean endScene = false;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$DestroyActor";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -291,13 +291,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable(min=-180, max=+180, scale=Math.PI/180.0)
         public FloatVariable rotation = new FloatVariable.Uniform(-FloatMath.PI, +FloatMath.PI);
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$RotateActor";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -322,13 +322,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable(min=0)
         public int maxWarpPath = 0;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$WarpActor";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -354,7 +354,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="r")
         public boolean rotatedTranslation = true;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$WarpTransformedActor";
@@ -374,13 +374,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig location = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$FireEffect";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             EffectConfig config = cfgmgr.getConfig(EffectConfig.class, effect);
@@ -390,7 +390,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             location.invalidate();
@@ -411,13 +411,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Signal";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -461,7 +461,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String tag = "";
 
-        @Override // documentation inherited
+        @Override
         public Object getKey ()
         {
             return tag;
@@ -477,7 +477,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="c")
         public int x, y;
 
-        @Override // documentation inherited
+        @Override
         public Object getKey ()
         {
             return new Coord(x, y);
@@ -493,7 +493,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(min=0)
         public int id;
 
-        @Override // documentation inherited
+        @Override
         public Object getKey ()
         {
             return id;
@@ -509,13 +509,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$MoveBody";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -527,7 +527,7 @@ public abstract class ActionConfig extends DeepObject
      */
     public static class MoveAll extends AbstractMove
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$MoveAll";
@@ -551,13 +551,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig elseAction;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Conditional";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             action.getPreloads(cfgmgr, preloads);
@@ -567,7 +567,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             condition.invalidate();
@@ -577,7 +577,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActionConfig[] getSubActions ()
         {
             ActionConfig[] actions = new ActionConfig[(elseAction == null ? 1 : 2)];
@@ -602,13 +602,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig defaultAction;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Switch";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             for (Case c : cases) {
@@ -619,7 +619,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Case c : cases) {
@@ -631,7 +631,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActionConfig[] getSubActions ()
         {
             ActionConfig[] actions =
@@ -678,13 +678,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig defaultAction;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$ExpressionSwitch";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             for (ExpressionCase c : cases) {
@@ -695,7 +695,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (ExpressionCase c : cases) {
@@ -706,7 +706,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActionConfig[] getSubActions ()
         {
             ActionConfig[] actions =
@@ -775,13 +775,13 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Compound";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             for (ActionConfig action : actions) {
@@ -789,7 +789,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (ActionConfig action : actions) {
@@ -797,7 +797,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActionConfig[] getSubActions ()
         {
             return actions;
@@ -813,13 +813,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public WeightedAction[] actions = new WeightedAction[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Random";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             for (WeightedAction waction : actions) {
@@ -827,7 +827,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (WeightedAction waction : actions) {
@@ -835,7 +835,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActionConfig[] getSubActions ()
         {
             ActionConfig[] subActions = new ActionConfig[actions.length];
@@ -881,25 +881,25 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig action = new SpawnActor();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Delayed";
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             action.getPreloads(cfgmgr, preloads);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             action.invalidate();
         }
 
-        @Override // documentation inherited
+        @Override
         public ActionConfig[] getSubActions ()
         {
             ActionConfig[] subActions = new ActionConfig[1];
@@ -930,13 +930,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$StepLimitMobile";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -961,13 +961,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ExpressionConfig value = new ExpressionConfig.Constant();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SetVariable";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -992,13 +992,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public boolean on = true;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SetFlag";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -1019,13 +1019,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ClientActionConfig action = new ClientActionConfig.ControllerAction();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$ForceClientAction";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -1045,13 +1045,13 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig action = new ActionConfig.SpawnActor();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$TargetedAction";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -1072,7 +1072,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String message = "";
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$ServerLog";

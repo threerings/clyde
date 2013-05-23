@@ -88,7 +88,7 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return cfgMgr.getConfig(token, this);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object copy (Object dest)
     {
         ConfigReference<?> cref;
@@ -102,7 +102,7 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return cref;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof ConfigReference)) {
@@ -112,13 +112,13 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return 31*_name.hashCode() + _arguments.hashCode();
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[name=" + _name + ", arguments=" + _arguments + "]";

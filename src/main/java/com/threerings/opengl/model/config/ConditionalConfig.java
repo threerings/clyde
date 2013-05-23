@@ -82,7 +82,7 @@ public class ConditionalConfig extends ModelConfig.Implementation
     @Editable(step=0.01)
     public Transform3D defaultTransform = new Transform3D();
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -94,7 +94,7 @@ public class ConditionalConfig extends ModelConfig.Implementation
         return impl;
     }
 
-    @Override // documentation inherited
+    @Override
     public void invalidate ()
     {
         for (Case caze : cases) {

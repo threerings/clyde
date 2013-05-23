@@ -181,7 +181,7 @@ public class CollisionMesh
         {
         }
 
-        @Override // documentation inherited
+        @Override
         protected boolean computeIntersection (Ray3D ray, Vector3f result)
         {
             // check both children; if they both intersect, use closest intersection
@@ -217,7 +217,7 @@ public class CollisionMesh
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean computeIntersection (Ray3D ray, Vector3f result)
         {
             return _triangle.getIntersection(ray, result);

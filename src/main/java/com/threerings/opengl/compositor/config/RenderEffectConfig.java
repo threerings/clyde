@@ -89,7 +89,7 @@ public class RenderEffectConfig extends BoundConfig
         @Editable
         public Technique[] techniques = new Technique[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Technique technique : techniques) {
@@ -97,13 +97,13 @@ public class RenderEffectConfig extends BoundConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPriority (GlContext ctx)
         {
             return priority;
         }
 
-        @Override // documentation inherited
+        @Override
         public Technique getTechnique (GlContext ctx, String scheme)
         {
             // first look for an exact match for the scheme
@@ -127,7 +127,7 @@ public class RenderEffectConfig extends BoundConfig
             return null;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _processedTechniques = null;
@@ -176,13 +176,13 @@ public class RenderEffectConfig extends BoundConfig
         @Editable(nullable=true)
         public ConfigReference<RenderEffectConfig> renderEffect;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(RenderEffectConfig.class, renderEffect);
         }
 
-        @Override // documentation inherited
+        @Override
         public int getPriority (GlContext ctx)
         {
             RenderEffectConfig config = ctx.getConfigManager().getConfig(
@@ -190,7 +190,7 @@ public class RenderEffectConfig extends BoundConfig
             return (config == null) ? 0 : config.getPriority(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public Technique getTechnique (GlContext ctx, String scheme)
         {
             RenderEffectConfig config = ctx.getConfigManager().getConfig(
@@ -299,7 +299,7 @@ public class RenderEffectConfig extends BoundConfig
         return implementation.getTechnique(ctx, scheme);
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasUpdated ()
     {
         // invalidate the implementation
@@ -307,7 +307,7 @@ public class RenderEffectConfig extends BoundConfig
         super.wasUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -125,7 +125,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public UniformConfig[] uniforms = new UniformConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public UniformConfig[] getUniforms (GlContext ctx)
         {
             return uniforms;
@@ -196,7 +196,7 @@ public class ShaderConfig extends ParameterizedConfig
             @Editable
             public Definition[] definitions = new Definition[0];
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 if (file != null) {
@@ -204,7 +204,7 @@ public class ShaderConfig extends ParameterizedConfig
                 }
             }
 
-            @Override // documentation inherited
+            @Override
             public Shader getShader (
                 GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
             {
@@ -223,13 +223,13 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public Contents contents = new SourceFile();
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
         }
 
-        @Override // documentation inherited
+        @Override
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
         {
             desc.coordSpace = coordSpace;
@@ -240,7 +240,7 @@ public class ShaderConfig extends ParameterizedConfig
             desc.normals |= normals;
         }
 
-        @Override // documentation inherited
+        @Override
         public Shader getShader (
             GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
         {
@@ -292,7 +292,7 @@ public class ShaderConfig extends ParameterizedConfig
             @Editable
             public Definition[] definitions = new Definition[0];
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 if (file != null) {
@@ -300,7 +300,7 @@ public class ShaderConfig extends ParameterizedConfig
                 }
             }
 
-            @Override // documentation inherited
+            @Override
             public Shader getShader (
                 GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
             {
@@ -319,19 +319,19 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public Contents contents = new SourceFile();
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
         }
 
-        @Override // documentation inherited
+        @Override
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
         {
             // no-op
         }
 
-        @Override // documentation inherited
+        @Override
         public Shader getShader (
             GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
         {
@@ -348,13 +348,13 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> shader;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ShaderConfig.class, shader);
         }
 
-        @Override // documentation inherited
+        @Override
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
         {
             ShaderConfig config = getConfig(ctx);
@@ -363,7 +363,7 @@ public class ShaderConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Shader getShader (
             GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
         {
@@ -372,7 +372,7 @@ public class ShaderConfig extends ParameterizedConfig
                 null : config.getShader(ctx, scope, states, vertexProgramTwoSide);
         }
 
-        @Override // documentation inherited
+        @Override
         public UniformConfig[] getUniforms (GlContext ctx)
         {
             ShaderConfig config = getConfig(ctx);
@@ -417,7 +417,7 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static abstract class SimpleUniformConfig extends UniformConfig
     {
-        @Override // documentation inherited
+        @Override
         public void createUniforms (
             Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters)
         {
@@ -444,7 +444,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(hgroup="p")
         public boolean value;
 
-        @Override // documentation inherited
+        @Override
         public Uniform createUniform (int location)
         {
             return new IntegerUniform(location, value ? 1 : 0);
@@ -460,7 +460,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(mode="alpha", hgroup="p")
         public Color4f value = new Color4f();
 
-        @Override // documentation inherited
+        @Override
         public Uniform createUniform (int location)
         {
             return new Vector4fUniform(location, new Vector4f(value.r, value.g, value.b, value.a));
@@ -476,7 +476,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(step=0.01, hgroup="p")
         public float value;
 
-        @Override // documentation inherited
+        @Override
         public Uniform createUniform (int location)
         {
             return new FloatUniform(location, value);
@@ -492,7 +492,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(hgroup="p")
         public int value;
 
-        @Override // documentation inherited
+        @Override
         public Uniform createUniform (int location)
         {
             return new IntegerUniform(location, value);
@@ -508,7 +508,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(step=0.01, mode="polar", hgroup="p")
         public Vector2f value = new Vector2f();
 
-        @Override // documentation inherited
+        @Override
         public Uniform createUniform (int location)
         {
             return new Vector2fUniform(location, value);
@@ -524,7 +524,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(step=0.01, hgroup="p")
         public Transform3D value = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public Uniform createUniform (int location)
         {
             value.update(Transform3D.GENERAL);
@@ -537,7 +537,7 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static abstract class ExpressionUniformConfig extends UniformConfig
     {
-        @Override // documentation inherited
+        @Override
         public void createUniforms (
             Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters)
         {
@@ -565,7 +565,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public BooleanExpression expression = new BooleanExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
         {
             final IntegerUniform uniform = new IntegerUniform(location);
@@ -589,7 +589,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public Color4fExpression expression = new Color4fExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
         {
             final Vector4fUniform uniform = new Vector4fUniform(location);
@@ -614,7 +614,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public FloatExpression expression = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
         {
             final FloatUniform uniform = new FloatUniform(location);
@@ -638,7 +638,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public IntegerExpression expression = new IntegerExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
         {
             final IntegerUniform uniform = new IntegerUniform(location);
@@ -662,7 +662,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public Transform3DExpression expression = new Transform3DExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
         {
             final Matrix4fUniform uniform = new Matrix4fUniform(location);
@@ -685,7 +685,7 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static abstract class ArrayRefUniformConfig<T> extends UniformConfig
     {
-        @Override // documentation inherited
+        @Override
         public void createUniforms (
             Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters)
         {
@@ -735,13 +735,13 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class MatrixArrayRefUniformConfig extends ArrayRefUniformConfig<Matrix4f>
     {
-        @Override // documentation inherited
+        @Override
         protected Class<? extends Matrix4f[]> getArrayClass ()
         {
             return Matrix4f.EMPTY_ARRAY.getClass();
         }
 
-        @Override // documentation inherited
+        @Override
         protected Uniform createUniform (int location, Matrix4f value)
         {
             // set the value by reference
@@ -782,7 +782,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(hgroup="p")
         public boolean value;
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -801,7 +801,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(mode="alpha", hgroup="p")
         public Color4f value = new Color4f();
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -822,7 +822,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(step=0.01, hgroup="p")
         public float value;
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -839,7 +839,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(hgroup="p")
         public int value;
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -856,7 +856,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(hgroup="p")
         public String value = "";
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -873,7 +873,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(step=0.01, hgroup="p")
         public Transform3D value = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -912,7 +912,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public String eyeVertex = "eyeVertex";
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -926,7 +926,7 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class FogBlendSnippet extends Definition
     {
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -948,7 +948,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public String eyeNormal = "eyeNormal";
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -970,7 +970,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public String eyeNormal = "eyeNormal";
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -992,7 +992,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public String eyeNormal = "eyeNormal";
 
-        @Override // documentation inherited
+        @Override
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
@@ -1029,13 +1029,13 @@ public class ShaderConfig extends ParameterizedConfig
         return implementation.getUniforms(ctx);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateResources (HashSet<String> paths)
     {
         implementation.getUpdateResources(paths);

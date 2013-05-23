@@ -76,7 +76,7 @@ public class Grid extends SimpleTransformable
         return cstate.getColor();
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();

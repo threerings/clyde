@@ -217,13 +217,13 @@ public class TextureCubeMap extends Texture
 //        }
     }
 
-    @Override // documentation inherited
+    @Override
     public int getWidth ()
     {
         return _size;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getHeight ()
     {
         return _size;

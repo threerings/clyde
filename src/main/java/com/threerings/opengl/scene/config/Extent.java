@@ -56,7 +56,7 @@ public abstract class Extent extends DeepObject
         @Editable(min=0, step=0.01, hgroup="s")
         public float sizeZ = 1f;
 
-        @Override // documentation inherited
+        @Override
         public void transformBounds (Transform3D transform, Box result)
         {
             float hx = sizeX * 0.5f, hy = sizeY * 0.5f, hz = sizeZ * 0.5f;
@@ -71,7 +71,7 @@ public abstract class Extent extends DeepObject
      */
     public static class Unlimited extends Extent
     {
-        @Override // documentation inherited
+        @Override
         public void transformBounds (Transform3D transform, Box result)
         {
             result.set(Box.MAX_VALUE);

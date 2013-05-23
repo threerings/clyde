@@ -52,13 +52,13 @@ public class TudeyZoneMoveHandler extends ZoneMoveHandler
         _portalKey = portalKey;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void resolveScene ()
     {
         ((TudeySceneRegistry)_screg).resolveScene(_body, _sceneId, this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void effectSceneMove (SceneManager scmgr)
         throws InvocationException
     {

@@ -316,7 +316,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
          */
         public abstract void composite ();
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "layer";
@@ -450,13 +450,13 @@ public abstract class BaseParticleSystem extends Model.Implementation
         _parentViewTransform.compose(_localTransform, _viewTransform);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _completed;
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         for (Layer layer : _layers) {
@@ -465,25 +465,25 @@ public abstract class BaseParticleSystem extends Model.Implementation
         _warmed = _completed = false;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         tick(0f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
@@ -492,25 +492,25 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void dumpInfo (String prefix)
     {
         System.out.println(prefix + "ParticleSystem: " + _worldTransform + " " + _bounds);
     }
 
-    @Override // documentation inherited
+    @Override
     public TransientPolicy getTransientPolicy ()
     {
         return _transientPolicy;
     }
 
-    @Override // documentation inherited
+    @Override
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         super.wasAdded();
@@ -519,7 +519,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         super.willBeRemoved();
@@ -528,7 +528,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         // if we're completed, there's nothing more to do
@@ -578,7 +578,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         // add an enqueueable to initialize the shared state

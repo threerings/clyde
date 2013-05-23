@@ -103,7 +103,7 @@ public class EntryEdit extends AbstractUndoableEdit
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean addEdit (UndoableEdit edit)
     {
         // make sure it's an entry edit with the same id as this one
@@ -155,7 +155,7 @@ public class EntryEdit extends AbstractUndoableEdit
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void undo ()
         throws CannotUndoException
     {
@@ -163,7 +163,7 @@ public class EntryEdit extends AbstractUndoableEdit
         swap(_removed, _added);
     }
 
-    @Override // documentation inherited
+    @Override
     public void redo ()
         throws CannotRedoException
     {

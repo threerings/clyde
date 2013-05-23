@@ -473,7 +473,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(category="compare")
         public DepthMode depthMode = DepthMode.LUMINANCE;
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return format.isSupported(fallback) && wrapS.isSupported(fallback) &&
@@ -481,7 +481,7 @@ public class TextureConfig extends ParameterizedConfig
                 compareMode.isSupported(fallback);
         }
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -494,7 +494,7 @@ public class TextureConfig extends ParameterizedConfig
             return texture;
         }
 
-        @Override // documentation inherited
+        @Override
         public Texture getFromPool (GlContext ctx)
         {
             List<SoftReference<Texture>> pool = getPool();
@@ -509,13 +509,13 @@ public class TextureConfig extends ParameterizedConfig
             return texture;
         }
 
-        @Override // documentation inherited
+        @Override
         public void returnToPool (GlContext ctx, Texture texture)
         {
             getPool().add(new SoftReference<Texture>(texture));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _texture = null;
@@ -596,7 +596,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(min=1)
             public int width = 1;
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
             {
@@ -625,7 +625,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable
             public boolean premultiply = true;
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 if (file != null) {
@@ -633,7 +633,7 @@ public class TextureConfig extends ParameterizedConfig
                 }
             }
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
             {
@@ -659,13 +659,13 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(category="data")
         public Contents contents = new ImageFile();
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
         }
 
-        @Override // documentation inherited
+        @Override
         protected Texture createTexture (GlContext ctx)
         {
             Texture1D texture = new Texture1D(ctx.getRenderer());
@@ -714,7 +714,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(min=1, hgroup="d")
             public int height = 1;
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
             {
@@ -743,7 +743,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable
             public boolean premultiply = true;
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 if (file != null) {
@@ -751,7 +751,7 @@ public class TextureConfig extends ParameterizedConfig
                 }
             }
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
             {
@@ -778,13 +778,13 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(category="data")
         public Contents contents = new ImageFile();
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
         }
 
-        @Override // documentation inherited
+        @Override
         protected Texture createTexture (GlContext ctx)
         {
             Texture2D texture = new Texture2D(ctx.getRenderer(), false);
@@ -798,7 +798,7 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Original2DTarget extends Original
     {
-        @Override // documentation inherited
+        @Override
         protected Texture createTexture (GlContext ctx)
         {
             return new Texture2DTarget(ctx.getRenderer(), format, border, minFilter.isMipmapped());
@@ -810,14 +810,14 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class OriginalRectangle extends Original2D
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return super.isSupported(ctx, fallback) &&
                 GLContext.getCapabilities().GL_ARB_texture_rectangle;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Texture createTexture (GlContext ctx)
         {
             Texture2D texture = new Texture2D(ctx.getRenderer(), true);
@@ -870,7 +870,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(min=1, hgroup="d")
             public int depth = 1;
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
             {
@@ -911,7 +911,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(min=1, hgroup="d")
             public int depth = 1;
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 if (file != null) {
@@ -919,7 +919,7 @@ public class TextureConfig extends ParameterizedConfig
                 }
             }
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
             {
@@ -946,19 +946,19 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(category="data")
         public Contents contents = new ImageFile();
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return super.isSupported(ctx, fallback) && GLContext.getCapabilities().OpenGL12;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Texture createTexture (GlContext ctx)
         {
             Texture3D texture = new Texture3D(ctx.getRenderer());
@@ -1004,7 +1004,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(min=1)
             public int size = 1;
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
@@ -1042,7 +1042,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(min=1, max=6, hgroup="d")
             public int divisionsT = 2;
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 if (file != null) {
@@ -1050,7 +1050,7 @@ public class TextureConfig extends ParameterizedConfig
                 }
             }
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
@@ -1095,14 +1095,14 @@ public class TextureConfig extends ParameterizedConfig
             @Editable
             public boolean premultiply = true;
 
-            @Override // documentation inherited
+            @Override
             public void getUpdateResources (HashSet<String> paths)
             {
                 negative.getUpdateResources(paths);
                 positive.getUpdateResources(paths);
             }
 
-            @Override // documentation inherited
+            @Override
             public void load (
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
@@ -1180,20 +1180,20 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(category="data")
         public Contents contents = new ImageFiles();
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return super.isSupported(ctx, fallback) &&
                 GLContext.getCapabilities().GL_ARB_texture_cube_map;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Texture createTexture (GlContext ctx)
         {
             TextureCubeMap texture = new TextureCubeMap(ctx.getRenderer());
@@ -1211,20 +1211,20 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<TextureConfig> texture;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(TextureConfig.class, texture);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             TextureConfig config = getConfig(ctx);
             return config == null || config.isSupported(ctx, fallback);
         }
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -1256,7 +1256,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(min=0, hgroup="f")
         public int maxDepth;
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -1347,7 +1347,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(min=0.0, step=0.01, hgroup="n")
         public float destIndex = 1.5f;
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -1439,7 +1439,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(min=0, hgroup="m")
         public int maxDepth;
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -1502,7 +1502,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable
         public boolean depth;
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -1570,7 +1570,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable
         public Frame[] frames = new Frame[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Frame frame : frames) {
@@ -1578,7 +1578,7 @@ public class TextureConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (Frame frame : frames) {
@@ -1589,7 +1589,7 @@ public class TextureConfig extends ParameterizedConfig
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public Texture getTexture (
             GlContext ctx, final TextureState state, final TextureUnit unit,
             Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
@@ -1616,7 +1616,7 @@ public class TextureConfig extends ParameterizedConfig
             return null;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             frame.invalidate();
@@ -1628,14 +1628,14 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Derived extends BaseDerived
     {
-        @Override // documentation inherited
+        @Override
         public Texture getFromPool (GlContext ctx)
         {
             TextureConfig config = getConfig(ctx);
             return (config == null) ? null : config.getFromPool(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public void returnToPool (GlContext ctx, Texture texture)
         {
             TextureConfig config = getConfig(ctx);
@@ -1711,7 +1711,7 @@ public class TextureConfig extends ParameterizedConfig
         implementation.returnToPool(ctx, texture);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -1719,13 +1719,13 @@ public class TextureConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateResources (HashSet<String> paths)
     {
         implementation.getUpdateResources(paths);

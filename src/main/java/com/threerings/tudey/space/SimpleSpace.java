@@ -41,33 +41,33 @@ import com.threerings.tudey.shape.Shape;
  */
 public class SimpleSpace extends Space
 {
-    @Override // documentation inherited
+    @Override
     public SpaceElement getIntersection (
         Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter)
     {
         return getIntersection(_elements, ray, location, filter);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getIntersecting (
             Shape shape, Predicate<? super SpaceElement> filter, Collection<SpaceElement> results)
     {
         getIntersecting(_elements, shape, filter, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getElements (Rect bounds, Collection<SpaceElement> results)
     {
         getIntersecting(_elements, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (SpaceElement element)
     {
         _elements.add(element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (SpaceElement element)
     {
         _elements.remove(element);

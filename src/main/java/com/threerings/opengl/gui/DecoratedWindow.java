@@ -55,7 +55,7 @@ public class DecoratedWindow extends Window
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/DecoratedWindow";

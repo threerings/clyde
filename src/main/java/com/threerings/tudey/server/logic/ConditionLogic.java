@@ -55,7 +55,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static abstract class Targeted extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -71,7 +71,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Tagged extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             ConditionConfig.Tagged config = (ConditionConfig.Tagged)_config;
@@ -89,7 +89,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.Tagged)_config).target, _source);
@@ -104,7 +104,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class InstanceOf extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             boolean all = ((ConditionConfig.InstanceOf)_config).all;
@@ -122,7 +122,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ConditionConfig.InstanceOf config = (ConditionConfig.InstanceOf)_config;
@@ -147,7 +147,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Intersecting extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             boolean all = ((ConditionConfig.Intersecting)_config).allFirst;
@@ -167,7 +167,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -177,7 +177,7 @@ public abstract class ConditionLogic extends Logic
             _second.transfer(isource._second, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ConditionConfig.Intersecting config = (ConditionConfig.Intersecting)_config;
@@ -212,7 +212,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class IntersectsScene extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             _region.resolve(activator, _shapes);
@@ -230,7 +230,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -238,7 +238,7 @@ public abstract class ConditionLogic extends Logic
             _region.transfer(((IntersectsScene)source)._region, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _region = createRegion(((ConditionConfig.IntersectsScene)_config).region, _source);
@@ -256,7 +256,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class DistanceWithin extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             boolean all = ((ConditionConfig.DistanceWithin)_config).allFirst;
@@ -276,7 +276,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -286,7 +286,7 @@ public abstract class ConditionLogic extends Logic
             _second.transfer(dsource._second, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ConditionConfig.DistanceWithin config = (ConditionConfig.DistanceWithin)_config;
@@ -323,7 +323,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Random extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             return FloatMath.random() < ((ConditionConfig.Random)_config).probability;
@@ -335,7 +335,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Limit extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             if (_limit > 0) {
@@ -345,14 +345,14 @@ public abstract class ConditionLogic extends Logic
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _limit = ((Limit)source)._limit;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _limit = ((ConditionConfig.Limit)_config).limit;
@@ -367,7 +367,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class All extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             for (ConditionLogic condition : _conditions) {
@@ -378,7 +378,7 @@ public abstract class ConditionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -389,7 +389,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ArrayList<ConditionLogic> list = Lists.newArrayList();
@@ -411,7 +411,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Any extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             for (ConditionLogic condition : _conditions) {
@@ -422,7 +422,7 @@ public abstract class ConditionLogic extends Logic
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -433,7 +433,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ArrayList<ConditionLogic> list = Lists.newArrayList();
@@ -455,7 +455,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class FlagSet extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             ConditionConfig.FlagSet config = (ConditionConfig.FlagSet)_config;
@@ -484,7 +484,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.FlagSet)_config).target, _source);
@@ -499,7 +499,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Cooldown extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             int timestamp = _scenemgr.getTimestamp();
@@ -510,7 +510,7 @@ public abstract class ConditionLogic extends Logic
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -526,20 +526,20 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Not extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             return !_condition.isSatisfied(activator);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _condition.transfer(((Not)source)._condition, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _condition = createCondition(((ConditionConfig.Not)_config).condition, _source);
@@ -572,7 +572,7 @@ public abstract class ConditionLogic extends Logic
             return ExpressionLogic.coerceToBoolean(_expression.evaluate(activator, null));
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _expression = createExpression(
@@ -588,20 +588,20 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Action extends ConditionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             return _action.execute(_scenemgr.getTimestamp(), activator);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _action.transfer(((Action)source)._action, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _action = createAction(((ConditionConfig.Action)_config).action, _source);
@@ -618,7 +618,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Is extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             _sourceTarget.resolve(activator, _targets);
@@ -642,7 +642,7 @@ public abstract class ConditionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.Is)_config).target, _source);
@@ -661,7 +661,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class DateRange extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             ConditionConfig.DateRange config = (ConditionConfig.DateRange)_config;
@@ -692,25 +692,25 @@ public abstract class ConditionLogic extends Logic
      */
     public abstract boolean isSatisfied (Logic activator);
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();

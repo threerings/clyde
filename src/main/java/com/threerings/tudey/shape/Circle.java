@@ -77,7 +77,7 @@ public class Circle extends Shape
         return _center.distanceSquared(pt) <= radius*radius;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         _bounds.getMinimumExtent().set(_center);
@@ -85,13 +85,13 @@ public class Circle extends Shape
         _bounds.expandLocal(radius, radius);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getCenter (Vector2f result)
     {
         return result.set(_center);
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape transform (Transform2D transform, Shape result)
     {
         Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();
@@ -101,7 +101,7 @@ public class Circle extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape expand (float amount, Shape result)
     {
         Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();
@@ -111,7 +111,7 @@ public class Circle extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape sweep (Vector2f translation, Shape result)
     {
         Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
@@ -122,19 +122,19 @@ public class Circle extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_center, radius, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getNearestPoint (Vector2f point, Vector2f result)
     {
         getIntersection(new Ray2D(point, _center.subtract(point).normalize()), result);
     }
 
-    @Override // documentation inherited
+    @Override
     public IntersectionType getIntersectionType (Rect rect)
     {
         // test the points of the rect against the circle
@@ -172,61 +172,61 @@ public class Circle extends Shape
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (SpaceElement element)
     {
         return element.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Shape shape)
     {
         return shape.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Point point)
     {
         return contains(point.getLocation());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Segment segment)
     {
         return intersects(_center, radius, segment.getStart(), segment.getEnd());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Circle circle)
     {
         return circle.getCenter().distance(_center) <= (circle.radius + radius);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Capsule capsule)
     {
         return capsule.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Polygon polygon)
     {
         return polygon.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Shape shape, Vector2f result)
     {
         return shape.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Point point, Vector2f result)
     {
         Vector2f location = point.getLocation();
@@ -235,13 +235,13 @@ public class Circle extends Shape
             location.subtract(_center, result).multLocal(radius / dist - 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
         return segment.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
         Vector2f ocenter = circle.getCenter();
@@ -250,25 +250,25 @@ public class Circle extends Shape
             ocenter.subtract(_center, result).multLocal((radius + circle.radius) / dist - 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Capsule capsule, Vector2f result)
     {
         return capsule.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Polygon polygon, Vector2f result)
     {
         return polygon.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Compound compound, Vector2f result)
     {
         return compound.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public void draw (boolean outline)
     {
         GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
@@ -281,7 +281,7 @@ public class Circle extends Shape
         GL11.glEnd();
     }
 
-    @Override // documentation inherited
+    @Override
     public ShapeConfig createConfig ()
     {
         ShapeConfig.Circle circle = new ShapeConfig.Circle();
@@ -294,7 +294,7 @@ public class Circle extends Shape
         return compound;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[center=" + _center + ", radius=" + radius + ", bounds=" + _bounds + "]";

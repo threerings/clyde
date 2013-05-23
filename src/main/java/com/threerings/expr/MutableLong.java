@@ -48,19 +48,19 @@ public class MutableLong
     {
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return (int)(value ^ (value >>> 32));
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof MutableLong && ((MutableLong)other).value == value;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return String.valueOf(value);

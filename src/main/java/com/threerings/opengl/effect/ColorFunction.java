@@ -68,13 +68,13 @@ public abstract class ColorFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (float t, Color4f result)
         {
             return result.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction copy (ColorFunction result)
         {
             Constant cresult = (result instanceof Constant) ? ((Constant)result) : new Constant();
@@ -116,13 +116,13 @@ public abstract class ColorFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (float t, Color4f result)
         {
             return start.lerp(end, easing.getTime(t), result);
         }
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction copy (ColorFunction result)
         {
             Linear lresult = (result instanceof Linear) ? ((Linear)result) : new Linear();
@@ -182,7 +182,7 @@ public abstract class ColorFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (float t, Color4f result)
         {
             if (t < in) {
@@ -194,7 +194,7 @@ public abstract class ColorFunction extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction copy (ColorFunction result)
         {
             InAndOut iresult = (result instanceof InAndOut) ? ((InAndOut)result) : new InAndOut();
@@ -261,7 +261,7 @@ public abstract class ColorFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (float t, Color4f result)
         {
             if (t < in) {
@@ -273,7 +273,7 @@ public abstract class ColorFunction extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction copy (ColorFunction result)
         {
             ThreePoint tresult = (result instanceof ThreePoint) ?
@@ -384,7 +384,7 @@ public abstract class ColorFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (float t, Color4f result)
         {
             Color4f last = start;
@@ -400,7 +400,7 @@ public abstract class ColorFunction extends DeepObject
             return last.lerp(end, t / remaining, result);
         }
 
-        @Override // documentation inherited
+        @Override
         public ColorFunction copy (ColorFunction result)
         {
             Multipoint mresult = (result instanceof Multipoint) ?

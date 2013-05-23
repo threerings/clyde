@@ -59,13 +59,13 @@ public class EnumEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         _box.setSelectedIndex(getValues().indexOf(_property.get(_object)));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

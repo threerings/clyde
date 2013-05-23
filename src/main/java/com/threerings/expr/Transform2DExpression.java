@@ -49,7 +49,7 @@ public abstract class Transform2DExpression extends ObjectExpression<Transform2D
         @Editable(step=0.01)
         public Transform2D value = new Transform2D();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform2D> createEvaluator (Scope scope)
         {
             return new Evaluator<Transform2D>() {
@@ -73,7 +73,7 @@ public abstract class Transform2DExpression extends ObjectExpression<Transform2D
         @Editable(step=0.01)
         public Transform2D defvalue = new Transform2D();
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform2D> createEvaluator (Scope scope)
         {
             final Transform2D value = ScopeUtil.resolve(scope, name, defvalue);
@@ -102,7 +102,7 @@ public abstract class Transform2DExpression extends ObjectExpression<Transform2D
         @Editable
         public FloatExpression scale = new FloatExpression.Constant(1f);
 
-        @Override // documentation inherited
+        @Override
         public Evaluator<Transform2D> createEvaluator (Scope scope)
         {
             final Evaluator<Vector2f> teval = translation.createEvaluator(scope);
@@ -116,7 +116,7 @@ public abstract class Transform2DExpression extends ObjectExpression<Transform2D
             };
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             translation.invalidate();

@@ -48,19 +48,19 @@ public class MutableInteger
     {
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return value;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof MutableInteger && ((MutableInteger)other).value == value;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return String.valueOf(value);

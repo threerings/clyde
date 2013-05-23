@@ -693,7 +693,7 @@ public abstract class Root extends SimpleOverlay
         _tipwin.validate();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         Window modalWin = null;

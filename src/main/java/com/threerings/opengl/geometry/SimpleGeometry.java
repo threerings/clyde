@@ -80,13 +80,13 @@ public class SimpleGeometry extends Geometry
         _drawCommand = drawCommand;
     }
 
-    @Override // documentation inherited
+    @Override
     public ArrayState getArrayState (int pass)
     {
         return _arrayState;
     }
 
-    @Override // documentation inherited
+    @Override
     public DrawCommand getDrawCommand (int pass)
     {
         return _drawCommand;

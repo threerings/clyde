@@ -255,7 +255,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             invalidate();
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasAdded ()
         {
             super.wasAdded();
@@ -413,13 +413,13 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public int getAbsoluteY ()
         {
             return super.getAbsoluteY() + _offset;
         }
 
-        @Override // documentation inherited
+        @Override
         public Component getHitComponent (int mx, int my)
         {
             // if we're not within our bounds, we needn't check our target

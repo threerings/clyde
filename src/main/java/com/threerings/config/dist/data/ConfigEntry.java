@@ -99,13 +99,13 @@ public class ConfigEntry extends SimpleStreamableObject
         return _key;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[key=" + _key + ", config=" + _config + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         ConfigEntry oentry;

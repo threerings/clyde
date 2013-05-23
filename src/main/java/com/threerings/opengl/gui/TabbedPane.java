@@ -384,7 +384,7 @@ public class TabbedPane extends Container
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/TabbedPane";

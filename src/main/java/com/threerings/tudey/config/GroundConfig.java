@@ -184,7 +184,7 @@ public class GroundConfig extends PaintableConfig
                 caseRotations.right, maxWidth, maxHeight, elevation);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Tile tile : floor) {
@@ -195,13 +195,13 @@ public class GroundConfig extends PaintableConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Tile tile : floor) {
@@ -244,7 +244,7 @@ public class GroundConfig extends PaintableConfig
         @Editable(hgroup="d")
         public boolean on, onw, ow, osw, os, ose, oe, one;
 
-        @Override // documentation inherited
+        @Override
         public int getRotations (
             TudeySceneModel scene, ConfigReference<GroundConfig> ref,
             GroundConfig.Original original, int x, int y, int elevation)
@@ -260,7 +260,7 @@ public class GroundConfig extends PaintableConfig
                 createPattern(scene, other, ooriginal, x, y, elevation));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -297,13 +297,13 @@ public class GroundConfig extends PaintableConfig
         @Editable(nullable=true)
         public ConfigReference<GroundConfig> ground;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(GroundConfig.class, ground);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             GroundConfig config = cfgmgr.getConfig(GroundConfig.class, ground);
@@ -323,7 +323,7 @@ public class GroundConfig extends PaintableConfig
         return implementation.getOriginal(cfgmgr);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -331,7 +331,7 @@ public class GroundConfig extends PaintableConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

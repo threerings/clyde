@@ -105,7 +105,7 @@ public class AnchorLayout extends LayoutManager
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void addLayoutComponent (Component comp, Object constraints)
     {
         Anchor anchor;
@@ -120,19 +120,19 @@ public class AnchorLayout extends LayoutManager
         _anchors.put(comp, anchor);
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeLayoutComponent (Component comp)
     {
         _anchors.remove(comp);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object getConstraints (Component comp)
     {
         return _anchors.get(comp);
     }
 
-    @Override // documentation inherited
+    @Override
     public Dimension computePreferredSize (Container target, int whint, int hhint)
     {
         for (int ii = 0, nn = target.getComponentCount(); ii < nn; ii++) {
@@ -143,7 +143,7 @@ public class AnchorLayout extends LayoutManager
         return new Dimension(whint, hhint);
     }
 
-    @Override // documentation inherited
+    @Override
     public void layoutContainer (Container target)
     {
         int width = target.getWidth(), height = target.getHeight();

@@ -299,7 +299,7 @@ public class ComboBox<T> extends Label
         return super.dispatchEvent(event);
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/ComboBox";

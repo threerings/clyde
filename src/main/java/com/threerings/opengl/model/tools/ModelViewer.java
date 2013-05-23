@@ -243,7 +243,7 @@ public class ModelViewer extends ModelTool
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -271,7 +271,7 @@ public class ModelViewer extends ModelTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected JComponent createCanvasContainer ()
     {
         JSplitPane pane = new JSplitPane(
@@ -282,13 +282,13 @@ public class ModelViewer extends ModelTool
         return pane;
     }
 
-    @Override // documentation inherited
+    @Override
     protected CanvasToolPrefs createEditablePrefs ()
     {
         return new ModelToolPrefs(_prefs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -306,7 +306,7 @@ public class ModelViewer extends ModelTool
         _tpanels.add(new TrackPanel());
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView ()
     {
         // scaled the elapsed time by the speed
@@ -322,7 +322,7 @@ public class ModelViewer extends ModelTool
         updateView(lelapsed / 1000f);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);

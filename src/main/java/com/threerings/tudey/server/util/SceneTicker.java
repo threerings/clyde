@@ -57,7 +57,7 @@ public abstract class SceneTicker
             super(runQueue, targetInterval);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void start ()
         {
             (_interval = new Interval(_runQueue) {
@@ -70,7 +70,7 @@ public abstract class SceneTicker
             }).schedule(_targetInterval);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void stop ()
         {
             if (_interval != null) {
@@ -96,7 +96,7 @@ public abstract class SceneTicker
             super(runQueue, targetInterval);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void start ()
         {
             (_thread = new LoopingThread("sceneTicker") {
@@ -115,7 +115,7 @@ public abstract class SceneTicker
             }).start();
         }
 
-        @Override // documentation inherited
+        @Override
         protected void stop ()
         {
             if (_thread != null) {

@@ -81,13 +81,13 @@ public abstract class Preloadable extends DeepObject
             return _ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public void preload (GlContext ctx)
         {
             _config = ctx.getConfigManager().getConfig(_clazz, _ref);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return "[" + ConfigGroup.getName(_clazz) + "=" + _ref + "]";
@@ -125,7 +125,7 @@ public abstract class Preloadable extends DeepObject
             return _ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public void preload (GlContext ctx)
         {
             _model = new com.threerings.opengl.model.Model(ctx);
@@ -133,7 +133,7 @@ public abstract class Preloadable extends DeepObject
             _model.setConfig(_ref);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return "[model=" + _ref + "]";
@@ -168,14 +168,14 @@ public abstract class Preloadable extends DeepObject
             return _ref;
         }
 
-        @Override // documentation inherited
+        @Override
         public void preload (GlContext ctx)
         {
             _anim = new com.threerings.opengl.model.Animation(ctx, ctx.getScope());
             _anim.setConfig(null, _ref);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return "[anim=" + _ref + "]";

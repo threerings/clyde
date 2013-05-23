@@ -85,7 +85,7 @@ public class Color4fEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         Color4f color = (Color4f)_property.get(_object);
@@ -99,7 +99,7 @@ public class Color4fEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

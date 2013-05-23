@@ -47,25 +47,25 @@ public class FieldProperty extends Property
         _name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(_field.getName()));
     }
 
-    @Override // documentation inherited
+    @Override
     public Member getMember ()
     {
         return _field;
     }
 
-    @Override // documentation inherited
+    @Override
     public Class<?> getType ()
     {
         return _field.getType();
     }
 
-    @Override // documentation inherited
+    @Override
     public Type getGenericType ()
     {
         return _field.getGenericType();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getBoolean (Object object)
     {
         try {
@@ -76,7 +76,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public byte getByte (Object object)
     {
         try {
@@ -87,7 +87,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public char getChar (Object object)
     {
         try {
@@ -98,7 +98,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public double getDouble (Object object)
     {
         try {
@@ -109,7 +109,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public float getFloat (Object object)
     {
         try {
@@ -120,7 +120,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInt (Object object)
     {
         try {
@@ -131,7 +131,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public long getLong (Object object)
     {
         try {
@@ -142,7 +142,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public short getShort (Object object)
     {
         try {
@@ -153,7 +153,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Object get (Object object)
     {
         try {
@@ -164,7 +164,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setBoolean (Object object, boolean value)
     {
         try {
@@ -174,7 +174,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setByte (Object object, byte value)
     {
         try {
@@ -184,7 +184,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setChar (Object object, char value)
     {
         try {
@@ -194,7 +194,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setDouble (Object object, double value)
     {
         try {
@@ -204,7 +204,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setFloat (Object object, float value)
     {
         try {
@@ -214,7 +214,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setInt (Object object, int value)
     {
         try {
@@ -224,7 +224,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setLong (Object object, long value)
     {
         try {
@@ -234,7 +234,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setShort (Object object, short value)
     {
         try {
@@ -244,7 +244,7 @@ public class FieldProperty extends Property
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void set (Object object, Object value)
     {
         try {

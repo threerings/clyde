@@ -558,19 +558,19 @@ public final class Box
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[min=" + _minExtent + ", max=" + _maxExtent + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return _minExtent.hashCode() + 31*_maxExtent.hashCode();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Box)) {

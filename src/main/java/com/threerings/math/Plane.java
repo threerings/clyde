@@ -320,13 +320,13 @@ public class Plane
         set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return _normal.hashCode() ^ Float.floatToIntBits(constant);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Plane)) {

@@ -117,19 +117,19 @@ public class ComponentBillboard extends Model.Implementation
         _queue.add(_batch, _config.priority);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         // update the world transform
@@ -150,13 +150,13 @@ public class ComponentBillboard extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _ctx.getCompositor().addEnqueueable(this);

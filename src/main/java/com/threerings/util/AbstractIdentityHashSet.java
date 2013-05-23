@@ -56,37 +56,37 @@ public abstract class AbstractIdentityHashSet<T> extends AbstractSet<T>
         _map = new IdentityHashMap<T, Boolean>(expectedMaxSize);
     }
 
-    @Override // documentation inherited
+    @Override
     public int size ()
     {
         return _map.size();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean add (T element)
     {
         return _map.put(element, Boolean.TRUE) == null;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean remove (Object object)
     {
         return _map.remove(object) != null;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean contains (Object object)
     {
         return _map.containsKey(object);
     }
 
-    @Override // documentation inherited
+    @Override
     public void clear ()
     {
         _map.clear();
     }
 
-    @Override // documentation inherited
+    @Override
     public Iterator<T> iterator ()
     {
         return _map.keySet().iterator();

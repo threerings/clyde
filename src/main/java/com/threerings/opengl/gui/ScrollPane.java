@@ -166,7 +166,7 @@ public class ScrollPane extends Container
         _vport.setStyleConfig(ref);
     }
 
-    @Override // documentation inherited
+    @Override
     public void layout ()
     {
         if (_layingOut || _vport.getTarget().isValid()) {
@@ -469,7 +469,7 @@ public class ScrollPane extends Container
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected String getDefaultStyleConfig ()
         {
             return "Default/Viewport";

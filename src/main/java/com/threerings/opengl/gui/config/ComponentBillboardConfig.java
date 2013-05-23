@@ -98,7 +98,7 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
         depthState.mask = false;
     }
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {

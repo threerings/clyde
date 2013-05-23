@@ -57,7 +57,7 @@ public class Compass extends SimpleOverlay
         _z = factory.createText("z", Color4f.BLUE);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         Renderer renderer = _ctx.getRenderer();

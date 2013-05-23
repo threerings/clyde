@@ -70,49 +70,49 @@ public abstract class ActivityLogic extends Logic
         // nothing by default
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape getShape ()
     {
         return _source.getShape();
     }
 
-    @Override // documentation inherited
+    @Override
     public void addShapeObserver (ShapeObserver observer)
     {
         _source.addShapeObserver(observer);
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeShapeObserver (ShapeObserver observer)
     {
         _source.removeShapeObserver(observer);
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);

@@ -59,7 +59,7 @@ public abstract class EventConfig extends DeepObject
         @Editable(hgroup="t")
         public String target = "";
 
-        @Override // documentation inherited
+        @Override
         public Script addHandler (UserInterface iface, Runnable runnable)
         {
             final ComponentListener listener = createListener(runnable);
@@ -93,7 +93,7 @@ public abstract class EventConfig extends DeepObject
         @Editable(hgroup="t")
         public String action = "";
 
-        @Override // documentation inherited
+        @Override
         protected ComponentListener createListener (final Runnable runnable)
         {
             return new ActionListener() {
@@ -115,7 +115,7 @@ public abstract class EventConfig extends DeepObject
         @Editable
         public EventConfig[] events = new EventConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public Script addHandler (UserInterface iface, Runnable runnable)
         {
             final Script[] scripts = new Script[events.length];

@@ -60,7 +60,7 @@ public class MaskedImage extends Image
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void load (Renderer renderer, int format)
     {
         if (_units == null) {

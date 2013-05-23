@@ -82,7 +82,7 @@ public class MenuItem extends AbstractButton
             : state;
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/MenuItem";

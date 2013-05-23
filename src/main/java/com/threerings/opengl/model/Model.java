@@ -317,7 +317,7 @@ public class Model extends DynamicScope
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -1047,7 +1047,7 @@ public class Model extends DynamicScope
         updateFromConfig();
     }
 
-    @Override // documentation inherited
+    @Override
     public <T> T get (String name, Class<T> clazz)
     {
         // first dynamic, then reflective, then scene-defined
@@ -1059,7 +1059,7 @@ public class Model extends DynamicScope
         return clazz.isInstance(value) ? clazz.cast(value) : null;
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasUpdated ()
     {
         super.wasUpdated();
@@ -1068,7 +1068,7 @@ public class Model extends DynamicScope
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

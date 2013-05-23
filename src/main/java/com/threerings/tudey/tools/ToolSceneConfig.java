@@ -34,13 +34,13 @@ import com.threerings.tudey.data.TudeySceneConfig;
  */
 public class ToolSceneConfig extends TudeySceneConfig
 {
-    @Override // documentation inherited
+    @Override
     public PlaceController createController ()
     {
         return new ToolSceneController();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getManagerClassName ()
     {
         return "com.threerings.tudey.tools.ToolSceneManager";

@@ -114,13 +114,13 @@ public abstract class GlCanvasTool extends GlCanvasApp
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean shouldCheckTimestamps ()
     {
         return true;
     }
 
-    @Override // documentation inherited
+    @Override
     protected CameraHandler createCameraHandler ()
     {
         // add an orbiter to move the camera with the mouse
@@ -129,7 +129,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         return camhand;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -145,7 +145,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _stats = new Stats(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void compositeView ()
     {
         super.compositeView();

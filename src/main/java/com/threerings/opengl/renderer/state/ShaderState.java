@@ -71,13 +71,13 @@ public class ShaderState extends RenderState
         return _vertexProgramTwoSide;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return SHADER_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setShaderState(_program, _vertexProgramTwoSide);

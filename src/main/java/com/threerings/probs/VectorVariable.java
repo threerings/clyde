@@ -68,13 +68,13 @@ public abstract class VectorVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector3f getValue (Vector3f result)
         {
             return result.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector3f getMean (Vector3f result)
         {
             return result.set(value);
@@ -109,7 +109,7 @@ public abstract class VectorVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector3f getValue (Vector3f result)
         {
             return result.set(
@@ -118,7 +118,7 @@ public abstract class VectorVariable extends DeepObject
                 FloatMath.random(minimum.z, maximum.z));
         }
 
-        @Override // documentation inherited
+        @Override
         public Vector3f getMean (Vector3f result)
         {
             return minimum.add(maximum, result).multLocal(0.5f);

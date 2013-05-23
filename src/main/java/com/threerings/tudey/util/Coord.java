@@ -189,13 +189,13 @@ public class Coord
         set(in.readInt(), in.readInt());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[" + x + ", " + y + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public Coord clone ()
     {
         try {
@@ -205,13 +205,13 @@ public class Coord
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return x + 31*y;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Coord)) {

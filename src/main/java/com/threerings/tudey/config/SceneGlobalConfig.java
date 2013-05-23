@@ -124,13 +124,13 @@ public class SceneGlobalConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (HandlerConfig handler : handlers) {
@@ -152,14 +152,14 @@ public class SceneGlobalConfig extends ParameterizedConfig
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
             preloads.add(new Preloadable.Model(model));
         }
 
-        @Override // documentation inherited
+        @Override
         public GlobalSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
         {
@@ -185,13 +185,13 @@ public class SceneGlobalConfig extends ParameterizedConfig
         @Editable
         public CameraConfig[] cameras = new CameraConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.EntryLogic$Camera";
         }
 
-        @Override // documentation inherited
+        @Override
         public GlobalSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
         {
@@ -213,20 +213,20 @@ public class SceneGlobalConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<SceneGlobalConfig> sceneGlobal;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(SceneGlobalConfig.class, sceneGlobal);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public GlobalSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
         {
@@ -262,7 +262,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -270,7 +270,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

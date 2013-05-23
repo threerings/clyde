@@ -108,7 +108,7 @@ public class Segment extends Shape
         return (t >= 0f && t <= 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         _bounds.setToEmpty();
@@ -116,13 +116,13 @@ public class Segment extends Shape
         _bounds.addLocal(_end);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getCenter (Vector2f result)
     {
         return _start.add(_end, result).multLocal(0.5f);
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape transform (Transform2D transform, Shape result)
     {
         Segment sresult = (result instanceof Segment) ? ((Segment)result) : new Segment();
@@ -132,7 +132,7 @@ public class Segment extends Shape
         return sresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape expand (float amount, Shape result)
     {
         Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
@@ -143,7 +143,7 @@ public class Segment extends Shape
         return cresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape sweep (Vector2f translation, Shape result)
     {
         Polygon presult = (result instanceof Polygon) ? ((Polygon)result) : new Polygon(4);
@@ -166,25 +166,25 @@ public class Segment extends Shape
         return presult;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f[] getPerimeterPath ()
     {
         return new Vector2f[] { new Vector2f(_start), new Vector2f(_end) };
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_start, _end, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getNearestPoint (Vector2f point, Vector2f result)
     {
         nearestPointOnSegment(_start, _end, point, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public IntersectionType getIntersectionType (Rect rect)
     {
         // see if we start or end inside the rectangle
@@ -202,73 +202,73 @@ public class Segment extends Shape
                     IntersectionType.INTERSECTS : IntersectionType.NONE;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (SpaceElement element)
     {
         return element.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Shape shape)
     {
         return shape.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Point point)
     {
         return intersects(point.getLocation());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Segment segment)
     {
         return intersects(segment.getStart(), segment.getEnd());
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Circle circle)
     {
         return circle.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Capsule capsule)
     {
         return capsule.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Polygon polygon)
     {
         return polygon.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Shape shape, Vector2f result)
     {
         return shape.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Point point, Vector2f result)
     {
         return result.set(Vector2f.ZERO);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
         return result.set(Vector2f.ZERO);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
         Vector2f center = circle.getCenter();
@@ -282,25 +282,25 @@ public class Segment extends Shape
             center.subtract(D, result).multLocal(circle.radius / dist - 1f);
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Capsule capsule, Vector2f result)
     {
         return capsule.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Polygon polygon, Vector2f result)
     {
         return polygon.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getPenetration (Compound compound, Vector2f result)
     {
         return compound.getPenetration(this, result).negateLocal();
     }
 
-    @Override // documentation inherited
+    @Override
     public void draw (boolean outline)
     {
         GL11.glBegin(GL11.GL_LINES);
@@ -309,7 +309,7 @@ public class Segment extends Shape
         GL11.glEnd();
     }
 
-    @Override // documentation inherited
+    @Override
     public ShapeConfig createConfig ()
     {
         ShapeConfig.Segment segment = new ShapeConfig.Segment();
@@ -322,7 +322,7 @@ public class Segment extends Shape
         return compound;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "Seg:(" + _start + ", " + _end + ")";

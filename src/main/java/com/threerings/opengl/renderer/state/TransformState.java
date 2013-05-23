@@ -69,13 +69,13 @@ public class TransformState extends RenderState
         return _modelview;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return TRANSFORM_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setTransformState(_modelview);

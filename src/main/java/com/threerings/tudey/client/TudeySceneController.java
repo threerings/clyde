@@ -365,7 +365,7 @@ public class TudeySceneController extends SceneController
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         super.wasAdded();
@@ -390,7 +390,7 @@ public class TudeySceneController extends SceneController
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasRemoved ()
     {
         super.wasRemoved();
@@ -402,7 +402,7 @@ public class TudeySceneController extends SceneController
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void willEnterPlace (PlaceObject plobj)
     {
         super.willEnterPlace(plobj);
@@ -434,7 +434,7 @@ public class TudeySceneController extends SceneController
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void didLeavePlace (PlaceObject plobj)
     {
         super.didLeavePlace(plobj);
@@ -445,13 +445,13 @@ public class TudeySceneController extends SceneController
         _tsview.getInputWindow().removeListener(_unifier);
     }
 
-    @Override // documentation inherited
+    @Override
     protected PlaceView createPlaceView (CrowdContext ctx)
     {
         return (_tsview = new TudeySceneView((TudeyContext)ctx, this));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();

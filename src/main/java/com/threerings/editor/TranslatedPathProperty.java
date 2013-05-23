@@ -52,7 +52,7 @@ public class TranslatedPathProperty extends PathProperty
         _msgs = msgmgr == null ? new MessageBundle() : msgmgr.getBundle(bundle);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
     {
         if (value instanceof String && _msgs.exists((String)value)) {

@@ -77,7 +77,7 @@ public class CursorConfig extends ManagedConfig
         return cursor;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate
@@ -85,7 +85,7 @@ public class CursorConfig extends ManagedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateResources (HashSet<String> paths)
     {
         if (image != null) {

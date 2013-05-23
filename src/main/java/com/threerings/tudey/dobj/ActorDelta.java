@@ -65,7 +65,7 @@ public final class ActorDelta extends ReflectiveDelta
         return _id;
     }
 
-    @Override // documentation inherited
+    @Override
     public Delta merge (Delta other)
     {
         ActorDelta odelta;
@@ -78,7 +78,7 @@ public final class ActorDelta extends ReflectiveDelta
         return merged;
     }
 
-    @Override // documentation inherited
+    @Override
     public void writeObject (ObjectOutputStream out)
         throws IOException
     {
@@ -86,7 +86,7 @@ public final class ActorDelta extends ReflectiveDelta
         super.writeObject(out);
     }
 
-    @Override // documentation inherited
+    @Override
     public void readObject (ObjectInputStream in)
         throws IOException, ClassNotFoundException
     {

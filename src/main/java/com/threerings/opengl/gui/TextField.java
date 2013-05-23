@@ -81,7 +81,7 @@ public class TextField extends EditableTextComponent
         super(ctx, text, maxLength);
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/TextField";

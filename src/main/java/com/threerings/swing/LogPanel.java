@@ -130,14 +130,14 @@ public class LogPanel extends JPanel
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void addNotify ()
     {
         super.addNotify();
         maybeAddHandler();
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
@@ -198,7 +198,7 @@ public class LogPanel extends JPanel
             setVisible(false);
         }
 
-        @Override // documentation inherited
+        @Override
         public void setVisible (boolean visible)
         {
             if (!visible) {

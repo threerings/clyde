@@ -99,7 +99,7 @@ public class AreaSprite extends EntrySprite
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -144,19 +144,19 @@ public class AreaSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public int getVertexIndex (Model model)
         {
             return ListUtil.indexOfRef(_vertices, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public int getEdgeIndex (Model model)
         {
             return ListUtil.indexOfRef(_edges, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (AreaEntry entry)
         {
             // update the vertex models
@@ -188,7 +188,7 @@ public class AreaSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void setVisible (boolean visible)
         {
             for (Model vertex : _vertices) {
@@ -200,7 +200,7 @@ public class AreaSprite extends EntrySprite
             _area.setVisible(visible);
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -269,7 +269,7 @@ public class AreaSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
@@ -277,26 +277,26 @@ public class AreaSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVisible (boolean visible)
     {
         _impl.setVisible(visible);
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         setConfig((_entry = (AreaEntry)entry).area);
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void setSelected (boolean selected)
     {
         super.setSelected(selected);
@@ -304,7 +304,7 @@ public class AreaSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

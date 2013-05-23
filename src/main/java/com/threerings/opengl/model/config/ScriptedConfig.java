@@ -80,7 +80,7 @@ public class ScriptedConfig extends ModelConfig.Implementation
     @Editable
     public TimeAction[] actions = new TimeAction[0];
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {

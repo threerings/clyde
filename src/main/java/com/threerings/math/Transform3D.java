@@ -822,7 +822,7 @@ public final class Transform3D
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         switch (_type) {
@@ -839,7 +839,7 @@ public final class Transform3D
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         switch (_type) {
@@ -857,7 +857,7 @@ public final class Transform3D
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         Transform3D otrans = (Transform3D)other;

@@ -63,7 +63,7 @@ public abstract class ShooterConfig extends DeepObject
         @Editable(min=0.0, max=180.0, scale=Math.PI/180.0)
         public float maximumAngle = FloatMath.PI / 4f;
 
-        @Override // documentation inherited
+        @Override
         public Shooter createShooter (Layer layer)
         {
             final Matrix4f matrix = new Matrix4f();
@@ -95,7 +95,7 @@ public abstract class ShooterConfig extends DeepObject
         @Editable(step=0.01)
         public float upwardBias;
 
-        @Override // documentation inherited
+        @Override
         public Shooter createShooter (final Layer layer)
         {
             return new Shooter() {

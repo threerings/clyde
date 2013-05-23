@@ -60,19 +60,19 @@ public abstract class EntityKey extends SimpleStreamableObject
             return _key;
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return _key.hashCode();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof Entry && ((Entry)other)._key.equals(_key);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return "[entryKey=" + _key + "]";
@@ -110,19 +110,19 @@ public abstract class EntityKey extends SimpleStreamableObject
             return _id;
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return _id;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             return other instanceof Actor && ((Actor)other)._id == _id;
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return "[actorId=" + _id + "]";

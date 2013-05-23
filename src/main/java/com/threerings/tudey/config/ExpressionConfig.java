@@ -86,13 +86,13 @@ public abstract class ExpressionConfig extends DeepObject
             return _expr;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Parsed";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _expr = null;
@@ -127,7 +127,7 @@ public abstract class ExpressionConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Constant";
@@ -147,13 +147,13 @@ public abstract class ExpressionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Reference";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -165,7 +165,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Previous extends ExpressionConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Previous";
@@ -181,13 +181,13 @@ public abstract class ExpressionConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Tagged();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$NumTargets";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -203,7 +203,7 @@ public abstract class ExpressionConfig extends DeepObject
         @Editable
         public FloatVariable variable = new FloatVariable.Constant(0f);
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Variable";
@@ -219,7 +219,7 @@ public abstract class ExpressionConfig extends DeepObject
         @Editable
         public ExpressionConfig operand = new ExpressionConfig.Constant();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             operand.invalidate();
@@ -231,7 +231,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Increment extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Increment";
@@ -243,7 +243,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Decrement extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Decrement";
@@ -255,7 +255,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Negate extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Negate";
@@ -275,7 +275,7 @@ public abstract class ExpressionConfig extends DeepObject
         @Editable
         public ExpressionConfig secondOperand = new ExpressionConfig.Constant();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             firstOperand.invalidate();
@@ -288,7 +288,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Add extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Add";
@@ -300,7 +300,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Subtract extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Subtract";
@@ -312,7 +312,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Multiply extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Multiply";
@@ -324,7 +324,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Divide extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Divide";
@@ -336,7 +336,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Remainder extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Remainder";
@@ -348,7 +348,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Not extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Not";
@@ -360,7 +360,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class And extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$And";
@@ -372,7 +372,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Or extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Or";
@@ -384,7 +384,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Xor extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Xor";
@@ -396,7 +396,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Less extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Less";
@@ -408,7 +408,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Greater extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Greater";
@@ -420,7 +420,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class Equals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Equals";
@@ -432,7 +432,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class LessEquals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$LessEquals";
@@ -444,7 +444,7 @@ public abstract class ExpressionConfig extends DeepObject
      */
     public static class GreaterEquals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$GreaterEquals";

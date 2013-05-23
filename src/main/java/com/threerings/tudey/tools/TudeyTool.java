@@ -148,7 +148,7 @@ public abstract class TudeyTool extends GlCanvasTool
         return _root;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void initSharedManagers ()
     {
         // create the Presents client
@@ -169,7 +169,7 @@ public abstract class TudeyTool extends GlCanvasTool
         _colorpos = _server.getColorPository();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -178,7 +178,7 @@ public abstract class TudeyTool extends GlCanvasTool
         _server.startStandaloneClient(new Name("editor"));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void willShutdown ()
     {
         super.willShutdown();
@@ -187,7 +187,7 @@ public abstract class TudeyTool extends GlCanvasTool
         _server.stopStandaloneClient();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView (float elapsed)
     {
         if (_view != null) {
@@ -199,7 +199,7 @@ public abstract class TudeyTool extends GlCanvasTool
         super.updateView(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void compositeView ()
     {
         super.compositeView();

@@ -147,13 +147,13 @@ public class ShaderCache extends ResourceCache
             this.ddefs = ddefs;
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return path.hashCode() ^ Arrays.hashCode(defs);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             ShaderKey okey = (ShaderKey)other;
@@ -172,14 +172,14 @@ public class ShaderCache extends ResourceCache
             _fragment = new WeakReference<Shader>(fragment);
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return System.identityHashCode(_vertex.get()) ^
                 System.identityHashCode(_fragment.get());
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             ProgramKey okey = (ProgramKey)other;

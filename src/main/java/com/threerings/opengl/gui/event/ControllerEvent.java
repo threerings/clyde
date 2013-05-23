@@ -130,7 +130,7 @@ public class ControllerEvent extends InputEvent
         return _value;
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispatch (ComponentListener listener)
     {
         super.dispatch(listener);
@@ -167,7 +167,7 @@ public class ControllerEvent extends InputEvent
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void toString (StringBuilder buf)
     {
         super.toString(buf);

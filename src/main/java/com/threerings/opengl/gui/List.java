@@ -145,7 +145,7 @@ public class List extends Container
         _selidx = index;
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/List";

@@ -54,7 +54,7 @@ public abstract class BorderConfig extends DeepObject
         @Editable(mode="alpha", hgroup="t")
         public Color4f color = new Color4f();
 
-        @Override // documentation inherited
+        @Override
         protected Border createBorder ()
         {
             return new LineBorder(color, thickness);
@@ -66,7 +66,7 @@ public abstract class BorderConfig extends DeepObject
      */
     public static class Blank extends BorderConfig
     {
-        @Override // documentation inherited
+        @Override
         protected Border createBorder ()
         {
             return new EmptyBorder(thickness, thickness, thickness, thickness);

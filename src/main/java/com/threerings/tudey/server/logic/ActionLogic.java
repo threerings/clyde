@@ -76,7 +76,7 @@ public abstract class ActionLogic extends Logic
      */
     public static abstract class Targeted extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -92,7 +92,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class None extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             return true;
@@ -104,7 +104,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class SpawnActor extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             ConfigReference<ActorConfig> actor = getActorConfig(activator);
@@ -121,14 +121,14 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _location.transfer(((SpawnActor)source)._location, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _location = createTarget(((ActionConfig.SpawnActor)_config).location, _source);
@@ -190,7 +190,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class SpawnRotatedActor extends SpawnActor
     {
-        @Override // documentation inherited
+        @Override
         protected float getRotation (Logic target)
         {
             ActionConfig.SpawnRotatedActor config = (ActionConfig.SpawnRotatedActor)_config;
@@ -208,7 +208,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class SpawnTransformedActor extends SpawnRotatedActor
     {
-        @Override // documentation inherited
+        @Override
         protected Vector2f getTranslation (Logic target)
         {
             return ((ActionConfig.SpawnTransformedActor)_config).translation.rotateAndAdd(
@@ -221,7 +221,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class SpawnRandomTranslatedActor extends SpawnActor
     {
-        @Override // documentation inherited
+        @Override
         protected boolean spawnActor (
                 int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
         {
@@ -256,7 +256,7 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -276,14 +276,14 @@ public abstract class ActionLogic extends Logic
      */
     public static class SpawnFacingActor extends SpawnActor
     {
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _facing.transfer(((SpawnFacingActor)source)._facing, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected boolean spawnActor (
                 int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
         {
@@ -293,14 +293,14 @@ public abstract class ActionLogic extends Logic
             return result;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
             _facing = createTarget(((ActionConfig.SpawnFacingActor)_config).facing, _source);
         }
 
-        @Override // documentation inherited
+        @Override
         protected float getRotation (Logic target)
         {
             if (_faces.size() > 0) {
@@ -322,7 +322,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class DestroyActor extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             boolean success = false;
@@ -339,7 +339,7 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.DestroyActor)_config).target, _source);
@@ -351,7 +351,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class RotateActor extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             boolean success = false;
@@ -377,7 +377,7 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.RotateActor)_config).target, _source);
@@ -389,7 +389,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class WarpActor extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             boolean success = false;
@@ -412,7 +412,7 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -429,7 +429,7 @@ public abstract class ActionLogic extends Logic
                     translation.y, true, ((ActionConfig.WarpActor)_config).maxWarpPath);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ActionConfig.WarpActor config = (ActionConfig.WarpActor)_config;
@@ -449,7 +449,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class WarpTransformedActor extends WarpActor
     {
-        @Override // documentation inherited
+        @Override
         protected void warp (ActorLogic target, Logic location)
         {
             ActionConfig.WarpTransformedActor config = (ActionConfig.WarpTransformedActor)_config;
@@ -471,7 +471,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class FireEffect extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             ConfigReference<EffectConfig> effect = ((ActionConfig.FireEffect)_config).effect;
@@ -488,14 +488,14 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _location.transfer(((FireEffect)source)._location, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _location = createTarget(((ActionConfig.FireEffect)_config).location, _source);
@@ -510,7 +510,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class Signal extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             String name = ((ActionConfig.Signal)_config).name;
@@ -522,7 +522,7 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.Signal)_config).target, _source);
@@ -556,7 +556,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class MoveBody extends AbstractMove
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             boolean success = false;
@@ -578,14 +578,14 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _target.transfer(((MoveBody)source)._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.MoveBody)_config).target, _source);
@@ -600,7 +600,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class MoveAll extends AbstractMove
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             OidList occupants = _scenemgr.getPlaceObject().occupants;
@@ -616,13 +616,13 @@ public abstract class ActionLogic extends Logic
      */
     public static class Conditional extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean shouldExecute (Logic activator)
         {
             return _elseAction != null || _condition.isSatisfied(activator);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             if (_condition.isSatisfied(activator)) {
@@ -633,7 +633,7 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -646,7 +646,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ActionConfig.Conditional config = (ActionConfig.Conditional)_config;
@@ -657,7 +657,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             _action.removed();
@@ -681,7 +681,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class Switch extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             for (int ii = 0; ii < _conditions.length; ii++) {
@@ -695,7 +695,7 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -710,7 +710,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ActionConfig.Switch config = (ActionConfig.Switch)_config;
@@ -725,7 +725,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             for (ActionLogic action : _actions) {
@@ -751,7 +751,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class ExpressionSwitch extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             Object value = _value.evaluate(activator, null);
@@ -766,7 +766,7 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -780,7 +780,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ActionConfig.ExpressionSwitch config = (ActionConfig.ExpressionSwitch)_config;
@@ -796,7 +796,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             for (ActionLogic action : _actions) {
@@ -825,7 +825,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class Compound extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean shouldExecute (Logic activator)
         {
             for (ActionLogic action : _actions) {
@@ -836,7 +836,7 @@ public abstract class ActionLogic extends Logic
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             boolean success = false;
@@ -849,7 +849,7 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -860,7 +860,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ArrayList<ActionLogic> actions = new ArrayList<ActionLogic>();
@@ -873,7 +873,7 @@ public abstract class ActionLogic extends Logic
             _actions = actions.toArray(new ActionLogic[actions.size()]);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             for (ActionLogic action : _actions) {
@@ -890,7 +890,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class Random extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             int idx = RandomUtil.getWeightedIndex(_weights);
@@ -900,7 +900,7 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -911,7 +911,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ActionConfig.WeightedAction[] wactions = ((ActionConfig.Random)_config).actions;
@@ -924,7 +924,7 @@ public abstract class ActionLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             for (ActionLogic action : _actions) {
@@ -944,7 +944,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class Delayed extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, final Logic activator)
         {
             if (!_scenemgr.isRunning()) {
@@ -966,20 +966,20 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _action.transfer(((Delayed)source)._action, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _action = createAction(((ActionConfig.Delayed)_config).action, _source);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             _action.removed();
@@ -1001,7 +1001,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class SetVariable extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             String name = ((ActionConfig.SetVariable)_config).name;
@@ -1015,7 +1015,7 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ActionConfig.SetVariable config = (ActionConfig.SetVariable)_config;
@@ -1032,7 +1032,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class SetFlag extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             ActionConfig.SetFlag config = (ActionConfig.SetFlag)_config;
@@ -1058,7 +1058,7 @@ public abstract class ActionLogic extends Logic
             return ret;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.SetFlag)_config).target, _source);
@@ -1070,7 +1070,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class ForceClientAction extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             ClientActionConfig action = ((ActionConfig.ForceClientAction)_config).action;
@@ -1094,7 +1094,7 @@ public abstract class ActionLogic extends Logic
             return success;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.ForceClientAction)_config).target, _source);
@@ -1109,7 +1109,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class TargetedAction extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             _target.resolve(activator, _targets);
@@ -1120,14 +1120,14 @@ public abstract class ActionLogic extends Logic
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.TargetedAction)_config).target, _source);
             _action = createAction(((ActionConfig.TargetedAction)_config).action, _source);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved ()
         {
             _action.removed();
@@ -1142,7 +1142,7 @@ public abstract class ActionLogic extends Logic
      */
     public static class ServerLog extends ActionLogic
     {
-        @Override // documentation inherited
+        @Override
         public boolean execute (int timestamp, Logic activator)
         {
             ActionConfig.ServerLog config = (ActionConfig.ServerLog)_config;
@@ -1202,25 +1202,25 @@ public abstract class ActionLogic extends Logic
      */
     public abstract boolean execute (int timestamp, Logic activator);
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();

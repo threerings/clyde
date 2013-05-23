@@ -65,7 +65,7 @@ public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
         @Editable
         public CameraConfig[] cameras = new CameraConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             final TudeySceneView view = ScopeUtil.resolve(

@@ -48,13 +48,13 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Parsed extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return _expr.evaluate(activator, previous);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _expr = createExpression(((ExpressionConfig.Parsed)_config).getExpression(), _source);
@@ -69,13 +69,13 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Constant extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return _value;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _value = parseValue(((ExpressionConfig.Constant)_config).value);
@@ -90,7 +90,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Reference extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             String name = ((ExpressionConfig.Reference)_config).name;
@@ -106,7 +106,7 @@ public abstract class ExpressionLogic extends Logic
             return null;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ExpressionConfig.Reference)_config).target, _source);
@@ -124,7 +124,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class NumTargets extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             _target.resolve(activator, _targets);
@@ -133,7 +133,7 @@ public abstract class ExpressionLogic extends Logic
             return numTargets;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _target = createTarget(((ExpressionConfig.NumTargets)_config).target, _source);
@@ -151,7 +151,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Variable extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return ((ExpressionConfig.Variable)_config).variable.getValue();
@@ -163,7 +163,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Previous extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return previous;
@@ -175,7 +175,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static abstract class UnaryOperation extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _operand = createExpression(
@@ -191,7 +191,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Increment extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_operand.evaluate(activator, previous)) + 1.0;
@@ -203,7 +203,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Decrement extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_operand.evaluate(activator, previous)) - 1.0;
@@ -215,7 +215,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Negate extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return -coerceToDouble(_operand.evaluate(activator, previous));
@@ -227,7 +227,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static abstract class BinaryOperation extends ExpressionLogic
     {
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             ExpressionConfig.BinaryOperation config = (ExpressionConfig.BinaryOperation)_config;
@@ -244,7 +244,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Add extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) +
@@ -257,7 +257,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Subtract extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) -
@@ -270,7 +270,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Multiply extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) *
@@ -283,7 +283,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Divide extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) /
@@ -296,7 +296,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Remainder extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) %
@@ -309,7 +309,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Not extends UnaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return !coerceToBoolean(_operand.evaluate(activator, previous));
@@ -321,7 +321,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class And extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToBoolean(_firstOperand.evaluate(activator, previous)) &&
@@ -334,7 +334,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Or extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToBoolean(_firstOperand.evaluate(activator, previous)) ||
@@ -347,7 +347,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Xor extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToBoolean(_firstOperand.evaluate(activator, previous)) ^
@@ -360,7 +360,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Less extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) <
@@ -373,7 +373,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Greater extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) >
@@ -386,7 +386,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class Equals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return Objects.equal(_firstOperand.evaluate(activator, previous),
@@ -399,7 +399,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class LessEquals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) <=
@@ -412,7 +412,7 @@ public abstract class ExpressionLogic extends Logic
      */
     public static class GreaterEquals extends BinaryOperation
     {
-        @Override // documentation inherited
+        @Override
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_firstOperand.evaluate(activator, previous)) >=
@@ -438,25 +438,25 @@ public abstract class ExpressionLogic extends Logic
      */
     public abstract Object evaluate (Logic activator, Object previous);
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _source.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _source.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _source.getRotation();

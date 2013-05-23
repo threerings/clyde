@@ -127,7 +127,7 @@ public abstract class MaterialStateConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         protected MaterialState createInstance ()
         {
             return new MaterialState(
@@ -164,7 +164,7 @@ public abstract class MaterialStateConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         protected MaterialState createInstance ()
         {
             return new MaterialState(

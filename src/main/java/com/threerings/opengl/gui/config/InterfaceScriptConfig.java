@@ -81,13 +81,13 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         @Editable
         public TimedAction[] actions = new TimedAction[0];
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (TimedAction taction : actions) {
@@ -105,13 +105,13 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<InterfaceScriptConfig> interfaceScript;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(InterfaceScriptConfig.class, interfaceScript);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             InterfaceScriptConfig config = cfgmgr.getConfig(
@@ -147,7 +147,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         return implementation.getOriginal(cfgmgr);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -155,7 +155,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

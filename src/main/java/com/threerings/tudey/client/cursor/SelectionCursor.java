@@ -97,7 +97,7 @@ public class SelectionCursor extends Cursor
         _shapes.clear();
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         for (int ii = 0, nn = _cursors.size(); ii < nn; ii++) {
@@ -105,7 +105,7 @@ public class SelectionCursor extends Cursor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         for (int ii = 0, nn = _cursors.size(); ii < nn; ii++) {

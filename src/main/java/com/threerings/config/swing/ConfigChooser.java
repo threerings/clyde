@@ -141,7 +141,7 @@ public abstract class ConfigChooser extends JPanel
             });
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean showDialog (Component parent)
         {
             boolean approved = (_chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION);
@@ -149,13 +149,13 @@ public abstract class ConfigChooser extends JPanel
             return approved;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setSelectedConfig (String config)
         {
             _chooser.setSelectedFile(config == null ? null : _rsrcmgr.getResourceFile(config));
         }
 
-        @Override // documentation inherited
+        @Override
         public String getSelectedConfig ()
         {
             File file = _chooser.getSelectedFile();
@@ -198,7 +198,7 @@ public abstract class ConfigChooser extends JPanel
             bpanel.add(_cancel = new JButton(_msgs.get("m.cancel")));
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean showDialog (Component parent)
         {
             // create the dialog
@@ -257,13 +257,13 @@ public abstract class ConfigChooser extends JPanel
             return result[0];
         }
 
-        @Override // documentation inherited
+        @Override
         public void setSelectedConfig (String config)
         {
             _selected = config;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getSelectedConfig ()
         {
             return _selected;

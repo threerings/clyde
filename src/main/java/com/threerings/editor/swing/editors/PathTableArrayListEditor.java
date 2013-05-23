@@ -39,7 +39,7 @@ import com.threerings.editor.swing.BaseEditorPanel;
  */
 public class PathTableArrayListEditor extends TableArrayListEditor
 {
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();

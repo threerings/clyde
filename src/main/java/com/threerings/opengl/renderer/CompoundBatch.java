@@ -56,14 +56,14 @@ public class CompoundBatch extends Batch
         return _batches;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean draw (Renderer renderer)
     {
         renderer.render(_batches);
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getPrimitiveCount ()
     {
         return 0; // the call to render(_batches) above counts the sub-batch primitives

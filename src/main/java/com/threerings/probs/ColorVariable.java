@@ -69,13 +69,13 @@ public abstract class ColorVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (Color4f result)
         {
             return result.set(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getMean (Color4f result)
         {
             return result.set(value);
@@ -110,7 +110,7 @@ public abstract class ColorVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getValue (Color4f result)
         {
             return result.set(
@@ -120,7 +120,7 @@ public abstract class ColorVariable extends DeepObject
                 FloatMath.random(minimum.a, maximum.a));
         }
 
-        @Override // documentation inherited
+        @Override
         public Color4f getMean (Color4f result)
         {
             return minimum.add(maximum, result).multLocal(0.5f);

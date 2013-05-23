@@ -54,13 +54,13 @@ public class ArgumentPathProperty extends PathProperty
         _reference = reference;
     }
 
-    @Override // documentation inherited
+    @Override
     public Object getMemberObject (Object object)
     {
         return super.getMemberObject(_reference);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object get (Object object)
     {
         @SuppressWarnings("unchecked") Map<Object, Object> map =
@@ -75,7 +75,7 @@ public class ArgumentPathProperty extends PathProperty
         return value;
     }
 
-    @Override // documentation inherited
+    @Override
     public void set (Object object, Object value)
     {
         @SuppressWarnings("unchecked") Map<Object, Object> map =

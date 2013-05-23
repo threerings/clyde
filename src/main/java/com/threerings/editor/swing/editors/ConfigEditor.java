@@ -55,13 +55,13 @@ public class ConfigEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         _box.setSelectedConfig((String)_property.get(_object));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

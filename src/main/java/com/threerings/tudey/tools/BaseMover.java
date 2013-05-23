@@ -96,13 +96,13 @@ public abstract class BaseMover extends EditorTool
         _angle = 0f;
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _cursor = new SelectionCursor(_editor, _editor.getView());
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateCursor();
@@ -111,7 +111,7 @@ public abstract class BaseMover extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -119,7 +119,7 @@ public abstract class BaseMover extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (_cursorVisible && event.getButton() == MouseEvent.BUTTON1 &&
@@ -128,7 +128,7 @@ public abstract class BaseMover extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         // adjust in terms of coarse (ninety degree) or fine increments

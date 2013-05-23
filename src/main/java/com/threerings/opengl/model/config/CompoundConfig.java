@@ -91,7 +91,7 @@ public class CompoundConfig extends ModelConfig.Implementation
     @Editable
     public ComponentModel[] models = new ComponentModel[0];
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {

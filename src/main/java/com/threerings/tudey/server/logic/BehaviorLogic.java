@@ -59,7 +59,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Idle extends BehaviorLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup ()
         {
             _agent.stopMoving();
@@ -72,13 +72,13 @@ public abstract class BehaviorLogic extends Logic
      */
     public static abstract class Evaluating extends BehaviorLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup ()
         {
             advanceEvaluation();
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (int timestamp)
         {
             // if scheduled to do so, evaluate
@@ -87,7 +87,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -136,7 +136,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class BaseWander extends Evaluating
     {
-        @Override // documentation inherited
+        @Override
         public void startup ()
         {
             super.startup();
@@ -144,7 +144,7 @@ public abstract class BehaviorLogic extends Logic
             _startMoving = Integer.MAX_VALUE;
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (int timestamp)
         {
             super.tick(timestamp);
@@ -163,7 +163,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void reachedTargetRotation ()
         {
             BehaviorConfig.BaseWander config = (BehaviorConfig.BaseWander)_config;
@@ -178,7 +178,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -222,7 +222,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Wander extends BaseWander
     {
-        @Override // documentation inherited
+        @Override
         public void tick (int timestamp)
         {
             super.tick(timestamp);
@@ -240,7 +240,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void penetratedEnvironment (Vector2f penetration)
         {
             // change the direction, using the reflected direction as a base
@@ -254,7 +254,7 @@ public abstract class BehaviorLogic extends Logic
             changeDirection(rotation);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -263,14 +263,14 @@ public abstract class BehaviorLogic extends Logic
             _origin.set(wsource._origin);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
             _origin.set(_agent.getTranslation());
         }
 
-        @Override // documentation inherited
+        @Override
         protected void evaluate ()
         {
             super.evaluate();
@@ -307,7 +307,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class GridWander extends BaseWander
     {
-        @Override // documentation inherited
+        @Override
         public void startup ()
         {
             super.startup();
@@ -316,7 +316,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void penetratedEnvironment (Vector2f penetration)
         {
             BehaviorConfig.GridWander config = (BehaviorConfig.GridWander)_config;
@@ -324,7 +324,7 @@ public abstract class BehaviorLogic extends Logic
             changeDirection();
         }
 
-        @Override // documentation inherited
+        @Override
         protected void evaluate ()
         {
             super.evaluate();
@@ -333,7 +333,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -382,7 +382,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static abstract class Pathing extends Evaluating
     {
-        @Override // documentation inherited
+        @Override
         public void tick (int timestamp)
         {
             super.tick(timestamp);
@@ -425,7 +425,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -485,7 +485,7 @@ public abstract class BehaviorLogic extends Logic
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -510,13 +510,13 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Patrol extends Pathing
     {
-        @Override // documentation inherited
+        @Override
         public Logic getCurrentTarget ()
         {
             return _currentTarget;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -526,14 +526,14 @@ public abstract class BehaviorLogic extends Logic
             _currentTarget = (Logic)refs.get(psource._currentTarget);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
             _target = createTarget(((BehaviorConfig.Patrol)_config).target, _agent);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void evaluate ()
         {
             super.evaluate();
@@ -594,13 +594,13 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void reachedPathIndex (int idx)
         {
             evaluate();
         }
 
-        @Override // documentation inherited
+        @Override
         protected void completedPath ()
         {
             _currentTarget = null;
@@ -634,27 +634,27 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Follow extends Pathing
     {
-        @Override // documentation inherited
+        @Override
         public Logic getCurrentTarget ()
         {
             return _currentTarget;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _target.transfer(((Follow)source)._target, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
             _target = createTarget(((BehaviorConfig.Follow)_config).target, _agent);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void evaluate ()
         {
             super.evaluate();
@@ -716,7 +716,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Random extends Evaluating
     {
-        @Override // documentation inherited
+        @Override
         public void tick (int timestamp)
         {
             super.tick(timestamp);
@@ -725,7 +725,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void reachedTargetRotation ()
         {
             if (_active != null) {
@@ -733,7 +733,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void penetratedEnvironment (Vector2f penetration)
         {
             if (_active != null) {
@@ -741,13 +741,13 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Logic getCurrentTarget ()
         {
             return _active == null ? null : _active.getCurrentTarget();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -760,7 +760,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -774,7 +774,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void evaluate ()
         {
             super.evaluate();
@@ -824,7 +824,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void reachedTargetRotation ()
         {
             if (_currentStep < _steps.length) {
@@ -832,14 +832,14 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void startup ()
         {
             _currentStep = 0;
             _start = true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void suspend ()
         {
             if (_currentStep < _steps.length && !_start) {
@@ -847,7 +847,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown ()
         {
             for (ScriptLogic logic : _steps) {
@@ -855,7 +855,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -868,7 +868,7 @@ public abstract class BehaviorLogic extends Logic
             _start = ssource._start;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -896,7 +896,7 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Combined extends BehaviorLogic
     {
-        @Override // documentation inherited
+        @Override
         public void startup ()
         {
             if (_first != null) {
@@ -907,7 +907,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown ()
         {
             if (_first != null) {
@@ -918,7 +918,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (int timestamp)
         {
             if (_first != null) {
@@ -929,7 +929,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void reachedTargetRotation ()
         {
             if (_first != null) {
@@ -940,7 +940,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void penetratedEnvironment (Vector2f penetration)
         {
             if (_first != null) {
@@ -951,7 +951,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Logic getCurrentTarget ()
         {
             Logic target = null;
@@ -964,7 +964,7 @@ public abstract class BehaviorLogic extends Logic
             return target;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -978,7 +978,7 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -1071,25 +1071,25 @@ public abstract class BehaviorLogic extends Logic
         return null;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _agent.isActive();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _agent.getEntityKey();
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _agent.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _agent.getRotation();

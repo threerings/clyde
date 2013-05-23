@@ -45,7 +45,7 @@ public class ActiveLogic extends MobileLogic
         return 0;
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);
@@ -59,7 +59,7 @@ public class ActiveLogic extends MobileLogic
         _lastActivityStarted = asource._lastActivityStarted;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean tick (int timestamp)
     {
         super.tick(timestamp);

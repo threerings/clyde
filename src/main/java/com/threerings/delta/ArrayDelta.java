@@ -147,7 +147,7 @@ public class ArrayDelta extends Delta
         _values = values.toArray();
     }
 
-    @Override // documentation inherited
+    @Override
     public Object apply (Object original)
     {
         // make sure it's the right class
@@ -180,7 +180,7 @@ public class ArrayDelta extends Delta
         return revised;
     }
 
-    @Override // documentation inherited
+    @Override
     public Delta merge (Delta other)
     {
         ArrayDelta aother;
@@ -223,7 +223,7 @@ public class ArrayDelta extends Delta
         return merged;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         StringBuilder buf = new StringBuilder();

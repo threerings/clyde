@@ -60,7 +60,7 @@ public abstract class ActorSpriteConfig extends DeepObject
      */
     public static class Default extends ActorSpriteConfig
     {
-        @Override // documentation inherited
+        @Override
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
@@ -106,7 +106,7 @@ public abstract class ActorSpriteConfig extends DeepObject
             return weights;
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
@@ -121,7 +121,7 @@ public abstract class ActorSpriteConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
@@ -133,7 +133,7 @@ public abstract class ActorSpriteConfig extends DeepObject
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             _idleWeights = null;
@@ -190,13 +190,13 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             preloads.add(new Preloadable.Animation(animation));
         }
 
-        @Override // documentation inherited
+        @Override
         public Animation[] resolve (Model model)
         {
             Animation anim = model.createAnimation(animation);
@@ -225,7 +225,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> right;
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             preloads.add(new Preloadable.Animation(forward));
@@ -234,7 +234,7 @@ public abstract class ActorSpriteConfig extends DeepObject
             preloads.add(new Preloadable.Animation(right));
         }
 
-        @Override // documentation inherited
+        @Override
         public Animation[] resolve (Model model)
         {
             return new Animation[] {
@@ -288,7 +288,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Editable
         public State[] states = new State[0];
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
@@ -297,7 +297,7 @@ public abstract class ActorSpriteConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
@@ -330,7 +330,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Editable
         public ModelState[] states = new ModelState[0];
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
@@ -339,7 +339,7 @@ public abstract class ActorSpriteConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {

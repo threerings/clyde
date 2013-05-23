@@ -91,13 +91,13 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
             return setIntValue(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return getKey().toString() + ": " + getValue().toString();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean equals (Object other)
         {
             if (!(other instanceof CoordIntEntry)) {
@@ -107,7 +107,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
             return _key.equals(oentry._key) && getIntValue() == oentry.getIntValue();
         }
 
-        @Override // documentation inherited
+        @Override
         public int hashCode ()
         {
             return _key.hashCode() ^ getIntValue();
@@ -340,7 +340,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         };
     }
 
-    @Override // documentation inherited
+    @Override
     public Set<Entry<Coord, Integer>> entrySet ()
     {
         Set<?> cset = coordIntEntrySet();
@@ -349,7 +349,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         return set;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean containsKey (Object key)
     {
         if (!(key instanceof Coord)) {
@@ -359,13 +359,13 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         return containsKey(coord.x, coord.y);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean containsValue (Object value)
     {
         return value instanceof Integer && containsValue(((Integer)value).intValue());
     }
 
-    @Override // documentation inherited
+    @Override
     public Integer get (Object key)
     {
         if (!(key instanceof Coord)) {
@@ -376,14 +376,14 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         return (value == _empty) ? null : value;
     }
 
-    @Override // documentation inherited
+    @Override
     public Integer put (Coord key, Integer value)
     {
         int ovalue = put(key.x, key.y, value);
         return (ovalue == _empty) ? null : ovalue;
     }
 
-    @Override // documentation inherited
+    @Override
     public Integer remove (Object key)
     {
         if (!(key instanceof Coord)) {
@@ -394,7 +394,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         return (ovalue == _empty) ? null : ovalue;
     }
 
-    @Override // documentation inherited
+    @Override
     public void clear ()
     {
         _cells.clear();
@@ -402,13 +402,13 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         _modcount++;
     }
 
-    @Override // documentation inherited
+    @Override
     public int size ()
     {
         return _size;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isEmpty ()
     {
         return _size == 0;

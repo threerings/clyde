@@ -49,7 +49,7 @@ public class BoundedRangeModelConfig extends DeepObject
         @Editable
         public int snap;
 
-        @Override // documentation inherited
+        @Override
         public BoundedRangeModel createBoundedRangeModel ()
         {
             return new BoundedSnappingRangeModel(min, value, extent, max, snap);

@@ -86,7 +86,7 @@ public class Conditional extends Model.Implementation
         return Collections.unmodifiableList(Arrays.asList(_models));
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _completed;
@@ -94,7 +94,7 @@ public class Conditional extends Model.Implementation
 
     // TODO: setVisible?
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         for (Model model : _models) {
@@ -103,19 +103,19 @@ public class Conditional extends Model.Implementation
         _completed = false;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         // update the world transform
@@ -138,39 +138,39 @@ public class Conditional extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         _active.drawBounds();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dumpInfo (String prefix)
     {
         System.out.println(prefix + "Conditional: " + _worldTransform + " " + _bounds);
         _active.dumpInfo(prefix + "  ");
     }
 
-    @Override // documentation inherited
+    @Override
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
         _active.wasAdded(scene);
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         _active.willBeRemoved();
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         // return immediately if completed
@@ -203,13 +203,13 @@ public class Conditional extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         return _active.getIntersection(ray, result);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         // add an enqueueable to initialize the shared state

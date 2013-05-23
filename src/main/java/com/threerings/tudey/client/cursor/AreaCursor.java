@@ -94,7 +94,7 @@ public class AreaCursor extends EntryCursor
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -129,13 +129,13 @@ public class AreaCursor extends EntryCursor
             _area.getColor().set(config.color).multLocal(0.25f);
         }
 
-        @Override // documentation inherited
+        @Override
         public Shape getShape ()
         {
             return _footprint.getShape();
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (AreaEntry entry)
         {
             // update the vertex models
@@ -158,7 +158,7 @@ public class AreaCursor extends EntryCursor
             _footprint.setShape(entry.createShape(_ctx.getConfigManager()));
         }
 
-        @Override // documentation inherited
+        @Override
         public void tick (float elapsed)
         {
             for (Model model : _vertices) {
@@ -169,7 +169,7 @@ public class AreaCursor extends EntryCursor
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void composite ()
         {
             for (Model model : _vertices) {
@@ -217,38 +217,38 @@ public class AreaCursor extends EntryCursor
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape getShape ()
     {
         return _impl.getShape();
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         setConfig((_entry = (AreaEntry)entry).area);
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         _impl.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _impl.composite();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

@@ -309,13 +309,13 @@ public class MaterialState extends RenderState
         return _flatShading;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return MATERIAL_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setMaterialState(
@@ -325,7 +325,7 @@ public class MaterialState extends RenderState
             _twoSide, _localViewer, _separateSpecular, _flatShading);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         MaterialState ostate;

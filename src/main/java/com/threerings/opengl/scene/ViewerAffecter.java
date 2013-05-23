@@ -61,13 +61,13 @@ public class ViewerAffecter extends Model.Implementation
         updateFromConfig();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean hasCompleted ()
     {
         return _effect.hasCompleted();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVisible (boolean visible)
     {
         if (_visible == visible) {
@@ -90,25 +90,25 @@ public class ViewerAffecter extends Model.Implementation
         updateVis();
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         _effect.reset();
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         // update the world transform
@@ -137,13 +137,13 @@ public class ViewerAffecter extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
@@ -153,7 +153,7 @@ public class ViewerAffecter extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);

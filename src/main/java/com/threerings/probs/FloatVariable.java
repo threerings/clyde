@@ -79,13 +79,13 @@ public abstract class FloatVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue ()
         {
             return value;
         }
 
-        @Override // documentation inherited
+        @Override
         public float getMean ()
         {
             return value;
@@ -133,13 +133,13 @@ public abstract class FloatVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue ()
         {
             return FloatMath.random(minimum, maximum);
         }
 
-        @Override // documentation inherited
+        @Override
         public float getMean ()
         {
             return (minimum + maximum) * 0.5f;
@@ -187,13 +187,13 @@ public abstract class FloatVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue ()
         {
             return FloatMath.normal(mean, stddev);
         }
 
-        @Override // documentation inherited
+        @Override
         public float getMean ()
         {
             return mean;
@@ -234,13 +234,13 @@ public abstract class FloatVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue ()
         {
             return FloatMath.exponential(mean);
         }
 
-        @Override // documentation inherited
+        @Override
         public float getMean ()
         {
             return mean;

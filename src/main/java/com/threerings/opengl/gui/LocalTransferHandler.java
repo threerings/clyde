@@ -49,7 +49,7 @@ public class LocalTransferHandler<T> extends TransferHandler
         _flavor = ToolUtil.createLocalFlavor(clazz);
     }
 
-    @Override // documentation inherited
+    @Override
     public Icon getVisualRepresentation (Transferable data)
     {
         try {
@@ -59,13 +59,13 @@ public class LocalTransferHandler<T> extends TransferHandler
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean canImport (Component comp, DataFlavor[] transferFlavors)
     {
         return ListUtil.contains(transferFlavors, _flavor) && canImport(comp);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean importData (Component comp, Transferable data)
     {
         try {
@@ -75,7 +75,7 @@ public class LocalTransferHandler<T> extends TransferHandler
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected Transferable createTransferable (Component comp)
     {
         final T object = getObject(comp);
@@ -97,7 +97,7 @@ public class LocalTransferHandler<T> extends TransferHandler
         };
     }
 
-    @Override // documentation inherited
+    @Override
     protected void exportDone (Component source, Transferable data, int action)
     {
         try {

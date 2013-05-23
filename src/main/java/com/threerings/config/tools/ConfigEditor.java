@@ -284,7 +284,7 @@ public class ConfigEditor extends BaseConfigEditor
         _clipclass = null;
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -336,7 +336,7 @@ public class ConfigEditor extends BaseConfigEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         super.removeNotify();
@@ -386,7 +386,7 @@ public class ConfigEditor extends BaseConfigEditor
     {
     }
 
-    @Override // documentation inherited
+    @Override
     protected BaseEditorPanel getFindEditorPanel ()
     {
         return ((ManagerPanel)_tabs.getSelectedComponent()).getEditorPanel();
@@ -594,7 +594,7 @@ public class ConfigEditor extends BaseConfigEditor
                 updateSelection();
             }
 
-            @Override // documentation inherited
+            @Override
             public String toString ()
             {
                 return _label;

@@ -126,7 +126,7 @@ public class WallConfig extends PaintableConfig
                 caseRotations.right, maxWidth, maxHeight, elevation);
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Case caze : cases) {
@@ -134,13 +134,13 @@ public class WallConfig extends PaintableConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Case caze : cases) {
@@ -158,13 +158,13 @@ public class WallConfig extends PaintableConfig
         @Editable(nullable=true)
         public ConfigReference<WallConfig> wall;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(WallConfig.class, wall);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             WallConfig config = cfgmgr.getConfig(WallConfig.class, wall);
@@ -184,7 +184,7 @@ public class WallConfig extends PaintableConfig
         return implementation.getOriginal(cfgmgr);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -192,7 +192,7 @@ public class WallConfig extends PaintableConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -114,7 +114,7 @@ public class EditableFieldEditor extends FieldEditor
         _commit.setEnabled(modified);
     }
 
-    @Override // documentation inherited
+    @Override
     public void noteUpdatedExternally ()
     {
         super.noteUpdatedExternally();
@@ -122,7 +122,7 @@ public class EditableFieldEditor extends FieldEditor
         _commit.setEnabled(false);
     }
 
-    @Override // documentation inherited
+    @Override
     protected Object getDisplayValue ()
     {
         try {
@@ -132,7 +132,7 @@ public class EditableFieldEditor extends FieldEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void displayValue (Object value)
     {
         try {
@@ -143,7 +143,7 @@ public class EditableFieldEditor extends FieldEditor
         _editor.update();
     }
 
-    @Override // documentation inherited
+    @Override
     protected boolean valueMatches (Object dvalue)
     {
         _a1[0] = dvalue;

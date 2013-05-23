@@ -1225,13 +1225,13 @@ public class TudeySceneManager extends SceneManager
         return _ticker != null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected PlaceObject createPlaceObject ()
     {
         return (_tsobj = new TudeySceneObject());
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didStartup ()
     {
         super.didStartup();
@@ -1268,7 +1268,7 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didShutdown ()
     {
         super.didShutdown();
@@ -1305,7 +1305,7 @@ public class TudeySceneManager extends SceneManager
         _pathfinder = null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void bodyEntered (int bodyOid)
     {
         super.bodyEntered(bodyOid);
@@ -1322,7 +1322,7 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void bodyLeft (int bodyOid)
     {
         super.bodyLeft(bodyOid);
@@ -1331,7 +1331,7 @@ public class TudeySceneManager extends SceneManager
         _clients.remove(bodyOid);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void placeBecameEmpty ()
     {
         super.placeBecameEmpty();
@@ -1340,7 +1340,7 @@ public class TudeySceneManager extends SceneManager
         _emptyTime = RunAnywhere.currentTimeMillis();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void bodyUpdated (OccupantInfo info)
     {
         super.bodyUpdated(info);
@@ -1662,7 +1662,7 @@ public class TudeySceneManager extends SceneManager
      */
     protected static class ProfileTickOp extends TickOp
     {
-        @Override // documentation inherited
+        @Override
         public boolean apply (TickParticipant participant)
         {
             try {

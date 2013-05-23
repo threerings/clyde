@@ -95,7 +95,7 @@ public class AbsoluteLayout extends LayoutManager
         _spots.remove(comp);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object getConstraints (Component comp)
     {
         return _spots.get(comp);

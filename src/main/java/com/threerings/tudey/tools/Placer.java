@@ -67,13 +67,13 @@ public class Placer extends ConfigTool<PlaceableConfig>
         _angle = angle;
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _cursor = new PlaceableCursor(_editor, _editor.getView(), _entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateCursor();
@@ -84,7 +84,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -92,7 +92,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
@@ -100,7 +100,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         // adjust in terms of coarse (ninety degree) or fine increments
@@ -158,7 +158,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         _lastPlacement.set(entry.transform.getTranslation());
     }
 
-    @Override // documentation inherited
+    @Override
     protected void referenceChanged (ConfigReference<PlaceableConfig> ref)
     {
         super.referenceChanged(ref);
@@ -174,13 +174,13 @@ public class Placer extends ConfigTool<PlaceableConfig>
         @Editable(nullable=true)
         public ConfigReference<PlaceableConfig> placeable;
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<PlaceableConfig> getReference ()
         {
             return placeable;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference<PlaceableConfig> ref)
         {
             placeable = ref;

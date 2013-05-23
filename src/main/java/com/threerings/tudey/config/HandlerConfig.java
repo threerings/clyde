@@ -62,7 +62,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class Startup extends ActionHandlerConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Startup";
@@ -74,7 +74,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class Shutdown extends ActionHandlerConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Shutdown";
@@ -90,7 +90,7 @@ public abstract class HandlerConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<ParameterizedHandlerConfig> handler;
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             if (preloads.add(new Preloadable.Config(ParameterizedHandlerConfig.class, handler))) {
@@ -104,7 +104,7 @@ public abstract class HandlerConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Reference";
@@ -116,7 +116,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class Tick extends ActionHandlerConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Tick";
@@ -142,7 +142,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public int limit;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Timer";
@@ -164,7 +164,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public ActionConfig warnAction;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$WarnTimer";
@@ -186,7 +186,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public float refractoryPeriod;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Signal";
@@ -203,7 +203,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public String name = "";
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$SignalStart";
@@ -220,7 +220,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public String name = "";
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$SignalStop";
@@ -236,7 +236,7 @@ public abstract class HandlerConfig extends DeepObject
         @Editable
         public IntersectionShape shape = new DefaultShape();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -259,7 +259,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public float refractoryPeriod;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Intersection";
@@ -276,7 +276,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public int mask = 0xFFFF;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$IntersectionStart";
@@ -293,7 +293,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public int mask = 0xFFFF;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$IntersectionStop";
@@ -314,7 +314,7 @@ public abstract class HandlerConfig extends DeepObject
         @Editable
         public ConditionConfig condition = new ConditionConfig.InstanceOf();
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
@@ -336,13 +336,13 @@ public abstract class HandlerConfig extends DeepObject
         @Editable(nullable=true, weight=2)
         public ActionConfig underAction;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$ThresholdIntersectionCount";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -351,7 +351,7 @@ public abstract class HandlerConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
@@ -371,7 +371,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public String name = "";
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Request";
@@ -387,7 +387,7 @@ public abstract class HandlerConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Tagged();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -399,7 +399,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class ActorAdded extends BaseActorObserver
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$ActorAdded";
@@ -416,7 +416,7 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public boolean all = true;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$ActorRemoved";
@@ -428,7 +428,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class BodyEntered extends ActionHandlerConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$BodyEntered";
@@ -440,7 +440,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class BodyLeft extends ActionHandlerConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$BodyLeft";
@@ -452,7 +452,7 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class VariableChanged extends ActionHandlerConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$VariableChanged";
@@ -492,7 +492,7 @@ public abstract class HandlerConfig extends DeepObject
         @Editable(step=0.01)
         public float expansion;
 
-        @Override // documentation inherited
+        @Override
         public Shape getShape (Shape source, Transform2D transform, Shape result)
         {
             return (source == null || expansion == 0f) ? source : source.expand(expansion, result);
@@ -508,13 +508,13 @@ public abstract class HandlerConfig extends DeepObject
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
-        @Override // documentation inherited
+        @Override
         public Shape getShape (Shape source, Transform2D transform, Shape result)
         {
             return shape.getShape().transform(transform, result);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             shape.invalidate();
@@ -527,13 +527,13 @@ public abstract class HandlerConfig extends DeepObject
         @Editable(weight=1)
         public ActionConfig action = new ActionConfig.SpawnActor();
 
-        @Override // documentation inherited
+        @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             action.getPreloads(cfgmgr, preloads);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             action.invalidate();

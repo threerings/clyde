@@ -64,7 +64,7 @@ public abstract class IntegerExpression extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             return new Evaluator() {
@@ -88,7 +88,7 @@ public abstract class IntegerExpression extends DeepObject
         @Editable
         public int defvalue;
 
-        @Override // documentation inherited
+        @Override
         public Evaluator createEvaluator (Scope scope)
         {
             // first look for a mutable reference, then for a variable

@@ -49,13 +49,13 @@ public class BooleanEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         _box.setSelected((Boolean)_property.get(_object));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(_box = new JCheckBox(getPropertyLabel()));

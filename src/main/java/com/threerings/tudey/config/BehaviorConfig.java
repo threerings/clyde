@@ -87,7 +87,7 @@ public class BehaviorConfig extends ParameterizedConfig
             return "com.threerings.tudey.server.logic.BehaviorLogic$Idle";
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
@@ -103,13 +103,13 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<BehaviorConfig> behavior;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(BehaviorConfig.class, behavior);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             BehaviorConfig config = cfgmgr.getConfig(BehaviorConfig.class, behavior);
@@ -165,7 +165,7 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(min=0.0, step=0.1)
         public float radius = 100f;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Wander";
@@ -187,7 +187,7 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(hgroup="l")
         public boolean evaluationRotate;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$GridWander";
@@ -207,13 +207,13 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(min=-1.0, step=0.1)
         public float branchRadius = -1f;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Patrol";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -237,13 +237,13 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(min=0.0, step=0.1, hgroup="d")
         public float maximumDistance = 5f;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Follow";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -259,7 +259,7 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable
         public WeightedBehavior[] behaviors = new WeightedBehavior[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Random";
@@ -275,7 +275,7 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable
         public ScriptConfig[] steps = new ScriptConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Scripted";
@@ -295,7 +295,7 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<BehaviorConfig> second;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Combined";
@@ -329,7 +329,7 @@ public class BehaviorConfig extends ParameterizedConfig
         return implementation.getOriginal(cfgmgr);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -337,7 +337,7 @@ public class BehaviorConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -63,7 +63,7 @@ public class TudeyZoneRegistry extends ZoneRegistry
         return moveBody(source, zoneId, sceneId);
     }
 
-    @Override // documentation inherited
+    @Override
     protected ZoneMoveHandler createZoneMoveHandler (
         ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
         ZoneService.ZoneMoveListener listener)

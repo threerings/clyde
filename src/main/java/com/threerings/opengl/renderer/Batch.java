@@ -70,7 +70,7 @@ public abstract class Batch
         return 0;
     }
 
-    @Override // documentation inherited
+    @Override
     public Batch clone ()
     {
         try {

@@ -53,7 +53,7 @@ public abstract class TargetConfig extends DeepObject
      */
     public static class Source extends TargetConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Source";
@@ -65,7 +65,7 @@ public abstract class TargetConfig extends DeepObject
      */
     public static class Activator extends TargetConfig
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Activator";
@@ -81,13 +81,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$ActivatorOf";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -103,7 +103,7 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public String tag = "";
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Tagged";
@@ -119,7 +119,7 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$InstanceOf";
@@ -143,13 +143,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public RegionConfig region = new RegionConfig.Default();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Intersecting";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             region.invalidate();
@@ -169,7 +169,7 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig target = new Source();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -181,7 +181,7 @@ public abstract class TargetConfig extends DeepObject
      */
     public static class RandomSubset extends Subset
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$RandomSubset";
@@ -197,7 +197,7 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig location = new Source();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -210,7 +210,7 @@ public abstract class TargetConfig extends DeepObject
      */
     public static class NearestSubset extends DistanceSubset
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$NearestSubset";
@@ -222,7 +222,7 @@ public abstract class TargetConfig extends DeepObject
      */
     public static class FarthestSubset extends DistanceSubset
     {
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$FarthestSubset";
@@ -242,13 +242,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig target = new Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Conditional";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             condition.invalidate();
@@ -265,13 +265,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig[] targets = new TargetConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Compound";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (TargetConfig target : targets) {
@@ -289,13 +289,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig target = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Behavior";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -315,13 +315,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig excluding = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Excluding";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();
@@ -338,13 +338,13 @@ public abstract class TargetConfig extends DeepObject
         @Editable
         public TargetConfig target = new Source();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Randomized";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             target.invalidate();

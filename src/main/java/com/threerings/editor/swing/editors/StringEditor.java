@@ -68,7 +68,7 @@ public class StringEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         // this generates two documents events: first a remove, then an add.  we don't want to
@@ -80,7 +80,7 @@ public class StringEditor extends PropertyEditor
         _field.getDocument().addDocumentListener(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         Editable annotation = _property.getAnnotation();

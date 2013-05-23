@@ -88,7 +88,7 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
             handler.getPreloads(cfgmgr, preloads);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
@@ -112,13 +112,13 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ParameterizedHandlerConfig> ref;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ParameterizedHandlerConfig.class, ref);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             ParameterizedHandlerConfig config =
@@ -139,7 +139,7 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
         return implementation.getOriginal(cfgmgr);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -147,7 +147,7 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

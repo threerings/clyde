@@ -55,7 +55,7 @@ public class EntryLogic extends Logic
      */
     public static class Camera extends EntryLogic
     {
-        @Override // documentation inherited
+        @Override
         protected void wasAdded ()
         {
             GlobalEntry gentry = (GlobalEntry)_entry;
@@ -65,7 +65,7 @@ public class EntryLogic extends Logic
                 config.camera, 4f / 3f));
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved (boolean endScene)
         {
             _scenemgr.setDefaultLocalInterest(TudeySceneMetrics.getDefaultLocalInterest());
@@ -77,14 +77,14 @@ public class EntryLogic extends Logic
      */
     public static class StatefulProp extends EntryLogic
     {
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _actor = (ActorLogic)refs.get(((StatefulProp)source)._actor);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasAdded ()
         {
             PlaceableEntry pentry = (PlaceableEntry)_entry;
@@ -99,7 +99,7 @@ public class EntryLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void wasRemoved (boolean endScene)
         {
             if (_actor != null) {
@@ -182,61 +182,61 @@ public class EntryLogic extends Logic
         wasRemoved(endScene);
     }
 
-    @Override // documentation inherited
+    @Override
     public String[] getTags ()
     {
         return _tags;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isDefaultEntrance ()
     {
         return _defaultEntrance;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return _scenemgr.getEntryLogic(_entry.getKey()) == this;
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _entityKey;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _translation;
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _rotation;
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape getShape ()
     {
         return _shape;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f[] getPatrolPath ()
     {
         return _entry.createPatrolPath(_shape);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigReference<ModelConfig> getModel ()
     {
         return _entry.getModel(_scenemgr.getConfigManager());
     }
 
-    @Override // documentation inherited
+    @Override
     public void signal (int timestamp, Logic source, String name)
     {
         for (HandlerLogic handler : _handlers) {
@@ -244,7 +244,7 @@ public class EntryLogic extends Logic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVariable (int timestamp, Logic source, String name, Object value)
     {
         super.setVariable(timestamp, source, name, value);
@@ -253,7 +253,7 @@ public class EntryLogic extends Logic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void request (int timestamp, PawnLogic source, String name)
     {
         for (HandlerLogic handler : _handlers) {
@@ -261,7 +261,7 @@ public class EntryLogic extends Logic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);

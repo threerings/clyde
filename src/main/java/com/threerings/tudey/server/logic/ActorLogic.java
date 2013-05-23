@@ -399,67 +399,67 @@ public class ActorLogic extends Logic
         return _actor;
     }
 
-    @Override // documentation inherited
+    @Override
     public String[] getTags ()
     {
         return _config.tags.getTags();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isDefaultEntrance ()
     {
         return _config.defaultEntrance;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean isActive ()
     {
         return !isDestroyed();
     }
 
-    @Override // documentation inherited
+    @Override
     public EntityKey getEntityKey ()
     {
         return _entityKey;
     }
 
-    @Override // documentation inherited
+    @Override
     public Vector2f getTranslation ()
     {
         return _actor.getTranslation();
     }
 
-    @Override // documentation inherited
+    @Override
     public float getRotation ()
     {
         return _actor.getRotation();
     }
 
-    @Override // documentation inherited
+    @Override
     public Shape getShape ()
     {
         return _shape.getWorldShape();
     }
 
-    @Override // documentation inherited
+    @Override
     public void addShapeObserver (ShapeObserver observer)
     {
         _shapeObservers.add(observer);
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeShapeObserver (ShapeObserver observer)
     {
         _shapeObservers.remove(observer);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigReference<ModelConfig> getModel ()
     {
         return _config.sprite.model;
     }
 
-    @Override // documentation inherited
+    @Override
     public void signal (int timestamp, Logic source, String name)
     {
         // make sure we're not already destroyed
@@ -471,7 +471,7 @@ public class ActorLogic extends Logic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVariable (int timestamp, Logic source, String name, Object value)
     {
         super.setVariable(timestamp, source, name, value);
@@ -483,7 +483,7 @@ public class ActorLogic extends Logic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void request (int timestamp, PawnLogic source, String name)
     {
         for (HandlerLogic handler : _handlers) {
@@ -491,7 +491,7 @@ public class ActorLogic extends Logic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);

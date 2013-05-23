@@ -124,7 +124,7 @@ public abstract class StepConfig extends DeepObject
         @Editable
         public Stencil stencil = new Stencil();
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             return new Executor() {
@@ -171,7 +171,7 @@ public abstract class StepConfig extends DeepObject
         @Editable(hgroup="p")
         public int maxPriority = Integer.MAX_VALUE;
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             return new Executor() {
@@ -200,7 +200,7 @@ public abstract class StepConfig extends DeepObject
         @Editable(min=1, hgroup="d")
         public int divisionsY = 1;
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             MaterialConfig config = ctx.getConfigManager().getConfig(
@@ -208,7 +208,7 @@ public abstract class StepConfig extends DeepObject
             return config != null && config.getTechnique(ctx, null) != null;
         }
 
-        @Override // documentation inherited
+        @Override
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             MaterialConfig config = ctx.getConfigManager().getConfig(

@@ -41,13 +41,13 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class ToolSceneController extends TudeySceneController
 {
-    @Override // documentation inherited
+    @Override
     protected PlaceView createPlaceView (CrowdContext ctx)
     {
         return (_tsview = new ToolSceneView((TudeyContext)ctx, this));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void bindKeys ()
     {
         super.bindKeys();
@@ -60,7 +60,7 @@ public class ToolSceneController extends TudeySceneController
         });
     }
 
-    @Override // documentation inherited
+    @Override
     protected int getMouseCameraModifiers ()
     {
         return KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK;

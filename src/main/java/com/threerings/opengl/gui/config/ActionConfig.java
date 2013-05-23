@@ -81,7 +81,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String name = "";
 
-        @Override // documentation inherited
+        @Override
         public void execute (UserInterface iface, ConfigScript script)
         {
             ScopeUtil.resolve(iface.getScope(), name, Function.NULL).call();
@@ -101,7 +101,7 @@ public abstract class ActionConfig extends DeepObject
             directory="sound_dir")
         public String sound;
 
-        @Override // documentation inherited
+        @Override
         public void execute (UserInterface iface, ConfigScript script)
         {
             if (sound != null) {
@@ -119,7 +119,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="t")
         public String target = "";
 
-        @Override // documentation inherited
+        @Override
         public void execute (UserInterface iface, ConfigScript script)
         {
             for (Component comp : iface.getComponents(target)) {
@@ -142,7 +142,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="t")
         public boolean enabled = true;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.setEnabled(enabled);
@@ -158,7 +158,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="t")
         public boolean visible = true;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.setVisible(visible);
@@ -174,7 +174,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="t")
         public boolean hoverable = true;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.setHoverable(hoverable);
@@ -190,7 +190,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(min=0, max=1, step=0.01, hgroup="t")
         public float alpha = 1f;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.setAlpha(alpha);
@@ -222,7 +222,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig actionOnComplete;
 
-        @Override // documentation inherited
+        @Override
         public void apply (final UserInterface iface, final Component comp)
         {
             iface.addScript(iface.new TickableScript() {
@@ -261,7 +261,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public FloatExpression value = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, final Component comp)
         {
             final FloatExpression.Evaluator eval = value.createEvaluator(iface.getScope());
@@ -277,7 +277,7 @@ public abstract class ActionConfig extends DeepObject
             });
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             value.invalidate();
@@ -293,7 +293,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(step=0.01)
         public Transform2D offset = new Transform2D();
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.setOffset(new Transform2D(offset));
@@ -325,7 +325,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig actionOnComplete;
 
-        @Override // documentation inherited
+        @Override
         public void apply (final UserInterface iface, final Component comp)
         {
             iface.addScript(iface.new TickableScript() {
@@ -364,7 +364,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public Transform2DExpression value = new Transform2DExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, final Component comp)
         {
             final ObjectExpression.Evaluator<Transform2D> eval =
@@ -381,7 +381,7 @@ public abstract class ActionConfig extends DeepObject
             });
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             value.invalidate();
@@ -397,7 +397,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="t")
         public boolean selected = true;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof ToggleButton) {
@@ -415,7 +415,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="t")
         public String text = "";
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof TextComponent) {
@@ -433,7 +433,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<StyleConfig> style;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.setStyleConfig(style);
@@ -449,7 +449,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<UserInterfaceConfig> userInterface;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof UserInterface) {
@@ -467,7 +467,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<InterfaceScriptConfig> interfaceScript;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof UserInterface) {
@@ -485,7 +485,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<InterfaceScriptConfig> interfaceScript;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof UserInterface) {
@@ -507,7 +507,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
 
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof RenderableView) {
@@ -524,7 +524,7 @@ public abstract class ActionConfig extends DeepObject
      */
     public static class RequestFocus extends Targeted
     {
-        @Override // documentation inherited
+        @Override
         public void apply (UserInterface iface, Component comp)
         {
             comp.requestFocus();
@@ -540,7 +540,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public EventConfig event = new EventConfig.Action();
 
-        @Override // documentation inherited
+        @Override
         public void execute (UserInterface iface, final ConfigScript script)
         {
             // sanity check, as actions can be executed outside of scripts
@@ -576,7 +576,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig[] actions = EMPTY_ARRAY;
 
-        @Override // documentation inherited
+        @Override
         public void execute (final UserInterface iface, final ConfigScript script)
         {
             iface.addScript(event.addHandler(iface, new Runnable() {
@@ -588,7 +588,7 @@ public abstract class ActionConfig extends DeepObject
             }));
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (ActionConfig action : actions) {
@@ -610,7 +610,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig defaultAction = new CallFunction();
 
-        @Override // documentation inherited
+        @Override
         public void execute (UserInterface iface, ConfigScript script)
         {
             Scope scope = iface.getScope();
@@ -623,7 +623,7 @@ public abstract class ActionConfig extends DeepObject
             defaultAction.execute(iface, script);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Case caze : cases) {
@@ -657,7 +657,7 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig[] actions = EMPTY_ARRAY;
 
-        @Override // documentation inherited
+        @Override
         public void execute (UserInterface iface, ConfigScript script)
         {
             for (ActionConfig action : actions) {
@@ -665,7 +665,7 @@ public abstract class ActionConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (ActionConfig action : actions) {

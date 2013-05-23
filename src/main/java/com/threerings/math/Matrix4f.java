@@ -1216,7 +1216,7 @@ public final class Matrix4f
             in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[[" + m00 + ", " + m10 + ", " + m20 + ", " + m30 + "], " +
@@ -1225,7 +1225,7 @@ public final class Matrix4f
             "[" + m03 + ", " + m13 + ", " + m23 + ", " + m33 + "]]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(m00) ^ Float.floatToIntBits(m10) ^
@@ -1238,7 +1238,7 @@ public final class Matrix4f
                 Float.floatToIntBits(m23) ^ Float.floatToIntBits(m33);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Matrix4f)) {

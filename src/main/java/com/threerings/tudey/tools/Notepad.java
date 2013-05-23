@@ -68,7 +68,7 @@ public class Notepad extends EditorTool
         _scene.setNotes(_area.getText());
     }
 
-    @Override // documentation inherited
+    @Override
     public void sceneChanged (TudeySceneModel scene)
     {
         super.sceneChanged(scene);

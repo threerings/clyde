@@ -64,7 +64,7 @@ public abstract class ScriptLogic extends Logic
      */
     public static class Wait extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             _agent.stopMoving();
@@ -72,13 +72,13 @@ public abstract class ScriptLogic extends Logic
             _started = timestamp;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             return timestamp - _started > ((ScriptConfig.Wait)_config).wait;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -94,13 +94,13 @@ public abstract class ScriptLogic extends Logic
      */
     public static class Move extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             createPath();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             if (_path == null || finishedMove()) {
@@ -141,13 +141,13 @@ public abstract class ScriptLogic extends Logic
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void suspend ()
         {
             _agent.stopMoving();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -212,7 +212,7 @@ public abstract class ScriptLogic extends Logic
             _agent.stopMoving();
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -238,7 +238,7 @@ public abstract class ScriptLogic extends Logic
      */
     public static class Rotate extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             ScriptConfig.Rotate config = (ScriptConfig.Rotate)_config;
@@ -252,19 +252,19 @@ public abstract class ScriptLogic extends Logic
             _agent.setTargetRotation(FloatMath.normalizeAnglePositive(rotation));
         }
 
-        @Override // documentation inherited
+        @Override
         public void reachedTargetRotation ()
         {
             _complete = true;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             return _complete;
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -280,27 +280,27 @@ public abstract class ScriptLogic extends Logic
      */
     public static class Condition extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             _agent.stopMoving();
             _agent.clearTargetRotation();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             return _condition.isSatisfied(_agent);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _condition.transfer(((Condition)source)._condition, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -317,7 +317,7 @@ public abstract class ScriptLogic extends Logic
      */
     public static class ConditionalScript extends Condition
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             super.start(timestamp);
@@ -329,13 +329,13 @@ public abstract class ScriptLogic extends Logic
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             return _satisfied ? _success.tick(timestamp) : _failure.tick(timestamp);
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -344,7 +344,7 @@ public abstract class ScriptLogic extends Logic
             _satisfied = ((ConditionalScript)source)._satisfied;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -370,7 +370,7 @@ public abstract class ScriptLogic extends Logic
      */
     public static class Goto extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             _scripted.setCurrentStep(((ScriptConfig.Goto)_config).step, timestamp);
@@ -382,32 +382,32 @@ public abstract class ScriptLogic extends Logic
      */
     public static class Action extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (int timestamp)
         {
             _action.execute(timestamp, _agent);
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void shutdown ()
         {
             _action.removed();
         }
 
-        @Override // documentation inherited
+        @Override
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             _action.transfer(((Action)source)._action, refs);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void didInit ()
         {
             _action = createAction(((ScriptConfig.Action)_config).action, _agent);
@@ -422,7 +422,7 @@ public abstract class ScriptLogic extends Logic
      */
     public static class SetSpeed extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             _agent.setSpeed(((ScriptConfig.SetSpeed)_config).speed);
@@ -434,7 +434,7 @@ public abstract class ScriptLogic extends Logic
      */
     public static class ClearSpeed extends ScriptLogic
     {
-        @Override // documentation inherited
+        @Override
         public void start (int timestamp)
         {
             _agent.clearSpeed();

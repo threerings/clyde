@@ -89,7 +89,7 @@ public class TileSprite extends EntrySprite
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -136,19 +136,19 @@ public class TileSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Model getModel ()
         {
             return _model;
         }
 
-        @Override // documentation inherited
+        @Override
         public int getFloorFlags ()
         {
             return _config.floorFlags;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (TileEntry entry)
         {
             maybeUnmerge();
@@ -161,7 +161,7 @@ public class TileSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -265,19 +265,19 @@ public class TileSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getFloorFlags ()
     {
         return _impl.getFloorFlags();
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         TileEntry tentry = (TileEntry)entry;
@@ -285,13 +285,13 @@ public class TileSprite extends EntrySprite
         _impl.update(_entry = tentry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Model getModel ()
     {
         return _impl.getModel();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setSelected (boolean selected)
     {
         super.setSelected(selected);
@@ -299,7 +299,7 @@ public class TileSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

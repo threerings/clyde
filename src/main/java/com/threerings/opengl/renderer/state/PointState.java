@@ -73,19 +73,19 @@ public class PointState extends RenderState
         return _pointSize;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return POINT_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setPointState(_pointSize);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof PointState && _pointSize == ((PointState)other)._pointSize;

@@ -253,7 +253,7 @@ public abstract class LayoutConfig extends DeepObject
             @Editable(hgroup="c")
             public int width, height;
 
-            @Override // documentation inherited
+            @Override
             public Object createConstraints ()
             {
                 return new Rectangle(x, y, width, height);
@@ -268,7 +268,7 @@ public abstract class LayoutConfig extends DeepObject
         @Editable
         public Child[] children = new Child[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Child child : children) {
@@ -276,7 +276,7 @@ public abstract class LayoutConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {
@@ -338,7 +338,7 @@ public abstract class LayoutConfig extends DeepObject
         @Editable
         public Child[] children = new Child[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Child child : children) {
@@ -346,7 +346,7 @@ public abstract class LayoutConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {
@@ -403,7 +403,7 @@ public abstract class LayoutConfig extends DeepObject
         @Editable
         public Child[] children = new Child[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Child child : children) {
@@ -411,7 +411,7 @@ public abstract class LayoutConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {
@@ -484,7 +484,7 @@ public abstract class LayoutConfig extends DeepObject
         @Editable
         public Child[] children = new Child[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Child child : children) {
@@ -492,7 +492,7 @@ public abstract class LayoutConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {
@@ -525,7 +525,7 @@ public abstract class LayoutConfig extends DeepObject
      */
     public static class HorizontalGroup extends Group
     {
-        @Override // documentation inherited
+        @Override
         protected GroupLayout createLayout ()
         {
             return new HGroupLayout();
@@ -537,7 +537,7 @@ public abstract class LayoutConfig extends DeepObject
      */
     public static class VerticalGroup extends Group
     {
-        @Override // documentation inherited
+        @Override
         protected GroupLayout createLayout ()
         {
             return new VGroupLayout();
@@ -588,7 +588,7 @@ public abstract class LayoutConfig extends DeepObject
         @Editable
         public Child[] children = new Child[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Child child : children) {
@@ -596,7 +596,7 @@ public abstract class LayoutConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {

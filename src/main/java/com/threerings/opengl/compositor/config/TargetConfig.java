@@ -87,14 +87,14 @@ public abstract class TargetConfig extends DeepObject
                 ctx, ctex, dtex, new PixelFormat(alphaBits, depthBits, stencilBits));
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(TextureConfig.class, color);
             refs.add(TextureConfig.class, depth);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
@@ -104,7 +104,7 @@ public abstract class TargetConfig extends DeepObject
                 (dconfig == null || dconfig.isSupported(ctx, fallback));
         }
 
-        @Override // documentation inherited
+        @Override
         public RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope)
         {
             return new RenderEffect.TextureTarget(ctx, scope, this);
@@ -116,7 +116,7 @@ public abstract class TargetConfig extends DeepObject
      */
     public static class Output extends TargetConfig
     {
-        @Override // documentation inherited
+        @Override
         public RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope)
         {
             return new RenderEffect.OutputTarget(ctx, scope, this);

@@ -73,31 +73,31 @@ public class TudeySceneConfig extends PlaceConfig
         return DeepUtil.copy(this, dest, outer);
     }
 
-    @Override // documentation inherited
+    @Override
     public PlaceController createController ()
     {
         return new TudeySceneController();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getManagerClassName ()
     {
         return "com.threerings.tudey.server.TudeySceneManager";
     }
 
-    @Override // documentation inherited
+    @Override
     public TudeySceneConfig clone ()
     {
         return (TudeySceneConfig) copy(null, null);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return DeepUtil.equals(this, other);
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return DeepUtil.hashCode(this);

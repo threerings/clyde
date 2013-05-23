@@ -394,21 +394,21 @@ public class TreeEditorPanel extends BaseEditorPanel
         fireStateChanged();
     }
 
-    @Override // documentation inherited
+    @Override
     public void addNotify ()
     {
         super.addNotify();
         _tree.getToolkit().getSystemClipboard().addFlavorListener(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public void removeNotify ()
     {
         _tree.getToolkit().getSystemClipboard().removeFlavorListener(this);
         super.removeNotify();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setObject (Object object)
     {
         // make sure it's not the same object
@@ -422,7 +422,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         update();
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         DefaultTreeModel model = (DefaultTreeModel)_tree.getModel();
@@ -435,7 +435,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         reload(root);
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -490,7 +490,7 @@ public class TreeEditorPanel extends BaseEditorPanel
        }
     }
 
-    @Override // documentation inherited
+    @Override
     public String getMousePath ()
     {
         Point treePt = SwingUtilities.convertPoint(this, getMousePosition(), _tree);
@@ -503,7 +503,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         return path == null ? "" : convertTreePath(path).toString();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         TreePath path = _tree.getSelectionPath();
@@ -970,7 +970,7 @@ public class TreeEditorPanel extends BaseEditorPanel
             this.comp = comp;
         }
 
-        @Override // documentation inherited
+        @Override
         public String toString ()
         {
             return label;

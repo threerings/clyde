@@ -90,7 +90,7 @@ public abstract class SimpleTransformable extends SimpleRenderable
         return _transform;
     }
 
-    @Override // documentation inherited
+    @Override
     public void enqueue ()
     {
         // update the transform state
@@ -106,7 +106,7 @@ public abstract class SimpleTransformable extends SimpleRenderable
         super.enqueue();
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();

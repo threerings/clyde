@@ -178,7 +178,7 @@ public class Animation extends SimpleScope
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -271,7 +271,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             // initialize frame counter
@@ -300,13 +300,13 @@ public class Animation extends SimpleScope
             super.start();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return super.isPlaying() && !hasCompleted();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (float elapsed)
         {
             // see if we need to start blending out
@@ -365,13 +365,13 @@ public class Animation extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean hasCompleted ()
         {
             return _completed;
         }
 
-        @Override // documentation inherited
+        @Override
         public void updateTransforms ()
         {
             Transform3D[][] transforms = _config.transforms;
@@ -392,7 +392,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void blendTransforms (int update)
         {
             Transform3D[][] transforms = _config.transforms;
@@ -429,7 +429,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void blendToWeight (float weight, float interval)
         {
             super.blendToWeight(weight, interval);
@@ -517,7 +517,7 @@ public class Animation extends SimpleScope
             updateFromConfig();
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             _accum = _config.offset.getValue();
@@ -540,13 +540,13 @@ public class Animation extends SimpleScope
             super.start();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return super.isPlaying() && !hasCompleted();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (float elapsed)
         {
             // see if we need to start blending out
@@ -570,13 +570,13 @@ public class Animation extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean hasCompleted ()
         {
             return _completed;
         }
 
-        @Override // documentation inherited
+        @Override
         public void updateTransforms ()
         {
             for (TargetTransform transform : _transforms) {
@@ -584,7 +584,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void blendTransforms (int update)
         {
             for (TargetTransform transform : _transforms) {
@@ -592,7 +592,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void blendToWeight (float weight, float interval)
         {
             super.blendToWeight(weight, interval);
@@ -601,7 +601,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void scopeUpdated (ScopeEvent event)
         {
             super.scopeUpdated(event);
@@ -768,7 +768,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void setSpeedModifier (float speedModifier)
         {
             for (Animation anim : _animations) {
@@ -776,7 +776,7 @@ public class Animation extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             // initialize animation counter, start the first animation
@@ -786,13 +786,13 @@ public class Animation extends SimpleScope
             super.start();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return super.isPlaying() && !hasCompleted();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (float elapsed)
         {
             // update the weight
@@ -824,19 +824,19 @@ public class Animation extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean hasCompleted ()
         {
             return _animations[_aidx].hasCompleted();
         }
 
-        @Override // documentation inherited
+        @Override
         public void updateTransforms ()
         {
             _animations[_aidx].updateTransforms();
         }
 
-        @Override // documentation inherited
+        @Override
         public void blendTransforms (int update)
         {
             _animations[_aidx].blendTransforms(update);
@@ -1084,20 +1084,20 @@ public class Animation extends SimpleScope
         updateFromConfig();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getScopeName ()
     {
         return "animation";
     }
 
-    @Override // documentation inherited
+    @Override
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
         resetEpoch();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();
@@ -1106,7 +1106,7 @@ public class Animation extends SimpleScope
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return _name;

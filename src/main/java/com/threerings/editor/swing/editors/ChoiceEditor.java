@@ -59,7 +59,7 @@ public class ChoiceEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         Object[] options = getOptions();
@@ -67,7 +67,7 @@ public class ChoiceEditor extends PropertyEditor
         _box.setSelectedItem(_property.get(_object));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

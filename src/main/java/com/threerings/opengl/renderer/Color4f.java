@@ -384,20 +384,20 @@ public final class Color4f
         set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[" + r + ", " + g + ", " + b + ", " + a + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(r) ^ Float.floatToIntBits(g) ^
             Float.floatToIntBits(b) ^ Float.floatToIntBits(a);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof Color4f)) {

@@ -114,13 +114,13 @@ public class Sounder extends SimpleScope
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -160,7 +160,7 @@ public class Sounder extends SimpleScope
             _config = config;
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             if (_sound != null) {
@@ -168,13 +168,13 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return _sound != null && (_sound.isPlaying() || _sound.isPending());
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             if (_sound != null) {
@@ -182,7 +182,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void scopeUpdated (ScopeEvent event)
         {
             super.scopeUpdated(event);
@@ -300,19 +300,19 @@ public class Sounder extends SimpleScope
             updateFromConfig();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             return _config.loop;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             playSound(_config.gain);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateFromConfig ()
         {
             boolean wasPlaying = isPlaying();
@@ -349,13 +349,13 @@ public class Sounder extends SimpleScope
             updateFromConfig();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             return _config.loop;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             int idx = RandomUtil.getWeightedIndex(_weights);
@@ -363,7 +363,7 @@ public class Sounder extends SimpleScope
             playSound(_config.gain * _config.files[idx].gain);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateFromConfig ()
         {
             boolean wasPlaying = isPlaying();
@@ -422,13 +422,13 @@ public class Sounder extends SimpleScope
             updateFromConfig();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             return _config.loop;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             float gain = _config.gain.getValue();
@@ -439,7 +439,7 @@ public class Sounder extends SimpleScope
             playSound(gain);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void updateFromConfig ()
         {
             boolean wasPlaying = isPlaying();
@@ -474,13 +474,13 @@ public class Sounder extends SimpleScope
             _config = config;
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             stopStream(_config.fadeOut);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return _stream != null && _stream.isPlaying();
@@ -537,7 +537,7 @@ public class Sounder extends SimpleScope
                 super(_ctx.getSoundManager(), file, loop, stack);
             }
 
-            @Override // documentation inherited
+            @Override
             protected void update (float time)
             {
                 setGain(getCombinedGain());
@@ -624,13 +624,13 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             return _config.loops();
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             if (!_ctx.getSoundManager().isInitialized()) {
@@ -687,13 +687,13 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             if (_ctx.getSoundManager().isInitialized()) {
@@ -789,7 +789,7 @@ public class Sounder extends SimpleScope
             updateFromConfig();
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             for (Sounder sounder : _sounders) {
@@ -800,7 +800,7 @@ public class Sounder extends SimpleScope
             return _defaultSounder.loops();
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             for (int ii = 0; ii < _evaluators.length; ii++) {
@@ -812,7 +812,7 @@ public class Sounder extends SimpleScope
             (_sounder = _defaultSounder).start();
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             if (_sounder != null) {
@@ -820,13 +820,13 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return _sounder != null && _sounder.isPlaying();
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             if (_sounder != null) {
@@ -834,7 +834,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void scopeUpdated (ScopeEvent event)
         {
             super.scopeUpdated(event);
@@ -939,7 +939,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             for (Sounder sounder : _sounders) {
@@ -950,7 +950,7 @@ public class Sounder extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             for (Sounder sounder : _sounders) {
@@ -958,7 +958,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             for (Sounder sounder : _sounders) {
@@ -966,7 +966,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             for (Sounder sounder : _sounders) {
@@ -977,7 +977,7 @@ public class Sounder extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             for (Sounder sounder : _sounders) {
@@ -1032,7 +1032,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             if (_config.loop) {
@@ -1046,14 +1046,14 @@ public class Sounder extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             _sounders[_sidx = 0].start();
             _completed = false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             for (Sounder sounder : _sounders) {
@@ -1061,7 +1061,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             for (Sounder sounder : _sounders) {
@@ -1072,7 +1072,7 @@ public class Sounder extends SimpleScope
             return _started.value && !_completed;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             if (_completed) {
@@ -1156,13 +1156,13 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             return _config.loopDuration > 0f;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             _time = 0f;
@@ -1171,7 +1171,7 @@ public class Sounder extends SimpleScope
             _completed = false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             for (Sounder sounder : _sounders) {
@@ -1179,7 +1179,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             for (Sounder sounder : _sounders) {
@@ -1190,7 +1190,7 @@ public class Sounder extends SimpleScope
             return _started.value && !_completed;
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             if (_completed) {
@@ -1294,7 +1294,7 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean loops ()
         {
             for (Sounder sounder : _sounders) {
@@ -1305,13 +1305,13 @@ public class Sounder extends SimpleScope
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void start ()
         {
             (_sounder = _sounders[RandomUtil.getWeightedIndex(_weights)]).start();
         }
 
-        @Override // documentation inherited
+        @Override
         public void stop ()
         {
             if (_sounder != null) {
@@ -1319,13 +1319,13 @@ public class Sounder extends SimpleScope
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isPlaying ()
         {
             return _sounder != null && _sounder.isPlaying();
         }
 
-        @Override // documentation inherited
+        @Override
         public void update ()
         {
             if (_sounder != null) {
@@ -1459,20 +1459,20 @@ public class Sounder extends SimpleScope
         updateFromConfig();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getScopeName ()
     {
         return "sounder";
     }
 
-    @Override // documentation inherited
+    @Override
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
         resetEpoch();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

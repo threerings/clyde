@@ -67,7 +67,7 @@ public class XMLImporter extends Importer
         _in = in;
     }
 
-    @Override // documentation inherited
+    @Override
     public Object readObject ()
         throws IOException
     {
@@ -105,7 +105,7 @@ public class XMLImporter extends Importer
         return read(_element, Object.class);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean read (String name, boolean defvalue)
         throws IOException
     {
@@ -113,7 +113,7 @@ public class XMLImporter extends Importer
         return (value == null) ? defvalue : Boolean.parseBoolean(value);
     }
 
-    @Override // documentation inherited
+    @Override
     public byte read (String name, byte defvalue)
         throws IOException
     {
@@ -126,7 +126,7 @@ public class XMLImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public char read (String name, char defvalue)
         throws IOException
     {
@@ -134,7 +134,7 @@ public class XMLImporter extends Importer
         return (value == null) ? defvalue : value.charAt(0);
     }
 
-    @Override // documentation inherited
+    @Override
     public double read (String name, double defvalue)
         throws IOException
     {
@@ -147,7 +147,7 @@ public class XMLImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public float read (String name, float defvalue)
         throws IOException
     {
@@ -160,7 +160,7 @@ public class XMLImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int read (String name, int defvalue)
         throws IOException
     {
@@ -173,7 +173,7 @@ public class XMLImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public long read (String name, long defvalue)
         throws IOException
     {
@@ -186,7 +186,7 @@ public class XMLImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public short read (String name, short defvalue)
         throws IOException
     {
@@ -199,7 +199,7 @@ public class XMLImporter extends Importer
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public <T> T read (String name, T defvalue, Class<T> clazz)
         throws IOException
     {
@@ -210,7 +210,7 @@ public class XMLImporter extends Importer
         return clazz.cast(read(child, clazz));
     }
 
-    @Override // documentation inherited
+    @Override
     public void close ()
         throws IOException
     {

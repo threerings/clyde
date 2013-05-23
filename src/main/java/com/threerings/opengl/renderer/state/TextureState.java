@@ -60,13 +60,13 @@ public class TextureState extends RenderState
         return (_units == null || _units.length <= idx) ? null : _units[idx];
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return TEXTURE_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setTextureState(_units);

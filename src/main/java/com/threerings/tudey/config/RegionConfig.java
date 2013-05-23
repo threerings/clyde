@@ -54,7 +54,7 @@ public abstract class RegionConfig extends DeepObject
         @Editable
         public TargetConfig location = new TargetConfig.Source();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             location.invalidate();
@@ -70,7 +70,7 @@ public abstract class RegionConfig extends DeepObject
         @Editable(step=0.01)
         public float expansion;
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.RegionLogic$Default";
@@ -86,13 +86,13 @@ public abstract class RegionConfig extends DeepObject
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.RegionLogic$Transformed";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -109,13 +109,13 @@ public abstract class RegionConfig extends DeepObject
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
-        @Override // documentation inherited
+        @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.RegionLogic$Fixed";
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             shape.invalidate();

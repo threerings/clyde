@@ -56,7 +56,7 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
         @Editable(category="appearance", weight=-0.5)
         public Alignment alignment = Alignment.FIXED;
 
-        @Override // documentation inherited
+        @Override
         public boolean shouldRotateOrientations ()
         {
             return alignment == Alignment.FIXED;
@@ -67,13 +67,13 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
     @Editable(editor="table")
     public Layer[] layers = new Layer[0];
 
-    @Override // documentation inherited
+    @Override
     public BaseParticleSystemConfig.Layer[] getLayers ()
     {
         return layers;
     }
 
-    @Override // documentation inherited
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {

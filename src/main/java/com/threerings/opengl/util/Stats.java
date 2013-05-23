@@ -51,7 +51,7 @@ public class Stats extends SimpleOverlay
         _stats = _textFactory.createText("", Color4f.WHITE, 0, 0, Color4f.BLACK, true);
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         Compositor compositor = _ctx.getCompositor();
@@ -78,7 +78,7 @@ public class Stats extends SimpleOverlay
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         _stats.render(_ctx.getRenderer(), 16, getY(), 1f);

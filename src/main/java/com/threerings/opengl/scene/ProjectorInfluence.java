@@ -40,7 +40,7 @@ public class ProjectorInfluence extends SceneInfluence
         _projection = projection;
     }
 
-    @Override // documentation inherited
+    @Override
     public Projection getProjection ()
     {
         return _projection;

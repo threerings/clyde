@@ -103,7 +103,7 @@ public class PathSprite extends EntrySprite
             // nothing by default
         }
 
-        @Override // documentation inherited
+        @Override
         public String getScopeName ()
         {
             return "impl";
@@ -145,19 +145,19 @@ public class PathSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public int getVertexIndex (Model model)
         {
             return ListUtil.indexOfRef(_vertices, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public int getEdgeIndex (Model model)
         {
             return ListUtil.indexOfRef(_edges, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public void update (PathEntry entry)
         {
             // update the vertex models
@@ -179,7 +179,7 @@ public class PathSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void setVisible (boolean visible)
         {
             for (Model vertex : _vertices) {
@@ -190,7 +190,7 @@ public class PathSprite extends EntrySprite
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -331,7 +331,7 @@ public class PathSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
@@ -339,26 +339,26 @@ public class PathSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public Entry getEntry ()
     {
         return _entry;
     }
 
-    @Override // documentation inherited
+    @Override
     public void update (Entry entry)
     {
         setConfig((_entry = (PathEntry)entry).path);
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVisible (boolean visible)
     {
         _impl.setVisible(visible);
     }
 
-    @Override // documentation inherited
+    @Override
     public void setSelected (boolean selected)
     {
         super.setSelected(selected);
@@ -366,7 +366,7 @@ public class PathSprite extends EntrySprite
         _impl.update(_entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

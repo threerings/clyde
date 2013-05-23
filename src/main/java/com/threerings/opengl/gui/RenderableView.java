@@ -259,7 +259,7 @@ public class RenderableView extends Component
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasAdded ()
     {
         super.wasAdded();
@@ -267,7 +267,7 @@ public class RenderableView extends Component
         _root.addTickParticipant(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasRemoved ()
     {
         super.wasRemoved();
@@ -275,13 +275,13 @@ public class RenderableView extends Component
         _root = null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void layout ()
     {
         render();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void renderComponent (Renderer renderer)
     {
         // static views simply draw the prerendered image

@@ -40,7 +40,7 @@ import com.threerings.admin.client.EditableFieldEditor;
  */
 public class EditableConfigObject extends ConfigObject
 {
-    @Override // documentation inherited
+    @Override
     public JPanel getEditor (PresentsContext ctx, Field field)
     {
         if (field.isAnnotationPresent(Editable.class)) {

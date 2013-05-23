@@ -150,7 +150,7 @@ public class ColorPicker extends Component
         return _sidx;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean dispatchEvent (Event event)
     {
         if (isEnabled() && event instanceof MouseEvent) {
@@ -182,19 +182,19 @@ public class ColorPicker extends Component
         return super.dispatchEvent(event);
     }
 
-    @Override // documentation inherited
+    @Override
     protected String getDefaultStyleConfig ()
     {
         return "Default/ColorPicker";
     }
 
-    @Override // documentation inherited
+    @Override
     protected Dimension computePreferredSize (int whint, int hhint)
     {
         return new Dimension(_colors.length, 1);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void renderComponent (Renderer renderer)
     {
         renderer.setTextureState(null);

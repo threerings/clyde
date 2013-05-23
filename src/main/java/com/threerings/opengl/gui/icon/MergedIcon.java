@@ -48,19 +48,19 @@ public class MergedIcon extends Icon
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public int getWidth ()
     {
         return _maxWidth;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getHeight ()
     {
         return _maxHeight;
     }
 
-    @Override // documentation inherited
+    @Override
     public void render (Renderer renderer, int x, int y, float alpha)
     {
         for (Icon icon : _icons) {

@@ -133,7 +133,7 @@ public class TextBillboard extends SimpleSceneElement
         return _alpha;
     }
 
-    @Override // documentation inherited
+    @Override
     public void enqueue ()
     {
         Compositor compositor = _ctx.getCompositor();
@@ -147,7 +147,7 @@ public class TextBillboard extends SimpleSceneElement
         super.enqueue();
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();
@@ -156,13 +156,13 @@ public class TextBillboard extends SimpleSceneElement
         return states;
     }
 
-    @Override // documentation inherited
+    @Override
     protected Box getLocalBounds ()
     {
         return _localBounds;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         if (_text != null) {

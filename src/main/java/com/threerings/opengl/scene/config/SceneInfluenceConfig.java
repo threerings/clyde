@@ -73,7 +73,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
         @Editable
         public Color4f color = new Color4f(0.2f, 0.2f, 0.2f, 1f);
 
-        @Override // documentation inherited
+        @Override
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
@@ -91,7 +91,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
         @Editable
         public FogStateConfig state = new FogStateConfig.Linear();
 
-        @Override // documentation inherited
+        @Override
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
@@ -113,7 +113,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
         @Editable(nullable=true)
         public ShadowConfig shadow;
 
-        @Override // documentation inherited
+        @Override
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
@@ -136,7 +136,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
         @Editable
         public ProjectionConfig projection = new ProjectionConfig.Perspective();
 
-        @Override // documentation inherited
+        @Override
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
@@ -153,7 +153,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
         @Editable
         public ExpressionDefinition[] definitions = new ExpressionDefinition[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -162,7 +162,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {

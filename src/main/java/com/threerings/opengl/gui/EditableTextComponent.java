@@ -420,7 +420,7 @@ public abstract class EditableTextComponent extends TextComponent
         return pasted;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         super.updateFromStyleConfig(state, config);

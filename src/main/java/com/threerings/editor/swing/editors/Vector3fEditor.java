@@ -54,13 +54,13 @@ public class Vector3fEditor extends PropertyEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         _panel.setValue((Vector3f)_property.get(_object));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));

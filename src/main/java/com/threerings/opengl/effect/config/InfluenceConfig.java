@@ -64,7 +64,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (final Layer layer)
         {
             return new Influence() {
@@ -96,7 +96,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (final Layer layer)
         {
             return new Influence() {
@@ -121,7 +121,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float amount = 1f;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (Layer layer)
         {
             return new Influence() {
@@ -146,7 +146,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float amount = 1f;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (Layer layer)
         {
             return new Influence() {
@@ -183,7 +183,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (final Layer layer)
         {
             return new Influence() {
@@ -247,7 +247,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (final Layer layer)
         {
             return new Influence() {
@@ -312,7 +312,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float strength = 0.05f;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (Layer layer)
         {
             return new Influence() {
@@ -351,7 +351,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float strength = 0.02f;
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (Layer layer)
         {
             return new Influence() {
@@ -382,7 +382,7 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(scale=Math.PI/180.0)
         public Vector3f acceleration = new Vector3f();
 
-        @Override // documentation inherited
+        @Override
         public Influence createInfluence (final Layer layer)
         {
             return new Influence() {

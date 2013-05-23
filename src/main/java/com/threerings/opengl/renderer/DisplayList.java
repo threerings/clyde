@@ -84,7 +84,7 @@ public class DisplayList
         _renderer.displayListDeleted();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void finalize ()
         throws Throwable
     {

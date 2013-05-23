@@ -62,13 +62,13 @@ public abstract class ShapeConfig extends DeepObject
      */
     public static class Point extends ShapeConfig
     {
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             return new com.threerings.tudey.shape.Point(Vector2f.ZERO);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             GL11.glBegin(GL11.GL_POINTS);
@@ -86,7 +86,7 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(min=0, step=0.01)
         public float length = 1f;
 
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             float hlength = length * 0.5f;
@@ -94,7 +94,7 @@ public abstract class ShapeConfig extends DeepObject
                 new Vector2f(-hlength, 0f), new Vector2f(+hlength, 0f));
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             float hlength = length * 0.5f;
@@ -118,7 +118,7 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(min=0, step=0.01, hgroup="r")
         public float height = 1f;
 
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             float hwidth = width * 0.5f, hheight = height * 0.5f;
@@ -127,7 +127,7 @@ public abstract class ShapeConfig extends DeepObject
                 new Vector2f(+hwidth, +hheight), new Vector2f(-hwidth, +hheight));
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             float hwidth = width * 0.5f, hheight = height * 0.5f;
@@ -149,13 +149,13 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(min=0, step=0.01)
         public float radius = 1f;
 
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             return new com.threerings.tudey.shape.Circle(Vector2f.ZERO, radius);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
@@ -180,7 +180,7 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(min=0, step=0.01, hgroup="c")
         public float length = 1f;
 
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             float hlength = length * 0.5f;
@@ -188,7 +188,7 @@ public abstract class ShapeConfig extends DeepObject
                 new Vector2f(-hlength, 0f), new Vector2f(+hlength, 0f), radius);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             float hlength = length * 0.5f;
@@ -216,7 +216,7 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(editor="table")
         public Vertex[] vertices = new Vertex[0];
 
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             Vector2f[] vectors = new Vector2f[vertices.length];
@@ -226,7 +226,7 @@ public abstract class ShapeConfig extends DeepObject
             return new com.threerings.tudey.shape.Polygon(vectors);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
@@ -265,7 +265,7 @@ public abstract class ShapeConfig extends DeepObject
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -274,7 +274,7 @@ public abstract class ShapeConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             Shape[] tshapes = new Shape[shapes.length];
@@ -284,7 +284,7 @@ public abstract class ShapeConfig extends DeepObject
             return new com.threerings.tudey.shape.Compound(tshapes);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             for (TransformedShape tshape : shapes) {
@@ -311,13 +311,13 @@ public abstract class ShapeConfig extends DeepObject
      */
     public static class None extends ShapeConfig
     {
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             return new com.threerings.tudey.shape.None(Vector2f.ZERO);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             GL11.glBegin(GL11.GL_POINTS);
@@ -331,13 +331,13 @@ public abstract class ShapeConfig extends DeepObject
      */
     public static class Global extends ShapeConfig
     {
-        @Override // documentation inherited
+        @Override
         protected Shape createShape ()
         {
             return com.threerings.tudey.shape.Global.getShape();
         }
 
-        @Override // documentation inherited
+        @Override
         protected void draw (boolean outline)
         {
             // do nothing

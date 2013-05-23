@@ -76,13 +76,13 @@ public abstract class FloatFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue (float t)
         {
             return value;
         }
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction copy (FloatFunction result)
         {
             Constant cresult = (result instanceof Constant) ? ((Constant)result) : new Constant();
@@ -136,13 +136,13 @@ public abstract class FloatFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue (float t)
         {
             return start + easing.getTime(t)*(end - start);
         }
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction copy (FloatFunction result)
         {
             Linear lresult = (result instanceof Linear) ? ((Linear)result) : new Linear();
@@ -206,7 +206,7 @@ public abstract class FloatFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue (float t)
         {
             if (t < in) {
@@ -218,7 +218,7 @@ public abstract class FloatFunction extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction copy (FloatFunction result)
         {
             InAndOut iresult = (result instanceof InAndOut) ? ((InAndOut)result) : new InAndOut();
@@ -291,7 +291,7 @@ public abstract class FloatFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue (float t)
         {
             if (t < in) {
@@ -303,7 +303,7 @@ public abstract class FloatFunction extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction copy (FloatFunction result)
         {
             ThreePoint tresult = (result instanceof ThreePoint) ?
@@ -422,7 +422,7 @@ public abstract class FloatFunction extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public float getValue (float t)
         {
             float last = start;
@@ -438,7 +438,7 @@ public abstract class FloatFunction extends DeepObject
             return FloatMath.lerp(last, end, t / remaining);
         }
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction copy (FloatFunction result)
         {
             Multipoint mresult = (result instanceof Multipoint) ?

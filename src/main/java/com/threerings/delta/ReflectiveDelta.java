@@ -130,7 +130,7 @@ public class ReflectiveDelta extends Delta
         _values = values.toArray();
     }
 
-    @Override // documentation inherited
+    @Override
     public Object apply (Object original)
     {
         // make sure it's the right class
@@ -164,7 +164,7 @@ public class ReflectiveDelta extends Delta
         return revised;
     }
 
-    @Override // documentation inherited
+    @Override
     public Delta merge (Delta other)
     {
         if (!(other instanceof ReflectiveDelta)) {
@@ -175,7 +175,7 @@ public class ReflectiveDelta extends Delta
         return merged;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         StringBuilder buf = new StringBuilder();
@@ -400,7 +400,7 @@ public class ReflectiveDelta extends Delta
      */
     protected static abstract class FinalFieldHandler extends FieldHandler
     {
-        @Override // documentation inherited
+        @Override
         public void populate (
             Field field, Object original, Object revised,
             ArrayMask mask, MutableInteger midx, List<Object> values)
@@ -408,7 +408,7 @@ public class ReflectiveDelta extends Delta
             // no-op
         }
 
-        @Override // documentation inherited
+        @Override
         public void write (
             ArrayMask mask, MutableInteger midx, Object[] values,
             MutableInteger vidx, ObjectOutputStream out)
@@ -416,14 +416,14 @@ public class ReflectiveDelta extends Delta
             // no-op
         }
 
-        @Override // documentation inherited
+        @Override
         public void read (
             ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
         {
             // no-op
         }
 
-        @Override // documentation inherited
+        @Override
         public void toString (
             Field field, ArrayMask mask, MutableInteger midx,
             Object[] values, MutableInteger vidx, StringBuilder buf)

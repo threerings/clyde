@@ -305,7 +305,7 @@ public class FindDialog extends JDialog
         return bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     protected JRootPane createRootPane ()
     {
         KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);

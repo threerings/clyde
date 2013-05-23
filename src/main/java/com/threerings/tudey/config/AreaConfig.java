@@ -161,13 +161,13 @@ public class AreaConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public AreaCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
         {
@@ -179,7 +179,7 @@ public class AreaConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public AreaSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
         {
@@ -194,7 +194,7 @@ public class AreaConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (HandlerConfig handler : handlers) {
@@ -212,20 +212,20 @@ public class AreaConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<AreaConfig> area;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(AreaConfig.class, area);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public AreaCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
         {
@@ -233,7 +233,7 @@ public class AreaConfig extends ParameterizedConfig
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public AreaSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
         {
@@ -282,7 +282,7 @@ public class AreaConfig extends ParameterizedConfig
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -290,7 +290,7 @@ public class AreaConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

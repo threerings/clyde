@@ -389,13 +389,13 @@ public abstract class GeometryConfig extends DeepObject
          */
         public abstract DrawCommand createDrawCommand (boolean ibo);
 
-        @Override // documentation inherited
+        @Override
         public Box getBounds ()
         {
             return bounds;
         }
 
-        @Override // documentation inherited
+        @Override
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -406,7 +406,7 @@ public abstract class GeometryConfig extends DeepObject
                 deformer.createGeometry(ctx, scope, this, passes);
         }
 
-        @Override // documentation inherited
+        @Override
         public GeometryConfig merge (List<TransformedGeometry> glist)
         {
             List<TransformedGeometry> merge = Lists.newArrayList();
@@ -727,25 +727,25 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public DrawCommand createDrawCommand (boolean ibo)
         {
             return new SimpleBatch.DrawArrays(mode.getConstant(), first, count);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getFirst ()
         {
             return first;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getCount ()
         {
             return count;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Stored createMerged (List<TransformedGeometry> glist)
         {
             ArrayStored merged = new ArrayStored();
@@ -788,7 +788,7 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public DrawCommand createDrawCommand (boolean ibo)
         {
             return ibo ?
@@ -799,19 +799,19 @@ public abstract class GeometryConfig extends DeepObject
                     mode.getConstant(), start, end, indices);
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getFirst ()
         {
             return start;
         }
 
-        @Override // documentation inherited
+        @Override
         protected int getCount ()
         {
             return (end - start) + 1;
         }
 
-        @Override // documentation inherited
+        @Override
         protected Stored createMerged (List<TransformedGeometry> glist)
         {
             IndexedStored merged = new IndexedStored();
@@ -837,7 +837,7 @@ public abstract class GeometryConfig extends DeepObject
             return merged;
         }
 
-        @Override // documentation inherited
+        @Override
         protected BufferObject getElementArrayBuffer (GlContext ctx)
         {
             BufferObject buffer = (_elementArrayBuffer == null) ? null : _elementArrayBuffer.get();
@@ -876,7 +876,7 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public Matrix4f[] getBoneMatrices (Scope scope)
         {
             Function getBoneMatrix = ScopeUtil.resolve(scope, "getBoneMatrix", Function.NULL);
@@ -914,7 +914,7 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean canMerge (ClientArrayConfig oarray)
         {
             return super.canMerge(oarray) && oarray instanceof AttributeArrayConfig &&

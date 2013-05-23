@@ -79,7 +79,7 @@ public class ShapeSceneElement extends SimpleSceneElement
         return cstate.getColor();
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();
@@ -89,7 +89,7 @@ public class ShapeSceneElement extends SimpleSceneElement
         return states;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void computeBounds (Box result)
     {
         if (_shape == null) {
@@ -103,7 +103,7 @@ public class ShapeSceneElement extends SimpleSceneElement
         result.transformLocal(_transform);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         if (_shape != null) {

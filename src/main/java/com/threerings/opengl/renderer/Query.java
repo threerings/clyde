@@ -98,7 +98,7 @@ public abstract class Query
         return _result.get(0);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void finalize ()
         throws Throwable
     {

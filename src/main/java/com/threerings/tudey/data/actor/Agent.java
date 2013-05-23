@@ -70,7 +70,7 @@ public class Agent extends Active
         set(TURNING_RIGHT, dir == -1);
     }
 
-    @Override // documentation inherited
+    @Override
     public float getSpeed ()
     {
         return _speed;
@@ -84,13 +84,13 @@ public class Agent extends Active
         _speed = speed;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getTurnDirection ()
     {
         return isSet(TURNING_LEFT) ? +1 : (isSet(TURNING_RIGHT) ? -1 : 0);
     }
 
-    @Override // documentation inherited
+    @Override
     public float getTurnRate ()
     {
         return ((ActorConfig.Agent)_original).turnRate;

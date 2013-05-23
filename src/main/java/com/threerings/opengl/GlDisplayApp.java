@@ -147,13 +147,13 @@ public abstract class GlDisplayApp extends GlApp
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public RunQueue getRunQueue ()
     {
         return RunQueue.AWT;
     }
 
-    @Override // documentation inherited
+    @Override
     public Root createRoot ()
     {
         if (_displayRoot == null) {
@@ -162,7 +162,7 @@ public abstract class GlDisplayApp extends GlApp
         return _displayRoot;
     }
 
-    @Override // documentation inherited
+    @Override
     public void startup ()
     {
         // all the work happens in the AWT thread
@@ -173,7 +173,7 @@ public abstract class GlDisplayApp extends GlApp
         });
     }
 
-    @Override // documentation inherited
+    @Override
     public void shutdown ()
     {
         willShutdown();
@@ -184,7 +184,7 @@ public abstract class GlDisplayApp extends GlApp
         System.exit(0);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void init ()
     {
         if (!createDisplay()) {
@@ -224,7 +224,7 @@ public abstract class GlDisplayApp extends GlApp
         EventQueue.invokeLater(updater);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void willShutdown ()
     {
         if (_displayRoot != null) {
@@ -234,7 +234,7 @@ public abstract class GlDisplayApp extends GlApp
         super.willShutdown();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void initRenderer ()
     {
         DisplayMode mode = Display.getDisplayMode();

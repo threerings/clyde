@@ -80,7 +80,7 @@ public class ConfigResourcesTask extends Task
         _resourcefile = file;
     }
 
-    @Override // documentation inherited
+    @Override
     public void execute ()
         throws BuildException
     {

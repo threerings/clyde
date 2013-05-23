@@ -78,13 +78,13 @@ public class SceneInfluencer extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void reset ()
     {
         _influence.reset();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setVisible (boolean visible)
     {
         if (_visible == visible) {
@@ -107,19 +107,19 @@ public class SceneInfluencer extends Model.Implementation
         updateVis();
     }
 
-    @Override // documentation inherited
+    @Override
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
     }
 
-    @Override // documentation inherited
+    @Override
     public Box getBounds ()
     {
         return _bounds;
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateBounds ()
     {
         // update the world transform
@@ -148,19 +148,19 @@ public class SceneInfluencer extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
     }
 
-    @Override // documentation inherited
+    @Override
     public void dumpInfo (String prefix)
     {
         System.out.println(prefix + "SceneInfluencer: " + _worldTransform + " " + _bounds);
     }
 
-    @Override // documentation inherited
+    @Override
     public void wasAdded ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
@@ -170,7 +170,7 @@ public class SceneInfluencer extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void willBeRemoved ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
@@ -180,7 +180,7 @@ public class SceneInfluencer extends Model.Implementation
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         _ctx.getCompositor().addEnqueueable(this);

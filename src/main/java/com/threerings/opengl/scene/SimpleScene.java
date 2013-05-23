@@ -65,62 +65,62 @@ public class SimpleScene extends Scene
         composite(_elements, _ctx.getCompositor().getCamera().getWorldVolume());
     }
 
-    @Override // documentation inherited
+    @Override
     public SceneElement getIntersection (
         Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter)
     {
         return getIntersection(_elements, ray, location, filter);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getElements (Box bounds, Collection<SceneElement> results)
     {
         getIntersecting(_elements, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getInfluences (Box bounds, Collection<SceneInfluence> results)
     {
         getIntersecting(_influences, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     public void getEffects (Box bounds, Collection<ViewerEffect> results)
     {
         getIntersecting(_effects, bounds, results);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (SceneElement element)
     {
         _elements.add(element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (SceneElement element)
     {
         _elements.remove(element);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (SceneInfluence influence)
     {
         _influences.add(influence);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (SceneInfluence influence)
     {
         _influences.remove(influence);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addToSpatial (ViewerEffect effect)
     {
         _effects.add(effect);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeFromSpatial (ViewerEffect effect)
     {
         _effects.remove(effect);

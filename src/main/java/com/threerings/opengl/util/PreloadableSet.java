@@ -79,7 +79,7 @@ public class PreloadableSet extends HashSet<Preloadable>
         return (float)_preloaded / size();
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean add (Preloadable preloadable)
     {
         if (!super.add(preloadable)) {

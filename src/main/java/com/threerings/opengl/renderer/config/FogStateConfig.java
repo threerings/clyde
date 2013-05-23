@@ -49,7 +49,7 @@ public abstract class FogStateConfig extends DeepObject
      */
     public static class Disabled extends FogStateConfig
     {
-        @Override // documentation inherited
+        @Override
         public FogState getState ()
         {
             return FogState.DISABLED;
@@ -88,7 +88,7 @@ public abstract class FogStateConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public FogState getState ()
         {
             return new FogState(GL11.GL_LINEAR, start, end, color);
@@ -117,7 +117,7 @@ public abstract class FogStateConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public FogState getState ()
         {
             return new FogState(squared ? GL11.GL_EXP2 : GL11.GL_EXP, density, color);

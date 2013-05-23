@@ -47,7 +47,7 @@ public class ObjectPanelArrayListEditor extends PanelArrayListEditor
         fireStateChanged(true);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updatePanel (EntryPanel panel, Object value)
     {
         ObjectPanel opanel = (ObjectPanel)panel.getContent();
@@ -55,7 +55,7 @@ public class ObjectPanelArrayListEditor extends PanelArrayListEditor
         opanel.setValue(value);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addPanel (Object value)
     {
         _panels.add(new ObjectEntryPanel(value));
@@ -71,13 +71,13 @@ public class ObjectPanelArrayListEditor extends PanelArrayListEditor
             super(value);
         }
 
-        @Override // documentation inherited
+        @Override
         public String getComponentPath (Component comp, boolean mouse)
         {
             return ((ObjectPanel)_content).getComponentPath(comp, mouse);
         }
 
-        @Override // documentation inherited
+        @Override
         protected JPanel createPanel (Object value)
         {
             ObjectPanel opanel = new ObjectPanel(

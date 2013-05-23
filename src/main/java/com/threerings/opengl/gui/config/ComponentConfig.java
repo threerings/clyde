@@ -134,7 +134,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0, hgroup="o")
         public int preferredWidth;
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             if (icon != null) {
@@ -142,7 +142,7 @@ public abstract class ComponentConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -150,7 +150,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.Label(ctx, "");
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -180,7 +180,7 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class StatusLabel extends Label
     {
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -198,14 +198,14 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0)
         public int lineFadeTime;
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
             ((com.threerings.opengl.gui.FadeLabel)comp).setLineFadeTime(lineFadeTime);
         }
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -227,7 +227,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="a", nullable=true)
         public Object argument;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -235,7 +235,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.Button(ctx, "");
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -243,7 +243,7 @@ public abstract class ComponentConfig extends DeepObject
             ((com.threerings.opengl.gui.Button)comp).setArgument(argument);
         }
 
-        @Override // documentation inherited
+        @Override
         protected boolean shouldSetIcon (GlContext ctx, Component comp)
         {
             StyleConfig config = comp.getStyleConfigs()[Component.DEFAULT];
@@ -261,7 +261,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="a")
         public boolean selected;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -269,7 +269,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.ToggleButton(ctx, "");
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -282,7 +282,7 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class CheckBox extends ToggleButton
     {
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -290,7 +290,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.CheckBox(ctx, "");
         }
 
-        @Override // documentation inherited
+        @Override
         protected boolean shouldSetIcon (GlContext ctx, Component comp)
         {
             return false; // icon is determined by the style
@@ -332,7 +332,7 @@ public abstract class ComponentConfig extends DeepObject
             @Editable
             public String text = "";
 
-            @Override // documentation inherited
+            @Override
             public Object getObject (GlContext ctx, MessageBundle msgs)
             {
                 return getMessage(msgs, text);
@@ -348,13 +348,13 @@ public abstract class ComponentConfig extends DeepObject
             @Editable(nullable=true)
             public IconConfig icon;
 
-            @Override // documentation inherited
+            @Override
             public Object getObject (GlContext ctx, MessageBundle msgs)
             {
                 return (icon == null) ? null : icon.getIcon(ctx);
             }
 
-            @Override // documentation inherited
+            @Override
             public void invalidate ()
             {
                 if (icon != null) {
@@ -375,7 +375,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0, hgroup="s")
         public int selected;
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Item item : items) {
@@ -383,7 +383,7 @@ public abstract class ComponentConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -391,7 +391,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.ComboBox<Object>(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -422,7 +422,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0)
         public int selected;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -430,7 +430,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.List(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -453,7 +453,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="t")
         public String text = "";
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -473,7 +473,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="t")
         public String placeholder = "";
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -481,7 +481,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.TextField(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             com.threerings.opengl.gui.EditableTextComponent ecomp =
@@ -512,7 +512,7 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class PasswordField extends TextField
     {
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -534,7 +534,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0, hgroup="t")
         public int preferredWidth;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -542,7 +542,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.TextArea(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -600,7 +600,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public Tab[] tabs = new Tab[0];
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (Tab tab : tabs) {
@@ -608,7 +608,7 @@ public abstract class ComponentConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -616,7 +616,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.TabbedPane(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -648,7 +648,7 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class Spacer extends ComponentConfig
     {
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -703,7 +703,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public BoundedRangeModelConfig model = new BoundedRangeModelConfig();
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -745,13 +745,13 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public ComponentConfig child = new Spacer();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             child.invalidate();
         }
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -764,7 +764,7 @@ public abstract class ComponentConfig extends DeepObject
             return new com.threerings.opengl.gui.ScrollPane(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -793,7 +793,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public BoundedRangeModelConfig model = new BoundedRangeModelConfig();
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -811,13 +811,13 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public LayoutConfig layout = new LayoutConfig.Absolute();
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             layout.invalidate();
         }
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -825,7 +825,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.Container(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -842,7 +842,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<UserInterfaceConfig> userInterface;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -850,7 +850,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.UserInterface(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -879,7 +879,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public boolean antialias = true;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -887,7 +887,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.text.HTMLView(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -940,7 +940,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public ViewModel[] models = new ViewModel[0];
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -948,7 +948,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.RenderableView(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -1004,7 +1004,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0)
         public int selected;
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -1012,7 +1012,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.ColorPicker(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
@@ -1050,7 +1050,7 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="i")
         public Color4f attentionColor = new Color4f(Color4f.RED);
 
-        @Override // documentation inherited
+        @Override
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -1058,7 +1058,7 @@ public abstract class ComponentConfig extends DeepObject
                 comp : new com.threerings.opengl.gui.ChatOverlay(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);

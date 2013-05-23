@@ -50,7 +50,7 @@ public class TudeySceneMoveHandler extends SceneMoveHandler
         _portalKey = portalKey;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void effectSceneMove (SceneManager scmgr)
         throws InvocationException
     {

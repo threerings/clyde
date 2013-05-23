@@ -53,7 +53,7 @@ public class LazyFileOutputStream extends OutputStream
         _file = new File(file);
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (int b)
         throws IOException
     {
@@ -61,7 +61,7 @@ public class LazyFileOutputStream extends OutputStream
         _out.write(b);
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (byte[] b)
         throws IOException
     {
@@ -69,7 +69,7 @@ public class LazyFileOutputStream extends OutputStream
         _out.write(b);
     }
 
-    @Override // documentation inherited
+    @Override
     public void write (byte[] b, int off, int len)
         throws IOException
     {
@@ -77,7 +77,7 @@ public class LazyFileOutputStream extends OutputStream
         _out.write(b, off, len);
     }
 
-    @Override // documentation inherited
+    @Override
     public void flush ()
         throws IOException
     {
@@ -86,7 +86,7 @@ public class LazyFileOutputStream extends OutputStream
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void close ()
         throws IOException
     {

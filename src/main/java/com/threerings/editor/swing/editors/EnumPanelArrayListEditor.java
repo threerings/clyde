@@ -62,7 +62,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
         box.setSelectedIndex(getValues().indexOf(value));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addPanel (Object value)
     {
         _panels.add(new EnumEntryPanel(value));
@@ -110,13 +110,13 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
             return _box;
         }
 
-        @Override // documentation inherited
+        @Override
         public String getComponentPath (Component comp, boolean mouse)
         {
             return "";
         }
 
-        @Override // documentation inherited
+        @Override
         protected JPanel createPanel (Object value)
         {
             JPanel panel = new JPanel(new VGroupLayout(

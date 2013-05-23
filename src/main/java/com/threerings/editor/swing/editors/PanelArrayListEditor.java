@@ -64,7 +64,7 @@ import static com.threerings.editor.Log.*;
  */
 public abstract class PanelArrayListEditor extends ArrayListEditor
 {
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         int pcount = _panels.getComponentCount();
@@ -83,7 +83,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         updatePanels();
     }
 
-    @Override // documentation inherited
+    @Override
     public void makeVisible (int idx)
     {
         EntryPanel panel = (EntryPanel)_panels.getComponent(idx);
@@ -91,7 +91,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         _panels.scrollRectToVisible(panel.getBounds());
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         EntryPanel entry = getNextChildComponent(EntryPanel.class, comp);
@@ -99,7 +99,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         return (idx == -1) ? "" : ("[" + idx + "]" + entry.getComponentPath(comp, mouse));
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -117,7 +117,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void addValue (Object value)
     {
         super.addValue(value);
@@ -125,7 +125,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         updatePanels();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void removeValue (int idx)
     {
         super.removeValue(idx);
@@ -384,7 +384,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void scrollRectToVisible (Rectangle rect)
         {
             // block this to avoid excess scrolling

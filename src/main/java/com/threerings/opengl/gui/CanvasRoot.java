@@ -54,13 +54,13 @@ public class CanvasRoot extends Root
         canvas.addKeyListener(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getDisplayWidth ()
     {
         return _canvas.getWidth();
     }
 
-    @Override // documentation inherited
+    @Override
     public int getDisplayHeight ()
     {
         return _canvas.getHeight();
@@ -138,7 +138,7 @@ public class CanvasRoot extends Root
         // N/A
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateCursor (Cursor cursor)
     {
         if (cursor == null) {

@@ -57,20 +57,20 @@ public class ObjectEditor extends PropertyEditor
         fireStateChanged();
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         _panel.setOuter(_object);
         _panel.setValue(_property.get(_object));
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         return _panel.getComponentPath(comp, mouse);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         makeCollapsible(_ctx, getPropertyLabel(), true);
@@ -79,7 +79,7 @@ public class ObjectEditor extends PropertyEditor
         _panel.addChangeListener(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void setTreeModeEnabled (boolean enabled)
     {
         _panel.setTreeModeEnabled(enabled);

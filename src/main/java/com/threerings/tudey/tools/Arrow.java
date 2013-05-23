@@ -76,14 +76,14 @@ public class Arrow extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void sceneChanged (TudeySceneModel scene)
     {
         super.sceneChanged(scene);
         _epanel.setObject(null);
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryUpdated (Entry oentry, Entry nentry)
     {
         if (_ignoreUpdate) {
@@ -95,7 +95,7 @@ public class Arrow extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void entryRemoved (Entry oentry)
     {
         Entry entry = (Entry)_epanel.getObject();
@@ -104,7 +104,7 @@ public class Arrow extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
@@ -112,7 +112,7 @@ public class Arrow extends EditorTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {

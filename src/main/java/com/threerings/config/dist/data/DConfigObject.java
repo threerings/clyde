@@ -64,7 +64,7 @@ public class DConfigObject extends DObject
             return _clientOid;
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean applyToObject (DObject target)
             throws ObjectAccessException
         {

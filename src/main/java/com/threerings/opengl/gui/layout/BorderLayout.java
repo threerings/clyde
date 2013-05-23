@@ -119,7 +119,7 @@ public class BorderLayout extends LayoutManager
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public Object getConstraints (Component comp)
     {
         int idx = ListUtil.indexOfRef(_components, comp);

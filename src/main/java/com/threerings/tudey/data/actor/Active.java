@@ -104,7 +104,7 @@ public class Active extends Mobile
         return _activityStarted;
     }
 
-    @Override // documentation inherited
+    @Override
     public Actor interpolate (Actor other, int start, int end, int timestamp, Actor result)
     {
         // apply the activity if the time has come
@@ -117,13 +117,13 @@ public class Active extends Mobile
         return aresult;
     }
 
-    @Override // documentation inherited
+    @Override
     public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
     {
         return new ActiveAdvancer(environment, this, timestamp);
     }
 
-    @Override // documentation inherited
+    @Override
     public Object copy (Object dest)
     {
         Active result = (Active)super.copy(dest);
@@ -132,7 +132,7 @@ public class Active extends Mobile
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!super.equals(other)) {
@@ -143,7 +143,7 @@ public class Active extends Mobile
             _activityStarted == oactive._activityStarted;
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         int hash = super.hashCode();

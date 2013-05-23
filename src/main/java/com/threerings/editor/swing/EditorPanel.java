@@ -323,7 +323,7 @@ public class EditorPanel extends BaseEditorPanel
         fireStateChanged();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getComponentPath (Component comp, boolean mouse)
     {
         PropertyEditor pe = getNextChildComponent(PropertyEditor.class, comp);

@@ -40,7 +40,7 @@ public class BackgroundColorEffect extends ViewerEffect
         _backgroundColor.set(color);
     }
 
-    @Override // documentation inherited
+    @Override
     public Color4f getBackgroundColor ()
     {
         return _backgroundColor;

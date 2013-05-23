@@ -102,13 +102,13 @@ public class ColorMaskState extends RenderState
         return _alpha;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return COLOR_MASK_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setColorMaskState(_red, _green, _blue, _alpha);

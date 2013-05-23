@@ -63,13 +63,13 @@ public abstract class ShaderStateConfig extends DeepObject
      */
     public static class Disabled extends ShaderStateConfig
     {
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return true;
         }
 
-        @Override // documentation inherited
+        @Override
         public ShaderState getState (
             GlContext ctx, Scope scope, RenderState[] states, List<Updater> updaters)
         {
@@ -94,14 +94,14 @@ public abstract class ShaderStateConfig extends DeepObject
         @Editable
         public boolean vertexProgramTwoSide;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ShaderConfig.class, vertex);
             refs.add(ShaderConfig.class, fragment);
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return (vertex == null || GLContext.getCapabilities().GL_ARB_vertex_shader) &&
@@ -109,7 +109,7 @@ public abstract class ShaderStateConfig extends DeepObject
                     !ctx.getApp().getCompatibilityMode();
         }
 
-        @Override // documentation inherited
+        @Override
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
         {
             ShaderConfig vconfig = getShaderConfig(ctx, vertex);
@@ -120,7 +120,7 @@ public abstract class ShaderStateConfig extends DeepObject
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public ShaderState getState (
             GlContext ctx, Scope scope, RenderState[] states, List<Updater> updaters)
         {

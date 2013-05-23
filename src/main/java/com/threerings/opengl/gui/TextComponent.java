@@ -148,7 +148,7 @@ public abstract class TextComponent extends Component
         return UIConstants.DEFAULT_SPACING;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         super.updateFromStyleConfig(state, config);

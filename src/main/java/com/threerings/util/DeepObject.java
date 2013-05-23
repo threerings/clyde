@@ -46,25 +46,25 @@ public abstract class DeepObject
         return DeepUtil.copy(this, dest, outer);
     }
 
-    @Override // documentation inherited
+    @Override
     public DeepObject clone ()
     {
         return (DeepObject) copy(null);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return DeepUtil.equals(this, other);
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return DeepUtil.hashCode(this);
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return StringUtil.fieldsToString(this);

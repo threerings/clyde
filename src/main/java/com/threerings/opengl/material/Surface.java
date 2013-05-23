@@ -125,13 +125,13 @@ public class Surface extends SimpleScope
         updateFromConfigs();
     }
 
-    @Override // documentation inherited
+    @Override
     public String getScopeName ()
     {
         return "surface";
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispose ()
     {
         super.dispose();

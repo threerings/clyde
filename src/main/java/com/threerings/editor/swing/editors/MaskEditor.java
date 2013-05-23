@@ -138,7 +138,7 @@ public class MaskEditor extends PropertyEditor
         _popup.show(_button, 0, _button.getHeight());
     }
 
-    @Override // documentation inherited
+    @Override
     public void update ()
     {
         // this generates two documents events: first a remove, then an add.  we don't want to
@@ -148,7 +148,7 @@ public class MaskEditor extends PropertyEditor
         _field.getDocument().addDocumentListener(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));

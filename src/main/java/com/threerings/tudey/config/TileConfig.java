@@ -261,19 +261,19 @@ public class TileConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ModelConfig.class, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public TileCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, TileCursor.Implementation impl)
         {
@@ -285,7 +285,7 @@ public class TileConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public TileSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
         {
@@ -297,7 +297,7 @@ public class TileConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (HandlerConfig handler : handlers) {
@@ -352,20 +352,20 @@ public class TileConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<TileConfig> tile;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(TileConfig.class, tile);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             TileConfig config = cfgmgr.getConfig(TileConfig.class, tile);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public TileCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, TileCursor.Implementation impl)
         {
@@ -373,7 +373,7 @@ public class TileConfig extends ParameterizedConfig
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public TileSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
         {
@@ -422,7 +422,7 @@ public class TileConfig extends ParameterizedConfig
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -430,7 +430,7 @@ public class TileConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

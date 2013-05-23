@@ -196,14 +196,14 @@ public class DConfigDirector extends BasicDirector
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void clientDidLogoff (Client client)
     {
         super.clientDidLogoff(client);
         _cfgobj = null;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fetchServices (Client client)
     {
         int oid = ((DConfigBootstrapData)client.getBootstrapData()).dconfigOid;

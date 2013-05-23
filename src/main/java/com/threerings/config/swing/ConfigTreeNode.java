@@ -372,7 +372,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
         allowsChildren = (_config == null);
     }
 
-    @Override // documentation inherited
+    @Override
     public void insert (MutableTreeNode child, int index)
     {
         super.insert(child, index);
@@ -383,7 +383,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
         _childrenByName.put((String)node.getUserObject(), node);
     }
 
-    @Override // documentation inherited
+    @Override
     public void remove (int index)
     {
         ConfigTreeNode child = (ConfigTreeNode)children.get(index);
@@ -394,7 +394,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
         super.remove(index);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigTreeNode clone ()
     {
         ConfigTreeNode cnode = (ConfigTreeNode)super.clone();

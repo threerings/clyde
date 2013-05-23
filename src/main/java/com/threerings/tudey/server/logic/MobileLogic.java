@@ -116,7 +116,7 @@ public class MobileLogic extends ActorLogic
         return _scenemgr.getDirections(actor, shape);
     }
 
-    @Override // documentation inherited
+    @Override
     public Actor getSnapshot ()
     {
         // wake the actor up if it's in stasis
@@ -129,7 +129,7 @@ public class MobileLogic extends ActorLogic
         return super.getSnapshot();
     }
 
-    @Override // documentation inherited
+    @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);
@@ -148,7 +148,7 @@ public class MobileLogic extends ActorLogic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         // create advancer
@@ -162,7 +162,7 @@ public class MobileLogic extends ActorLogic
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void wasDestroyed ()
     {
         super.wasDestroyed();
@@ -205,7 +205,7 @@ public class MobileLogic extends ActorLogic
         // nothing by default
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateShape ()
     {
         super.updateShape();

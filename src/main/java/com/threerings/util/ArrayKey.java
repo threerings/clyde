@@ -41,13 +41,13 @@ public class ArrayKey
         _elements = elements;
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Arrays.deepHashCode(_elements);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof ArrayKey &&

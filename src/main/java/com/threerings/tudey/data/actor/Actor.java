@@ -360,7 +360,7 @@ public class Actor extends DeepObject
         return _dirty;
     }
 
-    @Override // documentation inherited
+    @Override
     public Object copy (Object dest)
     {
         // we handle base class fields "manually" for performance reasons, since they get called
@@ -378,7 +378,7 @@ public class Actor extends DeepObject
         return result;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!super.equals(other)) {
@@ -395,7 +395,7 @@ public class Actor extends DeepObject
             _original == oactor._original;
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         int hash = super.hashCode();
@@ -410,7 +410,7 @@ public class Actor extends DeepObject
         return hash;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[config=" + _config + ", id=" + _id + "]";

@@ -74,7 +74,7 @@ public abstract class FloatFunctionVariable extends DeepObject
         {
         }
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction getValue (FloatFunction result)
         {
             return function.copy(result);
@@ -92,7 +92,7 @@ public abstract class FloatFunctionVariable extends DeepObject
             step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
         public FloatVariable value = new FloatVariable.Constant();
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction getValue (FloatFunction result)
         {
             FloatFunction.Constant cresult = (result instanceof FloatFunction.Constant) ?
@@ -123,7 +123,7 @@ public abstract class FloatFunctionVariable extends DeepObject
         @Editable
         public Easing easing = new Easing.None();
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction getValue (FloatFunction result)
         {
             FloatFunction.Linear lresult = (result instanceof FloatFunction.Linear) ?
@@ -160,7 +160,7 @@ public abstract class FloatFunctionVariable extends DeepObject
         @Editable(min=0.0, max=1.0, step=0.01)
         public FloatVariable out = new FloatVariable.Constant(0.25f);
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction getValue (FloatFunction result)
         {
             FloatFunction.InAndOut ioresult = (result instanceof FloatFunction.InAndOut) ?
@@ -204,7 +204,7 @@ public abstract class FloatFunctionVariable extends DeepObject
         @Editable(min=0.0, max=1.0, step=0.01)
         public FloatVariable out = new FloatVariable.Constant(0.25f);
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction getValue (FloatFunction result)
         {
             FloatFunction.ThreePoint tpresult = (result instanceof FloatFunction.ThreePoint) ?
@@ -258,7 +258,7 @@ public abstract class FloatFunctionVariable extends DeepObject
             step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
         public FloatVariable end = new FloatVariable.Constant();
 
-        @Override // documentation inherited
+        @Override
         public FloatFunction getValue (FloatFunction result)
         {
             FloatFunction.Multipoint mpresult = (result instanceof FloatFunction.Multipoint) ?

@@ -53,7 +53,7 @@ public abstract class PlacerConfig extends DeepObject
      */
     public static class Point extends PlacerConfig
     {
-        @Override // documentation inherited
+        @Override
         public Placer createPlacer (Layer layer)
         {
             return new SimplePlacer(layer) {
@@ -73,7 +73,7 @@ public abstract class PlacerConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float length = 1f;
 
-        @Override // documentation inherited
+        @Override
         public Placer createPlacer (Layer layer)
         {
             return new SimplePlacer(layer) {
@@ -105,7 +105,7 @@ public abstract class PlacerConfig extends DeepObject
         @Editable
         public boolean solid = true;
 
-        @Override // documentation inherited
+        @Override
         public Placer createPlacer (Layer layer)
         {
             return new SimplePlacer(layer) {
@@ -155,7 +155,7 @@ public abstract class PlacerConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float outerRadius = 1f;
 
-        @Override // documentation inherited
+        @Override
         public Placer createPlacer (Layer layer)
         {
             return new SimplePlacer(layer) {
@@ -186,7 +186,7 @@ public abstract class PlacerConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float outerRadius = 1f;
 
-        @Override // documentation inherited
+        @Override
         public Placer createPlacer (Layer layer)
         {
             return new SimplePlacer(layer) {
@@ -227,7 +227,7 @@ public abstract class PlacerConfig extends DeepObject
         @Editable
         public boolean solid = true;
 
-        @Override // documentation inherited
+        @Override
         public Placer createPlacer (final Layer layer)
         {
             return new Placer() {

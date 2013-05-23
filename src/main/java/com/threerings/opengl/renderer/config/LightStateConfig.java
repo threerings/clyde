@@ -51,7 +51,7 @@ public abstract class LightStateConfig extends DeepObject
      */
     public static class Disabled extends LightStateConfig
     {
-        @Override // documentation inherited
+        @Override
         public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
         {
             return LightState.DISABLED;
@@ -71,7 +71,7 @@ public abstract class LightStateConfig extends DeepObject
         @Editable
         public LightConfig[] lights = new LightConfig[0];
 
-        @Override // documentation inherited
+        @Override
         public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
         {
             Light[] slights = new Light[lights.length];

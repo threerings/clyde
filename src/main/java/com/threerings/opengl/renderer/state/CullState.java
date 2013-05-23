@@ -77,19 +77,19 @@ public class CullState extends RenderState
         return _cullFace;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return CULL_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setCullState(_cullFace);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         return other instanceof CullState &&

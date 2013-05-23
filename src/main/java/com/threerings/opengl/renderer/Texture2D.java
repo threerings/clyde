@@ -295,13 +295,13 @@ public class Texture2D extends Texture
         GL11.glCopyTexSubImage2D(_target, level, xoffset, yoffset, x, y, width, height);
     }
 
-    @Override // documentation inherited
+    @Override
     public int getWidth ()
     {
         return _width;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getHeight ()
     {
         return _height;

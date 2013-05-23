@@ -161,13 +161,13 @@ public class PathConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
         }
 
-        @Override // documentation inherited
+        @Override
         public PathCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
         {
@@ -179,7 +179,7 @@ public class PathConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public PathSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
         {
@@ -194,7 +194,7 @@ public class PathConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (HandlerConfig handler : handlers) {
@@ -212,20 +212,20 @@ public class PathConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<PathConfig> path;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(PathConfig.class, path);
         }
 
-        @Override // documentation inherited
+        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
-        @Override // documentation inherited
+        @Override
         public PathCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
         {
@@ -233,7 +233,7 @@ public class PathConfig extends ParameterizedConfig
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public PathSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
         {
@@ -282,7 +282,7 @@ public class PathConfig extends ParameterizedConfig
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -290,7 +290,7 @@ public class PathConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -124,7 +124,7 @@ public final class Ray3D
         return this;
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[origin=" + _origin + ", direction=" + _direction + "]";

@@ -182,20 +182,20 @@ public class SphereCoords
         set(in.readFloat(), in.readFloat(), in.readFloat());
     }
 
-    @Override // documentation inherited
+    @Override
     public String toString ()
     {
         return "[" + azimuth + ", " + elevation + ", " + distance + "]";
     }
 
-    @Override // documentation inherited
+    @Override
     public int hashCode ()
     {
         return Float.floatToIntBits(azimuth) ^ Float.floatToIntBits(elevation) ^
             Float.floatToIntBits(distance);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
         if (!(other instanceof SphereCoords)) {

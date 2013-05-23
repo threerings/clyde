@@ -277,7 +277,7 @@ public class ModelConfig extends ParameterizedConfig
             return _source;
         }
 
-        @Override // documentation inherited
+        @Override
         public void updateFromSource (EditorContext ctx, boolean force)
         {
             if (!(_reload || force)) {
@@ -300,21 +300,21 @@ public class ModelConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
             return null;
         }
 
-        @Override // documentation inherited
+        @Override
         public GeometryConfig getParticleGeometry (GlContext ctx)
         {
             VisibleMesh mesh = getParticleMesh();
             return (mesh == null) ? null : mesh.geometry;
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
         {
             VisibleMesh mesh = getParticleMesh();
@@ -424,27 +424,27 @@ public class ModelConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
 
-        @Override // documentation inherited
+        @Override
         public Implementation getOriginal (ConfigManager cfgmgr)
         {
             ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
             return (config == null) ? null : config.getOriginal();
         }
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(ModelConfig.class, model);
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
             return (config == null) ? cfgmgr : config.getConfigManager();
         }
 
-        @Override // documentation inherited
+        @Override
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
@@ -453,14 +453,14 @@ public class ModelConfig extends ParameterizedConfig
                 createContextWrapper(ctx, config), scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public GeometryConfig getParticleGeometry (GlContext ctx)
         {
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
             return (config == null) ? null : config.getParticleGeometry(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
         {
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
@@ -477,7 +477,7 @@ public class ModelConfig extends ParameterizedConfig
         @Editable
         public SchemedModel[] models = new SchemedModel[0];
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (SchemedModel smodel : models) {
@@ -485,7 +485,7 @@ public class ModelConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
@@ -532,14 +532,14 @@ public class ModelConfig extends ParameterizedConfig
      */
     public abstract static class BaseWrapper extends Implementation
     {
-        @Override // documentation inherited
+        @Override
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             ModelConfig config = getModelConfig(cfgmgr);
             return (config == null) ? cfgmgr : config.getConfigManager();
         }
 
-        @Override // documentation inherited
+        @Override
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
@@ -548,14 +548,14 @@ public class ModelConfig extends ParameterizedConfig
                 createContextWrapper(ctx, config), scope, impl);
         }
 
-        @Override // documentation inherited
+        @Override
         public GeometryConfig getParticleGeometry (GlContext ctx)
         {
             ModelConfig config = getModelConfig(ctx.getConfigManager());
             return (config == null) ? null : config.getParticleGeometry(ctx);
         }
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
         {
             ModelConfig config = getModelConfig(ctx.getConfigManager());
@@ -711,33 +711,33 @@ public class ModelConfig extends ParameterizedConfig
         return implementation.getParticleMaterial(ctx);
     }
 
-    @Override // documentation inherited
+    @Override
     public void init (ConfigManager cfgmgr)
     {
         _configs.init("model", cfgmgr);
         super.init(_configs);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigManager getConfigManager ()
     {
         return implementation.getConfigManager(_configs);
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean validateReferences (String where, PrintStream out)
     {
         boolean valid = super.validateReferences(where, out);
         return _configs.validateReferences(where + ":", out) && valid;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -745,7 +745,7 @@ public class ModelConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

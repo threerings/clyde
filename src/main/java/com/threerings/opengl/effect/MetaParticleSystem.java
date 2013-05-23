@@ -106,7 +106,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void setConfig (BaseParticleSystemConfig.Layer config)
         {
             super.setConfig(config);
@@ -157,7 +157,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public boolean tick (float elapsed)
         {
             if (super.tick(elapsed)) {
@@ -176,7 +176,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             return false;
         }
 
-        @Override // documentation inherited
+        @Override
         public void composite ()
         {
             if (!_config.visible || _living.value == 0) {
@@ -191,7 +191,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public void dispose ()
         {
             super.dispose();
@@ -200,7 +200,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentation inherited
+        @Override
         protected void swapParticles (int idx0, int idx1)
         {
             super.swapParticles(idx0, idx1);
@@ -211,7 +211,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             _models[idx1] = tmp;
         }
 
-        @Override // documentation inherited
+        @Override
         protected void initParticle (int idx)
         {
             super.initParticle(idx);
@@ -246,7 +246,7 @@ public class MetaParticleSystem extends BaseParticleSystem
         setConfig(ctx, config);
     }
 
-    @Override // documentation inherited
+    @Override
     protected BaseParticleSystem.Layer createLayer (BaseParticleSystemConfig.Layer config)
     {
         return new Layer(_ctx, this, config);

@@ -63,14 +63,14 @@ public class ActiveAdvancer extends MobileAdvancer
         return activity == null || activity.allowsRotation();
     }
 
-    @Override // documentation inherited
+    @Override
     public void init (Actor actor, int timestamp)
     {
         super.init(actor, timestamp);
         _active = (Active)actor;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void step (float elapsed)
     {
         // update the current activity
@@ -81,7 +81,7 @@ public class ActiveAdvancer extends MobileAdvancer
         super.step(elapsed);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void mobileStep (float elapsed, int timestamp)
     {
         if (!canMove()) {

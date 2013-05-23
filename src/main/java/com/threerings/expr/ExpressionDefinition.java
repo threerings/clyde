@@ -53,7 +53,7 @@ public abstract class ExpressionDefinition extends DeepObject
         @Editable
         public FloatExpression expression = new FloatExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Object getValue (Scope scope, ArrayList<Updater> updaters)
         {
             final MutableFloat mutable = new MutableFloat();
@@ -66,7 +66,7 @@ public abstract class ExpressionDefinition extends DeepObject
             return mutable;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             expression.invalidate();
@@ -82,7 +82,7 @@ public abstract class ExpressionDefinition extends DeepObject
         @Editable
         public IntegerExpression expression = new IntegerExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Object getValue (Scope scope, ArrayList<Updater> updaters)
         {
             final MutableInteger mutable = new MutableInteger();
@@ -95,7 +95,7 @@ public abstract class ExpressionDefinition extends DeepObject
             return mutable;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             expression.invalidate();
@@ -111,13 +111,13 @@ public abstract class ExpressionDefinition extends DeepObject
         @Editable
         public Color4fExpression expression = new Color4fExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Object getValue (Scope scope, ArrayList<Updater> updaters)
         {
             return getValue(scope, updaters, expression);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             expression.invalidate();
@@ -133,7 +133,7 @@ public abstract class ExpressionDefinition extends DeepObject
         @Editable
         public StringExpression expression = new StringExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Object getValue (Scope scope, ArrayList<Updater> updaters)
         {
             final StringBuilder mutable = new StringBuilder();
@@ -146,7 +146,7 @@ public abstract class ExpressionDefinition extends DeepObject
             return mutable;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             expression.invalidate();
@@ -162,13 +162,13 @@ public abstract class ExpressionDefinition extends DeepObject
         @Editable
         public Transform3DExpression expression = new Transform3DExpression.Constant();
 
-        @Override // documentation inherited
+        @Override
         public Object getValue (Scope scope, ArrayList<Updater> updaters)
         {
             return getValue(scope, updaters, expression);
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             expression.invalidate();

@@ -82,7 +82,7 @@ public class AreaElement extends SimpleSceneElement
         _visible = visible;
     }
 
-    @Override // documentation inherited
+    @Override
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // make sure the ray intersects the bounds
@@ -107,7 +107,7 @@ public class AreaElement extends SimpleSceneElement
         return false;
     }
 
-    @Override // documentation inherited
+    @Override
     protected RenderState[] createStates ()
     {
         RenderState[] states = super.createStates();
@@ -117,7 +117,7 @@ public class AreaElement extends SimpleSceneElement
         return states;
     }
 
-    @Override // documentation inherited
+    @Override
     protected void computeBounds (Box result)
     {
         result.setToEmpty();
@@ -131,7 +131,7 @@ public class AreaElement extends SimpleSceneElement
         result.transformLocal(_transform);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void draw ()
     {
         if (_vertices == null || !_visible) {
@@ -144,7 +144,7 @@ public class AreaElement extends SimpleSceneElement
         GL11.glEnd();
     }
 
-    @Override // documentation inherited
+    @Override
     protected Vector3f getCenter ()
     {
         return _center;

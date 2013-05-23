@@ -949,13 +949,13 @@ public class SceneEditor extends TudeyTool
         _paste.setEnabled(false);
     }
 
-    @Override // documentation inherited
+    @Override
     public ConfigManager getConfigManager ()
     {
         return (_scene == null) ? _cfgmgr : _scene.getConfigManager();
     }
 
-    @Override // documentation inherited
+    @Override
     public void setPlaceView (PlaceView view)
     {
         super.setPlaceView(view);
@@ -977,7 +977,7 @@ public class SceneEditor extends TudeyTool
         SwingUtil.refresh((JComponent)_frame.getContentPane());
     }
 
-    @Override // documentation inherited
+    @Override
     public void clearPlaceView (PlaceView view)
     {
         // switch back to the editor view
@@ -998,7 +998,7 @@ public class SceneEditor extends TudeyTool
         SwingUtil.refresh((JComponent)_frame.getContentPane());
     }
 
-    @Override // documentation inherited
+    @Override
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -1122,7 +1122,7 @@ public class SceneEditor extends TudeyTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected JComponent createCanvasContainer ()
     {
         JPanel ccont = new JPanel(new BorderLayout());
@@ -1140,26 +1140,26 @@ public class SceneEditor extends TudeyTool
         return _pane;
     }
 
-    @Override // documentation inherited
+    @Override
     protected Grid createGrid ()
     {
         return (_grid = new EditorGrid(this));
     }
 
-    @Override // documentation inherited
+    @Override
     protected CanvasToolPrefs createEditablePrefs ()
     {
         return new SceneEditorPrefs(_prefs);
     }
 
-    @Override // documentation inherited
+    @Override
     protected CameraHandler createCameraHandler ()
     {
         // just a placeholder; the scene view has the real camera handler
         return new OrbitCameraHandler(this);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void didInit ()
     {
         super.didInit();
@@ -1236,7 +1236,7 @@ public class SceneEditor extends TudeyTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
@@ -1246,7 +1246,7 @@ public class SceneEditor extends TudeyTool
         }
     }
 
-    @Override // documentation inherited
+    @Override
     protected void compositeView ()
     {
         super.compositeView();

@@ -143,13 +143,13 @@ public class StencilState extends RenderState
         return _stencilWriteMask;
     }
 
-    @Override // documentation inherited
+    @Override
     public int getType ()
     {
         return STENCIL_STATE;
     }
 
-    @Override // documentation inherited
+    @Override
     public void apply (Renderer renderer)
     {
         renderer.setStencilState(

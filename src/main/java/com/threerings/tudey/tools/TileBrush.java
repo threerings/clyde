@@ -62,13 +62,13 @@ public class TileBrush extends ConfigTool<TileConfig>
         _entry.rotation = rotation;
     }
 
-    @Override // documentation inherited
+    @Override
     public void init ()
     {
         _cursor = new TileCursor(_editor, _editor.getView(), _entry);
     }
 
-    @Override // documentation inherited
+    @Override
     public void tick (float elapsed)
     {
         updateCursor();
@@ -79,7 +79,7 @@ public class TileBrush extends ConfigTool<TileConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void composite ()
     {
         if (_cursorVisible) {
@@ -87,7 +87,7 @@ public class TileBrush extends ConfigTool<TileConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mousePressed (MouseEvent event)
     {
         int button = event.getButton();
@@ -97,7 +97,7 @@ public class TileBrush extends ConfigTool<TileConfig>
         }
     }
 
-    @Override // documentation inherited
+    @Override
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         if (_cursorVisible) {
@@ -173,7 +173,7 @@ public class TileBrush extends ConfigTool<TileConfig>
         _lastPlacement.set(_entry.getLocation());
     }
 
-    @Override // documentation inherited
+    @Override
     protected void referenceChanged (ConfigReference<TileConfig> ref)
     {
         super.referenceChanged(ref);
@@ -189,13 +189,13 @@ public class TileBrush extends ConfigTool<TileConfig>
         @Editable(nullable=true)
         public ConfigReference<TileConfig> tile;
 
-        @Override // documentation inherited
+        @Override
         public ConfigReference<TileConfig> getReference ()
         {
             return tile;
         }
 
-        @Override // documentation inherited
+        @Override
         public void setReference (ConfigReference<TileConfig> ref)
         {
             tile = ref;

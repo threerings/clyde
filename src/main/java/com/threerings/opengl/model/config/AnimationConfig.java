@@ -222,7 +222,7 @@ public class AnimationConfig extends ParameterizedConfig
             return speed * rate;
         }
 
-        @Override // documentation inherited
+        @Override
         public void updateFromSource (EditorContext ctx, boolean force)
         {
             if (!(_reload || force)) {
@@ -245,7 +245,7 @@ public class AnimationConfig extends ParameterizedConfig
             }
         }
 
-        @Override // documentation inherited
+        @Override
         public Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl)
         {
@@ -298,7 +298,7 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable
         public TargetTransform[] transforms = new TargetTransform[0];
 
-        @Override // documentation inherited
+        @Override
         public Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl)
         {
@@ -310,7 +310,7 @@ public class AnimationConfig extends ParameterizedConfig
             return impl;
         }
 
-        @Override // documentation inherited
+        @Override
         public void invalidate ()
         {
             for (TargetTransform transform : transforms) {
@@ -332,7 +332,7 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable
         public ComponentAnimation[] animations = new ComponentAnimation[0];
 
-        @Override // documentation inherited
+        @Override
         public Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl)
         {
@@ -356,13 +356,13 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
 
-        @Override // documentation inherited
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(AnimationConfig.class, animation);
         }
 
-        @Override // documentation inherited
+        @Override
         public Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl)
         {
@@ -435,13 +435,13 @@ public class AnimationConfig extends ParameterizedConfig
         return implementation.getAnimationImplementation(ctx, scope, impl);
     }
 
-    @Override // documentation inherited
+    @Override
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
     }
 
-    @Override // documentation inherited
+    @Override
     protected void fireConfigUpdated ()
     {
         // invalidate the implementation
@@ -449,7 +449,7 @@ public class AnimationConfig extends ParameterizedConfig
         super.fireConfigUpdated();
     }
 
-    @Override // documentation inherited
+    @Override
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);

@@ -85,7 +85,7 @@ public abstract class ShadowConfig extends DeepObject
         @Editable(nullable=true)
         public ColorStateConfig colorState = new ColorStateConfig();
 
-        @Override // documentation inherited
+        @Override
         public SceneInfluence createInfluence (
             final GlContext ctx, Scope scope, LightConfig lightConfig,
             final Light viewLight, ArrayList<Updater> updaters)
