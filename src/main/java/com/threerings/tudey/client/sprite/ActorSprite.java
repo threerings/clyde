@@ -1322,7 +1322,7 @@ public class ActorSprite extends Sprite
         return _impl.getFloorFlags();
     }
 
-    @Override // documentaiton inherited
+    @Override
     public int getFloorMask ()
     {
         return _impl.getFloorMask();

@@ -811,7 +811,7 @@ public abstract class BehaviorLogic extends Logic
             _steps[_currentStep].start(timestamp);
         }
 
-        @Override // documentaiton inherited
+        @Override
         public void tick (int timestamp)
         {
             if (_currentStep < _steps.length) {

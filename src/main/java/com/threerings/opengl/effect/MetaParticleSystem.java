@@ -148,7 +148,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             }
         }
 
-        @Override // documentaiton inherited
+        @Override
         public void wasAdded ()
         {
             super.wasAdded();

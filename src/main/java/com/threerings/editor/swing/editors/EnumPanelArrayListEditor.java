@@ -55,7 +55,7 @@ import static com.threerings.editor.Log.*;
  */
 public class EnumPanelArrayListEditor extends PanelArrayListEditor
 {
-    @Override // documentaiton inherited
+    @Override
     protected void updatePanel (EntryPanel panel, Object value)
     {
         JComboBox box = ((EnumEntryPanel)panel).getBox();

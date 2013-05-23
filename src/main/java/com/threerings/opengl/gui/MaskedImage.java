@@ -121,7 +121,7 @@ public class MaskedImage extends Image
     }
 
 
-    @Override //documentation inherited
+    @Override
     protected void setTexture (Texture2D texture)
     {
         _twidth = texture.getWidth();

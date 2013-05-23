@@ -554,7 +554,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Always extends ConditionLogic
     {
-        @Override // documentaiton inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             return true;
@@ -566,7 +566,7 @@ public abstract class ConditionLogic extends Logic
      */
     public static class Evaluate extends ConditionLogic
     {
-        @Override // documentaiton inherited
+        @Override
         public boolean isSatisfied (Logic activator)
         {
             return ExpressionLogic.coerceToBoolean(_expression.evaluate(activator, null));
