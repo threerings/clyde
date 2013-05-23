@@ -157,13 +157,17 @@ public abstract class TextComponent extends Component
         _valigns[state] = config.verticalAlignment.getConstant();
         _teffects[state] = config.textEffect.getConstant();
         _effsizes[state] = config.effectSize;
-        _lineSpacings[state] = config.lineSpacing;
         _effcols[state] = config.effectColor;
 
         FontConfig fconfig = _ctx.getConfigManager().getConfig(
             FontConfig.class, config.font);
-        _textfacts[state] = (fconfig == null ? FontConfig.NULL : fconfig).getTextFactory(
+        if (fconfig == null) {
+            fconfig = FontConfig.NULL;
+        }
+        _textfacts[state] = fconfig.getTextFactory(
                 _ctx, config.fontStyle, config.fontSize);
+
+        _lineSpacings[state] = fconfig.adjustSpacing(config.lineSpacing);
     }
 
     /**

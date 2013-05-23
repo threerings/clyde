@@ -103,6 +103,11 @@ public class FontConfig extends ManagedConfig
          * Add resources to monitor.
          */
         public abstract void getUpdateResources (HashSet<String> paths);
+
+        /**
+         * Adjusts the line spacing for the font.
+         */
+        public abstract int adjustSpacing (int spacing);
     }
 
     public static class Default extends Implementation
@@ -131,6 +136,10 @@ public class FontConfig extends ManagedConfig
         @Editable(hgroup="m")
         public int sizeModifier = 0;
 
+        /** If the font allows negative spacing. */
+        @Editable(hgroup="m")
+        public boolean allowNegativeSpacing = true;
+
         @Override // documentation inherited
         public TextFactory getTextFactory (GlContext ctx, int style, int size)
         {
@@ -150,6 +159,12 @@ public class FontConfig extends ManagedConfig
             if (file != null) {
                 paths.add(file);
             }
+        }
+
+        @Override // documentation inherited
+        public int adjustSpacing (int spacing)
+        {
+            return allowNegativeSpacing ? spacing : Math.max(0, spacing);
         }
 
         /**
@@ -208,6 +223,14 @@ public class FontConfig extends ManagedConfig
     public TextFactory getTextFactory (GlContext ctx, int style, int size)
     {
         return implementation.getTextFactory(ctx, style, size);
+    }
+
+    /**
+     * Return a valid line spacing for the font.
+     */
+    public int adjustSpacing (int spacing)
+    {
+        return implementation.adjustSpacing(spacing);
     }
 
     @Override // documentation inherited
