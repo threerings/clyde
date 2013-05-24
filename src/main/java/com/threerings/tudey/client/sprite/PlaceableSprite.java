@@ -416,6 +416,14 @@ public class PlaceableSprite extends EntrySprite
         update(entry);
     }
 
+    /**
+     * Returns a reference to the sprite implementation.
+     */
+    public Implementation getImplementation ()
+    {
+        return _impl;
+    }
+
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PlaceableConfig> event)
     {
