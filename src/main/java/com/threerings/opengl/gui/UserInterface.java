@@ -275,7 +275,8 @@ public class UserInterface extends Container
          */
         protected void updateFromConfig ()
         {
-            if ((_original = _config.getOriginal(_ctx.getConfigManager())) == null) {
+            if (_config == null ||
+                    (_original = _config.getOriginal(_ctx.getConfigManager())) == null) {
                 _original = new InterfaceScriptConfig.Original();
             }
         }
