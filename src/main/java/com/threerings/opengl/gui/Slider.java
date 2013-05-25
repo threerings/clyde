@@ -66,6 +66,14 @@ public class Slider extends Component
     }
 
     /**
+     * Get the current value of this slider.
+     */
+    public int getValue ()
+    {
+        return _model.getValue();
+    }
+
+    /**
      * Returns a reference to the slider's range model.
      */
     public BoundedRangeModel getModel ()
