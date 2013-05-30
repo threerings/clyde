@@ -1199,14 +1199,11 @@ public abstract class ComponentConfig extends DeepObject
         // don't want it translated you prepend it with ~
         //return msgs.xlate(text);
 
-        if (msgs.exists(text)) {
-            return msgs.get(text);
-        }
         if (text.startsWith("~") // taint character
                 || (text.startsWith(MessageUtil.QUAL_PREFIX) &&
                     text.contains(MessageUtil.QUAL_SEP))) {
             return msgs.xlate(text);
         }
-        return text;
+        return msgs.exists(text) ? msgs.get(text) : text;
     }
 }
