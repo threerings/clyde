@@ -27,6 +27,7 @@ package com.threerings.opengl.gui.config;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.text.MessageUtil;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.StringUtil;
 
@@ -1194,6 +1195,18 @@ public abstract class ComponentConfig extends DeepObject
      */
     protected static String getMessage (MessageBundle msgs, String text)
     {
-        return msgs.exists(text) ? msgs.get(text) : text;
+        // TODO: update all our UIs such that everything is fucking translated and if you
+        // don't want it translated you prepend it with ~
+        //return msgs.xlate(text);
+
+        if (msgs.exists(text)) {
+            return msgs.get(text);
+        }
+        if (text.startsWith("~") // taint character
+                || (text.startsWith(MessageUtil.QUAL_PREFIX) &&
+                    text.contains(MessageUtil.QUAL_SEP))) {
+            return msgs.xlate(text);
+        }
+        return text;
     }
 }
