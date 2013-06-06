@@ -111,9 +111,9 @@ public abstract class Logic extends ShallowObject
     }
 
     /**
-     * Determines whether this logic object is "visible" to the specified actor.
+     * Determines whether this logic object is "visible" to the specified pawn.
      */
-    public boolean isVisible (ActorLogic actor)
+    public boolean isVisible (PawnLogic pawn)
     {
         return true;
     }

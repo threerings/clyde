@@ -78,9 +78,9 @@ public class EffectLogic extends Logic
     }
 
     @Override
-    public boolean isVisible (ActorLogic actor)
+    public boolean isVisible (PawnLogic pawn)
     {
-        return !_config.targetOnly || _target == actor;
+        return !_config.targetOnly || _target == pawn;
     }
 
     @Override
