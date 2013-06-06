@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
 
@@ -260,6 +261,8 @@ public class BinaryExporter extends Exporter
             @SuppressWarnings("unchecked") Class<Object> ctype =
                 (Class<Object>)cclazz.getComponentType();
             writeEntries((Object[])value, ctype);
+        } else if (value instanceof EnumSet) {
+            writeEntries((EnumSet)value);
         } else if (value instanceof Collection) {
             writeEntries((Collection)value);
         } else if (value instanceof Map) {
@@ -323,6 +326,20 @@ public class BinaryExporter extends Exporter
         for (T entry : array) {
             write(entry, ctype);
         }
+    }
+
+    /**
+     * Writes out the enum class of an EnumSet before writing the entries.  This will fail if the
+     * enum class has no defined enums.
+     */
+    protected void writeEntries (EnumSet set)
+        throws IOException
+    {
+        @SuppressWarnings("unchecked") Class<Object> ctype =
+                ((Enum)(set.isEmpty() ? EnumSet.complementOf(set) : set)
+                        .iterator().next()).getDeclaringClass();
+        writeClass(ctype);
+        writeEntries((Collection)set);
     }
 
     /**

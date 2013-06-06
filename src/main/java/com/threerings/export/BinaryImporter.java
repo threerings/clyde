@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.EnumSet;
 
 import java.util.zip.InflaterInputStream;
 
@@ -306,6 +307,12 @@ public class BinaryImporter extends Importer
                 } else if (wclazz == ImmutableMap.class) {
                     value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
                     wasRead = true;
+
+                } else if (EnumSet.class.isAssignableFrom(wclazz)) {
+                    @SuppressWarnings("unchecked") Class<? extends Enum> eclazz =
+                        (Class<? extends Enum>)readClass().getWrappedClass();
+                    @SuppressWarnings("unchecked") EnumSet<?> set = EnumSet.noneOf(eclazz);
+                    value = set;
 
                 } else {
                     value = ReflectionUtil.newInstance(wclazz, outer);

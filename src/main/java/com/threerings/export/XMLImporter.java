@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.EnumSet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -237,6 +238,22 @@ public class XMLImporter extends Importer
     }
 
     /**
+     * Returns the named class, or null if not found.
+     */
+    protected Class<?> getClassByName (String cstr, Class<?> defval)
+    {
+        if (cstr.length() > 0) {
+            try {
+                return Class.forName(cstr);
+            } catch (ClassNotFoundException e) {
+                log.warning("Class not found.", e);
+                return null;
+            }
+        }
+        return defval;
+    }
+
+    /**
      * Reads an object value of the specified class from the given element.
      */
     protected Object readValue (Element element, Class<?> clazz)
@@ -245,18 +262,7 @@ public class XMLImporter extends Importer
         // see if we can read the value from a string
         String id = element.getAttribute("id");
         String depth = element.getAttribute("depth");
-        String cstr = element.getAttribute("class");
-        Class<?> cclazz;
-        if (cstr.length() > 0) {
-            try {
-                cclazz = Class.forName(cstr);
-            } catch (ClassNotFoundException e) {
-                log.warning("Class not found.", e);
-                return null;
-            }
-        } else {
-            cclazz = clazz;
-        }
+        Class<?> cclazz = getClassByName(element.getAttribute("class"), clazz);
         Stringifier stringifier = Stringifier.getStringifier(cclazz);
         if (stringifier != null) {
             String string = element.getTextContent();
@@ -296,6 +302,12 @@ public class XMLImporter extends Importer
             } else if (cclazz == ImmutableMap.class) {
                 value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
                 wasRead = true;
+
+            } else if (EnumSet.class.isAssignableFrom(cclazz)) {
+                @SuppressWarnings("unchecked") Class<? extends Enum> eclazz =
+                    (Class<? extends Enum>)getClassByName(element.getAttribute("eclass"), null);
+                @SuppressWarnings("unchecked") EnumSet<?> set = EnumSet.noneOf(eclazz);
+                value = set;
 
             } else {
                 value = ReflectionUtil.newInstance(cclazz,
