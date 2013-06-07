@@ -29,7 +29,7 @@ import java.io.IOException;
 
 import java.lang.reflect.Method;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.collect.Maps;
 
@@ -61,33 +61,13 @@ public abstract class Delta
      */
     public static Delta createDelta (Object original, Object revised)
     {
-        if (original instanceof Deltable) {
-            // check for a custom creator method
-            Class<?> clazz = original.getClass();
-            Method creator = _creators.get(clazz);
-            if (creator == null) {
-                try {
-                    creator = clazz.getMethod("createDelta", Object.class);
-                } catch (NoSuchMethodException e) {
-                    creator = _none;
-                }
-                _creators.put(clazz, creator);
-            }
-            if (creator == _none) {
-                return new ReflectiveDelta(original, revised);
-            }
-            try {
-                return (Delta)creator.invoke(original, revised);
-            } catch (Exception e) {
-                throw new RuntimeException("Error invoking custom delta method " + creator, e);
-            }
-        }
         Class<?> clazz = original.getClass();
-        if (clazz.isArray()) {
-            return new ArrayDelta(original, revised);
-        } else {
-            throw new RuntimeException("Cannot create delta for " + clazz);
+        DeltaCreator dc = _creators.get(clazz);
+        if (dc == null) {
+            dc = DeltaCreator.create(clazz);
+            _creators.put(clazz, dc);
         }
+        return dc.createDelta(original, revised);
     }
 
     /**
@@ -104,18 +84,62 @@ public abstract class Delta
      */
     public abstract Delta merge (Delta other);
 
-    /** Custom creator methods mapped by class. */
-    protected static HashMap<Class<?>, Method> _creators = new HashMap<Class<?>, Method>();
+    /**
+     * Abstracts the different ways that a Delta can be created.
+     */
+    protected static abstract class DeltaCreator
+    {
+        /**
+         * Create a DeltaCreator for the specified Class.
+         */
+        public static DeltaCreator create (Class<?> clazz)
+        {
+            if (clazz.isArray()) {
+                return ARRAY;
 
-    /** Irrelevant method used to indicate that the class has no custom creator. */
-    protected static Method _none;
-    static {
-        try {
-            _none = Object.class.getMethod("toString");
-        } catch (NoSuchMethodException e) {
-            // won't happen
+            } else if (Deltable.class.isAssignableFrom(clazz)) {
+                try {
+                    final Method creator = clazz.getMethod("createDelta", Object.class);
+                    return new DeltaCreator() {
+                        public Delta createDelta (Object original, Object revised) {
+                            try {
+                                return (Delta)creator.invoke(original, revised);
+                            } catch (Exception e) {
+                                throw new RuntimeException(
+                                        "Error invoking custom delta method " + creator, e);
+                            }
+                        }
+                    };
+
+                } catch (NoSuchMethodException e) {
+                    return REFLECTIVE;
+                }
+            }
+            throw new RuntimeException("Cannot create delta for " + clazz);
         }
+
+        /** A sharable DeltaCreator that creates ReflectiveDelta instances. */
+        protected static final DeltaCreator REFLECTIVE = new DeltaCreator() {
+            public Delta createDelta (Object original, Object revised) {
+                return new ReflectiveDelta(original, revised);
+            }
+        };
+
+        /** A sharable DeltaCreator that creates ArrayDelta instances. */
+        protected static final DeltaCreator ARRAY = new DeltaCreator() {
+            public Delta createDelta (Object original, Object revised) {
+                return new ArrayDelta(original, revised);
+            }
+        };
+
+        /**
+         * Create a delta for the specified objects.
+         */
+        public abstract Delta createDelta (Object original, Object revised);
     }
+
+    /** Custom creator methods mapped by class. */
+    protected static Map<Class<?>, DeltaCreator> _creators = Maps.newIdentityHashMap();
 
     /** Streamer for raw class references. */
     protected static Streamer _classStreamer;
