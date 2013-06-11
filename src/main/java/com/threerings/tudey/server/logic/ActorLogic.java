@@ -89,8 +89,8 @@ public class ActorLogic extends Logic
         updateCollisionFlags();
 
         // if specified, attempt to find a non-colliding spawn point
-        if (config.spawnMask != 0 && scenemgr.collides(config.spawnMask, getShape(), timestamp) &&
-                actor == null) {
+        if ((config.spawnMask != 0) && (actor == null) &&
+                scenemgr.collides(config.spawnMask, getShape(), timestamp)) {
             adjustSpawnPoint();
         }
         _scenemgr.getActorSpace().add(_shape);
