@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Iterables;
 
 import org.lwjgl.opengl.GL11;
 
@@ -543,6 +544,16 @@ public abstract class Root extends SimpleOverlay
     {
         if (component == _hcomponent) {
             clearTipWindow();
+        }
+    }
+
+    /**
+     * Called when a component loses its hoverability.
+     */
+    public void hoverabilityDeactivated (Component comp)
+    {
+        if (_hcomponent != null && Iterables.contains(comp.getDownwards(), _hcomponent)) {
+            updateHoverComponent(_mouseX, _mouseY);
         }
     }
 

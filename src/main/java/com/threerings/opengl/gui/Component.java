@@ -555,7 +555,12 @@ public class Component
      */
     public void setHoverable (boolean hoverable)
     {
-        _hoverable = hoverable;
+        if (_hoverable != hoverable) {
+            _hoverable = hoverable;
+            if (!hoverable && isAdded()) {
+                getWindow().getRoot().hoverabilityDeactivated(this);
+            }
+        }
     }
 
     /**
