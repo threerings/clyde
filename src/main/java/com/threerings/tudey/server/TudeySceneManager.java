@@ -539,6 +539,11 @@ public class TudeySceneManager extends SceneManager
 
     /**
      * Fires off an effect with the referenced configuration.
+     *
+     * @param translation an offset from the target's translation, or null, or the absolute
+     * translation if there's no target.
+     * @param rotation an offset from the target's rotation, or the absolute rotation if there's
+     * no target.
      */
     public EffectLogic fireEffect (
         int timestamp, Logic target, Vector2f translation, float rotation,

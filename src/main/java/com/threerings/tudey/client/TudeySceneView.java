@@ -699,6 +699,11 @@ public class TudeySceneView extends DynamicScope
 
     /**
      * Requests to prefire an effect.
+     *
+     * @param translation an offset from the target's translation, or null, or the absolute
+     * translation if there's no target.
+     * @param rotation an offset from the target's rotation, or the absolute rotation if there's
+     * no target.
      */
     public EffectSprite prefireEffect (
         int timestamp, EntityKey target, Vector2f translation, float rotation,
@@ -712,6 +717,17 @@ public class TudeySceneView extends DynamicScope
             log.warning("Failed to resolve effect config.", "effect", ref);
             return null;
         }
+        if (target != null) {
+            Sprite sprite = getSprite(target);
+            if (sprite instanceof ActorSprite) {
+                Actor a = ((ActorSprite)sprite).getActor();
+                translation = (translation == null)
+                    ? a.getTranslation()
+                    : translation.add(a.getTranslation());
+                rotation = FloatMath.normalizeAngle(rotation + a.getRotation());
+            }
+        }
+
         Effect effect = original.createEffect(ref, timestamp, target, translation, rotation);
         effect.init(cfgmgr);
         return new EffectSprite(_ctx, this, effect);

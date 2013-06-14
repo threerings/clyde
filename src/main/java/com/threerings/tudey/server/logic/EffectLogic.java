@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
@@ -42,6 +43,11 @@ public class EffectLogic extends Logic
 {
     /**
      * Initializes the logic.
+     *
+     * @param translation an offset from the target's translation, or null, or the absolute
+     * translation if there's no target.
+     * @param rotation an offset from the target's rotation, or the absolute rotation if there's
+     * no target.
      */
     public void init (
         TudeySceneManager scenemgr, ConfigReference<EffectConfig> ref,
@@ -51,8 +57,20 @@ public class EffectLogic extends Logic
         super.init(scenemgr);
         _config = config;
         _target = target;
-        _effect = createEffect(ref, timestamp, (target == null) ? null : target.getEntityKey(),
-            translation, rotation);
+
+        EntityKey targetKey;
+        if (target != null) {
+            targetKey = target.getEntityKey();
+            translation = (translation == null)
+                ? target.getTranslation()
+                : translation.add(target.getTranslation());
+            rotation = FloatMath.normalizeAngle(rotation + target.getRotation());
+
+        } else {
+            targetKey = null;
+        }
+
+        _effect = createEffect(ref, timestamp, targetKey, translation, rotation);
         _effect.init(scenemgr.getConfigManager());
         _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
         _action = (config.action == null) ? null : createAction(config.action, this);

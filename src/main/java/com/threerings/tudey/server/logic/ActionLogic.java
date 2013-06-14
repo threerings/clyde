@@ -481,8 +481,7 @@ public abstract class ActionLogic extends Logic
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
-                _scenemgr.fireEffect(
-                    timestamp, target, target.getTranslation(), target.getRotation(), effect);
+                _scenemgr.fireEffect(timestamp, target, null, 0f, effect);
             }
             _targets.clear();
             return true;
