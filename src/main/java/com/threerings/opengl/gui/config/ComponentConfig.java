@@ -1201,7 +1201,8 @@ public abstract class ComponentConfig extends DeepObject
 
         if (text.startsWith("~") // taint character
                 || (text.startsWith(MessageUtil.QUAL_PREFIX) &&
-                    text.contains(MessageUtil.QUAL_SEP))) {
+                    text.contains(MessageUtil.QUAL_SEP))
+                || text.contains("|")) { // this is the compound key separator, there's no constant
             return msgs.xlate(text);
         }
         return msgs.exists(text) ? msgs.get(text) : text;
