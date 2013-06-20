@@ -142,8 +142,9 @@ public class BoundedRangeModel
     public void setMinimum (int minimum)
     {
         int max = Math.max(minimum, _max);
-        int val = Math.max(minimum, _value);
-        setRange(minimum, val, Math.max(max - val, _extent), max);
+        int val = Math.max(minimum, Math.min(max, _value));
+        int ext = Math.max(max - val, _extent);
+        setRange(minimum, val, ext, max);
     }
 
     /**
@@ -153,8 +154,10 @@ public class BoundedRangeModel
     public void setMaximum (int maximum)
     {
         int min = Math.min(maximum, _min);
+        // Rely on setRange to bound this nicely in between max and val.
         int ext = Math.min(maximum - min, _extent);
-        setRange(min, Math.max(maximum - ext, _value), ext, maximum);
+        int val = Math.max(min, Math.min(maximum, _value));
+        setRange(min, val, ext, maximum);
     }
 
     /**
