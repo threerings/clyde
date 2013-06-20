@@ -29,6 +29,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -44,10 +46,14 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
@@ -417,8 +423,10 @@ public class ConfigTree extends JTree
             group.addListener(this);
         }
 
+        // read; show all; prune. Pruning must happen when all are showing.
         readExpanded();
         setFilter(null);
+        pruneExpanded();
     }
 
     /**
@@ -541,21 +549,48 @@ public class ConfigTree extends JTree
     }
 
     /**
+     * Prune unused config names out of our expanded set.
+     */
+    protected void pruneExpanded ()
+    {
+        // this should only be run with no filter so that we can verify the paths...
+        Preconditions.checkState(_filter == Predicates.alwaysTrue());
+
+        ConfigTreeNode root = (ConfigTreeNode)getModel().getRoot();
+        for (Iterator<String> it = _expanded.iterator(); it.hasNext(); ) {
+            if (null == root.getNode(it.next())) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
      * Writes the set of expanded nodes out to the preferences.
      */
     protected void writeExpanded ()
     {
         String group = _groups[0].getName();
-        String[] names = _expanded.toArray(new String[_expanded.size()]);
+
+        // It's fucking ridiculous to work with arrays, but I don't have a replacement for
+        // StringUtil.joinEscaped at the moment, so....
+        String[] names = Iterables.toArray(_expanded, String.class);
         String value = StringUtil.joinEscaped(names);
         if (value.length() > Preferences.MAX_VALUE_LENGTH) {
             log.warning("Too many expanded paths to store in preferences, trimming.",
                 "group", group, "length", value.length());
+            // sort the array so that the deepest paths are at the end
+            Arrays.sort(names, Ordering.natural().onResultOf(new Function<String, Integer>() {
+                public Integer apply (String s) {
+                    return Collections.frequency(Lists.charactersOf(s), '/');
+                }
+            }));
             do {
                 names = ArrayUtil.splice(names, names.length - 1);
                 value = StringUtil.joinEscaped(names);
             } while (value.length() > Preferences.MAX_VALUE_LENGTH);
         }
+
+        // write it
         _prefs.put(group + ".expanded", value);
     }
 
