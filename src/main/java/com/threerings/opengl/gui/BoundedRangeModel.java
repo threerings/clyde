@@ -156,7 +156,7 @@ public class BoundedRangeModel
         int min = Math.min(maximum, _min);
         // Rely on setRange to bound this nicely in between max and val.
         int ext = Math.min(maximum - min, _extent);
-        int val = Math.max(min, Math.min(maximum, _value));
+        int val = Math.max(maximum - ext, Math.min(maximum, _value));
         setRange(min, val, ext, maximum);
     }
 
