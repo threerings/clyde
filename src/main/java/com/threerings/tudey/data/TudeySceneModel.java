@@ -44,9 +44,11 @@ import java.util.WeakHashMap;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
@@ -1576,8 +1578,7 @@ public class TudeySceneModel extends SceneModel
      */
     public List<Entry> getTaggedEntries (String tag)
     {
-        List<Entry> list = _tagged.get(tag);
-        return (list == null) ? ImmutableList.<Entry>of() : list;
+        return _tagged.get(tag);
     }
 
     /**
@@ -2642,11 +2643,7 @@ public class TudeySceneModel extends SceneModel
     protected void mapEntry (Entry entry)
     {
         for (String tag : entry.getTags(_cfgmgr)) {
-            List<Entry> list = _tagged.get(tag);
-            if (list == null) {
-                _tagged.put(tag, list = Lists.newArrayList());
-            }
-            list.add(entry);
+            _tagged.put(tag, entry);
         }
     }
 
@@ -2656,13 +2653,7 @@ public class TudeySceneModel extends SceneModel
     protected void unmapEntry (Entry entry)
     {
         for (String tag : entry.getTags(_cfgmgr)) {
-            List<Entry> list = _tagged.get(tag);
-            if (list != null) {
-                list.remove(entry);
-                if (list.isEmpty()) {
-                    _tagged.remove(tag);
-                }
-            }
+            _tagged.remove(tag, entry);
         }
     }
 
@@ -2968,7 +2959,7 @@ public class TudeySceneModel extends SceneModel
 
     /** Maps tags to lists of tagged entries. */
     @DeepOmit
-    protected transient Map<String, List<Entry>> _tagged = Maps.newHashMap();
+    protected transient ListMultimap<String, Entry> _tagged = ArrayListMultimap.create();
 
     /** The last entry id assigned. */
     protected transient int _lastEntryId;
