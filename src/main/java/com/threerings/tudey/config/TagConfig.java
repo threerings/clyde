@@ -25,6 +25,10 @@
 
 package com.threerings.tudey.config;
 
+import java.util.Iterator;
+
+import com.google.common.collect.AbstractIterator;
+
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.io.Streamable;
@@ -39,7 +43,7 @@ import com.threerings.util.DeepObject;
  */
 @Strippable
 public class TagConfig extends DeepObject
-    implements Exportable, Streamable
+    implements Exportable, Streamable, Iterable<String>
 {
     /** The base tag array. */
     @Editable
@@ -76,5 +80,24 @@ public class TagConfig extends DeepObject
             length += derived.getLength();
         }
         return length;
+    }
+
+    // from Iterable
+    public Iterator<String> iterator ()
+    {
+        return new AbstractIterator<String>() {
+            protected String computeNext () {
+                do {
+                    if (idx < tc.tags.length) {
+                        return tc.tags[idx++];
+                    }
+                    tc = tc.derived;
+                    idx = 0;
+                } while (tc != null);
+                return endOfData();
+            }
+            protected TagConfig tc = TagConfig.this;
+            protected int idx = 0;
+        };
     }
 }
