@@ -828,10 +828,10 @@ public class ConfigEditor extends BaseConfigEditor
 
         // restore/bind window bounds
         Rectangle r = getBounds();
-        setBounds(_prefs.getInt(p + ".x", r.x),
-                _prefs.getInt(p + ".y", r.y),
-                _prefs.getInt(p + ".w", r.width),
-                _prefs.getInt(p + ".h", r.height));
+        setBounds(_prefs.getInt(p + "x", r.x),
+                _prefs.getInt(p + "y", r.y),
+                _prefs.getInt(p + "w", r.width),
+                _prefs.getInt(p + "h", r.height));
         addComponentListener(new ComponentAdapter() {
             @Override public void componentMoved (ComponentEvent event) {
                 saveBounds();
@@ -842,25 +842,25 @@ public class ConfigEditor extends BaseConfigEditor
 
             protected void saveBounds () {
                 Rectangle r = getBounds();
-                _prefs.putInt(p + ".x", r.x);
-                _prefs.putInt(p + ".y", r.y);
-                _prefs.putInt(p + ".w", r.width);
-                _prefs.putInt(p + ".h", r.height);
+                _prefs.putInt(p + "x", r.x);
+                _prefs.putInt(p + "y", r.y);
+                _prefs.putInt(p + "w", r.width);
+                _prefs.putInt(p + "h", r.height);
             }
         });
 
         // restore/bind the location of the divider
-        _split.setDividerLocation(_prefs.getInt(p + ".div", _split.getDividerLocation()));
+        _split.setDividerLocation(_prefs.getInt(p + "div", _split.getDividerLocation()));
         _split.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange (PropertyChangeEvent event) {
                 if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(event.getPropertyName())) {
-                    _prefs.putInt(p + ".div", _split.getDividerLocation());
+                    _prefs.putInt(p + "div", _split.getDividerLocation());
                 }
             }
         });
 
         // restore/bind the selected group
-        String cat = _prefs.get(p + ".group", null);
+        String cat = _prefs.get(p + "group", null);
         for (int tab = _tabs.getComponentCount() - 1; tab >= 0; tab--) {
             final JComboBox gbox = ((ManagerPanel)_tabs.getComponentAt(tab)).gbox;
             if (cat != null) {
@@ -873,7 +873,7 @@ public class ConfigEditor extends BaseConfigEditor
             }
             gbox.addActionListener(new ActionListener() {
                 public void actionPerformed (ActionEvent event) {
-                    _prefs.put(p + ".group", String.valueOf(gbox.getSelectedItem()));
+                    _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
                 }
             });
         }
