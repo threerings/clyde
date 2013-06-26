@@ -28,13 +28,20 @@ package com.threerings.config.tools;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -134,8 +141,6 @@ public class ConfigEditor extends BaseConfigEditor
         Class<?> clazz, String name)
     {
         super(msgmgr, cfgmgr, colorpos, "config");
-        setSize(850, 600);
-        SwingUtil.centerWindow(this);
 
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
@@ -270,6 +275,13 @@ public class ConfigEditor extends BaseConfigEditor
             }
             protected ManagerPanel _panel = panel;
         });
+
+        // set sensible default bounds
+        setSize(850, 600);
+        SwingUtil.centerWindow(this);
+
+        // restore out prefs (may override bounds)
+        restorePrefs();
 
         // open the initial config, if one was specified
         if (clazz != null) {
@@ -805,6 +817,66 @@ public class ConfigEditor extends BaseConfigEditor
 
         /** The object editor panel. */
         protected BaseEditorPanel _epanel;
+    }
+
+    /**
+     * Restore and bind prefs.
+     */
+    protected void restorePrefs ()
+    {
+        final String p = "ConfigEditor."; // TODO? getClass().getSimpleName() + "." ???
+
+        // restore/bind window bounds
+        Rectangle r = getBounds();
+        setBounds(_prefs.getInt(p + ".x", r.x),
+                _prefs.getInt(p + ".y", r.y),
+                _prefs.getInt(p + ".w", r.width),
+                _prefs.getInt(p + ".h", r.height));
+        addComponentListener(new ComponentAdapter() {
+            @Override public void componentMoved (ComponentEvent event) {
+                saveBounds();
+            }
+            @Override public void componentResized (ComponentEvent event) {
+                saveBounds();
+            }
+
+            protected void saveBounds () {
+                Rectangle r = getBounds();
+                _prefs.putInt(p + ".x", r.x);
+                _prefs.putInt(p + ".y", r.y);
+                _prefs.putInt(p + ".w", r.width);
+                _prefs.putInt(p + ".h", r.height);
+            }
+        });
+
+        // restore/bind the location of the divider
+        _split.setDividerLocation(_prefs.getInt(p + ".div", _split.getDividerLocation()));
+        _split.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange (PropertyChangeEvent event) {
+                if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(event.getPropertyName())) {
+                    _prefs.putInt(p + ".div", _split.getDividerLocation());
+                }
+            }
+        });
+
+        // restore/bind the selected group
+        String cat = _prefs.get(p + ".group", null);
+        for (int tab = _tabs.getComponentCount() - 1; tab >= 0; tab--) {
+            final JComboBox gbox = ((ManagerPanel)_tabs.getComponentAt(tab)).gbox;
+            if (cat != null) {
+                for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+                    if (cat.equals(String.valueOf(gbox.getItemAt(ii)))) {
+                        gbox.setSelectedIndex(ii);
+                        break;
+                    }
+                }
+            }
+            gbox.addActionListener(new ActionListener() {
+                public void actionPerformed (ActionEvent event) {
+                    _prefs.put(p + ".group", String.valueOf(gbox.getSelectedItem()));
+                }
+            });
+        }
     }
 
     /** The config tree pop-up menu. */
