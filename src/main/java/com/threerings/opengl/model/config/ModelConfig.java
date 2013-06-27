@@ -646,11 +646,6 @@ public class ModelConfig extends ParameterizedConfig
         }
     }
 
-    /** A comment on the model. */
-    @Editable(height=3, width=40, collapsible=true)
-    @Strippable
-    public String comment = "";
-
     /** The actual model implementation. */
     @Editable
     public Implementation implementation;

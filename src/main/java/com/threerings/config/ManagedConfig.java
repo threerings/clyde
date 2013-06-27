@@ -40,6 +40,8 @@ import com.samskivert.util.Tuple;
 import com.threerings.resource.ResourceManager;
 import com.threerings.resource.ResourceManager.ModificationObserver;
 
+import com.threerings.editor.Editable;
+import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.Exportable;
@@ -53,6 +55,11 @@ import com.threerings.util.DeepOmit;
 public abstract class ManagedConfig extends DeepObject
     implements Exportable, ConfigUpdateListener<ManagedConfig>, ModificationObserver
 {
+    /** A helpful comment explaining what this config is and/or used for. */
+    @Editable(height=3, width=40, collapsible=true)
+    @Strippable
+    public String comment = "";
+
     /**
      * Sets the name of this configuration.
      */
