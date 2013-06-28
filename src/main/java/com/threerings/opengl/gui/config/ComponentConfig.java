@@ -937,6 +937,10 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0.0, step=0.01, hgroup="c")
         public float distance = 10f;
 
+        /** If we attempt to use the hints to size. */
+        @Editable
+        public boolean usePreferredSizeHints = false;
+
         /** A set of models to include in the view. */
         @Editable
         public ViewModel[] models = new ViewModel[0];
@@ -968,6 +972,7 @@ public abstract class ComponentConfig extends DeepObject
 
             // make static if specified and ensure that it will be validated
             view.setStatic(staticView);
+            view.setUsePreferredSizeHints(usePreferredSizeHints);
             view.invalidate();
 
             // create/reconfigure the models as necessary

@@ -49,6 +49,7 @@ import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.Model;
@@ -142,6 +143,25 @@ public class RenderableView extends Component
     public String getViewNode ()
     {
         return _viewNode;
+    }
+
+    /**
+     * Sets if we use the provided hints when computing our preferred size.
+     */
+    public void setUsePreferredSizeHints (boolean hints)
+    {
+        if (hints != _usePreferredSizeHints) {
+            _usePreferredSizeHints = hints;
+            invalidate();
+        }
+    }
+
+    /**
+     * Returns true if we use the hints to compute our preferred size.
+     */
+    public boolean usePreferredSizeHints ()
+    {
+        return _usePreferredSizeHints;
     }
 
     /**
@@ -257,6 +277,21 @@ public class RenderableView extends Component
             // restore the camera
             compositor.setCamera(ocamera);
         }
+    }
+
+    @Override
+    protected Dimension computePreferredSize (int whint, int hhint)
+    {
+        Dimension dim = super.computePreferredSize(whint, hhint);
+        if (_usePreferredSizeHints) {
+            if (whint > 0) {
+                dim.width = whint;
+            }
+            if (hhint > 0) {
+                dim.height = hhint;
+            }
+        }
+        return dim;
     }
 
     @Override
@@ -476,6 +511,9 @@ public class RenderableView extends Component
 
     /** For static views, the texture renderer. */
     protected TextureRenderer _renderer;
+
+    /** If we use hints while computing preferred size. */
+    protected boolean _usePreferredSizeHints;
 
     /** A scoped reference to the camera's view transform. */
     @Scoped
