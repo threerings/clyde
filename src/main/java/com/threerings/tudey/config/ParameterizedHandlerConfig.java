@@ -76,16 +76,18 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
      */
     public static class Original extends Implementation
     {
-        /** The handler. */
+        /** The handlers. */
         @Editable
-        public HandlerConfig handler = new HandlerConfig.Startup();
+        public HandlerConfig[] handlers = new HandlerConfig[0];
 
         /**
          * Adds the resources to preload for this attack into the provided set.
          */
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            handler.getPreloads(cfgmgr, preloads);
+            for (HandlerConfig handler : handlers) {
+                handler.getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override
@@ -99,7 +101,9 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
          */
         public void invalidate ()
         {
-            handler.invalidate();
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
         }
     }
 

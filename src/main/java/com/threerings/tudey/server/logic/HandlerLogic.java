@@ -27,6 +27,7 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
@@ -92,7 +93,7 @@ public abstract class HandlerLogic extends Logic
         @Override
         public void startup (int timestamp)
         {
-            if (_handler != null) {
+            for (HandlerLogic handler : _handlers) {
                 _handler.startup(timestamp);
             }
         }
@@ -100,7 +101,7 @@ public abstract class HandlerLogic extends Logic
         @Override
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
-            if (_handler != null) {
+            for (HandlerLogic handler : _handlers) {
                 _handler.shutdown(timestamp, activator, endScene);
             }
         }
@@ -108,7 +109,7 @@ public abstract class HandlerLogic extends Logic
         @Override
         public void variableChanged (int timestamp, Logic activator, String name)
         {
-            if (_handler != null) {
+            for (HandlerLogic handler : _handlers) {
                 _handler.variableChanged(timestamp, activator, name);
             }
         }
@@ -117,8 +118,9 @@ public abstract class HandlerLogic extends Logic
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
-            if (_handler != null) {
-                _handler.transfer(((Reference)source)._handler, refs);
+            Reference other = (Reference)source;
+            for (int ii = 0, nn = _handlers.size(); ii < nn; ii++) {
+                _handlers.get(ii).transfer(other._handlers.get(ii), refs);
             }
         }
 
@@ -128,21 +130,30 @@ public abstract class HandlerLogic extends Logic
             ConfigManager cfgmgr = _scenemgr.getConfigManager();
             ParameterizedHandlerConfig config = cfgmgr.getConfig(
                 ParameterizedHandlerConfig.class, ((HandlerConfig.Reference)_config).handler);
+            _handlers = Lists.newArrayList();
             ParameterizedHandlerConfig.Original original =
                 (config == null) ? null : config.getOriginal(cfgmgr);
-            _handler = original == null ? null : createHandler(original.handler, _source);
+            if (original != null) {
+                for (HandlerConfig handler : original.handlers) {
+                    HandlerLogic logic = createHandler(handler, _source);
+                    if (logic != null) {
+                        _handlers.add(logic);
+                    }
+                }
+            }
         }
 
         @Override
         protected void wasRemoved ()
         {
-            if (_handler != null) {
+            for (HandlerLogic handler : _handlers) {
                 _handler.wasRemoved();
             }
         }
 
         /** Our referred handler. */
         protected HandlerLogic _handler;
+        protected List<HandlerLogic> _handlers;
     }
 
     /**
