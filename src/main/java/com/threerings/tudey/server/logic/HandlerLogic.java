@@ -94,7 +94,7 @@ public abstract class HandlerLogic extends Logic
         public void startup (int timestamp)
         {
             for (HandlerLogic handler : _handlers) {
-                _handler.startup(timestamp);
+                handler.startup(timestamp);
             }
         }
 
@@ -102,7 +102,7 @@ public abstract class HandlerLogic extends Logic
         public void shutdown (int timestamp, Logic activator, boolean endScene)
         {
             for (HandlerLogic handler : _handlers) {
-                _handler.shutdown(timestamp, activator, endScene);
+                handler.shutdown(timestamp, activator, endScene);
             }
         }
 
@@ -110,7 +110,7 @@ public abstract class HandlerLogic extends Logic
         public void variableChanged (int timestamp, Logic activator, String name)
         {
             for (HandlerLogic handler : _handlers) {
-                _handler.variableChanged(timestamp, activator, name);
+                handler.variableChanged(timestamp, activator, name);
             }
         }
 
@@ -147,12 +147,11 @@ public abstract class HandlerLogic extends Logic
         protected void wasRemoved ()
         {
             for (HandlerLogic handler : _handlers) {
-                _handler.wasRemoved();
+                handler.wasRemoved();
             }
         }
 
         /** Our referred handler. */
-        protected HandlerLogic _handler;
         protected List<HandlerLogic> _handlers;
     }
 
