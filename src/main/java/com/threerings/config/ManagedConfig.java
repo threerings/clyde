@@ -29,8 +29,10 @@ import java.io.PrintStream;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
 
 import com.samskivert.util.ObserverList;
@@ -45,6 +47,8 @@ import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.Exportable;
+import com.threerings.export.Exporter;
+import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -55,10 +59,55 @@ import com.threerings.util.DeepOmit;
 public abstract class ManagedConfig extends DeepObject
     implements Exportable, ConfigUpdateListener<ManagedConfig>, ModificationObserver
 {
+    /**
+     * Set whether to store comments. In a production environment comments can be disabled
+     * and they will take up no space. This should be called prior to the config manager
+     * starting up.
+     */
+    public static void setStoreComments (boolean storeComments)
+    {
+        if (storeComments != (_comments != null)) {
+            _comments = storeComments
+                ? new MapMaker().concurrencyLevel(1).weakKeys().<ManagedConfig, String>makeMap()
+                : null;
+        }
+    }
+
     /** A helpful comment explaining what this config is and/or used for. */
     @Editable(height=3, width=40, collapsible=true)
     @Strippable
-    public String comment = "";
+    public String getComment ()
+    {
+        if (_comments != null) {
+            String comm = _comments.get(this);
+            if (comm != null) {
+                return comm;
+            }
+        }
+        return "";
+    }
+
+    /** A helpful comment explaining what this config is and/or used for. */
+    @Editable(height=3, width=40, collapsible=true)
+    @Strippable
+    public void setComment (String comment)
+    {
+        if (_comments != null) {
+            if ("".equals(comment)) {
+                _comments.remove(this);
+            } else {
+                _comments.put(this, comment);
+            }
+        }
+    }
+
+    @Override
+    public Object copy (Object dest, Object outer)
+    {
+        Object result = super.copy(dest, outer);
+        ((ManagedConfig)result).setComment(getComment());
+        return result;
+    }
 
     /**
      * Sets the name of this configuration.
@@ -231,6 +280,31 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
+     * Custom export handling.
+     * @see Exportable
+     */
+    public void writeFields (Exporter out)
+        throws java.io.IOException
+    {
+        String comment = getComment();
+        if (!"".equals(comment)) {
+            out.write("comment", comment);
+        }
+        out.defaultWriteFields();
+    }
+
+    /**
+     * Custom import handling.
+     * @see Exportable
+     */
+    public void readFields (Importer in)
+        throws java.io.IOException
+    {
+        in.defaultReadFields();
+        setComment(in.read("comment", ""));
+    }
+
+    /**
      * Collects all of the references within this config to configs that, when updated, should
      * trigger a call to {@link #fireConfigUpdated}.
      */
@@ -345,4 +419,10 @@ public abstract class ManagedConfig extends DeepObject
      * in dev environments. */
     @DeepOmit
     protected transient HashSet<String> _updateResources;
+
+    /** Storage for comments. Can be replaced by null in a production environment. */
+    protected static Map<ManagedConfig, String> _comments;
+    static {
+        setStoreComments(true);
+    }
 }
