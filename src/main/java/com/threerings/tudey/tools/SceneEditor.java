@@ -1597,6 +1597,7 @@ public class SceneEditor extends TudeyTool
         TudeySceneModel scene = _scene.clone();
         // remove non-visibile layers
         scene.init(_scene.getConfigManager());
+        scene.version = 1;
         List<Object> toRemove = Lists.newArrayList();
         List<Boolean> visibility = _layers.getLayerVisibility();
         for (Entry entry : scene.getEntries()) {
