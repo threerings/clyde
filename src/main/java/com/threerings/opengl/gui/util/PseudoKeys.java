@@ -625,11 +625,7 @@ public class PseudoKeys
         int controllerIndex;
 
         if (!Controllers.isCreated()) {
-            try {
-                Controllers.create();
-            } catch (LWJGLException e) {
-                log.warning("Failed to create controllers.", e);
-            }
+            throw new RuntimeException("Controllers has not been created.");
         }
 
         switch (getType(key)) {
