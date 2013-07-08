@@ -776,7 +776,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Determines whether the specified actor collides with anything in the environment.
      */
-    public boolean collides (ActorLogic logic)
+    public final boolean collides (ActorLogic logic)
     {
         return collides(logic, logic.getShape());
     }
@@ -784,7 +784,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Determines whether the specified actor collides with anything in the environment.
      */
-    public boolean collides (ActorLogic logic, Shape shape)
+    public final boolean collides (ActorLogic logic, Shape shape)
     {
         return collides(logic, shape, _timestamp);
     }
@@ -792,7 +792,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Determines whether the specified actor collides with anything in the environment.
      */
-    public boolean collides (ActorLogic logic, Shape shape, int timestamp)
+    public final boolean collides (ActorLogic logic, Shape shape, int timestamp)
     {
         return collides(logic.getActor(), shape, timestamp);
     }
@@ -826,7 +826,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Determines whether the specified shape collides with anything in the environment.
      */
-    public boolean collides (int mask, Shape shape)
+    public final boolean collides (int mask, Shape shape)
     {
         return collides(mask, shape, _timestamp);
     }
@@ -834,7 +834,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Determines whether the specified shape collides with anything in the environment.
      */
-    public boolean collides (int mask, Shape shape, int timestamp)
+    public final boolean collides (int mask, Shape shape, int timestamp)
     {
         return collides(mask, shape, timestamp, Predicates.alwaysTrue());
     }
@@ -1212,7 +1212,7 @@ public class TudeySceneManager extends SceneManager
     }
 
     // documentation inherited from interface ActorAdvancer.Environment
-    public boolean collides (Actor actor, Shape shape)
+    public final boolean collides (Actor actor, Shape shape)
     {
         return collides(actor, shape, _timestamp);
     }
