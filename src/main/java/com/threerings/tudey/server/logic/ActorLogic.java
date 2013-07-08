@@ -28,6 +28,9 @@ package com.threerings.tudey.server.logic;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+
 import com.samskivert.util.ObserverList;
 
 import com.threerings.crowd.data.BodyObject;
@@ -89,9 +92,11 @@ public class ActorLogic extends Logic
         updateCollisionFlags();
 
         // if specified, attempt to find a non-colliding spawn point
-        if ((config.spawnMask != 0) && (actor == null) &&
-                scenemgr.collides(config.spawnMask, getShape(), timestamp)) {
-            adjustSpawnPoint();
+        if ((config.spawnMask != 0) && (actor == null)) {
+            Predicate<? super Actor> collPred = getSpawnCollisionPredicate();
+            if (scenemgr.collides(config.spawnMask, getShape(), timestamp, collPred)) {
+                adjustSpawnPoint(collPred);
+            }
         }
         _scenemgr.getActorSpace().add(_shape);
 
@@ -305,12 +310,13 @@ public class ActorLogic extends Logic
                         this, warpPath, oldX, oldY, false, false) != null) :
                 (_scenemgr.getPathfinder().getPath(
                         this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) != null);
-            if (!canPath ||
-                    _scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp())) {
+            Predicate<? super Actor> collPred = getSpawnCollisionPredicate();
+            if (!canPath || _scenemgr.collides(
+                    _config.spawnMask, getShape(), _scenemgr.getTimestamp(), collPred)) {
                 if (canPath) {
-                    adjustSpawnPoint(x, y);
+                    adjustSpawnPoint(x, y, collPred);
                 } else {
-                    adjustSpawnPoint(tx, ty);
+                    adjustSpawnPoint(tx, ty, collPred);
                 }
                 canPath = warpPath > 0 ?
                     (_scenemgr.getPathfinder().getPath(
@@ -536,12 +542,12 @@ public class ActorLogic extends Logic
     /**
      * Adjusts the initial location of the actor so as to avoid collisions.
      */
-    protected void adjustSpawnPoint ()
+    protected void adjustSpawnPoint (Predicate<? super Actor> collPred)
     {
         boolean warp = _actor.isSet(Actor.WARP);
         _actor.set(Actor.WARP);
         Vector2f translation = _actor.getTranslation();
-        adjustSpawnPoint(translation.x, translation.y);
+        adjustSpawnPoint(translation.x, translation.y, collPred);
         if (!warp) {
             _actor.clear(Actor.WARP);
         }
@@ -550,7 +556,7 @@ public class ActorLogic extends Logic
     /**
      * Adjusts the initial location of the actor so as to avoid collisions.
      */
-    protected void adjustSpawnPoint (float tx, float ty)
+    protected void adjustSpawnPoint (float tx, float ty, Predicate<? super Actor> collPred)
     {
         // get the bounds with respect to the position
         Rect bounds = _shape.getBounds();
@@ -563,25 +569,25 @@ public class ActorLogic extends Logic
             // loop counterclockwise around the center
             float bottom = oy - dist*height;
             for (int xx = -dist; xx <= +dist; xx++) {
-                if (testSpawnPoint(tx, ty, ox + xx*width, bottom)) {
+                if (testSpawnPoint(tx, ty, ox + xx*width, bottom, collPred)) {
                     return;
                 }
             }
             float right = ox + dist*width;
             for (int yy = 1 - dist, yymax = -yy; yy <= yymax; yy++) {
-                if (testSpawnPoint(tx, ty, right, oy + yy*height)) {
+                if (testSpawnPoint(tx, ty, right, oy + yy*height, collPred)) {
                     return;
                 }
             }
             float top = oy + dist*height;
             for (int xx = +dist; xx >= -dist; xx--) {
-                if (testSpawnPoint(tx, ty, ox + xx*width, top)) {
+                if (testSpawnPoint(tx, ty, ox + xx*width, top, collPred)) {
                     return;
                 }
             }
             float left = ox - dist*width;
             for (int yy = dist - 1, yymin = -yy; yy >= yymin; yy--) {
-                if (testSpawnPoint(tx, ty, left, oy + yy*height)) {
+                if (testSpawnPoint(tx, ty, left, oy + yy*height, collPred)) {
                     return;
                 }
             }
@@ -598,20 +604,31 @@ public class ActorLogic extends Logic
      * @return true if the spawn point is viable (in which case the actor's translation
      * will have been adjusted), false if not.
      */
-    protected boolean testSpawnPoint (float ox, float oy, float nx, float ny)
+    protected boolean testSpawnPoint (
+            float ox, float oy, float nx, float ny, Predicate<? super Actor> collPred)
     {
         // update the shape
         _actor.setTranslation(nx, ny);
         updateShape();
 
         // check for collision
-        if (_scenemgr.collides(_config.spawnMask, getShape(), _actor.getCreated())) {
+        if (_scenemgr.collides(_config.spawnMask, getShape(), _actor.getCreated(), collPred)) {
             return false;
         }
 
         // make sure we can reach the original translation, ignoring actors
         return _scenemgr.getPathfinder().getPath(
             this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false, false) != null;
+    }
+
+    /**
+     * Returns a Predicate that allows for non-collision when the flags would indicate collision.
+     * If this actor's spawnMask indicates that it collides with another actor, this predicate
+     * can return false to indicate that it doesn't.
+     */
+    protected Predicate<? super Actor> getSpawnCollisionPredicate ()
+    {
+        return Predicates.alwaysTrue(); // always respect the spawnMask
     }
 
     /**

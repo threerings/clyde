@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -834,6 +836,15 @@ public class TudeySceneManager extends SceneManager
      */
     public boolean collides (int mask, Shape shape, int timestamp)
     {
+        return collides(mask, shape, timestamp, Predicates.alwaysTrue());
+    }
+
+    /**
+     * Determines whether the specified shape collides with anything in the environment.
+     */
+    public boolean collides (
+            int mask, Shape shape, int timestamp, Predicate<? super Actor> canCollidePred)
+    {
         // make sure we can actually collide with anything
         if (mask == 0) {
             return false;
@@ -850,7 +861,9 @@ public class TudeySceneManager extends SceneManager
             for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
                 SpaceElement element = _elements.get(ii);
                 Actor actor = ((ActorLogic)element.getUserObject()).getActor();
-                if (timestamp < actor.getDestroyed() && (actor.getCollisionFlags() & mask) != 0) {
+                if ((timestamp < actor.getDestroyed()) &&
+                        ((actor.getCollisionFlags() & mask) != 0) &&
+                        canCollidePred.apply(actor)) {
                     return true;
                 }
             }
