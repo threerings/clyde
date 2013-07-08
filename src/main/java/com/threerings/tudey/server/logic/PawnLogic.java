@@ -36,6 +36,7 @@ import com.threerings.tudey.util.PawnAdvancer;
  * Handles the state of a player-controlled actor.
  */
 public class PawnLogic extends ActiveLogic
+    implements NonTransferable
 {
     /**
      * Notes that the controlling client has entered.
