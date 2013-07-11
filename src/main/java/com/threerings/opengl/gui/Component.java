@@ -70,7 +70,7 @@ import static com.threerings.opengl.gui.Log.*;
  * derivations make up a user interface.
  */
 public class Component
-    implements ConfigUpdateListener<ManagedConfig>
+    implements ConfigUpdateListener<ManagedConfig>, Validateable
 {
     /** The default component state. This is used to select the component's style pseudoclass among
      * other things. */
@@ -841,10 +841,7 @@ public class Component
             _parent.getTransferHandler() : _transferHandler;
     }
 
-    /**
-     * Returns true if this component is added to a hierarchy of components that culminates in a
-     * top-level window.
-     */
+    @Override // from Validateable
     public boolean isAdded ()
     {
         Window win = getWindow();
@@ -859,9 +856,7 @@ public class Component
         return _valid;
     }
 
-    /**
-     * Instructs this component to lay itself out and then mark itself as valid.
-     */
+    @Override // from Validateable
     public void validate ()
     {
         if (!_valid) {

@@ -80,7 +80,7 @@ public class ScrollPane extends Container
     }
 
     /**
-     * Initializing constructor. 
+     * Initializing constructor.
      */
     public ScrollPane (
         GlContext ctx, Component child, boolean vert, boolean horiz, int snap, boolean buttons)
@@ -174,12 +174,14 @@ public class ScrollPane extends Container
             return;
         }
         _layingOut = true;
+        boolean hadVBar = false, hadHBar = false;
         if (_vbar != null) {
             _vport.storeOldV();
             if (_showAlways && _vbar.getParent() == null) {
                 add(_vbar, BorderLayout.EAST);
             } else if (!_showAlways && _vbar.getParent() != null) {
                 remove(_vbar);
+                hadVBar = true;
             }
         }
         if (_vlbtn != null) {
@@ -195,6 +197,7 @@ public class ScrollPane extends Container
                 add(_hbar, BorderLayout.SOUTH);
             } else if (!_showAlways && _hbar.getParent() != null) {
                 remove(_hbar);
+                hadHBar = true;
             }
         }
         if (_hlbtn != null) {
@@ -235,6 +238,24 @@ public class ScrollPane extends Container
             if (hmodel.getExtent() != hmodel.getRange()) {
                 add(_hbar, BorderLayout.SOUTH);
                 validate();
+                hadded = true;
+            }
+        }
+        if (!_revalidating && (hadVBar != vadded || hadHBar != hadded)) {
+            final Window window = getWindow();
+            Root root;
+            if (window != null && (root = window.getRoot()) != null) {
+                _revalidating = true;
+                root.rootInvalidated(new Validateable() {
+                    @Override public boolean isAdded () {
+                        return window.isAdded();
+                    }
+                    @Override public void validate () {
+                        ScrollPane.this.invalidate();
+                        window.validate();
+                        _revalidating = false;
+                    }
+                });
             }
         }
         _layingOut = false;
@@ -534,5 +555,5 @@ public class ScrollPane extends Container
     protected Viewport _vport;
     protected ScrollBar _vbar, _hbar;
     protected ScrollButton _vlbtn, _vmbtn, _hlbtn, _hmbtn;
-    protected boolean _showAlways = true, _layingOut;
+    protected boolean _showAlways = true, _layingOut, _revalidating;
 }

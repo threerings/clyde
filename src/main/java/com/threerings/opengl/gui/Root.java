@@ -387,7 +387,7 @@ public abstract class Root extends SimpleOverlay
      * should schedule a revalidation of this component on the next tick or the next time an event
      * is processed.
      */
-    public void rootInvalidated (Component root)
+    public void rootInvalidated (Validateable root)
     {
         // add the component to the list of invalid roots
         if (!_invalidRoots.contains(root)) {
@@ -632,7 +632,7 @@ public abstract class Root extends SimpleOverlay
         // validate all invalid roots
         boolean updateHover = false;
         while (!_invalidRoots.isEmpty()) {
-            Component root = _invalidRoots.removeFirst();
+            Validateable root = _invalidRoots.removeFirst();
             // make sure the root is still added to the view hierarchy
             if (root.isAdded()) {
                 root.validate();
@@ -1251,7 +1251,7 @@ public abstract class Root extends SimpleOverlay
     protected CopyOnWriteArrayList<EventListener> _globals =
         new CopyOnWriteArrayList<EventListener>();
 
-    protected ArrayDeque<Component> _invalidRoots = new ArrayDeque<Component>();
+    protected ArrayDeque<Validateable> _invalidRoots = new ArrayDeque<Validateable>();
 
     /** A sound group for feedback effects. */
     protected SoundGroup _soundGroup;
