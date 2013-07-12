@@ -60,19 +60,16 @@ public class DisplayRoot extends Root
     public void poll ()
     {
         boolean isActive = Display.isActive();
-        boolean newActive = (!_wasActive && isActive);
-        _wasActive = isActive;
+        if (!isActive) {
+            _mouseMoved = false;
+        }
 
         // process mouse events
         while (Mouse.next()) {
             int button = Mouse.getEventButton();
-            if (button != -1) {
+            if (button != -1 && _mouseMoved) {
                 boolean pressed = Mouse.getEventButtonState();
                 if (pressed) {
-                    // Don't let the focusing click through, it has the wrong coordinates
-                    if (newActive) {
-                        return;
-                    }
                     mousePressed(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
                 } else {
                     mouseReleased(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
@@ -85,6 +82,7 @@ public class DisplayRoot extends Root
                     (delta > 0) ? +1 : -1, false);
             }
             if (isActive && button == -1 && delta == 0) {
+                _mouseMoved = true;
                 mouseMoved(_tickStamp, Mouse.getEventX(), Mouse.getEventY(), false);
             }
         }
@@ -314,7 +312,9 @@ public class DisplayRoot extends Root
         dispatchEvent(getFocus(), event);
     }
 
-    /** Track whether we were active during the last event poll, so that we can consume
-     * the mouse click that may arrive with focus. */
-    protected boolean _wasActive;
+//    /** Track whether we were active during the last event poll, so that we can consume
+//     * the mouse click that may arrive with focus. */
+//    protected boolean _wasActive;
+
+    protected boolean _mouseMoved;
 }
