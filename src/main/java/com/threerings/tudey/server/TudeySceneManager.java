@@ -440,7 +440,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Spawns an actor with the named configuration.
      */
-    public ActorLogic spawnActor (
+    public final ActorLogic spawnActor (
         int timestamp, Vector2f translation, float rotation, String name)
     {
         return spawnActor(timestamp, translation, rotation,
@@ -450,7 +450,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Spawns an actor with the supplied name and arguments.
      */
-    public ActorLogic spawnActor (
+    public final ActorLogic spawnActor (
         int timestamp, Vector2f translation, float rotation, String name,
         String firstKey, Object firstValue, Object... otherArgs)
     {
@@ -461,7 +461,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Spawns an actor with the referenced configuration.
      */
-    public ActorLogic spawnActor (
+    public final ActorLogic spawnActor (
         int timestamp, Vector2f translation, float rotation, ConfigReference<ActorConfig> ref)
     {
         return spawnActor(timestamp, translation, rotation, ref, null);
@@ -521,7 +521,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Fires off an effect at the with the named configuration.
      */
-    public EffectLogic fireEffect (
+    public final EffectLogic fireEffect (
         int timestamp, Logic target, Vector2f translation, float rotation, String name)
     {
         return fireEffect(timestamp, target, translation, rotation,
@@ -531,7 +531,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Fires off an effect with the supplied name and arguments.
      */
-    public EffectLogic fireEffect (
+    public final EffectLogic fireEffect (
         int timestamp, Logic target, Vector2f translation, float rotation, String name,
         String firstKey, Object firstValue, Object... otherArgs)
     {
