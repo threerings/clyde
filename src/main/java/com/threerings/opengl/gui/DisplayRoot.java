@@ -93,7 +93,7 @@ public class DisplayRoot extends Root
             int button = Mouse.getEventButton();
             if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
-                if (pressed) {
+                if (pressed && !newActive) {
                     mousePressed(_tickStamp, button, eventX, eventY, false);
                 } else {
                     mouseReleased(_tickStamp, button, eventX, eventY, false);
