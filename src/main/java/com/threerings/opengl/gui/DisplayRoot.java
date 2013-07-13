@@ -43,6 +43,11 @@ import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import static com.threerings.opengl.gui.Log.*;
 
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.MouseInfo;
+import java.awt.Window;
+
 /**
  * A root for {@link Display}-based apps.
  */
@@ -60,31 +65,46 @@ public class DisplayRoot extends Root
     public void poll ()
     {
         boolean isActive = Display.isActive();
-        if (!isActive) {
-            _mouseMoved = false;
+        boolean newActive = !_wasActive && isActive;
+        _wasActive = isActive;
+
+        Point p;
+        if (newActive) {
+            // use the AWT to determine the current mouse position on the focusing click
+            Rectangle windowBounds = Window.getWindows()[0].getBounds();
+            Point mouseP = MouseInfo.getPointerInfo().getLocation();
+            p = new Point(mouseP.x - windowBounds.x,
+                windowBounds.height - (1 + mouseP.y - windowBounds.y));
+            mouseMoved(_tickStamp, p.x, p.y, false);
+        } else {
+            p = null;
         }
 
         // process mouse events
         while (Mouse.next()) {
+            int eventX = (p == null) ? Mouse.getEventX() : p.x;
+            int eventY = (p == null) ? Mouse.getEventY() : p.y;
             int button = Mouse.getEventButton();
-            if (button != -1 && _mouseMoved) {
+            if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
                 if (pressed) {
-                    mousePressed(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
+                    mousePressed(_tickStamp, button, eventX, eventY, false);
                 } else {
-                    mouseReleased(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
+                    mouseReleased(_tickStamp, button, eventX, eventY, false);
                 }
                 updateButtonModifier(button, pressed);
             }
             int delta = Mouse.getEventDWheel();
             if (delta != 0) {
-                mouseWheeled(_tickStamp, Mouse.getEventX(), Mouse.getEventY(),
+                mouseWheeled(_tickStamp, eventX, eventY,
                     (delta > 0) ? +1 : -1, false);
             }
             if (isActive && button == -1 && delta == 0) {
-                _mouseMoved = true;
-                mouseMoved(_tickStamp, Mouse.getEventX(), Mouse.getEventY(), false);
+                mouseMoved(_tickStamp, eventX, eventY, false);
             }
+        }
+        if (p != null) {
+            Mouse.setCursorPosition(p.x, p.y);
         }
 
         // process keyboard events
@@ -312,9 +332,7 @@ public class DisplayRoot extends Root
         dispatchEvent(getFocus(), event);
     }
 
-//    /** Track whether we were active during the last event poll, so that we can consume
-//     * the mouse click that may arrive with focus. */
-//    protected boolean _wasActive;
-
-    protected boolean _mouseMoved;
+    /** Track whether we were active during the last event poll, so that we can consume
+     * the mouse click that may arrive with focus. */
+    protected boolean _wasActive;
 }
