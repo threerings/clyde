@@ -25,7 +25,11 @@
 
 package com.threerings.opengl.gui;
 
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 
 import java.util.Iterator;
 
@@ -43,10 +47,6 @@ import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import static com.threerings.opengl.gui.Log.*;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.MouseInfo;
-import java.awt.Window;
 
 /**
  * A root for {@link Display}-based apps.
@@ -76,6 +76,7 @@ public class DisplayRoot extends Root
             p = new Point(mouseP.x - windowBounds.x,
                 windowBounds.height - (1 + mouseP.y - windowBounds.y));
             mouseMoved(_tickStamp, p.x, p.y, false);
+
         } else {
             p = null;
         }
@@ -96,13 +97,13 @@ public class DisplayRoot extends Root
             }
             int delta = Mouse.getEventDWheel();
             if (delta != 0) {
-                mouseWheeled(_tickStamp, eventX, eventY,
-                    (delta > 0) ? +1 : -1, false);
+                mouseWheeled(_tickStamp, eventX, eventY, (delta > 0) ? +1 : -1, false);
             }
             if (isActive && button == -1 && delta == 0) {
                 mouseMoved(_tickStamp, eventX, eventY, false);
             }
         }
+        // If we calculated a new mouse position, force it for the next update.
         if (p != null) {
             Mouse.setCursorPosition(p.x, p.y);
         }
