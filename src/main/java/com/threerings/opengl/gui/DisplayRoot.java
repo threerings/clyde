@@ -70,12 +70,17 @@ public class DisplayRoot extends Root
 
         Point p;
         if (newActive) {
-            // use the AWT to determine the current mouse position on the focusing click
-            Rectangle windowBounds = Window.getWindows()[0].getBounds();
-            Point mouseP = MouseInfo.getPointerInfo().getLocation();
-            p = new Point(mouseP.x - windowBounds.x,
-                windowBounds.height - (1 + mouseP.y - windowBounds.y));
-            mouseMoved(_tickStamp, p.x, p.y, false);
+            Window[] windows = Window.getWindows();
+            if (windows.length > 0) {
+                // use the AWT to determine the current mouse position on the focusing click
+                Rectangle windowBounds = Window.getWindows()[0].getBounds();
+                Point mouseP = MouseInfo.getPointerInfo().getLocation();
+                p = new Point(mouseP.x - windowBounds.x,
+                    windowBounds.height - (1 + mouseP.y - windowBounds.y));
+                mouseMoved(_tickStamp, p.x, p.y, false);
+            } else {
+                p = null;
+            }
 
         } else {
             p = null;
