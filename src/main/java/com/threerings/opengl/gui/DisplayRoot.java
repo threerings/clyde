@@ -40,6 +40,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
+import com.samskivert.util.RunAnywhere;
+
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ControllerEvent;
@@ -69,11 +71,11 @@ public class DisplayRoot extends Root
         _wasActive = isActive;
 
         Point p;
-        if (newActive) {
+        if (newActive && RunAnywhere.isMacOS()) {
             Window[] windows = Window.getWindows();
             if (windows.length > 0) {
                 // use the AWT to determine the current mouse position on the focusing click
-                Rectangle windowBounds = Window.getWindows()[0].getBounds();
+                Rectangle windowBounds = windows[0].getBounds();
                 Point mouseP = MouseInfo.getPointerInfo().getLocation();
                 p = new Point(mouseP.x - windowBounds.x,
                     windowBounds.height - (1 + mouseP.y - windowBounds.y));
