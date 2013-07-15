@@ -80,7 +80,7 @@ public class ConfigSearcher
         return Iterables.concat(list);
     }
 
-   /** A cache of Class -> Field[], since calling getFields() copies each time to protect the
+    /** A cache of Class -> Field[], since calling getFields() copies each time to protect the
      * original array. */
     protected static final LoadingCache<Class<?>, Field[]> FIELDS = CacheBuilder.newBuilder()
         .concurrencyLevel(1)
