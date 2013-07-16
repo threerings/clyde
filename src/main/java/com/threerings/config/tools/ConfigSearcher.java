@@ -263,7 +263,7 @@ public class ConfigSearcher extends JFrame
     {
         _ctx = ctx;
         _content = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.LEFT, GroupLayout.STRETCH);
-        _status = new JLabel("");
+        _status = new JLabel(".");
         add(new JScrollPane(_content), BorderLayout.CENTER);
         add(_status, BorderLayout.NORTH);
         setTitle(title);
@@ -280,7 +280,8 @@ public class ConfigSearcher extends JFrame
                 }
                 while (!_resultIterator.hasNext()) {
                     if (!_domainIterator.hasNext()) {
-                        _status.setText("DONE");
+                        addLabel("DONE.");
+                        _status.setText("");
                         return;
                     }
                     Domain domain = _domainIterator.next();
@@ -308,7 +309,7 @@ public class ConfigSearcher extends JFrame
 
     protected void addResult (final Result result)
     {
-        JLabel label = new JLabel(result.getLabel());
+        JLabel label = new JLabel("  " + result.getLabel());
         label.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked (MouseEvent event) {
                 result.onClick();
@@ -322,7 +323,7 @@ public class ConfigSearcher extends JFrame
     {
         long now = System.currentTimeMillis();
         if (now >= _nextStatusUpdate) {
-            _status.setText(StringUtil.fill('.', 1 + (_status.getText().length() + 1) % 4));
+            _status.setText(StringUtil.fill('.', 1 + (_status.getText().length() % 4)));
             _nextStatusUpdate = now + 800; // 800ms
         }
     }
