@@ -336,7 +336,7 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("delete")) {
             item.deleteNode();
         } else if (action.equals("find_uses")) {
-            findUses((ManagedConfig)panel.getEditorPanel().getObject());
+            findUses(panel.getSelected(), (null != panel.getEditorPanel().getObject()));
         } else if (action.equals("validate_refs")) {
             validateReferences();
         } else if (action.equals("resources")) {
@@ -390,15 +390,16 @@ public class ConfigEditor extends BaseConfigEditor
     /**
      * Finds the uses of the specified config.
      */
-    protected void findUses (ManagedConfig cfg)
+    protected void findUses (final String cfgNameOrPrefix, final boolean exact)
     {
-        if (cfg == null) {
+        if (cfgNameOrPrefix == null) {
             return;
         }
-        final String name = cfg.getName();
-        new ConfigSearcher(this, name, new Predicate<ConfigReference<?>>() {
+        new ConfigSearcher(this, cfgNameOrPrefix, new Predicate<ConfigReference<?>>() {
                 public boolean apply (ConfigReference<?> ref) {
-                    return name.equals(ref.getName());
+                    return exact
+                        ? ref.getName().equals(cfgNameOrPrefix)
+                        : ref.getName().startsWith(cfgNameOrPrefix);
                 }
             }, getSearcherDomains());
     }
@@ -621,6 +622,17 @@ public class ConfigEditor extends BaseConfigEditor
             }
 
             /**
+             * Get the selected node, which may be a "folder" name: a partial config name.
+             */
+            public String getSelected ()
+            {
+                ConfigTreeNode node = _tree.getSelectedNode();
+                return (node == null)
+                    ? null
+                    : node.getName();
+            }
+
+            /**
              * Disposes of the resources held by this item.
              */
             public void dispose ()
@@ -768,6 +780,14 @@ public class ConfigEditor extends BaseConfigEditor
                 }
             }
             return false;
+        }
+
+        /**
+         * Get the selected node, which may be a "folder" name: a partial config name.
+         */
+        public String getSelected ()
+        {
+            return ((GroupItem)gbox.getSelectedItem()).getSelected();
         }
 
         /**
