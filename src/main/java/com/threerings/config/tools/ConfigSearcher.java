@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Function;
@@ -43,6 +44,15 @@ public class ConfigSearcher
     public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
     {
         return find(val, detector, Sets.newIdentityHashSet());
+    }
+
+    /**
+     * Find the path to the search config from the specified starting point.
+     * Experimental.
+     */
+    public static String findPath (Object val, Predicate<? super ConfigReference<?>> detector)
+    {
+        return findPath(val, detector, Sets.newIdentityHashSet());
     }
 
     /**
@@ -95,6 +105,62 @@ public class ConfigSearcher
             }
         }
         return false;
+    }
+
+    /**
+     * Internal helper for findPath.
+     */
+    protected static String findPath (
+        Object val, Predicate<? super ConfigReference<?>> detector,
+        Set<Object> seen)
+    {
+        if (val == null) {
+            return null;
+        }
+
+        Class<?> c = val.getClass();
+        if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
+                !seen.add(val)) {
+            return null;
+        }
+
+        // make a list of sub-fields
+        String path;
+        if (val instanceof ConfigReference) {
+            ConfigReference<?> ref = (ConfigReference<?>)val;
+            if (detector.apply(ref)) {
+                return "this";
+            }
+            for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
+                path = findPath(entry.getValue(), detector, seen);
+                if (path != null) {
+                    return "{" + entry.getKey() + "}." + path;
+                }
+            }
+
+        } else if (c.isArray()) {
+            for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
+                path = findPath(Array.get(val, ii), detector, seen);
+                if (path != null) {
+                    return "[" + ii + "]." + path;
+                }
+            }
+
+        } else {
+            for (Field f : FIELDS.getUnchecked(c)) {
+                Object o;
+                try {
+                    o = f.get(val);
+                } catch (IllegalAccessException iae) {
+                    continue;
+                }
+                path = findPath(o, detector, seen);
+                if (path != null) {
+                    return f.getName() + "." + path;
+                }
+            }
+        }
+        return null;
     }
 
     /**
