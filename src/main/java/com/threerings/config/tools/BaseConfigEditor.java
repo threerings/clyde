@@ -39,6 +39,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.google.common.base.Function;
+
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
@@ -72,6 +74,12 @@ public abstract class BaseConfigEditor extends JFrame
             return new ResourceEditor(
                 msgmgr, cfgmgr.getRoot(), colorpos,
                 ctx.getResourceManager().getResourceFile(name).toString());
+
+        } else if (_editorCreator != null) {
+            ConfigEditor editor = _editorCreator.apply(ctx);
+            editor.select(clazz, name);
+            return editor;
+
         } else {
             return new ConfigEditor(msgmgr, cfgmgr, colorpos, clazz, name);
         }
@@ -312,4 +320,9 @@ public abstract class BaseConfigEditor extends JFrame
 
     /** The package preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(BaseConfigEditor.class);
+
+    /** A Function for creating new instances of the config editor via our public static method.
+     * This function will be assigned by subclasses that wish to ensure that that subclass
+     * is always used. */
+    protected static Function<? super EditorContext, ? extends ConfigEditor> _editorCreator;
 }
