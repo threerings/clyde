@@ -8,10 +8,15 @@ import java.awt.EventQueue;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -39,11 +45,15 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
 
-import com.threerings.editor.util.EditorContext;
-
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
+
+import com.threerings.editor.util.EditorContext;
+
+import com.threerings.export.util.ExportFileUtil;
+
+import com.threerings.tudey.data.TudeySceneModel;
 
 /**
  * Utilitiies for searching for and in ConfigReferences.
@@ -148,6 +158,103 @@ public class ConfigSearcher extends JFrame
         }
 
         protected EditorContext _ctx;
+    }
+
+    public abstract static class TudeySceneDomain
+        implements Domain
+    {
+        public TudeySceneDomain (EditorContext ctx, File dir, String label)
+        {
+            Preconditions.checkArgument(dir.isDirectory());
+            _ctx = ctx;
+            _dir = dir;
+            _label = label;
+        }
+
+        public String getLabel ()
+        {
+            return _label;
+        }
+
+        public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
+        {
+            return Iterables.transform(datFiles(_dir),
+                new Function<File, Result>() {
+                    public Result apply (File f) {
+                        return resultForFile(f, detector);
+                    }
+                }).iterator();
+        }
+
+        /**
+         * Find all .dat files beneath the specified directory.
+         */
+        protected Iterable<File> datFiles (File directory)
+        {
+            return Iterables.concat(
+                Arrays.asList(directory.listFiles(DAT_FILTER)),
+                Iterables.concat(
+                    Iterables.transform(Arrays.asList(directory.listFiles(DIR_FILTER)),
+                        new Function<File, Iterable<File>>() {
+                            public Iterable<File> apply (File dir) {
+                                return datFiles(dir); // recurse
+                            }
+                        })));
+        }
+
+        protected Result resultForFile (File file, Predicate<? super ConfigReference<?>> detector)
+        {
+            TudeySceneModel model;
+            try {
+                model = ExportFileUtil.readObject(file, TudeySceneModel.class);
+            } catch (Exception e) {
+                return null;
+            }
+            model.init(_ctx.getConfigManager());
+            for (TudeySceneModel.Entry entry : model.getEntries()) {
+                if (find(entry.getReference(), detector)) {
+                    return new SceneResult(_dir, file);
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Called to edit the scene. You must implement this.
+         */
+        protected abstract void editScene (File file);
+
+        protected EditorContext _ctx;
+        protected String _label;
+        protected File _dir;
+
+        protected class SceneResult extends Result
+        {
+            public SceneResult (File topDir, File file)
+            {
+                super(file.getAbsolutePath().substring(topDir.getAbsolutePath().length()));
+                _file = file;
+            }
+
+            public void onClick ()
+            {
+                editScene(_file);
+            }
+
+            protected File _file;
+        }
+
+        protected static final FileFilter DIR_FILTER = new FileFilter() {
+            public boolean accept (File f) {
+                return f.isDirectory() && !".svn".equals(f.getName());
+            }
+        };
+
+        protected static final FileFilter DAT_FILTER = new FileFilter() {
+            public boolean accept (File f) {
+                return f.getName().endsWith(".dat");
+            }
+        };
     }
 
     public ConfigSearcher (
