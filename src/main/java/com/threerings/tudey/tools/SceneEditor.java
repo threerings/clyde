@@ -34,12 +34,17 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -394,6 +399,9 @@ public class SceneEditor extends TudeyTool
 
         _epanel.add(_layerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _layers, _opanel));
         _layerSplit.setBorder(BorderFactory.createEmptyBorder());
+
+        // restore preferences about where things are
+        restorePrefs();
 
         // activate the arrow tool
         setActiveTool(_arrow);
@@ -1820,6 +1828,58 @@ public class SceneEditor extends TudeyTool
         case 2:
             return true;
         }
+    }
+
+    /**
+     * Restore UI preferences.
+     */
+    protected void restorePrefs ()
+    {
+        final String p = "SceneEditor."; // TODO? getClass().getSimpleName() + "." ???
+
+        // restore/bind window bounds
+        java.awt.Rectangle r = _frame.getBounds();
+        _frame.setBounds(_prefs.getInt(p + "x", r.x),
+                _prefs.getInt(p + "y", r.y),
+                _prefs.getInt(p + "w", r.width),
+                _prefs.getInt(p + "h", r.height));
+        _frame.addComponentListener(new ComponentAdapter() {
+            @Override public void componentMoved (ComponentEvent event) {
+                saveBounds();
+            }
+            @Override public void componentResized (ComponentEvent event) {
+                saveBounds();
+            }
+
+            protected void saveBounds () {
+                java.awt.Rectangle r = _frame.getBounds();
+                _prefs.putInt(p + "x", r.x);
+                _prefs.putInt(p + "y", r.y);
+                _prefs.putInt(p + "w", r.width);
+                _prefs.putInt(p + "h", r.height);
+            }
+        });
+
+        // restore/bind the location of the main divider
+        _pane.setDividerLocation(_prefs.getInt(p + "div", _pane.getDividerLocation()));
+        _pane.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange (PropertyChangeEvent event) {
+                if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(event.getPropertyName())) {
+                    _prefs.putInt(p + "div", _pane.getDividerLocation());
+                }
+            }
+        });
+
+        // restore/bind the location of the layer divider
+        _layerSplit.setDividerLocation(
+                _prefs.getInt(p + "layerDiv", _layerSplit.getDividerLocation()));
+        _layerSplit.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange (PropertyChangeEvent event) {
+                if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(event.getPropertyName())) {
+                    _prefs.putInt(p + "layerDiv", _layerSplit.getDividerLocation());
+                }
+            }
+        });
     }
 
     /**
