@@ -3,32 +3,61 @@
 
 package com.threerings.config.tools;
 
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 
+import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.StringUtil;
+
+import com.threerings.editor.util.EditorContext;
+
+import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
 
 /**
  * Utilitiies for searching for and in ConfigReferences.
  */
-public class ConfigSearcher
+public class ConfigSearcher extends JFrame
 {
+    /**
+     * Find if anything satisfies the predicate in the specified object any any sub-objects.
+     */
+    public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
+    {
+        return find(val, detector, Sets.newIdentityHashSet());
+    }
+
     /**
      * Find all the attributes in the specified object and any sub-objects.
      */
@@ -39,14 +68,6 @@ public class ConfigSearcher
     }
 
     /**
-     * Find if anything satisfies the predicate in the specified object any any sub-objects.
-     */
-    public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
-    {
-        return find(val, detector, Sets.newIdentityHashSet());
-    }
-
-    /**
      * Find the path to the search config from the specified starting point.
      * Experimental.
      */
@@ -54,6 +75,156 @@ public class ConfigSearcher
     {
         return findPath(val, detector, Sets.newIdentityHashSet());
     }
+
+    public static abstract class Result
+    {
+        public String getLabel ()
+        {
+            return _label;
+        }
+
+        public abstract void onClick ();
+
+        public Result (String label)
+        {
+            _label = label;
+        }
+
+        protected String _label;
+    }
+
+    public interface Domain
+    {
+        public String getLabel ();
+
+        /**
+         * Null results should be returned to allow the UI/interaction updates.
+         */
+        public Iterator<Result> getResults (Predicate<? super ConfigReference<?>> detector);
+    }
+
+    public static class ConfigDomain 
+        implements Domain
+    {
+        public ConfigDomain (EditorContext ctx)
+        {
+            _ctx = ctx;
+        }
+
+        public String getLabel ()
+        {
+            return "CONFIGS";
+        }
+
+        public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
+        {
+            return new AbstractIterator<Result>() {
+                protected Result computeNext () {
+                    while (!_cfgIterator.hasNext()) {
+                        if (!_groupIterator.hasNext()) {
+                            return endOfData();
+                        }
+                        _currentGroup = _groupIterator.next();
+                        _cfgIterator = _currentGroup.getConfigs().iterator();
+                    }
+                    final ManagedConfig cfg = _cfgIterator.next();
+                    final ConfigGroup<?> group = _currentGroup;
+                    return find(cfg, detector)
+                        ? new Result(group.getName() + ": " + cfg.getName()) {
+                                public void onClick () {
+                                    BaseConfigEditor
+                                        .createEditor(_ctx, group.getConfigClass(), cfg.getName())
+                                        .setVisible(true);
+                                }
+                            }
+                        : null;
+                }
+                protected Iterator<? extends ManagedConfig> _cfgIterator =
+                        Iterators.emptyIterator();
+                protected Iterator<ConfigGroup> _groupIterator =
+                        _ctx.getConfigManager().getGroups().iterator();
+                protected ConfigGroup<?> _currentGroup;
+            };
+        }
+
+        protected EditorContext _ctx;
+    }
+
+    public ConfigSearcher (
+        EditorContext ctx, String title, final Predicate<? super ConfigReference<?>> detector,
+        final Iterable<Domain> domains)
+    {
+        _ctx = ctx;
+        _content = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.LEFT, GroupLayout.STRETCH);
+        _status = new JLabel("");
+        add(new JScrollPane(_content), BorderLayout.CENTER);
+        add(_status, BorderLayout.NORTH);
+        setTitle(title);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        setSize(850, 600);
+        SwingUtil.centerWindow(this);
+        setVisible(true);
+
+        EventQueue.invokeLater(new Runnable() {
+            public void run () {
+                if (!ConfigSearcher.this.isShowing()) {
+                    System.err.println("Quit early: window dismissed");
+                    return; // the window's been dismissed
+                }
+                while (!_resultIterator.hasNext()) {
+                    if (!_domainIterator.hasNext()) {
+                        _status.setText("DONE");
+                        return;
+                    }
+                    Domain domain = _domainIterator.next();
+                    addLabel(domain.getLabel());
+                    _resultIterator = domain.getResults(detector);
+                }
+                Result result = _resultIterator.next();
+                if (result != null) {
+                    addResult(result);
+                }
+                updateStatusLabel();
+                EventQueue.invokeLater(this);
+            }
+
+            protected Iterator<Result> _resultIterator = Iterators.emptyIterator();
+            protected Iterator<Domain> _domainIterator = domains.iterator();
+        });
+    }
+
+    protected void addLabel (String label)
+    {
+        _content.add(new JLabel(label));
+        SwingUtil.refresh(_content);
+    }
+
+    protected void addResult (final Result result)
+    {
+        JLabel label = new JLabel(result.getLabel());
+        label.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked (MouseEvent event) {
+                result.onClick();
+            }
+        });
+        _content.add(label);
+        SwingUtil.refresh(_content);
+    }
+
+    protected void updateStatusLabel ()
+    {
+        long now = System.currentTimeMillis();
+        if (now >= _nextStatusUpdate) {
+            _status.setText(StringUtil.fill('.', (_status.getText().length() + 1) % 4));
+            _nextStatusUpdate = now + 800; // 800ms
+        }
+    }
+
+    protected EditorContext _ctx;
+    protected JPanel _content;
+    protected JLabel _status;
+    protected long _nextStatusUpdate;
 
     /**
      * Internal helper for find.
@@ -224,7 +395,7 @@ public class ConfigSearcher
                     // get all fields of the specified class, and filter out the static ones..
                     for (Field f : clazz.getDeclaredFields()) {
                         // add all non-static fields; make them accessible
-                        if (0 == (f.getModifiers() & Modifier.STATIC)) {
+                        if (0 == (f.getModifiers() & (Modifier.STATIC|Modifier.TRANSIENT))) {
                             f.setAccessible(true);
                             builder.add(f);
                         }

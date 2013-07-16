@@ -79,6 +79,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -99,6 +101,7 @@ import com.threerings.editor.util.EditorContext;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.swing.ConfigTree;
 import com.threerings.config.swing.ConfigTreeFilterPanel;
@@ -210,6 +213,8 @@ public class ConfigEditor extends BaseConfigEditor
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
         addFindMenu(edit);
+        edit.addSeparator();
+        edit.add(createMenuItem("find_uses", 0, -1));
         edit.addSeparator();
         edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
         addEditMenuItems(edit);
@@ -330,6 +335,8 @@ public class ConfigEditor extends BaseConfigEditor
             item.pasteNode();
         } else if (action.equals("delete")) {
             item.deleteNode();
+        } else if (action.equals("find_uses")) {
+            findUses((ManagedConfig)panel.getEditorPanel().getObject());
         } else if (action.equals("validate_refs")) {
             validateReferences();
         } else if (action.equals("resources")) {
@@ -378,6 +385,30 @@ public class ConfigEditor extends BaseConfigEditor
         return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
                 _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE) == 0;
+    }
+
+    /**
+     * Finds the uses of the specified config.
+     */
+    protected void findUses (ManagedConfig cfg)
+    {
+        if (cfg == null) {
+            return;
+        }
+        final String name = cfg.getName();
+        new ConfigSearcher(this, name, new Predicate<ConfigReference<?>>() {
+                public boolean apply (ConfigReference<?> ref) {
+                    return name.equals(ref.getName());
+                }
+            }, getSearcherDomains());
+    }
+
+    /**
+     * Return the domains over which we'll search for config uses.
+     */
+    protected Iterable<ConfigSearcher.Domain> getSearcherDomains ()
+    {
+        return ImmutableList.<ConfigSearcher.Domain>of(new ConfigSearcher.ConfigDomain(this));
     }
 
     /**
