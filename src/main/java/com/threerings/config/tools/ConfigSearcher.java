@@ -276,7 +276,6 @@ public class ConfigSearcher extends JFrame
         EventQueue.invokeLater(new Runnable() {
             public void run () {
                 if (!ConfigSearcher.this.isShowing()) {
-                    System.err.println("Quit early: window dismissed");
                     return; // the window's been dismissed
                 }
                 while (!_resultIterator.hasNext()) {
@@ -323,7 +322,7 @@ public class ConfigSearcher extends JFrame
     {
         long now = System.currentTimeMillis();
         if (now >= _nextStatusUpdate) {
-            _status.setText(StringUtil.fill('.', (_status.getText().length() + 1) % 4));
+            _status.setText(StringUtil.fill('.', 1 + (_status.getText().length() + 1) % 4));
             _nextStatusUpdate = now + 800; // 800ms
         }
     }
