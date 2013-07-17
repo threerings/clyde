@@ -78,6 +78,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -116,6 +117,29 @@ import static com.threerings.ClydeLog.*;
 public class ConfigEditor extends BaseConfigEditor
     implements ClipboardOwner
 {
+    /**
+     * Create a ConfigEditor.
+     */
+    public static ConfigEditor create (EditorContext ctx)
+    {
+        return create(ctx, null, null);
+    }
+
+    /**
+     * Create a ConfigEditor and edit the specified config.
+     */
+    public static ConfigEditor create (EditorContext ctx, Class<?> clazz, String name)
+    {
+        ConfigEditor editor = (_editorCreator != null)
+            ? _editorCreator.apply(ctx)
+            : new ConfigEditor(
+                    ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
+        if (clazz != null) {
+            editor.select(clazz, name);
+        }
+        return editor;
+    }
+
     /**
      * The program entry point.
      */
@@ -956,4 +980,9 @@ public class ConfigEditor extends BaseConfigEditor
 
     /** The class of the clipboard selection. */
     protected Class<?> _clipclass;
+
+    /** A Function for creating new instances of the config editor via our public static method.
+     * This function will be assigned by subclasses that wish to ensure that that subclass
+     * is always used. */
+    protected static Function<? super EditorContext, ? extends ConfigEditor> _editorCreator;
 }
