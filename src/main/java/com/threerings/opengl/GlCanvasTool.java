@@ -98,7 +98,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         if (action.equals("quit")) {
             shutdown();
         } else if (action.equals("configs")) {
-            new ConfigEditor(_msgmgr, _cfgmgr, _colorpos).setVisible(true);
+            ConfigEditor.create(this).setVisible(true);
         } else if (action.equals("resources")) {
             new ResourceEditor(_msgmgr, _cfgmgr, _colorpos).setVisible(true);
         } else if (action.equals("preferences")) {

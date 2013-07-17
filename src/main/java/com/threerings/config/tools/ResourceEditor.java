@@ -277,7 +277,7 @@ public class ResourceEditor extends BaseConfigEditor
             config.updateFromSource(this, true);
             config.wasUpdated();
         } else if (action.equals("configs")) {
-            showFrame(new ConfigEditor(_msgmgr, getConfigManager(), _colorpos));
+            showFrame(ConfigEditor.create(this));
         } else if (action.equals("tree_mode")) {
             BaseEditorPanel opanel = _epanel;
             remove(opanel);

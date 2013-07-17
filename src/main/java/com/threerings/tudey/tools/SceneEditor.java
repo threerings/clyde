@@ -960,7 +960,9 @@ public class SceneEditor extends TudeyTool
     @Override
     public ConfigManager getConfigManager ()
     {
-        return (_scene == null) ? _cfgmgr : _scene.getConfigManager();
+        return (_scene != null)
+            ? _scene.getConfigManager()
+            : super.getConfigManager();
     }
 
     @Override
@@ -1080,7 +1082,7 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("delete_errors")) {
             deleteErrors();
         } else if (action.equals("configs")) {
-            new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
+            ConfigEditor.create(this).setVisible(true);
         } else if (action.equals("raise_grid")) {
             _grid.setElevation(_grid.getElevation() + 1);
         } else if (action.equals("lower_grid")) {

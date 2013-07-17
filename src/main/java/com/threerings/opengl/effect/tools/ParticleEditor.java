@@ -69,6 +69,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.BinaryExporter;
@@ -265,6 +266,14 @@ public class ParticleEditor extends ModelTool
         bpanel.add(createButton("reset"));
     }
 
+    @Override
+    public ConfigManager getConfigManager ()
+    {
+        return (_model != null)
+            ? _model.getConfig().getConfigManager()
+            : super.getConfigManager();
+    }
+
     // documentation inherited from interface ListSelectionListener
     public void valueChanged (ListSelectionEvent event)
     {
@@ -311,8 +320,7 @@ public class ParticleEditor extends ModelTool
         } else if (action.equals("import_layers")) {
             importLayers();
         } else if (action.equals("configs")) {
-            new ConfigEditor(
-                _msgmgr, _model.getConfig().getConfigManager(), _colorpos).setVisible(true);
+            ConfigEditor.create(this).setVisible(true);
         } else if (action.equals("new_layer")) {
             ((LayerTableModel)_ltable.getModel()).newLayer();
         } else if (action.equals("clone_layer")) {

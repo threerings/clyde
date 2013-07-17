@@ -332,7 +332,7 @@ public class ConfigEditor extends BaseConfigEditor
         ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
         ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
         if (action.equals("window")) {
-            showFrame(new ConfigEditor(_msgmgr, _cfgmgr, _colorpos));
+            showFrame(ConfigEditor.create(this));
         } else if (action.equals("config")) {
             item.newConfig();
         } else if (action.equals("folder")) {
