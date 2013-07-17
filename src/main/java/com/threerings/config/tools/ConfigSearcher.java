@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.prefs.Preferences;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -44,6 +46,8 @@ import com.google.common.primitives.Primitives;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
+
+import com.threerings.util.ToolUtil;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
@@ -271,6 +275,7 @@ public class ConfigSearcher extends JFrame
 
         setSize(850, 600);
         SwingUtil.centerWindow(this);
+        _eprefs.bindWindowBounds("ConfigSearcher.", this);
         setVisible(true);
 
         EventQueue.invokeLater(new Runnable() {
@@ -332,6 +337,8 @@ public class ConfigSearcher extends JFrame
     protected JPanel _content;
     protected JLabel _status;
     protected long _nextStatusUpdate;
+    protected ToolUtil.EditablePrefs _eprefs =
+        new ToolUtil.EditablePrefs(Preferences.userNodeForPackage(ConfigSearcher.class));
 
     /**
      * Internal helper for find.
