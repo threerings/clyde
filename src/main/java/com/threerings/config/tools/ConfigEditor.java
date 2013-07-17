@@ -34,14 +34,9 @@ import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -902,37 +897,10 @@ public class ConfigEditor extends BaseConfigEditor
         final String p = "ConfigEditor."; // TODO? getClass().getSimpleName() + "." ???
 
         // restore/bind window bounds
-        Rectangle r = getBounds();
-        setBounds(_prefs.getInt(p + "x", r.x),
-                _prefs.getInt(p + "y", r.y),
-                _prefs.getInt(p + "w", r.width),
-                _prefs.getInt(p + "h", r.height));
-        addComponentListener(new ComponentAdapter() {
-            @Override public void componentMoved (ComponentEvent event) {
-                saveBounds();
-            }
-            @Override public void componentResized (ComponentEvent event) {
-                saveBounds();
-            }
-
-            protected void saveBounds () {
-                Rectangle r = getBounds();
-                _prefs.putInt(p + "x", r.x);
-                _prefs.putInt(p + "y", r.y);
-                _prefs.putInt(p + "w", r.width);
-                _prefs.putInt(p + "h", r.height);
-            }
-        });
+        _eprefs.bindWindowBounds(p, this);
 
         // restore/bind the location of the divider
-        _split.setDividerLocation(_prefs.getInt(p + "div", _split.getDividerLocation()));
-        _split.addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange (PropertyChangeEvent event) {
-                if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(event.getPropertyName())) {
-                    _prefs.putInt(p + "div", _split.getDividerLocation());
-                }
-            }
-        });
+        _eprefs.bindDividerLocation(p + "div", _split);
 
         // restore/bind the selected group
         String cat = _prefs.get(p + "group", null);

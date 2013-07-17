@@ -25,11 +25,18 @@
 
 package com.threerings.util;
 
+import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -46,6 +53,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 
 import com.samskivert.util.ListUtil;
@@ -121,6 +129,49 @@ public class ToolUtil
         public File getResourceDir ()
         {
             return _resourceDir;
+        }
+
+        /**
+         * Bind and set the window location and size to the provided key prefix.
+         */
+        public void bindWindowBounds (final String keyPrefix, final Window w)
+        {
+            Rectangle r = w.getBounds();
+            w.setBounds(_prefs.getInt(keyPrefix + "x", r.x),
+                    _prefs.getInt(keyPrefix + "y", r.y),
+                    _prefs.getInt(keyPrefix + "w", r.width),
+                    _prefs.getInt(keyPrefix + "h", r.height));
+            w.addComponentListener(new ComponentAdapter() {
+                @Override public void componentMoved (ComponentEvent event) {
+                    saveBounds();
+                }
+                @Override public void componentResized (ComponentEvent event) {
+                    saveBounds();
+                }
+
+                protected void saveBounds () {
+                    Rectangle r = w.getBounds();
+                    _prefs.putInt(keyPrefix + "x", r.x);
+                    _prefs.putInt(keyPrefix + "y", r.y);
+                    _prefs.putInt(keyPrefix + "w", r.width);
+                    _prefs.putInt(keyPrefix + "h", r.height);
+                }
+            });
+        }
+
+        /**
+         * Bind and set the divider location of the specified pane to the provided key.
+         */
+        public void bindDividerLocation (final String key, final JSplitPane pane)
+        {
+            pane.setDividerLocation(_prefs.getInt(key, pane.getDividerLocation()));
+            pane.addPropertyChangeListener(new PropertyChangeListener() {
+                public void propertyChange (PropertyChangeEvent event) {
+                    if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(event.getPropertyName())) {
+                        _prefs.putInt(key, pane.getDividerLocation());
+                    }
+                }
+            });
         }
 
         /**
