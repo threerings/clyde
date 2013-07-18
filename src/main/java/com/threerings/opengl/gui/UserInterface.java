@@ -684,7 +684,7 @@ public class UserInterface extends Container
     /**
      * Runs an initialization script on the interface.
      */
-    public void runInitScript(ConfigReference<InterfaceScriptConfig> ref)
+    public void runInitScript (ConfigReference<InterfaceScriptConfig> ref)
     {
         addScript(new InitScript(
             _ctx.getConfigManager().getConfig(InterfaceScriptConfig.class, ref)));
@@ -693,7 +693,8 @@ public class UserInterface extends Container
     /**
      * Runs a script on the interface after the current tick.
      */
-    public void runScriptLater (String name) {
+    public void runScriptLater (String name)
+    {
         runScriptLater(_ctx.getConfigManager().getConfig(InterfaceScriptConfig.class, name));
     }
 
