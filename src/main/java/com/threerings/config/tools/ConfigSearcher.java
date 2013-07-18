@@ -167,12 +167,27 @@ public class ConfigSearcher extends JFrame
     public abstract static class TudeySceneDomain
         implements Domain
     {
-        public TudeySceneDomain (EditorContext ctx, File dir, String label)
+        public TudeySceneDomain (EditorContext ctx, String label, File dir, String... subdirs)
         {
-            Preconditions.checkArgument(dir.isDirectory());
             _ctx = ctx;
-            _dir = dir;
             _label = label;
+            _dir = validateDir(dir);
+            if (subdirs.length == 0) {
+                _dirs = ImmutableList.of(dir);
+
+            } else {
+                ImmutableList.Builder<File> builder = ImmutableList.builder();
+                for (String s : subdirs) {
+                    builder.add(validateDir(new File(dir, s)));
+                }
+                _dirs = builder.build();
+            }
+        }
+
+        protected File validateDir (File dir)
+        {
+            Preconditions.checkArgument(dir.isDirectory(), "Invalid directory: %s", dir);
+            return dir;
         }
 
         public String getLabel ()
@@ -182,7 +197,15 @@ public class ConfigSearcher extends JFrame
 
         public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
         {
-            return Iterables.transform(datFiles(_dir),
+            Iterable<File> allFiles = Iterables.concat(
+                Iterables.transform(_dirs,
+                    new Function<File, Iterable<File>>() {
+                        public Iterable<File> apply (File dir) {
+                            return datFiles(dir);
+                        }
+                    }));
+
+            return Iterables.transform(allFiles,
                 new Function<File, Result>() {
                     public Result apply (File f) {
                         return resultForFile(f, detector);
@@ -231,6 +254,7 @@ public class ConfigSearcher extends JFrame
         protected EditorContext _ctx;
         protected String _label;
         protected File _dir;
+        protected List<File> _dirs;
 
         protected class SceneResult extends Result
         {
