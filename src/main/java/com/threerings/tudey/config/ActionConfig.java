@@ -62,7 +62,7 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
     ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
     ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
-    ActionConfig.ServerLog.class })
+    ActionConfig.ServerLog.class, ActionConfig.Fail.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -1076,6 +1076,52 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$ServerLog";
+        }
+    }
+
+    /**
+     * Executes an action but always returns fail on the execute.
+     */
+    public static class Fail extends ActionConfig
+        implements PreExecutable
+    {
+        /** The action to execute. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SpawnActor();
+
+        // documentation inherited from interface PreExecutable
+        public boolean shouldPreExecute ()
+        {
+            return (action instanceof PreExecutable) && ((PreExecutable)action).shouldPreExecute();
+        }
+
+        // documentation inherited from interface PreExecutable
+        public void preExecute (TudeySceneView view, ActorSprite sprite, int timestamp)
+        {
+            if (action instanceof PreExecutable) {
+                PreExecutable preex = (PreExecutable)action;
+                if (preex.shouldPreExecute()) {
+                    preex.preExecute(view, sprite, timestamp);
+                }
+            }
+        }
+
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$Fail";
+        }
+
+        @Override
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            action.getPreloads(cfgmgr, preloads);
+        }
+
+        @Override
+        public void invalidate ()
+        {
+            action.invalidate();
         }
     }
 

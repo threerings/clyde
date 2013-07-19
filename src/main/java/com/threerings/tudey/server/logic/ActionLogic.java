@@ -1164,6 +1164,53 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a fail action.
+     */
+    public static class Fail extends ActionLogic
+    {
+        @Override
+        public boolean shouldExecute (Logic activator)
+        {
+            return _action != null && _action.shouldExecute(activator);
+        }
+
+        @Override
+        public boolean execute (int timestamp, Logic activator)
+        {
+            if (_action != null) {
+                _action.execute(timestamp, activator);
+            }
+            return false;
+        }
+
+        @Override
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            if (_action != null) {
+                _action.transfer(((Fail)source)._action, refs);
+            }
+        }
+
+        @Override
+        protected void didInit ()
+        {
+            _action = createAction(((ActionConfig.Fail)_config).action, _source);
+        }
+
+        @Override
+        protected void wasRemoved ()
+        {
+            if (_action != null) {
+                _action.removed();
+            }
+        }
+
+        /** Logic object for the action. */
+        protected ActionLogic _action;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ActionConfig config, Logic source)
