@@ -233,7 +233,7 @@ public class ConfigEditor extends BaseConfigEditor
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
         addFindMenu(edit);
         edit.addSeparator();
-        edit.add(createMenuItem("find_uses", 0, -1));
+        edit.add(new JMenuItem(_findUses = createAction("find_uses", 0, -1)));
         edit.addSeparator();
         edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
         addEditMenuItems(edit);
@@ -257,6 +257,8 @@ public class ConfigEditor extends BaseConfigEditor
         _popup.add(nmenu);
         nmenu.add(new JMenuItem(nconfig));
         nmenu.add(new JMenuItem(nfolder));
+        _popup.addSeparator();
+        _popup.add(new JMenuItem(_findUses));
         _popup.addSeparator();
         _popup.add(new JMenuItem(_cut));
         _popup.add(new JMenuItem(_copy));
@@ -691,6 +693,7 @@ public class ConfigEditor extends BaseConfigEditor
                 _cut.setEnabled(enable);
                 _copy.setEnabled(enable);
                 _delete.setEnabled(enable);
+                _findUses.setEnabled(enable);
             }
 
             /**
@@ -932,7 +935,7 @@ public class ConfigEditor extends BaseConfigEditor
     protected JMenuItem _exportConfigs;
 
     /** The edit menu actions. */
-    protected Action _cut, _copy, _paste, _delete;
+    protected Action _cut, _copy, _paste, _delete, _findUses;
 
     /** The tree mode toggle. */
     protected JCheckBoxMenuItem _treeMode;
