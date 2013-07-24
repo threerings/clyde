@@ -535,12 +535,12 @@ public class ConfigSearcher extends JFrame
         if (val instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference<?>)val;
             if (detector.apply(ref)) {
-                return "this";
+                return "";
             }
             for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
                 path = findPath(entry.getValue(), detector, seen);
                 if (path != null) {
-                    return "{" + entry.getKey() + "}." + path;
+                    return prefixPath("{" + entry.getKey() + "}", path);
                 }
             }
 
@@ -548,7 +548,7 @@ public class ConfigSearcher extends JFrame
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
                 path = findPath(Array.get(val, ii), detector, seen);
                 if (path != null) {
-                    return "[" + ii + "]." + path;
+                    return prefixPath("[" + ii + "]", path);
                 }
             }
 
@@ -562,11 +562,19 @@ public class ConfigSearcher extends JFrame
                 }
                 path = findPath(o, detector, seen);
                 if (path != null) {
-                    return f.getName() + "." + path;
+                    return prefixPath(f.getName(), path);
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * Return the new path with the prefix prepended.
+     */
+    protected static String prefixPath (String prefix, String path)
+    {
+        return "".equals(path) ? prefix : (prefix + "." + path);
     }
 
     /**
