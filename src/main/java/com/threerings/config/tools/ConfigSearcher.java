@@ -193,12 +193,12 @@ public class ConfigSearcher extends JFrame
     }
 
     /**
-     * An abstract class for creating a Domain that searches scene files.
+     * An abstract building-block class for creating a Domain that searches files.
      */
-    public abstract static class TudeySceneDomain
+    public abstract static class FileDomain
         implements Domain
     {
-        public TudeySceneDomain (EditorContext ctx, String label, File dir, String... subdirs)
+        public FileDomain (EditorContext ctx, String label, File dir, String... subdirs)
         {
             _ctx = ctx;
             _label = label;
@@ -237,7 +237,7 @@ public class ConfigSearcher extends JFrame
                 Iterables.transform(_dirs,
                     new Function<File, Iterable<File>>() {
                         public Iterable<File> apply (File dir) {
-                            return datFiles(dir);
+                            return findFiles(dir);
                         }
                     }));
 
@@ -250,17 +250,25 @@ public class ConfigSearcher extends JFrame
         }
 
         /**
-         * Find all .dat files beneath the specified directory.
+         * Find all the searchable files in the specified top-level directory.
          */
-        protected Iterable<File> datFiles (File directory)
+        protected Iterable<File> findFiles (File directory)
+        {
+            return findFiles(directory, DAT_FILTER);
+        }
+
+        /**
+         * Find all the files matching the specified filter underneath the specified directory.
+         */
+        protected Iterable<File> findFiles (File directory, FileFilter filter)
         {
             return Iterables.concat(
-                Arrays.asList(directory.listFiles(DAT_FILTER)),
+                Arrays.asList(directory.listFiles(filter)),
                 Iterables.concat(
                     Iterables.transform(Arrays.asList(directory.listFiles(DIR_FILTER)),
                         new Function<File, Iterable<File>>() {
                             public Iterable<File> apply (File dir) {
-                                return datFiles(dir); // recurse
+                                return findFiles(dir); // recurse
                             }
                         })));
         }
@@ -268,27 +276,13 @@ public class ConfigSearcher extends JFrame
         /**
          * Generate a Result for the specified file, or return null.
          */
-        protected Result resultForFile (File file, Predicate<? super ConfigReference<?>> detector)
-        {
-            TudeySceneModel model;
-            try {
-                model = ExportFileUtil.readObject(file, TudeySceneModel.class);
-            } catch (Exception e) {
-                return null;
-            }
-            model.init(_ctx.getConfigManager());
-            for (TudeySceneModel.Entry entry : model.getEntries()) {
-                if (find(entry.getReference(), detector)) {
-                    return new SceneResult(_dir, file);
-                }
-            }
-            return null;
-        }
+        protected abstract Result resultForFile (
+            File file, Predicate<? super ConfigReference<?>> detector);
 
         /**
-         * Called to edit the scene. You must implement this.
+         * Called to edit the file. You must implement this.
          */
-        protected abstract void editScene (File file);
+        protected abstract void openFile (File file);
 
         /** Our context. */
         protected EditorContext _ctx;
@@ -303,11 +297,11 @@ public class ConfigSearcher extends JFrame
         protected List<File> _dirs;
 
         /**
-         * A Result from a scene.
+         * A Result from a file.
          */
-        protected class SceneResult extends Result
+        protected class FileResult extends Result
         {
-            public SceneResult (File topDir, File file)
+            public FileResult (File topDir, File file)
             {
                 super(file.getAbsolutePath().substring(topDir.getAbsolutePath().length()));
                 _file = file;
@@ -316,7 +310,7 @@ public class ConfigSearcher extends JFrame
             @Override
             public void onClick ()
             {
-                editScene(_file);
+                openFile(_file);
             }
 
             /** The file representing the scene. */
@@ -336,6 +330,35 @@ public class ConfigSearcher extends JFrame
                 return f.getName().endsWith(".dat");
             }
         };
+    }
+
+    /**
+     * An abstract class for creating a Domain that searches scene files.
+     */
+    public abstract static class TudeySceneDomain extends FileDomain
+    {
+        public TudeySceneDomain (EditorContext ctx, String label, File dir, String... subdirs)
+        {
+            super(ctx, label, dir, subdirs);
+        }
+
+        @Override
+        protected Result resultForFile (File file, Predicate<? super ConfigReference<?>> detector)
+        {
+            TudeySceneModel model;
+            try {
+                model = ExportFileUtil.readObject(file, TudeySceneModel.class);
+            } catch (Exception e) {
+                return null;
+            }
+            model.init(_ctx.getConfigManager());
+            for (TudeySceneModel.Entry entry : model.getEntries()) {
+                if (find(entry.getReference(), detector)) {
+                    return new FileResult(_dir, file);
+                }
+            }
+            return null;
+        }
     }
 
     /**
