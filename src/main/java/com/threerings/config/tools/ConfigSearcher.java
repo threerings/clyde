@@ -90,25 +90,44 @@ public class ConfigSearcher extends JFrame
         return findPath(val, detector, Sets.newIdentityHashSet());
     }
 
+    /**
+     * Represents something found while searching.
+     */
     public static abstract class Result
     {
+        /**
+         * Get the display label for this result.
+         */
         public String getLabel ()
         {
             return _label;
         }
 
+        /**
+         * Open the result for viewing/editing by the user.
+         */
         public abstract void onClick ();
 
+        /**
+         * Construct a result with the specified label.
+         */
         public Result (String label)
         {
             _label = label;
         }
 
+        /** The label for this result. */
         protected String _label;
     }
 
+    /**
+     * A Domain within which we search for configs.
+     */
     public interface Domain
     {
+        /**
+         * The label for this domain.
+         */
         public String getLabel ();
 
         /**
@@ -117,19 +136,27 @@ public class ConfigSearcher extends JFrame
         public Iterator<Result> getResults (Predicate<? super ConfigReference<?>> detector);
     }
 
+    /**
+     * A search domain that searches all managed configs in the ConfigManger.
+     */
     public static class ConfigDomain 
         implements Domain
     {
+        /**
+         * Create a ConfigDomain.
+         */
         public ConfigDomain (EditorContext ctx)
         {
             _ctx = ctx;
         }
 
+        @Override
         public String getLabel ()
         {
             return "CONFIGS";
         }
 
+        @Override
         public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
         {
             return new AbstractIterator<Result>() {
@@ -161,9 +188,13 @@ public class ConfigSearcher extends JFrame
             };
         }
 
+        /** The editor context. */
         protected EditorContext _ctx;
     }
 
+    /**
+     * An abstract class for creating a Domain that searches scene files.
+     */
     public abstract static class TudeySceneDomain
         implements Domain
     {
@@ -184,17 +215,22 @@ public class ConfigSearcher extends JFrame
             }
         }
 
+        /**
+         * Validate that the specified file is a Directory.
+         */
         protected File validateDir (File dir)
         {
             Preconditions.checkArgument(dir.isDirectory(), "Invalid directory: %s", dir);
             return dir;
         }
 
+        @Override
         public String getLabel ()
         {
             return _label;
         }
 
+        @Override
         public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
         {
             Iterable<File> allFiles = Iterables.concat(
@@ -229,6 +265,9 @@ public class ConfigSearcher extends JFrame
                         })));
         }
 
+        /**
+         * Generate a Result for the specified file, or return null.
+         */
         protected Result resultForFile (File file, Predicate<? super ConfigReference<?>> detector)
         {
             TudeySceneModel model;
@@ -251,11 +290,21 @@ public class ConfigSearcher extends JFrame
          */
         protected abstract void editScene (File file);
 
+        /** Our context. */
         protected EditorContext _ctx;
+
+        /** The label for this domain. */
         protected String _label;
+
+        /** The top-level directory from which we print relative filenames. */
         protected File _dir;
+
+        /** The directories, under the top-level _dir, which are the roots for our search. */
         protected List<File> _dirs;
 
+        /**
+         * A Result from a scene.
+         */
         protected class SceneResult extends Result
         {
             public SceneResult (File topDir, File file)
@@ -264,20 +313,24 @@ public class ConfigSearcher extends JFrame
                 _file = file;
             }
 
+            @Override
             public void onClick ()
             {
                 editScene(_file);
             }
 
+            /** The file representing the scene. */
             protected File _file;
         }
 
+        /** A filter for finding directories, excluding .svn. */
         protected static final FileFilter DIR_FILTER = new FileFilter() {
             public boolean accept (File f) {
                 return f.isDirectory() && !".svn".equals(f.getName());
             }
         };
 
+        /** A filter for finding .dat files. */
         protected static final FileFilter DAT_FILTER = new FileFilter() {
             public boolean accept (File f) {
                 return f.getName().endsWith(".dat");
@@ -285,6 +338,9 @@ public class ConfigSearcher extends JFrame
         };
     }
 
+    /**
+     * Create a ConfigSearcher ui.
+     */
     public ConfigSearcher (
         EditorContext ctx, String title, final Predicate<? super ConfigReference<?>> detector,
         final Iterable<Domain> domains)
@@ -330,12 +386,18 @@ public class ConfigSearcher extends JFrame
         });
     }
 
+    /**
+     * Add a label for a domain to the ongoing search results.
+     */
     protected void addLabel (String label)
     {
         _content.add(new JLabel(label));
         SwingUtil.refresh(_content);
     }
 
+    /**
+     * Add a non-null search result to the results window.
+     */
     protected void addResult (final Result result)
     {
         JLabel label = new JLabel("  " + result.getLabel());
@@ -348,6 +410,9 @@ public class ConfigSearcher extends JFrame
         SwingUtil.refresh(_content);
     }
 
+    /**
+     * Update the status label to indicate continuing progress on the search.
+     */
     protected void updateStatusLabel ()
     {
         long now = System.currentTimeMillis();
@@ -357,10 +422,19 @@ public class ConfigSearcher extends JFrame
         }
     }
 
+    /** Our editor context. */
     protected EditorContext _ctx;
+
+    /** The content panel where we place our search results. */
     protected JPanel _content;
+
+    /** The status label that displays ongoing search progress. */
     protected JLabel _status;
+
+    /** The time at which we'll next update the status label. */
     protected long _nextStatusUpdate;
+
+    /** Preferences. */
     protected ToolUtil.EditablePrefs _eprefs =
         new ToolUtil.EditablePrefs(Preferences.userNodeForPackage(ConfigSearcher.class));
 
