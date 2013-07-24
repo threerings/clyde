@@ -36,6 +36,7 @@ import java.util.Set;
 
 import com.google.common.base.Objects;
 
+import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.SortableArrayList;
 
 import com.threerings.io.ObjectInputStream;
@@ -152,6 +153,15 @@ public class ArgumentMap extends AbstractMap<String, Object>
         }
         int idx = _entries.binarySearch(_key.as((String)key));
         return (idx >= 0) ? _entries.get(idx).getValue() : null;
+    }
+
+    /**
+     * Retrieve a casted value for the specified key, or null.
+     */
+    public <T> T get (String key, Class<T> type)
+    {
+        int idx = _entries.binarySearch(_key.as(key));
+        return (idx >= 0) ? ObjectUtil.as(_entries.get(idx).getValue(), type) : null;
     }
 
     @Override
