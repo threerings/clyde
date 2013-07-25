@@ -85,8 +85,8 @@ public class ScrollButton extends Container
         return _model;
     }
 
-    // documentation inherited
-    public void wasAdded ()
+    @Override
+    protected void wasAdded ()
     {
         super.wasAdded();
 
@@ -99,8 +99,8 @@ public class ScrollButton extends Container
         _btn.setAction(_less ? "less" : "more");
     }
 
-    // documentation inherited
-    public void wasRemoved ()
+    @Override
+    protected void wasRemoved ()
     {
         super.wasRemoved();
 
