@@ -25,8 +25,10 @@
 
 package com.threerings.opengl.gui;
 
+import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 import com.threerings.opengl.gui.event.ActionEvent;
@@ -36,7 +38,7 @@ import com.threerings.opengl.gui.event.ActionListener;
  * Manages a group of {@link ToggleButton}s, ensuring that only one is selected at any given time.
  */
 public class ButtonGroup
-    implements ActionListener, Selectable<ToggleButton>
+    implements ActionListener, Selectable<ToggleButton>, Iterable<ToggleButton>
 {
     /**
      * Creates a new button group in which one button is always selected.
@@ -150,6 +152,12 @@ public class ButtonGroup
             button.setSelected(true);
             selectionChanged(button, 0L, 0);
         }
+    }
+
+    // from Iterable<ToggleButton>
+    public Iterator<ToggleButton> iterator ()
+    {
+        return Iterators.unmodifiableIterator(_buttons.iterator());
     }
 
     /**
