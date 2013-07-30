@@ -761,24 +761,7 @@ public class TudeySceneController extends SceneController
         long now = RunAnywhere.currentTimeMillis();
         if (rotation != _lastRotation || direction != _lastDirection ||
                 _flags != _lastFlags || now >= _nextInput) {
-            // create and enqueue the frame
-            InputFrame frame = _lastFrame = createInputFrame(
-                _tsview.getAdvancedTime(), rotation, direction, _flags);
-            _lastRotation = rotation;
-            _lastDirection = direction;
-            _lastFlags = _flags;
-            _nextInput = now + _tsview.getElapsed();
-            _input.add(frame);
-
-            // apply it immediately to the controller and sprite advancers
-            _advancer.advance(frame);
-            ((PawnAdvancer)controlledSprite.getAdvancer()).advance(frame);
-
-            // include the up-to-date translation in the input frame for use by the server
-            frame.setTranslation(new Vector2f(_advancer.getActor().getTranslation()));
-
-            // record the state
-            _states.add(new PawnState(frame, (Pawn)_advancer.getActor().clone()));
+            updateFrame(now, rotation, direction);
 
         // otherwise, just ensure that the advancers are up-to-date
         } else {
@@ -790,6 +773,31 @@ public class TudeySceneController extends SceneController
         // have the sprite actor's translation smoothly approach that of the advancer actor
         controlledSprite.getActor().getTranslation().lerpLocal(
             _advancer.getActor().getTranslation(), 1f - FloatMath.exp(CONVERGENCE_RATE * elapsed));
+    }
+
+    /**
+     * Updates the input frame.
+     */
+    protected void updateFrame (long now, float rotation, float direction)
+    {
+        // create and enqueue the frame
+        InputFrame frame = _lastFrame = createInputFrame(
+            _tsview.getAdvancedTime(), rotation, direction, _flags);
+        _lastRotation = rotation;
+        _lastDirection = direction;
+        _lastFlags = _flags;
+        _nextInput = now + _tsview.getElapsed();
+        _input.add(frame);
+
+        // apply it immediately to the controller and sprite advancers
+        _advancer.advance(frame);
+        ((PawnAdvancer)_tsview.getControlledSprite().getAdvancer()).advance(frame);
+
+        // include the up-to-date translation in the input frame for use by the server
+        frame.setTranslation(new Vector2f(_advancer.getActor().getTranslation()));
+
+        // record the state
+        _states.add(new PawnState(frame, (Pawn)_advancer.getActor().clone()));
     }
 
     /**
