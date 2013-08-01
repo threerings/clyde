@@ -692,8 +692,8 @@ public class PseudoKeys
             case KEY_CONTROLLER_BUTTON:
                 idx = getControllerIndex(baseKey);
                 result = MessageBundle.tcompose("m.controller_button", String.valueOf(idx),
-                    Controllers.getController(idx).getButtonName(getControlIndex(baseKey))
-                        .replaceFirst("Button\s*", ""));
+                        Controllers.getController(idx).getButtonName(getControlIndex(baseKey))
+                                .replaceFirst("[Bb]utton\\s*", ""));
                 break;
             case KEY_CONTROLLER_AXIS_POSITIVE:
                 idx = getControllerIndex(baseKey);
