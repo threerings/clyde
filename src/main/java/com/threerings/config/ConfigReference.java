@@ -131,6 +131,28 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return (ConfigReference<T>)super.clone();
     }
 
+    /**
+     * Clone this reference, and add the specified argument to the cloned instance.
+     */
+    public ConfigReference<T> clone (String arg, Object value)
+    {
+        ConfigReference<T> that = clone();
+        that.getArguments().put(arg, value);
+        return that;
+    }
+
+    /**
+     * Clone this reference, and add the specified arguments to the cloned instance.
+     */
+    public ConfigReference<T> clone (String arg, Object value, Object... moreArgs)
+    {
+        ConfigReference<T> that = clone(arg, value);
+        for (int ii = 0, nn = moreArgs.length; ii < nn; ii += 2) {
+            that.getArguments().put((String)moreArgs[ii], moreArgs[ii + 1]);
+        }
+        return that;
+    }
+
     /** The name of the referenced configuration. */
     @Intern
     protected String _name;
