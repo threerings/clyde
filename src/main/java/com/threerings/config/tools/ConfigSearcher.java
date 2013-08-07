@@ -65,11 +65,19 @@ import com.threerings.tudey.data.TudeySceneModel;
 public class ConfigSearcher extends JFrame
 {
     /**
-     * Find if anything satisfies the predicate in the specified object any any sub-objects.
+     * Find if anything satisfies the predicate in the specified object and any sub-objects.
      */
     public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
     {
-        return find(val, detector, Sets.newIdentityHashSet());
+        return 0 < count(val, detector);
+    }
+
+    /**
+     * Count how many configs satisfy the predicate in the specified object and any sub-objects.
+     */
+    public static int count (Object val, Predicate<? super ConfigReference<?>> detector)
+    {
+        return count(val, detector, Sets.newIdentityHashSet());
     }
 
     /**
@@ -307,6 +315,12 @@ public class ConfigSearcher extends JFrame
                 _file = file;
             }
 
+            public FileResult (File topDir, File file, int count)
+            {
+                this(topDir, file);
+                _label = (count + ": " + _label);
+            }
+
             @Override
             public void onClick ()
             {
@@ -352,12 +366,13 @@ public class ConfigSearcher extends JFrame
                 return null;
             }
             model.init(_ctx.getConfigManager());
+            int count = 0;
             for (TudeySceneModel.Entry entry : model.getEntries()) {
-                if (find(entry.getReference(), detector)) {
-                    return new FileResult(_dir, file);
-                }
+                count += count(entry.getReference(), detector);
             }
-            return null;
+            return (0 < count)
+                ? new FileResult(_dir, file, count)
+                : null;
         }
     }
 
@@ -462,39 +477,36 @@ public class ConfigSearcher extends JFrame
         new ToolUtil.EditablePrefs(Preferences.userNodeForPackage(ConfigSearcher.class));
 
     /**
-     * Internal helper for find.
+     * Internal helper for count.
      */
-    protected static boolean find (
+    protected static int count (
         Object val, Predicate<? super ConfigReference<?>> detector,
         Set<Object> seen)
     {
         if (val == null) {
-            return false;
+            return 0;
         }
 
         Class<?> c = val.getClass();
         if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
                 !seen.add(val)) {
-            return false;
+            return 0;
         }
 
+        int count = 0;
         // make a list of sub-fields
         if (c.isArray()) {
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-                if (find(Array.get(val, ii), detector, seen)) {
-                    return true;
-                }
+                count += count(Array.get(val, ii), detector, seen);
             }
 
         } else if (val instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference<?>)val;
             if (detector.apply(ref)) {
-                return true;
+                count += 1;
             }
             for (Object value : ref.getArguments().values()) {
-                if (find(value, detector, seen)) {
-                    return true;
-                }
+                count += count(value, detector, seen);
             }
 
         } else {
@@ -505,12 +517,10 @@ public class ConfigSearcher extends JFrame
                 } catch (IllegalAccessException iae) {
                     continue;
                 }
-                if (find(o, detector, seen)) {
-                    return true;
-                }
+                count += count(o, detector, seen);
             }
         }
-        return false;
+        return count;
     }
 
     /**
