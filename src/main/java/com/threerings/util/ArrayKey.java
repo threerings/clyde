@@ -54,6 +54,12 @@ public class ArrayKey
             Arrays.deepEquals(_elements, ((ArrayKey)other)._elements);
     }
 
+    @Override
+    public String toString ()
+    {
+        return "ArrayKey" + Arrays.asList(_elements);
+    }
+
     /** The elements to compare. */
     protected Object[] _elements;
 }
