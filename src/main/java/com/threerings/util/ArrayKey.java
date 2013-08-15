@@ -57,7 +57,7 @@ public class ArrayKey
     @Override
     public String toString ()
     {
-        return "ArrayKey" + Arrays.asList(_elements);
+        return "ArrayKey" + Arrays.deepToString(_elements);
     }
 
     /** The elements to compare. */
