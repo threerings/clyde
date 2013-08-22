@@ -49,6 +49,7 @@ import com.threerings.opengl.gui.ToggleButton;
 import com.threerings.opengl.gui.UserInterface;
 import com.threerings.opengl.gui.UserInterface.Script;
 import com.threerings.opengl.gui.UserInterface.ConfigScript;
+import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.AnimationConfig;
 
@@ -65,7 +66,8 @@ import static com.threerings.opengl.gui.Log.*;
     ActionConfig.SetText.class, ActionConfig.SetStyle.class, ActionConfig.SetConfig.class,
     ActionConfig.RunScript.class, ActionConfig.RunInitScript.class,
     ActionConfig.PlayAnimation.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
-    ActionConfig.AddHandler.class, ActionConfig.Conditional.class, ActionConfig.Compound.class })
+    ActionConfig.AddHandler.class, ActionConfig.Conditional.class, ActionConfig.Compound.class,
+    ActionConfig.EmitEvent.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -671,6 +673,23 @@ public abstract class ActionConfig extends DeepObject
             for (ActionConfig action : actions) {
                 action.invalidate();
             }
+        }
+    }
+
+    /**
+     * Emits an event on the interface.
+     */
+    public static class EmitEvent extends ActionConfig
+    {
+        /** The action name. */
+        @Editable
+        public String action = "";
+
+        @Override
+        public void execute (UserInterface iface, ConfigScript script)
+        {
+            log.info("Emit Event", "action", action);
+            iface.dispatchEvent(new ActionEvent(iface, iface.getRoot().getTickStamp(), 0, action));
         }
     }
 
