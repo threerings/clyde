@@ -57,6 +57,21 @@ import static com.threerings.export.Log.*;
  */
 public class BinaryImporter extends Importer
 {
+    // TEMP?
+    // Added so that we can import old data
+    // FUCK FUCK FUCK
+    public static void addMapping (String name, Class<?> clazz)
+    {
+        ClassWrapper wrapper = new ClassWrapper(null, clazz);
+        wrapper._name = name;
+        _staticMappings.put(name, wrapper);
+
+        String arrayName = "[L" + name + ";";
+        ClassWrapper arrayWrapper = new ClassWrapper(
+            arrayName, Array.newInstance(clazz, 0).getClass(), wrapper);
+        _staticMappings.put(arrayName, arrayWrapper);
+    }
+
     /**
      * Creates an importer to read from the specified stream.
      */
@@ -413,7 +428,7 @@ public class BinaryImporter extends Importer
     {
         ClassWrapper wrapper = _wrappersByName.get(name);
         if (wrapper == null) {
-            _wrappersByName.put(name, wrapper = new ClassWrapper(name, flags));
+            _wrappersByName.put(name, wrapper = new ClassWrapper(this, name, flags));
             Class<?> clazz = wrapper.getWrappedClass();
             if (clazz != null) {
                 _wrappersByClass.put(clazz, wrapper);
@@ -429,7 +444,7 @@ public class BinaryImporter extends Importer
     {
         ClassWrapper wrapper = _wrappersByClass.get(clazz);
         if (wrapper == null) {
-            _wrappersByClass.put(clazz, wrapper = new ClassWrapper(clazz));
+            _wrappersByClass.put(clazz, wrapper = new ClassWrapper(this, clazz));
             _wrappersByName.put(clazz.getName(), wrapper);
         }
         return wrapper;
@@ -438,9 +453,9 @@ public class BinaryImporter extends Importer
     /**
      * Contains information on a class in the stream, which may or may not be resolvable.
      */
-    protected class ClassWrapper
+    protected static class ClassWrapper
     {
-        public ClassWrapper (String name, byte flags)
+        public ClassWrapper (BinaryImporter importer, String name, byte flags)
         {
             _name = name;
             if (name.charAt(0) == '[') {
@@ -448,14 +463,15 @@ public class BinaryImporter extends Importer
                 String cname = name.substring(1);
                 char type = cname.charAt(0);
                 if (type == '[') { // sub-array
-                    _componentType = getClassWrapper(cname, flags);
+                    _componentType = importer.getClassWrapper(cname, flags);
                 } else if (type == 'L') { // object class or interface
-                    _componentType = getClassWrapper(cname.substring(1, cname.length()-1), flags);
+                    _componentType =
+                        importer.getClassWrapper(cname.substring(1, cname.length()-1), flags);
                 } else { // primitive array
                     try {
                         _clazz = Class.forName(name);
                     } catch (ClassNotFoundException e) { }
-                    _componentType = getClassWrapper(_clazz.getComponentType());
+                    _componentType = importer.getClassWrapper(_clazz.getComponentType());
                     return;
                 }
                 if (_componentType.getWrappedClass() == null) {
@@ -471,13 +487,22 @@ public class BinaryImporter extends Importer
             }
         }
 
-        public ClassWrapper (Class<?> clazz)
+        public ClassWrapper (BinaryImporter importer, Class<?> clazz)
         {
             _name = clazz.getName();
             _flags = BinaryExporter.getFlags(clazz);
             if (clazz.isArray()) {
-                _componentType = getClassWrapper(clazz.getComponentType());
+                _componentType = importer.getClassWrapper(clazz.getComponentType());
             }
+            _clazz = clazz;
+        }
+
+        // For static mappings
+        protected ClassWrapper (String name, Class<?> clazz, ClassWrapper componentType)
+        {
+            _name = name;
+            _flags = BinaryExporter.getFlags(clazz);
+            _componentType = componentType;
             _clazz = clazz;
         }
 
@@ -669,10 +694,10 @@ public class BinaryImporter extends Importer
     protected HashMap<String, Object> _fields;
 
     /** Maps class names to wrapper objects (for classes identified in the stream). */
-    protected HashMap<String, ClassWrapper> _wrappersByName = new HashMap<String, ClassWrapper>();
+    protected Map<String, ClassWrapper> _wrappersByName = Maps.newHashMap(_staticMappings);
 
     /** Maps class objects to wrapper objects (for classes identified by reference). */
-    protected HashMap<Class<?>, ClassWrapper> _wrappersByClass = new HashMap<Class<?>, ClassWrapper>();
+    protected Map<Class<?>, ClassWrapper> _wrappersByClass = Maps.newHashMap();
 
     /** The wrapper for the object class. */
     protected ClassWrapper _objectClass;
@@ -687,8 +712,11 @@ public class BinaryImporter extends Importer
     protected IDReader _classIdReader = new IDReader();
 
     /** Class<?> data. */
-    protected HashMap<ClassWrapper, ClassData> _classData = new HashMap<ClassWrapper, ClassData>();
+    protected Map<ClassWrapper, ClassData> _classData = Maps.newHashMap();
 
     /** Signifies a null entry in the object map. */
     protected static final Object NULL = new Object() { };
+
+    /** Static mappings. */
+    protected static Map<String, ClassWrapper> _staticMappings = Maps.newHashMap();
 }
