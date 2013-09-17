@@ -120,6 +120,7 @@ public class PathConfig extends ParameterizedConfig
 
         /** Tags used to identify the path within the scene. */
         @Editable
+        @Strippable
         public TagConfig tags = new TagConfig();
 
         /** The path's event handlers. */

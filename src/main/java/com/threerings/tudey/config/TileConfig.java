@@ -150,6 +150,7 @@ public class TileConfig extends ParameterizedConfig
 
         /** Tags used to identify the tile within the scene. */
         @Editable
+        @Strippable
         public TagConfig tags = new TagConfig();
 
         /** The tile's event handlers. */

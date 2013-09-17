@@ -31,6 +31,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
@@ -98,6 +99,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
     {
         /** Tags used to identify the global within the scene. */
         @Editable
+        @Strippable
         public TagConfig tags = new TagConfig();
 
         /** The global's event handlers. */

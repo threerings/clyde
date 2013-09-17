@@ -34,14 +34,12 @@ import com.samskivert.util.ArrayUtil;
 import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
-import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 /**
  * Tag configuration
  */
-@Strippable
 public class TagConfig extends DeepObject
     implements Exportable, Streamable, Iterable<String>
 {

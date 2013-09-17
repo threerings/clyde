@@ -31,6 +31,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
@@ -131,6 +132,7 @@ public class PlaceableConfig extends ParameterizedConfig
 
         /** Tags used to identify the placeable within the scene. */
         @Editable
+        @Strippable
         public TagConfig tags = new TagConfig();
 
         /** The area's event handlers. */

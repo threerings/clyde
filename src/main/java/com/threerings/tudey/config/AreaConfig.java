@@ -120,6 +120,7 @@ public class AreaConfig extends ParameterizedConfig
 
         /** Tags used to identify the area within the scene. */
         @Editable
+        @Strippable
         public TagConfig tags = new TagConfig();
 
         /** The area's event handlers. */

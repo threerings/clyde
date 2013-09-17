@@ -114,6 +114,7 @@ public class ActorConfig extends ParameterizedConfig
 
         /** Tags used to identify the actor within the scene. */
         @Editable
+        @Strippable
         public TagConfig tags = new TagConfig();
 
         /** The actor's event handlers. */
