@@ -36,6 +36,7 @@ import java.util.Iterator;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
+import org.lwjgl.input.IME;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -45,8 +46,10 @@ import com.samskivert.util.RunAnywhere;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ControllerEvent;
+import com.threerings.opengl.gui.event.IMEEvent;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
+import com.threerings.opengl.gui.text.IMEComponent;
 import static com.threerings.opengl.gui.Log.*;
 
 
@@ -183,6 +186,27 @@ public class DisplayRoot extends Root
                 controllerPovYMoved(controller, _tickStamp, controller.getPovY());
             }
         }
+
+        // process ime events
+        while (IME.next()) {
+            dispatchEvent(getFocus(),
+                    new IMEEvent(this, _tickStamp,
+                        IME.getState(), IME.getString(), IME.getCursorPosition()));
+        }
+    }
+
+    /**
+     * Sets if we performe native IME composition.
+     */
+    public void setIMEComposingEnabled (boolean enabled)
+    {
+        if (enabled == _imeComposingEnabled) {
+            return;
+        }
+        if (_focus instanceof IMEComponent) {
+            IME.setComposing(enabled);
+        }
+        _imeComposingEnabled = enabled;
     }
 
     @Override
@@ -340,7 +364,22 @@ public class DisplayRoot extends Root
         dispatchEvent(getFocus(), event);
     }
 
+    @Override
+    protected void setIMEFocus (boolean focused)
+    {
+        if (!focused) {
+            IME.setComposing(_imeComposingEnabled && focused);
+        }
+        super.setIMEFocus(focused);
+        if (focused) {
+            IME.setComposing(_imeComposingEnabled && focused);
+        }
+    }
+
     /** Track whether we were active during the last event poll, so that we can consume
      * the mouse click that may arrive with focus. */
     protected boolean _wasActive;
+
+    /** If ime composing is enabled. */
+    protected boolean _imeComposingEnabled;
 }

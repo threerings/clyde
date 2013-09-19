@@ -29,6 +29,7 @@ import javax.swing.undo.UndoManager;
 
 import com.google.common.base.Strings;
 
+import org.lwjgl.input.IME.State;
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.IntTuple;
@@ -42,6 +43,7 @@ import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.FocusEvent;
+import com.threerings.opengl.gui.event.IMEEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.TextEvent;
@@ -49,6 +51,7 @@ import com.threerings.opengl.gui.text.DefaultKeyMap;
 import com.threerings.opengl.gui.text.KeyMap;
 import com.threerings.opengl.gui.text.Document;
 import com.threerings.opengl.gui.text.EditCommands;
+import com.threerings.opengl.gui.text.IMEComponent;
 import com.threerings.opengl.gui.text.LengthLimitedDocument;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
@@ -58,7 +61,7 @@ import com.threerings.opengl.gui.util.Rectangle;
  * Extends TextComponent with mechanisms shared by editable text Components.
  */
 public abstract class EditableTextComponent extends TextComponent
-    implements EditCommands, Document.Listener
+    implements EditCommands, Document.Listener, IMEComponent
 {
     /**
      * For subclasses.
@@ -292,6 +295,14 @@ public abstract class EditableTextComponent extends TextComponent
                 lostFocus();
                 break;
             }
+
+        } else if (event instanceof IMEEvent) {
+            IMEEvent iev = (IMEEvent)event;
+            String text = iev.getString();
+            if (text != null) {
+                replaceSelectedText(text, CompoundType.WORD_CHAR, !iev.isResult());
+            }
+
         }
 
         return super.dispatchEvent(event);
@@ -311,7 +322,8 @@ public abstract class EditableTextComponent extends TextComponent
         }
         replaceSelectedText(String.valueOf(c),
             Character.isLetterOrDigit(c) ?
-                CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
+                CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR,
+            false);
         return true;
     }
 
@@ -390,7 +402,7 @@ public abstract class EditableTextComponent extends TextComponent
                 clip = validatePaste(clip);
                 if (clip != null) {
                     // this works even if nothing is selected
-                    replaceSelectedText(clip, null);
+                    replaceSelectedText(clip, null, false);
                 }
             }
             break;
@@ -588,13 +600,16 @@ public abstract class EditableTextComponent extends TextComponent
     /**
      * Replaces the currently selected text with the supplied text.
      */
-    protected void replaceSelectedText (String text, CompoundType compoundType)
+    protected void replaceSelectedText (String text, CompoundType compoundType, boolean select)
     {
         int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
         int length = end - start;
         int newpos = _text.replace(start, length, text, nextUndoId(compoundType));
         if (newpos != -1) {
-            setCursorPos(newpos);
+            if (!select) {
+                start = newpos;
+            }
+            setSelection(newpos, start);
             _lastCompoundType = compoundType;
         }
     }

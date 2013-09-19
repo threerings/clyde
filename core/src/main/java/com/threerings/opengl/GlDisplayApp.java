@@ -33,6 +33,7 @@ import java.nio.ByteBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controllers;
+import org.lwjgl.input.IME;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -180,6 +181,7 @@ public abstract class GlDisplayApp extends GlApp
         Keyboard.destroy();
         Mouse.destroy();
         Controllers.destroy();
+        IME.destroy();
         Display.destroy();
         System.exit(0);
     }
@@ -191,7 +193,11 @@ public abstract class GlDisplayApp extends GlApp
             return;
         }
         super.init();
+    }
 
+    @Override
+    protected void didInit ()
+    {
         // create the input devices
         try {
             Keyboard.create();
@@ -208,6 +214,11 @@ public abstract class GlDisplayApp extends GlApp
             Controllers.create();
         } catch (LWJGLException e) {
             log.warning("Failed to create controllers.", e);
+        }
+        try {
+            IME.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create ime.", e);
         }
 
         // start the updater
