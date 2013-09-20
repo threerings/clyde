@@ -57,6 +57,8 @@ import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 
+import static com.threerings.opengl.gui.Log.log;
+
 /**
  * Extends TextComponent with mechanisms shared by editable text Components.
  */
@@ -260,6 +262,7 @@ public abstract class EditableTextComponent extends TextComponent
             Insets insets = getInsets();
             int mx = mev.getX() - getAbsoluteX() - insets.left,
                 my = mev.getY() - getAbsoluteY() - insets.bottom;
+            clearPending();
             int pos = getPosition(mx, my);
             if (type == MouseEvent.MOUSE_PRESSED) {
                 // if pressed inside the selection, wait for click
@@ -286,6 +289,7 @@ public abstract class EditableTextComponent extends TextComponent
             }
 
         } else if (event instanceof FocusEvent) {
+            clearPending();
             FocusEvent fev = (FocusEvent)event;
             switch (fev.getType()) {
             case FocusEvent.FOCUS_GAINED:
@@ -300,9 +304,12 @@ public abstract class EditableTextComponent extends TextComponent
             IMEEvent iev = (IMEEvent)event;
             String text = iev.getString();
             if (text != null) {
+                if (iev.isResult()) {
+                    clearPending();
+                }
                 replaceSelectedText(text, CompoundType.WORD_CHAR, !iev.isResult());
             }
-
+            return true;
         }
 
         return super.dispatchEvent(event);
@@ -320,6 +327,7 @@ public abstract class EditableTextComponent extends TextComponent
                 (!Character.isDefined(c) || Character.isISOControl(c))) {
             return false;
         }
+        clearPending();
         replaceSelectedText(String.valueOf(c),
             Character.isLetterOrDigit(c) ?
                 CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR,
@@ -420,6 +428,7 @@ public abstract class EditableTextComponent extends TextComponent
             break;
         }
 
+        clearPending();
         return true;
     }
 
@@ -597,19 +606,40 @@ public abstract class EditableTextComponent extends TextComponent
         return text;
     }
 
+    protected void clearPending ()
+    {
+        if (_pendingPos != -1) {
+            if (_pendingLength > 0) {
+                int newpos = _text.remove(_pendingPos, _pendingLength, nextUndoId(null));
+                if (newpos != -1) {
+                    Thread.dumpStack();
+                    setCursorPos(_pendingPos);
+                }
+            }
+            _pendingPos = -1;
+        }
+    }
+
     /**
      * Replaces the currently selected text with the supplied text.
      */
-    protected void replaceSelectedText (String text, CompoundType compoundType, boolean select)
+    protected void replaceSelectedText (String text, CompoundType compoundType, boolean pending)
     {
         int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
         int length = end - start;
+        if (pending && _pendingPos != -1) {
+            start = _pendingPos;
+            length = _pendingLength;
+        }
         int newpos = _text.replace(start, length, text, nextUndoId(compoundType));
         if (newpos != -1) {
-            if (!select) {
-                start = newpos;
+            setSelection(newpos, newpos);
+            if (pending) {
+                _pendingPos = start;
+                _pendingLength = text.length();
+            } else {
+                _pendingPos = -1;
             }
-            setSelection(newpos, start);
             _lastCompoundType = compoundType;
         }
     }
@@ -709,6 +739,7 @@ public abstract class EditableTextComponent extends TextComponent
     protected int _prefWidth = -1;
     protected boolean _showCursor;
     protected int _cursp, _selp;
+    protected int _pendingPos = -1, _pendingLength;
 
     protected Background[] _selectionBackgrounds = new Background[getStateCount()];
 

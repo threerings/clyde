@@ -73,6 +73,13 @@ public class DisplayRoot extends Root
         boolean newActive = !_wasActive && isActive;
         _wasActive = isActive;
 
+        // process ime events
+        while (IME.next()) {
+            dispatchEvent(getFocus(),
+                    new IMEEvent(this, _tickStamp,
+                        IME.getState(), IME.getString(), IME.getCursorPosition()));
+        }
+
         Point p;
         if (newActive && RunAnywhere.isMacOS()) {
             Window[] windows = Window.getWindows();
@@ -185,13 +192,6 @@ public class DisplayRoot extends Root
             } else if (Controllers.isEventPovY()) {
                 controllerPovYMoved(controller, _tickStamp, controller.getPovY());
             }
-        }
-
-        // process ime events
-        while (IME.next()) {
-            dispatchEvent(getFocus(),
-                    new IMEEvent(this, _tickStamp,
-                        IME.getState(), IME.getString(), IME.getCursorPosition()));
         }
     }
 
