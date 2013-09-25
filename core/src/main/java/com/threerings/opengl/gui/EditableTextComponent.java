@@ -612,7 +612,6 @@ public abstract class EditableTextComponent extends TextComponent
             if (_pendingLength > 0) {
                 int newpos = _text.remove(_pendingPos, _pendingLength, nextUndoId(null));
                 if (newpos != -1) {
-                    Thread.dumpStack();
                     setCursorPos(_pendingPos);
                 }
             }
