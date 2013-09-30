@@ -835,7 +835,7 @@ public class TudeySceneView extends DynamicScope
             return true;
         }
 
-    OUTER:
+        // update loading actors, create/update the sprites for actors in the set
         for (Actor actor : actors.values()) {
             int id = actor.getId();
             ActorSprite sprite = _actorSprites.get(id);
