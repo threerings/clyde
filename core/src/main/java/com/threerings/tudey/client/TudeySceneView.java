@@ -829,23 +829,15 @@ public class TudeySceneView extends DynamicScope
             for (Actor actor : actors.values()) {
                 actor.getPreloads(cfgmgr, _preloads);
             }
-            _loadingActors = Lists.newArrayList(actors.values());
+            _loadingActors = new HashIntMap<Actor>(actors.size(), HashIntMap.DEFAULT_LOAD_FACTOR);
+            _loadingActors.putAll(actors);
             addExtraPreloads();
             return true;
         }
 
-        // update loading actors, create/update the sprites for actors in the set
     OUTER:
         for (Actor actor : actors.values()) {
             int id = actor.getId();
-            if (_loadingActors != null) {
-                for (int ii = 0, nn = _loadingActors.size(); ii < nn; ii++) {
-                    if (_loadingActors.get(ii).getId() == id) {
-                        _loadingActors.set(ii, actor);
-                        continue OUTER;
-                    }
-                }
-            }
             ActorSprite sprite = _actorSprites.get(id);
             if (sprite != null) {
                 if (_ctrl.isControlledId(id)) {
@@ -853,9 +845,13 @@ public class TudeySceneView extends DynamicScope
                 } else {
                     sprite.update(timestamp, actor, uids.contains(id));
                 }
-                continue;
+
+            } else if (_loadingActors != null && _loadingActors.containsKey(id)) {
+                _loadingActors.put(id, actor);
+
+            } else {
+                addActorSprite(actor);
             }
-            addActorSprite(actor);
         }
 
         // remove sprites for actors no longer in the set
@@ -885,11 +881,7 @@ public class TudeySceneView extends DynamicScope
 
         // same deal with loading actors
         if (_loadingActors != null) {
-            for (int ii = _loadingActors.size() - 1; ii >= 0; ii--) {
-                if (!actors.containsKey(_loadingActors.get(ii).getId())) {
-                    _loadingActors.remove(ii);
-                }
-            }
+            _loadingActors.keySet().retainAll(actors.keySet());
         }
 
         // create handlers for any effects fired since the last update
@@ -1493,12 +1485,14 @@ public class TudeySceneView extends DynamicScope
         }
         HashIntMap<Actor> actors = _records.get(_records.size() - 1).getActors();
         if (_loadingActors == null) {
-            _loadingActors = Lists.newArrayList(actors.values());
+            _loadingActors = new HashIntMap<Actor>(actors.size(), HashIntMap.DEFAULT_LOAD_FACTOR);
+            _loadingActors.putAll(actors);
         }
         long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
-        for (int ii = _loadingActors.size() - 1;
-                ii >= 0 && System.currentTimeMillis() < end; ii--) {
-            addActorSprite(_loadingActors.remove(ii));
+        for (Iterator<Actor> it = _loadingActors.values().iterator();
+                it.hasNext() && (System.currentTimeMillis() < end); ) {
+            addActorSprite(it.next());
+            it.remove();
         }
         if (_loadingActors.isEmpty()) {
             System.gc();
@@ -1794,7 +1788,7 @@ public class TudeySceneView extends DynamicScope
     protected List<Sprite> _loadingMerged;
 
     /** The remaining actors to add during loading. */
-    protected List<Actor> _loadingActors;
+    protected HashIntMap<Actor> _loadingActors;
 
     /** The OpenGL scene. */
     @Scoped
