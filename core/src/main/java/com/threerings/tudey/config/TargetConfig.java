@@ -116,7 +116,7 @@ public abstract class TargetConfig extends DeepObject
     public static class InstanceOf extends TargetConfig
     {
         /** The class of interest. */
-        @Editable
+        @Editable(width=40)
         public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
 
         @Override
