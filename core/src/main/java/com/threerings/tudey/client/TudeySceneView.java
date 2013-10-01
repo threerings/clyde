@@ -774,11 +774,9 @@ public class TudeySceneView extends DynamicScope
             return false;
         }
         HashIntMap<Actor> oactors = _records.get(0).getActors();
-        HashIntMap<Actor> actors = new HashIntMap<Actor>();
-        Set<Integer> uids = Sets.newHashSet();
-
         // start with all the old actors
-        actors.putAll(oactors);
+        HashIntMap<Actor> actors = oactors.clone();
+        Set<Integer> uids = Sets.newHashSet();
 
         // add any new actors
         Actor[] added = event.getAddedActors();
@@ -829,8 +827,7 @@ public class TudeySceneView extends DynamicScope
             for (Actor actor : actors.values()) {
                 actor.getPreloads(cfgmgr, _preloads);
             }
-            _loadingActors = new HashIntMap<Actor>(actors.size(), HashIntMap.DEFAULT_LOAD_FACTOR);
-            _loadingActors.putAll(actors);
+            _loadingActors = actors.clone();
             addExtraPreloads();
             return true;
         }
@@ -1485,8 +1482,7 @@ public class TudeySceneView extends DynamicScope
         }
         HashIntMap<Actor> actors = _records.get(_records.size() - 1).getActors();
         if (_loadingActors == null) {
-            _loadingActors = new HashIntMap<Actor>(actors.size(), HashIntMap.DEFAULT_LOAD_FACTOR);
-            _loadingActors.putAll(actors);
+            _loadingActors = actors.clone();
         }
         long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
         for (Iterator<Actor> it = _loadingActors.values().iterator();
