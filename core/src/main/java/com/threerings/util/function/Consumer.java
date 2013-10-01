@@ -6,6 +6,7 @@ package com.threerings.util.function;
 import java.util.Collection;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 
 /**
  * Collects elements.
@@ -49,6 +50,22 @@ public interface Consumer<T>
             return new Consumer<T>() {
                 public void accept (T t) {
                     consumer.accept(func.apply(t));
+                }
+            };
+        }
+
+        /**
+         * Return a Consumer that filters elements using the specified predicate before
+         * adding them to the other consumer.
+         */
+        public static <T> Consumer<T> filter (
+                final Consumer<T> consumer, final Predicate<? super T> pred)
+        {
+            return new Consumer<T>() {
+                public void accept (T t) {
+                    if (pred.apply(t)) {
+                        consumer.accept(t);
+                    }
                 }
             };
         }
