@@ -631,7 +631,7 @@ public abstract class ConditionLogic extends Logic
             _target.resolve(activator, _targets);
             try {
                 for (Logic target : _targets) {
-                    if (target == sourceTarget) {
+                    if ((target == sourceTarget) != config.all) {
                         return !config.all;
                     }
                 }
