@@ -163,6 +163,7 @@ public class XMLExporter extends Exporter
     {
         // finish up, then close the underlying stream
         finish();
+        _out.write('\n');
         _out.close();
     }
 
