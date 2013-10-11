@@ -67,7 +67,7 @@ import static com.threerings.opengl.gui.Log.*;
     ActionConfig.RunScript.class, ActionConfig.RunInitScript.class,
     ActionConfig.PlayAnimation.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
     ActionConfig.AddHandler.class, ActionConfig.Conditional.class, ActionConfig.Compound.class,
-    ActionConfig.EmitEvent.class })
+    ActionConfig.EmitEvent.class, ActionConfig.Log.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -690,6 +690,22 @@ public abstract class ActionConfig extends DeepObject
         {
             log.info("Emit Event", "action", action);
             iface.dispatchEvent(new ActionEvent(iface, iface.getRoot().getTickStamp(), 0, action));
+        }
+    }
+
+    /**
+     * Prints a log message.
+     */
+    public static class Log extends ActionConfig
+    {
+        /** The log message. */
+        @Editable
+        public String message = "";
+
+        @Override
+        public void execute (UserInterface iface, ConfigScript script)
+        {
+            log.info("Script log action", "message", message);
         }
     }
 
