@@ -497,7 +497,7 @@ public class PropertyUtil
                 }
                 ManagedConfig config = cfgmgr.getConfig(cclass, ref);
                 if (config != null) {
-                    getResources(cfgmgr, config, paths, refs);
+                    getResources(config.getConfigManager(), config, paths, refs);
                 }
             } else if (editor.equals("resource")) {
                 paths.add((String)value);

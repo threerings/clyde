@@ -46,6 +46,7 @@ import com.threerings.util.MessageManager;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ManagedConfig;
 import com.threerings.editor.util.PropertyUtil;
 
 import static com.threerings.editor.Log.*;
@@ -139,7 +140,8 @@ public class ConfigResourcesTask extends Task
             if (!file.endsWith(".dat")) {
                 continue;
             }
-            PropertyUtil.getResources(cfgmgr, cfgmgr.getResourceConfig(file), resources);
+            ManagedConfig config = cfgmgr.getResourceConfig(file);
+            PropertyUtil.getResources(config.getConfigManager(), config, resources);
         }
 
         // create a pattern set with the resources and assign it to the specified id
