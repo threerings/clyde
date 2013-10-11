@@ -243,6 +243,10 @@ public class UserInterface extends Container
         // documentation inherited from interface Tickable
         public void tick (float elapsed)
         {
+            if (_dropTick) {
+                _dropTick = false;
+                return;
+            }
             _time += elapsed;
             executeActions();
             if (_paused) {
@@ -270,6 +274,15 @@ public class UserInterface extends Container
             }
         }
 
+        @Override
+        public void init ()
+        {
+            super.init();
+            // We drop our first tick after initialization, since it includes an elapsed time from
+            // before the script was running
+            _dropTick = true;
+        }
+
         /**
          * Updates the state in response to a change in the config.
          */
@@ -287,7 +300,7 @@ public class UserInterface extends Container
         protected void executeActions ()
         {
             for (; _aidx < _original.actions.length &&
-                    _original.actions[_aidx].time < _time && !_paused; _aidx++) {
+                    _original.actions[_aidx].time <= _time && !_paused; _aidx++) {
                 _original.actions[_aidx].action.execute(UserInterface.this, this);
             }
         }
@@ -306,6 +319,9 @@ public class UserInterface extends Container
 
         /** If set, we're paused waiting for something to happen. */
         protected boolean _paused;
+
+        /** If we drop the next tick. */
+        protected boolean _dropTick;
     }
 
     /**
