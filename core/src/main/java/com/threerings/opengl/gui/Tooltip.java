@@ -74,19 +74,11 @@ public class Tooltip
     }
 
     /**
-     * Set the timeout for the tooltip.
-     */
-    public void setTimeout (float timeout)
-    {
-        _timeout = timeout;
-    }
-
-    /**
      * Returns the component's tooltip timeout, or -1 to use the default.
      */
     public float getTimeout ()
     {
-        return _timeout;
+        return -1f;
     }
 
     /**
@@ -119,7 +111,4 @@ public class Tooltip
 
     /** Tip relative to mouse. */
     protected boolean _tipmouse;
-
-    /** The tooltip timeout. */
-    protected float _timeout = -1f;
 }
