@@ -800,6 +800,14 @@ public class Component
     }
 
     /**
+     * Set the component's tooltip timeout.
+     */
+    public void setTooltipTimeout (float timeout)
+    {
+        _tooltip.setTimeout(timeout);
+    }
+
+    /**
      * Returns the component's tooltip timeout, or -1 to use the default.
      */
     public float getTooltipTimeout ()

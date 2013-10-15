@@ -1109,6 +1109,10 @@ public abstract class ComponentConfig extends DeepObject
     @Editable(weight=1, hgroup="t")
     public String tooltipText = "";
 
+    /** The timeout for the component's tooltip. */
+    @Editable(weight=1, min=-1, step=0.1, hgroup="t")
+    public float tooltipTimeout = -1f;
+
     /** Whether or not the tooltip is relative to the mouse cursor. */
     @Editable(weight=1, hgroup="t")
     public boolean tooltipRelativeToMouse;
@@ -1180,6 +1184,7 @@ public abstract class ComponentConfig extends DeepObject
         comp.setHoverable(hoverable);
         comp.setTooltipText(
             StringUtil.isBlank(tooltipText) ? null : getMessage(msgs, tooltipText));
+        comp.setTooltipTimeout(tooltipTimeout);
         comp.setTooltipRelativeToMouse(tooltipRelativeToMouse);
         comp.setStyleConfig(style);
         if (preferredSize != null) {
