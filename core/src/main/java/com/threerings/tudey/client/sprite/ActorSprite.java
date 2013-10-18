@@ -891,7 +891,8 @@ public class ActorSprite extends Sprite
             int entered = estate.getStateEntered();
             if (entered > _lastStateEntered) {
                 int state = estate.getState();
-                Animation anim = (state < _states.length) ? _states[state] : null;
+                Animation anim =
+                    (_states != null && state < _states.length) ? _states[state] : null;
                 if (anim != null) {
                     anim.start();
                     anim.tick((_view.getDelayedTime() - entered) / 1000f);
