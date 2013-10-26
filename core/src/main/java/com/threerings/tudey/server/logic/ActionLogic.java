@@ -952,9 +952,12 @@ public abstract class ActionLogic extends Logic
                 return false;
             }
             Interval interval = new Interval(_scenemgr) {
-                public void expired () {
+                @Override public void expired () {
                     _intervals.remove(this);
                     _action.execute(_scenemgr.getTimestamp(), activator);
+                }
+                @Override protected void noteRejected () {
+                    // it's ok: the scene just ended. (we could execute a failure action here)
                 }
             };
             _intervals.add(interval);
