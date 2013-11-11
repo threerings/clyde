@@ -128,7 +128,7 @@ public class StripTask extends Task
         BinaryExporter out = new BinaryExporter(new FileOutputStream(target), _compress);
         try {
             while (true) {
-                out.writeObject(PropertyUtil.strip(_cfgmgr, in.readObject()));
+                out.writeObject(strip(in.readObject()));
             }
         } catch (EOFException e) {
             // no problem
@@ -136,6 +136,14 @@ public class StripTask extends Task
             in.close();
             out.close();
         }
+    }
+
+    /**
+     * Do the stripping.
+     */
+    protected Object strip (Object object)
+    {
+        return PropertyUtil.strip(_cfgmgr, object);
     }
 
     /** The config manager. */
