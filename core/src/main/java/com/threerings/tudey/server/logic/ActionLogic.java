@@ -944,26 +944,19 @@ public abstract class ActionLogic extends Logic
     public static class Delayed extends ActionLogic
     {
         @Override
-        public boolean execute (int timestamp, final Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             if (!_scenemgr.isRunning()) {
                 log.warning("Delayed action executing on shutdown SceneManager.", new Exception());
                 return false;
             }
-            Interval interval = new Interval(_scenemgr) {
-                @Override public void expired () {
-                    _intervals.remove(this);
-                    _action.execute(_scenemgr.getTimestamp(), activator);
-                }
-                @Override protected void noteRejected () {
-                    // it's ok: the scene just ended. (we could execute a failure action here)
-                }
-            };
-            _intervals.add(interval);
+
             ActionConfig.Delayed config = (ActionConfig.Delayed)_config;
-            int delay = (config.variance == 0) ? config.delay : Math.max(
-                    0, config.delay + Randoms.RAND.getInt(config.variance * 2) - config.variance);
-            interval.schedule(delay);
+            int delay = (config.variance == 0)
+                ? config.delay
+                : Math.max(0, config.delay +
+                        Randoms.threadLocal().getInt(config.variance * 2) - config.variance);
+            new ActionInterval(timestamp + delay, activator);
             return true;
         }
 
@@ -971,12 +964,17 @@ public abstract class ActionLogic extends Logic
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
-            _action.transfer(((Delayed)source)._action, refs);
+            Delayed src = (Delayed)source;
+            _action.transfer(src._action, refs);
+            for (ActionInterval ai : src._intervals) {
+                new ActionInterval(ai.executionStamp, (Logic)refs.get(ai.activator));
+            }
         }
 
         @Override
         protected void didInit ()
         {
+            super.didInit();
             _action = createAction(((ActionConfig.Delayed)_config).action, _source);
         }
 
@@ -984,17 +982,56 @@ public abstract class ActionLogic extends Logic
         protected void wasRemoved ()
         {
             _action.removed();
-            for (int ii = 0, nn = _intervals.size(); ii < nn; ii++) {
-                _intervals.get(ii).cancel();
+            for (ActionInterval ai : _intervals) {
+                ai.cancel();
             }
-            _intervals.clear();
+            _intervals = null;
         }
 
         /** The action. */
         protected ActionLogic _action;
 
         /** The time intervals. */
-        protected List<Interval> _intervals = Lists.newArrayList();
+        protected Set<ActionInterval> _intervals = Sets.newIdentityHashSet();
+
+        /**
+         * An interval that knows its intended exection time in the scene, so that
+         * a clone can be created when transferring.
+         */
+        protected class ActionInterval extends Interval
+        {
+            /** The scene timestamp at which we should be executing. */
+            public final int executionStamp;
+
+            /** Our activator, passed to the action. */
+            public final Logic activator;
+
+            /**
+             * Create an ActionInterval.
+             */
+            public ActionInterval (int executionStamp, Logic activator)
+            {
+                super(_scenemgr);
+                log.info("Scheduling actionInterval",
+                        "scenemgr", System.identityHashCode(_scenemgr),
+                        "exectionStamp", executionStamp,
+                        "activator", activator.getClass());
+                this.executionStamp = executionStamp;
+                this.activator = activator;
+                _intervals.add(this);
+                schedule(executionStamp - _scenemgr.getTimestamp());
+            }
+
+            @Override public void expired () {
+                _intervals.remove(this);
+                _action.execute(_scenemgr.getTimestamp(), activator);
+            }
+
+            @Override protected void noteRejected () {
+                // it's ok: the scene has ended. (we could execute a failure action here)
+                _intervals.remove(this);
+            }
+        }
     }
 
     /**
