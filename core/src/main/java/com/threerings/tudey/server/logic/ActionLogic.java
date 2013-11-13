@@ -1012,10 +1012,10 @@ public abstract class ActionLogic extends Logic
             public ActionInterval (int executionStamp, Logic activator)
             {
                 super(_scenemgr);
-                log.info("Scheduling actionInterval",
-                        "scenemgr", System.identityHashCode(_scenemgr),
-                        "exectionStamp", executionStamp,
-                        "activator", activator.getClass());
+//                log.info("Scheduling actionInterval",
+//                        "scenemgr", System.identityHashCode(_scenemgr),
+//                        "exectionStamp", executionStamp,
+//                        "activator", activator.getClass());
                 this.executionStamp = executionStamp;
                 this.activator = activator;
                 _intervals.add(this);
