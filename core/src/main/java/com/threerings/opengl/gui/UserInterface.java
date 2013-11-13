@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
@@ -782,6 +783,13 @@ public class UserInterface extends Container
         } else {
             super.configUpdated(event);
         }
+    }
+
+    @Override
+    public Objects.ToStringHelper toStringHelper ()
+    {
+        return super.toStringHelper()
+            .add("config", (_config == null) ? null : _config.getName());
     }
 
     @Override

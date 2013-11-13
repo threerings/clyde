@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -1037,6 +1038,22 @@ public class Component
                 updateFromStyleConfig(ii);
             }
         }
+    }
+
+    @Override
+    public final String toString ()
+    {
+        // DO NOT remove the 'final'. If you want to add information, override toStringHelper
+        // and add fields. You're welcome.
+        return toStringHelper().toString();
+    }
+
+    /**
+     * Helper method for toStringing.
+     */
+    protected Objects.ToStringHelper toStringHelper ()
+    {
+        return Objects.toStringHelper(this);
     }
 
     /**
