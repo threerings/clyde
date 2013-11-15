@@ -25,13 +25,8 @@
 
 package com.threerings.tudey.data;
 
-import java.io.IOException;
-
-import com.threerings.io.ObjectInputStream;
-import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.Streamable;
 
-import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 
 /**
@@ -70,25 +65,6 @@ public class InputFrame extends DeepObject
     public int getTimestamp ()
     {
         return _timestamp;
-    }
-
-    /**
-     * Sets the computed translation reference.  This is done on the client so that the server
-     * knows where the client thinks he should be.
-     */
-    public void setTranslation (Vector2f translation)
-    {
-        _translation = translation;
-    }
-
-    /**
-     * Returns a reference to the computed translation.
-     */
-    public Vector2f getTranslation ()
-    {
-        // currently disabled
-        //return _translation;
-        return null;
     }
 
     /**
@@ -131,39 +107,15 @@ public class InputFrame extends DeepObject
         return 18;
     }
 
-// input translation is currently disabled
-//    /**
-//     * Custom serialization method.
-//     */
-//    public void writeObject (ObjectOutputStream out)
-//        throws IOException
-//    {
-//        out.defaultWriteObject();
-//        // out.writeBareObject(_translation);
-//    }
-//
-//    /**
-//     * Custom deserialization method.
-//     */
-//    public void readObject (ObjectInputStream in)
-//        throws IOException, ClassNotFoundException
-//    {
-//        in.defaultReadObject();
-//        // in.readBareObject(_translation = new Vector2f());
-//    }
-
     @Override
     public String toString ()
     {
-        return "[timestamp=" + _timestamp + ", translation=" + _translation + ", rotation=" +
-            _rotation + ", direction=" + _direction + ", flags=" + _flags + "]";
+        return "[timestamp=" + _timestamp + ", rotation=" + _rotation +
+            ", direction=" + _direction + ", flags=" + _flags + "]";
     }
 
     /** The timestamp of the input frame. */
     protected int _timestamp;
-
-    /** The user's computed translation. */
-    protected transient Vector2f _translation;
 
     /** The rotation requested by the user. */
     protected float _rotation;

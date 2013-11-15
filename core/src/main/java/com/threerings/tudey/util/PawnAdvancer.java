@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.util;
 
-import com.threerings.math.Vector2f;
-
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.data.actor.Pawn;
@@ -74,55 +72,6 @@ public class PawnAdvancer extends ActiveAdvancer
         if (_frame != null) {
             updateInput();
         }
-    }
-
-    @Override
-    protected void takeSubsteps (float elapsed)
-    {
-        // if the input frame provides a computed position, we shall attempt to validate
-        if (_frame == null || _timestamp != _frame.getTimestamp() ||
-                _frame.getTranslation() == null || ignoreInputPosition()) {
-            super.takeSubsteps(elapsed);
-            return;
-        }
-
-        // make sure this is cleared in case we don't take any mobile steps
-        if (!canMove()) {
-            _active.clear(Mobile.MOVING);
-        }
-
-        // make sure they haven't exceeded their speed
-        Vector2f ptrans = _pawn.getTranslation();
-        Vector2f ftrans = _frame.getTranslation();
-        float distance = ptrans.distance(ftrans);
-        if (distance == 0f) {
-            return; // no movement, no problem
-        }
-        if (distance > _pawn.getSpeed() * elapsed + 0.5f) {
-            super.takeSubsteps(elapsed);
-            return;
-        }
-
-        // make sure they didn't run into anything
-        updateShape();
-        _swept = _shape.sweep(ftrans.subtract(ptrans, _penetration), _swept);
-        if (_environment.collides(_pawn, _swept)) {
-            super.takeSubsteps(elapsed);
-            return;
-        }
-
-        // otherwise, assume validity
-        ptrans.set(ftrans);
-        _pawn.setDirty(true);
-    }
-
-    /**
-     * Checks whether we should ignore the input position and instead perform the full movement
-     * simulation.
-     */
-    protected boolean ignoreInputPosition ()
-    {
-        return false;
     }
 
     /**
