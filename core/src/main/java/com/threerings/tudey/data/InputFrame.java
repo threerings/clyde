@@ -131,26 +131,26 @@ public class InputFrame extends DeepObject
         return 18;
     }
 
-    /**
-     * Custom serialization method.
-     */
-    public void writeObject (ObjectOutputStream out)
-        throws IOException
-    {
-        out.defaultWriteObject();
-        // input translation is currently disabled
-        // out.writeBareObject(_translation);
-    }
-
-    /**
-     * Custom deserialization method.
-     */
-    public void readObject (ObjectInputStream in)
-        throws IOException, ClassNotFoundException
-    {
-        in.defaultReadObject();
-        // in.readBareObject(_translation = new Vector2f());
-    }
+// input translation is currently disabled
+//    /**
+//     * Custom serialization method.
+//     */
+//    public void writeObject (ObjectOutputStream out)
+//        throws IOException
+//    {
+//        out.defaultWriteObject();
+//        // out.writeBareObject(_translation);
+//    }
+//
+//    /**
+//     * Custom deserialization method.
+//     */
+//    public void readObject (ObjectInputStream in)
+//        throws IOException, ClassNotFoundException
+//    {
+//        in.defaultReadObject();
+//        // in.readBareObject(_translation = new Vector2f());
+//    }
 
     @Override
     public String toString ()
