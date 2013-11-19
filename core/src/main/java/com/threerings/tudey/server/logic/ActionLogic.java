@@ -956,7 +956,7 @@ public abstract class ActionLogic extends Logic
                 ? config.delay
                 : Math.max(0, config.delay +
                         Randoms.threadLocal().getInt(config.variance * 2) - config.variance);
-            new ActionInterval(timestamp + delay, activator);
+            new ActionInterval(_scenemgr.getTimestamp() + delay, activator);
             return true;
         }
 
@@ -1019,7 +1019,7 @@ public abstract class ActionLogic extends Logic
                 this.executionStamp = executionStamp;
                 this.activator = activator;
                 _intervals.add(this);
-                schedule(executionStamp - _scenemgr.getTimestamp());
+                schedule(Math.max(0, executionStamp - _scenemgr.getTimestamp()));
             }
 
             @Override public void expired () {
