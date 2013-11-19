@@ -79,7 +79,7 @@ public class FileEditor extends PropertyEditor
                             return false;
                         }
                         public String getDescription () {
-                            return msgs.get(constraints.description());
+                            return msgs.xlate(constraints.description());
                         }
                     });
                 }
