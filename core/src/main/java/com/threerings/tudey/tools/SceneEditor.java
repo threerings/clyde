@@ -296,7 +296,7 @@ public class SceneEditor extends TudeyTool
         view.add(createMenuItem("lower_grid", KeyEvent.VK_L, KeyEvent.VK_DOWN, 0));
         view.addSeparator();
         view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
-        view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
+        view.add(createMenuItem("recenter", KeyEvent.VK_C, -1));
         view.addSeparator();
         view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
         view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
