@@ -294,6 +294,8 @@ public class SceneEditor extends TudeyTool
         view.addSeparator();
         view.add(createMenuItem("raise_grid", KeyEvent.VK_R, KeyEvent.VK_UP, 0));
         view.add(createMenuItem("lower_grid", KeyEvent.VK_L, KeyEvent.VK_DOWN, 0));
+        view.add(_snapGrid = createMenuItem("snap_grid", KeyEvent.VK_A, KeyEvent.VK_RIGHT, 0));
+        _snapGrid.setEnabled(false);
         view.addSeparator();
         view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
         view.add(createMenuItem("recenter", KeyEvent.VK_C, -1));
@@ -591,6 +593,7 @@ public class SceneEditor extends TudeyTool
         _raise.setEnabled(enable);
         _lower.setEnabled(enable);
         _saveToPalette.setEnabled(enable);
+        _snapGrid.setEnabled(enable);
     }
 
     /**
@@ -1082,6 +1085,13 @@ public class SceneEditor extends TudeyTool
             _grid.setElevation(_grid.getElevation() + 1);
         } else if (action.equals("lower_grid")) {
             _grid.setElevation(_grid.getElevation() - 1);
+        } else if (action.equals("snap_grid")) {
+            if (_selection.length > 0) {
+                int elevation = _selection[0].getElevation();
+                if (elevation > Integer.MIN_VALUE) {
+                    _grid.setElevation(elevation);
+                }
+            }
         } else if (action.equals("reorient")) {
             ((OrbitCameraHandler)_camhand).getCoords().set(
                 TudeySceneMetrics.getDefaultCameraConfig().coords);
@@ -1142,6 +1152,7 @@ public class SceneEditor extends TudeyTool
         JComponent bcomp = (_canvas instanceof JComponent) ? ((JComponent)_canvas) : ccont;
         bindAction(bcomp, KeyEvent.VK_UP, 0, "raise_grid");
         bindAction(bcomp, KeyEvent.VK_DOWN, 0, "lower_grid");
+        bindAction(bcomp, KeyEvent.VK_RIGHT, 0, "snap_grid");
         return _pane;
     }
 
@@ -1912,6 +1923,9 @@ public class SceneEditor extends TudeyTool
 
     /** The save-to-palette menu item. */
     protected JMenuItem _saveToPalette;
+
+    /** The grid menu items. */
+    protected JMenuItem _snapGrid;
 
     /** The file chooser for opening and saving scene files. */
     protected JFileChooser _chooser;
