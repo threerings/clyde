@@ -299,6 +299,9 @@ public class SceneEditor extends TudeyTool
         view.addSeparator();
         view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
         view.add(createMenuItem("recenter", KeyEvent.VK_C, -1));
+        view.add(_centerSelected =
+                createMenuItem("center_selected", KeyEvent.VK_E, KeyEvent.VK_LEFT, 0));
+        _centerSelected.setEnabled(false);
         view.addSeparator();
         view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
         view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
@@ -594,6 +597,7 @@ public class SceneEditor extends TudeyTool
         _lower.setEnabled(enable);
         _saveToPalette.setEnabled(enable);
         _snapGrid.setEnabled(enable);
+        _centerSelected.setEnabled(enable);
     }
 
     /**
@@ -1095,6 +1099,13 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("reorient")) {
             ((OrbitCameraHandler)_camhand).getCoords().set(
                 TudeySceneMetrics.getDefaultCameraConfig().coords);
+        } else if (action.equals("center_selected")) {
+            if (_selection.length > 0) {
+                Vector2f trans = _selection[0].getTranslation(_cfgmgr);
+                ((OrbitCameraHandler)_camhand).getTarget().set(new Vector3f(
+                        trans.x, trans.y,
+                        TudeySceneMetrics.getTileZ(_selection[0].getElevation())));
+            }
         } else if (action.equals("next_layer")) {
             _layers.selectLayer(true);
         } else if (action.equals("prev_layer")) {
@@ -1153,6 +1164,7 @@ public class SceneEditor extends TudeyTool
         bindAction(bcomp, KeyEvent.VK_UP, 0, "raise_grid");
         bindAction(bcomp, KeyEvent.VK_DOWN, 0, "lower_grid");
         bindAction(bcomp, KeyEvent.VK_RIGHT, 0, "snap_grid");
+        bindAction(bcomp, KeyEvent.VK_LEFT, 0, "center_selected");
         return _pane;
     }
 
@@ -1924,8 +1936,8 @@ public class SceneEditor extends TudeyTool
     /** The save-to-palette menu item. */
     protected JMenuItem _saveToPalette;
 
-    /** The grid menu items. */
-    protected JMenuItem _snapGrid;
+    /** The view menu items. */
+    protected JMenuItem _snapGrid, _centerSelected;
 
     /** The file chooser for opening and saving scene files. */
     protected JFileChooser _chooser;
