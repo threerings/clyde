@@ -59,18 +59,17 @@ public class BinaryImporter extends Importer
 {
     // TEMP?
     // Added so that we can import old data
-    // FUCK FUCK FUCK
-    public static void addMapping (String name, Class<?> clazz)
-    {
-        ClassWrapper wrapper = new ClassWrapper(null, clazz);
-        wrapper._name = name;
-        _staticMappings.put(name, wrapper);
-
-        String arrayName = "[L" + name + ";";
-        ClassWrapper arrayWrapper = new ClassWrapper(
-            arrayName, Array.newInstance(clazz, 0).getClass(), wrapper);
-        _staticMappings.put(arrayName, arrayWrapper);
-    }
+//    public static void addMapping (String name, Class<?> clazz)
+//    {
+//        ClassWrapper wrapper = new ClassWrapper(null, clazz);
+//        wrapper._name = name;
+//        _staticMappings.put(name, wrapper);
+//
+//        String arrayName = "[L" + name + ";";
+//        ClassWrapper arrayWrapper = new ClassWrapper(
+//            arrayName, Array.newInstance(clazz, 0).getClass(), wrapper);
+//        _staticMappings.put(arrayName, arrayWrapper);
+//    }
 
     /**
      * Creates an importer to read from the specified stream.
@@ -497,14 +496,14 @@ public class BinaryImporter extends Importer
             _clazz = clazz;
         }
 
-        // For static mappings
-        protected ClassWrapper (String name, Class<?> clazz, ClassWrapper componentType)
-        {
-            _name = name;
-            _flags = BinaryExporter.getFlags(clazz);
-            _componentType = componentType;
-            _clazz = clazz;
-        }
+//        // For static mappings
+//        protected ClassWrapper (String name, Class<?> clazz, ClassWrapper componentType)
+//        {
+//            _name = name;
+//            _flags = BinaryExporter.getFlags(clazz);
+//            _componentType = componentType;
+//            _clazz = clazz;
+//        }
 
         /**
          * Returns the name of the class.
@@ -694,7 +693,7 @@ public class BinaryImporter extends Importer
     protected HashMap<String, Object> _fields;
 
     /** Maps class names to wrapper objects (for classes identified in the stream). */
-    protected Map<String, ClassWrapper> _wrappersByName = Maps.newHashMap(_staticMappings);
+    protected Map<String, ClassWrapper> _wrappersByName = Maps.newHashMap(/*_staticMappings*/);
 
     /** Maps class objects to wrapper objects (for classes identified by reference). */
     protected Map<Class<?>, ClassWrapper> _wrappersByClass = Maps.newHashMap();
@@ -717,6 +716,6 @@ public class BinaryImporter extends Importer
     /** Signifies a null entry in the object map. */
     protected static final Object NULL = new Object() { };
 
-    /** Static mappings. */
-    protected static Map<String, ClassWrapper> _staticMappings = Maps.newHashMap();
+//    /** Static mappings. */
+//    protected static Map<String, ClassWrapper> _staticMappings = Maps.newHashMap();
 }
