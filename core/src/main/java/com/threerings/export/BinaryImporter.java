@@ -714,7 +714,7 @@ public class BinaryImporter extends Importer
     protected Map<ClassWrapper, ClassData> _classData = Maps.newHashMap();
 
     /** Signifies a null entry in the object map. */
-    protected static final Object NULL = new Object() { };
+    protected static final Object NULL = new Object();
 
 //    /** Static mappings. */
 //    protected static Map<String, ClassWrapper> _staticMappings = Maps.newHashMap();
