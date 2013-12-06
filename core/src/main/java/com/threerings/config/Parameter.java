@@ -57,7 +57,7 @@ import com.threerings.util.DeepOmit;
 import com.threerings.util.Inner;
 import com.threerings.util.ReflectionUtil;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * A single configuration parameter.

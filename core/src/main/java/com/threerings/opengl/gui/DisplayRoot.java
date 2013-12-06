@@ -50,7 +50,7 @@ import com.threerings.opengl.gui.event.IMEEvent;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.text.IMEComponent;
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 
 /**

@@ -45,7 +45,7 @@ import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Provides render-to-texture functionality using various methods according to the abilities

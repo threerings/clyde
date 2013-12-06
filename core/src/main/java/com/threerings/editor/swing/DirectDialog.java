@@ -61,7 +61,7 @@ import com.threerings.config.Parameter;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.util.EditorContext;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Creates a direct parameter.

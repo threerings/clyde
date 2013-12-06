@@ -67,7 +67,7 @@ import com.threerings.export.util.SerializableWrapper;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.resource.ResourceManager;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Contains some static classes and methods used by our various (Swing-based) tool applications.

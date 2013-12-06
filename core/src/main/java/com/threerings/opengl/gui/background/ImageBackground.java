@@ -30,7 +30,7 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.gui.Image;
 import com.threerings.opengl.gui.util.Insets;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Supports image backgrounds in a variety of ways. Specifically:

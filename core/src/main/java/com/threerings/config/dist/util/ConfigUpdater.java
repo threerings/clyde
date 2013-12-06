@@ -37,7 +37,7 @@ import com.threerings.config.dist.data.ConfigEntry;
 import com.threerings.config.dist.data.ConfigKey;
 import com.threerings.config.dist.data.DConfigObject;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * A utility class used on both the client and the server to apply events received on the config

@@ -56,7 +56,7 @@ import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.util.TruncatedAverage;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Handles interaction with a single client.

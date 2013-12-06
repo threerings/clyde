@@ -64,7 +64,7 @@ import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * The global editor tool.

@@ -48,7 +48,7 @@ import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.util.PropertyUtil;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * A property that

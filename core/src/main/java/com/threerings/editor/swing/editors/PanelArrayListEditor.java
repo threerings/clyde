@@ -57,7 +57,7 @@ import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.BasePropertyEditor;
 import com.threerings.editor.swing.ObjectPanel;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * An editor for arrays or lists of objects.  Uses embedded panels.

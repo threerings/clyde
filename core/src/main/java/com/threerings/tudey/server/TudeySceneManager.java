@@ -100,7 +100,7 @@ import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeySceneMetrics;
 import com.threerings.tudey.util.TudeyUtil;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Manager for Tudey scenes.

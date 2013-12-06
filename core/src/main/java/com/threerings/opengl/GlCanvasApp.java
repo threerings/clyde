@@ -54,7 +54,7 @@ import com.threerings.math.Ray3D;
 
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A base class for applications centered around an OpenGL canvas.

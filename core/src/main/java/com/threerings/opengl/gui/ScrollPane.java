@@ -39,7 +39,7 @@ import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Provides a scrollable clipped view on a sub-heirarchy of components.

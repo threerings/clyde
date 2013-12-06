@@ -34,7 +34,7 @@ import com.google.common.collect.Multiset;
 import com.threerings.openal.ClipBuffer;
 import com.threerings.openal.util.AlContext;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 public class SoundClipManager
 {

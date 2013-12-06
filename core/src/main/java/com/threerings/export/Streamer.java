@@ -42,7 +42,7 @@ import java.util.HashMap;
 
 import org.lwjgl.BufferUtils;
 
-import static com.threerings.export.Log.*;
+import static com.threerings.export.Log.log;
 
 /**
  * Writes objects to and reads objects from a binary stream.

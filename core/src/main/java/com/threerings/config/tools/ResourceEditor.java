@@ -77,7 +77,7 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Allows editing single configurations stored as resources.

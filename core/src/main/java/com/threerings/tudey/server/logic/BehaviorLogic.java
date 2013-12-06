@@ -44,7 +44,7 @@ import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.server.TudeySceneManager;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Handles the server-side processing for agent behavior.

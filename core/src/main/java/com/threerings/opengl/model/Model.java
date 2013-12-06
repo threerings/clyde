@@ -68,7 +68,7 @@ import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Tickable;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A 3D model.

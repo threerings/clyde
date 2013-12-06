@@ -36,7 +36,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.util.TudeyContext;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Configurations for client-side actions.

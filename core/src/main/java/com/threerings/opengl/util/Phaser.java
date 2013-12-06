@@ -27,7 +27,7 @@ package com.threerings.opengl.util;
 
 import java.lang.reflect.Method;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Provides a convenient way to effect updates that proceed through a set of discrete phases (for

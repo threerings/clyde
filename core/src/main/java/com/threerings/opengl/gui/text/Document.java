@@ -34,7 +34,7 @@ import javax.swing.undo.UndoableEditSupport;
 
 import com.samskivert.util.IntTuple;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Defines the model that underlies the BUI text components.

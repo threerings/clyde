@@ -151,7 +151,7 @@ import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.EntryManipulator;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * The scene editor application.

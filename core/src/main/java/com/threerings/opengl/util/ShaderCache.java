@@ -47,7 +47,7 @@ import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Shader;
 import com.threerings.opengl.renderer.ShaderObject;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Caches loaded shaders and shader programs.

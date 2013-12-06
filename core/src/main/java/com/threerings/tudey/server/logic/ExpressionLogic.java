@@ -36,7 +36,7 @@ import com.threerings.tudey.config.ExpressionConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Handles the server-side expression evaluation.

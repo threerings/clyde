@@ -51,7 +51,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Configurations for actions taken by models.

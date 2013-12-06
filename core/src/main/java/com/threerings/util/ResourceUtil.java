@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Utility methods relating to resources.

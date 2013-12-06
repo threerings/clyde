@@ -40,7 +40,7 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.export.util.ExportUtil;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * A node in a {@link PrefsTree}.  Nodes are either internal nodes with <code>null</code> values

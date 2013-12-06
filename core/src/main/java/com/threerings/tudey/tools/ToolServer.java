@@ -56,7 +56,7 @@ import com.threerings.util.Name;
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.server.TudeyServer;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * A local server for use with the tools.

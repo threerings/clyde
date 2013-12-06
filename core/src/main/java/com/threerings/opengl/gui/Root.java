@@ -66,7 +66,7 @@ import com.threerings.opengl.gui.text.IMEComponent;
 
 import com.threerings.util.ArrayDeque;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Connects the BUI system into the JME scene graph.

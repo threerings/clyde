@@ -49,7 +49,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.util.PropertyUtil;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * An Ant task that gathers all resources referenced by a set of configs and puts them in

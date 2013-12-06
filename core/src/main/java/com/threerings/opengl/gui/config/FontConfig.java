@@ -43,7 +43,7 @@ import com.threerings.opengl.gui.text.CharacterTextFactory;
 import com.threerings.opengl.gui.text.TextFactory;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Describes a font.

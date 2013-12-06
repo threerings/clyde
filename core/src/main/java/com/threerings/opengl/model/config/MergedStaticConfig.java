@@ -58,7 +58,7 @@ import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.StaticConfig.Resolved;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A merged static implementation.

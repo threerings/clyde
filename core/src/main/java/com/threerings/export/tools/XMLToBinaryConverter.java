@@ -39,7 +39,7 @@ import com.samskivert.util.FileUtil;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.XMLImporter;
 
-import static com.threerings.export.Log.*;
+import static com.threerings.export.Log.log;
 
 /**
  * Converts XML export files into binary export files.

@@ -48,7 +48,7 @@ import com.threerings.export.BinaryImporter;
 
 import com.threerings.tudey.data.TudeySceneModel;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * An Ant task that gathers all resources referenced by a group of scenes and puts them in

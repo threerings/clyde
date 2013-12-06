@@ -116,7 +116,7 @@ import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
 import com.threerings.tudey.util.TudeyUtil;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Displays a view of a Tudey scene.

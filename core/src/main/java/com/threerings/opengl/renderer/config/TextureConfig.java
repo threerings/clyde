@@ -85,7 +85,7 @@ import com.threerings.opengl.scene.config.ShadowConfig;
 import com.threerings.opengl.util.DDSLoader;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Texture metadata.

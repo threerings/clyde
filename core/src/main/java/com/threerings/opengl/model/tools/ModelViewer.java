@@ -73,7 +73,7 @@ import com.threerings.opengl.model.ModelObserver;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A simple model viewer application.

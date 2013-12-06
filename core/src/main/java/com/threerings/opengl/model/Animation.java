@@ -47,7 +47,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * An animation for an {@link Articulated} model.

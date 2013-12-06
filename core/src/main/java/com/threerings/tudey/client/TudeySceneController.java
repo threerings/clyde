@@ -90,7 +90,7 @@ import com.threerings.tudey.dobj.SceneDeltaListener;
 import com.threerings.tudey.util.PawnAdvancer;
 import com.threerings.tudey.util.TudeyContext;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * The basic Tudey scene controller class.

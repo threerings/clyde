@@ -48,7 +48,7 @@ import com.threerings.opengl.model.tools.AnimationDef;
 import com.threerings.opengl.model.tools.xml.AnimationParser;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * The configuration of an animation.

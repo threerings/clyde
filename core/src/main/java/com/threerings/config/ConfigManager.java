@@ -57,7 +57,7 @@ import com.threerings.util.CacheUtil;
 import com.threerings.util.Copyable;
 import com.threerings.util.MessageManager;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Manages the set of loaded configurations.

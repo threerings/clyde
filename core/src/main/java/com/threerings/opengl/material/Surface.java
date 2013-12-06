@@ -44,7 +44,7 @@ import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.material.config.TechniqueConfig.NormalEnqueuer;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A renderable surface.

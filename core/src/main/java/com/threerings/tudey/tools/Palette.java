@@ -53,7 +53,7 @@ import com.threerings.util.ToolUtil;
 
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * The palette tool.

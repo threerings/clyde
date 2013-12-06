@@ -51,7 +51,7 @@ import com.threerings.export.XMLImporter;
 import com.threerings.export.util.LazyFileOutputStream;
 import com.threerings.util.Copyable;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Contains a group of managed configurations, all of the same class.

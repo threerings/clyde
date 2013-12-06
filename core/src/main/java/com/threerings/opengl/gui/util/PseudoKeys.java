@@ -54,7 +54,7 @@ import com.threerings.opengl.gui.event.MouseAdapter;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseWheelListener;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Provides a unified system for handling keys, mouse buttons, and other key-like features.  The

@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 
 import com.samskivert.util.StringUtil;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * A property accessed directly through a field.

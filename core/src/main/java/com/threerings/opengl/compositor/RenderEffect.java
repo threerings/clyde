@@ -43,7 +43,7 @@ import com.threerings.opengl.compositor.config.TargetConfig;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * Handles a render effect.

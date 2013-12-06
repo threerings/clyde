@@ -43,7 +43,7 @@ import com.threerings.tudey.config.ConditionConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Handles the evaluation of conditions.

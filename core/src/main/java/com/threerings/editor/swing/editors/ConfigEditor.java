@@ -37,7 +37,7 @@ import com.threerings.config.swing.ConfigBox;
 
 import com.threerings.editor.swing.PropertyEditor;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Editor for simple string config references.

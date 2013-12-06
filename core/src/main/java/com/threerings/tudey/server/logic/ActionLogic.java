@@ -64,7 +64,7 @@ import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.server.TudeySceneRegistry;
 import com.threerings.tudey.shape.Segment;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Handles the server-side processing for an action.

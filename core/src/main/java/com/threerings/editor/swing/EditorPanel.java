@@ -64,7 +64,7 @@ import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Allows editing properties of an object as determined through reflection.

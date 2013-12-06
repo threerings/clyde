@@ -65,7 +65,7 @@ import com.threerings.opengl.model.config.StaticConfig;
 import com.threerings.opengl.model.config.StaticSetConfig;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * An intermediate representation for models used to store data parsed from

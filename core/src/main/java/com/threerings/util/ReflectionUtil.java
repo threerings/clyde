@@ -31,7 +31,7 @@ import java.lang.reflect.Modifier;
 
 import java.util.HashMap;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Some general reflection utility methods.

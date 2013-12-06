@@ -87,7 +87,7 @@ import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.util.SimpleTransformable;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * The particle editor application.

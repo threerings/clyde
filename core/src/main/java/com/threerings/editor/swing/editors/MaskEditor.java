@@ -53,7 +53,7 @@ import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.swing.PropertyEditor;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Editor for bitmask properties.

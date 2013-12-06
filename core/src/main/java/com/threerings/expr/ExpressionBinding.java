@@ -45,7 +45,7 @@ import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.renderer.Color4f;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * The superclass of the expression bindings.

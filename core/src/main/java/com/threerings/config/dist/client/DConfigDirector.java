@@ -57,7 +57,7 @@ import com.threerings.config.dist.data.DConfigObject;
 import com.threerings.config.dist.util.ConfigUpdater;
 import com.threerings.util.ChangeBlock;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Handles the client side of the distributed config system.

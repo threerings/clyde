@@ -38,7 +38,7 @@ import com.threerings.opengl.gui.Image;
 import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.util.DDSLoader;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A cache for images.

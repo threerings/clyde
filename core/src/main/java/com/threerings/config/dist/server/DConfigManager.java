@@ -44,7 +44,7 @@ import com.threerings.config.dist.data.DConfigMarshaller;
 import com.threerings.config.dist.data.DConfigObject;
 import com.threerings.config.dist.util.ConfigUpdater;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Handles the server side of the distributed config system.

@@ -44,7 +44,7 @@ import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.TudeyContext;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Represents a tile.

@@ -34,7 +34,7 @@ import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 
-import static com.threerings.export.Log.*;
+import static com.threerings.export.Log.log;
 
 /**
  * Some general utility methods relating to exporting.

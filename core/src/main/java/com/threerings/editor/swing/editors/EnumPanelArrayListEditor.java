@@ -48,7 +48,7 @@ import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Introspector;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * An editor for arrays of lists of enums.

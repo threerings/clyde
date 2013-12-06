@@ -53,7 +53,7 @@ import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.AnimationConfig;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Represents a single script action.

@@ -40,7 +40,7 @@ import com.samskivert.util.ArrayUtil;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 
-import static com.threerings.export.Log.*;
+import static com.threerings.export.Log.log;
 
 /**
  * Converts binary export files into binary export files.

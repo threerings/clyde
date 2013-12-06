@@ -37,7 +37,7 @@ import com.samskivert.util.RunQueue;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.util.TruncatedAverage;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Ticks some number of scene managers.

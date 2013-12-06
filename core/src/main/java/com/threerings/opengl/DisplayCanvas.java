@@ -57,7 +57,7 @@ import org.lwjgl.opengl.PixelFormat;
 import com.samskivert.util.HashIntSet;
 import com.samskivert.util.Interator;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A canvas that uses {@link Display}.

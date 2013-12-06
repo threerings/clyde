@@ -45,7 +45,7 @@ import com.threerings.export.BinaryImporter;
 
 import com.threerings.tudey.data.TudeySceneModel;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * Validates the references in a set of scenes.

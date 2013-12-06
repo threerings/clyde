@@ -38,7 +38,7 @@ import com.samskivert.util.FileUtil;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 
-import static com.threerings.export.Log.*;
+import static com.threerings.export.Log.log;
 
 /**
  * Converts binary export files into XML export files.

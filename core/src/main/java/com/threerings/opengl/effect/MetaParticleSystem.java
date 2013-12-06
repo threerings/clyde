@@ -42,7 +42,7 @@ import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * The meta particle system model implementation.

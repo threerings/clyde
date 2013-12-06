@@ -30,7 +30,7 @@ import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Much like WeakObserverList, but provides faster addition and removal in exchange for using

@@ -55,7 +55,7 @@ import com.threerings.expr.MutableInteger;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Some general utility methods relating to scopes.

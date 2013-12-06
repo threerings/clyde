@@ -76,7 +76,7 @@ import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.tudey.config.ActorModelConfig;
 import com.threerings.tudey.shape.config.ShapeModelConfig;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * The configuration of a model.

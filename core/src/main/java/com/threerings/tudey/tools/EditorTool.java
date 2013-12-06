@@ -58,7 +58,7 @@ import com.threerings.tudey.data.TudeySceneModel.PathEntry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
-import static com.threerings.tudey.Log.*;
+import static com.threerings.tudey.Log.log;
 
 /**
  * A tool to use in the scene editor.

@@ -41,7 +41,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.swing.PropertyEditor;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Provides a means of selecting between several different objects.

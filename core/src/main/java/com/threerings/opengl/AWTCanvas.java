@@ -37,7 +37,7 @@ import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.opengl.Util;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A canvas that extends {@link AWTGLCanvas}.

@@ -32,7 +32,7 @@ import com.threerings.opengl.gui.event.ActionListener;
 import com.samskivert.swing.Controller;
 import com.samskivert.swing.ControllerProvider;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Provides some OpenGL GUI equivalents to the static methods in {@link Controller}.

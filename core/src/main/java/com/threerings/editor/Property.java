@@ -50,7 +50,7 @@ import com.samskivert.util.StringUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Provides access to an editable property of an object.

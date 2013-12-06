@@ -38,7 +38,7 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * A user interface element that is meant to contain other interface

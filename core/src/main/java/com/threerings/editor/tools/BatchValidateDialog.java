@@ -57,7 +57,7 @@ import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableInteger;
 import com.threerings.util.MessageBundle;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Allows users to validate a batch of files defined by an Ant-style fileset.

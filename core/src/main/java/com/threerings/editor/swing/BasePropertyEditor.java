@@ -65,7 +65,7 @@ import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Abstract base class for {@link PropertyEditor} and {@link EditorPanel}.

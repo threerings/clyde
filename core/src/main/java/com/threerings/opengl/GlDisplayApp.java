@@ -45,7 +45,7 @@ import com.samskivert.util.RunQueue;
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * A base class for applications that use LWJGL's {@link Display} class.

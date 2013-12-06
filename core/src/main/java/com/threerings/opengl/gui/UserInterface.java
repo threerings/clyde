@@ -58,7 +58,7 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Tickable;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * A user interface component configured from a resource.

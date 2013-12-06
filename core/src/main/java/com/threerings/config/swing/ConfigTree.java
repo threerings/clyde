@@ -71,7 +71,7 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ManagedConfig;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.ClydeLog.log;
 
 /**
  * Displays a tree of configurations.

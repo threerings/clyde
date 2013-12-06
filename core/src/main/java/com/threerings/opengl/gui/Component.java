@@ -64,7 +64,7 @@ import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 
-import static com.threerings.opengl.gui.Log.*;
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * The basic entity in the UI user interface system. A hierarchy of components and component

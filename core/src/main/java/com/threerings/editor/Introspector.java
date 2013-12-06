@@ -36,7 +36,7 @@ import java.util.HashMap;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Provides access to the editable properties of objects.

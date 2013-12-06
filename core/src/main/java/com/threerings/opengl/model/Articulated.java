@@ -66,7 +66,7 @@ import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * An articulated model implementation.

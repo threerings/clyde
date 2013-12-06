@@ -79,7 +79,7 @@ import com.threerings.editor.swing.editors.Transform3DEditor;
 import com.threerings.editor.swing.editors.Vector2fEditor;
 import com.threerings.editor.swing.editors.Vector3fEditor;
 
-import static com.threerings.editor.Log.*;
+import static com.threerings.editor.Log.log;
 
 /**
  * Edits a single object property.

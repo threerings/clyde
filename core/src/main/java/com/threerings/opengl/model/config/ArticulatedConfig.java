@@ -62,7 +62,7 @@ import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
-import static com.threerings.opengl.Log.*;
+import static com.threerings.opengl.Log.log;
 
 /**
  * An original articulated implementation.
