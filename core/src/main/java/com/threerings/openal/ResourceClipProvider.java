@@ -33,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.openal.AL10;
 import org.lwjgl.util.WaveData;
 
 import com.threerings.resource.ResourceManager;
@@ -75,8 +76,14 @@ public class ResourceClipProvider
         throws IOException
     {
         OggStreamDecoder decoder = new OggStreamDecoder();
-        decoder.init(in);
         Clip clip = new Clip();
+        if (in.available() == 0) {
+            // if it's a 0-length file then we just cope
+            clip.format = AL10.AL_FORMAT_MONO8;
+            clip.data = BufferUtils.createByteBuffer(0);
+            return clip;
+        }
+        decoder.init(in);
         clip.format = decoder.getFormat();
         clip.frequency = decoder.getFrequency();
 
