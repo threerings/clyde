@@ -27,6 +27,8 @@ package com.threerings.openal.config;
 
 import java.util.HashSet;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -624,7 +626,7 @@ public class SounderConfig extends ParameterizedConfig
      * A component sounder within a compound.
      */
     public static class ComponentSounder extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The sound reference. */
         @Editable(nullable=true)
