@@ -49,7 +49,7 @@ import com.threerings.opengl.gui.util.Insets;
  * toggling bold, italic and underline). Newline characters in the appended text will result in
  * line breaks in the on-screen layout.
  */
-public class TextArea extends Container
+public class TextArea extends Component
 {
     /** A font style constant. */
     public static final int PLAIN = 0;
