@@ -108,15 +108,14 @@ public class TextArea extends TextComponent
     @Override
     public String getText ()
     {
-        // TODO: This needs testing
-        StringBuilder builder = new StringBuilder();
+        StringBuilder buf = new StringBuilder();
         for (Run run : _runs) {
-            builder.append(run.text);
+            buf.append(run.text);
             if (run.endsLine) {
-                builder.append('\n');
+                buf.append('\n');
             }
         }
-        return builder.toString();
+        return buf.toString();
     }
 
     /**
