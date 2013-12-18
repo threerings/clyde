@@ -164,8 +164,7 @@ public abstract class TextComponent extends Component
         if (fconfig == null) {
             fconfig = FontConfig.NULL;
         }
-        _textfacts[state] = fconfig.getTextFactory(
-                _ctx, config.fontStyle, config.fontSize);
+        _textfacts[state] = fconfig.getTextFactory(_ctx, config.fontStyle, config.fontSize);
 
         _lineSpacings[state] = fconfig.adjustSpacing(config.lineSpacing);
     }
