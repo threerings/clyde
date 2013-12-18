@@ -180,13 +180,13 @@ public class TextArea extends Component
         invalidate();
     }
 
-    /**
-     * Scrolls our display such that the sepecified line is visible.
-     */
-    public void scrollToLine (int line)
-    {
-        // TODO
-    }
+//    /**
+//     * Scrolls our display such that the specified line is visible.
+//     */
+//    public void scrollToLine (int line)
+//    {
+//        // TODO
+//    }
 
     /**
      * Returns the number of lines of text contained in this area.
