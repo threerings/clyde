@@ -438,10 +438,14 @@ public class TextArea extends TextComponent
                 return offset;
             }
             segments.add(text[0]);
-            // we only ever add runs when we're added
-            int remainder = rtext.length() - text[0].getLength();
             height = Math.max(height, text[0].getSize().height);
             dx += text[0].getSize().width;
+            // we only ever add runs when we're added
+            int remainder = rtext.length() - text[0].getLength();
+            // slurp any trailing whitespace into this line
+            while (remainder > 0 && run.text.charAt(run.text.length() - remainder) <= ' ') {
+                remainder--;
+            }
             return (remainder == 0) ? -1 : run.text.length() - remainder;
         }
 
