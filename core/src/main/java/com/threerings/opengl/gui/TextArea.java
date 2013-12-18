@@ -49,7 +49,7 @@ import com.threerings.opengl.gui.util.Insets;
  * toggling bold, italic and underline). Newline characters in the appended text will result in
  * line breaks in the on-screen layout.
  */
-public class TextArea extends Component
+public class TextArea extends TextComponent
 {
     /** A font style constant. */
     public static final int PLAIN = 0;
@@ -79,30 +79,6 @@ public class TextArea extends Component
     }
 
     /**
-     * Returns the horizontal alignment for this component's text.
-     */
-    public int getHorizontalAlignment ()
-    {
-        if (_haligns != null) {
-            int halign = _haligns[getState()];
-            return (halign != -1) ? halign : _haligns[DEFAULT];
-        }
-        return UIConstants.LEFT;
-    }
-
-    /**
-     * Returns the vertical alignment for this component's text.
-     */
-    public int getVerticalAlignment ()
-    {
-        if (_valigns != null) {
-            int valign = _valigns[getState()];
-            return (valign != -1) ? valign : _valigns[DEFAULT];
-        }
-        return UIConstants.TOP;
-    }
-
-    /**
      * Configures the preferred width of this text area (the preferred height will be calculated
      * from the font).
      */
@@ -120,13 +96,27 @@ public class TextArea extends Component
         return _model;
     }
 
-    /**
-     * Clears any text in this text area and appends the supplied text.
-     */
+    @Override
     public void setText (String text)
     {
         clearText();
-        appendText(text);
+        if (text != null) {
+            appendText(text);
+        }
+    }
+
+    @Override
+    public String getText ()
+    {
+        // TODO: This needs testing
+        StringBuilder builder = new StringBuilder();
+        for (Run run : _runs) {
+            builder.append(run.text);
+            if (run.endsLine) {
+                builder.append('\n');
+            }
+        }
+        return builder.toString();
     }
 
     /**
@@ -200,6 +190,7 @@ public class TextArea extends Component
      * Returns a text factory suitable for creating text in the style defined by the component's
      * current state.
      */
+    @Override
     public TextFactory getTextFactory ()
     {
         return getTextFactory(PLAIN);
@@ -211,44 +202,9 @@ public class TextArea extends Component
      */
     public TextFactory getTextFactory (int style)
     {
-        TextFactory[] textfacts = _textfacts[getState()];
-        return (textfacts != null) ? textfacts[style] : _textfacts[DEFAULT][style];
-    }
-
-    /**
-     * Returns the effect for this component's text.
-     */
-    public int getTextEffect ()
-    {
-        if (_teffects != null) {
-            int teffect = _teffects[getState()];
-            return (teffect != -1) ? teffect : _teffects[DEFAULT];
-        }
-        return UIConstants.NORMAL;
-    }
-
-    /**
-     * Returns the effect size for this component's text.
-     */
-    public int getEffectSize ()
-    {
-        if (_effsizes != null) {
-            int effsize = _effsizes[getState()];
-            return (effsize > 0) ? effsize : _effsizes[DEFAULT];
-        }
-        return UIConstants.DEFAULT_SIZE;
-    }
-
-    /**
-     * Returns the color to use for our text effect.
-     */
-    public Color4f getEffectColor ()
-    {
-        if (_effcols != null) {
-            Color4f effcol = _effcols[getState()];
-            return (effcol != null) ? effcol : _effcols[DEFAULT];
-        }
-        return Color4f.WHITE;
+        TextFactory[] textfacts = getTextFactoriesByStyle(style);
+        TextFactory textfact = textfacts[getState()];
+        return (textfact != null) ? textfact : textfacts[DEFAULT];
     }
 
     @Override // from TextArea
@@ -272,20 +228,14 @@ public class TextArea extends Component
     {
         super.updateFromStyleConfig(state, config);
 
-        _haligns[state] = config.textAlignment.getConstant();
-        _valigns[state] = config.verticalAlignment.getConstant();
-        _teffects[state] = config.textEffect.getConstant();
-        _effsizes[state] = config.effectSize;
-        _effcols[state] = config.effectColor;
-
         FontConfig fconfig = _ctx.getConfigManager().getConfig(
             FontConfig.class, config.font);
         fconfig = (fconfig == null) ? FontConfig.NULL : fconfig;
         int style = config.fontStyle.getFlags();
-        _textfacts[state] = new TextFactory[] {
-            fconfig.getTextFactory(_ctx, style, config.fontSize),
-            fconfig.getTextFactory(_ctx, style | Font.BOLD, config.fontSize),
-            fconfig.getTextFactory(_ctx, style | Font.ITALIC, config.fontSize) };
+
+        _textfactsBold[state] = fconfig.getTextFactory(_ctx, style | Font.BOLD, config.fontSize);
+        _textfactsItalic[state] =
+                fconfig.getTextFactory(_ctx, style | Font.ITALIC, config.fontSize);
     }
 
     // documentation inherited
@@ -423,6 +373,19 @@ public class TextArea extends Component
     {
     }
 
+    /**
+     * Get the array of text factories, by style.
+     */
+    protected TextFactory[] getTextFactoriesByStyle (int style)
+    {
+        switch (style) {
+        case PLAIN: return _textfacts; // from our superclass
+        case BOLD: return _textfactsBold;
+        case ITALIC: return _textfactsItalic;
+        default: throw new IllegalArgumentException("invalid style: " + style);
+        }
+    }
+
     /** Used to associate a style with a run of text. */
     protected static class Run
     {
@@ -509,12 +472,8 @@ public class TextArea extends Component
         }
     }
 
-    protected int[] _haligns = new int[getStateCount()];
-    protected int[] _valigns = new int[getStateCount()];
-    protected int[] _teffects = new int[getStateCount()];
-    protected int[] _effsizes = new int[getStateCount()];
-    protected Color4f[] _effcols = new Color4f[getStateCount()];
-    protected TextFactory[][] _textfacts = new TextFactory[getStateCount()][];
+    protected TextFactory[] _textfactsBold = new TextFactory[getStateCount()];
+    protected TextFactory[] _textfactsItalic = new TextFactory[getStateCount()];
 
     protected BoundedRangeModel _model = new BoundedRangeModel(0, 0, 0, 0) {
         @Override
