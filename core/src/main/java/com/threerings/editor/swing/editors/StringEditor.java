@@ -83,25 +83,26 @@ public class StringEditor extends PropertyEditor
     @Override
     protected void didInit ()
     {
-        Editable annotation = _property.getAnnotation();
         JPanel panel = this;
-        if (annotation.collapsible()) {
+        if (_property.getAnnotation().collapsible()) {
             makeCollapsible(_ctx, getPropertyLabel(), false);
             panel = _content;
         } else {
             add(new JLabel(getPropertyLabel() + ":"));
         }
-        if (annotation.height() > 1) {
-            JTextArea area = new JTextArea(annotation.height(), annotation.width());
+        int height = _property.getHeight(1);
+        int width = _property.getWidth(10);
+        if (height > 1) {
+            JTextArea area = new JTextArea(height, width);
             area.setLineWrap(true);
             panel.add(new JScrollPane(area));
             _field = area;
 
         } else {
-            _field = new JTextField(annotation.width());
+            _field = new JTextField(width);
             panel.add(_field);
         }
-        final int maxSize = annotation.maxsize();
+        final int maxSize = _property.getMaxSize();
         if (maxSize < Integer.MAX_VALUE) {
             SwingUtil.setDocumentHelpers(_field,
                 new SwingUtil.DocumentValidator() {

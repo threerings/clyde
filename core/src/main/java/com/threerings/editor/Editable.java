@@ -72,12 +72,21 @@ public @interface Editable
     /** A translatable string describing the units of the property, if any. */
     String units () default "";
 
-    /** For string properties (and numeric properties with mode="sized"),
-     * the width of the text editor. */
-    int width () default 10;
+    /** A width hint for the editor of this property.
+     * Typically this is the width (in text columns) of the editor for this property, although
+     * the editors are free to interpret this in a way that makes sense for them, or disregard
+     * it altogether.
+     * The default value of 0 means that each editor can use a sensible width of its choosing.
+     */
+    int width () default 0;
 
-    /** For string properties, the number of rows in the text editor. */
-    int height () default 1;
+    /** A height hint for the editor of this property.
+     * Typically this is the height (in text rows) of the editor for this property, although
+     * the editors are free to interpret this in a way that makes sense for them, or disregard
+     * it altogether.
+     * The default value of 0 means that each editor can use a sensible height of its choosing.
+     */
+    int height () default 0;
 
     /** For numeric properties, the minimum value. */
     double min () default -Double.MAX_VALUE;

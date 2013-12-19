@@ -289,6 +289,24 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Get the width specified in the annotation, or the default if none set.
+     */
+    public int getWidth (int defaultWidth)
+    {
+        int width = getAnnotation().width();
+        return (width <= 0) ? defaultWidth : width;
+    }
+
+    /**
+     * Get the height specified in the annotation, or the default if none set.
+     */
+    public int getHeight (int defaultHeight)
+    {
+        int height = getAnnotation().height();
+        return (height <= 0) ? defaultHeight : height;
+    }
+
+    /**
      * Returns the minimum value.
      */
     public double getMinimum ()

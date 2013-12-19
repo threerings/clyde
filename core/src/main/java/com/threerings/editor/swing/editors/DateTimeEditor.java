@@ -171,7 +171,7 @@ public class DateTimeEditor extends PropertyEditor
     {
         // create the widgets
         add(new JLabel(getPropertyLabel() + ":"));
-        _field = new JTextField(4 + _property.getAnnotation().width());
+        _field = new JTextField(_property.getWidth(12));
         add(_field);
         _field.getDocument().addDocumentListener(this);
         _field.addFocusListener(this);
@@ -194,6 +194,7 @@ public class DateTimeEditor extends PropertyEditor
         Locale locale = Locale.getDefault();
         String format = getDefaultFormat();
 
+        // create a mutable map of the args: we'll remove them as we deal with each one
         Map<String, String> modeArgs = Maps.newHashMap(Splitter.on(',')
             .trimResults()
             .omitEmptyStrings()

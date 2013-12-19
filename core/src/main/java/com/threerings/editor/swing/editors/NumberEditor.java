@@ -97,9 +97,10 @@ public class NumberEditor extends PropertyEditor
                 _slider.addChangeListener(this);
             }
             add(_spinner = new DraggableSpinner(min, min, max, _step));
-            if (getMode().equals("sized")) {
+            int width = _property.getWidth(-1);
+            if (width != -1) {
                 ((DraggableSpinner.NumberEditor)_spinner.getEditor()).getTextField().setColumns(
-                    _property.getAnnotation().width());
+                    width);
                 _spinner.setPreferredSize(null);
             }
             _spinner.addChangeListener(this);

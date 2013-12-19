@@ -247,7 +247,7 @@ public class TableArrayListEditor extends ArrayListEditor
                     setValue(row, value);
                 }
                 public int getWidth () {
-                    return _property.getAnnotation().width();
+                    return _property.getWidth(10);
                 }
             }};
             showHeader = false;
@@ -278,7 +278,7 @@ public class TableArrayListEditor extends ArrayListEditor
                             property.set(getValue(row), value);
                         }
                         public int getWidth () {
-                            return property.getAnnotation().width();
+                            return property.getWidth(10);
                         }
                     });
                 }
@@ -592,7 +592,7 @@ public class TableArrayListEditor extends ArrayListEditor
                 Array.set(getValue(row), column, value);
             }
             public int getWidth () {
-                return _property.getAnnotation().width();
+                return _property.getWidth(10);
             }
         };
     }
