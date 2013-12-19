@@ -74,16 +74,14 @@ public @interface Editable
 
     /** A width hint for the editor of this property.
      * Typically this is the width (in text columns) of the editor for this property, although
-     * the editors are free to interpret this in a way that makes sense for them, or disregard
-     * it altogether.
+     * the editors are free to interpret this in a way that makes sense for them, or disregard it.
      * The default value of 0 means that each editor can use a sensible width of its choosing.
      */
     int width () default 0;
 
     /** A height hint for the editor of this property.
      * Typically this is the height (in text rows) of the editor for this property, although
-     * the editors are free to interpret this in a way that makes sense for them, or disregard
-     * it altogether.
+     * the editors are free to interpret this in a way that makes sense for them, or disregard it.
      * The default value of 0 means that each editor can use a sensible height of its choosing.
      */
     int height () default 0;
