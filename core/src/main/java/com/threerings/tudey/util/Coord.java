@@ -34,12 +34,12 @@ import com.samskivert.util.StringUtil;
 import com.threerings.io.Streamable;
 
 import com.threerings.export.Encodable;
-
+import com.threerings.presents.dobj.DSet;
 /**
  * Represents a pair of 2D integer coordinates.
  */
 public class Coord
-    implements Encodable, Streamable, Cloneable
+    implements Encodable, Streamable, Cloneable, DSet.Entry
 {
     /** A value used to signify an empty coordinate. */
     public static final int EMPTY = encode(Short.MIN_VALUE, Short.MIN_VALUE);
@@ -187,6 +187,12 @@ public class Coord
         throws IOException
     {
         set(in.readInt(), in.readInt());
+    }
+
+    // from DSet.Entry
+    public Long getKey ()
+    {
+        return ((long)x << 32) | (y & 0xFFFFFFFFL);
     }
 
     @Override
