@@ -121,27 +121,27 @@ public class SceneMap
         }
 
         // iterate over all intersecting blocks
-        int xmin = FloatMath.ifloor(sx / TEXTURE_SIZE);
-        int ymin = FloatMath.ifloor(sy / TEXTURE_SIZE);
-        int xmax = FloatMath.ifloor((sx + swidth - 1f) / TEXTURE_SIZE);
-        int ymax = FloatMath.ifloor((sy + sheight - 1f) / TEXTURE_SIZE);
+        int xmin = FloatMath.ifloor(sx / getTextureSize());
+        int ymin = FloatMath.ifloor(sy / getTextureSize());
+        int xmax = FloatMath.ifloor((sx + swidth - 1f) / getTextureSize());
+        int ymax = FloatMath.ifloor((sy + sheight - 1f) / getTextureSize());
         for (int yy = ymin; yy <= ymax; yy++) {
             for (int xx = xmin; xx <= xmax; xx++) {
                 Texture2D texture = _textures.get(_coord.set(xx, yy));
-                if (texture == null) {
+                if (texture == null || !shouldRenderLocation(xx, yy)) {
                     continue;
                 }
                 // find the intersection of the block with the rendered section
-                float bx1 = xx << TEXTURE_POT, bx2 = (xx + 1) << TEXTURE_POT;
-                float by1 = yy << TEXTURE_POT, by2 = (yy + 1) << TEXTURE_POT;
+                float bx1 = xx << getTexturePot(), bx2 = (xx + 1) << getTexturePot();
+                float by1 = yy << getTexturePot(), by2 = (yy + 1) << getTexturePot();
                 float ix1 = Math.max(sx, bx1), ix2 = Math.min(sx + swidth, bx2);
                 float iy1 = Math.max(sy, by1), iy2 = Math.min(sy + sheight, by2);
 
                 // compute the texture coordinates within the block
-                float ls = (ix1 - bx1) / TEXTURE_SIZE;
-                float us = (ix2 - bx1) / TEXTURE_SIZE;
-                float lt = (iy1 - by1) / TEXTURE_SIZE;
-                float ut = (iy2 - by1) / TEXTURE_SIZE;
+                float ls = (ix1 - bx1) / getTextureSize();
+                float us = (ix2 - bx1) / getTextureSize();
+                float lt = (iy1 - by1) / getTextureSize();
+                float ut = (iy2 - by1) / getTextureSize();
 
                 // compute the proportional coordinates
                 float lx = (ix1 - sx) / swidth;
@@ -237,6 +237,24 @@ public class SceneMap
         removeEntry(oentry, true);
     }
 
+    /** The size of the map textures as a power of two. */
+    protected int getTexturePot ()
+    {
+        return 8;
+    }
+
+    /** The size of the map textures. */
+    protected int getTextureSize ()
+    {
+        return (1 << getTexturePot());
+    }
+
+    /** The mask for texture locations. */
+    protected int getTextureMask ()
+    {
+        return getTextureSize() - 1;
+    }
+
     /**
      * Builds the map.
      */
@@ -246,11 +264,16 @@ public class SceneMap
             addEntry(entry, false);
         }
         for (Coord coord : _types.keySet()) {
-            _coord.set(coord.x >> TEXTURE_POT, coord.y >> TEXTURE_POT);
+            _coord.set(coord.x >> getTexturePot(), coord.y >> getTexturePot());
             if (!_textures.containsKey(_coord)) {
                 buildTexture(_coord.x, _coord.y);
             }
         }
+    }
+
+    protected boolean shouldRenderLocation (int x, int y)
+    {
+        return true;
     }
 
     /**
@@ -400,7 +423,7 @@ public class SceneMap
      */
     protected void updateTexture (int x, int y, int type)
     {
-        int tx = x >> TEXTURE_POT, ty = y >> TEXTURE_POT;
+        int tx = x >> getTexturePot(), ty = y >> getTexturePot();
         Texture2D texture = _textures.get(_coord.set(tx, ty));
         if (texture == null) {
             buildTexture(tx, ty);
@@ -410,7 +433,7 @@ public class SceneMap
         putColor(buf, type);
         buf.rewind();
         texture.setSubimage(
-            0, x & TEXTURE_MASK, y & TEXTURE_MASK, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
+            0, x & getTextureMask(), y & getTextureMask(), 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
     }
 
     /**
@@ -418,9 +441,9 @@ public class SceneMap
      */
     protected void buildTexture (int tx, int ty)
     {
-        ByteBuffer buf = getBuffer(TEXTURE_SIZE * TEXTURE_SIZE * 4);
-        for (int yy = ty << TEXTURE_POT, yymax = yy + TEXTURE_SIZE; yy < yymax; yy++) {
-            for (int xx = tx << TEXTURE_POT, xxmax = xx + TEXTURE_SIZE; xx < xxmax; xx++) {
+        ByteBuffer buf = getBuffer(getTextureSize() * getTextureSize() * 4);
+        for (int yy = ty << getTexturePot(), yymax = yy + getTextureSize(); yy < yymax; yy++) {
+            for (int xx = tx << getTexturePot(), xxmax = xx + getTextureSize(); xx < xxmax; xx++) {
                 putColor(buf, _types.get(xx, yy));
             }
         }
@@ -429,7 +452,7 @@ public class SceneMap
         texture.setFilters(GL11.GL_NEAREST, GL11.GL_NEAREST);
         texture.setWrap(GL11.GL_CLAMP, GL11.GL_CLAMP);
         texture.setImage(
-            0, GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false,
+            0, GL11.GL_RGBA, getTextureSize(), getTextureSize(), false,
             GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
         _textures.put(new Coord(tx, ty), texture);
     }
@@ -516,15 +539,6 @@ public class SceneMap
 
     /** Holds elements during intersection testing. */
     protected List<SpaceElement> _elements = Lists.newArrayList();
-
-    /** The size of the map textures as a power of two. */
-    protected static final int TEXTURE_POT = 8;
-
-    /** The size of the map textures. */
-    protected static final int TEXTURE_SIZE = (1 << TEXTURE_POT);
-
-    /** The mask for texture locations. */
-    protected static final int TEXTURE_MASK = TEXTURE_SIZE - 1;
 
     /** The color to use for empty locations. */
     protected static final byte[] EMPTY_COLOR = new byte[] { 0x0, 0x0, 0x0, 0x0 };
