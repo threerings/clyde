@@ -161,7 +161,7 @@ public class DateTimeEditor extends PropertyEditor
     {
         // create the widgets
         add(new JLabel(getPropertyLabel() + ":"));
-        _field = new JTextField(_property.getAnnotation().width());
+        _field = new JTextField(4 + _property.getAnnotation().width());
         add(_field);
         _field.getDocument().addDocumentListener(this);
         _field.addFocusListener(this);
@@ -185,7 +185,7 @@ public class DateTimeEditor extends PropertyEditor
         int style = DateFormat.SHORT;
         TimeZone timezone = TimeZone.getDefault();
         Locale locale = Locale.getDefault();
-        String format = null;
+        String format = "yyyy-MM-dd HH:mm:ss";
 
         for (String attr : Splitter.on(',').trimResults().omitEmptyStrings().split(mode)) {
             int eq = attr.indexOf('=');
@@ -210,7 +210,10 @@ public class DateTimeEditor extends PropertyEditor
                     style = DateFormat.FULL;
                 } else {
                     log.warning("Unknown style mode: " + attr);
+                    continue;
                 }
+                // clear the format if they specify a style
+                format = null;
 
             } else if ("timezone".equalsIgnoreCase(kind)) {
                 timezone = TimeZone.getTimeZone(spec);
