@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import javax.swing.BorderFactory;
@@ -48,6 +49,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
@@ -81,6 +83,10 @@ public class DateTimeEditor extends PropertyEditor
         {
             return DateFormat.getDateInstance(style, locale);
         }
+        @Override protected String getDefaultFormat ()
+        {
+            return "yyyy-MM-dd";
+        }
     }
 
     /**
@@ -91,6 +97,10 @@ public class DateTimeEditor extends PropertyEditor
         @Override protected DateFormat createFormat (int style, Locale locale)
         {
             return DateFormat.getTimeInstance(style, locale);
+        }
+        @Override protected String getDefaultFormat ()
+        {
+            return "HH:mm:ss";
         }
     }
 
@@ -178,74 +188,74 @@ public class DateTimeEditor extends PropertyEditor
      */
     protected void configureFormat ()
     {
-        // parse the mode arguments
-        String mode = _property.getAnnotation().mode();
-
         // set up our defaults
         int style = DateFormat.SHORT;
         TimeZone timezone = TimeZone.getDefault();
         Locale locale = Locale.getDefault();
-        String format = "yyyy-MM-dd HH:mm:ss";
+        String format = getDefaultFormat();
 
-        for (String attr : Splitter.on(',').trimResults().omitEmptyStrings().split(mode)) {
-            int eq = attr.indexOf('=');
-            if (eq == -1) {
-                log.warning("No '=' found in mode attribute: " + attr);
-                continue;
-            }
-            String kind = attr.substring(0, eq);
-            String spec = attr.substring(eq + 1);
-            if ("".equals(spec)) {
-                log.warning("Unspecified mode attribute: " + attr);
-                continue;
-            }
-            if ("style".equalsIgnoreCase(kind)) {
-                if ("short".equalsIgnoreCase(spec)) {
-                    style = DateFormat.SHORT;
-                } else if ("medium".equalsIgnoreCase(spec)) {
-                    style = DateFormat.MEDIUM;
-                } else if ("long".equalsIgnoreCase(spec)) {
-                    style = DateFormat.LONG;
-                } else if ("full".equalsIgnoreCase(spec)) {
-                    style = DateFormat.FULL;
-                } else {
-                    log.warning("Unknown style mode: " + attr);
-                    continue;
-                }
-                // clear the format if they specify a style
-                format = null;
+        Map<String, String> modeArgs = Maps.newHashMap(Splitter.on(',')
+            .trimResults()
+            .omitEmptyStrings()
+            .withKeyValueSeparator('=')
+            .split(_property.getAnnotation().mode()));
 
-            } else if ("timezone".equalsIgnoreCase(kind)) {
-                timezone = TimeZone.getTimeZone(spec);
+        // read the style which may reset the format
+        String styleSpec = modeArgs.remove("style");
+        if (styleSpec != null) {
+            // reset the format if they specify a style
+            format = null;
 
-            } else if ("locale".equalsIgnoreCase(kind)) {
-                String[] specs = Iterables.toArray(
-                    Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().split(spec),
-                    String.class);
-                switch (specs.length) {
-                case 1:
-                    locale = new Locale(specs[0]);
-                    break;
-                case 2:
-                    locale = new Locale(specs[0], specs[1]);
-                    break;
-                case 3:
-                    locale = new Locale(specs[0], specs[1], specs[2]);
-                    break;
-                default:
-                    log.warning("Too many arguments to locale: " + attr);
-                    break;
-                }
-
-            } else if ("format".equalsIgnoreCase(kind)) {
-                // TODO: allow commas in the format
-                format = spec;
-
+            if ("short".equalsIgnoreCase(styleSpec)) {
+                style = DateFormat.SHORT;
+            } else if ("medium".equalsIgnoreCase(styleSpec)) {
+                style = DateFormat.MEDIUM;
+            } else if ("long".equalsIgnoreCase(styleSpec)) {
+                style = DateFormat.LONG;
+            } else if ("full".equalsIgnoreCase(styleSpec)) {
+                style = DateFormat.FULL;
             } else {
-                log.warning("Unknown mode attribute: " + attr);
+                log.warning("Unknown style mode: " + styleSpec);
             }
         }
 
+        // possibly override the format
+        format = Objects.firstNonNull(modeArgs.remove("format"), format);
+
+        // timezone
+        String tzSpec = modeArgs.remove("timezone");
+        if (tzSpec != null) {
+            timezone = TimeZone.getTimeZone(tzSpec);
+        }
+
+        // locale
+        String localeSpec = modeArgs.remove("locale");
+        if (localeSpec != null) {
+            String[] specs = Iterables.toArray(
+                Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().split(localeSpec),
+                String.class);
+            switch (specs.length) {
+            case 1:
+                locale = new Locale(specs[0]);
+                break;
+            case 2:
+                locale = new Locale(specs[0], specs[1]);
+                break;
+            case 3:
+                locale = new Locale(specs[0], specs[1], specs[2]);
+                break;
+            default:
+                log.warning("Too many arguments to locale: " + localeSpec);
+                break;
+            }
+        }
+
+        // warn about any unparsed mode arguments
+        if (!modeArgs.isEmpty()) {
+            log.warning("Unknown mode arguments: " + modeArgs);
+        }
+
+        // now make the format
         _format = (format != null)
             ? new SimpleDateFormat(format, locale)
             : createFormat(style, locale);
@@ -258,6 +268,14 @@ public class DateTimeEditor extends PropertyEditor
     protected DateFormat createFormat (int style, Locale locale)
     {
         return DateFormat.getDateTimeInstance(style, style, locale);
+    }
+
+    /**
+     * Get the default format to pass to a SimpleDateFormat.
+     */
+    protected String getDefaultFormat ()
+    {
+        return "yyyy-MM-dd HH:mm:ss";
     }
 
     /**
