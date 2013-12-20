@@ -276,7 +276,7 @@ public class DateTimeEditor extends PropertyEditor
      */
     protected String getDefaultFormat ()
     {
-        return "yyyy-MM-dd HH:mm:ss";
+        return "yyyy-MM-dd HH:mm";
     }
 
     /**
