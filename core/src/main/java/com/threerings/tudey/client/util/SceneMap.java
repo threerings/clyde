@@ -109,7 +109,6 @@ public class SceneMap
         int twidth, int theight, float alpha, Image mask)
     {
         Renderer renderer = _ctx.getRenderer();
-        renderer.setColorState(alpha, alpha, alpha, alpha);
 
         // prepare the mask image if any
         float mwidth = 1f, mheight = 1f;
@@ -167,6 +166,8 @@ public class SceneMap
 
                 // render the block
                 renderer.setTextureState(units);
+                float newAlpha = getAlphaAtLocation(xx, yy, alpha);
+                renderer.setColorState(newAlpha, newAlpha, newAlpha, newAlpha);
                 GL11.glBegin(GL11.GL_QUADS);
                 if (mask == null) {
                     GL11.glTexCoord2f(ls, lt);
@@ -274,6 +275,11 @@ public class SceneMap
     protected boolean shouldRenderLocation (int x, int y)
     {
         return true;
+    }
+
+    protected float getAlphaAtLocation (int x, int y, float alpha)
+    {
+        return alpha;
     }
 
     /**
