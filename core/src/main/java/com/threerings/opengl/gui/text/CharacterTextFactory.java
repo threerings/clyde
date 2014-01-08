@@ -221,7 +221,7 @@ public class CharacterTextFactory extends TextFactory
             Glyph glyph = getGlyph(c);
             if (c == '\n' || width + glyph.width > maxWidth) {
                 String extra = "";
-                if (c != '\n') {
+                if (c != '\n' && c != ' ') {
                     // scan backwards, see if we can break on a space
                     line.append(c);
                     IntTuple bspan = getBreakSpan(line);
