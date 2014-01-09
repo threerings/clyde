@@ -160,6 +160,10 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable(weight=2)
         public FrameAction[] actions = new FrameAction[0];
 
+        /** A set of targets that will be modified. */
+        @Editable
+        public TargetModifier[] modifiers = new TargetModifier[0];
+
         /** The base animation frame rate. */
         public float rate;
 
@@ -258,6 +262,21 @@ public class AnimationConfig extends ParameterizedConfig
                 impl = new Animation.Imported(ctx, scope, this);
             }
             return impl;
+        }
+
+        /**
+         * Applies transform modifiers.
+         */
+        public void applyModifiers ()
+        {
+            for (TargetModifier modifier : modifiers) {
+                int idx = ArrayUtil.indexOf(targets, modifier.target);
+                if (idx != -1) {
+                    for (int ii = 0; ii < transforms[idx].length; ii++) {
+                        transforms[idx][ii] = modifier.modifyTransform(transforms[idx][ii]);
+                    }
+                }
+            }
         }
 
         /**
@@ -415,6 +434,33 @@ public class AnimationConfig extends ParameterizedConfig
         /** The animation reference. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
+    }
+
+    /**
+     * Contains a target transformation override for an animation sequence.
+     */
+    public static class TargetModifier extends DeepObject
+        implements Exportable
+    {
+        /** The target name. */
+        @Editable
+        public String target = "";
+
+        /** If the target ignores transformations. */
+        @Editable
+        public boolean ignoreTransformations = false;
+
+        /** A base transformation on the target. */
+        @Editable
+        public Transform3D transform = new Transform3D();
+
+        /**
+         * Alters the supplied transformation.
+         */
+        public Transform3D modifyTransform (Transform3D source)
+        {
+            return ignoreTransformations ? transform : transform.compose(source);
+        }
     }
 
     /** The actual animation implementation. */

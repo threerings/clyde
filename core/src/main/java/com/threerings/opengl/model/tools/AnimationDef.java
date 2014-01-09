@@ -111,6 +111,8 @@ public class AnimationDef
         config.targets = getTargets();
         config.transforms = getTransforms(
             config.targets, config.scale, config.loop && config.skipLastFrame);
+
+        config.applyModifiers();
     }
 
     /**
