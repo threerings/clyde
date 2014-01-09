@@ -37,7 +37,7 @@ import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
@@ -45,7 +45,7 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
-import com.samskivert.util.Triple;
+import com.samskivert.util.ObjectUtil;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -69,11 +69,17 @@ public class CharacterTextFactory extends TextFactory
     public static CharacterTextFactory getInstance (
             Font font, boolean antialias, float descentModifier)
     {
-        Triple<Font, Boolean, Float> key = Triple.newTriple(font, antialias, descentModifier);
+        return getInstance(font, antialias, descentModifier, 0);
+    }
+
+    public static CharacterTextFactory getInstance (
+            Font font, boolean antialias, float descentModifier, int heightModifier)
+    {
+        FactoryKey key = new FactoryKey(font, antialias, descentModifier, heightModifier);
         CharacterTextFactory factory = _instances.get(key);
         if (factory == null) {
             _instances.put(
-                    key, factory = new CharacterTextFactory(font, antialias, descentModifier));
+                    key, factory = new CharacterTextFactory(font, antialias, descentModifier, heightModifier));
         }
         return factory;
     }
@@ -81,7 +87,7 @@ public class CharacterTextFactory extends TextFactory
     /**
      * Creates a character text factory with the supplied font.
      */
-    public CharacterTextFactory (Font font, boolean antialias, float descentModifier)
+    public CharacterTextFactory (Font font, boolean antialias, float descentModifier , int heightModifier)
     {
         _font = font;
 
@@ -90,6 +96,7 @@ public class CharacterTextFactory extends TextFactory
         _graphics = _scratch.createGraphics();
         _metrics = _graphics.getFontMetrics(font);
         _descentOffset = Math.round(_metrics.getHeight() * descentModifier);
+        _heightModifier = heightModifier;
 
         // create a test glyph to determine the size
         FontRenderContext ctx = _graphics.getFontRenderContext();
@@ -123,7 +130,7 @@ public class CharacterTextFactory extends TextFactory
     @Override
     public int getHeight ()
     {
-        return _metrics.getHeight();
+        return _metrics.getHeight() + _heightModifier;
     }
 
     @Override
@@ -138,7 +145,8 @@ public class CharacterTextFactory extends TextFactory
             glyphs[ii] = getGlyph(text.charAt(ii));
             width += glyphs[ii].width;
         }
-        final Dimension size = new Dimension(width, _metrics.getHeight());
+
+        final Dimension size = new Dimension(width, getHeight());
 
         // and outlines, if necessary
         final Glyph[] outlines = (effect == OUTLINE) ? new Glyph[text.length()] : null;
@@ -481,6 +489,36 @@ public class CharacterTextFactory extends TextFactory
         protected int _height;
     }
 
+    protected static class FactoryKey
+    {
+        public Font font;
+
+        public boolean antialias;
+
+        public float descentModifier;
+
+        public int heightModifier;
+
+        public FactoryKey (Font font, boolean antialias, float descentModifier, int heightModifier)
+        {
+            font = font;
+            antialias = antialias;
+            descentModifier = descentModifier;
+            heightModifier = heightModifier;
+        }
+
+        @Override // from Object
+        public int hashCode ()
+        {
+            int value = 17;
+            value = value * 31 + ((font == null) ? 0 : font.hashCode());
+            value = value * 31 + (antialias ? 1 : 0);
+            value = value * 31 + Float.floatToIntBits(descentModifier);
+            value = value * 31 + heightModifier;
+            return value;
+        }
+    }
+
     /** The font being rendered by this factory. */
     protected Font _font;
 
@@ -500,8 +538,10 @@ public class CharacterTextFactory extends TextFactory
     /** The offset for the descent value. */
     protected int _descentOffset;
 
+    protected int _heightModifier;
+
     /** Shared instances. */
-    protected static HashMap<Triple<Font, Boolean, Float>, CharacterTextFactory> _instances =
+    protected static Map<FactoryKey, CharacterTextFactory> _instances =
         Maps.newHashMap();
 
     /** The width/height of the glyph textures. */

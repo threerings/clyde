@@ -132,6 +132,10 @@ public class FontConfig extends ManagedConfig
         @Editable(min=-1, step=0.01, hgroup="m")
         public float descentModifier = 0f;
 
+        /** A height modifier. */
+        @Editable(hgroup="m")
+        public int heightModifier = 0;
+
         /** A size modifier. */
         @Editable(hgroup="m")
         public int sizeModifier = 0;
@@ -144,7 +148,7 @@ public class FontConfig extends ManagedConfig
         public TextFactory getTextFactory (GlContext ctx, int style, int size)
         {
             return CharacterTextFactory.getInstance(
-                    getFont(ctx, style, size), antialias, descentModifier);
+                    getFont(ctx, style, size), antialias, descentModifier, heightModifier);
         }
 
         @Override
