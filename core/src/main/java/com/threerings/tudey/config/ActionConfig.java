@@ -322,6 +322,9 @@ public abstract class ActionConfig extends DeepObject
         @Editable(min=0)
         public int maxWarpPath = 0;
 
+        @Editable
+        public boolean resetMap = false;
+
         @Override
         public String getLogicClassName ()
         {

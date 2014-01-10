@@ -136,6 +136,12 @@ public class LargeSceneMap
         createTextures();
     }
 
+    public void clearMap ()
+    {
+        _buffers.clear();
+        _textures.clear();
+    }
+
     // documentation inherited from interface PlaceView
     public void willEnterPlace (PlaceObject plobj)
     {
@@ -148,8 +154,7 @@ public class LargeSceneMap
     public void didLeavePlace (PlaceObject plobj)
     {
         _sceneModel.removeObserver(this);
-        _buffers.clear();
-        _textures.clear();
+        clearMap();
     }
 
     // documentation inherited from interface TudeySceneModel.Observer

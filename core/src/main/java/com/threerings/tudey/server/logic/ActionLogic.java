@@ -424,9 +424,10 @@ public abstract class ActionLogic extends Logic
          */
         protected void warp (ActorLogic target, Logic location)
         {
+            ActionConfig.WarpActor config = (ActionConfig.WarpActor)_config;
             Vector2f translation = location.getTranslation();
             target.warp(translation.x, translation.y, location.getRotation(), translation.x,
-                    translation.y, true, ((ActionConfig.WarpActor)_config).maxWarpPath);
+                    translation.y, true, ((ActionConfig.WarpActor)_config).maxWarpPath, config.resetMap);
         }
 
         @Override
@@ -462,7 +463,7 @@ public abstract class ActionLogic extends Logic
                 translation.addLocal(ltrans);
             }
             target.warp(translation.x, translation.y, rotation, ltrans.x, ltrans.y,
-                    true, config.maxWarpPath);
+                    true, config.maxWarpPath, config.resetMap);
         }
     }
 
