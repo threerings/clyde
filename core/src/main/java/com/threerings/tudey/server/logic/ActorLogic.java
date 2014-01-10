@@ -291,19 +291,8 @@ public class ActorLogic extends Logic
      *
      * @param warpPath the maximum distance for doing a warp and ensure that a path exists.
      */
-    public final void warp (
-            float x, float y, float rotation, float tx, float ty, boolean adjust, int warpPath)
-    {
-        warp(x, y, rotation, tx, ty, adjust, warpPath, false);
-    }
-
-    /**
-     * Warps the actor.
-     *
-     * @param resetMap determines whether we want to reset the  map.
-     */
     public void warp (
-            float x, float y, float rotation, float tx, float ty, boolean adjust, int warpPath, boolean resetMap)
+            float x, float y, float rotation, float tx, float ty, boolean adjust, int warpPath)
     {
         // set the warp flag and clear it on the next tick
         _actor.set(Actor.WARP);
@@ -363,6 +352,14 @@ public class ActorLogic extends Logic
         _actor.setRotation(rotation);
         updateShape();
         wasUpdated();
+    }
+
+    /**
+     * Resets the map view.
+     */
+    public void resetMap ()
+    {
+        // DO NOTHING.
     }
 
     /**

@@ -394,6 +394,7 @@ public abstract class ActionLogic extends Logic
         {
             boolean success = false;
             _target.resolve(activator, _targets);
+            ActionConfig.WarpActor config = (ActionConfig.WarpActor)_config;
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
                 if (!(target instanceof ActorLogic)) {
@@ -405,10 +406,15 @@ public abstract class ActionLogic extends Logic
                 }
                 Logic location = RandomUtil.pickRandom(_locations);
                 _locations.clear();
-                warp((ActorLogic)target, location);
+                ActorLogic actorTarget = (ActorLogic)target;
+                warp(actorTarget, location);
+                if (config.resetMap) {
+                    actorTarget.resetMap();
+                }
                 success = true;
             }
             _targets.clear();
+
             return success;
         }
 
@@ -424,10 +430,9 @@ public abstract class ActionLogic extends Logic
          */
         protected void warp (ActorLogic target, Logic location)
         {
-            ActionConfig.WarpActor config = (ActionConfig.WarpActor)_config;
             Vector2f translation = location.getTranslation();
             target.warp(translation.x, translation.y, location.getRotation(), translation.x,
-                    translation.y, true, ((ActionConfig.WarpActor)_config).maxWarpPath, config.resetMap);
+                    translation.y, true, ((ActionConfig.WarpActor)_config).maxWarpPath);
         }
 
         @Override
@@ -463,7 +468,7 @@ public abstract class ActionLogic extends Logic
                 translation.addLocal(ltrans);
             }
             target.warp(translation.x, translation.y, rotation, ltrans.x, ltrans.y,
-                    true, config.maxWarpPath, config.resetMap);
+                    true, config.maxWarpPath);
         }
     }
 
