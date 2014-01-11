@@ -39,6 +39,8 @@ import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Shape;
 
+import com.threerings.tudey.space.SpaceElement;
+
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
@@ -226,6 +228,37 @@ public class LargeSceneMap
             }
             return;
         }
+
+        int flags = _flagMask & entry.getCollisionFlags(_sceneModel.getConfigManager());
+        if (entry instanceof TudeySceneModel.PlaceableEntry) {
+            TudeySceneModel.PlaceableEntry pentry =
+                (TudeySceneModel.PlaceableEntry)entry;
+            PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
+            if (flags == 0 && !config.floorTile) {
+                return;
+            }
+        } else if (flags == 0) {
+            return;
+        }
+        Shape shape = entry.createShape(_sceneModel.getConfigManager());
+        if (shape == null) {
+            return;
+        }
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                updateQuad(xx, yy);
+                if (shape.intersects(_quad)) {
+                    int type = Math.max(_types.get(xx, yy), flags);
+                    _types.put(xx, yy, type);
+                }
+            }
+        }
     }
 
     protected void removeEntry (TudeySceneModel.Entry entry, boolean retexture)
@@ -236,11 +269,56 @@ public class LargeSceneMap
             tentry.getRegion(config, _region);
             for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
                 for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
-                    _types.put(xx, yy, -1);
+                    updateQuad(xx, yy);
+                    update(xx, yy);
                 }
             }
             return;
         }
+
+        int flags = _flagMask & entry.getCollisionFlags(_sceneModel.getConfigManager());
+        if (flags == 0) {
+            return;
+        }
+        Shape shape = entry.createShape(_sceneModel.getConfigManager());
+        if (shape == null) {
+            return;
+        }
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                updateQuad(xx, yy);
+                if (shape.intersects(_quad)) {
+                    update(xx, yy);
+                }
+            }
+        }
+    }
+
+    protected void update (int x, int y)
+    {
+        int type = -1;
+        TudeySceneModel.TileEntry tentry = _sceneModel.getTileEntry(x, y);
+        ConfigManager cfgmgr = _sceneModel.getConfigManager();
+        if (tentry != null) {
+            type = tentry.getCollisionFlags(tentry.getConfig(cfgmgr), x, y);
+        }
+        _sceneModel.getSpace().getIntersecting(_quad, _elements);
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            SpaceElement element = _elements.get(ii);
+            int flags = _flagMask &
+                ((TudeySceneModel.Entry)element.getUserObject()).getCollisionFlags(cfgmgr);
+            if (flags != 0) {
+                type = Math.max(type, flags);
+            }
+        }
+        _elements.clear();
+        _types.put(x, y, type);
     }
 
     protected void updateBuffer (int x, int y)
@@ -299,6 +377,20 @@ public class LargeSceneMap
         return buf;
     }
 
+    /**
+     * Updates the coordinates of the quad to encompass the specified grid cell.
+     */
+    protected void updateQuad (int x, int y)
+    {
+        float lx = x, ly = y, ux = lx + 1f, uy = ly + 1f;
+        _quad.getVertex(0).set(lx, ly);
+        _quad.getVertex(1).set(ux, ly);
+        _quad.getVertex(2).set(ux, uy);
+        _quad.getVertex(3).set(lx, uy);
+        _quad.getBounds().getMinimumExtent().set(lx, ly);
+        _quad.getBounds().getMaximumExtent().set(ux, uy);
+    }
+
     protected static byte[] getBytes (Color4f color, float alpha)
     {
         return new byte[] {
@@ -326,13 +418,9 @@ public class LargeSceneMap
     protected Map<Coord, Texture2D> _textures = Maps.newHashMap();
 
     /** The RGBA color to use for floors. */
-    protected byte[] _floorColor;
-
     protected Color4f _floor;
 
     /** The RGBA color to use for walls. */
-    protected byte[] _wallColor;
-
     protected Color4f _wall;
 
     /** A mask of the collision flags we actually care about. */
@@ -347,8 +435,8 @@ public class LargeSceneMap
     /** Used to store tile shapes for intersecting testing. */
     protected Polygon _quad = new Polygon(4);
 
-    /** Buffer to reuse. */
-    protected SoftReference<ByteBuffer> _buf;
+    /** Holds elements during intersection testing. */
+    protected List<SpaceElement> _elements = Lists.newArrayList();
 
     /** The color to use for empty locations. */
     protected static final byte[] EMPTY_COLOR = new byte[] { 0x0, 0x0, 0x0, 0x0 };
