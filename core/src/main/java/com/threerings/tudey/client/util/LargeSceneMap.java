@@ -45,9 +45,15 @@ import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 
+/**
+ * Maintains a large map of the scene than can be rendered to the UI.
+ */
 public class LargeSceneMap
     implements PlaceView, TudeySceneModel.Observer
 {
+    /**
+     * Creates a new large sceen map
+     */
     public LargeSceneMap (TudeyContext ctx, TudeySceneView view)
     {
         _ctx = ctx;
@@ -130,6 +136,9 @@ public class LargeSceneMap
         }
     }
 
+    /**
+     * Updates the textures and buffers at the coordinates.
+     */
     public void updateLocations (Set<Coord> coords)
     {
         for (Coord coord : coords) {
@@ -138,6 +147,9 @@ public class LargeSceneMap
         createTextures();
     }
 
+    /**
+     * Clears the map.
+     */
     public void clearMap ()
     {
         _buffers.clear();
@@ -162,21 +174,23 @@ public class LargeSceneMap
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryAdded (TudeySceneModel.Entry entry)
     {
-        addEntry(entry, true);
-
+        addEntry(entry);
+        updateLocations(_types.keySet());
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryUpdated (TudeySceneModel.Entry oentry, TudeySceneModel.Entry nentry)
     {
-        removeEntry(oentry, true);
-        addEntry(nentry, true);
+        removeEntry(oentry);
+        addEntry(nentry);
+        updateLocations(_types.keySet());
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryRemoved (TudeySceneModel.Entry oentry)
     {
-        removeEntry(oentry, true);
+        removeEntry(oentry);
+        updateLocations(_types.keySet());
     }
 
     /** The size of the map textures as a power of two. */
@@ -191,6 +205,7 @@ public class LargeSceneMap
         return (1 << getBufferPot());
     }
 
+    /** The size of the buffers in bytes. */
     protected int getBufferSize ()
     {
         return getBufferWidth() * getBufferWidth() * 4;
@@ -202,18 +217,22 @@ public class LargeSceneMap
     protected void build ()
     {
         for (TudeySceneModel.Entry entry : _sceneModel.getEntries()) {
-            addEntry(entry, false);
+            addEntry(entry);
         }
 
         updateLocations(_types.keySet());
     }
 
+    /** The alpha the x, y location should be rendered at. */
     protected float getAlphaAtLocation (int x, int y)
     {
         return 1f;
     }
 
-    protected void addEntry (TudeySceneModel.Entry entry, boolean retexture)
+    /**
+     *  Adds the specific entry to the map.
+     */
+    protected void addEntry (TudeySceneModel.Entry entry)
     {
         if (entry instanceof TudeySceneModel.TileEntry) {
             TudeySceneModel.TileEntry tentry = (TudeySceneModel.TileEntry)entry;
@@ -261,7 +280,10 @@ public class LargeSceneMap
         }
     }
 
-    protected void removeEntry (TudeySceneModel.Entry entry, boolean retexture)
+    /**
+     *  Removes the specific entry to the map.
+     */
+    protected void removeEntry (TudeySceneModel.Entry entry)
     {
         if (entry instanceof TudeySceneModel.TileEntry) {
             TudeySceneModel.TileEntry tentry = (TudeySceneModel.TileEntry)entry;
@@ -300,6 +322,9 @@ public class LargeSceneMap
         }
     }
 
+    /**
+     * Updates the specified location.
+     */
     protected void update (int x, int y)
     {
         int type = -1;
@@ -321,6 +346,9 @@ public class LargeSceneMap
         _types.put(x, y, type);
     }
 
+    /**
+     * Updates the buffer for the specific location.
+     */
     protected void updateBuffer (int x, int y)
     {
         int tx = (int)Math.floor((float)x / getBufferWidth());
@@ -332,6 +360,9 @@ public class LargeSceneMap
         putColor(buf, _types.get(x, y), bx, by, getAlphaAtLocation(x, y));
     }
 
+    /**
+     * Creates all the textures.
+     */
     protected void createTextures ()
     {
         for (Map.Entry<Coord, ByteBuffer> entry : _buffers.entrySet()) {
@@ -366,6 +397,9 @@ public class LargeSceneMap
         buf.rewind();
     }
 
+    /**
+     * Get buffer at location.
+     */
     protected ByteBuffer getBuffer (int x, int y)
     {
         _coord.set(x, y);
@@ -391,6 +425,9 @@ public class LargeSceneMap
         _quad.getBounds().getMaximumExtent().set(ux, uy);
     }
 
+    /**
+     * Get the byte values for the color at the specified alpha.
+     */
     protected static byte[] getBytes (Color4f color, float alpha)
     {
         return new byte[] {
