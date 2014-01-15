@@ -366,14 +366,16 @@ public class LargeSceneMap
     protected void createTextures ()
     {
         for (Map.Entry<Coord, ByteBuffer> entry : _buffers.entrySet()) {
-            Texture2D texture = new Texture2D(_ctx.getRenderer());
-            texture.setFilters(GL11.GL_NEAREST, GL11.GL_NEAREST);
-            texture.setWrap(GL11.GL_CLAMP, GL11.GL_CLAMP);
+            Texture2D texture = _textures.get(entry.getKey());
+            if (texture == null) {
+                texture = new Texture2D(_ctx.getRenderer());
+                texture.setFilters(GL11.GL_NEAREST, GL11.GL_NEAREST);
+                texture.setWrap(GL11.GL_CLAMP, GL11.GL_CLAMP);
+                _textures.put(entry.getKey(), texture);
+            }
             texture.setImage(
                 0, GL11.GL_RGBA, getBufferWidth(), getBufferWidth(), false,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, entry.getValue());
-
-            _textures.put(entry.getKey(), texture);
         }
     }
 
