@@ -42,6 +42,7 @@ import java.util.Map;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
+import com.google.common.base.Objects;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
@@ -516,6 +517,21 @@ public class CharacterTextFactory extends TextFactory
             value = value * 31 + Float.floatToIntBits(descentModifier);
             value = value * 31 + heightModifier;
             return value;
+        }
+
+        @Override
+        public boolean equals (Object obj)
+        {
+            if (!(obj instanceof FactoryKey)) {
+                return false;
+            }
+
+            FactoryKey key = (FactoryKey)obj;
+
+            return (antialias == key.antialias) &&
+                Objects.equal(font, key.font) &&
+                (descentModifier == key.descentModifier) &&
+                (heightModifier == key.heightModifier);
         }
     }
 
