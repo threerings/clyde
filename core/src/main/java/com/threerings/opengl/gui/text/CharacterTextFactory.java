@@ -502,10 +502,10 @@ public class CharacterTextFactory extends TextFactory
 
         public FactoryKey (Font font, boolean antialias, float descentModifier, int heightModifier)
         {
-            font = font;
-            antialias = antialias;
-            descentModifier = descentModifier;
-            heightModifier = heightModifier;
+            this.font = font;
+            this.antialias = antialias;
+            this.descentModifier = descentModifier;
+            this.heightModifier = heightModifier;
         }
 
         @Override // from Object
@@ -527,11 +527,10 @@ public class CharacterTextFactory extends TextFactory
             }
 
             FactoryKey key = (FactoryKey)obj;
-
             return (antialias == key.antialias) &&
-                Objects.equal(font, key.font) &&
                 (descentModifier == key.descentModifier) &&
-                (heightModifier == key.heightModifier);
+                (heightModifier == key.heightModifier) &&
+                Objects.equal(font, key.font);
         }
     }
 
