@@ -409,7 +409,7 @@ public abstract class ActionLogic extends Logic
                 ActorLogic actorTarget = (ActorLogic)target;
                 warp(actorTarget, location);
                 if (config.resetMap) {
-                    actorTarget.resetMap();
+                    actorTarget.resetMap(location.getTranslation());
                 }
                 success = true;
             }

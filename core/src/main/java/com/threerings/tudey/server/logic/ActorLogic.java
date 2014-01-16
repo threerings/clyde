@@ -357,7 +357,7 @@ public class ActorLogic extends Logic
     /**
      * Resets the map view.
      */
-    public void resetMap ()
+    public void resetMap (Vector2f newSpawn)
     {
         // DO NOTHING.
     }

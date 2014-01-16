@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayDeque;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -138,12 +139,16 @@ public class LargeSceneMap
         }
     }
 
+    public void setEntrance (int x, int y)
+    {
+        _entrance = new Coord(x, y);
+    }
+
     /**
      * Updates the textures and buffers at the coordinates.
      */
     public void updateLocations (Set<Coord> coords)
     {
-        populateTraversable();
         for (Coord coord : coords) {
             updateBuffer(coord.x, coord.y);
         }
@@ -157,6 +162,37 @@ public class LargeSceneMap
     {
         _buffers.clear();
         _textures.clear();
+        _traversable.clear();
+        _entrance = null;
+    }
+
+    /**
+     * Does a breadth-first traversal of the ground tiles "graph" starting at the entrance.
+     */
+    public void populateTraversable ()
+    {
+        if (_entrance == null) {
+            return;
+        }
+
+        _traversable.clear();
+        ArrayDeque<Coord> queue = new ArrayDeque<Coord>();
+        Coord coord = _entrance.clone();
+        _traversable.add(coord);
+
+        while (coord != null) {
+            for (int ii = 0; ii < 4; ii++) {
+                Coord newCoord =
+                        new Coord(coord.x + (int)Math.sin(ii / 2f * Math.PI),
+                                coord.y + (int)Math.cos(ii / 2f * Math.PI));
+                Integer typeFlag = _types.get(newCoord);
+                if ((typeFlag != null) && (typeFlag.intValue() == 0) &&
+                        _traversable.add(newCoord)) {
+                    queue.add(newCoord);
+                }
+            }
+            coord = queue.poll();
+        }
     }
 
     // documentation inherited from interface PlaceView
@@ -223,36 +259,8 @@ public class LargeSceneMap
             addEntry(entry);
         }
 
+        populateTraversable();
         updateLocations(_types.keySet());
-    }
-
-    /**
-     * Does a breadth-first traversal of the ground tiles "graph" starting at the entrance.
-     */
-    protected void populateTraversable ()
-    {
-        if (_entrance == null) {
-            return;
-        }
-
-        _traversable.clear();
-        List<Coord> queue = Lists.newArrayList();
-        queue.add(_entrance);
-        _traversable.add(_entrance);
-
-        while (!queue.isEmpty()) {
-            Coord coord = queue.remove(0);
-            Set<Coord> coords = Sets.newHashSet(
-                new Coord(coord.x + 1, coord.y), new Coord(coord.x - 1, coord.y),
-                new Coord(coord.x, coord.y + 1), new Coord(coord.x, coord.y - 1));
-            for (Coord newCoord : coords) {
-                Integer typeFlag = _types.get(newCoord);
-                if ((typeFlag != null) && (typeFlag.intValue() == 0) &&
-                        _traversable.add(newCoord)) {
-                    queue.add(newCoord);
-                }
-            }
-        }
     }
 
     /** The alpha the x, y location should be rendered at. */
@@ -287,7 +295,7 @@ public class LargeSceneMap
             PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
             if (config.defaultEntrance) {
                 Vector2f trans = pentry.getTranslation(_sceneModel.getConfigManager());
-                _entrance = new Coord((int)trans.x, (int)trans.y);
+                setEntrance((int)trans.x, (int)trans.y);
 
             }
             if (flags == 0 && !config.floorTile) {
