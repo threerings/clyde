@@ -175,19 +175,19 @@ public class LargeSceneMap
             return;
         }
 
+        Coord coord = _entrance;
         _traversable.clear();
-        ArrayDeque<Coord> queue = new ArrayDeque<Coord>();
-        Coord coord = _entrance.clone();
         _traversable.add(coord);
 
+        final int[] xs = {1, 0, -1, 0};
+        final int[] ys = {0, -1, 0, 1};
+        final Integer zero = 0;
+
+        ArrayDeque<Coord> queue = new ArrayDeque<Coord>();
         while (coord != null) {
             for (int ii = 0; ii < 4; ii++) {
-                Coord newCoord =
-                        new Coord(coord.x + (int)Math.sin(ii / 2f * Math.PI),
-                                coord.y + (int)Math.cos(ii / 2f * Math.PI));
-                Integer typeFlag = _types.get(newCoord);
-                if ((typeFlag != null) && (typeFlag.intValue() == 0) &&
-                        _traversable.add(newCoord)) {
+                Coord newCoord = new Coord(coord.x + xs[ii], coord.y + ys[ii]);
+                if (zero.equals(_types.get(newCoord)) && _traversable.add(newCoord)) {
                     queue.add(newCoord);
                 }
             }
