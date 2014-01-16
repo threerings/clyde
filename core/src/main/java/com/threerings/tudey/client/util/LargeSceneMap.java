@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import com.threerings.config.ConfigManager;
 
@@ -58,16 +59,17 @@ public class LargeSceneMap
     {
         _ctx = ctx;
         _view = view;
-        setColors(Color4f.GRAY, Color4f.WHITE);
+        setColors(Color4f.GRAY, Color4f.WHITE, Color4f.RED);
     }
 
     /**
      * Sets the colors to use to represent floors and walls.
      */
-    public void setColors (Color4f floor, Color4f wall)
+    public void setColors (Color4f floor, Color4f wall, Color4f walkable)
     {
         _floor = floor;
         _wall = wall;
+        _walkable = walkable;
     }
 
     /**
@@ -141,6 +143,7 @@ public class LargeSceneMap
      */
     public void updateLocations (Set<Coord> coords)
     {
+        populateTraversable();
         for (Coord coord : coords) {
             updateBuffer(coord.x, coord.y);
         }
@@ -223,6 +226,35 @@ public class LargeSceneMap
         updateLocations(_types.keySet());
     }
 
+    /**
+     * Does a breadth-first traversal of the ground tiles "graph" starting at the entrance.
+     */
+    protected void populateTraversable ()
+    {
+        if (_entrance == null) {
+            return;
+        }
+
+        _traversable.clear();
+        List<Coord> queue = Lists.newArrayList();
+        queue.add(_entrance);
+        _traversable.add(_entrance);
+
+        while (!queue.isEmpty()) {
+            Coord coord = queue.remove(0);
+            Set<Coord> coords = Sets.newHashSet(
+                new Coord(coord.x + 1, coord.y), new Coord(coord.x - 1, coord.y),
+                new Coord(coord.x, coord.y + 1), new Coord(coord.x, coord.y - 1));
+            for (Coord newCoord : coords) {
+                Integer typeFlag = _types.get(newCoord);
+                if ((typeFlag != null) && (typeFlag.intValue() == 0) &&
+                        _traversable.add(newCoord)) {
+                    queue.add(newCoord);
+                }
+            }
+        }
+    }
+
     /** The alpha the x, y location should be rendered at. */
     protected float getAlphaAtLocation (int x, int y)
     {
@@ -253,6 +285,11 @@ public class LargeSceneMap
             TudeySceneModel.PlaceableEntry pentry =
                 (TudeySceneModel.PlaceableEntry)entry;
             PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
+            if (config.defaultEntrance) {
+                Vector2f trans = pentry.getTranslation(_sceneModel.getConfigManager());
+                _entrance = new Coord((int)trans.x, (int)trans.y);
+
+            }
             if (flags == 0 && !config.floorTile) {
                 return;
             }
@@ -357,7 +394,9 @@ public class LargeSceneMap
         int by = (((y % getBufferWidth()) + getBufferWidth()) % getBufferWidth());
 
         ByteBuffer buf = getBuffer(tx, ty);
-        putColor(buf, _types.get(x, y), bx, by, getAlphaAtLocation(x, y));
+        _coord.set(x, y);
+        putColor(buf, _types.get(x, y), bx, by,
+            getAlphaAtLocation(x, y), _traversable.contains(_coord));
     }
 
     /**
@@ -382,11 +421,13 @@ public class LargeSceneMap
     /**
      * Puts the color corresponding to the specified type into the supplied buffer.
      */
-    protected void putColor (ByteBuffer buf, int type, int x, int y, float alpha)
+    protected void putColor (ByteBuffer buf, int type, int x, int y, float alpha, boolean walkable)
     {
         int offset = (y * getBufferWidth() + x) * 4;
         byte[] byteColor;
-        if (type == -1) {
+        if (walkable){
+            byteColor = getBytes(_walkable, alpha);
+        } else if (type == -1) {
             byteColor = EMPTY_COLOR;
         } else if (type == 0) {
             byteColor = getBytes(_floor, alpha);
@@ -462,11 +503,20 @@ public class LargeSceneMap
     /** The RGBA color to use for walls. */
     protected Color4f _wall;
 
+    /** The RBGA color used for floors that are walkable. */
+    protected Color4f _walkable;
+
     /** A mask of the collision flags we actually care about. */
     protected int _flagMask = ~0;
 
     /** Reusable coordinate object. */
     protected Coord _coord = new Coord();
+
+    /** The default entrance for the map. */
+    protected Coord _entrance;
+
+    /** A set containing the coordinates which can be reached. */
+    protected Set<Coord> _traversable = Sets.newHashSet();
 
     /** Region object to reuse. */
     protected Rectangle _region = new Rectangle();
