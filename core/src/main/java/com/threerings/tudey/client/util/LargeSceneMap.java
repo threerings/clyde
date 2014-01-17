@@ -183,13 +183,15 @@ public class LargeSceneMap
 
         final int[] xs = {1, 0, -1, 0};
         final int[] ys = {0, -1, 0, 1};
-        final Integer zero = 0;
 
         ArrayDeque<Coord> queue = new ArrayDeque<Coord>();
         while (coord != null) {
             for (int ii = 0; ii < 4; ii++) {
                 Coord newCoord = new Coord(coord.x + xs[ii], coord.y + ys[ii]);
-                if (zero.equals(_types.get(newCoord)) && _traversable.add(newCoord)) {
+                Integer flag = _types.get(newCoord);
+                if (flag == null) {
+                    log.warning("Ran into empty tile while traversing walkable path!!");
+                } else if (flag.equals(0) && _traversable.add(newCoord)) {
                     queue.add(newCoord);
                 }
             }
@@ -298,7 +300,6 @@ public class LargeSceneMap
             if (config.defaultEntrance) {
                 Vector2f trans = pentry.getTranslation(_sceneModel.getConfigManager());
                 setEntrance((int)trans.x, (int)trans.y);
-
             }
             if (flags == 0 && !config.floorTile) {
                 return;
