@@ -47,6 +47,8 @@ import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 
+import static com.threerings.ClydeLog.log;
+
 /**
  * Maintains a large map of the scene than can be rendered to the UI.
  */
