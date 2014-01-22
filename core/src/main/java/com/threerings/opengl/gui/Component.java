@@ -670,7 +670,7 @@ public class Component
     /**
      * Sets the upper left position of this component in absolute screen coordinates.
      */
-    public void setLocation (int x, int y)
+    public final void setLocation (int x, int y)
     {
         setBounds(x, y, _width, _height);
     }
@@ -678,7 +678,7 @@ public class Component
     /**
      * Sets the width and height of this component in screen coordinates.
      */
-    public void setSize (int width, int height)
+    public final void setSize (int width, int height)
     {
         setBounds(_x, _y, width, height);
     }
