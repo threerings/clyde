@@ -36,6 +36,8 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.google.common.base.Objects;
+
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
@@ -209,6 +211,21 @@ public abstract class PropertyEditor extends BasePropertyEditor
      * Updates the state of the editor from the object.
      */
     public abstract void update ();
+
+    @Override
+    public final String toString ()
+    {
+        return toStringHelper().toString();
+    }
+
+    /**
+     * Overrideable helper for toString().
+     */
+    protected Objects.ToStringHelper toStringHelper ()
+    {
+        return Objects.toStringHelper(this)
+            .add("property", _property.getName());
+    }
 
     /**
      * Override to perform custom initialization.

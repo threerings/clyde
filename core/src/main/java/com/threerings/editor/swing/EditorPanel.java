@@ -267,6 +267,9 @@ public class EditorPanel extends BaseEditorPanel
                     PropertyEditor deditor = getEditor(depend);
                     if (deditor != null) {
                         deditor.addChangeListener(cl);
+                    } else {
+                        log.warning("Dependant property not found: " + depend,
+                            "editor", editor);
                     }
                 }
             }
