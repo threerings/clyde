@@ -26,6 +26,7 @@
 package com.threerings.editor.swing.editors;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -105,6 +106,18 @@ public class DateTimeEditor extends PropertyEditor
         }
     }
 
+    @Override
+    public void actionPerformed (ActionEvent event)
+    {
+        Object source = event.getSource();
+        if (source == _field) {
+            canonicalize();
+
+        } else {
+            super.actionPerformed(event);
+        }
+    }
+
     // from DocumentListener
     public void insertUpdate (DocumentEvent event)
     {
@@ -153,8 +166,16 @@ public class DateTimeEditor extends PropertyEditor
     // from FocusListener
     public void focusLost (FocusEvent e)
     {
+        canonicalize();
+    }
+
+    /**
+     * If our last edit was good, redisplay the value by re-reading it.
+     */
+    public void canonicalize ()
+    {
         if (!_invalid) {
-            update(); // show what we've really got
+            update();
         }
     }
 
@@ -177,6 +198,7 @@ public class DateTimeEditor extends PropertyEditor
         add(_field);
         _field.getDocument().addDocumentListener(this);
         _field.addFocusListener(this);
+        _field.addActionListener(this);
         addUnits(this);
 
         configureMode();
