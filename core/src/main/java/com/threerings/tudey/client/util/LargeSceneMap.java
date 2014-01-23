@@ -152,7 +152,7 @@ public class LargeSceneMap
     public void updateLocations (Set<Coord> coords)
     {
         for (Coord coord : coords) {
-            updateBuffer(coord.x, coord.y);
+            updateBuffer(coord);
         }
         createTextures();
     }
@@ -268,7 +268,7 @@ public class LargeSceneMap
     }
 
     /** The alpha the x, y location should be rendered at. */
-    protected float getAlphaAtLocation (int x, int y)
+    protected float getAlphaAtLocation (Coord coord)
     {
         return 1f;
     }
@@ -397,17 +397,17 @@ public class LargeSceneMap
     /**
      * Updates the buffer for the specific location.
      */
-    protected void updateBuffer (int x, int y)
+    protected void updateBuffer (Coord coord)
     {
+        int x = coord.x;
+        int y = coord.y;
         int tx = (int)Math.floor((float)x / getBufferWidth());
         int ty = (int)Math.floor((float)y / getBufferWidth());
         int bx = (((x % getBufferWidth()) + getBufferWidth()) % getBufferWidth());
         int by = (((y % getBufferWidth()) + getBufferWidth()) % getBufferWidth());
 
-        ByteBuffer buf = getBuffer(tx, ty);
-        _coord.set(x, y);
-        putColor(buf, _types.get(x, y), bx, by,
-            getAlphaAtLocation(x, y), _traversable.contains(_coord));
+        putColor(getBuffer(tx, ty), _types.get(x, y), bx, by,
+            getAlphaAtLocation(coord), _traversable.contains(coord));
     }
 
     /**
