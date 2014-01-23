@@ -33,6 +33,8 @@ import java.lang.annotation.Target;
 
 /**
  * Flags a field or getter/setter method as an editable property.
+ * If using a getter and setter, only the annotation on the setter method will
+ * be checked for any specified attributes.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
