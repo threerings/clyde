@@ -65,6 +65,7 @@ import static com.threerings.editor.Log.log;
  * - timezone (any timezone)
  * - locale (up to three specifiers separated by spaces: language country variant)
  * - format (to specify a SimpleDateFormat format, instead of specifying 'style')
+ * - nullKey to specify the translation key to use for null values
  *
  * Examples:
  * &at;Editable(editor="datetime", mode="style=full, timezone=PST8PDT, locale=en us")
@@ -123,7 +124,8 @@ public class DateTimeEditor extends PropertyEditor
         try {
             Object oldVal = _property.get(_object);
             Object newVal;
-            if ("".equals(text) && _property.getAnnotation().nullable()) {
+            if (("".equals(text) || _nullStr.equals(text)) &&
+                    _property.getAnnotation().nullable()) {
                 newVal = null;
 
             } else {
@@ -162,7 +164,7 @@ public class DateTimeEditor extends PropertyEditor
         // remove ourselves as a listener during update
         _field.getDocument().removeDocumentListener(this);
         Object prop = _property.get(_object);
-        _field.setText((prop == null) ? "" : _format.format(prop));
+        _field.setText((prop == null) ? _nullStr : _format.format(prop));
         _field.getDocument().addDocumentListener(this);
     }
 
@@ -177,7 +179,7 @@ public class DateTimeEditor extends PropertyEditor
         _field.addFocusListener(this);
         addUnits(this);
 
-        configureFormat();
+        configureMode();
 
         // disable the field if we're in constant mode
         _field.setEnabled(!_property.getAnnotation().constant());
@@ -186,7 +188,7 @@ public class DateTimeEditor extends PropertyEditor
     /**
      * Configure the DateFormat we'll be using.
      */
-    protected void configureFormat ()
+    protected void configureMode ()
     {
         // set up our defaults
         int style = DateFormat.SHORT;
@@ -251,6 +253,12 @@ public class DateTimeEditor extends PropertyEditor
             }
         }
 
+        // the null key
+        String nullKeySpec = modeArgs.remove("nullKey");
+        if (nullKeySpec != null) {
+            _nullStr = _msgmgr.getBundle(_property.getMessageBundle()).get(nullKeySpec);
+        }
+
         // warn about any unparsed mode arguments
         if (!modeArgs.isEmpty()) {
             log.warning("Unknown mode arguments: " + modeArgs);
@@ -305,6 +313,9 @@ public class DateTimeEditor extends PropertyEditor
 
     /** The text field. */
     protected JTextField _field;
+
+    /** The string we use for null values. */
+    protected String _nullStr = "";
 
     /** The DateFormat we're using for formatting/parsing. */
     protected DateFormat _format;
