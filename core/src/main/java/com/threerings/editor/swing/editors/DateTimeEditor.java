@@ -65,7 +65,7 @@ import static com.threerings.editor.Log.log;
  * - timezone (any timezone)
  * - locale (up to three specifiers separated by spaces: language country variant)
  * - format (to specify a SimpleDateFormat format, instead of specifying 'style')
- * - nullKey to specify the translation key to use for null values
+ * - nullKey to specify the translation key to use for null values (defaults to 'm.null_value')
  *
  * Examples:
  * &at;Editable(editor="datetime", mode="style=full, timezone=PST8PDT, locale=en us")
@@ -253,11 +253,9 @@ public class DateTimeEditor extends PropertyEditor
             }
         }
 
-        // the null key
-        String nullKeySpec = modeArgs.remove("nullKey");
-        if (nullKeySpec != null) {
-            _nullStr = _msgmgr.getBundle(_property.getMessageBundle()).get(nullKeySpec);
-        }
+        // string to use for null
+        String nullKeySpec = Objects.firstNonNull(modeArgs.remove("nullKey"), "m.null_value");
+        _nullStr = _msgmgr.getBundle(_property.getMessageBundle()).get(nullKeySpec);
 
         // warn about any unparsed mode arguments
         if (!modeArgs.isEmpty()) {
