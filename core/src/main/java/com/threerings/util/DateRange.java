@@ -41,22 +41,25 @@ public class DateRange extends DeepObject
                 : _stopTime;
     }
 
-    @Editable(hgroup="a")
+    /** Do we have a start time? */
+    @Editable // see setter
     public boolean getHasStart ()
     {
         return (_startTime > Long.MIN_VALUE);
     }
 
+    /** Do we have a start time? */
     @Editable(depends={"start_time", "stop_time", "has_stop"}, hgroup="a", weight=1)
     public void setHasStart (boolean hasStart)
     {
         if (hasStart != getHasStart()) {
             _startTime = hasStart ? aboutNow() : Long.MIN_VALUE;
+            // TODO: sanitize
         }
     }
 
-    /** The start time at which this range is active. */
-    @Editable(editor="datetime", units="local time", hgroup="a")
+    /** The start time. */
+    @Editable // see setter
     public long getStartTime ()
     {
         if (_startTime == 0) {
@@ -65,16 +68,16 @@ public class DateRange extends DeepObject
         return _startTime;
     }
 
-    /** The start time at which this range is active. */
+    /** The start time. */
     @Editable(depends={"has_start", "stop_time", "has_stop"},
-              editor="datetime", units="local time", hgroup="a", weight=2)
+              editor="datetime", hgroup="a", weight=2)
     public void setStartTime (long time)
     {
         _startTime = time;
     }
 
-    /** The end time for this range. */
-    @Editable(editor="datetime", units="local time", hgroup="a")
+    /** The stop time. */
+    @Editable // see setter
     public long getStopTime ()
     {
         if (_stopTime == 0) {
@@ -83,25 +86,28 @@ public class DateRange extends DeepObject
         return _stopTime;
     }
 
-    /** The end time for this range. */
+    /** The stop time. */
     @Editable(depends={"has_start", "start_time", "has_stop"},
-              editor="datetime", units="local time", hgroup="a", weight=3)
+              editor="datetime", hgroup="a", weight=3)
     public void setStopTime (long time)
     {
         _stopTime = time;
     }
 
-    @Editable(hgroup="a")
+    /** Do we have a stop time? */
+    @Editable // see setter
     public boolean getHasStop ()
     {
         return (_stopTime < Long.MAX_VALUE);
     }
 
+    /** Do we have a stop time? */
     @Editable(depends={"has_start", "start_time", "stop_time"}, hgroup="a", weight=4)
     public void setHasStop (boolean hasStop)
     {
         if (hasStop != getHasStop()) {
             _stopTime = hasStop ? aboutNow() : Long.MAX_VALUE;
+            // TODO: sanitize
         }
     }
 
