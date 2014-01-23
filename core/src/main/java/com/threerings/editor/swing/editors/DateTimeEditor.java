@@ -52,6 +52,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
+import com.threerings.util.MessageBundle;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
 
@@ -277,7 +279,10 @@ public class DateTimeEditor extends PropertyEditor
 
         // string to use for null
         String nullKeySpec = Objects.firstNonNull(modeArgs.remove("nullKey"), "m.null_value");
-        _nullStr = _msgmgr.getBundle(_property.getMessageBundle()).get(nullKeySpec);
+        MessageBundle msgs = _msgmgr.getBundle(_property.getMessageBundle());
+        if (msgs.exists(nullKeySpec)) {
+            _nullStr = msgs.get(nullKeySpec);
+        }
 
         // warn about any unparsed mode arguments
         if (!modeArgs.isEmpty()) {
