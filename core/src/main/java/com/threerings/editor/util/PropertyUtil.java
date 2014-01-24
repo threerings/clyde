@@ -57,6 +57,12 @@ import com.threerings.export.ObjectMarshaller;
 /**
  * Some general utility methods relating to editable properties.
  */
+// NOTES:
+// - It'd be keen we didn't rely on special values to inherit, but could instead add
+//   a String[] inherit attribtue to @Editable, which would be the attribute names to
+//   allow for inheritance.
+// - Perhaps also much of this can be done with reflection?
+// --- RJG 2014-01-24
 public class PropertyUtil
 {
     /**
