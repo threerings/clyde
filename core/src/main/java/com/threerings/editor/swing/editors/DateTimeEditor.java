@@ -64,6 +64,7 @@ import static com.threerings.editor.Log.log;
  * Supports Date, Long, or long fields.
  *
  * The 'mode' of the @Editable annotation can contain a comma separated list of attributes:
+ * - mode  (datetime, date, or time)
  * - style (SHORT, MEDIUM, LONG, FULL)
  * - timezone (any timezone)
  * - locale (up to three specifiers separated by spaces: language country variant)
@@ -83,13 +84,9 @@ public class DateTimeEditor extends PropertyEditor
      */
     public static class DateOnlyEditor extends DateTimeEditor
     {
-        @Override protected DateFormat createFormat (int style, Locale locale)
+        @Override protected Mode getDefaultMode ()
         {
-            return DateFormat.getDateInstance(style, locale);
-        }
-        @Override protected String getDefaultFormat ()
-        {
-            return "yyyy-MM-dd";
+            return Mode.DATE;
         }
     }
 
@@ -98,13 +95,9 @@ public class DateTimeEditor extends PropertyEditor
      */
     public static class TimeOnlyEditor extends DateTimeEditor
     {
-        @Override protected DateFormat createFormat (int style, Locale locale)
+        @Override protected Mode getDefaultMode ()
         {
-            return DateFormat.getTimeInstance(style, locale);
-        }
-        @Override protected String getDefaultFormat ()
-        {
-            return "HH:mm:ss";
+            return Mode.TIME;
         }
     }
 
@@ -209,23 +202,44 @@ public class DateTimeEditor extends PropertyEditor
         _field.setEnabled(!_property.getAnnotation().constant());
     }
 
+    protected enum Mode
+    {
+        DATETIME,
+        DATE,
+        TIME;
+    }
+
     /**
      * Configure the DateFormat we'll be using.
      */
     protected void configureMode ()
     {
-        // set up our defaults
-        int style = DateFormat.SHORT;
-        TimeZone timezone = TimeZone.getDefault();
-        Locale locale = Locale.getDefault();
-        String format = getDefaultFormat();
-
         // create a mutable map of the args: we'll remove them as we deal with each one
         Map<String, String> modeArgs = Maps.newHashMap(Splitter.on(',')
             .trimResults()
             .omitEmptyStrings()
             .withKeyValueSeparator('=')
             .split(getMode()));
+
+        // read the mode first
+        String modeSpec = modeArgs.remove("mode");
+        if (modeSpec != null) {
+            for (Mode m : Mode.values()) {
+                if (modeSpec.equalsIgnoreCase(m.name())) {
+                    _mode = m;
+                    break;
+                }
+            }
+        }
+        if (_mode == null) {
+            _mode = getDefaultMode();
+        }
+
+        // set up our defaults
+        int style = DateFormat.SHORT;
+        TimeZone timezone = TimeZone.getDefault();
+        Locale locale = Locale.getDefault();
+        String format = getDefaultFormat();
 
         // read the style which may reset the format
         String styleSpec = modeArgs.remove("style");
@@ -297,11 +311,23 @@ public class DateTimeEditor extends PropertyEditor
     }
 
     /**
+     * Get the default mode for this form of the editor.
+     */
+    protected Mode getDefaultMode ()
+    {
+        return Mode.DATETIME;
+    }
+
+    /**
      * Create the DateFormat to use, with the specified style and locale.
      */
     protected DateFormat createFormat (int style, Locale locale)
     {
-        return DateFormat.getDateTimeInstance(style, style, locale);
+        switch (_mode) {
+        default: return DateFormat.getDateTimeInstance(style, style, locale);
+        case DATE: return DateFormat.getDateInstance(style, locale);
+        case TIME: return DateFormat.getTimeInstance(style, locale);
+        }
     }
 
     /**
@@ -309,7 +335,11 @@ public class DateTimeEditor extends PropertyEditor
      */
     protected String getDefaultFormat ()
     {
-        return "yyyy-MM-dd HH:mm";
+        switch (_mode) {
+        default: return "yyyy-MM-dd HH:mm";
+        case DATE: return "yyyy-MM-dd";
+        case TIME: return "HH:mm:ss";
+        }
     }
 
     /**
@@ -341,6 +371,9 @@ public class DateTimeEditor extends PropertyEditor
 
     /** The string we use for null values. */
     protected String _nullStr = "";
+
+    /** The mode we're using. */
+    protected Mode _mode;
 
     /** The DateFormat we're using for formatting/parsing. */
     protected DateFormat _format;
