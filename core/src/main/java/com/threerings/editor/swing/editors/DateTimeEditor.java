@@ -225,7 +225,7 @@ public class DateTimeEditor extends PropertyEditor
             .trimResults()
             .omitEmptyStrings()
             .withKeyValueSeparator('=')
-            .split(_property.getAnnotation().mode()));
+            .split(getMode()));
 
         // read the style which may reset the format
         String styleSpec = modeArgs.remove("style");
