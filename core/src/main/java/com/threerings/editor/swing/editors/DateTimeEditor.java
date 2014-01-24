@@ -65,6 +65,9 @@ import static com.threerings.editor.Log.log;
 /**
  * Editor for date-time, with included subclasses for just date or just time.
  * Supports Date, Long, or long fields.
+ * When editing long or Long, a read value of 0 will immediately be rewritten
+ * with a sensible value. No other editor will do this. Viewing a blank alters it.
+ * Note that because of this, you can't save the value of the epoch at UTC. 1 ms will be added.
  *
  * The 'mode' of the @Editable annotation can contain a comma separated list of attributes:
  * - mode  (datetime, date, or time)
@@ -141,7 +144,16 @@ public class DateTimeEditor extends PropertyEditor
 
             } else {
                 Date d = _format.parse(text);
-                newVal = (oldVal instanceof Date) ? d : d.getTime();
+                if (oldVal instanceof Date) {
+                    newVal = d;
+                } else {
+                    long time = d.getTime();
+                    if (time == 0) {
+                        // because we rewrite when read: save something non-zero
+                        time = 1;
+                    }
+                    newVal = time;
+                }
             }
             if (!Objects.equal(newVal, oldVal)) {
                 _property.set(_object, newVal);
