@@ -76,6 +76,7 @@ public class ObjectEditor extends PropertyEditor
         makeCollapsible(_ctx, getPropertyLabel(), true);
         _content.add(_panel = new ObjectPanel(
             _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
+        addUnits(this);
         _panel.addChangeListener(this);
     }
 
