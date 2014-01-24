@@ -15,6 +15,7 @@ import com.threerings.util.DeepObject;
 
 /**
  * An Editable date range.
+ * Honors the 'mode' attribute and interprets it according to the DateTimeEditor.
  */
 public class DateRange extends DeepObject
     implements Streamable, Exportable
