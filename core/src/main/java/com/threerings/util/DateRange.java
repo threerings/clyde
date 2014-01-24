@@ -53,7 +53,8 @@ public class DateRange extends DeepObject
     }
 
     /** The start time. */
-    @Editable(depends={"stop_time"}, editor="datetime", nullable=true, hgroup="a", weight=1, mode="%INHERIT%")
+    @Editable(depends={"stop_time"}, editor="datetime", nullable=true, mode="%INHERIT%",
+            hgroup="a", weight=1)
     public void setStartTime (Long time)
     {
         _startTime = (time == null) ? Long.MIN_VALUE : time;
@@ -71,7 +72,8 @@ public class DateRange extends DeepObject
     }
 
     /** The stop time. */
-    @Editable(depends={"start_time"}, editor="datetime", nullable=true, hgroup="a", weight=2, mode="%INHERIT%")
+    @Editable(depends={"start_time"}, editor="datetime", nullable=true, mode="%INHERIT%",
+            hgroup="a", weight=2)
     public void setStopTime (Long time)
     {
         _stopTime = (time == null) ? Long.MAX_VALUE : time;
