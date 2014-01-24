@@ -3,10 +3,6 @@
 
 package com.threerings.util;
 
-import java.util.Calendar;
-
-import com.samskivert.util.Calendars;
-
 import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
@@ -46,9 +42,6 @@ public class DateRange extends DeepObject
     @Editable // see setter
     public Long getStartTime ()
     {
-        if (_startTime == 0) {
-            _startTime = aboutNow();
-        }
         return (_startTime == Long.MIN_VALUE) ? null : _startTime;
     }
 
@@ -65,9 +58,6 @@ public class DateRange extends DeepObject
     @Editable // see setter
     public Long getStopTime ()
     {
-        if (_stopTime == 0) {
-            _stopTime = aboutNow();
-        }
         return (_stopTime == Long.MAX_VALUE) ? null : _stopTime;
     }
 
@@ -78,19 +68,6 @@ public class DateRange extends DeepObject
     {
         _stopTime = (time == null) ? Long.MAX_VALUE : time;
         _startTime = Math.min(_startTime, _stopTime);
-    }
-
-    /**
-     * Get a time that's around about now, but at the next hour break for cleanliness.
-     */
-    protected long aboutNow ()
-    {
-        return Calendars.now()
-            .addHours(1)
-            .set(Calendar.MILLISECOND, 0)
-            .set(Calendar.SECOND, 0)
-            .set(Calendar.MINUTE, 0)
-            .toTime();
     }
 
     /** Internal storage for our start and end times. */

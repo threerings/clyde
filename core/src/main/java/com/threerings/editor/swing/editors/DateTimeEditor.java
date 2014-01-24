@@ -33,6 +33,7 @@ import java.awt.event.FocusListener;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -51,6 +52,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+
+import com.samskivert.util.Calendars;
 
 import com.threerings.util.MessageBundle;
 
@@ -180,8 +183,21 @@ public class DateTimeEditor extends PropertyEditor
         // remove ourselves as a listener during update
         _field.getDocument().removeDocumentListener(this);
         Object prop = _property.get(_object);
+        boolean rewrite = false;
+        if (prop instanceof Long && (0 == ((Long)prop).longValue())) {
+            rewrite = true;
+            prop = Calendars.now()
+                .addHours(1)
+                .set(Calendar.MILLISECOND, 0)
+                .set(Calendar.SECOND, 0)
+                .set(Calendar.MINUTE, 0)
+                .toTime();
+        }
         _field.setText((prop == null) ? _nullStr : _format.format(prop));
         _field.getDocument().addDocumentListener(this);
+        if (rewrite) {
+            changedUpdate(null);
+        }
     }
 
     @Override
@@ -202,13 +218,6 @@ public class DateTimeEditor extends PropertyEditor
         _field.setEnabled(!_property.getAnnotation().constant());
     }
 
-    protected enum Mode
-    {
-        DATETIME,
-        DATE,
-        TIME;
-    }
-
     /**
      * Configure the DateFormat we'll be using.
      */
@@ -223,23 +232,21 @@ public class DateTimeEditor extends PropertyEditor
 
         // read the mode first
         String modeSpec = modeArgs.remove("mode");
+        Mode mode = getDefaultMode();
         if (modeSpec != null) {
             for (Mode m : Mode.values()) {
                 if (modeSpec.equalsIgnoreCase(m.name())) {
-                    _mode = m;
+                    mode = m;
                     break;
                 }
             }
-        }
-        if (_mode == null) {
-            _mode = getDefaultMode();
         }
 
         // set up our defaults
         int style = DateFormat.SHORT;
         TimeZone timezone = TimeZone.getDefault();
         Locale locale = Locale.getDefault();
-        String format = getDefaultFormat();
+        String format = getDefaultFormat(mode);
 
         // read the style which may reset the format
         String styleSpec = modeArgs.remove("style");
@@ -306,7 +313,7 @@ public class DateTimeEditor extends PropertyEditor
         // now make the format
         _format = (format != null)
             ? new SimpleDateFormat(format, locale)
-            : createFormat(style, locale);
+            : createFormat(mode, style, locale);
         _format.setTimeZone(timezone);
     }
 
@@ -321,9 +328,9 @@ public class DateTimeEditor extends PropertyEditor
     /**
      * Create the DateFormat to use, with the specified style and locale.
      */
-    protected DateFormat createFormat (int style, Locale locale)
+    protected DateFormat createFormat (Mode mode, int style, Locale locale)
     {
-        switch (_mode) {
+        switch (mode) {
         default: return DateFormat.getDateTimeInstance(style, style, locale);
         case DATE: return DateFormat.getDateInstance(style, locale);
         case TIME: return DateFormat.getTimeInstance(style, locale);
@@ -333,9 +340,9 @@ public class DateTimeEditor extends PropertyEditor
     /**
      * Get the default format to pass to a SimpleDateFormat.
      */
-    protected String getDefaultFormat ()
+    protected String getDefaultFormat (Mode mode)
     {
-        switch (_mode) {
+        switch (mode) {
         default: return "yyyy-MM-dd HH:mm";
         case DATE: return "yyyy-MM-dd";
         case TIME: return "HH:mm:ss";
@@ -366,14 +373,19 @@ public class DateTimeEditor extends PropertyEditor
         setBorder(b);
     }
 
+    /** The possible modes in which we can operate. */
+    protected enum Mode
+    {
+        DATETIME,
+        DATE,
+        TIME;
+    }
+
     /** The text field. */
     protected JTextField _field;
 
     /** The string we use for null values. */
     protected String _nullStr = "";
-
-    /** The mode we're using. */
-    protected Mode _mode;
 
     /** The DateFormat we're using for formatting/parsing. */
     protected DateFormat _format;
