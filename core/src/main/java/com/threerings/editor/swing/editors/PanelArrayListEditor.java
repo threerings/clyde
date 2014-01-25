@@ -81,6 +81,9 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             _panels.remove(--pcount);
         }
         updatePanels();
+        if (_add != null) {
+            _add.setEnabled(getLength() < _max);
+        }
     }
 
     @Override
