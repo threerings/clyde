@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.ArrayDeque;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.ARBMultitexture;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
@@ -25,6 +26,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
+import com.threerings.opengl.gui.Image;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Texture2D;
@@ -88,10 +90,19 @@ public class LargeSceneMap
      */
     public void render (
         float sx, float sy, float swidth, float sheight, int tx, int ty,
-        int twidth, int theight, float alpha)
+        int twidth, int theight, float alpha, Image mask)
     {
         Renderer renderer = _ctx.getRenderer();
         renderer.setColorState(alpha, alpha, alpha, alpha);
+
+        // prepare the mask image if any
+        float mwidth = 1f, mheight = 1f;
+        if (mask != null) {
+            Texture2D mtex = mask.getTexture(renderer);
+            _masked[1].setTexture(mtex);
+            mwidth = mask.getWidth() / (float)mtex.getWidth();
+            mheight = mask.getHeight() / (float)mtex.getHeight();
+        }
 
         for (Map.Entry<Coord, Texture2D> entry : _textures.entrySet()) {
             Texture2D texture = entry.getValue();
@@ -115,6 +126,12 @@ public class LargeSceneMap
             float ly = (iy1 - sy) / sheight;
             float uy = (iy2 - sy) / sheight;
 
+            // now the mask coordinates
+            float mls = lx * mwidth;
+            float mus = ux * mwidth;
+            float mlt = ly * mheight;
+            float mut = uy * mheight;
+
             // now the onscreen location
             lx = lx * twidth + tx;
             ux = ux * twidth + tx;
@@ -122,20 +139,39 @@ public class LargeSceneMap
             uy = uy * theight + ty;
 
             // prepare the texture units
-            TextureUnit[] units = new TextureUnit[] { new TextureUnit() };
+            TextureUnit[] units = (mask == null) ? _unmasked : _masked;
             units[0].setTexture(texture);
 
             // render the block
             renderer.setTextureState(units);
             GL11.glBegin(GL11.GL_QUADS);
-            GL11.glTexCoord2f(ls, lt);
-            GL11.glVertex2f(lx, ly);
-            GL11.glTexCoord2f(us, lt);
-            GL11.glVertex2f(ux, ly);
-            GL11.glTexCoord2f(us, ut);
-            GL11.glVertex2f(ux, uy);
-            GL11.glTexCoord2f(ls, ut);
-            GL11.glVertex2f(lx, uy);
+            if (mask == null) {
+                GL11.glTexCoord2f(ls, lt);
+                GL11.glVertex2f(lx, ly);
+                GL11.glTexCoord2f(us, lt);
+                GL11.glVertex2f(ux, ly);
+                GL11.glTexCoord2f(us, ut);
+                GL11.glVertex2f(ux, uy);
+                GL11.glTexCoord2f(ls, ut);
+                GL11.glVertex2f(lx, uy);
+            } else {
+                GL11.glTexCoord2f(ls, lt);
+                ARBMultitexture.glMultiTexCoord2fARB(
+                    ARBMultitexture.GL_TEXTURE1_ARB, mls, mlt);
+                GL11.glVertex2f(lx, ly);
+                GL11.glTexCoord2f(us, lt);
+                ARBMultitexture.glMultiTexCoord2fARB(
+                    ARBMultitexture.GL_TEXTURE1_ARB, mus, mlt);
+                GL11.glVertex2f(ux, ly);
+                GL11.glTexCoord2f(us, ut);
+                ARBMultitexture.glMultiTexCoord2fARB(
+                    ARBMultitexture.GL_TEXTURE1_ARB, mus, mut);
+                GL11.glVertex2f(ux, uy);
+                GL11.glTexCoord2f(ls, ut);
+                ARBMultitexture.glMultiTexCoord2fARB(
+                    ARBMultitexture.GL_TEXTURE1_ARB, mls, mut);
+                GL11.glVertex2f(lx, uy);
+            }
             GL11.glEnd();
             renderer.setMatrixMode(GL11.GL_MODELVIEW);
         }
@@ -519,6 +555,12 @@ public class LargeSceneMap
 
     /** A mask of the collision flags we actually care about. */
     protected int _flagMask = ~0;
+
+    /** Reusable texture unit array for unmasked rendering. */
+    protected TextureUnit[] _unmasked = new TextureUnit[] { new TextureUnit() };
+
+    /** Reusable texture unit array for masked rendering. */
+    protected TextureUnit[] _masked = new TextureUnit[] { new TextureUnit(), new TextureUnit() };
 
     /** Reusable coordinate object. */
     protected Coord _coord = new Coord();
