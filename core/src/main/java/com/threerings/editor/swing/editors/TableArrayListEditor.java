@@ -52,6 +52,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.VGroupLayout;
+
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ClassUtil;
 import com.samskivert.util.IntTuple;
@@ -318,7 +321,8 @@ public class TableArrayListEditor extends ArrayListEditor
             _opanel.addChangeListener(this);
         }
 
-        JPanel outer = new JPanel();
+        JPanel outer = new JPanel(
+            new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         outer.setBackground(null);
         _content.add(outer);
         JPanel panel = new JPanel(new BorderLayout());
