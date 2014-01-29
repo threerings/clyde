@@ -876,8 +876,22 @@ public class TudeySceneManager extends SceneManager
     /**
      * Determines the intersection point of this segment in the environment.
      */
-    public boolean getIntersection (
+    public final boolean getIntersection (
         Ray2D ray, float length, int mask, int timestamp, Vector2f intersection)
+    {
+        return getIntersection(ray, length, mask, timestamp, intersection, null);
+    }
+
+    /**
+     * Determines the intersection point of this segment in the environment and returns the
+     * intersecting actor.
+     *
+     * @param intersectingActor An array of size 1 where the ActorLogic is stored if it was the
+     * nearest intersection, or null
+     */
+    public boolean getIntersection (
+        Ray2D ray, float length, int mask, int timestamp, Vector2f intersection,
+        ActorLogic[] intersectingActor)
     {
         if (mask == 0) {
             return false;
@@ -901,6 +915,9 @@ public class TudeySceneManager extends SceneManager
                 if (dist < resultDist) {
                     intersection.set(result);
                     resultDist = dist;
+                    if (intersectingActor != null) {
+                        intersectingActor[0] = logic;
+                    }
                 }
             }
         }
