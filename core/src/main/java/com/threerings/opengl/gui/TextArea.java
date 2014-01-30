@@ -365,8 +365,7 @@ public class TextArea extends TextComponent
     }
 
     /**
-     * Called when our model has changed (due to scrolling by a scroll bar or a call to {@link
-     * #scrollToLine}, etc.).
+     * Called when our model has changed.
      */
     protected void modelDidChange ()
     {
