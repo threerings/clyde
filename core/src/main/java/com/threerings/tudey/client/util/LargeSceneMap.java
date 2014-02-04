@@ -85,6 +85,21 @@ public class LargeSceneMap
         _flagMask = flagMask;
     }
 
+    public void rebuildMap ()
+    {
+        clearMap();
+        build();
+    }
+
+    /**
+     * Sets the scene model and rebuilds the map.
+     */
+    public void setSceneModel (TudeySceneModel sceneModel)
+    {
+        _sceneModel = sceneModel;
+        rebuildMap();
+    }
+
     /**
      * Renders a section of the map.
      */
@@ -201,6 +216,8 @@ public class LargeSceneMap
         _buffers.clear();
         _textures.clear();
         _traversable.clear();
+        _missing.clear();
+        _types.clear();
         _entrance = null;
     }
 
@@ -226,7 +243,7 @@ public class LargeSceneMap
                 Coord newCoord = new Coord(coord.x + xs[ii], coord.y + ys[ii]);
                 Integer flag = _types.get(newCoord);
                 if (flag == null) {
-                    log.warning("Ran into empty tile while traversing walkable path!!");
+                    logMissingTile(newCoord);
                 } else if (flag.equals(0) && _traversable.add(newCoord)) {
                     queue.add(newCoord);
                 }
@@ -270,6 +287,19 @@ public class LargeSceneMap
     {
         removeEntry(oentry);
         updateLocations(_types.keySet());
+    }
+
+    /** Returns the set of missing tiles. */
+    public Set<Coord> getMissing ()
+    {
+        return _missing;
+    }
+
+    /** Logs the missing tile. */
+    protected void logMissingTile (Coord coord)
+    {
+        log.warning("Ran into empty tile while traversing walkable path!!", "location", coord);
+        _missing.add(coord);
     }
 
     /** The size of the map textures as a power of two. */
@@ -471,20 +501,24 @@ public class LargeSceneMap
     protected void putColor (ByteBuffer buf, int type, int x, int y, float alpha, boolean walkable)
     {
         int offset = (y * getBufferWidth() + x) * 4;
-        byte[] byteColor;
-        if (walkable){
-            byteColor = getBytes(_walkable, alpha);
-        } else if (type == -1) {
-            byteColor = EMPTY_COLOR;
-        } else if (type == 0) {
-            byteColor = getBytes(_floor, alpha);
-        } else {
-            byteColor = getBytes(_wall, alpha);
-        }
+        byte[] color = getColor(offset, type, alpha, walkable);
 
         buf.position(offset);
-        buf.put(byteColor);
+        buf.put(color);
         buf.rewind();
+    }
+
+    protected byte[] getColor (int offset, int type, float alpha, boolean walkable)
+    {
+        if (walkable){
+            return getBytes(_walkable, alpha);
+        } else if (type == -1) {
+            return EMPTY_COLOR;
+        } else if (type == 0) {
+            return getBytes(_floor, alpha);
+        } else {
+            return getBytes(_wall, alpha);
+        }
     }
 
     /**
@@ -540,6 +574,9 @@ public class LargeSceneMap
 
     /** Stores the "type" of each location (empty, floor, wall, etc). */
     protected CoordIntMap _types = new CoordIntMap();
+
+    /** Stores the coordinates where a tile has been deemed "missing". */
+    protected Set<Coord> _missing = Sets.newHashSet();
 
     /** The map textures. */
     protected Map<Coord, Texture2D> _textures = Maps.newHashMap();
