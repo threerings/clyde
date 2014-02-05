@@ -223,92 +223,10 @@ public class SceneEditor extends TudeyTool
         JMenuBar menubar = new JMenuBar();
         _frame.setJMenuBar(menubar);
 
-        JMenu file = createMenu("file", KeyEvent.VK_F);
-        menubar.add(file);
-        file.add(createMenuItem("new", KeyEvent.VK_N, KeyEvent.VK_N));
-        file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
-        file.add(_recents = new JMenu(_msgs.get("m.recent")));
-        file.addSeparator();
-        file.add(createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
-        file.add(createMenuItem("save_as", KeyEvent.VK_A, KeyEvent.VK_A));
-        file.add(_revert = createMenuItem("revert", KeyEvent.VK_R, KeyEvent.VK_R));
-        _revert.setEnabled(false);
-        file.addSeparator();
-        file.add(createMenuItem("import", KeyEvent.VK_I, -1));
-        file.add(createMenuItem("export", KeyEvent.VK_E, -1));
-        file.addSeparator();
-        file.add(createMenuItem("import_selection", KeyEvent.VK_M, -1));
-        file.add(_exportSelection = createMenuItem("export_selection", KeyEvent.VK_X, -1));
-        _exportSelection.setEnabled(false);
-        file.addSeparator();
-        file.add(createMenuItem("test", KeyEvent.VK_T, KeyEvent.VK_B));
-        file.addSeparator();
-        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
-
-        JMenu edit = createMenu("edit", KeyEvent.VK_E);
-        menubar.add(edit);
-        edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
-        _undo.setEnabled(false);
-        edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
-        _redo.setEnabled(false);
-        edit.addSeparator();
-        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
-        _cut.setEnabled(false);
-        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
-        _copy.setEnabled(false);
-        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
-        _paste.setEnabled(false);
-        edit.add(new JMenuItem(
-            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
-        _delete.setEnabled(false);
-        edit.addSeparator();
-        edit.add(_rotateCW = createMenuItem("rotate_ccw", KeyEvent.VK_O, KeyEvent.VK_LEFT));
-        _rotateCW.setEnabled(false);
-        edit.add(_rotateCCW = createMenuItem("rotate_cw", KeyEvent.VK_E, KeyEvent.VK_RIGHT));
-        _rotateCCW.setEnabled(false);
-        edit.addSeparator();
-        edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, KeyEvent.VK_UP));
-        _raise.setEnabled(false);
-        edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, KeyEvent.VK_DOWN));
-        _lower.setEnabled(false);
-        edit.addSeparator();
-        edit.add(_saveToPalette = createMenuItem("save_to_palette", KeyEvent.VK_V, KeyEvent.VK_L));
-        _saveToPalette.setEnabled(false);
-        edit.addSeparator();
-        edit.add(createMenuItem("validate_refs", KeyEvent.VK_I, -1));
-        edit.add(createMenuItem("delete_errors", KeyEvent.VK_E, -1));
-        edit.addSeparator();
-        edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
-        edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
-        edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_P));
-
-        JMenu view = createMenu("view", KeyEvent.VK_V);
-        menubar.add(view);
-        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
-        _showGrid.setSelected(true);
-        view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
-        _showCompass.setSelected(true);
-        view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
-        view.addSeparator();
-        view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
-        view.addSeparator();
-        view.add(createMenuItem("raise_grid", KeyEvent.VK_R, KeyEvent.VK_UP, 0));
-        view.add(createMenuItem("lower_grid", KeyEvent.VK_L, KeyEvent.VK_DOWN, 0));
-        view.add(_snapGrid = createMenuItem("snap_grid", KeyEvent.VK_A, KeyEvent.VK_RIGHT, 0));
-        _snapGrid.setEnabled(false);
-        view.addSeparator();
-        view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
-        view.add(createMenuItem("recenter", KeyEvent.VK_C, -1));
-        view.add(_centerSelected =
-                createMenuItem("center_selected", KeyEvent.VK_E, KeyEvent.VK_LEFT, 0));
-        _centerSelected.setEnabled(false);
-        view.addSeparator();
-        view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
-        view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
-
-        JMenu tools = createMenu("tools", KeyEvent.VK_T);
-        menubar.add(tools);
-        tools.add(createMenuItem("batch_validate", KeyEvent.VK_B, -1));
+        menubar.add(_fileMenu = createFileMenu());
+        menubar.add(_editMenu = createEditMenu());
+        menubar.add(_viewMenu = createViewMenu());
+        menubar.add(_toolMenu = createToolMenu());
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("scene_dir", null));
@@ -1148,6 +1066,111 @@ public class SceneEditor extends TudeyTool
         }
     }
 
+    protected JMenu createFileMenu ()
+    {
+        JMenu file = createMenu("file", KeyEvent.VK_F);
+
+        file.add(createMenuItem("new", KeyEvent.VK_N, KeyEvent.VK_N));
+        file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
+        file.add(_recents = new JMenu(_msgs.get("m.recent")));
+        file.addSeparator();
+        file.add(createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
+        file.add(createMenuItem("save_as", KeyEvent.VK_A, KeyEvent.VK_A));
+        file.add(_revert = createMenuItem("revert", KeyEvent.VK_R, KeyEvent.VK_R));
+        _revert.setEnabled(false);
+        file.addSeparator();
+        file.add(createMenuItem("import", KeyEvent.VK_I, -1));
+        file.add(createMenuItem("export", KeyEvent.VK_E, -1));
+        file.addSeparator();
+        file.add(createMenuItem("import_selection", KeyEvent.VK_M, -1));
+        file.add(_exportSelection = createMenuItem("export_selection", KeyEvent.VK_X, -1));
+        _exportSelection.setEnabled(false);
+        file.addSeparator();
+        file.add(createMenuItem("test", KeyEvent.VK_T, KeyEvent.VK_B));
+        file.addSeparator();
+        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+
+        return file;
+    }
+
+    protected JMenu createEditMenu ()
+    {
+        JMenu edit = createMenu("edit", KeyEvent.VK_E);
+        edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
+        _undo.setEnabled(false);
+        edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
+        _redo.setEnabled(false);
+        edit.addSeparator();
+        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
+        _cut.setEnabled(false);
+        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
+        _copy.setEnabled(false);
+        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
+        _paste.setEnabled(false);
+        edit.add(new JMenuItem(
+            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+        _delete.setEnabled(false);
+        edit.addSeparator();
+        edit.add(_rotateCW = createMenuItem("rotate_ccw", KeyEvent.VK_O, KeyEvent.VK_LEFT));
+        _rotateCW.setEnabled(false);
+        edit.add(_rotateCCW = createMenuItem("rotate_cw", KeyEvent.VK_E, KeyEvent.VK_RIGHT));
+        _rotateCCW.setEnabled(false);
+        edit.addSeparator();
+        edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, KeyEvent.VK_UP));
+        _raise.setEnabled(false);
+        edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, KeyEvent.VK_DOWN));
+        _lower.setEnabled(false);
+        edit.addSeparator();
+        edit.add(_saveToPalette = createMenuItem("save_to_palette", KeyEvent.VK_V, KeyEvent.VK_L));
+        _saveToPalette.setEnabled(false);
+        edit.addSeparator();
+        edit.add(createMenuItem("validate_refs", KeyEvent.VK_I, -1));
+        edit.add(createMenuItem("delete_errors", KeyEvent.VK_E, -1));
+        edit.addSeparator();
+        edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
+        edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
+        edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_P));
+
+        return edit;
+    }
+
+    protected JMenu createViewMenu ()
+    {
+        JMenu view = createMenu("view", KeyEvent.VK_V);
+
+        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
+        _showGrid.setSelected(true);
+        view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
+        _showCompass.setSelected(true);
+        view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
+        view.addSeparator();
+        view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
+        view.addSeparator();
+        view.add(createMenuItem("raise_grid", KeyEvent.VK_R, KeyEvent.VK_UP, 0));
+        view.add(createMenuItem("lower_grid", KeyEvent.VK_L, KeyEvent.VK_DOWN, 0));
+        view.add(_snapGrid = createMenuItem("snap_grid", KeyEvent.VK_A, KeyEvent.VK_RIGHT, 0));
+        _snapGrid.setEnabled(false);
+        view.addSeparator();
+        view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
+        view.add(createMenuItem("recenter", KeyEvent.VK_C, -1));
+        view.add(_centerSelected =
+                createMenuItem("center_selected", KeyEvent.VK_E, KeyEvent.VK_LEFT, 0));
+        _centerSelected.setEnabled(false);
+        view.addSeparator();
+        view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
+        view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
+
+        return view;
+    }
+
+    protected JMenu createToolMenu ()
+    {
+        JMenu tools = createMenu("tools", KeyEvent.VK_T);
+        tools.add(createMenuItem("batch_validate", KeyEvent.VK_B, -1));
+
+        return tools;
+    }
+
     @Override
     protected JComponent createCanvasContainer ()
     {
@@ -1923,6 +1946,18 @@ public class SceneEditor extends TudeyTool
 
     /** The edit menu actions. */
     protected Action _cut, _copy, _paste, _delete;
+
+    /** The file menu. */
+    protected JMenu _fileMenu;
+
+    /** The edit menu. */
+    protected JMenu _editMenu;
+
+    /** The view menu. */
+    protected JMenu _viewMenu;
+
+    /** The tool menu. */
+    protected JMenu _toolMenu;
 
     /** The recently-opened files. */
     protected JMenu _recents;
