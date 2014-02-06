@@ -298,7 +298,6 @@ public class LargeSceneMap
     /** Logs the missing tile. */
     protected void logMissingTile (Coord coord)
     {
-        log.warning("Ran into empty tile while traversing walkable path!!", "location", coord);
         _missing.add(coord);
     }
 
