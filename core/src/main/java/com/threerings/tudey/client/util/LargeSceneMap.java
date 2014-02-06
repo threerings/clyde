@@ -232,7 +232,6 @@ public class LargeSceneMap
 
         Coord coord = _entrance;
         _traversable.clear();
-        _traversable.add(coord);
 
         final int[] xs = {1, 0, -1, 0};
         final int[] ys = {0, -1, 0, 1};
@@ -440,7 +439,7 @@ public class LargeSceneMap
      */
     protected void update (int x, int y)
     {
-        int type = -1;
+        int type = NULL_VALUE;
         TudeySceneModel.TileEntry tentry = _sceneModel.getTileEntry(x, y);
         ConfigManager cfgmgr = _sceneModel.getConfigManager();
         if (tentry != null) {
@@ -511,7 +510,7 @@ public class LargeSceneMap
     {
         if (walkable){
             return getBytes(_walkable, alpha);
-        } else if (type == -1) {
+        } else if (type == NULL_VALUE) {
             return EMPTY_COLOR;
         } else if (type == 0) {
             return getBytes(_floor, alpha);
@@ -572,7 +571,7 @@ public class LargeSceneMap
     protected TudeySceneModel _sceneModel;
 
     /** Stores the "type" of each location (empty, floor, wall, etc). */
-    protected CoordIntMap _types = new CoordIntMap();
+    protected CoordIntMap _types = new CoordIntMap(3, NULL_VALUE);
 
     /** Stores the coordinates where a tile has been deemed "missing". */
     protected Set<Coord> _missing = Sets.newHashSet();
@@ -618,4 +617,7 @@ public class LargeSceneMap
 
     /** The color to use for empty locations. */
     protected static final byte[] EMPTY_COLOR = new byte[] { 0x0, 0x0, 0x0, 0x0 };
+
+    /** The value for null in CoordIntMap. */
+    protected static final int NULL_VALUE = -3;
 }
