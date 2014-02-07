@@ -39,11 +39,15 @@ import java.util.EnumSet;
 
 import java.util.zip.InflaterInputStream;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Tuple;
@@ -322,6 +326,10 @@ public class BinaryImporter extends Importer
                     value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
                     wasRead = true;
 
+                } else if (wclazz == ImmutableMultiset.class) {
+                    value = ImmutableMultiset.copyOf(readEntries(HashMultiset.create()));
+                    wasRead = true;
+
                 } else if (EnumSet.class.isAssignableFrom(wclazz)) {
                     @SuppressWarnings("unchecked") Class<? extends Enum> eclazz =
                         (Class<? extends Enum>)readClass().getWrappedClass();
@@ -341,9 +349,15 @@ public class BinaryImporter extends Importer
             readEntries(value == null ? new Object[length] : (Object[])value,
                 cclazz.getComponentType());
         } else if (cclazz.isCollection()) {
-            @SuppressWarnings("unchecked") Collection<Object> collection =
-                (value == null) ? new ArrayList<Object>() : (Collection<Object>)value;
-            readEntries(collection);
+            if (cclazz.isMultiset()) {
+                @SuppressWarnings("unchecked") Multiset<Object> multiset =
+                    (value == null) ? HashMultiset.<Object>create() : (Multiset<Object>)value;
+                readEntries(multiset);
+            } else {
+                @SuppressWarnings("unchecked") Collection<Object> collection =
+                    (value == null) ? new ArrayList<Object>() : (Collection<Object>)value;
+                readEntries(collection);
+            }
         } else if (cclazz.isMap()) {
             @SuppressWarnings("unchecked") Map<Object, Object> map =
                 (value == null) ? new HashMap<Object, Object>() : (Map<Object, Object>)value;
@@ -404,6 +418,20 @@ public class BinaryImporter extends Importer
             collection.add(read(_objectClass));
         }
         return collection;
+    }
+
+    /**
+     * Populates the supplied multiset with the entries under the current element.
+     *
+     * @return a reference to the multiset passed, for chaining.
+     */
+    protected Multiset<Object> readEntries (Multiset<Object> multiset)
+        throws IOException
+    {
+        for (int ii = 0, nn = _in.readInt(); ii < nn; ii++) {
+            multiset.add(read(_objectClass), _in.readInt());
+        }
+        return multiset;
     }
 
     /**
@@ -518,7 +546,7 @@ public class BinaryImporter extends Importer
          */
         public boolean isFinal ()
         {
-            return (_flags & BinaryExporter.FINAL_CLASS_FLAG) != 0;
+            return hasFlags(BinaryExporter.FINAL_CLASS_FLAG);
         }
 
         /**
@@ -526,7 +554,7 @@ public class BinaryImporter extends Importer
          */
         public boolean isInner ()
         {
-            return (_flags & BinaryExporter.INNER_CLASS_FLAG) != 0;
+            return hasFlags(BinaryExporter.INNER_CLASS_FLAG);
         }
 
         /**
@@ -534,7 +562,16 @@ public class BinaryImporter extends Importer
          */
         public boolean isCollection ()
         {
-            return (_flags & BinaryExporter.COLLECTION_CLASS_FLAG) != 0;
+            return hasFlags(BinaryExporter.COLLECTION_CLASS_FLAG);
+        }
+
+        /**
+         * Determines whether the wrapped class is a multiset class.
+         */
+        public boolean isMultiset ()
+        {
+            return hasFlags(
+                (byte)(BinaryExporter.COLLECTION_CLASS_FLAG | BinaryExporter.MULTI_FLAG));
         }
 
         /**
@@ -542,8 +579,20 @@ public class BinaryImporter extends Importer
          */
         public boolean isMap ()
         {
-            return (_flags & BinaryExporter.MAP_CLASS_FLAG) != 0;
+            // require that the MULTI_FLAG is *not* set
+            return hasFlags(
+                (byte)(BinaryExporter.MAP_CLASS_FLAG | BinaryExporter.MULTI_FLAG),
+                BinaryExporter.MAP_CLASS_FLAG);
         }
+
+//        /**
+//         * Determines whether the wrapped class is a multimap.
+//         */
+//        public boolean isMultimap ()
+//        {
+//            return hasFlags(
+//                BinaryExporter.MAP_CLASS_FLAG | BinaryExporter.MULTICOLLECTION_CLASS_FLAG);
+//        }
 
         /**
          * Determines whether the wrapped class is an array class.
@@ -587,6 +636,22 @@ public class BinaryImporter extends Importer
         public boolean equals (Object other)
         {
             return ((ClassWrapper)other)._name.equals(_name);
+        }
+
+        /**
+         * Return true if the specified flags are all set.
+         */
+        protected boolean hasFlags (byte flags)
+        {
+            return hasFlags(flags, flags);
+        }
+
+        /**
+         * Return true if the flags match the specified flags exactly for the specified mask.
+         */
+        protected boolean hasFlags (byte mask, byte flags)
+        {
+            return (_flags & mask) == flags;
         }
 
         /** The name of the class. */

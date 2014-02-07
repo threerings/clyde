@@ -45,11 +45,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -303,6 +307,10 @@ public class XMLImporter extends Importer
                 value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
                 wasRead = true;
 
+            } else if (cclazz == ImmutableMultiset.class) {
+                value = ImmutableMultiset.copyOf(readEntries(HashMultiset.create()));
+                wasRead = true;
+
             } else if (EnumSet.class.isAssignableFrom(cclazz)) {
                 @SuppressWarnings("unchecked") Class<? extends Enum> eclazz =
                     (Class<? extends Enum>)getClassByName(element.getAttribute("eclass"), null);
@@ -327,9 +335,15 @@ public class XMLImporter extends Importer
             } else if (value instanceof Object[]) {
                 readEntries((Object[])value, cclazz.getComponentType());
             } else if (value instanceof Collection) {
-                @SuppressWarnings("unchecked") Collection<Object> collection =
-                    (Collection<Object>)value;
-                readEntries(collection);
+                if (value instanceof Multiset) {
+                    @SuppressWarnings("unchecked") Multiset<Object> multiset =
+                        (Multiset<Object>)value;
+                    readEntries(multiset);
+                } else {
+                    @SuppressWarnings("unchecked") Collection<Object> collection =
+                        (Collection<Object>)value;
+                    readEntries(collection);
+                }
             } else if (value instanceof Map) {
                 @SuppressWarnings("unchecked") Map<Object, Object> map =
                     (Map<Object, Object>)value;
@@ -409,6 +423,28 @@ public class XMLImporter extends Importer
             }
         }
         return collection;
+    }
+
+    /**
+     * Populates the supplied multiset with the entries under the current element.
+     *
+     * @return a reference to the multiset passed, for chaining.
+     */
+    protected Multiset<Object> readEntries (Multiset<Object> multiset)
+        throws IOException
+    {
+        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+            if (node instanceof Element && node.getNodeName().equals("element")) {
+                Object element = read((Element)node, Object.class);
+                for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
+                    if (node instanceof Element && node.getNodeName().equals("count")) {
+                        multiset.setCount(element, (Integer)read((Element)node, Integer.class));
+                        break;
+                    }
+                }
+            }
+        }
+        return multiset;
     }
 
     /**

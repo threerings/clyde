@@ -36,9 +36,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
+
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 
 import com.samskivert.util.Tuple;
 
@@ -69,6 +73,11 @@ public class BinaryExporter extends Exporter
 
     /** Indicates that the stored class is a (non-{@link Exportable}) map. */
     public static final byte MAP_CLASS_FLAG = (byte)(1 << 3);
+
+    /** Indicates that a stored class is a (non-{@link Exportable})
+     * Multiset (in combination with the collection flag) or
+     * Multimap (in combination with the map flag). */
+    public static final byte MULTI_FLAG = (byte)(1 << 4);
 
     /** We seed the class map with these class references.
      * NOTE: Do not remove any entries or change their order. */
@@ -261,12 +270,18 @@ public class BinaryExporter extends Exporter
             @SuppressWarnings("unchecked") Class<Object> ctype =
                 (Class<Object>)cclazz.getComponentType();
             writeEntries((Object[])value, ctype);
-        } else if (value instanceof EnumSet) {
-            writeEntries((EnumSet)value);
         } else if (value instanceof Collection) {
-            writeEntries((Collection)value);
+            if (value instanceof EnumSet) {
+                writeEntries((EnumSet)value);
+            } else if (value instanceof Multiset) {
+                writeEntries((Multiset)value);
+            } else {
+                writeEntries((Collection)value);
+            }
         } else if (value instanceof Map) {
             writeEntries((Map)value);
+        } else if (value instanceof Multimap) {
+            throw new IOException("TODO: Multimap support");
         } else {
             throw new IOException("Value is not exportable [class=" + cclazz + "].");
         }
@@ -355,6 +370,21 @@ public class BinaryExporter extends Exporter
     }
 
     /**
+     * Writes out the entries of a multiset.
+     */
+    protected void writeEntries (Multiset multiset)
+        throws IOException
+    {
+        @SuppressWarnings("unchecked") // compiler weirdness- maybe this can be fixed-up someday
+        Set<Multiset.Entry> entrySet = multiset.entrySet();
+        _out.writeInt(entrySet.size());
+        for (Multiset.Entry entry : entrySet) {
+            write(entry.getElement(), Object.class);
+            _out.writeInt(entry.getCount());
+        }
+    }
+
+    /**
      * Writes out the entries of a map.
      */
     protected void writeEntries (Map<?, ?> map)
@@ -394,6 +424,9 @@ public class BinaryExporter extends Exporter
         if (!Exportable.class.isAssignableFrom(clazz)) {
             if (Collection.class.isAssignableFrom(clazz)) {
                 flags |= COLLECTION_CLASS_FLAG;
+                if (Multiset.class.isAssignableFrom(clazz)) {
+                    flags |= MULTI_FLAG;
+                }
             } else if (Map.class.isAssignableFrom(clazz)) {
                 flags |= MAP_CLASS_FLAG;
             }

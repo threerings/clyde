@@ -44,6 +44,9 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
+
 import com.threerings.util.ReflectionUtil;
 
 import static com.threerings.export.Log.log;
@@ -273,10 +276,14 @@ public class XMLExporter extends Exporter
                 @SuppressWarnings("unchecked") Class<Object> ctype =
                     (Class<Object>)cclazz.getComponentType();
                 writeEntries((Object[])value, ctype);
-            } else if (value instanceof EnumSet) {
-                writeEntries((EnumSet)value);
             } else if (value instanceof Collection) {
-                writeEntries((Collection)value);
+                if (value instanceof EnumSet) {
+                    writeEntries((EnumSet)value);
+                } else if (value instanceof Multiset) {
+                    writeEntries((Multiset)value);
+                } else {
+                    writeEntries((Collection)value);
+                }
             } else if (value instanceof Map) {
                 writeEntries((Map)value);
             } else {
@@ -322,6 +329,18 @@ public class XMLExporter extends Exporter
     {
         for (Object entry : collection) {
             append("entry", entry, Object.class);
+        }
+    }
+
+    /**
+     * Writes out the entries of a multiset.
+     */
+    protected void writeEntries (Multiset<?> multiset)
+        throws IOException
+    {
+        for (Multiset.Entry<?> entry : multiset.entrySet()) {
+            append("element", entry.getElement(), Object.class);
+            append("count", entry.getCount(), Integer.class);
         }
     }
 
