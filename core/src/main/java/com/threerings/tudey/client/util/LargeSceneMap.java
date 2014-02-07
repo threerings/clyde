@@ -194,7 +194,8 @@ public class LargeSceneMap
 
     public void setEntrance (int x, int y)
     {
-        _entrance = new Coord(x, y);
+        _entrances.clear();
+        _entrances.add(new Coord(x, y));
     }
 
     /**
@@ -218,7 +219,7 @@ public class LargeSceneMap
         _traversable.clear();
         _missing.clear();
         _types.clear();
-        _entrance = null;
+        _entrances.clear();
     }
 
     /**
@@ -226,20 +227,19 @@ public class LargeSceneMap
      */
     public void populateTraversable ()
     {
-        if (_entrance == null) {
+        if (_entrances.isEmpty()) {
             return;
         }
-
-        Coord coord = _entrance;
         _traversable.clear();
 
-        final int[] xs = {1, 0, -1, 0};
-        final int[] ys = {0, -1, 0, 1};
-
         ArrayDeque<Coord> queue = new ArrayDeque<Coord>();
+
+        queue.addAll(_entrances);
+
+        Coord coord = queue.poll();
         while (coord != null) {
             for (int ii = 0; ii < 4; ii++) {
-                Coord newCoord = new Coord(coord.x + xs[ii], coord.y + ys[ii]);
+                Coord newCoord = new Coord(coord.x + XS[ii], coord.y + YS[ii]);
                 Integer flag = _types.get(newCoord);
                 if (flag == null) {
                     logMissingTile(newCoord);
@@ -600,8 +600,8 @@ public class LargeSceneMap
     /** Reusable coordinate object. */
     protected Coord _coord = new Coord();
 
-    /** The default entrance for the map. */
-    protected Coord _entrance;
+    /** The default entrances for the map. */
+    protected Set<Coord> _entrances = Sets.newHashSet();
 
     /** A set containing the coordinates which can be reached. */
     protected Set<Coord> _traversable = Sets.newHashSet();
@@ -620,4 +620,8 @@ public class LargeSceneMap
 
     /** The value for null in CoordIntMap. */
     protected static final int NULL_VALUE = -3;
+
+    /** Coordinate modifiers for getting up, down, left, right tiles. */
+    protected static final int[] XS = {1, 0, -1, 0};
+    protected static final int[] YS = {0, -1, 0, 1};
 }
