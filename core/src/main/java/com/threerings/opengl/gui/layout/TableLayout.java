@@ -28,6 +28,8 @@ package com.threerings.opengl.gui.layout;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 import com.threerings.opengl.gui.Component;
@@ -167,8 +169,7 @@ public class TableLayout extends LayoutManager
         }
 
         int row = 0, col = 0, x = sx;
-        for (int ii = 0, ll = target.getComponentCount(); ii < ll; ii++) {
-            Component child = target.getComponent(ii);
+        for (Component child : visibleChildren(target)) {
             int width = Math.min(metrics.columnWidths[col], availwid);
             child.setBounds(x, y - metrics.rowHeights[row], width, metrics.rowHeights[row]);
             x += (metrics.columnWidths[col] + _colgap);
@@ -194,35 +195,33 @@ public class TableLayout extends LayoutManager
         }
         Arrays.fill(metrics.columnWidths, 0);
 
-        int row = 0, col = 0, maxrh = 0;
-        for (int ii = 0, ll = target.getComponentCount(); ii < ll; ii++) {
-            Component child = target.getComponent(ii);
-            if (child.isVisible()) {
-                Dimension psize = _pscache.get(child);
-                if (psize == null || !child.isValid()) {
-                    _pscache.put(child, psize = child.getPreferredSize(whint, -1));
+        int row = 0, col = 0, maxrh = 0, count = 0;
+        for (Component child : visibleChildren(target)) {
+            Dimension psize = _pscache.get(child);
+            if (psize == null || !child.isValid()) {
+                _pscache.put(child, psize = child.getPreferredSize(whint, -1));
+            }
+            if (psize.height > metrics.rowHeights[row]) {
+                metrics.rowHeights[row] = psize.height;
+                if (maxrh < metrics.rowHeights[row]) {
+                    maxrh = metrics.rowHeights[row];
                 }
-                if (psize.height > metrics.rowHeights[row]) {
-                    metrics.rowHeights[row] = psize.height;
-                    if (maxrh < metrics.rowHeights[row]) {
-                        maxrh = metrics.rowHeights[row];
-                    }
-                }
-                if (psize.width > metrics.columnWidths[col]) {
-                    metrics.columnWidths[col] = psize.width;
-                }
+            }
+            if (psize.width > metrics.columnWidths[col]) {
+                metrics.columnWidths[col] = psize.width;
             }
             if (++col == metrics.columnWidths.length) {
                 col = 0;
                 row++;
             }
+            count++;
         }
 
         // if we have more (or less?) components in our preferred size cache than are in the
         // container, flush the cache; this won't happen often (compared to invalidations which
         // happen all the damned time) and we don't want to leak memory if someone is removing old
         // components and adding new ones to a table-layout using container willy nilly
-        if (_pscache.size() != target.getComponentCount()) {
+        if (_pscache.size() != count) {
             _pscache.clear();
         }
 
@@ -272,12 +271,21 @@ public class TableLayout extends LayoutManager
 
     protected int computeRows (Container target, boolean preferred)
     {
-        int ccount = target.getComponentCount();
+        int ccount = Iterables.size(visibleChildren(target));
         int rows = ccount / _fixedColumns.length;
         if (ccount % _fixedColumns.length != 0) {
             rows++;
         }
         return rows;
+    }
+
+    protected Iterable<Component> visibleChildren (Container target)
+    {
+        return Iterables.filter(target.getChildren(), new Predicate<Component>() {
+            public boolean apply (Component c) {
+                return c.isVisible();
+            }
+        });
     }
 
     protected int sum (int[] values)
