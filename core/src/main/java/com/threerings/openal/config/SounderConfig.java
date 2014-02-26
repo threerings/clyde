@@ -465,7 +465,7 @@ public class SounderConfig extends ParameterizedConfig
      * Combines a file to enqueue .
      */
     public static class WeightedFile extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The file to stream. */
         @Editable(editor="resource", nullable=true, hgroup="f")
