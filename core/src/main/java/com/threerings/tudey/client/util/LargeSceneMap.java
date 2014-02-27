@@ -383,8 +383,7 @@ public class LargeSceneMap
         int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
-                updateQuad(xx, yy);
-                if (shape.intersects(_quad)) {
+                if (intersects(xx, yy, shape)) {
                     int type = Math.max(_types.get(xx, yy), flags);
                     _types.put(xx, yy, type);
                 }
@@ -426,8 +425,8 @@ public class LargeSceneMap
         int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
-                updateQuad(xx, yy);
-                if (shape.intersects(_quad)) {
+                if (intersects(xx, yy, shape)) {
+                    updateQuad(xx, yy);
                     update(xx, yy);
                 }
             }
@@ -538,13 +537,39 @@ public class LargeSceneMap
      */
     protected void updateQuad (int x, int y)
     {
-        float lx = x, ly = y, ux = lx + 1f, uy = ly + 1f;
+        updateQuad((float)x, (float)y, x + 1f, y + 1f);
+    }
+
+    protected void updateQuad(float lx, float ly, float ux, float uy)
+    {
         _quad.getVertex(0).set(lx, ly);
         _quad.getVertex(1).set(ux, ly);
         _quad.getVertex(2).set(ux, uy);
         _quad.getVertex(3).set(lx, uy);
         _quad.getBounds().getMinimumExtent().set(lx, ly);
         _quad.getBounds().getMaximumExtent().set(ux, uy);
+    }
+
+    protected boolean intersects (int x, int y, Shape shape)
+    {
+
+        Polygon rect = new Polygon();
+        float length = 1 / 3f;
+        int intersectionCount = 0;
+        for (int ii = 0; ii < SUB_DIVISION; ii++) {
+            float xmin = x + (length * ii);
+            float xmax = x + (length * (ii + 1));
+            for (int jj = 0; jj < SUB_DIVISION; jj++) {
+                float ymin = y + (length * jj);
+                float ymax = y + (length * (jj + 1));
+                updateQuad(xmin, ymin, xmax, ymax);
+                if (shape.intersects(_quad)) {
+                    intersectionCount++;
+                }
+            }
+        }
+
+        return intersectionCount > ((SUB_DIVISION * SUB_DIVISION) / 2);
     }
 
     /**
@@ -614,6 +639,9 @@ public class LargeSceneMap
 
     /** Holds elements during intersection testing. */
     protected List<SpaceElement> _elements = Lists.newArrayList();
+
+    /** How fine we divide the rectangle when checking for intersections. */
+    protected static final int SUB_DIVISION = 3;
 
     /** The color to use for empty locations. */
     protected static final byte[] EMPTY_COLOR = new byte[] { 0x0, 0x0, 0x0, 0x0 };
