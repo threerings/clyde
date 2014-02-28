@@ -34,6 +34,7 @@ import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Interval;
 import com.samskivert.util.IntMap.IntEntry;
 import com.samskivert.util.IntMaps;
+import com.samskivert.util.Lifecycle;
 
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.server.InvocationManager;
@@ -63,20 +64,25 @@ public class TudeySceneRegistry extends SceneRegistry
     /**
      * Constructs a Tudey scene registry.
      */
-    @Inject public TudeySceneRegistry (PresentsDObjectMgr omgr, InvocationManager invmgr)
+    @Inject public TudeySceneRegistry (
+        InvocationManager invmgr, PresentsDObjectMgr omgr, Lifecycle lifecycle)
     {
         super(invmgr);
         _omgr = omgr;
 
-        // create the default scene ticker
-        _defaultTicker = createDefaultTicker();
+        lifecycle.addComponent(new Lifecycle.InitComponent() {
+            public void init () {
+                // create the default scene ticker
+                _defaultTicker = createDefaultTicker();
 
-        // create the interval to prune the portal mappings
-        new Interval(_omgr) {
-            public void expired () {
-                prunePortalMappings();
+                // create the interval to prune the portal mappings
+                new Interval(_omgr) {
+                    public void expired () {
+                        prunePortalMappings();
+                    }
+                }.schedule(PORTAL_PRUNE_INTERVAL, true);
             }
-        }.schedule(PORTAL_PRUNE_INTERVAL, true);
+        });
     }
 
     /**
