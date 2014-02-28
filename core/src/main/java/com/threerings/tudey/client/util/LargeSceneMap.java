@@ -571,15 +571,14 @@ public class LargeSceneMap
                 updateQuad(xmin, ymin, xmax, ymax);
                 if (shape.intersects(_quad)) {
                     intersectionCount++;
+                    if (intersectionCount > intersectsThreshold) {
+                        return true;
+                    }
                 } else {
                     nonIntersectionCount++;
-                }
-
-                if (intersectionCount > intersectsThreshold) {
-                    return true;
-                }
-                if (nonIntersectionCount > intersectsThreshold) {
-                    return false;
+                    if (nonIntersectionCount > intersectsThreshold) {
+                        return false;
+                    }
                 }
             }
         }
