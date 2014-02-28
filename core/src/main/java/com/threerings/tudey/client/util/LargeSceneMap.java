@@ -554,22 +554,37 @@ public class LargeSceneMap
     {
 
         Polygon rect = new Polygon();
-        float length = 1 / 3f;
+        float length = 1f / SUB_DIVISION;
+
         int intersectionCount = 0;
+        int nonIntersectionCount = 0;
+        int intersectsThreshold = ((SUB_DIVISION * SUB_DIVISION) / 2);
+
         for (int ii = 0; ii < SUB_DIVISION; ii++) {
             float xmin = x + (length * ii);
             float xmax = x + (length * (ii + 1));
+
             for (int jj = 0; jj < SUB_DIVISION; jj++) {
                 float ymin = y + (length * jj);
                 float ymax = y + (length * (jj + 1));
+
                 updateQuad(xmin, ymin, xmax, ymax);
                 if (shape.intersects(_quad)) {
                     intersectionCount++;
+                } else {
+                    nonIntersectionCount++;
+                }
+
+                if (intersectionCount > intersectsThreshold) {
+                    return true;
+                }
+                if (nonIntersectionCount > intersectsThreshold) {
+                    return false;
                 }
             }
         }
 
-        return intersectionCount > ((SUB_DIVISION * SUB_DIVISION) / 2);
+        return intersectionCount > intersectsThreshold;
     }
 
     /**
