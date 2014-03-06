@@ -249,7 +249,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     {
         String units = getUnits();
         if (units.length() > 0) {
-            panel.add(new JLabel(getLabel(units, _property.getMessageBundle())));
+            panel.add(new JLabel(_msgmgr.getBundle(_property.getMessageBundle()).xlate(units)));
         }
     }
 
