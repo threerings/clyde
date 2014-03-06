@@ -222,12 +222,21 @@ public class DateTimeEditor extends PropertyEditor
         _field.getDocument().addDocumentListener(this);
         _field.addFocusListener(this);
         _field.addActionListener(this);
-        addUnits(this);
 
         configureMode();
+        addUnits(this);
 
         // disable the field if we're in constant mode
         _field.setEnabled(!_property.getAnnotation().constant());
+    }
+
+    @Override
+    protected String getUnits ()
+    {
+        String units = super.getUnits();
+        return "".equals(units)
+            ? _format.getTimeZone().getID()
+            : units;
     }
 
     /**
