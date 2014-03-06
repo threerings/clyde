@@ -3,6 +3,8 @@
 
 package com.threerings.util;
 
+import com.google.common.base.Objects;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
@@ -68,6 +70,21 @@ public class DateRange extends DeepObject
     {
         _stopTime = (time == null) ? Long.MAX_VALUE : time;
         _startTime = Math.min(_startTime, _stopTime);
+    }
+
+    @Override
+    public String toString ()
+    {
+        return Objects.toStringHelper(this)
+            .add("startTime", getStartTime())
+            .add("stopTime", getStopTime())
+            .toString();
+    }
+
+    @Override
+    public DateRange clone ()
+    {
+        return (DateRange)super.clone();
     }
 
     /** Internal storage for our start and end times. */
