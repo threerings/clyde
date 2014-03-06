@@ -355,7 +355,7 @@ public class DeepUtil
          */
         protected String sanitizeName (String name)
         {
-            return name.startsWith('_') ? name.substring(1) : name;
+            return name.startsWith("_") ? name.substring(1) : name;
         }
 
         /** The fields to copy and compare. */
