@@ -25,8 +25,6 @@
 
 package com.threerings.util;
 
-import com.samskivert.util.StringUtil;
-
 /**
  * A base class for objects that uses the methods of {@link DeepUtil} to implement {@link #clone},
  * {@link #equals}, and {@link #hashCode} reflectively.
@@ -67,6 +65,6 @@ public abstract class DeepObject
     @Override
     public String toString ()
     {
-        return StringUtil.fieldsToString(this);
+        return DeepUtil.toString(this);
     }
 }

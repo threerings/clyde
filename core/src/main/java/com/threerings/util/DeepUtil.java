@@ -35,10 +35,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
+
+import com.samskivert.util.StringUtil;
 
 import static com.threerings.ClydeLog.log;
 
@@ -171,6 +174,24 @@ public class DeepUtil
     }
 
     /**
+     * Return the string representation of an object.
+     */
+    public static String toString (Object object)
+    {
+        if (object == null) {
+            return "null";
+        }
+        @SuppressWarnings("unchecked") ObjectHandler<Object> handler =
+            getObjectHandler(object.getClass());
+        try {
+            return handler.toString(object);
+        } catch (IllegalAccessException e) {
+            log.warning("Couldn't access fields for deep toString.", e);
+            return "<toString error: " + e.getMessage() + ">";
+        }
+    }
+
+    /**
      * Retrieves the handler for the supplied class.
      */
     protected static ObjectHandler getObjectHandler (Class<?> clazz)
@@ -236,6 +257,15 @@ public class DeepUtil
          */
         public abstract int hashCode (T object)
             throws IllegalAccessException;
+
+        /**
+         * Computes the object's String representation, which is for debugging and can change.
+         */
+        public String toString (T object)
+            throws IllegalAccessException
+        {
+            return StringUtil.toString(object);
+        }
     }
 
     /**
@@ -296,9 +326,7 @@ public class DeepUtil
             return true;
         }
 
-        /**
-         * Computes the hash code of an object's fields.
-         */
+        @Override
         public int hashCode (Object object)
             throws IllegalAccessException
         {
@@ -308,6 +336,26 @@ public class DeepUtil
                 hash = 31*hash + _handlers[ii].hashCode(_fields[ii], object);
             }
             return hash;
+        }
+
+        @Override
+        public String toString (Object object)
+            throws IllegalAccessException
+        {
+            Objects.ToStringHelper tsh = Objects.toStringHelper(object);
+            for (int ii = 0; ii < _fields.length; ii++) {
+                tsh.add(sanitizeName(_fields[ii].getName()),
+                        _handlers[ii].toString(_fields[ii], object));
+            }
+            return tsh.toString();
+        }
+
+        /**
+         * Sanitize a field name for toStringing.
+         */
+        protected String sanitizeName (String name)
+        {
+            return name.startsWith('_') ? name.substring(1) : name;
         }
 
         /** The fields to copy and compare. */
@@ -339,6 +387,15 @@ public class DeepUtil
          */
         public abstract int hashCode (Field field, Object object)
             throws IllegalAccessException;
+
+        /**
+         * Returns the string value of the specified field.
+         */
+        public String toString (Field field, Object object)
+            throws IllegalAccessException
+        {
+            return DeepUtil.toString(field.get(object));
+        }
     }
 
     /** Field handler for immutable fields, which can be handled by reference. */
@@ -354,6 +411,10 @@ public class DeepUtil
         public int hashCode (Object object)
             throws IllegalAccessException {
             return object.hashCode();
+        }
+        public String toString (Object object)
+            throws IllegalAccessException {
+            return object.toString();
         }
     };
 
@@ -565,6 +626,18 @@ public class DeepUtil
                 hash = 31*hash + DeepUtil.hashCode(element);
             }
             return hash;
+        }
+        public String toString (Object[] object)
+            throws IllegalAccessException {
+            StringBuilder builder = new StringBuilder("(");
+            int nn = object.length;
+            if (nn > 0) {
+                builder.append(DeepUtil.toString(object[0]));
+                for (int ii = 1; ii < nn; ii++) {
+                    builder.append(", ").append(DeepUtil.toString(object[ii]));
+                }
+            }
+            return builder.append(")").toString();
         }
     };
 
