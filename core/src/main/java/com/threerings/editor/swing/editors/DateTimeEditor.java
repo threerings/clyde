@@ -235,7 +235,7 @@ public class DateTimeEditor extends PropertyEditor
     {
         String units = super.getUnits();
         return "".equals(units)
-            ? MessageBundle.taint(_format.getTimeZone().getID())
+            ? _format.getTimeZone().getID()
             : units;
     }
 
