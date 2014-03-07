@@ -1622,6 +1622,26 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Remove entries that match the predicate. Returns true if anything was removed.
+     */
+    public boolean removeEntries (Predicate<? super Entry> pred)
+    {
+        List<Object> keys = Lists.newArrayList();
+        for (Entry entry : getEntries()) {
+            if (pred.apply(entry)) {
+                keys.add(entry.getKey());
+            }
+        }
+        if (keys.isEmpty()) {
+            return false;
+        }
+        for (Object key : keys) {
+            removeEntry(key);
+        }
+        return true;
+    }
+
+    /**
      * Retrieves all entries intersecting the supplied shape.
      */
     public void getEntries (Shape shape, Collection<Entry> results)
