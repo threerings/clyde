@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
-import java.util.ArrayDeque;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBMultitexture;
@@ -21,6 +20,8 @@ import com.threerings.config.ConfigManager;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.PlaceObject;
+
+import com.threerings.util.ArrayDeque;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Rect;
