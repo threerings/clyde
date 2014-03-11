@@ -25,7 +25,7 @@
 
 package com.threerings.tudey.server.logic;
 
-import com.threerings.util.ArrayDeque;
+import java.util.ArrayDeque;
 
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.server.ClientLiaison;

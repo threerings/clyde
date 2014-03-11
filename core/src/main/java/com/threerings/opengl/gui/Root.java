@@ -30,6 +30,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,8 +64,6 @@ import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.layout.BorderLayout;
 import com.threerings.opengl.gui.text.IMEComponent;
-
-import com.threerings.util.ArrayDeque;
 
 import static com.threerings.opengl.gui.Log.log;
 
