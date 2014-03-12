@@ -358,7 +358,8 @@ public abstract class BehaviorLogic extends Logic
                 rotation -= FloatMath.HALF_PI;
                 break;
             case RANDOM:
-                rotation += Randoms.RAND.getBoolean() ? FloatMath.HALF_PI : -FloatMath.HALF_PI;
+                rotation += Randoms.threadLocal().getBoolean()
+                    ? FloatMath.HALF_PI : -FloatMath.HALF_PI;
                 break;
             }
             rotation = FloatMath.normalizeAnglePositive(rotation);
@@ -585,7 +586,7 @@ public abstract class BehaviorLogic extends Logic
             if (_path != null) {
                 _candidates.add(null); // represents the current path
             }
-            PathCandidate candidate = Randoms.RAND.pick(_candidates, null);
+            PathCandidate candidate = Randoms.threadLocal().pick(_candidates, null);
             _candidates.clear();
 
             // set off on that path
@@ -778,7 +779,7 @@ public abstract class BehaviorLogic extends Logic
         protected void evaluate ()
         {
             super.evaluate();
-            BehaviorLogic nactive = Randoms.RAND.pick(_behaviorWeights, null);
+            BehaviorLogic nactive = Randoms.threadLocal().pick(_behaviorWeights, null);
             if (nactive == _active) {
                 return;
             }

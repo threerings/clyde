@@ -1001,7 +1001,7 @@ public class TudeySceneManager extends SceneManager
                 return entrance.getPortalTransform();
             }
         } else if (portalKey instanceof String) {
-            Logic entrance = Randoms.RAND.pick(getTagged((String)portalKey), null);
+            Logic entrance = Randoms.threadLocal().pick(getTagged((String)portalKey), null);
             if (entrance != null) {
                 return new Transform2D(entrance.getTranslation(), entrance.getRotation());
             }
@@ -1399,7 +1399,7 @@ public class TudeySceneManager extends SceneManager
      */
     protected Logic getDefaultEntrance (BodyObject body)
     {
-        return Randoms.RAND.pick(_defaultEntrances, null);
+        return Randoms.threadLocal().pick(_defaultEntrances, null);
     }
 
     /**
