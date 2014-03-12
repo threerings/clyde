@@ -238,11 +238,12 @@ public abstract class ActionLogic extends Logic
                     translation = getTranslation(cTargets.get(0));
                 }
             }
+            Randoms r = Randoms.threadLocal();
             for (int ii = 0; ii < config.count; ii++) {
                 for (int jj = 0; jj < COLLISION_ATTEMPTS; jj++) {
                     Vector2f location = getTranslation(target).add(
-                            RandomUtil.getInRange(-steps, steps + 1) * config.stepSize,
-                            RandomUtil.getInRange(-steps, steps + 1) * config.stepSize);
+                            r.getInRange(-steps, steps + 1) * config.stepSize,
+                            r.getInRange(-steps, steps + 1) * config.stepSize);
                     if (locations.add(location) && (translation == null || !_scenemgr.collides(
                                 config.collisionMask, new Segment(translation, location)))) {
                         ActorLogic logic = _scenemgr.spawnActor(
@@ -404,7 +405,7 @@ public abstract class ActionLogic extends Logic
                 if (_locations.isEmpty()) {
                     continue;
                 }
-                Logic location = RandomUtil.pickRandom(_locations);
+                Logic location = Randoms.threadLocal().pick(_locations, null);
                 _locations.clear();
                 ActorLogic actorTarget = (ActorLogic)target;
                 warp(actorTarget, location);

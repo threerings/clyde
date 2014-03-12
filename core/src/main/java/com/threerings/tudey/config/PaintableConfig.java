@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import com.google.common.base.Objects;
 
 import com.samskivert.util.IntTuple;
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -348,7 +348,7 @@ public abstract class PaintableConfig extends ParameterizedConfig
         for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
             tweight += rotations.get(ii).weight;
         }
-        float random = RandomUtil.getFloat(tweight);
+        float random = Randoms.threadLocal().getFloat(tweight);
         tweight = 0f;
         for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
             TileRotation rotation = rotations.get(ii);

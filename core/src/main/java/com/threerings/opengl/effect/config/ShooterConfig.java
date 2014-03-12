@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.effect.config;
 
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -74,7 +74,7 @@ public abstract class ShooterConfig extends DeepObject
                     float cosa = FloatMath.random(
                         FloatMath.cos(minimumAngle), FloatMath.cos(maximumAngle));
                     float sina = FloatMath.sqrt(1f - cosa*cosa);
-                    float theta = RandomUtil.getFloat(FloatMath.TWO_PI);
+                    float theta = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
 
                     // set, transform
                     return matrix.transformVectorLocal(particle.getVelocity().set(
@@ -109,7 +109,7 @@ public abstract class ShooterConfig extends DeepObject
                     } else { // pick a random direction
                         float cosa = FloatMath.random(-1f, +1f);
                         float sina = FloatMath.sqrt(1f - cosa*cosa);
-                        float theta = RandomUtil.getFloat(FloatMath.TWO_PI);
+                        float theta = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
                         velocity.set(
                             FloatMath.cos(theta) * sina,
                             FloatMath.sin(theta) * sina,

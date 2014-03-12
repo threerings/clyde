@@ -31,7 +31,7 @@ import java.util.Iterator;
 
 import com.samskivert.util.HashIntSet;
 import com.samskivert.util.Interator;
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 import com.threerings.opengl.gui.util.Rectangle;
 
@@ -215,7 +215,7 @@ public class CoordSet extends AbstractSet<Coord>
     {
         if (width == 1 && height == 1) {
             Interator it = _coords.interator();
-            for (int ii = 0, nn = RandomUtil.getInt(size()); ii < nn; ii++) {
+            for (int ii = 0, nn = Randoms.threadLocal().getInt(size()); ii < nn; ii++) {
                 it.nextInt();
             }
             return result.set(it.nextInt());

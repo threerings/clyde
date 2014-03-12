@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
 
 import com.samskivert.util.CollectionUtil;
 import com.samskivert.util.QuickSort;
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 import com.threerings.math.Vector2f;
 
@@ -272,7 +272,7 @@ public abstract class TargetLogic extends Logic
         protected void selectSubset (int size, Logic activator, Collection<Logic> results)
         {
             if (size == 1) {
-                results.add(RandomUtil.pickRandom(_targets));
+                results.add(Randoms.threadLocal().pick(_targets, null));
             } else {
                 results.addAll(CollectionUtil.selectRandomSubset(_targets, size));
             }

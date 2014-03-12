@@ -25,7 +25,7 @@
 
 package com.threerings.math;
 
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 /**
  * Utility methods and constants for single-precision floating point math.
@@ -302,7 +302,8 @@ public class FloatMath
      */
     public static float random (float lower, float upper)
     {
-        return lerp(lower, upper, random());
+        return Randoms.threadLocal().getInRange(lower, upper);
+        //return lerp(lower, upper, random());
     }
 
     /**
@@ -310,7 +311,8 @@ public class FloatMath
      */
     public static float random ()
     {
-        return RandomUtil.rand.nextFloat();
+        // TODO: support for this in Randoms?
+        return Randoms.threadLocal().getFloat(1f);
     }
 
     /**
@@ -319,7 +321,7 @@ public class FloatMath
      */
     public static float normal (float mean, float stddev)
     {
-        return stddev*normal() + mean;
+        return Randoms.threadLocal().getNormal(mean, stddev);
     }
 
     /**
@@ -327,7 +329,8 @@ public class FloatMath
      */
     public static float normal ()
     {
-        return (float)RandomUtil.rand.nextGaussian();
+        // TODO: support for this in Randoms?
+        return Randoms.threadLocal().getNormal(0f, 1f);
     }
 
     /**

@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.effect.config;
 
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -120,22 +120,23 @@ public abstract class PlacerConfig extends DeepObject
                     float xy = width * length;
                     float xz = width * height;
                     float yz = length * height;
-                    float rand = RandomUtil.getFloat(xy + xz + yz);
+                    Randoms r = Randoms.threadLocal();
+                    float rand = r.getFloat(xy + xz + yz);
                     if (rand < xy) {
                         return position.set(
-                            FloatMath.random(-0.5f, +0.5f) * width,
-                            FloatMath.random(-0.5f, +0.5f) * length,
-                            (RandomUtil.rand.nextBoolean() ? -0.5f : +0.5f) * height);
+                            r.getInRange(-0.5f, +0.5f) * width,
+                            r.getInRange(-0.5f, +0.5f) * length,
+                            (r.getBoolean() ? -0.5f : +0.5f) * height);
                     } else if (rand < xy + xz) {
                         return position.set(
-                            FloatMath.random(-0.5f, +0.5f) * width,
-                            (RandomUtil.rand.nextBoolean() ? -0.5f : +0.5f) * length,
-                            FloatMath.random(-0.5f, +0.5f) * height);
+                            r.getInRange(-0.5f, +0.5f) * width,
+                            (r.getBoolean() ? -0.5f : +0.5f) * length,
+                            r.getInRange(-0.5f, +0.5f) * height);
                     } else {
                         return position.set(
-                            (RandomUtil.rand.nextBoolean() ? -0.5f : +0.5f) * width,
-                            FloatMath.random(-0.5f, +0.5f) * length,
-                            FloatMath.random(-0.5f, +0.5f) * height);
+                            (r.getBoolean() ? -0.5f : +0.5f) * width,
+                            r.getInRange(-0.5f, +0.5f) * length,
+                            r.getInRange(-0.5f, +0.5f) * height);
                     }
                 }
             };
@@ -163,7 +164,7 @@ public abstract class PlacerConfig extends DeepObject
                     // find a radius based on the area distribution
                     float radius = FloatMath.sqrt(
                         FloatMath.random(innerRadius*innerRadius, outerRadius*outerRadius));
-                    float angle = RandomUtil.getFloat(FloatMath.TWO_PI);
+                    float angle = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
                     return position.set(
                         radius * FloatMath.cos(angle),
                         radius * FloatMath.sin(angle),
@@ -200,7 +201,7 @@ public abstract class PlacerConfig extends DeepObject
                     // elevation based on the surface area distribution
                     float sine = FloatMath.random(-1f, +1f);
                     float cose = FloatMath.sqrt(1f - sine*sine);
-                    float angle = RandomUtil.getFloat(FloatMath.TWO_PI);
+                    float angle = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
                     return position.set(
                         radius * FloatMath.cos(angle) * cose,
                         radius * FloatMath.sin(angle) * cose,
@@ -258,15 +259,16 @@ public abstract class PlacerConfig extends DeepObject
                     } else {
                         float width = right - left;
                         float height = top - bottom;
-                        if (RandomUtil.getFloat(width + height) < width) {
+                        Randoms r = Randoms.threadLocal();
+                        if (r.getFloat(width + height) < width) {
                             position.set(
-                                FloatMath.random(left, right),
-                                RandomUtil.rand.nextBoolean() ? top : bottom,
+                                r.getInRange(left, right),
+                                r.getBoolean() ? top : bottom,
                                 -distance);
                         } else {
                             position.set(
-                                RandomUtil.rand.nextBoolean() ? left : right,
-                                FloatMath.random(top, bottom),
+                                r.getBoolean() ? left : right,
+                                r.getInRange(top, bottom),
                                 -distance);
                         }
                     }
