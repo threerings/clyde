@@ -203,6 +203,8 @@ public abstract class BaseParticleSystem extends Model.Implementation
                     msize = Math.max(msize, particle.getSize());
 
                 } else {
+                    killParticle(ii);
+
                     // move this particle to the end of the list
                     if (ii != --_living.value) {
                         swapParticles(ii, _living.value);
@@ -339,6 +341,14 @@ public abstract class BaseParticleSystem extends Model.Implementation
         {
             _particles[idx].init(_config.lifespan.getValue(), _config.alphaMode,
                 _config.color, _config.size, null, null, null);
+        }
+
+        /**
+         * Kills any state revolving around the particle.
+         */
+        protected void killParticle (int idx)
+        {
+            // DO NOTHING!
         }
 
         /**
