@@ -116,6 +116,7 @@ public class MetaParticleSystem extends BaseParticleSystem
             _models = new Model[config.particleCount];
             MetaParticleSystemConfig.Layer mconfig = (MetaParticleSystemConfig.Layer)config;
             _geometryRadius = 0f;
+
             for (int ii = 0; ii < _models.length; ii++) {
                 Model model = (omodels == null || ii >= omodels.length) ? null : omodels[ii];
                 if (model == null) {
@@ -126,7 +127,7 @@ public class MetaParticleSystem extends BaseParticleSystem
                 model.setRenderScheme(
                     config.alphaMode == AlphaMode.OPAQUE ? null : RenderScheme.TRANSLUCENT);
                 model.setConfig(mconfig.model);
-                model.setVisible(true);
+                model.setVisible(false);
                 if (_geometryRadius == 0f) {
                     model.setLocalTransform(new Transform3D());
                     Box bounds = model.getBounds();
@@ -142,9 +143,12 @@ public class MetaParticleSystem extends BaseParticleSystem
                 }
                 _models[ii] = model;
             }
+            for (int ii = 0; ii < _living.value; ii++) {
+                _models[ii].setVisible(true);
+            }
+
             if (omodels != null) {
                 for (int ii = _models.length; ii < omodels.length; ii++) {
-                    omodels[ii].setVisible(false);
                     omodels[ii].dispose();
                 }
             }
