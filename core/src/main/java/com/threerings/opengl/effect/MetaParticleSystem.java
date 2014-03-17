@@ -127,7 +127,7 @@ public class MetaParticleSystem extends BaseParticleSystem
                 model.setRenderScheme(
                     config.alphaMode == AlphaMode.OPAQUE ? null : RenderScheme.TRANSLUCENT);
                 model.setConfig(mconfig.model);
-                model.setVisible(false);
+                model.setVisible(ii < _living.value);
                 if (_geometryRadius == 0f) {
                     model.setLocalTransform(new Transform3D());
                     Box bounds = model.getBounds();
@@ -142,9 +142,6 @@ public class MetaParticleSystem extends BaseParticleSystem
                     }
                 }
                 _models[ii] = model;
-            }
-            for (int ii = 0; ii < _living.value; ii++) {
-                _models[ii].setVisible(true);
             }
 
             if (omodels != null) {
