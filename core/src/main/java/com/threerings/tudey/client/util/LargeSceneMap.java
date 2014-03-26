@@ -192,9 +192,8 @@ public class LargeSceneMap
         }
     }
 
-    public void setEntrance (int x, int y)
+    public void addEntrance (int x, int y)
     {
-        _entrances.clear();
         _entrances.add(new Coord(x, y));
     }
 
@@ -363,7 +362,7 @@ public class LargeSceneMap
             PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
             if (config.defaultEntrance) {
                 Vector2f trans = pentry.getTranslation(_sceneModel.getConfigManager());
-                setEntrance((int)trans.x, (int)trans.y);
+                addEntrance((int)trans.x, (int)trans.y);
             }
             if (flags == 0 && !config.floorTile) {
                 return;
