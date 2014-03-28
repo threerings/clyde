@@ -126,7 +126,7 @@ public class StringTextFactory extends TextFactory
                             Color4f effectColor, int maxWidth)
     {
         // the empty string will break things; so use a single space instead
-        if (text.length() == 0) {
+        if (text.isEmpty()) {
             text = " ";
         }
 

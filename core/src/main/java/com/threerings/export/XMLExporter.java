@@ -222,7 +222,7 @@ public class XMLExporter extends Exporter
                 element.setAttribute("rdepth", depth.toString());
             } else {
                 String id = previous.getAttribute("id");
-                if (id.length() == 0) {
+                if (id.isEmpty()) {
                     previous.setAttribute("id", id = Integer.toString(++_lastObjectId));
                 }
                 element.setAttribute("ref", id);
@@ -255,7 +255,7 @@ public class XMLExporter extends Exporter
             // because empty text nodes are removed, we must include a comment to
             // signify an empty string
             String str = stringifier.toString(value);
-            element.appendChild(str.length() == 0 ?
+            element.appendChild(str.isEmpty() ?
                 _document.createComment("empty") : _document.createTextNode(str));
             return;
         }

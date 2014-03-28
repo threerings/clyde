@@ -70,7 +70,7 @@ public class PrintStreamDialog extends JDialog
     {
         _printStream.close();
         String contents = _out.toString();
-        if (contents.length() == 0) {
+        if (contents.isEmpty()) {
             return;
         }
         JTextArea text = new JTextArea(contents);

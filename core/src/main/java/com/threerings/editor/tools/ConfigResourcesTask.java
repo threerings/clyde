@@ -99,7 +99,7 @@ public class ConfigResourcesTask extends Task
             ConfigGroup group = null;
             while ((line = in.readLine()) != null) {
                 line = line.trim();
-                if (line.length() == 0) { // ignore blank lines
+                if (line.isEmpty()) { // ignore blank lines
                     continue;
                 }
                 if (line.startsWith("[") && line.endsWith("]")) { // group header
@@ -123,7 +123,7 @@ public class ConfigResourcesTask extends Task
             BufferedReader in = new BufferedReader(new FileReader(_resourcefile));
             String line;
             while ((line = in.readLine()) != null) {
-                if ((line = line.trim()).length() > 0) {
+                if (!(line = line.trim()).isEmpty()) {
                     includes.add(line);
                 }
             }

@@ -69,7 +69,7 @@ public class ScopeUtil
     {
         for (Field field : getBound(object.getClass())) {
             String name = field.getAnnotation(Bound.class).value();
-            if (name.length() == 0) {
+            if (name.isEmpty()) {
                 name = stripUnderscore(field.getName());
             }
             @SuppressWarnings("unchecked") Class<Object> type = (Class<Object>)field.getType();

@@ -217,7 +217,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
      */
     protected String getLabel (String name, MessageBundle msgs)
     {
-        name = (name.length() == 0) ? "default" : name;
+        name = name.isEmpty() ? "default" : name;
         String key = "m." + name;
         return msgs.exists(key) ? msgs.get(key) : name;
     }
@@ -354,7 +354,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
      */
     protected int getColor (String name, MessageBundle msgs, int defaultColor)
     {
-        if (name.length() == 0) {
+        if (name.isEmpty()) {
             return defaultColor;
         }
         name = "c." + name;
@@ -410,7 +410,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         if (path.startsWith(".")) {
             path = path.substring(1);
         }
-        if (path.length() > 0) {
+        if (!path.isEmpty()) {
             StringSelection contents = new StringSelection(path);
             getToolkit().getSystemClipboard().setContents(contents, contents);
         }

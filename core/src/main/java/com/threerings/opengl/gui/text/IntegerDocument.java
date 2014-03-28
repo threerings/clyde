@@ -69,7 +69,7 @@ public class IntegerDocument extends Document
     protected boolean validateEdit (String oldText, String newText)
     {
         // some special cases
-        if (newText.length() == 0) {
+        if (newText.isEmpty()) {
             return true;
         }
         if (newText.startsWith("-") && _positive) {

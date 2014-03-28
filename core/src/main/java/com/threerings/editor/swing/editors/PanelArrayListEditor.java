@@ -210,7 +210,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
                 if (path.startsWith(match)) {
                     String repl = entry.getValue();
                     // Store the new path. No need to update 'path' because we break
-                    direct.paths[ii] = (repl.length() == 0)
+                    direct.paths[ii] = repl.isEmpty()
                         ? ""
                         : repl + path.substring(match.length());
                     log.info("Updating direct path",

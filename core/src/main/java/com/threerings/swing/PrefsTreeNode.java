@@ -301,7 +301,7 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
      */
     protected static String encode (String name)
     {
-        return (name.length() == 0) ? EMPTY_NAME : name.replace("/", SLASH_REPLACEMENT);
+        return name.isEmpty() ? EMPTY_NAME : name.replace("/", SLASH_REPLACEMENT);
     }
 
     /**

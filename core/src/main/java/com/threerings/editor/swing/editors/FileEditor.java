@@ -55,7 +55,7 @@ public class FileEditor extends PropertyEditor
         Object source = event.getSource();
         if (source == _file) {
             final FileConstraints constraints = _property.getAnnotation(FileConstraints.class);
-            String key = (constraints == null || constraints.directory().length() == 0) ?
+            String key = (constraints == null || constraints.directory().isEmpty()) ?
                 null : constraints.directory();
             if (_chooser == null) {
                 String ddir = getDefaultDirectory();
