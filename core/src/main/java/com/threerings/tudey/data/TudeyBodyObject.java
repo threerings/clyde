@@ -55,6 +55,12 @@ public class TudeyBodyObject extends BodyObject
         return new TudeyOccupantInfo(this);
     }
 
+    @Override
+    public String toString ()
+    {
+        return who();
+    }
+
     // AUTO-GENERATED: METHODS START
     /**
      * Requests that the <code>pawnId</code> field be set to the
