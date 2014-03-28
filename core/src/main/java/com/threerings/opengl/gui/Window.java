@@ -78,6 +78,17 @@ public class Window extends Container
     }
 
     /**
+     * Positions this window in the top center of the display. This should be called after configuring
+     * the size of the window (using, for example, a call to {@link #pack}).
+     */
+    public void topCenter ()
+    {
+        int width = _root.getDisplayWidth();
+        int height = _root.getDisplayHeight();
+        setLocation((width-getWidth())/2, (height-getHeight()));
+    }
+
+    /**
      * Configures this window to be modal which causes it to "steal" all mouse and keyboard input
      * while it is added to the interface hierarchy. Mouse movement and button press events that
      * would normally go to other windows or to the default mouse target will instead be sent to
