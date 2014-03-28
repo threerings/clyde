@@ -147,7 +147,7 @@ public class DConfigManager
             updateConfigs(caller.getOid(),
                 Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
         } else {
-            log.warning("Non-admin tried to update configs.", "who", caller.who());
+            log.warning("Non-admin tried to update configs.", "who", caller);
         }
     }
 

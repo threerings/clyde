@@ -1031,7 +1031,7 @@ public class TudeySceneManager extends SceneManager
                 logic.bodyWillLeave(body);
             } else {
                 log.warning("Missing pawn for leaving body.", "pawnId", tbody.pawnId,
-                    "who", tbody.who(), "where", where());
+                    "who", tbody, "where", where());
             }
             tbody.setPawnId(0);
         }
@@ -1044,7 +1044,7 @@ public class TudeySceneManager extends SceneManager
         ClientLiaison client = _clients.get(caller.getOid());
         if (client == null) {
             log.warning("Received entrance notification from unknown client.",
-                "who", caller.who(), "where", where());
+                "who", caller, "where", where());
             return;
         }
         client.enteredPlace();
@@ -1073,7 +1073,7 @@ public class TudeySceneManager extends SceneManager
             // this doesn't require a warning; it's probably an out-of-date packet from a client
             // that has just left the scene
             log.debug("Received input from unknown client.",
-                "who", caller.who(), "where", where());
+                "who", caller, "where", where());
         }
     }
 
@@ -1085,7 +1085,7 @@ public class TudeySceneManager extends SceneManager
         ClientLiaison client = _clients.get(cloid);
         if (client == null) {
             log.warning("Received target request from unknown client.",
-                "who", caller.who(), "where", where());
+                "who", caller, "where", where());
             return;
         }
 
@@ -1095,7 +1095,7 @@ public class TudeySceneManager extends SceneManager
             client.setTarget((PawnLogic)target);
         } else {
             log.warning("User tried to target non-pawn.", "who",
-                caller.who(), "actor", (target == null) ? null : target.getActor());
+                caller, "actor", (target == null) ? null : target.getActor());
         }
     }
 
@@ -1108,7 +1108,7 @@ public class TudeySceneManager extends SceneManager
             client.setCameraParams(config, aspect);
         } else {
             log.warning("Received camera params from unknown client.",
-                "who", caller.who(), "where", where());
+                "who", caller, "where", where());
         }
     }
 
@@ -1120,15 +1120,14 @@ public class TudeySceneManager extends SceneManager
         ClientLiaison client = _clients.get(cloid);
         if (client == null) {
             log.warning("Received actor request from unknown client.",
-                "who", caller.who(), "where", where());
+                "who", caller, "where", where());
             return;
         }
 
         // get their pawn logic to act as a source
         int pawnId = _tsobj.getPawnId(cloid);
         if (pawnId <= 0) {
-            log.warning("User without pawn tried to submit actor request.",
-                "who", caller.who());
+            log.warning("User without pawn tried to submit actor request.", "who", caller);
             return;
         }
         PawnLogic source = (PawnLogic)_actors.get(pawnId);
@@ -1136,7 +1135,7 @@ public class TudeySceneManager extends SceneManager
         // get the target logic
         ActorLogic target = _actors.get(actorId);
         if (target == null) {
-            log.warning("Missing actor for request.", "who", caller.who(), "id", actorId);
+            log.warning("Missing actor for request.", "who", caller, "id", actorId);
             return;
         }
 
@@ -1152,15 +1151,14 @@ public class TudeySceneManager extends SceneManager
         ClientLiaison client = _clients.get(cloid);
         if (client == null) {
             log.warning("Received entry request from unknown client.",
-                "who", caller.who(), "where", where());
+                "who", caller, "where", where());
             return;
         }
 
         // get their pawn logic to act as a source
         int pawnId = _tsobj.getPawnId(cloid);
         if (pawnId <= 0) {
-            log.warning("User without pawn tried to submit entry request.",
-                "who", caller.who());
+            log.warning("User without pawn tried to submit entry request.", "who", caller);
             return;
         }
         PawnLogic source = (PawnLogic)_actors.get(pawnId);
@@ -1168,7 +1166,7 @@ public class TudeySceneManager extends SceneManager
         // get the target logic
         EntryLogic target = _entries.get(key);
         if (target == null) {
-            log.warning("Missing entry for request.", "who", caller.who(), "key", key);
+            log.warning("Missing entry for request.", "who", caller, "key", key);
             return;
         }
 

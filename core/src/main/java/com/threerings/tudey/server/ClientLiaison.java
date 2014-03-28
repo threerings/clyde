@@ -174,7 +174,7 @@ public class ClientLiaison
             if (_records.size() > 1) {
                 _records.remove(0);
             } else {
-                log.warning("Received invalid acknowledgement.", "who", _bodyobj.who(),
+                log.warning("Received invalid acknowledgement.", "who", _bodyobj,
                     "acknowledge", acknowledge, "last", _records.get(0).getTimestamp());
                 break;
             }
@@ -186,7 +186,7 @@ public class ClientLiaison
         // if we do not control the target, we do not process the input
         if (_controlled == null) {
             if (frames.length > 0) {
-                log.warning("Got input frames for non-controlled pawn.", "who", _bodyobj.who(),
+                log.warning("Got input frames for non-controlled pawn.", "who", _bodyobj,
                     "actor", (_target == null) ? null : _target.getActor());
             }
             return;
