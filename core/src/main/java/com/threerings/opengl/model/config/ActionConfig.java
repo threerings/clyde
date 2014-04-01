@@ -73,13 +73,21 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String name = "";
 
+        /** A string argument that will be supplied if not empty. */
+        @Editable
+        public String arg = "";
+
         @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             final Function fn = ScopeUtil.resolve(scope, name, Function.NULL);
             return new Executor() {
                 public void execute () {
-                    fn.call();
+                    if (arg.isEmpty()) {
+                        fn.call();
+                    } else {
+                        fn.call(arg);
+                    }
                 }
             };
         }
