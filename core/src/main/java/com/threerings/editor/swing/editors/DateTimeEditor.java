@@ -336,6 +336,7 @@ public class DateTimeEditor extends PropertyEditor
             ? new SimpleDateFormat(format, locale)
             : createFormat(mode, style, locale);
         _format.setTimeZone(timezone);
+        _format.setLenient(false);
     }
 
     /**
