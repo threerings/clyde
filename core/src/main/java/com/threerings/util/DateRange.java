@@ -16,7 +16,7 @@ import com.threerings.util.DeepObject;
  * Honors the 'mode' attribute and interprets it according to the DateTimeEditor.
  */
 public class DateRange extends DeepObject
-    implements Streamable, Exportable
+    implements Streamable, Exportable, Validatable
 {
     /**
      * Is this date range active?
@@ -26,9 +26,7 @@ public class DateRange extends DeepObject
         return (now >= _startTime) && (now < _stopTime);
     }
 
-    /**
-     * Is this a valid date range, or has someone booched the start/stop times?
-     */
+    // from Validatable
     public boolean isValid ()
     {
         return (_startTime <= _stopTime);

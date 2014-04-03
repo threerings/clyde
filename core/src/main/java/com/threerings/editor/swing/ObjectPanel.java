@@ -43,6 +43,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.threerings.util.DeepUtil;
 import com.threerings.util.ReflectionUtil;
+import com.threerings.util.Validatable;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
@@ -145,6 +146,8 @@ public class ObjectPanel extends BasePropertyEditor
         } else {
             _panel.setObject(value);
         }
+
+        checkValid(value);
     }
 
     /**
@@ -211,6 +214,13 @@ public class ObjectPanel extends BasePropertyEditor
         return _panel.getComponentPath(comp, mouse);
     }
 
+    @Override
+    protected void fireStateChanged ()
+    {
+        checkValid(getValue());
+        super.fireStateChanged();
+    }
+
     /**
      * Returns the index of the specified value's type, or -1 if it doesn't match any of the
      * types.
@@ -224,6 +234,15 @@ public class ObjectPanel extends BasePropertyEditor
             }
         }
         return -1;
+    }
+
+    /**
+     * Update our border based on whether the edited value is currently valid.
+     */
+    protected void checkValid (Object value)
+    {
+        boolean valid = !(value instanceof Validatable) || ((Validatable)value).isValid();
+        // TODO: update the border
     }
 
     /**
