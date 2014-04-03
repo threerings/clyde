@@ -31,7 +31,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -127,7 +126,7 @@ public class ColorizationEditor extends PropertyEditor
             _color.addActionListener(this);
 
         } else {
-            setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+            setTitle(getPropertyLabel());
             setLayout(new HGroupLayout(
                 GroupLayout.STRETCH, GroupLayout.NONE, 5, GroupLayout.CENTER));
             JPanel p1 = new JPanel();

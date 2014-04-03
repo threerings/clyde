@@ -25,7 +25,6 @@
 
 package com.threerings.editor.swing.editors;
 
-import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -65,7 +64,7 @@ public class Vector2fEditor extends PropertyEditor
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        setTitle(getPropertyLabel());
         String mstr = getMode();
         Vector2fPanel.Mode mode = Vector2fPanel.Mode.CARTESIAN;
         try {

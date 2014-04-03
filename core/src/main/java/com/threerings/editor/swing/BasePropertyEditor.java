@@ -45,8 +45,6 @@ import javax.swing.JPanel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -256,7 +254,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
      *
      * @param tree if true, include the tree mode button.
      */
-    protected void makeCollapsible (EditorContext ctx, final String title, boolean tree)
+    protected void makeCollapsible (EditorContext ctx, String title, boolean tree)
     {
         VGroupLayout gl = new VGroupLayout(VGroupLayout.NONE);
         gl.setOffAxisPolicy(VGroupLayout.STRETCH);
@@ -304,7 +302,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
 
         _content.setLayout(
                 new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        updateBorder(title);
+        setTitle(title);
     }
 
     /**
@@ -422,18 +420,46 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     protected void toggleHighlight ()
     {
         _highlighted = !_highlighted;
-        updateBorder(((TitledBorder)getBorder()).getTitle());
+        updateBorder();
+    }
+
+    /**
+     * Set the title to use.
+     */
+    protected void setTitle (String title)
+    {
+        _title = title;
+        updateBorder();
     }
 
     /**
      * Updates the border.
      */
-    protected void updateBorder (String title)
+    protected void updateBorder ()
     {
-        Border border = _highlighted ?  BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.black, 2), title) :
-            BorderFactory.createTitledBorder(title);
-        setBorder(border);
+        setBorder(createBorder());
+    }
+
+    /**
+     * Create the border to use under the current conditions, or null.
+     */
+    protected Border createBorder ()
+    {
+        Border border = _highlighted
+            ? BorderFactory.createLineBorder(Color.BLACK, 2)
+            : null;
+
+        if (_title != null) {
+            // ok to pass null as the border to a titledborder: it will use l&f default
+            border = BorderFactory.createTitledBorder(border, _title);
+        }
+        if (_invalid) {
+            // put a red border inside it
+            border = BorderFactory.createCompoundBorder(
+                    border, BorderFactory.createLineBorder(Color.RED, 1));
+        }
+
+        return border; // ok to return null
     }
 
     /**
@@ -470,6 +496,12 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
 
     /** The tree mode button. */
     protected JButton _tree;
+
+    /** Our title, typically used only if collapsible. */
+    protected String _title;
+
+    /** Is the value we're editing "invalid", if so, we'll draw a red border. */
+    protected boolean _invalid;
 
     /** Various icons. */
     protected static Icon _expandIcon, _collapseIcon, _highlightIcon, _treeIcon, _panelIcon;

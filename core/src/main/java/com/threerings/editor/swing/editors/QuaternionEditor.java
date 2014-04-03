@@ -25,7 +25,6 @@
 
 package com.threerings.editor.swing.editors;
 
-import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -63,7 +62,7 @@ public class QuaternionEditor extends PropertyEditor
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        setTitle(getPropertyLabel());
         add(_panel = new QuaternionPanel(_msgs));
         _panel.setBackground(getDarkerBackground(_lineage.length));
         _panel.addChangeListener(this);

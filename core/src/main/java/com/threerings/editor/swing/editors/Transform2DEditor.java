@@ -27,7 +27,6 @@ package com.threerings.editor.swing.editors;
 
 import java.awt.Color;
 
-import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -67,7 +66,7 @@ public class Transform2DEditor extends PropertyEditor
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        setTitle(getPropertyLabel());
         String mstr = getMode();
         Transform2DPanel.Mode mode = Transform2DPanel.Mode.UNIFORM;
         try {

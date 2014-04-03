@@ -25,7 +25,6 @@
 
 package com.threerings.editor.swing.editors;
 
-import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -64,7 +63,7 @@ public class Vector3fEditor extends PropertyEditor
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        setTitle(getPropertyLabel());
         String mstr = getMode();
         Vector3fPanel.Mode mode = Vector3fPanel.Mode.CARTESIAN;
         try {

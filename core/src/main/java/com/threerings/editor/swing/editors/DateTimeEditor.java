@@ -39,11 +39,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -135,6 +132,7 @@ public class DateTimeEditor extends PropertyEditor
     public void changedUpdate (DocumentEvent event)
     {
         String text = _field.getText().trim();
+        boolean newInvalid;
         try {
             Object oldVal = _property.get(_object);
             Object newVal;
@@ -160,14 +158,17 @@ public class DateTimeEditor extends PropertyEditor
                 fireStateChanged();
             }
             //log.info(   "Parse valid", "text", text);
-            _invalid = false;
+            newInvalid = false;
 
         } catch (Exception e) {
             //log.warning("Parse error", "text", e);
-            _invalid = true;
+            newInvalid = true;
         }
 
-        updateBorder();
+        if (newInvalid != _invalid) {
+            _invalid = newInvalid;
+            updateBorder();
+        }
     }
 
     // from FocusListener
@@ -371,30 +372,6 @@ public class DateTimeEditor extends PropertyEditor
         }
     }
 
-    /**
-     * Update the border...
-     */
-    protected void updateBorder ()
-    {
-        Border b = getBorder();
-        String title = (b instanceof TitledBorder) ? ((TitledBorder)b).getTitle() : null;
-
-        if (!_invalid && (title != null)) {
-            updateBorder(title); // in BasePropertyEditor
-            return;
-        }
-
-        // set up a new border (or none)
-        b = null;
-        if (_invalid) {
-            b = BorderFactory.createLineBorder(Color.RED, _highlighted ? 2 : 1);
-            if (title != null) {
-                b = BorderFactory.createTitledBorder(b, title);
-            }
-        }
-        setBorder(b);
-    }
-
     /** The possible modes in which we can operate. */
     protected enum Mode
     {
@@ -411,7 +388,4 @@ public class DateTimeEditor extends PropertyEditor
 
     /** The DateFormat we're using for formatting/parsing. */
     protected DateFormat _format;
-
-    /** Is the current text value invalid? */
-    protected boolean _invalid;
 }

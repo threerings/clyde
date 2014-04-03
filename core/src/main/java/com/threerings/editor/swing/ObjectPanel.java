@@ -241,8 +241,11 @@ public class ObjectPanel extends BasePropertyEditor
      */
     protected void checkValid (Object value)
     {
-        boolean valid = !(value instanceof Validatable) || ((Validatable)value).isValid();
-        // TODO: update the border
+        boolean invalid = (value instanceof Validatable) && !((Validatable)value).isValid();
+        if (invalid != _invalid) {
+            _invalid = invalid;
+            updateBorder();
+        }
     }
 
     /**
