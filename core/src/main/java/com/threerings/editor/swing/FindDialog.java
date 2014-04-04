@@ -227,16 +227,14 @@ public class FindDialog extends JDialog
      */
     protected JComponent testViewport (JComponent comp)
     {
-        if (comp == null) {
-            return null;
-        }
-        Component parent = comp.getParent();
-        for (; parent != null; parent = parent.getParent()) {
-            if (parent == _viewport) {
-                break;
+        if (comp != null) {
+            for (Component p = comp.getParent(); p != null; p = p.getParent()) {
+                if (p == _viewport) {
+                    return comp;
+                }
             }
         }
-        return (parent == null) ? null : comp;
+        return null;
     }
 
     /**
