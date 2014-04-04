@@ -160,7 +160,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     protected void updatePaths (int idx1, int idx2)
     {
         String path = getPropertyPath();
-        ParameterizedConfig pc = getRootConfig();
+        ParameterizedConfig pc = ObjectUtil.as(getRootObject(), ParameterizedConfig.class);
         if (pc == null) {
             return;
         }
@@ -237,31 +237,6 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             path = path.substring(1);
         }
         return path;
-    }
-
-    /**
-     * Get the root parameterized config if there is one.
-     */
-    protected ParameterizedConfig getRootConfig ()
-    {
-        BaseEditorPanel bep = findBaseEditor();
-        return (bep == null)
-            ? null
-            : ObjectUtil.as(bep.getObject(), ParameterizedConfig.class);
-    }
-
-    /**
-     * Find the topmost BaseEditorPanel in our component ancestry.
-     */
-    protected BaseEditorPanel findBaseEditor ()
-    {
-        BaseEditorPanel bep = null;
-        for (Component c = this; c != null; c = c.getParent()) {
-            if (c instanceof BaseEditorPanel) {
-                bep = (BaseEditorPanel)c;
-            }
-        }
-        return bep;
     }
 
     /**

@@ -27,6 +27,8 @@ package com.threerings.editor.swing;
 
 import java.lang.reflect.Array;
 
+import java.awt.Component;
+
 import java.io.File;
 
 import java.util.Date;
@@ -251,6 +253,29 @@ public abstract class PropertyEditor extends BasePropertyEditor
         if (units.length() > 0) {
             panel.add(new JLabel(_msgmgr.getBundle(_property.getMessageBundle()).xlate(units)));
         }
+    }
+
+    /**
+     * Find the topmost BaseEditorPanel in our component ancestry.
+     */
+    protected BaseEditorPanel findBaseEditor ()
+    {
+        BaseEditorPanel bep = null;
+        for (Component c = this; c != null; c = c.getParent()) {
+            if (c instanceof BaseEditorPanel) {
+                bep = (BaseEditorPanel)c;
+            }
+        }
+        return bep;
+    }
+
+    /**
+     * Find the root object that's being edited.
+     */
+    protected Object getRootObject ()
+    {
+        BaseEditorPanel bep = findBaseEditor();
+        return (bep == null) ? null : bep.getObject();
     }
 
     /**
