@@ -1645,6 +1645,17 @@ public class SceneEditor extends TudeyTool
      */
     protected void testScene ()
     {
+        TudeySceneModel scene = createTestScene();
+
+        // configure the scene repository with a copy of our scene
+        _server.getSceneRepository().setSceneModel(scene);
+
+        // request to enter
+        _scenedir.moveTo(_sceneId);
+    }
+
+    protected TudeySceneModel createTestScene ()
+    {
         TudeySceneModel scene = _scene.clone();
         // remove non-visibile layers
         scene.init(_scene.getConfigManager());
@@ -1660,12 +1671,10 @@ public class SceneEditor extends TudeyTool
         for (Object key : toRemove) {
             scene.removeEntry(key);
         }
-        // configure the scene repository with a copy of our scene
-        scene.sceneId = ++_sceneId;
-        _server.getSceneRepository().setSceneModel(scene);
 
-        // request to enter
-        _scenedir.moveTo(_sceneId);
+        scene.sceneId = ++_sceneId;
+
+        return scene;
     }
 
     /**
