@@ -56,7 +56,7 @@ import com.threerings.tudey.shape.ShapeElement;
  * Controls the state of an actor on the server.
  */
 public class ActorLogic extends Logic
-    implements HasActor
+    implements HasActor, Activated
 {
     /**
      * An interface for objects interested in updates to the actor's collision flags.
@@ -157,9 +157,7 @@ public class ActorLogic extends Logic
         _activator = activator;
     }
 
-    /**
-     * Returns a reference to the entity that caused the actor to be spawned, if known/any.
-     */
+    @Override // from Activated
     public Logic getActivator ()
     {
         return _activator;

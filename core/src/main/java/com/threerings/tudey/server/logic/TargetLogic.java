@@ -88,8 +88,8 @@ public abstract class TargetLogic extends Logic
         {
             _target.resolve(activator, _targets);
             for (Logic target : _targets) {
-                if (target instanceof ActorLogic && ((ActorLogic)target).getActivator() != null) {
-                    results.add(((ActorLogic)target).getActivator());
+                if (target instanceof Activated && ((Activated)target).getActivator() != null) {
+                    results.add(((Activated)target).getActivator());
                 }
             }
             _targets.clear();
