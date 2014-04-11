@@ -48,6 +48,7 @@ import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.model.Articulated;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
@@ -90,6 +91,12 @@ public abstract class ActionConfig extends DeepObject
                     }
                 }
             };
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
         }
     }
 
@@ -163,6 +170,12 @@ public abstract class ActionConfig extends DeepObject
                 protected Model _instance = instance;
             };
         }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Model(model).preload(ctx);
+        }
     }
 
     /**
@@ -197,6 +210,12 @@ public abstract class ActionConfig extends DeepObject
                     sounder.start();
                 }
             };
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(SounderConfig.class, sounder).preload(ctx);
         }
     }
 
@@ -263,6 +282,12 @@ public abstract class ActionConfig extends DeepObject
                 protected long _start = System.currentTimeMillis();
             };
         }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // DO NOTHING
+        }
     }
 
     /**
@@ -301,6 +326,15 @@ public abstract class ActionConfig extends DeepObject
                     defaultExecutor.execute();
                 }
             };
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            defaultAction.preload(ctx);
+            for (Case c : cases) {
+                c.action.preload(ctx);
+            }
         }
     }
 
@@ -343,6 +377,14 @@ public abstract class ActionConfig extends DeepObject
                 }
             };
         }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (ActionConfig action : actions) {
+                action.preload(ctx);
+            }
+        }
     }
 
     /**
@@ -370,6 +412,14 @@ public abstract class ActionConfig extends DeepObject
                 }
             };
         }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (WeightedAction waction : actions) {
+                waction.action.preload(ctx);
+            }
+        }
     }
 
     /**
@@ -391,4 +441,9 @@ public abstract class ActionConfig extends DeepObject
      * Creates an executor for this action.
      */
     public abstract Executor createExecutor (GlContext ctx, Scope scope);
+
+    /**
+     *
+     */
+    public abstract void preload (GlContext ctx);
 }

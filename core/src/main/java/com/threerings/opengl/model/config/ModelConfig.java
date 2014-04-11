@@ -72,6 +72,7 @@ import com.threerings.opengl.scene.config.ViewerAffecterConfig;
 import com.threerings.opengl.scene.config.SceneInfluencerConfig;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
+import com.threerings.opengl.util.Preloadable;
 
 import com.threerings.tudey.config.ActorModelConfig;
 import com.threerings.tudey.shape.config.ShapeModelConfig;
@@ -151,6 +152,11 @@ public class ModelConfig extends ParameterizedConfig
          */
         public abstract Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl);
+
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
 
         /**
          * Returns the {@link GeometryConfig} to use when this model is selected for use within a
@@ -325,6 +331,14 @@ public class ModelConfig extends ParameterizedConfig
             return (mapping == null) ? null : mapping.material;
         }
 
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (MaterialMapping mapping : materialMappings) {
+                new Preloadable.Config(MaterialConfig.class, mapping.material).preload(ctx);
+            }
+        }
+
         /**
          * Returns the {@link VisibleMesh} to use when this model is selected for use within a
          * particle system (or <code>null</code> if it cannot be used).
@@ -438,6 +452,12 @@ public class ModelConfig extends ParameterizedConfig
         }
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Model(model).preload(ctx);
+        }
+
+        @Override
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
@@ -482,6 +502,14 @@ public class ModelConfig extends ParameterizedConfig
         {
             for (SchemedModel smodel : models) {
                 refs.add(ModelConfig.class, smodel.model);
+            }
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (SchemedModel model : models) {
+                new Preloadable.Model(model.model).preload(ctx);
             }
         }
 
@@ -704,6 +732,11 @@ public class ModelConfig extends ParameterizedConfig
     public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
     {
         return implementation.getParticleMaterial(ctx);
+    }
+
+    public void preload (GlContext ctx)
+    {
+        implementation.preload(ctx);
     }
 
     @Override

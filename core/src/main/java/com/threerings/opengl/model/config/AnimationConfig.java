@@ -46,6 +46,7 @@ import com.threerings.util.Shallow;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.tools.AnimationDef;
 import com.threerings.opengl.model.tools.xml.AnimationParser;
+import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.log;
@@ -98,6 +99,8 @@ public class AnimationConfig extends ParameterizedConfig
         {
             // nothing by default
         }
+
+        public abstract void preload (GlContext ctx);
     }
 
     /**
@@ -124,6 +127,11 @@ public class AnimationConfig extends ParameterizedConfig
         /** The amount of time to spend blending out the animation. */
         @Editable(min=0, step=0.01, hgroup="w")
         public float blendOut;
+
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
     }
 
     /**
@@ -264,6 +272,14 @@ public class AnimationConfig extends ParameterizedConfig
             return impl;
         }
 
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (FrameAction action : actions) {
+                action.action.preload(ctx);
+            }
+        }
+
         /**
          * Applies transform modifiers.
          */
@@ -364,6 +380,14 @@ public class AnimationConfig extends ParameterizedConfig
             }
             return impl;
         }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (ComponentAnimation animation : animations) {
+                new Preloadable.Animation(animation.animation).preload(ctx);
+            }
+        }
     }
 
     /**
@@ -388,6 +412,12 @@ public class AnimationConfig extends ParameterizedConfig
             AnimationConfig config = ctx.getConfigManager().getConfig(
                 AnimationConfig.class, animation);
             return (config == null) ? null : config.getAnimationImplementation(ctx, scope, impl);
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Animation(animation).preload(ctx);
         }
     }
 
@@ -479,6 +509,14 @@ public class AnimationConfig extends ParameterizedConfig
         GlContext ctx, Scope scope, Animation.Implementation impl)
     {
         return implementation.getAnimationImplementation(ctx, scope, impl);
+    }
+
+    /**
+     * Preload items in the animation config.
+     */
+    public void preload (GlContext ctx)
+    {
+        implementation.preload(ctx);
     }
 
     @Override

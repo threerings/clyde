@@ -61,6 +61,7 @@ import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 import static com.threerings.opengl.Log.log;
 
@@ -552,6 +553,14 @@ public class ArticulatedConfig extends ModelConfig.Imported
     {
         if (root != null) {
             root.updateRefTransforms(new Transform3D());
+        }
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        for (AnimationMapping mapping : animationMappings) {
+            new Preloadable.Animation(mapping.animation).preload(ctx);
         }
     }
 

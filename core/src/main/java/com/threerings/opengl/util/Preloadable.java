@@ -32,7 +32,9 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.model.config.AnimationConfig;
+import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.model.config.ActionConfig;
 
 /**
  * Represents a resource to be preloaded and "pinned" in the cache by retaining a strong reference.
@@ -131,6 +133,22 @@ public abstract class Preloadable extends DeepObject
             _model = new com.threerings.opengl.model.Model(ctx);
             _model.setParentScope(ctx.getScope());
             _model.setConfig(_ref);
+
+            ModelConfig conf = ctx.getConfigManager().getConfig(ModelConfig.class, _ref);
+            if (conf != null) {
+                conf.preload(ctx);
+            }
+            // System.out.println(_ref);
+            // if (conf != null) {
+            //     ModelConfig.Implementation orig = conf.getOriginal();
+            //     if (orig instanceof ArticulatedConfig) {
+            //         for (ArticulatedConfig.AnimationMapping mapping :
+            //                 ((ArticulatedConfig)orig).animationMappings) {
+            //             System.out.println("      " + mapping.animation);
+            //             new Animation(mapping.animation).preload(ctx);
+            //         }
+            //     }
+            // }
         }
 
         @Override
@@ -173,6 +191,31 @@ public abstract class Preloadable extends DeepObject
         {
             _anim = new com.threerings.opengl.model.Animation(ctx, ctx.getScope());
             _anim.setConfig(null, _ref);
+
+            AnimationConfig ani = ctx.getConfigManager().getConfig(AnimationConfig.class, _ref);
+            if (ani != null) {
+                ani.preload(ctx);
+            }
+
+            // AnimationConfig ani = ctx.getConfigManager().getConfig(AnimationConfig.class, _ref);
+            // if (ani != null){
+
+            //     AnimationConfig.Implementation orig = ani.implementation;
+            //     if (orig instanceof AnimationConfig.Sequential) {
+            //         for (AnimationConfig.ComponentAnimation compani : ((AnimationConfig.Sequential)orig).animations) {
+            //             System.out.println("        Sequential: " + compani.animation);
+            //             new Animation(compani.animation).preload(ctx);
+            //         }
+            //     } else if (orig instanceof AnimationConfig.Imported) {
+            //         for (AnimationConfig.FrameAction frameaction : ((AnimationConfig.Imported)orig).actions) {
+            //             if (frameaction.action instanceof ActionConfig.SpawnTransient) {
+            //                 System.out.println(((ActionConfig.SpawnTransient)frameaction.action).model);
+            //                 new Model(((ActionConfig.SpawnTransient)frameaction.action).model).preload(ctx);
+            //             }
+            //         }
+            //     }
+            // }
+
         }
 
         @Override
