@@ -127,11 +127,6 @@ public class AnimationConfig extends ParameterizedConfig
         /** The amount of time to spend blending out the animation. */
         @Editable(min=0, step=0.01, hgroup="w")
         public float blendOut;
-
-        public void preload (GlContext ctx)
-        {
-            // Do nothing
-        }
     }
 
     /**
@@ -332,6 +327,12 @@ public class AnimationConfig extends ParameterizedConfig
         /** The list of target transforms. */
         @Editable
         public TargetTransform[] transforms = new TargetTransform[0];
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // Do Nothing
+        }
 
         @Override
         public Animation.Implementation getAnimationImplementation (
