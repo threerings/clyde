@@ -57,6 +57,7 @@ import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.StaticConfig.Resolved;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 import static com.threerings.opengl.Log.log;
 
@@ -83,6 +84,14 @@ public class MergedStaticConfig extends ModelConfig.Implementation
     public MergedStaticConfig (ComponentModel[] models)
     {
         this.models = models;
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        for (ComponentModel model : models) {
+            new Preloadable.Model(model.model).preload(ctx);
+        }
     }
 
     @Override

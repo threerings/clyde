@@ -81,6 +81,14 @@ public class ScriptedConfig extends ModelConfig.Implementation
     public TimeAction[] actions = new TimeAction[0];
 
     @Override
+    public void preload (GlContext ctx)
+    {
+        for (TimeAction action : actions) {
+            action.action.preload(ctx);
+        }
+    }
+
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {

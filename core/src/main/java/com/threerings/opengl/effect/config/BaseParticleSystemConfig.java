@@ -47,6 +47,8 @@ import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.ModelConfig.TransientPolicy;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
+import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * Base class for {@link ParticleSystemConfig} and {@link MetaParticleSystemConfig}.
@@ -155,6 +157,11 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
          */
         public abstract boolean shouldRotateOrientations ();
 
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
+
         /**
          * Custom write method.
          */
@@ -204,6 +211,14 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
     /** The influences allowed to affect this model. */
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(true, false, false, false);
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        for (Layer layer : getLayers()) {
+            layer.preload(ctx);
+        }
+    }
 
     /**
      * Checks whether any of the system's layers respawn dead particles.

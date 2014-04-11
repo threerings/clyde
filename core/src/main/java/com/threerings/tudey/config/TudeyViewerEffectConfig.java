@@ -66,6 +66,12 @@ public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
         public CameraConfig[] cameras = new CameraConfig[0];
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
+
+        @Override
         public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             final TudeySceneView view = ScopeUtil.resolve(

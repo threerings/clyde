@@ -52,6 +52,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * The configuration of a particle system.
@@ -131,6 +132,13 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         public boolean shouldRotateOrientations ()
         {
             return alignment == Alignment.FIXED;
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            super.preload(ctx);
+            new Preloadable.Config(MaterialConfig.class, material);
         }
     }
 

@@ -37,6 +37,7 @@ import com.threerings.opengl.model.Conditional;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * A conditional model implementation.
@@ -81,6 +82,15 @@ public class ConditionalConfig extends ModelConfig.Implementation
     /** The default model transform. */
     @Editable(step=0.01)
     public Transform3D defaultTransform = new Transform3D();
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        new Preloadable.Model(defaultModel).preload(ctx);
+        for (Case condition : cases) {
+            new Preloadable.Model(condition.model).preload(ctx);
+        }
+    }
 
     @Override
     public Model.Implementation getModelImplementation (

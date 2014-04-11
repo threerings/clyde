@@ -30,6 +30,9 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 
+import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
+
 import com.threerings.opengl.model.config.ModelConfig;
 
 /**
@@ -45,6 +48,12 @@ public abstract class ActorModelConfig extends ModelConfig
         /** The actor reference. */
         @Editable(nullable=true)
         public ConfigReference<ActorConfig> actor;
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(ActorConfig.class, actor).preload(ctx);
+        }
 
         @Override
         public void getUpdateReferences (ConfigReferenceSet refs)

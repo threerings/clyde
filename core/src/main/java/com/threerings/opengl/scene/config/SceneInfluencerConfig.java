@@ -64,6 +64,12 @@ public class SceneInfluencerConfig extends ModelConfig.Implementation
     }
 
     @Override
+    public void preload (GlContext ctx)
+    {
+        // Do nothing
+    }
+
+    @Override
     public void invalidate ()
     {
         influence.invalidate();

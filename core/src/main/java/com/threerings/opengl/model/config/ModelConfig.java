@@ -153,10 +153,7 @@ public class ModelConfig extends ParameterizedConfig
         public abstract Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl);
 
-        public void preload (GlContext ctx)
-        {
-            // Do nothing
-        }
+        public abstract void preload (GlContext ctx);
 
         /**
          * Returns the {@link GeometryConfig} to use when this model is selected for use within a

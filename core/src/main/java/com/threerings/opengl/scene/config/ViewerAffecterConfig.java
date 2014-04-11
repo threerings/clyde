@@ -64,6 +64,12 @@ public class ViewerAffecterConfig extends ModelConfig.Implementation
     }
 
     @Override
+    public void preload (GlContext ctx)
+    {
+        effect.preload(ctx);
+    }
+
+    @Override
     public void invalidate ()
     {
         effect.invalidate();

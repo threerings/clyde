@@ -45,6 +45,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.StaticConfig.Resolved;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * Configuration for static models generated in code.
@@ -62,6 +63,8 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
          * (Re)generates the geometry.
          */
         public abstract Resolved generate (GlContext ctx, int influenceFlags);
+
+        public abstract void preload (GlContext ctx);
     }
 
     /**
@@ -90,6 +93,12 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
         public ConfigReference<MaterialConfig> material;
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(MaterialConfig.class, material).preload(ctx);
+        }
+
+        @Override
         public Resolved generate (GlContext ctx, int influenceFlags)
         {
             float lx = -sizeX/2f, ux = +sizeX/2f;
@@ -115,6 +124,12 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
     /** The geometry generator. */
     @Editable
     public Generator generator = new Quad();
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        generator.preload(ctx);
+    }
 
     @Override
     public Model.Implementation getModelImplementation (

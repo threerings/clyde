@@ -99,6 +99,12 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
     }
 
     @Override
+    public void preload (GlContext ctx)
+    {
+        // Do nothing
+    }
+
+    @Override
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {

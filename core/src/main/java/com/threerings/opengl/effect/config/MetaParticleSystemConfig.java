@@ -33,6 +33,7 @@ import com.threerings.opengl.effect.MetaParticleSystem;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * The configuration of a meta particle system (like a particle system, but each particle is a
@@ -60,6 +61,13 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
         public boolean shouldRotateOrientations ()
         {
             return alignment == Alignment.FIXED;
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            super.preload(ctx);
+            new Preloadable.Config(ModelConfig.class, model);
         }
     }
 

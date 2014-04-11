@@ -37,6 +37,7 @@ import com.threerings.opengl.model.Compound;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * A compound model implementation.
@@ -90,6 +91,14 @@ public class CompoundConfig extends ModelConfig.Implementation
     /** The component models. */
     @Editable
     public ComponentModel[] models = new ComponentModel[0];
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        for (ComponentModel model : models) {
+            new Preloadable.Model(model.model).preload(ctx);
+        }
+    }
 
     @Override
     public Model.Implementation getModelImplementation (

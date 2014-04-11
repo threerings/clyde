@@ -50,6 +50,7 @@ import com.threerings.opengl.scene.BackgroundColorEffect;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.ViewerEffect;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 import com.threerings.tudey.config.TudeyViewerEffectConfig;
 
@@ -72,6 +73,12 @@ public abstract class ViewerEffectConfig extends DeepObject
         /** The configuration of the sounder that will play the sound. */
         @Editable(nullable=true)
         public ConfigReference<SounderConfig> sounder;
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(SounderConfig.class, sounder).preload(ctx);
+        }
 
         @Override
         public ViewerEffect getViewerEffect (
@@ -144,6 +151,12 @@ public abstract class ViewerEffectConfig extends DeepObject
             }
             return effect;
         }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
     }
 
     /**
@@ -162,6 +175,12 @@ public abstract class ViewerEffectConfig extends DeepObject
         /** The skybox translation origin. */
         @Editable(step=0.01, hgroup="t")
         public Vector3f translationOrigin = new Vector3f();
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Model(model).preload(ctx);
+        }
 
         @Override
         public ViewerEffect getViewerEffect (
@@ -219,6 +238,12 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<ModelConfig> model;
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Model(model).preload(ctx);
+        }
+
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
@@ -271,6 +296,12 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(RenderEffectConfig.class, renderEffect).preload(ctx);
+        }
+
+        @Override
         public ViewerEffect getViewerEffect (
             final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
@@ -316,6 +347,12 @@ public abstract class ViewerEffectConfig extends DeepObject
         /** The offset amount. */
         @Editable
         public Color4fExpression amount = new Color4fExpression.Constant();
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
 
         @Override
         public ViewerEffect getViewerEffect (
@@ -398,6 +435,7 @@ public abstract class ViewerEffectConfig extends DeepObject
      */
     public abstract ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect);
 
+    public abstract void preload (GlContext ctx);
     /**
      * Invalidates any cached data.
      */
