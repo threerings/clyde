@@ -27,6 +27,8 @@ package com.threerings.opengl.material.config;
 
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
@@ -58,12 +60,13 @@ import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * Represents a single material pass.
  */
 public class PassConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Preloadable.LoadableConfig
 {
     /** The alpha state to use in this pass. */
     @Editable
@@ -132,6 +135,12 @@ public class PassConfig extends DeepObject
     /** Whether or not to ignore the vertex colors. */
     @Editable
     public boolean ignoreVertexColors;
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        // Do nothing for now. TODO: Figure out what needs to be brought in.
+    }
 
     /**
      * Adds the technique's update references to the provided set.

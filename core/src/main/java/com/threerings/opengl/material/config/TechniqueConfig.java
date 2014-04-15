@@ -61,12 +61,13 @@ import com.threerings.opengl.renderer.config.CoordSpace;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * Represents a single technique for rendering a material.
  */
 public class TechniqueConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Preloadable.LoadableConfig
 {
     /**
      * Represents a dependency that must be resolved when rendering.
@@ -75,7 +76,7 @@ public class TechniqueConfig extends DeepObject
         StencilReflectionDependency.class, StencilRefractionDependency.class,
         RenderEffectDependency.class, SkipColorClearDependency.class })
     public static abstract class TechniqueDependency extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
         /**
          * Determines whether the dependency is supported.
@@ -83,6 +84,12 @@ public class TechniqueConfig extends DeepObject
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return true;
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
         }
 
         /**
@@ -149,10 +156,17 @@ public class TechniqueConfig extends DeepObject
      * A dependency on a render effect.
      */
     public static class RenderEffectDependency extends TechniqueDependency
+        implements Preloadable.LoadableConfig
     {
         /** The effect reference. */
         @Editable(nullable=true)
         public ConfigReference<RenderEffectConfig> renderEffect;
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(RenderEffectConfig.class, renderEffect);
+        }
 
         @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
@@ -201,8 +215,14 @@ public class TechniqueConfig extends DeepObject
      */
     @EditorTypes({ NormalEnqueuer.class, CompoundEnqueuer.class, GroupedEnqueuer.class })
     public static abstract class Enqueuer extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
+        @Override
+        public void preload (GlContext ctx)
+        {
+            // Do nothing
+        }
+
         /**
          * Adds the enqueuer's update references to the provided set.
          */
@@ -258,6 +278,14 @@ public class TechniqueConfig extends DeepObject
         /** The passes to render. */
         @Editable
         public PassConfig[] passes = new PassConfig[0];
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (PassConfig pass : passes) {
+                pass.preload(ctx);
+            }
+        }
 
         @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
@@ -443,6 +471,14 @@ public class TechniqueConfig extends DeepObject
         public Enqueuer[] enqueuers = new Enqueuer[0];
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            for (Enqueuer enqueuer : enqueuers) {
+                enqueuer.preload(ctx);
+            }
+        }
+
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -557,6 +593,12 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            _wrapped.preload(ctx);
+        }
+
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             _wrapped.getUpdateReferences(refs);
@@ -635,6 +677,15 @@ public class TechniqueConfig extends DeepObject
     /** Determines what we actually enqueue for this technique. */
     @Editable
     public Enqueuer enqueuer = new NormalEnqueuer();
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        for (TechniqueDependency dependency : dependencies) {
+            dependency.preload(ctx);
+        }
+        enqueuer.preload(ctx);
+    }
 
     /**
      * Adds the technique's update references to the provided set.

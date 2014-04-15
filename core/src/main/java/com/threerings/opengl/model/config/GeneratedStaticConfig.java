@@ -57,14 +57,12 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
      */
     @EditorTypes({ Quad.class })
     public static abstract class Generator extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
         /**
          * (Re)generates the geometry.
          */
         public abstract Resolved generate (GlContext ctx, int influenceFlags);
-
-        public abstract void preload (GlContext ctx);
     }
 
     /**

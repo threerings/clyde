@@ -63,7 +63,7 @@ import com.threerings.tudey.config.TudeyViewerEffectConfig;
     ViewerEffectConfig.RenderEffect.class, ViewerEffectConfig.AmbientLightOffset.class,
     TudeyViewerEffectConfig.class })
 public abstract class ViewerEffectConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Preloadable.LoadableConfig
 {
     /**
      * Plays a sound.
@@ -435,7 +435,6 @@ public abstract class ViewerEffectConfig extends DeepObject
      */
     public abstract ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect);
 
-    public abstract void preload (GlContext ctx);
     /**
      * Invalidates any cached data.
      */

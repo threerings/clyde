@@ -40,18 +40,20 @@ import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
 
 /**
  * Describes a material.
  */
 public class MaterialConfig extends ParameterizedConfig
+    implements Preloadable.LoadableConfig
 {
     /**
      * Contains the actual implementation of the material.
      */
     @EditorTypes({ Original.class, Derived.class })
     public static abstract class Implementation extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
         /**
          * Adds the implementation's update references to the provided set.
@@ -80,6 +82,14 @@ public class MaterialConfig extends ParameterizedConfig
         /** The techniques available to render the material. */
         @Editable
         public TechniqueConfig[] techniques = new TechniqueConfig[] { new TechniqueConfig() };
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            for (TechniqueConfig technique : techniques) {
+                technique.preload(ctx);
+            }
+        }
 
         @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
@@ -190,6 +200,12 @@ public class MaterialConfig extends ParameterizedConfig
         public ConfigReference<MaterialConfig> material;
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            new Preloadable.Config(MaterialConfig.class, material).preload(ctx);
+        }
+
+        @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(MaterialConfig.class, material);
@@ -219,6 +235,12 @@ public class MaterialConfig extends ParameterizedConfig
     public TechniqueConfig getTechnique (GlContext ctx, String scheme)
     {
         return implementation.getTechnique(ctx, scheme);
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        implementation.preload(ctx);
     }
 
     @Override

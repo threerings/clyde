@@ -54,12 +54,13 @@ import com.threerings.opengl.util.Preloadable;
  * Base class for {@link ParticleSystemConfig} and {@link MetaParticleSystemConfig}.
  */
 public abstract class BaseParticleSystemConfig extends ModelConfig.Implementation
+    implements Preloadable.LoadableConfig
 {
     /**
      * A single layer of the system.
      */
     public static abstract class Layer extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
         /** The name of the layer. */
         @Editable(column=true)

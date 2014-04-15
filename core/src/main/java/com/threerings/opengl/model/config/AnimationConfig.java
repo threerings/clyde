@@ -55,13 +55,14 @@ import static com.threerings.opengl.Log.log;
  * The configuration of an animation.
  */
 public class AnimationConfig extends ParameterizedConfig
+    implements Preloadable.LoadableConfig
 {
     /**
      * Contains the actual implementation of the animation.
      */
     @EditorTypes({ Imported.class, Procedural.class, Sequential.class, Derived.class })
     public static abstract class Implementation extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
         /**
          * Updates this implementation from its external source, if any.
@@ -99,8 +100,6 @@ public class AnimationConfig extends ParameterizedConfig
         {
             // nothing by default
         }
-
-        public abstract void preload (GlContext ctx);
     }
 
     /**
@@ -512,9 +511,7 @@ public class AnimationConfig extends ParameterizedConfig
         return implementation.getAnimationImplementation(ctx, scope, impl);
     }
 
-    /**
-     * Preload items in the animation config.
-     */
+    @Override
     public void preload (GlContext ctx)
     {
         implementation.preload(ctx);

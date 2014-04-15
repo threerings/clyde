@@ -83,6 +83,7 @@ import static com.threerings.opengl.Log.log;
  * The configuration of a model.
  */
 public class ModelConfig extends ParameterizedConfig
+    implements Preloadable.LoadableConfig
 {
     /** The default tag for unskinned meshes. */
     public static final String DEFAULT_TAG = "default";
@@ -104,7 +105,7 @@ public class ModelConfig extends ParameterizedConfig
         ScriptedConfig.class, ActorModelConfig.Wrapper.class,
         ShapeModelConfig.class, Derived.class, Schemed.class })
     public static abstract class Implementation extends DeepObject
-        implements Exportable
+        implements Exportable, Preloadable.LoadableConfig
     {
         /**
          * Retrieves a reference to the underlying original implementation.
@@ -152,8 +153,6 @@ public class ModelConfig extends ParameterizedConfig
          */
         public abstract Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl);
-
-        public abstract void preload (GlContext ctx);
 
         /**
          * Returns the {@link GeometryConfig} to use when this model is selected for use within a

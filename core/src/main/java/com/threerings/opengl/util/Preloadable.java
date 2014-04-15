@@ -41,6 +41,14 @@ import com.threerings.opengl.model.config.ActionConfig;
  */
 public abstract class Preloadable extends DeepObject
 {
+    public interface LoadableConfig
+    {
+        /**
+         * Preload items in the config.
+         */
+        public void preload (GlContext ctx);
+    }
+
     /**
      * A generic config resource.
      */
@@ -87,6 +95,9 @@ public abstract class Preloadable extends DeepObject
         public void preload (GlContext ctx)
         {
             _config = ctx.getConfigManager().getConfig(_clazz, _ref);
+            if (_config instanceof LoadableConfig) {
+                ((LoadableConfig)_config).preload(ctx);
+            }
         }
 
         @Override
