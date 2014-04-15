@@ -45,6 +45,9 @@ import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.renderer.Color4f;
 
+import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
+
 import static com.threerings.ClydeLog.log;
 
 /**
@@ -57,7 +60,7 @@ import static com.threerings.ClydeLog.log;
     ExpressionBinding.StringBinding.class,
     ExpressionBinding.Transform3DBinding.class })
 public abstract class ExpressionBinding extends DeepObject
-    implements Exportable
+    implements Exportable, Preloadable.LoadableConfig
 {
     /** An empty (and thus immutable and sharable) ExpressionBinding array. */
     public static final ExpressionBinding[] EMPTY_ARRAY = new ExpressionBinding[0];
@@ -88,6 +91,12 @@ public abstract class ExpressionBinding extends DeepObject
                     }
                 }
             };
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            expression.createEvaluator(ctx.getScope());
         }
 
         @Override
@@ -127,6 +136,12 @@ public abstract class ExpressionBinding extends DeepObject
         }
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            expression.createEvaluator(ctx.getScope());
+        }
+
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -147,6 +162,12 @@ public abstract class ExpressionBinding extends DeepObject
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, Color4f.class);
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            expression.createEvaluator(ctx.getScope());
         }
 
         @Override
@@ -173,6 +194,12 @@ public abstract class ExpressionBinding extends DeepObject
         }
 
         @Override
+        public void preload (GlContext ctx)
+        {
+            expression.createEvaluator(ctx.getScope());
+        }
+
+        @Override
         public void invalidate ()
         {
             super.invalidate();
@@ -193,6 +220,12 @@ public abstract class ExpressionBinding extends DeepObject
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, Transform3D.class);
+        }
+
+        @Override
+        public void preload (GlContext ctx)
+        {
+            expression.createEvaluator(ctx.getScope());
         }
 
         @Override
@@ -222,6 +255,12 @@ public abstract class ExpressionBinding extends DeepObject
     public void invalidate ()
     {
         _paths = _flagPaths = null;
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+        // Do nothing
     }
 
     /**
