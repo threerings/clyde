@@ -207,26 +207,6 @@ public abstract class Preloadable extends DeepObject
             if (ani != null) {
                 ani.preload(ctx);
             }
-
-            // AnimationConfig ani = ctx.getConfigManager().getConfig(AnimationConfig.class, _ref);
-            // if (ani != null){
-
-            //     AnimationConfig.Implementation orig = ani.implementation;
-            //     if (orig instanceof AnimationConfig.Sequential) {
-            //         for (AnimationConfig.ComponentAnimation compani : ((AnimationConfig.Sequential)orig).animations) {
-            //             System.out.println("        Sequential: " + compani.animation);
-            //             new Animation(compani.animation).preload(ctx);
-            //         }
-            //     } else if (orig instanceof AnimationConfig.Imported) {
-            //         for (AnimationConfig.FrameAction frameaction : ((AnimationConfig.Imported)orig).actions) {
-            //             if (frameaction.action instanceof ActionConfig.SpawnTransient) {
-            //                 System.out.println(((ActionConfig.SpawnTransient)frameaction.action).model);
-            //                 new Model(((ActionConfig.SpawnTransient)frameaction.action).model).preload(ctx);
-            //             }
-            //         }
-            //     }
-            // }
-
         }
 
         @Override
