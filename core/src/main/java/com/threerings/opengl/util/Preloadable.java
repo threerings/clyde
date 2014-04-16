@@ -149,17 +149,6 @@ public abstract class Preloadable extends DeepObject
             if (conf != null) {
                 conf.preload(ctx);
             }
-            // System.out.println(_ref);
-            // if (conf != null) {
-            //     ModelConfig.Implementation orig = conf.getOriginal();
-            //     if (orig instanceof ArticulatedConfig) {
-            //         for (ArticulatedConfig.AnimationMapping mapping :
-            //                 ((ArticulatedConfig)orig).animationMappings) {
-            //             System.out.println("      " + mapping.animation);
-            //             new Animation(mapping.animation).preload(ctx);
-            //         }
-            //     }
-            // }
         }
 
         @Override
