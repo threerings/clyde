@@ -244,6 +244,7 @@ public class Animation extends SimpleScope
 
             // resolve the targets and initialize the snapshot array
             _targets = new Articulated.Node[config.targets.length];
+            _transforms = config.getModifiedTransforms();
             if (_snapshot == null || _snapshot.length != _targets.length) {
                 _snapshot = new Transform3D[_targets.length];
             }
@@ -265,7 +266,7 @@ public class Animation extends SimpleScope
                     action.frame, action.action.createExecutor(_ctx, this));
             }
 
-            if (_fidx > config.transforms.length) {
+            if (_fidx > _transforms.length) {
                 _fidx = 0;
                 _eidx = 0;
             }
@@ -276,7 +277,7 @@ public class Animation extends SimpleScope
         {
             // initialize frame counter
             int offset = Math.round(_config.offset.getValue() * getFrameRate());
-            _fidx = _eidx = Math.max(0, offset) % _config.transforms.length;
+            _fidx = _eidx = Math.max(0, offset) % _transforms.length;
             _accum = 0f;
             _completed = false;
 
@@ -348,7 +349,7 @@ public class Animation extends SimpleScope
             executeActions();
 
             // check for loop or completion
-            int fcount = _config.transforms.length;
+            int fcount = _transforms.length;
             if (_config.loop) {
                 if (_fidx >= fcount) {
                     _fidx %= fcount;
@@ -374,14 +375,13 @@ public class Animation extends SimpleScope
         @Override
         public void updateTransforms ()
         {
-            Transform3D[][] transforms = _config.transforms;
             Transform3D[] t1, t2;
             if (_transitioning) {
                 t1 = _snapshot;
-                t2 = transforms[_fidx];
+                t2 = _transforms[_fidx];
             } else {
-                t1 = transforms[_fidx];
-                t2 = transforms[(_fidx + 1) % transforms.length];
+                t1 = _transforms[_fidx];
+                t2 = _transforms[(_fidx + 1) % _transforms.length];
             }
             for (int ii = 0; ii < _targets.length; ii++) {
                 // lerp into the target transform
@@ -395,14 +395,13 @@ public class Animation extends SimpleScope
         @Override
         public void blendTransforms (int update)
         {
-            Transform3D[][] transforms = _config.transforms;
             Transform3D[] t1, t2;
             if (_transitioning) {
                 t1 = _snapshot;
-                t2 = transforms[_fidx];
+                t2 = _transforms[_fidx];
             } else {
-                t1 = transforms[_fidx];
-                t2 = transforms[(_fidx + 1) % transforms.length];
+                t1 = _transforms[_fidx];
+                t2 = _transforms[(_fidx + 1) % _transforms.length];
             }
             for (int ii = 0; ii < _targets.length; ii++) {
                 // first make sure the target exists
@@ -462,6 +461,9 @@ public class Animation extends SimpleScope
 
         /** The targets of the animation. */
         protected Articulated.Node[] _targets;
+
+        /** The animation transforms after modifications are applied. */
+        protected Transform3D[][] _transforms;
 
         /** A snapshot of the original transforms of the targets, for transitioning. */
         protected Transform3D[] _snapshot;

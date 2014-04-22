@@ -275,18 +275,27 @@ public class AnimationConfig extends ParameterizedConfig
         }
 
         /**
-         * Applies transform modifiers.
+         * Returns the modified transform array.  If there are no modifiers then this simply returns
+         * the 2D transforms array.
          */
-        public void applyModifiers ()
+        public Transform3D[][] getModifiedTransforms ()
         {
+            if (modifiers.length == 0) {
+                return transforms;
+            }
+            Transform3D[][] result = new Transform3D[transforms.length][];
+            for (int ii = 0; ii < result.length; ii++) {
+                result[ii] = transforms[ii].clone();
+            }
             for (TargetModifier modifier : modifiers) {
                 int idx = ArrayUtil.indexOf(targets, modifier.target);
                 if (idx != -1) {
-                    for (int ii = 0; ii < transforms[idx].length; ii++) {
-                        transforms[idx][ii] = modifier.modifyTransform(transforms[idx][ii]);
+                    for (int ii = 0; ii < result.length; ii++) {
+                        result[ii][idx] = modifier.modifyTransform(result[ii][idx]);
                     }
                 }
             }
+            return result;
         }
 
         /**
@@ -482,7 +491,7 @@ public class AnimationConfig extends ParameterizedConfig
 
         /** A base transformation on the target. */
         @Editable
-        public Transform3D transform = new Transform3D();
+        public Transform3D transform = new Transform3D(Transform3D.UNIFORM);
 
         /**
          * Alters the supplied transformation.
