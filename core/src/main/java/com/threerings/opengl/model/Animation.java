@@ -244,7 +244,6 @@ public class Animation extends SimpleScope
 
             // resolve the targets and initialize the snapshot array
             _targets = new Articulated.Node[config.targets.length];
-            _transforms = config.getModifiedTransforms();
             if (_snapshot == null || _snapshot.length != _targets.length) {
                 _snapshot = new Transform3D[_targets.length];
             }
@@ -256,6 +255,16 @@ public class Animation extends SimpleScope
                 } else if (_snapshot[ii] == null) {
                     _snapshot[ii] = new Transform3D();
                 }
+            }
+            if (config.modifiers.length == 0) {
+                _transforms = config.transforms;
+            } else {
+                Transform3D[] nodeDefaults = new Transform3D[_targets.length];
+                for (int ii = 0; ii < _targets.length; ii++) {
+                    nodeDefaults[ii] = _targets[ii] == null ?
+                        new Transform3D() : _targets[ii].getConfig().transform;
+                }
+                _transforms = config.getModifiedTransforms(nodeDefaults);
             }
 
             // create the executors

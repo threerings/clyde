@@ -278,7 +278,7 @@ public class AnimationConfig extends ParameterizedConfig
          * Returns the modified transform array.  If there are no modifiers then this simply returns
          * the 2D transforms array.
          */
-        public Transform3D[][] getModifiedTransforms ()
+        public Transform3D[][] getModifiedTransforms (Transform3D[] defaults)
         {
             if (modifiers.length == 0) {
                 return transforms;
@@ -291,7 +291,7 @@ public class AnimationConfig extends ParameterizedConfig
                 int idx = ArrayUtil.indexOf(targets, modifier.target);
                 if (idx != -1) {
                     for (int ii = 0; ii < result.length; ii++) {
-                        result[ii][idx] = modifier.modifyTransform(result[ii][idx]);
+                        result[ii][idx] = modifier.modifyTransform(result[ii][idx], defaults[idx]);
                     }
                 }
             }
@@ -496,9 +496,9 @@ public class AnimationConfig extends ParameterizedConfig
         /**
          * Alters the supplied transformation.
          */
-        public Transform3D modifyTransform (Transform3D source)
+        public Transform3D modifyTransform (Transform3D source, Transform3D def)
         {
-            return ignoreTransformations ? transform : transform.compose(source);
+            return transform.compose(ignoreTransformations ? def : source);
         }
     }
 
