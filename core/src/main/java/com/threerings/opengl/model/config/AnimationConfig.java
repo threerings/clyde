@@ -499,7 +499,7 @@ public class AnimationConfig extends ParameterizedConfig
         public boolean ignoreScale = false;
 
         /** A base transformation on the target. */
-        @Editable
+        @Editable(step=0.01)
         public Transform3D transform = new Transform3D(Transform3D.UNIFORM);
 
         /**
