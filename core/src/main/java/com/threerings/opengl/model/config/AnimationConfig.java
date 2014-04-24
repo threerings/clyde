@@ -291,7 +291,8 @@ public class AnimationConfig extends ParameterizedConfig
                 int idx = ArrayUtil.indexOf(targets, modifier.target);
                 if (idx != -1) {
                     for (int ii = 0; ii < result.length; ii++) {
-                        result[ii][idx] = modifier.modifyTransform(result[ii][idx], defaults[idx]);
+                        result[ii][idx] = modifier.modifyTransform(
+                                result[ii][idx].promote(Transform3D.UNIFORM), defaults[idx]);
                     }
                 }
             }
@@ -485,9 +486,17 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable
         public String target = "";
 
-        /** If the target ignores transformations. */
+        /** If the target ignores the animation translation. */
         @Editable
-        public boolean ignoreTransformations = false;
+        public boolean ignoreTranslation = false;
+
+        /** If the target ignores the animation rotation. */
+        @Editable
+        public boolean ignoreRotation = false;
+
+        /** If the target ignores the animation scale. */
+        @Editable
+        public boolean ignoreScale = false;
 
         /** A base transformation on the target. */
         @Editable
@@ -496,10 +505,17 @@ public class AnimationConfig extends ParameterizedConfig
         /**
          * Alters the supplied transformation.
          */
-        public Transform3D modifyTransform (Transform3D source, Transform3D def)
+        public Transform3D modifyTransform (Transform3D anim, Transform3D def)
         {
-            return transform.compose(ignoreTransformations ? def : source);
+            _transform.set(
+                    (ignoreTranslation ? def : anim).getTranslation(),
+                    (ignoreRotation ? def : anim).getRotation(),
+                    (ignoreScale ? def : anim).getScale());
+            Transform3D result = transform.compose(_transform);
+            return result;
         }
+
+        protected static Transform3D _transform = new Transform3D();
     }
 
     /** The actual animation implementation. */

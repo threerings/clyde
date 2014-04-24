@@ -261,8 +261,9 @@ public class Animation extends SimpleScope
             } else {
                 Transform3D[] nodeDefaults = new Transform3D[_targets.length];
                 for (int ii = 0; ii < _targets.length; ii++) {
-                    nodeDefaults[ii] = _targets[ii] == null ?
-                        new Transform3D() : _targets[ii].getConfig().transform;
+                    nodeDefaults[ii] = (_targets[ii] == null ?
+                        new Transform3D() : _targets[ii].getConfig().transform)
+                        .promote(Transform3D.UNIFORM);
                 }
                 _transforms = config.getModifiedTransforms(nodeDefaults);
             }
