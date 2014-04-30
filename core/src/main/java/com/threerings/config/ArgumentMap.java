@@ -275,10 +275,12 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return (ArgumentMap) copy(null);
     }
 
-    @SuppressWarnings("deprecation")
+    /**
+     * Helper: create an Entry for the specified key/value, 
+     */
     protected static Map.Entry<String, Object> newEntry (String k, Object v)
     {
-        return new com.samskivert.util.MapEntry<String, Object>(k, v);
+        return new SimpleEntry<String, Object>(k, v);
     }
 
     protected static class Key
