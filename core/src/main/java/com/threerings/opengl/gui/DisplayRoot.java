@@ -70,8 +70,8 @@ public class DisplayRoot extends Root
     public void poll ()
     {
         boolean isActive = Display.isActive();
-        boolean newActive = !_wasActive && isActive;
-        _wasActive = isActive;
+//        boolean newActive = !_wasActive && isActive;
+//        _wasActive = isActive;
 
         // process ime events
         while (IME.next()) {
@@ -112,7 +112,7 @@ public class DisplayRoot extends Root
             int button = Mouse.getEventButton();
             if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
-                if (pressed && !newActive) {
+                if (pressed /*&& !newActive*/) {
                     mousePressed(_tickStamp, button, eventX, eventY, false);
                 } else {
                     mouseReleased(_tickStamp, button, eventX, eventY, false);
@@ -383,9 +383,9 @@ public class DisplayRoot extends Root
         }
     }
 
-    /** Track whether we were active during the last event poll, so that we can consume
-     * the mouse click that may arrive with focus. */
-    protected boolean _wasActive;
+//    /** Track whether we were active during the last event poll, so that we can consume
+//     * the mouse click that may arrive with focus. */
+//    protected boolean _wasActive;
 
     /** If ime composing is enabled. */
     protected boolean _imeComposingEnabled;
