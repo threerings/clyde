@@ -80,28 +80,35 @@ public class DisplayRoot extends Root
                         IME.getState(), IME.getString(), IME.getCursorPosition()));
         }
 
-        Point p;
-        if (newActive && RunAnywhere.isMacOS()) {
-            Window[] windows = Window.getWindows();
-            if (windows.length > 0) {
-                // use the AWT to determine the current mouse position on the focusing click
-                Rectangle windowBounds = windows[0].getBounds();
-                Point mouseP = MouseInfo.getPointerInfo().getLocation();
-                p = new Point(mouseP.x - windowBounds.x,
-                    windowBounds.height - (1 + mouseP.y - windowBounds.y));
-                mouseMoved(_tickStamp, p.x, p.y, false);
-            } else {
-                p = null;
-            }
-
-        } else {
-            p = null;
-        }
+        // This hack previously fixed focusing mouse clicks on MacOSX to be at the right
+        // position. But now with the new LWJGL, Mac doesn't use a Window anymore unless
+        // something like the admin dashboard is up.
+//        Point p;
+//        if (newActive && RunAnywhere.isMacOS()) {
+//            Window[] windows = Window.getWindows();
+//            if (windows.length > 0) {
+//                System.err.println("Windows length: " + windows.length);
+//                // use the AWT to determine the current mouse position on the focusing click
+//                Rectangle windowBounds = windows[0].getBounds();
+//                Point mouseP = MouseInfo.getPointerInfo().getLocation();
+//                p = new Point(mouseP.x - windowBounds.x,
+//                    windowBounds.height - (1 + mouseP.y - windowBounds.y));
+//                mouseMoved(_tickStamp, p.x, p.y, false);
+//            } else {
+//                System.err.println("0 windows");
+//                p = null;
+//            }
+//
+//        } else {
+//            p = null;
+//        }
 
         // process mouse events
         while (Mouse.next()) {
-            int eventX = (p == null) ? Mouse.getEventX() : p.x;
-            int eventY = (p == null) ? Mouse.getEventY() : p.y;
+//            int eventX = (p == null) ? Mouse.getEventX() : p.x;
+//            int eventY = (p == null) ? Mouse.getEventY() : p.y;
+            int eventX = Mouse.getEventX();
+            int eventY = Mouse.getEventY();
             int button = Mouse.getEventButton();
             if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
@@ -120,10 +127,10 @@ public class DisplayRoot extends Root
                 mouseMoved(_tickStamp, eventX, eventY, false);
             }
         }
-        // If we calculated a new mouse position, force it for the next update.
-        if (p != null) {
-            Mouse.setCursorPosition(p.x, p.y);
-        }
+//        // If we calculated a new mouse position, force it for the next update.
+//        if (p != null) {
+//            Mouse.setCursorPosition(p.x, p.y);
+//        }
 
         // process keyboard events
         while (Keyboard.next()) {
