@@ -375,11 +375,11 @@ public class DisplayRoot extends Root
     protected void setIMEFocus (boolean focused)
     {
         if (!focused) {
-            IME.setComposing(_imeComposingEnabled && focused);
+            IME.setComposing(false);
         }
         super.setIMEFocus(focused);
         if (focused) {
-            IME.setComposing(_imeComposingEnabled && focused);
+            IME.setComposing(_imeComposingEnabled);
         }
     }
 
