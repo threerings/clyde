@@ -64,14 +64,17 @@ public class DisplayRoot extends Root
         _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     }
 
+    /** Temp: try allowing hovers while the window is unfocused, and first click through. */
+    private static final boolean SLOPPY_FOCUS = true;
+
     /**
      * Polls the input system for events and dispatches them.
      */
     public void poll ()
     {
         boolean isActive = Display.isActive();
-//        boolean newActive = !_wasActive && isActive;
-//        _wasActive = isActive;
+        boolean newActive = !_wasActive && isActive;
+        _wasActive = isActive;
 
         // process ime events
         while (IME.next()) {
@@ -80,39 +83,33 @@ public class DisplayRoot extends Root
                         IME.getState(), IME.getString(), IME.getCursorPosition()));
         }
 
-        // This hack previously fixed focusing mouse clicks on MacOSX to be at the right
-        // position. But now with the new LWJGL, Mac doesn't use a Window anymore unless
-        // something like the admin dashboard is up.
-//        Point p;
-//        if (newActive && RunAnywhere.isMacOS()) {
-//            Window[] windows = Window.getWindows();
-//            if (windows.length > 0) {
-//                System.err.println("Windows length: " + windows.length);
-//                // use the AWT to determine the current mouse position on the focusing click
-//                Rectangle windowBounds = windows[0].getBounds();
-//                Point mouseP = MouseInfo.getPointerInfo().getLocation();
-//                p = new Point(mouseP.x - windowBounds.x,
-//                    windowBounds.height - (1 + mouseP.y - windowBounds.y));
-//                mouseMoved(_tickStamp, p.x, p.y, false);
-//            } else {
-//                System.err.println("0 windows");
+        Point p;
+        if (newActive && RunAnywhere.isMacOS()) {
+            Point mouseP = MouseInfo.getPointerInfo().getLocation();
+            p = new Point(mouseP.x - Display.getX(),
+                    22 + Display.getHeight() - (mouseP.y - Display.getY()));
+            if ((p.x < 0 || p.y < 0 || p.x > Display.getWidth() || p.y > Display.getHeight())) {
+//                log.info("Throwing away p...");
+                p = null;
+            } else {
+//                log.info("newActive calc@", "x", p.x, "y", p.y);
+                mouseMoved(_tickStamp, p.x, p.y, false);
+//                Mouse.setCursorPosition(p.x, Display.getHeight() - p.y);
 //                p = null;
-//            }
-//
-//        } else {
-//            p = null;
-//        }
+            }
+
+        } else {
+            p = null;
+        }
 
         // process mouse events
         while (Mouse.next()) {
-//            int eventX = (p == null) ? Mouse.getEventX() : p.x;
-//            int eventY = (p == null) ? Mouse.getEventY() : p.y;
-            int eventX = Mouse.getEventX();
-            int eventY = Mouse.getEventY();
+            int eventX = (p == null) ? Mouse.getEventX() : p.x;
+            int eventY = (p == null) ? Mouse.getEventY() : p.y;
             int button = Mouse.getEventButton();
             if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
-                if (pressed /*&& !newActive*/) {
+                if (pressed && (SLOPPY_FOCUS || !newActive)) {
                     mousePressed(_tickStamp, button, eventX, eventY, false);
                 } else {
                     mouseReleased(_tickStamp, button, eventX, eventY, false);
@@ -123,14 +120,15 @@ public class DisplayRoot extends Root
             if (delta != 0) {
                 mouseWheeled(_tickStamp, eventX, eventY, (delta > 0) ? +1 : -1, false);
             }
-            if (isActive && button == -1 && delta == 0) {
+            if ((SLOPPY_FOCUS || isActive) && button == -1 && delta == 0) {
                 mouseMoved(_tickStamp, eventX, eventY, false);
             }
         }
-//        // If we calculated a new mouse position, force it for the next update.
-//        if (p != null) {
-//            Mouse.setCursorPosition(p.x, p.y);
-//        }
+        // If we calculated a new mouse position, force it for the next update.
+        if (p != null) {
+//            log.info("Force mouse", "x", p.x, "y", p.y);
+            Mouse.setCursorPosition(p.x, Display.getHeight() - p.y);
+        }
 
         // process keyboard events
         while (Keyboard.next()) {
@@ -383,10 +381,13 @@ public class DisplayRoot extends Root
         }
     }
 
-//    /** Track whether we were active during the last event poll, so that we can consume
-//     * the mouse click that may arrive with focus. */
-//    protected boolean _wasActive;
+    /** Track whether we were active during the last event poll, so that we can consume
+     * the mouse click that may arrive with focus. */
+    protected boolean _wasActive;
 
     /** If ime composing is enabled. */
     protected boolean _imeComposingEnabled;
+
+    /** The number of pixels used by the menubar on Mac OS X. For fudging mouse position. */
+    protected static final int MAC_OS_MENUBAR_HEIGHT = 22;
 }
