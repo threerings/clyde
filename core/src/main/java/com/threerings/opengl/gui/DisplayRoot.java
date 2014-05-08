@@ -83,29 +83,29 @@ public class DisplayRoot extends Root
                         IME.getState(), IME.getString(), IME.getCursorPosition()));
         }
 
-        Point p;
         if (newActive && RunAnywhere.isMacOS()) {
             Point mouseP = MouseInfo.getPointerInfo().getLocation();
-            p = new Point(mouseP.x - Display.getX(),
+            Point p = new Point(mouseP.x - Display.getX(),
                     22 + Display.getHeight() - (mouseP.y - Display.getY()));
             if ((p.x < 0 || p.y < 0 || p.x > Display.getWidth() || p.y > Display.getHeight())) {
 //                log.info("Throwing away p...");
-                p = null;
             } else {
 //                log.info("newActive calc@", "x", p.x, "y", p.y);
                 mouseMoved(_tickStamp, p.x, p.y, false);
-//                Mouse.setCursorPosition(p.x, Display.getHeight() - p.y);
-//                p = null;
+                _forcedMouse = p;
             }
-
-        } else {
-            p = null;
         }
 
         // process mouse events
         while (Mouse.next()) {
-            int eventX = (p == null) ? Mouse.getEventX() : p.x;
-            int eventY = (p == null) ? Mouse.getEventY() : p.y;
+            int eventX, eventY;
+            if (_forcedMouse == null) {
+                eventX = Mouse.getEventX();
+                eventY = Mouse.getEventY();
+            } else {
+                eventX = _forcedMouse.x;
+                eventY = _forcedMouse.y;
+            }
             int button = Mouse.getEventButton();
             if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
@@ -121,13 +121,14 @@ public class DisplayRoot extends Root
                 mouseWheeled(_tickStamp, eventX, eventY, (delta > 0) ? +1 : -1, false);
             }
             if ((SLOPPY_FOCUS || isActive) && button == -1 && delta == 0) {
+                if (_forcedMouse != null) {
+                    _forcedMouse = null;
+                    // TODO: move to above..
+                    eventX = Mouse.getEventX();
+                    eventY = Mouse.getEventY();
+                }
                 mouseMoved(_tickStamp, eventX, eventY, false);
             }
-        }
-        // If we calculated a new mouse position, force it for the next update.
-        if (p != null) {
-//            log.info("Force mouse", "x", p.x, "y", p.y);
-            Mouse.setCursorPosition(p.x, Display.getHeight() - p.y);
         }
 
         // process keyboard events
@@ -380,6 +381,9 @@ public class DisplayRoot extends Root
             IME.setComposing(_imeComposingEnabled);
         }
     }
+
+    /** A forced mouse location, or null. Used on Mac OS X only, after regaining focus. */
+    protected Point _forcedMouse;
 
     /** Track whether we were active during the last event poll, so that we can consume
      * the mouse click that may arrive with focus. */
