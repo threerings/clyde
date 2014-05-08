@@ -64,9 +64,6 @@ public class DisplayRoot extends Root
         _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     }
 
-    /** Temp: try allowing hovers while the window is unfocused, and first click through. */
-    private static final boolean NAIVE_FOCUS = true;
-
     /**
      * Polls the input system for events and dispatches them.
      */
@@ -389,4 +386,7 @@ public class DisplayRoot extends Root
 
     /** The number of pixels used by the menubar on Mac OS X. For fudging mouse position. */
     protected static final int MAC_OS_MENUBAR_HEIGHT = 22;
+
+    /** If true, allows hovers while the window is unfocused and processes the focusing click. */
+    private static final boolean NAIVE_FOCUS = false;
 }
