@@ -87,13 +87,9 @@ public class DisplayRoot extends Root
             Point mouseP = MouseInfo.getPointerInfo().getLocation();
             Point p = new Point(mouseP.x - Display.getX(),
                     22 + Display.getHeight() - (mouseP.y - Display.getY()));
-            if ((p.x < 0 || p.y < 0 || p.x > Display.getWidth() || p.y > Display.getHeight())) {
-//                log.info("Throwing away p...");
-            } else {
 //                log.info("newActive calc@", "x", p.x, "y", p.y);
-                mouseMoved(_tickStamp, p.x, p.y, false);
-                _forcedMouse = p;
-            }
+            mouseMoved(_tickStamp, p.x, p.y, false);
+            _forcedMouse = p;
         }
 
         // process mouse events
@@ -123,6 +119,7 @@ public class DisplayRoot extends Root
             if ((SLOPPY_FOCUS || isActive) && button == -1 && delta == 0) {
                 if (_forcedMouse != null) {
                     _forcedMouse = null;
+//                    log.info("Clearing");
                     // TODO: move to above..
                     eventX = Mouse.getEventX();
                     eventY = Mouse.getEventY();
