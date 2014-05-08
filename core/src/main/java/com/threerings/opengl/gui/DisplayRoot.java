@@ -83,48 +83,46 @@ public class DisplayRoot extends Root
                         IME.getState(), IME.getString(), IME.getCursorPosition()));
         }
 
+        // Work around a Mac issue: when focus is regained, the mouse coordinate is not
+        // updated until an actual mouse moved event is generated...
         if (newActive && RunAnywhere.isMacOS()) {
-            Point mouseP = MouseInfo.getPointerInfo().getLocation();
-            Point p = new Point(mouseP.x - Display.getX(),
-                    22 + Display.getHeight() - (mouseP.y - Display.getY()));
-//                log.info("newActive calc@", "x", p.x, "y", p.y);
-            mouseMoved(_tickStamp, p.x, p.y, false);
-            _forcedMouse = p;
+            Point p = MouseInfo.getPointerInfo().getLocation();
+            // We can modify and use that point directly. Translate it into window coords...
+            p.x -= Display.getX();
+            p.y = MAC_OS_MENUBAR_HEIGHT + Display.getHeight() - (p.y - Display.getY());
+            mouseMoved(_tickStamp, p.x, p.y, false); // hover the right coordinate immediately
+            _forcedMouse = p; // save this point until we get a geniune mouseMoved
         }
 
         // process mouse events
         while (Mouse.next()) {
-            int eventX, eventY;
-            if (_forcedMouse == null) {
-                eventX = Mouse.getEventX();
-                eventY = Mouse.getEventY();
-            } else {
-                eventX = _forcedMouse.x;
-                eventY = _forcedMouse.y;
-            }
             int button = Mouse.getEventButton();
-            if (button != -1) {
-                boolean pressed = Mouse.getEventButtonState();
-                if (pressed && (SLOPPY_FOCUS || !newActive)) {
-                    mousePressed(_tickStamp, button, eventX, eventY, false);
-                } else {
-                    mouseReleased(_tickStamp, button, eventX, eventY, false);
-                }
-                updateButtonModifier(button, pressed);
-            }
             int delta = Mouse.getEventDWheel();
-            if (delta != 0) {
-                mouseWheeled(_tickStamp, eventX, eventY, (delta > 0) ? +1 : -1, false);
-            }
-            if ((SLOPPY_FOCUS || isActive) && button == -1 && delta == 0) {
+            int eventX = Mouse.getEventX();
+            int eventY = Mouse.getEventY();
+            // clicks and wheels
+            if ((button != -1) || (delta != 0)) {
                 if (_forcedMouse != null) {
-                    _forcedMouse = null;
-//                    log.info("Clearing");
-                    // TODO: move to above..
-                    eventX = Mouse.getEventX();
-                    eventY = Mouse.getEventY();
+                    eventX = _forcedMouse.x;
+                    eventY = _forcedMouse.y;
                 }
+                if (button != -1) {
+                    boolean pressed = Mouse.getEventButtonState();
+                    if (pressed && (SLOPPY_FOCUS || !newActive)) {
+                        mousePressed(_tickStamp, button, eventX, eventY, false);
+                    } else {
+                        mouseReleased(_tickStamp, button, eventX, eventY, false);
+                    }
+                    updateButtonModifier(button, pressed);
+                }
+                if (delta != 0) {
+                    mouseWheeled(_tickStamp, eventX, eventY, (delta > 0) ? +1 : -1, false);
+                }
+
+            // movement
+            } else if (SLOPPY_FOCUS || isActive) {
                 mouseMoved(_tickStamp, eventX, eventY, false);
+                _forcedMouse = null; // clear the forcedMouse value, if any
             }
         }
 
