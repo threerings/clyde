@@ -65,7 +65,7 @@ public class DisplayRoot extends Root
     }
 
     /** Temp: try allowing hovers while the window is unfocused, and first click through. */
-    private static final boolean SLOPPY_FOCUS = true;
+    private static final boolean NAIVE_FOCUS = true;
 
     /**
      * Polls the input system for events and dispatches them.
@@ -108,7 +108,7 @@ public class DisplayRoot extends Root
                 }
                 if (button != -1) {
                     boolean pressed = Mouse.getEventButtonState();
-                    if (pressed && (SLOPPY_FOCUS || !newActive)) {
+                    if (pressed && (NAIVE_FOCUS || !newActive)) {
                         mousePressed(_tickStamp, button, eventX, eventY, false);
                     } else {
                         mouseReleased(_tickStamp, button, eventX, eventY, false);
@@ -120,7 +120,7 @@ public class DisplayRoot extends Root
                 }
 
             // movement
-            } else if (SLOPPY_FOCUS || isActive) {
+            } else if (NAIVE_FOCUS || isActive) {
                 mouseMoved(_tickStamp, eventX, eventY, false);
                 _forcedMouse = null; // clear the forcedMouse value, if any
             }
