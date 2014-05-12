@@ -59,8 +59,7 @@ public class EntryEdit extends AbstractUndoableEdit
 
         // add the new entries and put them in the map
         for (Entry entry : add) {
-            if (_scene.addEntry(entry)) {
-                _scene.setLayer(entry.getKey(), layer);
+            if (_scene.addEntry(entry, layer)) {
                 _added.put(entry.getKey(), null);
             }
         }
@@ -68,7 +67,7 @@ public class EntryEdit extends AbstractUndoableEdit
         // update the modified entries and store old state
         for (Entry entry : update) {
             Entry oentry = _scene.updateEntry(entry);
-            _scene.setLayer(entry.getKey(), layer);
+            //_scene.setLayer(entry.getKey(), layer); // this shouldn't be necessary: TODO
             if (oentry != null) {
                 _updated.put(entry.getKey(), oentry);
             }
@@ -181,8 +180,7 @@ public class EntryEdit extends AbstractUndoableEdit
     {
         // add back the entries we removed (retaining their ids)
         for (Map.Entry<Object, Entry> entry : removed.entrySet()) {
-            _scene.addEntry(entry.getValue(), false);
-            _scene.setLayer(entry.getValue().getKey(), _layer);
+            _scene.addEntry(entry.getValue(), _layer, false);
             entry.setValue(null);
         }
 

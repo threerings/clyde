@@ -1455,27 +1455,48 @@ public class TudeySceneModel extends SceneModel
      * @return true if the entry was successfully added, false if there was already
      * an entry with the same key (in which case a warning will be logged).
      */
-    public boolean addEntry (Entry entry)
+    public final boolean addEntry (Entry entry)
     {
-        return addEntry(entry, true);
+        return addEntry(entry, 0, true);
+    }
+
+    /**
+     * Adds an entry to the scene, assigning it a unique id in the process if it is an
+     * {@link IdEntry}.
+     *
+     * @param layer the layer to which to add the entry.
+     * @return true if the entry was successfully added, false if there was already
+     * an entry with the same key (in which case a warning will be logged).
+     */
+    public final boolean addEntry (Entry entry, int layer)
+    {
+        return addEntry(entry, layer, true);
+    }
+
+    // Temporary: will be removed shortly
+    @Deprecated
+    public final boolean addEntry (Entry entry, boolean assignId)
+    {
+        return addEntry(entry, 0, assignId);
     }
 
     /**
      * Adds an entry to the scene.
      *
+     * @param layer the layer to which to add the entry.
      * @param assignId if true and the entry is an {@link IdEntry}, assign a unique id to
      * the entry.
      * @return true if the entry was successfully added, false if there was already
      * an entry with the same id (in which case a warning will be logged).
      */
-    public boolean addEntry (final Entry entry, boolean assignId)
+    public boolean addEntry (final Entry entry, int layer, boolean assignId)
     {
         // assign id if appropriate
         if (assignId && entry instanceof IdEntry) {
             ((IdEntry)entry).setId(++_lastEntryId);
         }
         // add to map
-        Entry oentry = add(entry);
+        Entry oentry = add(entry, layer);
         if (oentry != null) {
             log.warning("Attempted to replace existing entry.",
                 "oentry", oentry, "nentry", entry);
@@ -1847,23 +1868,17 @@ public class TudeySceneModel extends SceneModel
     public void setLayer (final Object key, final int layer)
     {
         validateLayer(layer);
-        if (layer == 0) {
-            _layerMap.remove(key);
-
-        } else {
-            Preconditions.checkArgument((key instanceof Integer),
-                "Tiles may only be placed on layer 0");
-            _layerMap.put((Integer)key, layer);
-        }
-        // notify the observers
-        _observers.apply(new ObserverList.ObserverOp<Observer>() {
-            public boolean apply (Observer observer) {
-                if (observer instanceof LayerObserver) {
-                    ((LayerObserver) observer).entryLayerWasSet(key, layer);
+        if (setEntryLayer(key, layer)) {
+            // notify the observers
+            _observers.apply(new ObserverList.ObserverOp<Observer>() {
+                public boolean apply (Observer observer) {
+                    if (observer instanceof LayerObserver) {
+                        ((LayerObserver) observer).entryLayerWasSet(key, layer);
+                    }
+                    return true;
                 }
-                return true;
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -2481,31 +2496,34 @@ public class TudeySceneModel extends SceneModel
      *
      * @return null, or an existing entry that's in the way, so we can log it.
      */
-    protected Entry add (Entry entry)
+    protected Entry add (Entry entry, int layer)
     {
-        if (!(entry instanceof TileEntry)) {
+        validateLayer(layer);
+        if (entry instanceof TileEntry) {
+            TileEntry tentry = (TileEntry)entry;
+            Coord coord = tentry.getLocation();
+            int idx = addTileConfig(tentry.tile);
+            int ovalue = _tiles.put(coord.x, coord.y, tentry.encode(idx));
+            if (ovalue != -1) {
+                // replace the old value (a warning will be logged)
+                _tiles.put(coord.x, coord.y, ovalue);
+                removeTileConfig(idx);
+                return decodeTileEntry(coord, ovalue);
+            }
+            createShadow(tentry);
+
+        } else {
             Entry oentry = _entries.put(entry.getKey(), entry);
-            if (oentry == null) {
-                canonicalizeReference(entry);
-                addElement(entry);
-                invalidate();
-            } else {
+            if (oentry != null) {
                 // replace the old entry (a warning will be logged)
                 _entries.put(entry.getKey(), oentry);
+                return oentry;
             }
-            return oentry;
+            canonicalizeReference(entry);
+            addElement(entry);
         }
-        TileEntry tentry = (TileEntry)entry;
-        Coord coord = tentry.getLocation();
-        int idx = addTileConfig(tentry.tile);
-        int ovalue = _tiles.put(coord.x, coord.y, tentry.encode(idx));
-        if (ovalue != -1) {
-            // replace the old value (a warning will be logged)
-            _tiles.put(coord.x, coord.y, ovalue);
-            removeTileConfig(idx);
-            return decodeTileEntry(coord, ovalue);
-        }
-        createShadow(tentry);
+
+        setEntryLayer(entry.getKey(), layer);
         invalidate();
         return null;
     }
@@ -2847,6 +2865,22 @@ public class TudeySceneModel extends SceneModel
         paint.type = Paint.Type.values()[value & 0x03];
         paint.elevation = getElevation(value);
         return paint;
+    }
+
+    /**
+     * Set the entry's layer, return true if changed.
+     */
+    protected boolean setEntryLayer (Object key, int layer)
+    {
+        if (layer == 0) {
+            return (null != _layerMap.remove(key));
+
+        } else {
+            Preconditions.checkArgument((key instanceof Integer),
+                "Tiles may only be placed on layer 0");
+            Integer layerVal = layer;
+            return !layerVal.equals(_layerMap.put((Integer)key, layerVal));
+        }
     }
 
     /**

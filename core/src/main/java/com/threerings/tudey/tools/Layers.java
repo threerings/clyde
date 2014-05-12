@@ -448,8 +448,7 @@ class LayerTableModel extends AbstractTableModel
         fireTableDataChanged();
         // update every damn entry
         for (TudeySceneModel.Entry entry : _scene.getEntries()) {
-            Object key = entry.getKey();
-            setVisibility(key, _vis.get(_scene.getLayer(key)));
+            setVisibility(entry);
         }
     }
 
@@ -467,13 +466,13 @@ class LayerTableModel extends AbstractTableModel
     // from Observer (not part of public API)
     public void entryAdded (TudeySceneModel.Entry entry)
     {
-        // nada
+        setVisibility(entry);
     }
 
     // from Observer (not part of public API)
     public void entryUpdated (TudeySceneModel.Entry oentry, TudeySceneModel.Entry nentry)
     {
-        // nada
+        setVisibility(nentry);
     }
 
     // from Observer (not part of public API)
@@ -484,6 +483,17 @@ class LayerTableModel extends AbstractTableModel
 
     // from LayerObserver (not part of public API)
     public void entryLayerWasSet (Object key, int layer)
+    {
+        setVisibility(key, layer);
+    }
+
+    protected void setVisibility (TudeySceneModel.Entry entry)
+    {
+        Object key = entry.getKey();
+        setVisibility(key, _scene.getLayer(key));
+    }
+
+    protected void setVisibility (Object key, int layer)
     {
         setVisibility(key, _vis.get(layer));
     }
