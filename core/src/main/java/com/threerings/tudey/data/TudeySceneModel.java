@@ -1358,6 +1358,14 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * A special method to add the specified observer last.
+     */
+    public void addObserverLast (Observer observer)
+    {
+        _observers.add(0, observer);
+    }
+
+    /**
      * Removes a scene observer.
      */
     public void removeObserver (Observer observer)

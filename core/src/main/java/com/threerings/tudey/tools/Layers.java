@@ -339,7 +339,7 @@ class LayerTableModel extends AbstractTableModel
     public void setScene (TudeySceneModel scene)
     {
         _scene = scene;
-        _scene.addObserver(this);
+        _scene.addObserverLast(this); // we need to be last!
         _vis = Lists.newArrayList(Collections.nCopies(getRowCount(), Boolean.TRUE));
         fireTableDataChanged();
     }
