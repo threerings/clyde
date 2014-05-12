@@ -171,9 +171,11 @@ public class TudeySceneModel extends SceneModel
     /**
      * Used to select sprites according to their floor flags.
      */
-    protected static class FloorPlaceableFilter
-        implements Exportable, Predicate<SpaceElement>
+    protected enum FloorPlaceableFilter
+        implements Predicate<SpaceElement>
     {
+        INSTANCE;
+
         // from Predicate
         public boolean apply (SpaceElement element)
         {
@@ -1747,7 +1749,7 @@ public class TudeySceneModel extends SceneModel
         if (elevation == Integer.MIN_VALUE) {
             _point.getLocation().set(x, y);
             _point.updateBounds();
-            _space.getIntersecting(_point, _floorPlaceableFilter, _intersecting);
+            _space.getIntersecting(_point, FloorPlaceableFilter.INSTANCE, _intersecting);
             for (SpaceElement element : _intersecting) {
                 elevation = Math.max(
                         elevation, ((PlaceableEntry)element.getUserObject()).getElevation());
@@ -3045,8 +3047,4 @@ public class TudeySceneModel extends SceneModel
     /** Used to find the floor. */
     @DeepOmit
     protected transient Point _point = new Point();
-
-    /** Used to fine the floor. */
-    @DeepOmit
-    protected transient FloorPlaceableFilter _floorPlaceableFilter = new FloorPlaceableFilter();
 }
