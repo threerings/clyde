@@ -2479,7 +2479,7 @@ public class TudeySceneModel extends SceneModel
     /**
      * Performs the actual addition of the specified entry.
      *
-     * @return the replaced entry.
+     * @return null, or an existing entry that's in the way, so we can log it.
      */
     protected Entry add (Entry entry)
     {
