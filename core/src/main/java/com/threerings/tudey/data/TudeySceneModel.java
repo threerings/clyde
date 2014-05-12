@@ -1362,7 +1362,7 @@ public class TudeySceneModel extends SceneModel
      */
     public void addObserverLast (Observer observer)
     {
-        _observers.add(0, observer);
+        _observers.add(0, observer); // it's a fast-unsafe list, so the observer at 0 will be last
     }
 
     /**
