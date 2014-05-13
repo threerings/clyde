@@ -1481,13 +1481,6 @@ public class TudeySceneModel extends SceneModel
         return addEntry(entry, layer, true);
     }
 
-    // Temporary: will be removed shortly
-    @Deprecated
-    public final boolean addEntry (Entry entry, boolean assignId)
-    {
-        return addEntry(entry, 0, assignId);
-    }
-
     /**
      * Adds an entry to the scene.
      *
