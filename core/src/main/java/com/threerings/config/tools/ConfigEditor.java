@@ -290,23 +290,22 @@ public class ConfigEditor extends BaseConfigEditor
         }
 
         // activate the first tab
-        final ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(0);
+        ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(0);
         _tabs.setSelectedComponent(panel);
         panel.activate();
 
         // add a listener for tab change
         _tabs.addChangeListener(new ChangeListener() {
             public void stateChanged (ChangeEvent event) {
-                (_panel = (ManagerPanel)_tabs.getSelectedComponent()).activate();
+                ((ManagerPanel)_tabs.getSelectedComponent()).activate();
             }
-            protected ManagerPanel _panel = panel;
         });
 
         // set sensible default bounds
         setSize(850, 600);
         SwingUtil.centerWindow(this);
 
-        // restore out prefs (may override bounds)
+        // restore our prefs (may override bounds)
         restorePrefs();
 
         // open the initial config, if one was specified
