@@ -1311,6 +1311,15 @@ public class ActorSprite extends Sprite
         return _actor;
     }
 
+    /**
+     * If we have an advancer, return the current actor, otherwise return the actor in the final
+     * entry from the actor history.
+     */
+    public Actor getLastKnownActor ()
+    {
+        return _advancer == null ? _history.getLastKnownActor() : _actor;
+    }
+
     @Override
     public Model getModel ()
     {

@@ -90,6 +90,14 @@ public class ActorHistory
     }
 
     /**
+     * Returns the actor state from the last recieved entry.
+     */
+    public Actor getLastKnownActor ()
+    {
+        return _entries.get(_entries.size() - 1).getActor();
+    }
+
+    /**
      * Finds the state at the specified timestamp and places it into the result object.
      */
     public boolean get (int timestamp, Actor result, boolean isStatic)
