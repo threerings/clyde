@@ -85,8 +85,6 @@ public class DisplayRoot extends Root
         if (newActive && RunAnywhere.isMacOS()) {
             Point p = MouseInfo.getPointerInfo().getLocation();
             // We can modify and use that point directly. Translate it into window coords...
-            // NOTE: there appears to be a bug with Retina displays- there is a large Y offset.
-            // But only in the Y... Perhaps this will be fixed by the next version of LWJGL.
             p.x -= Display.getX();
             p.y = MAC_OS_MENUBAR_HEIGHT + Display.getHeight() - (p.y - Display.getY());
             mouseMoved(_tickStamp, p.x, p.y, false); // hover the right coordinate immediately
