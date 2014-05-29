@@ -185,7 +185,7 @@ public class PseudoKeys
             } else {
                 holdModifierKey(modKey, false);
                 for (int m : currentPressedKeys()) {
-                    if (PseudoKeys.hasModifierKey(m, modKey)) {
+                    if (hasModifierKey(m, modKey)) {
                         _observer.keyReleased(when, m);
                         _pressedKeys.remove(m);
                         m = applyModifierKeys(getBaseKey(m));
