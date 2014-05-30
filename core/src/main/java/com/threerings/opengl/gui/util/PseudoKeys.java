@@ -70,12 +70,6 @@ public class PseudoKeys
         return _singleton;
     }
 
-    // Fuck me, apparently I couldn't decide what to call this method
-    public static PseudoKeys instance ()
-    {
-        return _singleton;
-    }
-
     /**
      * An interface for objects listening for key press and release events.
      */
