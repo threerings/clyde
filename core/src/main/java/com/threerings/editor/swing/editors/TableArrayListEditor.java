@@ -35,6 +35,9 @@ import java.awt.event.ActionEvent;
 import java.lang.reflect.Array;
 
 import java.util.ArrayList;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -51,6 +54,9 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -219,6 +225,35 @@ public class TableArrayListEditor extends ArrayListEditor
         int col = _table.columnAtPoint(pt);
         return ((row == -1 || col == -1) ? "" :
             ("[" + row + "]" + _columns[col].getPathComponent()));
+    }
+
+    @Override
+    public void setParameterLabel (@Nullable String label, String parameterInfo)
+    {
+        if (label == null) {
+            // removing
+            if (_parameterInfo != null) {
+                _parameterInfo.remove(parameterInfo);
+                if (_parameterInfo.isEmpty()) {
+                    _parameterInfo = null;
+                }
+            }
+        } else {
+            // adding/updating
+            if (_parameterInfo == null) {
+                _parameterInfo = Maps.newTreeMap(); // always sorted keys
+            }
+            _parameterInfo.put(parameterInfo, label);
+        }
+        updateBorder();
+    }
+
+    @Override
+    protected String getParameterLabel ()
+    {
+        return (_parameterInfo == null)
+            ? null
+            : Joiner.on(", ").withKeyValueSeparator(" ").join(_parameterInfo);
     }
 
     @Override
@@ -839,4 +874,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
     /** The object panel used to edit the non-inline properties. */
     protected ObjectPanel _opanel;
+
+    /** Parameter information, if any. */
+    protected Map<String, String> _parameterInfo;
 }

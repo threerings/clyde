@@ -16,6 +16,7 @@ import javax.swing.event.ChangeListener;
 
 import com.google.common.base.Preconditions;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -160,7 +161,7 @@ public class ParameterHighlighter
         {
             _pathsEditor.removeChangeListener(this);
             _nameEditor.removeChangeListener(this);
-            update(ImmutableSet.<BasePropertyEditor>of());
+            update(ImmutableMap.<BasePropertyEditor, String>of());
         }
 
         // from ChangeListener
@@ -175,23 +176,26 @@ public class ParameterHighlighter
          */
         protected void update ()
         {
-            Set<BasePropertyEditor> targets = Sets.newIdentityHashSet();
+            Map<BasePropertyEditor, String> targets = Maps.newIdentityHashMap();
             for (int row = 0,
                     rowCount = _pathsEditor.getRowCount(), colCount = _pathsEditor.getColumnCount();
                     row < rowCount; row++) {
                 for (int col = 0; col < colCount; col++) {
                     String path = (String)_pathsEditor.getValueAt(row, col);
                     BasePropertyEditor pe = _pathToEditor.get(path);
+                    String pathInfo = "";
                     if (pe == null) {
                         while ((pe == null) && path.endsWith("]")) {
-                            path = path.substring(0, path.lastIndexOf("["));
+                            int lastBracket = path.lastIndexOf("[");
+                            pathInfo = path.substring(lastBracket) + pathInfo;
+                            path = path.substring(0, lastBracket);
                             pe = _pathToEditor.get(path);
                         }
                         if (pe == null) {
                             continue;
                         }
                     }
-                    targets.add(pe);
+                    targets.put(pe, pathInfo);
                 }
             }
             update(targets);
@@ -200,18 +204,18 @@ public class ParameterHighlighter
         /**
          * Update with the new set of targets.
          */
-        protected void update (Set<BasePropertyEditor> newTargets)
+        protected void update (Map<BasePropertyEditor, String> newTargets)
         {
             // null out any targets no longer present
-            for (BasePropertyEditor pe : Sets.difference(_pathTargets, newTargets)) {
-                pe.setParameterLabel(null);
+            for (BasePropertyEditor pe : Sets.difference(_lastTargets, newTargets.keySet())) {
+                pe.setParameterLabel(null, "");
             }
             // assign the new targets and update the name
-            _pathTargets = newTargets;
             String label = String.valueOf(_nameEditor.getProperty().get(_nameEditor.getObject()));
-            for (BasePropertyEditor pe : newTargets) {
-                pe.setParameterLabel(label);
+            for (Map.Entry<BasePropertyEditor, String> entry : newTargets.entrySet()) {
+                entry.getKey().setParameterLabel(label, entry.getValue());
             }
+            _lastTargets = newTargets.keySet();
         }
 
         /** The editor for the paths. */
@@ -220,8 +224,9 @@ public class ParameterHighlighter
         /** The editor for the name. */
         protected final PropertyEditor _nameEditor;
 
-        /** The current set of property editors referenced by the paths. */
-        protected Set<BasePropertyEditor> _pathTargets = ImmutableSet.of();
+        /** The current set of property editors referenced by the paths, mapped to pathInfo. */
+        /** The targets that were updated during the last update. */
+        protected Set<BasePropertyEditor> _lastTargets = ImmutableSet.of();
 
     } // end: class ParameterWatcher
 }

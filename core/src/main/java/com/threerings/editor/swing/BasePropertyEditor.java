@@ -160,9 +160,18 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         return "";
     }
 
-    public void setParameterLabel (@Nullable String label)
+    /**
+     * Set the information regarding how the property being edited here is parameterized out.
+     * 
+     * @param label the parameter name, or null to clear it.
+     * @param parameterInfo additional information about the path of the parameter, typically "".
+     */
+    public void setParameterLabel (@Nullable String label, String parameterInfo)
     {
         _parameterName = label;
+        if (!"".equals(parameterInfo)) {
+            log.warning("Lost parameter information: " + parameterInfo);
+        }
         updateBorder();
     }
 
@@ -467,8 +476,10 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             border = BorderFactory.createCompoundBorder(
                     border, BorderFactory.createLineBorder(Color.RED, 1));
         }
-        if (_parameterName != null) {
-            TitledBorder tb = new TitledBorder("Parameter: " + _parameterName);
+        // and add any parameter information
+        String paramLabel = getParameterLabel();
+        if (paramLabel != null) {
+            TitledBorder tb = new TitledBorder(paramLabel);
             tb.setTitleJustification(TitledBorder.TRAILING);
             tb.setTitleColor(Color.BLUE);
             if (border != null) {
@@ -479,7 +490,15 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             border = tb;
         }
 
-        return border; // ok to return null
+        return border; // ok to return null;
+    }
+
+    /**
+     * Get the parameter label to apply to our border.
+     */
+    protected String getParameterLabel ()
+    {
+        return _parameterName;
     }
 
     /**
