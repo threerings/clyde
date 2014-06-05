@@ -81,8 +81,10 @@ public class ParameterHighlighter
         }
         if (c instanceof BasePropertyEditor) {
             BasePropertyEditor pe = (BasePropertyEditor)c;
-            String path = Preconditions.checkNotNull(_editorToPath.remove(pe));
-            _pathToEditor.remove(path);
+            String path = _editorToPath.remove(pe);
+            if (path != null) {
+                _pathToEditor.remove(path);
+            }
             if (pe instanceof PathTableArrayListEditor) {
                 ParamterWatcher watcher = _params.remove(pe);
                 if (watcher == null) {
