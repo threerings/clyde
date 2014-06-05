@@ -245,15 +245,12 @@ public class TableArrayListEditor extends ArrayListEditor
             }
             _parameterInfo.put(parameterInfo, label);
         }
-        updateBorder();
-    }
 
-    @Override
-    protected String getParameterLabel ()
-    {
-        return (_parameterInfo == null)
+        // rebuild the complete label
+        String fullLabel = (_parameterInfo == null)
             ? null
             : Joiner.on(", ").withKeyValueSeparator(" ").join(_parameterInfo);
+        super.setParameterLabel(fullLabel, "");
     }
 
     @Override

@@ -168,7 +168,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
      */
     public void setParameterLabel (@Nullable String label, String parameterInfo)
     {
-        _parameterName = label;
+        _parameterLabel = label;
         if (!"".equals(parameterInfo)) {
             log.warning("Lost parameter information: " + parameterInfo);
         }
@@ -477,9 +477,8 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
                     border, BorderFactory.createLineBorder(Color.RED, 1));
         }
         // and add any parameter information
-        String paramLabel = getParameterLabel();
-        if (paramLabel != null) {
-            TitledBorder tb = new TitledBorder(paramLabel);
+        if (_parameterLabel != null) {
+            TitledBorder tb = new TitledBorder(_parameterLabel);
             tb.setTitleJustification(TitledBorder.TRAILING);
             tb.setTitleColor(Color.BLUE);
             if (border != null) {
@@ -491,14 +490,6 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         }
 
         return border; // ok to return null;
-    }
-
-    /**
-     * Get the parameter label to apply to our border.
-     */
-    protected String getParameterLabel ()
-    {
-        return _parameterName;
     }
 
     /**
@@ -542,7 +533,8 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     /** Is the value we're editing "invalid", if so, we'll draw a red border. */
     protected boolean _invalid;
 
-    protected String _parameterName;
+    /** A label indicating our parameterization status, or null. */
+    protected String _parameterLabel;
 
     /** Various icons. */
     protected static Icon _expandIcon, _collapseIcon, _highlightIcon, _treeIcon, _panelIcon;
