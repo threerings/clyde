@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.swing.util.SwingUtil;
 
+import com.threerings.editor.swing.editors.ObjectEditor;
 import com.threerings.editor.swing.editors.PathTableArrayListEditor;
 
 import static com.threerings.editor.Log.log;
@@ -54,16 +55,18 @@ public class ParameterHighlighter
             if (path.startsWith(".")) {
                 path = path.substring(1);
             }
-            BasePropertyEditor oldie = _pathToEditor.put(path, pe);
-            if (oldie != null) {
-                log.info("Jism of jesus!", "path", path, "pe", pe, "class", pe.getClass(),
-                        "oldie", oldie, "oclass", oldie.getClass());
+            if (_pathToEditor.containsKey(path)) {
+                // We already registered a parent editor, let's continue to use that for
+                // labelling purposes...
+                log.warning("Skipper!", "path", path, "pe", pe, "class", pe.getClass());
+                return;
             }
+            _pathToEditor.put(path, pe);
             _editorToPath.put(pe, path);
-            log.info("Register", "path", path, "pe", pe);
+//            log.info("Registered", "path", path, "pe", pe);
             if (pe instanceof PathTableArrayListEditor) {
                 PathTableArrayListEditor paths = (PathTableArrayListEditor)pe;
-                _parameters.put(paths, new ParameterInfo(paths));
+                _params.put(paths, new ParamterWatcher(paths));
             }
         }
     }
@@ -81,11 +84,11 @@ public class ParameterHighlighter
             String path = Preconditions.checkNotNull(_editorToPath.remove(pe));
             _pathToEditor.remove(path);
             if (pe instanceof PathTableArrayListEditor) {
-                ParameterInfo info = _parameters.remove(pe);
-                if (info == null) {
+                ParamterWatcher watcher = _params.remove(pe);
+                if (watcher == null) {
                     log.warning("What?: " + pe);
                 } else {
-                    info.shutdown();
+                    watcher.shutdown();
                 }
             }
         }
@@ -97,11 +100,14 @@ public class ParameterHighlighter
     // TEMP: for debugging
     protected java.util.Set<Component> _comps = com.google.common.collect.Sets.newIdentityHashSet();
 
+    /** Maps a property editor the path of its property. */
     protected Map<BasePropertyEditor, String> _editorToPath = Maps.newIdentityHashMap();
 
+    /** Maps the path back to the property editor. */
     protected Map<String, BasePropertyEditor> _pathToEditor = Maps.newHashMap();
 
-    protected Map<PathTableArrayListEditor, ParameterInfo> _parameters = Maps.newIdentityHashMap();
+    /** Maps a parameter path editor to the object tracking parameter changes. */
+    protected Map<PathTableArrayListEditor, ParamterWatcher> _params = Maps.newIdentityHashMap();
 
     /** Listens for container events and registers all descendants. */
     protected ContainerListener _containerListener = new ContainerListener() {
@@ -121,10 +127,18 @@ public class ParameterHighlighter
             }
         };
 
-    protected class ParameterInfo
+    /**
+     * Listens on both the name editor and path editor of a parameter, and updates
+     * any property editors referenced by those paths to have the name of the parameter
+     * provided to them.
+     */
+    protected class ParamterWatcher
         implements ChangeListener
     {
-        public ParameterInfo (PathTableArrayListEditor paths)
+        /**
+         * Construct a ParameterWatcher.
+         */
+        public ParamterWatcher (PathTableArrayListEditor paths)
         {
             PropertyEditor name = null;
             for (Container p = paths; p != null; p = p.getParent()) {
@@ -140,7 +154,27 @@ public class ParameterHighlighter
             update();
         }
 
-        public void update ()
+        /**
+         * Shut down the watcher.
+         */
+        public void shutdown ()
+        {
+            _pathsEditor.removeChangeListener(this);
+            _nameEditor.removeChangeListener(this);
+            update(ImmutableSet.<BasePropertyEditor>of());
+        }
+
+        // from ChangeListener
+        public void stateChanged (ChangeEvent event)
+        {
+            update();
+        }
+
+        /**
+         * Update any new and previous property editors referenced by the paths with the
+         * appropriate parameter name.
+         */
+        protected void update ()
         {
             Set<BasePropertyEditor> targets = Sets.newIdentityHashSet();
             for (int row = 0,
@@ -156,23 +190,13 @@ public class ParameterHighlighter
                     }
                 }
             }
-            updateTargets(targets);
+            update(targets);
         }
 
-        public void shutdown ()
-        {
-            _pathsEditor.removeChangeListener(this);
-            _nameEditor.removeChangeListener(this);
-            updateTargets(ImmutableSet.<BasePropertyEditor>of());
-        }
-
-        // from ChangeListener
-        public void stateChanged (ChangeEvent event)
-        {
-            update();
-        }
-
-        protected void updateTargets (Set<BasePropertyEditor> newTargets)
+        /**
+         * Update with the new set of targets.
+         */
+        protected void update (Set<BasePropertyEditor> newTargets)
         {
             // null out any targets no longer present
             for (BasePropertyEditor pe : Sets.difference(_pathTargets, newTargets)) {
@@ -186,10 +210,14 @@ public class ParameterHighlighter
             }
         }
 
+        /** The editor for the paths. */
         protected final PathTableArrayListEditor _pathsEditor;
 
+        /** The editor for the name. */
         protected final PropertyEditor _nameEditor;
 
+        /** The current set of property editors referenced by the paths. */
         protected Set<BasePropertyEditor> _pathTargets = ImmutableSet.of();
-    }
+
+    } // end: class ParameterWatcher
 }
