@@ -489,7 +489,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             border = tb;
         }
 
-        return border; // ok to return null;
+        return border; // ok to return null
     }
 
     /**

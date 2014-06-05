@@ -184,18 +184,15 @@ public class ParameterHighlighter
                     String path = (String)_pathsEditor.getValueAt(row, col);
                     BasePropertyEditor pe = _pathToEditor.get(path);
                     String pathInfo = "";
-                    if (pe == null) {
-                        while ((pe == null) && path.endsWith("]")) {
-                            int lastBracket = path.lastIndexOf("[");
-                            pathInfo = path.substring(lastBracket) + pathInfo;
-                            path = path.substring(0, lastBracket);
-                            pe = _pathToEditor.get(path);
-                        }
-                        if (pe == null) {
-                            continue;
-                        }
+                    while ((pe == null) && path.endsWith("]")) {
+                        int lastBracket = path.lastIndexOf("[");
+                        pathInfo = path.substring(lastBracket) + pathInfo;
+                        path = path.substring(0, lastBracket);
+                        pe = _pathToEditor.get(path);
                     }
-                    targets.put(pe, pathInfo);
+                    if (pe != null) {
+                        targets.put(pe, pathInfo);
+                    }
                 }
             }
             update(targets);
