@@ -39,12 +39,15 @@ import java.awt.image.BufferedImage;
 
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -155,6 +158,12 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     public String getComponentPath (Component comp, boolean mouse)
     {
         return "";
+    }
+
+    public void setParameterLabel (@Nullable String label)
+    {
+        _parameterName = label;
+        updateBorder();
     }
 
     // documentation inherited from interface ActionListener
@@ -458,6 +467,17 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             border = BorderFactory.createCompoundBorder(
                     border, BorderFactory.createLineBorder(Color.RED, 1));
         }
+        if (_parameterName != null) {
+            TitledBorder tb = new TitledBorder("Parameter: " + _parameterName);
+            tb.setTitleJustification(TitledBorder.TRAILING);
+            tb.setTitleColor(Color.BLUE);
+            if (border != null) {
+                // replace the standard "etched" border in the title with the existing border
+                tb.setTitlePosition(TitledBorder.ABOVE_TOP);
+                tb.setBorder(border);
+            }
+            border = tb;
+        }
 
         return border; // ok to return null
     }
@@ -502,6 +522,8 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
 
     /** Is the value we're editing "invalid", if so, we'll draw a red border. */
     protected boolean _invalid;
+
+    protected String _parameterName;
 
     /** Various icons. */
     protected static Icon _expandIcon, _collapseIcon, _highlightIcon, _treeIcon, _panelIcon;

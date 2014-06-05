@@ -73,6 +73,9 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
                     createDirectPath(getMousePath());
                 }
             });
+
+            // since we are a top-level editor, set up the parameter highlighter
+            new ParameterHighlighter(this);
         }
 
         setLayout(new VGroupLayout(
