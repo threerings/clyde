@@ -41,24 +41,11 @@ public class ParameterHighlighter
         editor.addContainerListener(_containerListener);
     }
 
-//    /**
-//     * Force update everything.
-//     */
-//    public void update ()
-//    {
-////        for (ParameterWatcher watcher : _params.values()) {
-////            watcher.update();
-////        }
-//    }
-
     /**
      * Register a newly-seen descendant.
      */
     protected void registerDescendant (Component c)
     {
-        if (!_comps.add(c)) {
-            throw new RuntimeException("NOPE");
-        }
         if (c instanceof Container) {
             ((Container)c).addContainerListener(_containerListener);
         }
@@ -71,12 +58,11 @@ public class ParameterHighlighter
             if (_pathToEditor.containsKey(path)) {
                 // We already registered a parent editor, let's continue to use that for
                 // labelling purposes...
-//                log.warning("Skipper!", "path", path, "pe", pe, "class", pe.getClass());
                 return;
             }
             _pathToEditor.put(path, pe);
             _editorToPath.put(pe, path);
-            log.info("+", "path", path, "pe", pe.getClass());
+//            log.info("+", "path", path, "pe", pe.getClass());
             if (pe instanceof PathTableArrayListEditor) {
                 PathTableArrayListEditor paths = (PathTableArrayListEditor)pe;
                 _params.put(paths, new ParameterWatcher(paths));
@@ -89,9 +75,6 @@ public class ParameterHighlighter
      */
     protected void unregisterDescendant (Component c)
     {
-        if (!_comps.remove(c)) {
-            log.warning("WHAT?", new Exception());
-        }
         if (c instanceof Container) {
             ((Container)c).removeContainerListener(_containerListener);
         }
@@ -100,7 +83,7 @@ public class ParameterHighlighter
             String path = _editorToPath.remove(pe);
             if (path != null) {
                 _pathToEditor.remove(path);
-                log.info("-", "path", path);
+//                log.info("-", "path", path);
             }
             if (pe instanceof PathTableArrayListEditor) {
                 ParameterWatcher watcher = _params.remove(pe);
@@ -115,9 +98,6 @@ public class ParameterHighlighter
 
     /** The editor we're supporting. */
     protected BaseEditorPanel _editor;
-
-    // TEMP: for debugging
-    protected java.util.Set<Component> _comps = com.google.common.collect.Sets.newIdentityHashSet();
 
     /** Maps a property editor the path of its property. */
     protected Map<BasePropertyEditor, String> _editorToPath = Maps.newIdentityHashMap();
@@ -170,7 +150,6 @@ public class ParameterHighlighter
             _nameEditor = name;
             _pathsEditor.addChangeListener(this);
             _nameEditor.addChangeListener(this);
-            log.info("Noted editor: " + _nameEditor.getProperty().get(_nameEditor.getObject()));
             update();
         }
 
@@ -204,13 +183,12 @@ public class ParameterHighlighter
                     String path = (String)_pathsEditor.getValueAt(row, col);
                     BasePropertyEditor pe = _pathToEditor.get(path);
                     if (pe == null) {
-                        if (path.endsWith("]")) {
+                        while ((pe == null) && path.endsWith("]")) {
                             path = path.substring(0, path.lastIndexOf("["));
                             pe = _pathToEditor.get(path);
-                            if (pe == null) {
-                                // still null: skip it
-                                continue;
-                            }
+                        }
+                        if (pe == null) {
+                            continue;
                         }
                     }
                     targets.add(pe);
@@ -231,7 +209,6 @@ public class ParameterHighlighter
             // assign the new targets and update the name
             _pathTargets = newTargets;
             String label = String.valueOf(_nameEditor.getProperty().get(_nameEditor.getObject()));
-            log.info("Updating param: " + label);
             for (BasePropertyEditor pe : newTargets) {
                 pe.setParameterLabel(label);
             }
