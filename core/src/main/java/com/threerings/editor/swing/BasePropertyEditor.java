@@ -170,7 +170,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     {
         _parameterLabel = label;
         if (!"".equals(parameterInfo)) {
-            log.warning("Lost parameter information: " + parameterInfo);
+            log.warning("Lost parameter information: " + parameterInfo, "clazz", this.getClass());
         }
         updateBorder();
     }
