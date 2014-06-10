@@ -643,8 +643,8 @@ public class TudeySceneController extends SceneController
         }
         list.add(observer);
 
-        if (PseudoKeys.singleton().hasAnyModifierKeys(key)) {
-            _unifier.addModifierUser(PseudoKeys.singleton().getBaseKey(key));
+        if (PseudoKeys.hasAnyModifierKeys(key)) {
+            _unifier.addModifierUser(PseudoKeys.getBaseKey(key));
         }
     }
 
@@ -961,14 +961,6 @@ public class TudeySceneController extends SceneController
     }
 
     /**
-     * Create the pseudokeys unifier we'll be using.
-     */
-    protected PseudoKeys.Unifier createUnifier ()
-    {
-        return new PseudoKeys.Unifier(this);
-    }
-
-    /**
      * Creates a map array to store per-direction pseudo-key presses.
      */
     protected static IntMap<Float>[] createDirectionPresses ()
@@ -1043,7 +1035,7 @@ public class TudeySceneController extends SceneController
     protected boolean _holdHover;
 
     /** Translates various events into pseudo-key events. */
-    protected PseudoKeys.Unifier _unifier = createUnifier();
+    protected PseudoKeys.Unifier _unifier = new PseudoKeys.Unifier(this);
 
     /** Maps pseudo-key codes to observers for individual keys. */
     protected IntMap<ObserverList<PseudoKeys.Observer>> _keyObservers = IntMaps.newHashIntMap();
