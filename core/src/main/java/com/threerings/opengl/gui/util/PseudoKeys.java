@@ -63,6 +63,14 @@ import static com.threerings.opengl.gui.Log.log;
 public class PseudoKeys
 {
     /**
+     * Get the singleton PseudoKeys instance.
+     */
+    public static PseudoKeys singleton ()
+    {
+        return _singleton;
+    }
+
+    /**
      * An interface for objects listening for key press and release events.
      */
     public interface Observer
@@ -185,10 +193,10 @@ public class PseudoKeys
             } else {
                 holdModifierKey(modKey, false);
                 for (int m : currentPressedKeys()) {
-                    if (hasModifierKey(m, modKey)) {
+                    if (singleton().hasModifierKey(m, modKey)) {
                         _observer.keyReleased(when, m);
                         _pressedKeys.remove(m);
-                        m = applyModifierKeys(getBaseKey(m));
+                        m = applyModifierKeys(singleton().getBaseKey(m));
                         _pressedKeys.add(m);
                         _observer.keyPressed(when, m, 1);
                     }
@@ -562,6 +570,8 @@ public class PseudoKeys
     public static final int KEY_BUTTON15 = Keyboard.KEYBOARD_SIZE + 23;
     public static final int KEY_BUTTON16 = Keyboard.KEYBOARD_SIZE + 24;
 
+    public static final int LAST_KEY = KEY_BUTTON16;
+
     /** A special "key" mapping for modifier key 1. */
     public static final int KEY_MODIFIER1 = 1 << 28;
 
@@ -620,7 +630,7 @@ public class PseudoKeys
      * Checks whether the supplied key is valid.  Controller keys are invalid if they refer to
      * controllers or controls that don't exist.
      */
-    public static boolean isValid (int key)
+    public boolean isValid (int key)
     {
         int controllerIndex;
 
@@ -653,10 +663,8 @@ public class PseudoKeys
     /**
      * Returns a string describing the specified key.
      */
-    public static String getDesc (MessageBundle msgs, int key)
+    public String getDesc (MessageBundle msgs, int key)
     {
-        int idx;
-        String result;
         int baseKey = getBaseKey(key);
 
         List<String> modifiers = Lists.newArrayList();
@@ -685,48 +693,9 @@ public class PseudoKeys
                 // Otherwise just use the first one.
                 modifiers.add(MessageBundle.taint(getDesc(msgs, keys.iterator().next())));
             }
-
         }
 
-        switch (getType(baseKey)) {
-            case KEY_CONTROLLER_BUTTON:
-                idx = getControllerIndex(baseKey);
-                result = MessageBundle.tcompose("m.controller_button", String.valueOf(idx),
-                        Controllers.getController(idx).getButtonName(getControlIndex(baseKey))
-                                .replaceFirst("[Bb]utton\\s*", ""));
-                break;
-            case KEY_CONTROLLER_AXIS_POSITIVE:
-                idx = getControllerIndex(baseKey);
-                result = MessageBundle.tcompose("m.controller_axis_positive", String.valueOf(idx),
-                    Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
-                break;
-            case KEY_CONTROLLER_AXIS_NEGATIVE:
-                idx = getControllerIndex(baseKey);
-                result = MessageBundle.tcompose("m.controller_axis_negative", String.valueOf(idx),
-                    Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
-                break;
-            case KEY_CONTROLLER_POV_X_POSITIVE:
-                result = MessageBundle.tcompose("m.controller_pov_x_positive",
-                    String.valueOf(getControllerIndex(baseKey)));
-                break;
-            case KEY_CONTROLLER_POV_X_NEGATIVE:
-                result = MessageBundle.tcompose("m.controller_pov_x_negative",
-                    String.valueOf(getControllerIndex(baseKey)));
-                break;
-            case KEY_CONTROLLER_POV_Y_POSITIVE:
-                result = MessageBundle.tcompose("m.controller_pov_y_positive",
-                    String.valueOf(getControllerIndex(baseKey)));
-                break;
-            case KEY_CONTROLLER_POV_Y_NEGATIVE:
-                result = MessageBundle.tcompose("m.controller_pov_y_negative",
-                    String.valueOf(getControllerIndex(baseKey)));
-                break;
-            default:
-                String name = getName(baseKey);
-                String mkey = "k." + StringUtil.toUSLowerCase(name);
-                result = msgs.exists(mkey) ? mkey : MessageBundle.taint(name);
-        }
-
+        String result = getBaseDescKey(msgs, baseKey);
         if (!modifiers.isEmpty()) {
             modifiers.add(result);
             result = MessageBundle.compose(
@@ -735,10 +704,53 @@ public class PseudoKeys
         return msgs.xlate(result);
     }
 
+    protected String getBaseDescKey (MessageBundle msgs, int baseKey)
+    {
+        int idx;
+        switch (getType(baseKey)) {
+            case KEY_CONTROLLER_BUTTON:
+                idx = getControllerIndex(baseKey);
+                return MessageBundle.tcompose("m.controller_button", String.valueOf(idx),
+                        Controllers.getController(idx).getButtonName(getControlIndex(baseKey))
+                                .replaceFirst("[Bb]utton\\s*", ""));
+
+            case KEY_CONTROLLER_AXIS_POSITIVE:
+                idx = getControllerIndex(baseKey);
+                return MessageBundle.tcompose("m.controller_axis_positive", String.valueOf(idx),
+                    Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
+
+            case KEY_CONTROLLER_AXIS_NEGATIVE:
+                idx = getControllerIndex(baseKey);
+                return MessageBundle.tcompose("m.controller_axis_negative", String.valueOf(idx),
+                    Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
+
+            case KEY_CONTROLLER_POV_X_POSITIVE:
+                return MessageBundle.tcompose("m.controller_pov_x_positive",
+                    String.valueOf(getControllerIndex(baseKey)));
+
+            case KEY_CONTROLLER_POV_X_NEGATIVE:
+                return MessageBundle.tcompose("m.controller_pov_x_negative",
+                    String.valueOf(getControllerIndex(baseKey)));
+
+            case KEY_CONTROLLER_POV_Y_POSITIVE:
+                return MessageBundle.tcompose("m.controller_pov_y_positive",
+                    String.valueOf(getControllerIndex(baseKey)));
+
+            case KEY_CONTROLLER_POV_Y_NEGATIVE:
+                return MessageBundle.tcompose("m.controller_pov_y_negative",
+                    String.valueOf(getControllerIndex(baseKey)));
+
+            default:
+                String name = getName(baseKey);
+                String mkey = "k." + StringUtil.toUSLowerCase(name);
+                return msgs.exists(mkey) ? mkey : MessageBundle.taint(name);
+        }
+    }
+
     /**
      * Returns the name for the specified key.
      */
-    public static String getName (int key)
+    public String getName (int key)
     {
         switch (getType(key)) {
             case KEY_BUTTON1: return "BUTTON1";
@@ -771,7 +783,7 @@ public class PseudoKeys
     /**
      * Returns the key type.
      */
-    public static int getType (int key)
+    public int getType (int key)
     {
         return key & 0xFFFF;
     }
@@ -779,7 +791,7 @@ public class PseudoKeys
     /**
      * Returns the controller index.
      */
-    public static int getControllerIndex (int key)
+    public int getControllerIndex (int key)
     {
         return getBaseKey(key) >>> 24;
     }
@@ -787,7 +799,7 @@ public class PseudoKeys
     /**
      * Returns the control index.
      */
-    public static int getControlIndex (int key)
+    public int getControlIndex (int key)
     {
         return (key >> 16) & 0xFF;
     }
@@ -795,7 +807,7 @@ public class PseudoKeys
     /**
      * Is the specified key an analog control that can be "pressed" by values between 0f and 1f?
      */
-    public static boolean isAnalogKey (int key)
+    public boolean isAnalogKey (int key)
     {
         switch (getType(key)) {
         case KEY_CONTROLLER_AXIS_POSITIVE:
@@ -814,7 +826,7 @@ public class PseudoKeys
     /**
      * Is the specified key a mouse button or mouse wheel key?
      */
-    public static boolean isMouseKey (int key)
+    public boolean isMouseKey (int key)
     {
         switch (getType(key)) {
         case KEY_BUTTON1:
@@ -834,7 +846,7 @@ public class PseudoKeys
     /**
      * Is the specified key a keyboard key?
      */
-    public static boolean isKeyboardKey (int key)
+    public boolean isKeyboardKey (int key)
     {
         key = getBaseKey(key);
         return (key < Keyboard.KEYBOARD_SIZE && key != Keyboard.KEY_NONE);
@@ -843,7 +855,7 @@ public class PseudoKeys
     /**
      * Is the specified key a controller key?
      */
-    public static boolean isControllerKey (int key)
+    public boolean isControllerKey (int key)
     {
         return (isAnalogKey(key) || (getType(key) == KEY_CONTROLLER_BUTTON));
     }
@@ -851,7 +863,7 @@ public class PseudoKeys
     /**
      * Returns the base key for a given int.
      */
-    public static int getBaseKey (int key)
+    public int getBaseKey (int key)
     {
         return key & ~KEY_MODIFIER_MASK;
     }
@@ -859,7 +871,7 @@ public class PseudoKeys
     /**
      * Returns whether the given modifier is held in the given key.
      */
-    public static boolean hasModifierKey (int key, int modifier)
+    public boolean hasModifierKey (int key, int modifier)
     {
         return (key & modifier) != 0;
     }
@@ -867,7 +879,7 @@ public class PseudoKeys
     /**
      * Returns whether the given key has ANY modifiers on it.
      */
-    public static boolean hasAnyModifierKeys (int key)
+    public boolean hasAnyModifierKeys (int key)
     {
         return (key & KEY_MODIFIER_MASK) != 0;
     }
@@ -875,7 +887,7 @@ public class PseudoKeys
     /**
      * Add a mapping for the specified key as one of the modifiers.
      */
-    public static void addModifierKey (int key, int modKey)
+    public void addModifierKey (int key, int modKey)
     {
         _modifierToKeys.put(modKey, key);
     }
@@ -883,11 +895,15 @@ public class PseudoKeys
     /**
      * Clear all modifier keys.
      */
-    public static void clearModifierKeys ()
+    public void clearModifierKeys ()
     {
         _modifierToKeys.clear();
     }
 
     /** Maps the modifier key constant to the key value. */
-    protected static ListMultimap<Integer, Integer> _modifierToKeys = ArrayListMultimap.create();
+    protected ListMultimap<Integer, Integer> _modifierToKeys = ArrayListMultimap.create();
+
+    /** A singleton instance, because this class was originally all fucking static and so
+     * it's a giant pain in the ass to make an instance accessible in a reasonable way. */
+    protected static PseudoKeys _singleton = new PseudoKeys();
 }
