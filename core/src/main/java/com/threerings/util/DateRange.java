@@ -75,6 +75,15 @@ public class DateRange extends DeepObject
     }
 
     @Override
+    public String toString ()
+    {
+        return Objects.toStringHelper(this)
+            .add("startTime", getStartTime())
+            .add("stopTime", getStopTime())
+            .toString();
+    }
+
+    @Override
     public DateRange clone ()
     {
         return (DateRange)super.clone();

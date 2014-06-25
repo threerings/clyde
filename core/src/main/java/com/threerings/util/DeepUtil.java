@@ -175,6 +175,9 @@ public class DeepUtil
 
     /**
      * Return the string representation of an object.
+     * Note: this is currently not used anywhere. It was hooked up to DeepObject's toString,
+     * but that actually caused a lot of issues with toStringing something because
+     * it dumped way too much ugliness and dived deep into every single object reference.
      */
     public static String toString (Object object)
     {
