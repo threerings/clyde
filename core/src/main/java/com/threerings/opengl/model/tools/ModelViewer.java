@@ -105,7 +105,7 @@ public class ModelViewer extends ModelTool
 
         JMenu file = createMenu("file", KeyEvent.VK_F);
         menubar.add(file);
-        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+        createFileMenuItems(file);
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
@@ -269,6 +269,11 @@ public class ModelViewer extends ModelTool
         } else {
             super.actionPerformed(event);
         }
+    }
+
+    protected void createFileMenuItems (JMenu file)
+    {
+        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
     }
 
     @Override
