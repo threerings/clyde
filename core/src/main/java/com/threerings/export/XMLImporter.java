@@ -278,11 +278,13 @@ public class XMLImporter extends Importer
             } catch (Exception e) {
                 log.warning("Failed to parse string.", "string", string, "class", cclazz, e);
             }
-            if (depth.length() > 0 && value != null) {
-                putObjectDepth(depth, value);
-            }
-            if (id.length() > 0 && value != null) {
-                putObject(id, value);
+            if (value != null) {
+                if (depth.length() > 0) {
+                    putObjectDepth(depth, value);
+                }
+                if (id.length() > 0) {
+                    putObject(id, value);
+                }
             }
             return value;
         }
