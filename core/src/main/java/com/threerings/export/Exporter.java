@@ -86,7 +86,7 @@ public abstract class Exporter
     public void write (String name, boolean value, boolean defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -103,7 +103,7 @@ public abstract class Exporter
     public void write (String name, byte value, byte defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -120,7 +120,7 @@ public abstract class Exporter
     public void write (String name, char value, char defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -137,7 +137,7 @@ public abstract class Exporter
     public void write (String name, double value, double defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -154,7 +154,7 @@ public abstract class Exporter
     public void write (String name, float value, float defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -171,7 +171,7 @@ public abstract class Exporter
     public void write (String name, int value, int defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -205,7 +205,7 @@ public abstract class Exporter
     public void write (String name, short value, short defvalue)
         throws IOException
     {
-        if (value != defvalue || _saveDefaults) {
+        if (value != defvalue) {
             write(name, value);
         }
     }
@@ -639,7 +639,7 @@ public abstract class Exporter
         // use Arrays.deepEquals in order to compare arrays sensibly
         _a1[0] = value;
         _a2[0] = defvalue;
-        if (!Arrays.deepEquals(_a1, _a2) || _saveDefaults) {
+        if (!Arrays.deepEquals(_a1, _a2)) {
             write(name, value, clazz);
         }
     }
@@ -717,8 +717,6 @@ public abstract class Exporter
 
     /** The object whose fields are being written. */
     protected Object _object;
-
-    protected boolean _saveDefaults = false;
 
     /** The marshaller for the current object. */
     protected ObjectMarshaller _marshaller;
