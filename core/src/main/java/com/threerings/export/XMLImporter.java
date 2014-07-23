@@ -379,7 +379,8 @@ public class XMLImporter extends Importer
     {
         Object ovalue = _depths.put(depth, value);
         if (ovalue != null) {
-            log.warning("Duplicate depth detected.", "depth", depth, "ovalue", ovalue, "nvalue", value);
+            log.warning("Duplicate depth detected.",
+                    "depth", depth, "ovalue", ovalue, "nvalue", value);
         }
     }
 
