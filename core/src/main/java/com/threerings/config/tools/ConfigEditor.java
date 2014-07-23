@@ -779,7 +779,10 @@ public class ConfigEditor extends BaseConfigEditor
             SwingUtil.refresh(_epanel);
 
             // activate the selected item
-            ((GroupItem)gbox.getSelectedItem()).activate();
+            GroupItem group = (GroupItem)gbox.getSelectedItem();
+            if (group != null) {
+                group.activate();
+            }
 
             // can only save/revert configurations with a config path
             boolean enable = (cfgmgr.getConfigPath() != null);
