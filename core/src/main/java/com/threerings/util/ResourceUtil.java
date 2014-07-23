@@ -50,7 +50,7 @@ public class ResourceUtil
      */
     public static String getPreferredResourceDir ()
     {
-        return _prefs.get("resource_dir", null);
+        return _prefs.get(_prefPrefix + "resource_dir", null);
     }
 
     /**
@@ -61,9 +61,9 @@ public class ResourceUtil
     public static void setPreferredResourceDir (String dir)
     {
         if (dir == null) {
-            _prefs.remove("resource_dir");
+            _prefs.remove(_prefPrefix + "resource_dir");
         } else {
-            _prefs.put("resource_dir", dir);
+            _prefs.put(_prefPrefix + "resource_dir", dir);
         }
     }
 
@@ -123,4 +123,8 @@ public class ResourceUtil
 
     /** The package preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ResourceUtil.class);
+
+    /** The pref prefix. */
+    protected static String _prefPrefix =
+            System.getProperty("com.threerings.resource.pref_prefix", "");
 }
