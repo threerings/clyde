@@ -289,18 +289,20 @@ public class BinaryImporter extends Importer
         }
         // see if we can stream the value directly
         Class<?> wclazz = cclazz.getWrappedClass();
-        Streamer streamer = (wclazz == null) ? null : Streamer.getStreamer(wclazz);
-        if (streamer != null) {
-            Object value = null;
-            try {
-                value = streamer.read(_in);
-            } catch (ClassNotFoundException e) {
-                log.warning("Class not found.", e);
+        if (wclazz != null) {
+            Streamer streamer = Streamer.getStreamer(wclazz);
+            if (streamer != null) {
+                Object value = null;
+                try {
+                    value = streamer.read(_in);
+                } catch (ClassNotFoundException e) {
+                    log.warning("Class not found.", e);
+                }
+                if (value != null && objectId != -1) {
+                    _objects.put(objectId, value);
+                }
+                return value;
             }
-            if (value != null && objectId != -1) {
-                _objects.put(objectId, value);
-            }
-            return value;
         }
         // otherwise, create and populate the object
         Object value = null;
