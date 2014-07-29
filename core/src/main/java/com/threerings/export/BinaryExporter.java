@@ -120,8 +120,9 @@ public class BinaryExporter extends Exporter
             _out.writeShort(_compress ? COMPRESSED_FORMAT_FLAG : 0x0);
 
             // everything thereafter will be compressed if so requested
-            _out = new DataOutputStream(
-                _compress ? (_defout = new DeflaterOutputStream(_base)) : _base);
+            if (_compress) {
+                _out = new DataOutputStream(_defout = new DeflaterOutputStream(_base));
+            }
 
             // initialize mapping
             _objectIds = new IdentityHashMap<Object, Integer>();

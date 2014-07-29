@@ -111,7 +111,9 @@ public class BinaryImporter extends Importer
             boolean compressed = (flags & BinaryExporter.COMPRESSED_FORMAT_FLAG) != 0;
 
             // the rest of the stream may be compressed
-            _in = new DataInputStream(compressed ? new InflaterInputStream(_base) : _base);
+            if (compressed) {
+                _in = new DataInputStream(new InflaterInputStream(_base));
+            }
 
             // initialize mapping
             _objects = new HashIntMap<Object>();
