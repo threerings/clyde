@@ -767,14 +767,14 @@ public class BinaryImporter extends Importer
     /** Maps class objects to wrapper objects (for classes identified by reference). */
     protected Map<Class<?>, ClassWrapper> _wrappersByClass = Maps.newHashMap();
 
+    /** Maps ids to classes read. */
+    protected HashIntMap<ClassWrapper> _classes = new HashIntMap<ClassWrapper>();
+
     /** The wrapper for the object class. */
     protected ClassWrapper _objectClass;
 
     /** The wrapper for the String class. */
     protected ClassWrapper _stringClass;
-
-    /** Maps ids to classes read. */
-    protected HashIntMap<ClassWrapper> _classes = new HashIntMap<ClassWrapper>();
 
     /** Used to read class ids. */
     protected IDReader _classIdReader = new IDReader();
