@@ -26,6 +26,7 @@
 package com.threerings.config;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -622,7 +623,16 @@ public class ConfigManager
         throws IOException
     {
         Properties props = new Properties();
-        props.load(_rsrcmgr.getResource(_configPath + "manager.properties"));
+
+        InputStream in = null;
+        try {
+            in = _rsrcmgr.getResource(_configPath + "manager.properties");
+        } catch (IOException ioe) {
+            // let's try the .txt version then
+            in = _rsrcmgr.getResource(_configPath + "manager.txt");
+        }
+
+        props.load(in);
 
         // initialize the types
         _classes = new HashMap<String, Class<?>[]>();
