@@ -360,15 +360,18 @@ public abstract class ManagedConfig extends DeepObject
         ConfigReferenceSet refs = new ConfigReferenceSet();
         getUpdateReferences(refs);
         _updateConfigs = new ArrayList<ManagedConfig>(refs.size());
-        for (Tuple<Class<?>, ConfigReference> ref : refs) {
-            @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
-                (Class<ManagedConfig>)ref.left;
-            @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =
-                ref.right;
-            ManagedConfig config = _cfgmgr.getConfig(mclass, mref);
-            if (config != null) {
-                config.addListener(this);
-                _updateConfigs.add(config);
+        for (Map.Entry<Class<? extends ManagedConfig>, Set<ConfigReference<?>>> entry :
+                refs.getConfigs().entrySet()) {
+            @SuppressWarnings("unchecked")
+            Class<ManagedConfig> mclass = (Class<ManagedConfig>)entry.getKey();
+            for (ConfigReference<?> ref : entry.getValue()) {
+                @SuppressWarnings("unchecked")
+                ConfigReference<ManagedConfig> mref = (ConfigReference<ManagedConfig>)ref;
+                ManagedConfig config = _cfgmgr.getConfig(mclass, mref);
+                if (config != null) {
+                    config.addListener(this);
+                    _updateConfigs.add(config);
+                }
             }
         }
 
