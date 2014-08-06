@@ -244,12 +244,8 @@ public class StyleConfig extends ParameterizedConfig
         @Override
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
-            if (cursor != null) {
-                refs.add(CursorConfig.class, cursor);
-            }
-            if (font != null) {
-                refs.add(FontConfig.class, font);
-            }
+            refs.add(CursorConfig.class, cursor);
+            refs.add(FontConfig.class, font);
         }
 
         @Override
