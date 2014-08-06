@@ -162,7 +162,7 @@ public class ConfigFlattener
                     String newName = newNames.get(args);
                     if (newName == null) {
                         ArgumentMap key = args.clone();
-                        int code = key.hashCode();
+                        int code = generateHash(key);
                         newName = Integer.toHexString(code);
                         // avoid hash collisions
                         while (newNames.containsValue(newName)) {
@@ -220,6 +220,19 @@ public class ConfigFlattener
         } catch (InvocationTargetException ite) {
             log.warning("Unable to call getUpdateReferences()?", ite);
         }
+    }
+
+    /**
+     * Generate a stable hash code for the specified argument map.
+     */
+    protected static int generateHash (ArgumentMap args)
+    {
+        // TODO: we want to create a hashcode that is the same every time we run...
+        // Perhaps I can just hand-calculate one, only using keys/values that have known hashcodes?
+        // (String, numeric types...)
+        // The problem also is that collisions need to be dealt with in a known order.
+        // Perhaps I'll sort the config refs??
+        return args.hashCode();
     }
 
     /**
