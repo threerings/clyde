@@ -257,7 +257,7 @@ public class PropertyUtil
      */
     public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
     {
-        getResources(cfgmgr, object, paths, new ConfigReferenceSet());
+        getResources(cfgmgr, object, paths, new ConfigReferenceSet.Default());
     }
 
     /**

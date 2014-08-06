@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
@@ -360,17 +359,11 @@ public abstract class ManagedConfig extends DeepObject
     protected void addUpdateDependencies ()
     {
         // add the config dependencies
-        final SetMultimap<Class<?>, ConfigReference<?>> refs = HashMultimap.create();
-        getUpdateReferences(
-            new ConfigReferenceSet() {
-                @Override
-                public <T extends ManagedConfig> boolean add (
-                        Class<T> clazz, ConfigReference<T> ref) {
-                    return (ref != null) && refs.put(clazz, ref);
-                }
-            });
+        ConfigReferenceSet.Default refSet = new ConfigReferenceSet.Default();
+        getUpdateReferences(refSet);
+        SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> refs = refSet.getGathered();
         _updateConfigs = new ArrayList<ManagedConfig>(refs.size());
-        for (Map.Entry<Class<?>, Set<ConfigReference<?>>> entry :
+        for (Map.Entry<Class<? extends ManagedConfig>, Set<ConfigReference<?>>> entry :
                 Multimaps.asMap(refs).entrySet()) {
             @SuppressWarnings("unchecked")
             Class<ManagedConfig> mclass = (Class<ManagedConfig>)entry.getKey();

@@ -27,6 +27,9 @@ package com.threerings.config;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+
 /**
  * A set of config references of different types.
  */
@@ -45,4 +48,29 @@ public abstract class ConfigReferenceSet
      */
     public abstract <T extends ManagedConfig> boolean add (
             Class<T> clazz, @Nullable ConfigReference<T> ref);
+
+    /**
+     * A default implementation.
+     */
+    public static class Default extends ConfigReferenceSet
+    {
+        /**
+         * Get the gathered config references.
+         */
+        public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
+        {
+            return _refs;
+        }
+
+        @Override
+        public <T extends ManagedConfig> boolean add (
+                Class<T> clazz, @Nullable ConfigReference<T> ref)
+        {
+            return (ref != null) && _refs.put(clazz, ref);
+        }
+
+        /** The gathered references. */
+        protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
+                HashMultimap.create();
+    }
 }
