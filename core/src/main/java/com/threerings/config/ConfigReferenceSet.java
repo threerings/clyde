@@ -27,6 +27,8 @@ package com.threerings.config;
 
 import java.util.HashSet;
 
+import javax.annotation.Nullable;
+
 import com.samskivert.util.Tuple;
 
 /**
@@ -37,7 +39,7 @@ public class ConfigReferenceSet extends HashSet<Tuple<Class<?>, ConfigReference>
     /**
      * Adds a reference to the set.
      */
-    public <T extends ManagedConfig> boolean add (Class<T> clazz, String name)
+    public <T extends ManagedConfig> boolean add (Class<T> clazz, @Nullable String name)
     {
         return name != null && add(clazz, new ConfigReference<T>(name));
     }
@@ -45,7 +47,7 @@ public class ConfigReferenceSet extends HashSet<Tuple<Class<?>, ConfigReference>
     /**
      * Adds a reference to the set.
      */
-    public <T extends ManagedConfig> boolean add (Class<T> clazz, ConfigReference<T> ref)
+    public <T extends ManagedConfig> boolean add (Class<T> clazz, @Nullable ConfigReference<T> ref)
     {
         return ref != null && add(new Tuple<Class<?>, ConfigReference>(clazz, ref));
     }
