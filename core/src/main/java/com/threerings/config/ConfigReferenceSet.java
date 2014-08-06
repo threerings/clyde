@@ -25,19 +25,12 @@
 
 package com.threerings.config;
 
-import java.util.Map;
-import java.util.Set;
-
 import javax.annotation.Nullable;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
 
 /**
  * A set of config references of different types.
  */
-public class ConfigReferenceSet
+public abstract class ConfigReferenceSet
 {
     /**
      * Adds a reference to the set.
@@ -50,29 +43,6 @@ public class ConfigReferenceSet
     /**
      * Adds a reference to the set.
      */
-    public <T extends ManagedConfig> boolean add (Class<T> clazz, @Nullable ConfigReference<T> ref)
-    {
-        return ref != null && _refs.put(clazz, ref);
-    }
-
-    /**
-     * Get the total number of configs we contain.
-     */
-    public int size ()
-    {
-        return _refs.size();
-    }
-
-    /**
-     * Return the gathered configs, organized by class.
-     */
-    public Map<Class<? extends ManagedConfig>, Set<ConfigReference<?>>> getConfigs ()
-    {
-        // return a view of the multimap...
-        return Multimaps.asMap(_refs);
-    }
-
-    /** Storage. */
-    protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
-            HashMultimap.create();
+    public abstract <T extends ManagedConfig> boolean add (
+            Class<T> clazz, @Nullable ConfigReference<T> ref);
 }
