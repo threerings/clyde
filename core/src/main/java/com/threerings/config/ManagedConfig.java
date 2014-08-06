@@ -147,7 +147,7 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Returns the derived instance with the supplied arguments.
      */
-    public ManagedConfig getInstance (String firstKey, Object firstValue, Object... otherArgs)
+    public final ManagedConfig getInstance (String firstKey, Object firstValue, Object... otherArgs)
     {
         return getInstance(null, firstKey, firstValue, otherArgs);
     }
@@ -155,7 +155,7 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Returns the derived instance in the specified scope with the supplied arguments.
      */
-    public ManagedConfig getInstance (
+    public final ManagedConfig getInstance (
         Scope scope, String firstKey, Object firstValue, Object... otherArgs)
     {
         return getInstance(scope, new ArgumentMap(firstKey, firstValue, otherArgs));
@@ -164,7 +164,7 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Returns the derived instance in the specified scope.
      */
-    public ManagedConfig getInstance (Scope scope)
+    public final ManagedConfig getInstance (Scope scope)
     {
         return getInstance(scope, null);
     }
@@ -172,7 +172,7 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Returns the derived instance with the supplied arguments.
      */
-    public ManagedConfig getInstance (ArgumentMap args)
+    public final ManagedConfig getInstance (ArgumentMap args)
     {
         return getInstance(null, args);
     }
