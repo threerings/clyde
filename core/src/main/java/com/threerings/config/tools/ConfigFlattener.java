@@ -48,36 +48,38 @@ public class ConfigFlattener
     public static void main (String[] args)
         throws IOException
     {
-        File outdir;
-        File indir;
+        String rsrcDir;
+        String outDir;
         switch (args.length) {
         default:
-            System.err.println("Args: <indir> <outdir>");
+            System.err.println("Args: <rsrcdir> <outconfigdir>");
             System.exit(1);
             return;
 
         case 2:
-            indir = new File(args[0]);
-            outdir = new File(args[1]);
+            rsrcDir = args[0];
+            outDir = args[1];
             break;
         }
 
-        Preconditions.checkArgument(indir.isDirectory(), "%s isn't a directory", indir);
-        Preconditions.checkArgument(outdir.isDirectory(), "%s isn't a directory", outdir);
-        File configDir = new File(indir, "config");
+        ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
+        File configDir = rsrcmgr.getResourceFile("config/");
+
         Preconditions.checkArgument(configDir.isDirectory(), "%s isn't a directory", configDir);
         Preconditions.checkArgument(
                 new File(configDir, "manager.properties").exists() ||
                 new File(configDir, "manager.txt").exists(), "cannot find manager descriptor");
+        File destDir = rsrcmgr.getResourceFile(outDir);
+        Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
 
-        ResourceManager rsrcmgr = new ResourceManager(indir.getCanonicalPath());
+
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         RePathableConfigManager cfgmgr = new RePathableConfigManager(rsrcmgr, msgmgr, "config/");
         cfgmgr.init();
         flatten(cfgmgr);
 
         // Save everything!
-        cfgmgr.resetConfigPath(outdir.getCanonicalPath());
+        cfgmgr.resetConfigPath(outDir);
         cfgmgr.saveAll();
     }
 
