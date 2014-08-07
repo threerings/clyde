@@ -102,6 +102,7 @@ public class ConfigFlattener
         while (!refSet.graph.isEmpty()) {
             count++;
             ConfigId id = refSet.graph.removeAvailableElement();
+            //log.info("Checking " + id.name);
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
                 (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
@@ -145,6 +146,7 @@ public class ConfigFlattener
                         newCfg.setName(id.name + "~" + newName);
                         group.addConfig(newCfg);
                         newNames.put(key, newName);
+                        refSet.addNewConfig(id.clazz, newCfg);
                     }
 
                     // now, copy a new config reference with the new name to the existing ref
@@ -266,8 +268,8 @@ public class ConfigFlattener
     }
 
     /**
-     * A reference set that gathers dependencies between references and... more.
-     * TODO doc
+     * A ConfigReferenceSet that gathers dependencies between config references
+     * as well as collects each ConfigReference uniquely for later rewriting.
      */
     protected static class DependentReferenceSet extends ConfigReferenceSet
     {
@@ -277,6 +279,9 @@ public class ConfigFlattener
         /** The references that point to a particular config, indexed by config. */
         public final ListMultimap<ConfigId, ConfigReference<?>> refs = ArrayListMultimap.create();
 
+        /**
+         * Populate this reference set with all the configs in the specified cfgmgr.
+         */
         public void populate (ConfigManager cfgmgr)
         {
             log.info("Populating graph...");
@@ -294,14 +299,32 @@ public class ConfigFlattener
 
             log.info("Gathering configs...");
             // then go through again, track refs, and make note of dependencies
-            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-                Class<? extends ManagedConfig> clazz = group.getConfigClass();
-                for (ManagedConfig cfg : group.getConfigs()) {
-                    _current = new ConfigId(clazz, cfg.getName());
-                    cfg.gatherRefs(this);
+            try {
+                for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+                    Class<? extends ManagedConfig> clazz = group.getConfigClass();
+                    for (ManagedConfig cfg : group.getConfigs()) {
+                        _current = new ConfigId(clazz, cfg.getName());
+                        cfg.gatherRefs(this);
+                    }
                 }
+            } finally {
+                _current = null;
             }
             log.info("Gathered configs!");
+        }
+
+        /**
+         * Add a newly-created config to the reference set.
+         */
+        public void addNewConfig (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
+        {
+            _current = new ConfigId(clazz, cfg.getName());
+            try {
+                graph.add(_current);
+                cfg.gatherRefs(this);
+            } finally {
+                _current = null;
+            }
         }
 
         @Override
@@ -325,7 +348,7 @@ public class ConfigFlattener
             refs.put(id, ref);
 
             // and add the dependency
-            graph.addDependency(_current, id);
+            graph.addDependency(id, _current);
             return true;
         }
 
