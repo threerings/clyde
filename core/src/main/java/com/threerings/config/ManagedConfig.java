@@ -306,6 +306,12 @@ public abstract class ManagedConfig extends DeepObject
         setComment(in.read("comment", ""));
     }
 
+    // TEMP????
+    public void gatherRefs (ConfigReferenceSet refs)
+    {
+        getUpdateReferences(refs);
+    }
+
     /**
      * Collects all of the references within this config to configs that, when updated, should
      * trigger a call to {@link #fireConfigUpdated}.
