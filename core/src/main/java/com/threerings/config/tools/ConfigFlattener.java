@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Primitives;
 
 import com.samskivert.util.DependencyGraph;
 
@@ -167,12 +168,29 @@ public class ConfigFlattener
      */
     protected static int generateHash (ArgumentMap args)
     {
-        // TODO: we want to create a hashcode that is the same every time we run...
-        // Perhaps I can just hand-calculate one, only using keys/values that have known hashcodes?
-        // (String, numeric types...)
-        // The problem also is that collisions need to be dealt with in a known order.
-        // Perhaps I'll sort the config refs??
-        return args.hashCode();
+        // Note: ArgumentMap stores args in a sorted order, but let's assume we don't know that.
+
+        int hash = 0;
+        for (Map.Entry<String, Object> entry : args.entrySet()) {
+            hash += entry.getKey().hashCode() ^ generateHash(entry.getValue());
+        }
+        return hash;
+    }
+
+    /**
+     * Return a stable hash code for the specified object if we can, or simply return 0.
+     */
+    protected static int generateHash (Object obj)
+    {
+        if (obj != null) {
+            if (obj instanceof String || Primitives.isWrapperType(obj.getClass())) {
+                return obj.hashCode();
+
+            } else if (obj instanceof ArgumentMap) {
+                return generateHash((ArgumentMap)obj);
+            }
+        }
+        return 0;
     }
 
     /**
