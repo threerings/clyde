@@ -282,6 +282,7 @@ public class ConfigFlattener
                 _cfgClasses.add(clazz);
                 for (ManagedConfig cfg : group.getConfigs()) {
                     graph.add(new ConfigId(clazz, cfg.getName()));
+                    _allSeen.add(new ConfigId(clazz, cfg.getName()));
                     count++;
                 }
             }
@@ -311,6 +312,7 @@ public class ConfigFlattener
             _current = new ConfigId(clazz, cfg.getName());
             try {
                 graph.add(_current);
+                _allSeen.add(_current);
                 ConfigToolUtil.getUpdateReferences(cfg, this);
             } finally {
                 _current = null;
@@ -338,7 +340,14 @@ public class ConfigFlattener
             refs.put(id, ref);
 
             // and add the dependency
-            graph.addDependency(id, _current);
+            try {
+                graph.addDependency(id, _current);
+            } catch (Exception e) {
+                log.warning("Oh fugging shit",
+                    "id", id, "seen id?", _allSeen.contains(id),
+                    "current", _current, "seen current?", _allSeen.contains(_current),
+                    e);
+            }
             return true;
         }
 
@@ -347,5 +356,7 @@ public class ConfigFlattener
 
         /** All valid config classes. */
         protected Set<Class<?>> _cfgClasses = Sets.newHashSet();
+
+        protected Set<ConfigId> _allSeen = Sets.newHashSet();
     }
 }
