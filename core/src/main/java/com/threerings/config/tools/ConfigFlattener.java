@@ -37,10 +37,12 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.ConfigToolUtil;
 
 import static com.threerings.ClydeLog.log;
 
 /**
+ * Flattens configs for export to clients such that there are no parameters.
  */
 public class ConfigFlattener
 {
@@ -105,7 +107,7 @@ public class ConfigFlattener
             //log.info("Checking " + id.name);
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
-                (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
+                    (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
             ManagedConfig cfg = group.getConfig(id.name);
             List<ConfigReference<?>> list = refSet.refs.get(id);
             if (!list.isEmpty()) {
@@ -160,40 +162,6 @@ public class ConfigFlattener
         log.info("Flattened " + count);
     }
 
-//    /**
-//     * Gather up every config into the specified reference set.
-//     */
-//    protected static void gatherConfigs (ConfigManager cfgmgr, ConfigReferenceSet refSet)
-//    {
-//        try {
-//            // this fucking method is protected... Consider making it public or moving
-//            // the code that accesses it into the /config/ package.
-//            Method method = ManagedConfig.class.getDeclaredMethod(
-//                    "getUpdateReferences", ConfigReferenceSet.class);
-//            method.setAccessible(true);
-//            Object[] args = new Object[] { refSet };
-//
-//            // gather up all the referenced configs
-//            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-//                for (ManagedConfig cfg : group.getConfigs()) {
-//                    try {
-//                        method.invoke(cfg, args);
-//                    } catch (RuntimeException e) {
-//                        log.warning("Exception gathering configs", "group", group, "cfg", cfg, e);
-//                    }
-//                }
-//            }
-//        } catch (NoSuchMethodException nsme) {
-//            log.warning("Did getUpdateReferences() change?", nsme);
-//
-//        } catch (IllegalAccessException iae) {
-//            log.warning("Unable to call getUpdateReferences()?", iae);
-//
-//        } catch (InvocationTargetException ite) {
-//            log.warning("Unable to call getUpdateReferences()?", ite);
-//        }
-//    }
-
     /**
      * Generate a stable hash code for the specified argument map.
      */
@@ -212,11 +180,15 @@ public class ConfigFlattener
      */
     protected static class RePathableConfigManager extends ConfigManager
     {
+        /** Constructor. */
         public RePathableConfigManager (ResourceManager rsrcmgr, MessageManager msgmgr, String path)
         {
             super(rsrcmgr, msgmgr, path);
         }
 
+        /**
+         * Re-set the path for configs, so that when we save, we save to a new spot.
+         */
         public void resetConfigPath (String configPath)
         {
             _configPath = configPath;
@@ -304,7 +276,7 @@ public class ConfigFlattener
                     Class<? extends ManagedConfig> clazz = group.getConfigClass();
                     for (ManagedConfig cfg : group.getConfigs()) {
                         _current = new ConfigId(clazz, cfg.getName());
-                        cfg.gatherRefs(this);
+                        ConfigToolUtil.getUpdateReferences(cfg, this);
                     }
                 }
             } finally {
@@ -321,7 +293,7 @@ public class ConfigFlattener
             _current = new ConfigId(clazz, cfg.getName());
             try {
                 graph.add(_current);
-                cfg.gatherRefs(this);
+                ConfigToolUtil.getUpdateReferences(cfg, this);
             } finally {
                 _current = null;
             }
