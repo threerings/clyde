@@ -37,7 +37,6 @@ public class MetaStreamsTest extends TestCase
         for (int ii = 0, nn = testValues.size(); ii < nn; ii++) {
             long value = testValues.get(ii);
             int expectedCount = byteCounts.get(ii);
-            System.err.println("etc, etc: " + value + " / " + expectedCount);
 
             MetaStreams.writeLength(out, value);
             assertEquals(expectedCount, out.size());
