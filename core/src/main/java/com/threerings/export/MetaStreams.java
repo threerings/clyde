@@ -3,6 +3,7 @@
 
 package com.threerings.export;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class MetaStreams
      * NOTE that IOExceptions may be suppressed as there is no way to throw them out of
      * an iterator.
      */
-    public static Iterable<InputStream> input (final InputStream source)
+    public static Iterable<InputStream> splitInput (final InputStream source)
     {
         return new Iterable<InputStream>() {
             public Iterator<InputStream> iterator ()
@@ -41,10 +42,9 @@ public class MetaStreams
                                 while (-1 != _last.read()) { }
                             }
                             // try reading the length
-                            try {
-                                return _last = ByteStreams.limit(source, readLength(source));
-                            } catch (EOFException eof) {
-                                // this is OK, we expect this to happen, we will signal end, below.
+                            long length = readLength(source);
+                            if (length != -1) {
+                                return _last = ByteStreams.limit(source, length);
                             }
 
                         } catch (IOException ioe) {
@@ -62,6 +62,25 @@ public class MetaStreams
                 };
             }
         };
+    }
+
+    /**
+     * Return the next InputStream, or null if we've reached the end of the stream.
+     * This safely advances the source input stream
+     */
+    public static InputStream input (final InputStream source)
+        throws IOException
+    {
+        long length = readLength(source);
+        if (length == -1) {
+            return null;
+
+        } else if (length > Integer.MAX_VALUE) {
+            throw new IOException("Next stream is too long");
+        }
+        byte[] bytes = new byte[(int)length];
+        ByteStreams.readFully(source, bytes); // may throw EOF, IOE
+        return new ByteArrayInputStream(bytes);
     }
 
     /**
@@ -106,6 +125,8 @@ public class MetaStreams
     /**
      * Read a varlong length off the stream, which may be up to 9 bytes to fully
      * decode Long.MAX_VALUE. In all probability we'll just read one byte so just relax.
+     *
+     * @return the length read off the stream, or -1 if we're at the end of the stream.
      */
     public static long readLength (InputStream in)
         throws IOException
@@ -114,12 +135,15 @@ public class MetaStreams
         for (int count = 0; count < 9; count++) {
             int bite = in.read();
             if (bite == -1) {
-                throw new EOFException();
+                if (count == 0) {
+                    return -1; // expected: we're at the end of the stream
+                }
+                break; // throw StreamCorrupted
             }
             ret |= (bite & 0x7f) << (count * 7);
             if ((bite & 0x80) == 0) {
                 if (count > 0 && ((bite & 0x7f) == 0)) {
-                    break; // detect invalid extra 0-padding
+                    break; // detect invalid extra 0-padding; throw StreamCorrupted
                 }
                 return ret;
             }
