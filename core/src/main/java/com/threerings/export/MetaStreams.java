@@ -70,7 +70,7 @@ public class MetaStreams
      * read from at all in order to get the next stream from the source. This is accomplished
      * by pre-reading all the bytes and returning a wrapper around the byte[].
      */
-    public static InputStream input (final InputStream source)
+    public static InputStream input (InputStream source)
         throws IOException
     {
         long length = readLength(source);
