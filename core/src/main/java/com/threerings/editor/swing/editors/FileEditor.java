@@ -35,6 +35,7 @@ import java.util.prefs.Preferences;
 import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 import com.threerings.util.MessageBundle;
@@ -97,8 +98,13 @@ public class FileEditor extends PropertyEditor
         } else { // source == _clear
             value = null;
         }
-        setPropertyFile(value);
-        updateButtons(value);
+        try {
+            setPropertyFile(value);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                this, e.getMessage(), _msgs.get("t.invalid_value"), JOptionPane.ERROR_MESSAGE);
+        }
+        update();
         fireStateChanged();
     }
 
