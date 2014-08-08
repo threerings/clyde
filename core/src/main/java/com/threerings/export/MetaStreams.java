@@ -116,7 +116,7 @@ public class MetaStreams
             if (bite == -1) {
                 throw new EOFException();
             }
-            ret = (ret << 7) | (bite & 0x7f);
+            ret |= (bite & 0x7f) << (count * 7);
             if ((bite & 0x80) == 0) {
                 if (count > 0 && ((bite & 0x7f) == 0)) {
                     break; // detect invalid extra 0-padding
