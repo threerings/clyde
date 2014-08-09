@@ -25,6 +25,7 @@
 
 package com.threerings.editor;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -82,6 +83,15 @@ public class MethodProperty extends Property
     {
         try {
             _setter.invoke(object, value);
+
+        } catch (InvocationTargetException ite) {
+            // if the source is a runtime exception, rethrow it
+            Throwable cause = ite.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException)cause;
+            }
+            log.warning("Failed to set property [setter=" + _setter + "].", ite);
+
         } catch (Exception e) {
             log.warning("Failed to set property [setter=" + _setter + "].", e);
         }
