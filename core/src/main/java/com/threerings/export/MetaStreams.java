@@ -27,7 +27,10 @@ public class MetaStreams
      * inconsistent or at EOF, but it also should not be closed.
      * NOTE that IOExceptions may be suppressed as there is no way to throw them out of
      * an iterator.
+     *
+     * @deprecated Probably not a good idea because of the suppressed exceptions...
      */
+    @Deprecated
     public static Iterable<InputStream> splitInput (final InputStream source)
     {
         return new Iterable<InputStream>() {
@@ -135,17 +138,17 @@ public class MetaStreams
         throws IOException
     {
         long ret = 0;
-        for (int count = 0; count < 9; count++) {
+        for (int shift = 0; shift < 63; shift += 7) {
             int bite = in.read();
             if (bite == -1) {
-                if (count == 0) {
+                if (shift == 0) {
                     return -1; // expected: we're at the end of the stream
                 }
                 break; // throw StreamCorrupted
             }
-            ret |= ((long)(bite & 0x7f)) << (count * 7);
+            ret |= ((long)(bite & 0x7f)) << shift;
             if ((bite & 0x80) == 0) {
-                if (count > 0 && ((bite & 0x7f) == 0)) {
+                if (shift > 0 && ((bite & 0x7f) == 0)) {
                     break; // detect invalid extra 0-padding; throw StreamCorrupted
                 }
                 return ret;
