@@ -50,16 +50,23 @@ public class ConfigFlattener
     /**
      * Tool entry point.
      */
+    @SuppressWarnings("fallthrough")
     public static void main (String[] args)
         throws IOException
     {
         String rsrcDir;
         String outDir;
+        boolean xml = true;
+        String ext = ".xml";
         switch (args.length) {
         default:
-            System.err.println("Args: <rsrcdir> <outconfigdir>");
-            System.exit(1);
+            errUsageAndExit();
             return;
+
+        case 3:
+            ext = args[2];
+            xml = ".xml".equals(ext);
+            // fall-through
 
         case 2:
             rsrcDir = args[0];
@@ -74,20 +81,30 @@ public class ConfigFlattener
         Preconditions.checkArgument(
                 new File(configDir, "manager.properties").exists() ||
                 new File(configDir, "manager.txt").exists(), "cannot find manager descriptor");
-        File destDir = rsrcmgr.getResourceFile(outDir);
+
+        File destDir = new File(outDir);
         Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
 
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        RePathableConfigManager cfgmgr = new RePathableConfigManager(rsrcmgr, msgmgr, "config/");
+        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
         log.info("Starting up...");
         cfgmgr.init();
         flatten(cfgmgr);
 
         // Save everything!
         log.info("Saving...");
-        cfgmgr.resetConfigPath(outDir);
-        cfgmgr.saveAll();
+        cfgmgr.saveAll(destDir, ext, xml);
         log.info("Done!");
+    }
+
+    /**
+     * Dump standalone usage information to stderr and exit with an error code.
+     */
+    protected static void errUsageAndExit ()
+    {
+        System.err.println("Args: <rsrcDir> <outDir> [fileExtension (default='.xml')]");
+        System.err.println("If the extension is provided and not '.xml', output will be binary.");
+        System.exit(1);
     }
 
     /**
@@ -191,29 +208,6 @@ public class ConfigFlattener
             }
         }
         return 0;
-    }
-
-    /**
-     * A ResourceManager that can load from one spot and save to another.
-     */
-    protected static class RePathableConfigManager extends ConfigManager
-    {
-        /** Constructor. */
-        public RePathableConfigManager (ResourceManager rsrcmgr, MessageManager msgmgr, String path)
-        {
-            super(rsrcmgr, msgmgr, path);
-        }
-
-        /**
-         * Re-set the path for configs, so that when we save, we save to a new spot.
-         */
-        public void resetConfigPath (String configPath)
-        {
-            _configPath = configPath;
-            if (!configPath.endsWith("/")) {
-                _configPath += "/";
-            }
-        }
     }
 
     /**
