@@ -38,12 +38,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.google.common.io.Closer;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
@@ -193,7 +195,7 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Saves this group's configurations.
      */
-    public void save ()
+    public final void save ()
     {
         save(getConfigFile(true));
     }
@@ -201,20 +203,43 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Saves this group's configurations to the specified file.
      */
-    public void save (File file)
+    public final void save (File file)
     {
-        save(_configsByName.values(), file);
+        save(_configsByName.values(), file, true);
+    }
+
+    /**
+     * Saves this group's configurations to the specified file, o
+     */
+    public final void save (File file, boolean xml)
+    {
+        save(_configsByName.values(), file, xml);
     }
 
     /**
      * Saves the provided collection of configurations to a file.
      */
-    public void save (Collection<T> configs, File file)
+    public final void save (Collection<T> configs, File file)
+    {
+        save(configs, file, true);
+    }
+
+    /**
+     * Save the specified configs
+     */
+    public void save (Collection<T> configs, File file, boolean xml)
     {
         try {
-            Exporter out = new XMLExporter(new LazyFileOutputStream(file));
-            out.writeObject(toSortedArray(configs));
-            out.close();
+            Closer closer = Closer.create();
+            try {
+                LazyFileOutputStream stream = closer.register(new LazyFileOutputStream(file));
+                Exporter xport = closer.register(
+                        xml ? new XMLExporter(stream) : new BinaryExporter(stream));
+                xport.writeObject(toSortedArray(configs));
+
+            } finally {
+                closer.close();
+            }
 
         } catch (IOException e) {
             log.warning("Error writing configurations [file=" + file + "].", e);
