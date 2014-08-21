@@ -34,6 +34,7 @@ import java.util.Set;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SetMultimap;
 
@@ -61,6 +62,15 @@ import com.threerings.util.DeepOmit;
 public abstract class ManagedConfig extends DeepObject
     implements Exportable, ConfigUpdateListener<ManagedConfig>, ModificationObserver
 {
+    /** Orders ManagedConfigs by their names. */
+    public static final Ordering<ManagedConfig> NAME_ORDERING =
+            new Ordering<ManagedConfig>() {
+                @Override
+                public int compare (ManagedConfig c1, ManagedConfig c2) {
+                    return c1.getName().compareTo(c2.getName());
+                }
+            };
+
     /**
      * Set whether to store comments. In a production environment comments can be disabled
      * and they will take up no space. This should be called prior to the config manager

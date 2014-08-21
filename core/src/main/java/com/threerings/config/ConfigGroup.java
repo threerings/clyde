@@ -38,9 +38,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.google.common.collect.Iterables;
+
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
-import com.samskivert.util.QuickSort;
 
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
@@ -428,15 +429,7 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected T[] toSortedArray (Collection<T> configs)
     {
-        @SuppressWarnings("unchecked") T[] array =
-            (T[])Array.newInstance(_cclass, configs.size());
-        configs.toArray(array);
-        QuickSort.sort(array, new Comparator<T>() {
-            public int compare (T c1, T c2) {
-                return c1.getName().compareTo(c2.getName());
-            }
-        });
-        return array;
+        return Iterables.toArray(ManagedConfig.NAME_ORDERING.immutableSortedCopy(configs), _cclass);
     }
 
     /**
