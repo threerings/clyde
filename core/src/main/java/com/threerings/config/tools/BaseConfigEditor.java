@@ -97,7 +97,7 @@ public abstract class BaseConfigEditor extends JFrame
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // create and init the editable prefs, which also (re)sets the resource directory
-        _eprefs = new ToolUtil.EditablePrefs(_prefs);
+        _eprefs = createEditablePrefs(_prefs);
         _eprefs.init(_rsrcmgr);
 
         // add the log status panel
@@ -172,6 +172,14 @@ public abstract class BaseConfigEditor extends JFrame
     {
         super.removeNotify();
         ToolUtil.windowRemoved();
+    }
+
+    /**
+     * Create the editable prefs we'll use for this tool.
+     */
+    protected ToolUtil.EditablePrefs createEditablePrefs (Preferences prefs)
+    {
+        return new ToolUtil.EditablePrefs(prefs);
     }
 
     /**

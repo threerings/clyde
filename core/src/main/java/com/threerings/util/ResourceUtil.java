@@ -68,6 +68,14 @@ public class ResourceUtil
     }
 
     /**
+     * Get the prefix to use for project-wide preferences.
+     */
+    public static String getPrefsPrefix ()
+    {
+        return _prefPrefix;
+    }
+
+    /**
      * Reads a list of newline-delimited strings from a resource.
      */
     public static String[] loadStrings (String path)
