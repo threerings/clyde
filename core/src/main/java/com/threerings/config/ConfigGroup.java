@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
@@ -414,10 +415,7 @@ public class ConfigGroup<T extends ManagedConfig>
         }
 
         // remove any configurations not present in the array (if not merging)
-        @SuppressWarnings("unchecked") T[] oconfigs =
-            (T[])Array.newInstance(_cclass, _configsByName.size());
-        _configsByName.values().toArray(oconfigs);
-        for (T oconfig : oconfigs) {
+        for (T oconfig : Lists.newArrayList(_configsByName.values())) {
             if (!names.contains(oconfig.getName())) {
                 removeConfig(oconfig);
             }
