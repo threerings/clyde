@@ -111,7 +111,6 @@ public class ConfigFlattener
      * Flatten all the configs in-place in the specified config manager.
      */
     public static void flatten (ConfigManager cfgmgr)
-        throws IOException
     {
         DependentReferenceSet refSet = new DependentReferenceSet();
         refSet.populate(cfgmgr);
