@@ -38,13 +38,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.PropertiesUtil;
-import com.samskivert.util.QuickSort;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
@@ -575,12 +576,12 @@ public class ConfigManager
                 list.add(group);
             }
         }
-        ConfigGroup[] groups = list.toArray(new ConfigGroup[list.size()]);
-        QuickSort.sort(groups, new Comparator<ConfigGroup>() {
-            public int compare (ConfigGroup g1, ConfigGroup g2) {
-                return g1.getName().compareTo(g2.getName());
-            }
-        });
+        ConfigGroup[] groups = Iterables.toArray(
+                new Ordering<ConfigGroup>() {
+                    public int compare (ConfigGroup g1, ConfigGroup g2) {
+                        return g1.getName().compareTo(g2.getName());
+                    }
+                }.immutableSortedCopy(list), ConfigGroup.class);
         out.write("groups", groups, new ConfigGroup[0], ConfigGroup[].class);
     }
 
