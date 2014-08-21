@@ -25,6 +25,7 @@
 
 package com.threerings.config;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
@@ -474,6 +475,20 @@ public class ConfigManager
     {
         for (ConfigGroup group : _groups.values()) {
             group.save();
+        }
+    }
+
+    /**
+     * Saves the configurations in all groups.
+     *
+     * @param dir the directory in which to drop all the files.
+     * @param extension the filename extension (including any leading '.')
+     * @param xml true to save in XML format, false for binary.
+     */
+    public void saveAll (File dir, String extension, boolean xml)
+    {
+        for (ConfigGroup group : _groups.values()) {
+            group.save(new File(dir, group.getName() + extension), xml);
         }
     }
 
