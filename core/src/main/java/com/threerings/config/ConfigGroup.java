@@ -41,6 +41,7 @@ import java.util.HashSet;
 import com.google.common.io.Closer;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
@@ -452,7 +453,12 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected T[] toSortedArray (Collection<T> configs)
     {
-        return Iterables.toArray(ManagedConfig.NAME_ORDERING.immutableSortedCopy(configs), _cclass);
+        return Iterables.toArray(
+                new Ordering<T>() {
+                    public int compare (T c1, T c2) {
+                        return c1.getName().compareTo(c2.getName());
+                    }
+                }.immutableSortedCopy(configs), _cclass);
     }
 
     /**
