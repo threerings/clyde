@@ -56,8 +56,9 @@ public class ConfigFlattener
     {
         String rsrcDir;
         String outDir;
-        boolean xml = true;
+        boolean isXML = true;
         String ext = ".xml";
+
         switch (args.length) {
         default:
             errUsageAndExit();
@@ -65,7 +66,7 @@ public class ConfigFlattener
 
         case 3:
             ext = args[2];
-            xml = ".xml".equals(ext);
+            isXML = ".xml".equalsIgnoreCase(ext);
             // fall-through
 
         case 2:
@@ -87,14 +88,14 @@ public class ConfigFlattener
 
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
-        log.info("Starting up...");
+//        log.info("Starting up...");
         cfgmgr.init();
         flatten(cfgmgr);
 
         // Save everything!
-        log.info("Saving...");
-        cfgmgr.saveAll(destDir, ext, xml);
-        log.info("Done!");
+//        log.info("Saving...");
+        cfgmgr.saveAll(destDir, ext, isXML);
+//        log.info("Done!");
     }
 
     /**
@@ -116,7 +117,7 @@ public class ConfigFlattener
         refSet.populate(cfgmgr);
 
         // now go through each ref in dependency ordering
-        log.info("Flattening...");
+//        log.info("Flattening...");
         int count = 0;
         while (!refSet.graph.isEmpty()) {
             count++;
@@ -176,7 +177,7 @@ public class ConfigFlattener
                 ((ParameterizedConfig)cfg).parameters = Parameter.EMPTY_ARRAY;
             }
         }
-        log.info("Flattened " + count);
+//        log.info("Flattened " + count);
     }
 
     /**
@@ -267,7 +268,7 @@ public class ConfigFlattener
          */
         public void populate (ConfigManager cfgmgr)
         {
-            log.info("Populating graph...");
+//            log.info("Populating graph...");
             // first populate all configs into the graph
             int count = 0;
             for (ConfigGroup<?> group : cfgmgr.getGroups()) {
@@ -279,9 +280,9 @@ public class ConfigFlattener
                     count++;
                 }
             }
-            log.info("Populated " + count);
+//            log.info("Populated " + count);
 
-            log.info("Gathering configs...");
+//            log.info("Gathering configs...");
             // then go through again, track refs, and make note of dependencies
             try {
                 for (ConfigGroup<?> group : cfgmgr.getGroups()) {
@@ -294,7 +295,7 @@ public class ConfigFlattener
             } finally {
                 _current = null;
             }
-            log.info("Gathered configs!");
+//            log.info("Gathered configs!");
         }
 
         /**
@@ -350,6 +351,7 @@ public class ConfigFlattener
         /** All valid config classes. */
         protected Set<Class<?>> _cfgClasses = Sets.newHashSet();
 
+        // TEMP: for debugging when flattening goes awry
         protected Set<ConfigId> _allSeen = Sets.newHashSet();
     }
 }
