@@ -180,7 +180,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     {
         if (_config != null) {
             _config.setName(getName());
-            group.addConfigEditing(_config);
+            group.addRawConfig(_config);
 
         } else if (children != null) {
             for (Object child : children) {
@@ -195,7 +195,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     public void removeConfigs (ConfigGroup<ManagedConfig> group)
     {
         if (_config != null) {
-            group.removeConfigEditing(_config);
+            group.removeRawConfig(_config);
 
         } else if (children != null) {
             for (Object child : children) {

@@ -124,7 +124,7 @@ public class ConfigBox extends JComboBox
         // gather all config names into a set
         HashSet<String> names = new HashSet<String>();
         for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : group.getConfigsEditing()) {
+            for (ManagedConfig config : group.getRawConfigs()) {
                 names.add(config.getName());
             }
         }

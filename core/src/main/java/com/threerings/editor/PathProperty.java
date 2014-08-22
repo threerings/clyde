@@ -364,10 +364,6 @@ public class PathProperty extends Property
                 return null;
             }
             ManagedConfig config = cfgmgr.getRawConfig(clazz, ref.getName());
-//            ConfigGroup group = cfgmgr.getGroup(clazz);
-//            ManagedConfig config = (group == null)
-//                    ? cfgmgr.getConfig(clazz, ref.getName())
-//                    : group.getConfigEditing(ref.getName());
             if (!(config instanceof ParameterizedConfig)) {
                 return null;
             }

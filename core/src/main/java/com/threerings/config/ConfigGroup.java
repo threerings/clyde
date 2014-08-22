@@ -105,7 +105,7 @@ public class ConfigGroup<T extends ManagedConfig>
         }
 
         // provide the configurations with a reference to the manager
-        for (ManagedConfig config : getConfigsEditing()) {
+        for (ManagedConfig config : getRawConfigs()) {
             config.init(_cfgmgr);
         }
     }
@@ -143,7 +143,7 @@ public class ConfigGroup<T extends ManagedConfig>
         return val;
     }
 
-    public ManagedConfig getConfigEditing (String name)
+    public ManagedConfig getRawConfig (String name)
     {
         ManagedConfig val = _configsByName.get(name);
         if (val == null) {
@@ -170,7 +170,7 @@ public class ConfigGroup<T extends ManagedConfig>
                         }));
     }
 
-    public Iterable<ManagedConfig> getConfigsEditing ()
+    public Iterable<ManagedConfig> getRawConfigs ()
     {
         return Iterables.concat(_configsByName.values(), derivedValues());
     }
@@ -214,9 +214,6 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void addConfig (T config)
     {
-        if (warn) {
-            Thread.dumpStack();
-        }
         _configsByName.put(config.getName(), config);
         config.init(_cfgmgr);
         fireConfigAdded(config);
@@ -227,14 +224,11 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void removeConfig (T config)
     {
-        if (warn) {
-            Thread.dumpStack();
-        }
         _configsByName.remove(config.getName());
         fireConfigRemoved(config);
     }
 
-    public void addConfigEditing (ManagedConfig config)
+    public void addRawConfig (ManagedConfig config)
     {
         if (config instanceof DerivedConfig) {
             DerivedConfig derived = (DerivedConfig)config;
@@ -251,17 +245,12 @@ public class ConfigGroup<T extends ManagedConfig>
         if (_derived != null) {
             _derived.remove(config.getName());
         }
-        warn = false;
-        try {
-            @SuppressWarnings("unchecked")
-            T cfg = (T)config;
-            addConfig(cfg);
-        } finally {
-            warn = true;
-        }
+        @SuppressWarnings("unchecked")
+        T cfg = (T)config;
+        addConfig(cfg);
     }
 
-    public void removeConfigEditing (ManagedConfig config)
+    public void removeRawConfig (ManagedConfig config)
     {
         if (config instanceof DerivedConfig) {
             DerivedConfig derived = (DerivedConfig)config;
@@ -273,17 +262,10 @@ public class ConfigGroup<T extends ManagedConfig>
             fireConfigRemoved(tval);
             return;
         }
-        warn = false;
-        try {
-            @SuppressWarnings("unchecked")
-            T cfg = (T)config;
-            removeConfig(cfg);
-        } finally {
-            warn = true;
-        }
+        @SuppressWarnings("unchecked")
+        T cfg = (T)config;
+        removeConfig(cfg);
     }
-
-    protected boolean warn = true;
 
     /**
      * Saves this group's configurations.
@@ -398,7 +380,7 @@ public class ConfigGroup<T extends ManagedConfig>
 //        throws IOException
 //    {
 //        // write the sorted configs out as a raw object
-//        out.write("configs", toSortedArray(getConfigsEditing()), null, Object.class);
+//        out.write("configs", toSortedArray(getRawConfigs()), null, Object.class);
 //    }
 //
 //    /**
@@ -433,7 +415,7 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         @SuppressWarnings("unchecked") ConfigGroup<T> other =
             (dest instanceof ConfigGroup) ? (ConfigGroup<T>)dest : new ConfigGroup<T>(_cclass);
-        other.load(getConfigsEditing(), false, true);
+        other.load(getRawConfigs(), false, true);
         return other;
     }
 
@@ -545,40 +527,37 @@ public class ConfigGroup<T extends ManagedConfig>
     protected void load (
             Iterable<ManagedConfig> nconfigs, boolean merge, boolean clone)
     {
-        warn = false;
         // add any configurations that don't already exist and update those that do
         HashSet<String> names = new HashSet<String>();
         for (ManagedConfig nconfig : nconfigs) {
             String name = nconfig.getName();
             names.add(name);
 
-            ManagedConfig oconfig = getConfigEditing(name);
+            ManagedConfig oconfig = getRawConfig(name);
             if (oconfig == null) {
-                addConfigEditing(clone ? (ManagedConfig)nconfig.clone() : nconfig);
+                addRawConfig(clone ? (ManagedConfig)nconfig.clone() : nconfig);
 
             } else if (!nconfig.equals(oconfig)) {
                 ManagedConfig copied = (ManagedConfig)nconfig.copy(oconfig);
                 if (copied == oconfig) {
                     oconfig.wasUpdated();
                 } else {
-                    removeConfigEditing(oconfig);
-                    addConfigEditing(copied);
+                    removeRawConfig(oconfig);
+                    addRawConfig(copied);
                 }
             }
         }
 
         if (merge) {
-            warn = true;
             return;
         }
 
         // remove any configurations not present in the array (if not merging)
-        for (ManagedConfig cfg : Lists.newArrayList(getConfigsEditing())) {
+        for (ManagedConfig cfg : Lists.newArrayList(getRawConfigs())) {
             if (!names.contains(cfg.getName())) {
-                removeConfigEditing(cfg);
+                removeRawConfig(cfg);
             }
         }
-        warn = true;
     }
 
     protected ManagedConfig[] toSortedArray (

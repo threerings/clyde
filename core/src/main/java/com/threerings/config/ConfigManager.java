@@ -351,7 +351,7 @@ public class ConfigManager
         }
         ConfigGroup<? extends ManagedConfig> group = getGroup(clazz);
         if (group != null) {
-            ManagedConfig config = group.getConfigEditing(name);
+            ManagedConfig config = group.getRawConfig(name);
             if (config != null) {
                 return config;
             }
