@@ -342,6 +342,24 @@ public class ConfigManager
     }
 
     /**
+     * Get the raw config, for editing, with the specified class and name.
+     */
+    public ManagedConfig getRawConfig (Class<? extends ManagedConfig> clazz, String name)
+    {
+        if (name == null || isResourceClass(clazz)) {
+            return getConfig(clazz, name);
+        }
+        ConfigGroup<? extends ManagedConfig> group = getGroup(clazz);
+        if (group != null) {
+            ManagedConfig config = group.getConfigEditing(name);
+            if (config != null) {
+                return config;
+            }
+        }
+        return (_parent == null) ? null : _parent.getRawConfig(clazz, name);
+    }
+
+    /**
      * Attempts to fetch a resource config through the cache.
      */
     public ManagedConfig getResourceConfig (String name)
@@ -587,7 +605,7 @@ public class ConfigManager
         // write out the non-empty groups as a sorted array
         List<ConfigGroup> list = Lists.newArrayList();
         for (ConfigGroup group : _groups.values()) {
-            if (!group.getConfigs().isEmpty()) {
+            if (!Iterables.isEmpty(group.getConfigs())) {
                 list.add(group);
             }
         }

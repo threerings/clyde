@@ -861,7 +861,7 @@ public class TreeEditorPanel extends BaseEditorPanel
             if (property != null) {
                 @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
                     (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
-                ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, name);
+                ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
                 if (config instanceof ParameterizedConfig) {
                     ParameterizedConfig pconfig = (ParameterizedConfig)config;
                     if (pconfig.parameters.length > 0) {

@@ -174,7 +174,7 @@ public class ConfigSearcher extends JFrame
                             return endOfData();
                         }
                         _currentGroup = _groupIterator.next();
-                        _cfgIterator = _currentGroup.getConfigs().iterator();
+                        _cfgIterator = _currentGroup.getConfigsEditing().iterator();
                     }
                     final ManagedConfig cfg = _cfgIterator.next();
                     final ConfigGroup<?> group = _currentGroup;

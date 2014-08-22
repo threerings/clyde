@@ -42,6 +42,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -77,6 +78,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -90,6 +92,7 @@ import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
@@ -98,6 +101,7 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.swing.ConfigTree;
 import com.threerings.config.swing.ConfigTreeFilterPanel;
@@ -314,6 +318,21 @@ public class ConfigEditor extends BaseConfigEditor
         }
     }
 
+    /**
+     * Get the currently selected config group, if it can be determined, or null.
+     */
+    public ConfigGroup getSelectedGroup ()
+    {
+        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+        if (panel != null) {
+            ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
+            if (item != null) {
+                return item.group;
+            }
+        }
+        return null;
+    }
+
     // documentation inherited from interface ClipboardOwner
     public void lostOwnership (Clipboard clipboard, Transferable contents)
     {
@@ -512,8 +531,35 @@ public class ConfigEditor extends BaseConfigEditor
             public void newConfig ()
             {
                 Class<?> clazz = group.getConfigClass();
+
+                List<ClassBox> classes = Lists.newArrayList();
+                classes.add(new ClassBox(clazz));
+
+                EditorTypes anno = clazz.getAnnotation(EditorTypes.class);
+                if (anno != null) {
+                    Class<?>[] val = anno.value();
+                    if (val.length > 0) {
+                        classes.clear();
+                        for (Class<?> c : val) {
+                            classes.add(new ClassBox(c));
+                        }
+                        classes.add(new ClassBox(DerivedConfig.class));
+                    }
+                }
+                if (classes.size() > 1) {
+                    ClassBox selected = (ClassBox)JOptionPane.showInputDialog(
+                            ConfigEditor.this,
+                            "Which type?", "Title", JOptionPane.QUESTION_MESSAGE,
+                            null, classes.toArray(), classes.get(0));
+                    clazz = selected.clazz;
+                }
+
                 try {
-                    newNode((ManagedConfig)clazz.newInstance());
+                    ManagedConfig cfg = (ManagedConfig)clazz.newInstance();
+                    if (cfg instanceof DerivedConfig) {
+                        ((DerivedConfig)cfg).cclass = group.getConfigClass();
+                    }
+                    newNode(cfg);
                 } catch (Exception e) {
                     log.warning("Failed to instantiate config [class=" + clazz + "].", e);
                 }
@@ -568,7 +614,8 @@ public class ConfigEditor extends BaseConfigEditor
                 if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
                     ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
                     _tree.getSelectedNode().getConfigs(configs);
-                    group.save(configs, _chooser.getSelectedFile());
+                    group.save(configs, ImmutableList.<DerivedConfig>of(),
+                            _chooser.getSelectedFile());
                 }
                 _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
             }
@@ -924,6 +971,25 @@ public class ConfigEditor extends BaseConfigEditor
                     _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
                 }
             });
+        }
+    }
+
+    /**
+     * Wee helper.
+     */
+    protected static class ClassBox
+    {
+        public final Class<?> clazz;
+
+        public ClassBox (Class<?> clazz)
+        {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public String toString ()
+        {
+            return ConfigGroup.getName(clazz);
         }
     }
 

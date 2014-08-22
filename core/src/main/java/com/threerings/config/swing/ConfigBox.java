@@ -60,8 +60,7 @@ public class ConfigBox extends JComboBox
     public ConfigBox (MessageBundle msgs, ConfigGroup[] groups, boolean nullable, String config)
     {
         _msgs = msgs;
-        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups =
-            groups;
+        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups = groups;
         _groups = mgroups;
         _nullable = nullable;
 
@@ -125,7 +124,7 @@ public class ConfigBox extends JComboBox
         // gather all config names into a set
         HashSet<String> names = new HashSet<String>();
         for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : group.getConfigs()) {
+            for (ManagedConfig config : group.getConfigsEditing()) {
                 names.add(config.getName());
             }
         }

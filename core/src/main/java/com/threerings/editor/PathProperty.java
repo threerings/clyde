@@ -41,8 +41,10 @@ import java.util.List;
 import com.samskivert.util.ClassUtil;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
@@ -340,19 +342,32 @@ public class PathProperty extends Property
             }
         } else if (tok.ttype == '"' && value instanceof ConfigReference) {
             final String arg = tok.sval;
-            final @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-                (Class<ManagedConfig>)base.getArgumentType(ConfigReference.class);
-            if (clazz == null) {
-                log.warning("Couldn't determine config reference type.", "ref", value);
-                return null;
+            Class<?> refTypeClass = base.getArgumentType(ConfigReference.class);
+            if (refTypeClass == null) {
+                if (object instanceof DerivedConfig) {
+                    refTypeClass = ((DerivedConfig)object).cclass;
+                }
+                if (refTypeClass == null) {
+                    log.warning("Couldn't determine config reference type.", "ref", value);
+                    return null;
+                }
             }
+            final @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
+                (Class<ManagedConfig>)refTypeClass;
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                 (ConfigReference<ManagedConfig>)value;
             if (cfgmgr == null) {
                 log.warning("No config manager available.", "ref", value);
                 return null;
             }
-            ManagedConfig config = (ref == null) ? null : cfgmgr.getConfig(clazz, ref.getName());
+            if (ref == null) {
+                return null;
+            }
+            ManagedConfig config = cfgmgr.getRawConfig(clazz, ref.getName());
+//            ConfigGroup group = cfgmgr.getGroup(clazz);
+//            ManagedConfig config = (group == null)
+//                    ? cfgmgr.getConfig(clazz, ref.getName())
+//                    : group.getConfigEditing(ref.getName());
             if (!(config instanceof ParameterizedConfig)) {
                 return null;
             }
@@ -400,7 +415,7 @@ public class PathProperty extends Property
                 }
                 protected Property getArgumentProperty (ConfigReference<ManagedConfig> ref) {
                     ManagedConfig config = (ref == null) ?
-                        null : cfgmgr.getConfig(clazz, ref.getName());
+                        null : cfgmgr.getRawConfig(clazz, ref.getName());
                     if (!(config instanceof ParameterizedConfig)) {
                         return null;
                     }

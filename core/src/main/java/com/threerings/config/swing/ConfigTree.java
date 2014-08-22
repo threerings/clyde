@@ -447,7 +447,7 @@ public class ConfigTree extends JTree
         ConfigTreeNode root = new ConfigTreeNode(null, null);
         model.setRoot(root);
         for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : Iterables.filter(group.getConfigs(), _filter)) {
+            for (ManagedConfig config : Iterables.filter(group.getConfigsEditing(), _filter)) {
                 root.insertConfig(config, config.getName());
             }
         }

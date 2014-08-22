@@ -65,6 +65,7 @@ import com.threerings.editor.swing.editors.ColorizationEditor;
 import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.editor.swing.editors.DateTimeEditor;
+import com.threerings.editor.swing.editors.DerivedConfigReferenceEditor;
 import com.threerings.editor.swing.editors.EnumEditor;
 import com.threerings.editor.swing.editors.EnumPanelArrayListEditor;
 import com.threerings.editor.swing.editors.FileEditor;
@@ -426,6 +427,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass("datetime", DateTimeEditor.class);
         registerEditorClass("date", DateTimeEditor.DateOnlyEditor.class);
         registerEditorClass("time", DateTimeEditor.TimeOnlyEditor.class);
+        registerEditorClass("derivedRef", DerivedConfigReferenceEditor.class);
 
         registerEditorClass(Boolean.class, BooleanEditor.class);
         registerEditorClass(Boolean.TYPE, BooleanEditor.class);

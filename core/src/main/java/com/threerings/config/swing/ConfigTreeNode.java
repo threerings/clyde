@@ -43,6 +43,7 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 
 /**
@@ -179,7 +180,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     {
         if (_config != null) {
             _config.setName(getName());
-            group.addConfig(_config);
+            group.addConfigEditing(_config);
 
         } else if (children != null) {
             for (Object child : children) {
@@ -194,7 +195,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     public void removeConfigs (ConfigGroup<ManagedConfig> group)
     {
         if (_config != null) {
-            group.removeConfig(_config);
+            group.removeConfigEditing(_config);
 
         } else if (children != null) {
             for (Object child : children) {
@@ -259,7 +260,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     public boolean verifyConfigClass (Class<?> clazz)
     {
         if (_config != null) {
-            return clazz.isInstance(_config);
+            return clazz.isInstance(_config) || (clazz == DerivedConfig.class);
 
         } else if (children != null) {
             for (Object child : children) {

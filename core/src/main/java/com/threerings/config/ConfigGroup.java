@@ -38,7 +38,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.google.common.base.Function;
 import com.google.common.io.Closer;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -103,7 +105,7 @@ public class ConfigGroup<T extends ManagedConfig>
         }
 
         // provide the configurations with a reference to the manager
-        for (T config : _configsByName.values()) {
+        for (ManagedConfig config : getConfigsEditing()) {
             config.init(_cfgmgr);
         }
     }
@@ -129,15 +131,48 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public T getConfig (String name)
     {
-        return _configsByName.get(name);
+        T val = _configsByName.get(name);
+        if (val == null && _derived != null) {
+            DerivedConfig der = _derived.get(name);
+            if (der != null) {
+                @SuppressWarnings("unchecked")
+                T derval = (T)der.getActualConfig(_cfgmgr);
+                return derval;
+            }
+        }
+        return val;
+    }
+
+    public ManagedConfig getConfigEditing (String name)
+    {
+        ManagedConfig val = _configsByName.get(name);
+        if (val == null) {
+            val = _derived.get(name);
+        }
+        return val;
     }
 
     /**
      * Returns the collection of all registered configurations.
      */
-    public Collection<T> getConfigs ()
+    public Iterable<T> getConfigs ()
     {
-        return _configsByName.values();
+        Iterable<T> itr = _configsByName.values();
+        return (_derived == null)
+            ? itr
+            : Iterables.concat(itr, Iterables.transform(_derived.values(),
+                        new Function<DerivedConfig, T>() {
+                            public T apply (DerivedConfig cfg) {
+                                @SuppressWarnings("unchecked")
+                                T actual = (T)cfg.getActualConfig(_cfgmgr);
+                                return actual;
+                            }
+                        }));
+    }
+
+    public Iterable<ManagedConfig> getConfigsEditing ()
+    {
+        return Iterables.concat(_configsByName.values(), derivedValues());
     }
 
     /**
@@ -179,6 +214,9 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void addConfig (T config)
     {
+        if (warn) {
+            Thread.dumpStack();
+        }
         _configsByName.put(config.getName(), config);
         config.init(_cfgmgr);
         fireConfigAdded(config);
@@ -189,9 +227,63 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void removeConfig (T config)
     {
+        if (warn) {
+            Thread.dumpStack();
+        }
         _configsByName.remove(config.getName());
         fireConfigRemoved(config);
     }
+
+    public void addConfigEditing (ManagedConfig config)
+    {
+        if (config instanceof DerivedConfig) {
+            DerivedConfig derived = (DerivedConfig)config;
+            String name = derived.getName();
+            _configsByName.remove(name);
+            prepareStoreDerived();
+            _derived.put(name, derived);
+            derived.init(_cfgmgr);
+            @SuppressWarnings("unchecked")
+            T tval = (T)derived.getActualConfig(_cfgmgr);
+            fireConfigAdded(tval);
+            return;
+        }
+        if (_derived != null) {
+            _derived.remove(config.getName());
+        }
+        warn = false;
+        try {
+            @SuppressWarnings("unchecked")
+            T cfg = (T)config;
+            addConfig(cfg);
+        } finally {
+            warn = true;
+        }
+    }
+
+    public void removeConfigEditing (ManagedConfig config)
+    {
+        if (config instanceof DerivedConfig) {
+            DerivedConfig derived = (DerivedConfig)config;
+            if (_derived != null) {
+                _derived.remove(derived.getName());
+            }
+            @SuppressWarnings("unchecked")
+            T tval = (T)derived.getActualConfig(_cfgmgr);
+            fireConfigRemoved(tval);
+            return;
+        }
+        warn = false;
+        try {
+            @SuppressWarnings("unchecked")
+            T cfg = (T)config;
+            removeConfig(cfg);
+        } finally {
+            warn = true;
+        }
+    }
+
+    protected boolean warn = true;
 
     /**
      * Saves this group's configurations.
@@ -206,7 +298,7 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public final void save (File file)
     {
-        save(_configsByName.values(), file, true);
+        save(file, true);
     }
 
     /**
@@ -214,21 +306,31 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public final void save (File file, boolean xml)
     {
-        save(_configsByName.values(), file, xml);
+        save(_configsByName.values(), derivedValues(), file, xml);
     }
 
     /**
      * Saves the provided collection of configurations to a file.
      */
+    @Deprecated
     public final void save (Collection<T> configs, File file)
     {
-        save(configs, file, true);
+        save(configs, ImmutableList.<DerivedConfig>of(), file, true);
+    }
+
+    /**
+     * Saves the provided collection of configurations to a file.
+     */
+    public final void save (Collection<T> configs, Collection<DerivedConfig> derived, File file)
+    {
+        save(configs, derived, file, true);
     }
 
     /**
      * Save the specified configs
      */
-    public void save (Collection<T> configs, File file, boolean xml)
+    public void save (
+            Collection<T> configs, Collection<DerivedConfig> derived, File file, boolean xml)
     {
         try {
             Closer closer = Closer.create();
@@ -236,7 +338,10 @@ public class ConfigGroup<T extends ManagedConfig>
                 LazyFileOutputStream stream = closer.register(new LazyFileOutputStream(file));
                 Exporter xport = closer.register(
                         xml ? new XMLExporter(stream) : new BinaryExporter(stream));
-                xport.writeObject(toSortedArray(configs));
+                Class<? extends ManagedConfig> clazz = derived.isEmpty()
+                    ? _cclass
+                    : ManagedConfig.class;
+                xport.writeObject(toSortedArray(Iterables.concat(configs, derived), clazz));
 
             } finally {
                 closer.close();
@@ -258,7 +363,7 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Loads the configurations from the specified file.
      */
-    public void load (File file)
+    public final void load (File file)
     {
         load(file, false);
     }
@@ -272,48 +377,50 @@ public class ConfigGroup<T extends ManagedConfig>
     public void load (File file, boolean merge)
     {
         // read in the array of configurations
-        Object array;
+        ManagedConfig[] array;
         try {
             Importer in = new XMLImporter(new FileInputStream(file));
-            array = in.readObject();
+            array = (ManagedConfig[])in.readObject();
             in.close();
 
         } catch (IOException e) {
             log.warning("Error reading configurations [file=" + file + "].", e);
             return;
         }
-        @SuppressWarnings("unchecked") T[] nconfigs = (T[])array;
-        validateOuters(nconfigs);
-        load(Arrays.asList(nconfigs), merge, false);
+        validateOuters(array);
+        load(Arrays.asList(array), merge, false);
     }
 
-    /**
-     * Writes the fields of this object.
-     */
-    public void writeFields (Exporter out)
-        throws IOException
-    {
-        // write the sorted configs out as a raw object
-        out.write("configs", toSortedArray(_configsByName.values()), null, Object.class);
-    }
-
-    /**
-     * Reads the fields of this object.
-     */
-    public void readFields (Importer in)
-        throws IOException
-    {
-        // read in the configs and determine the type
-        Object object = in.read("configs", null, Object.class);
-        @SuppressWarnings("unchecked") T[] configs = (T[])(
-            object == null ? new ManagedConfig[0] : object);
-        @SuppressWarnings("unchecked") Class<T> clazz =
-            (Class<T>)configs.getClass().getComponentType();
-        initConfigClass(clazz);
-
-        // populate the maps
-        initConfigs(configs);
-    }
+//    /**
+//     * Writes the fields of this object.
+//     */
+//    public void writeFields (Exporter out)
+//        throws IOException
+//    {
+//        // write the sorted configs out as a raw object
+//        out.write("configs", toSortedArray(getConfigsEditing()), null, Object.class);
+//    }
+//
+//    /**
+//     * Reads the fields of this object.
+//     */
+//    public void readFields (Importer in)
+//        throws IOException
+//    {
+//        // read in the configs and determine the type
+//        Object object = in.read("configs", null, Object.class);
+//
+//        @SuppressWarnings("unchecked") T[] configs = (T[])(
+//            object == null ? new ManagedConfig[0] : object);
+//        @SuppressWarnings("unchecked") Class<T> clazz =
+//            (Class<T>)configs.getClass().getComponentType();
+//        initConfigClass(clazz);
+//
+//        DerivedConfig[] der = in.read("derived", null, DerivedConfig[].class);
+//
+//        // populate the maps
+//        initConfigs(configs, der);
+//    }
 
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
@@ -326,7 +433,7 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         @SuppressWarnings("unchecked") ConfigGroup<T> other =
             (dest instanceof ConfigGroup) ? (ConfigGroup<T>)dest : new ConfigGroup<T>(_cclass);
-        other.load(_configsByName.values(), false, true);
+        other.load(getConfigsEditing(), false, true);
         return other;
     }
 
@@ -350,20 +457,22 @@ public class ConfigGroup<T extends ManagedConfig>
         if (stream == null) {
             return false;
         }
+        ManagedConfig[] configs;
         try {
             Importer in = xml ? new XMLImporter(stream) : new BinaryImporter(stream);
-            @SuppressWarnings("unchecked") T[] configs = (T[])in.readObject();
-            if (xml) {
-                validateOuters(configs);
-            }
-            initConfigs(configs);
+            configs = (ManagedConfig[])in.readObject();
             in.close();
-            return true;
 
         } catch (Exception e) { // IOException, ClassCastException
             log.warning("Error reading configurations.", "group", _name, e);
             return false;
         }
+
+        if (xml) {
+            validateOuters(configs);
+        }
+        initConfigs(configs);
+        return true;
     }
 
     /**
@@ -397,20 +506,32 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Validates the outer object references of the supplied configs.
      */
-    protected void validateOuters (T[] configs)
+    protected void validateOuters (ManagedConfig[] configs)
     {
-        for (T config : configs) {
-            config.validateOuters(_name + ":" + config.getName());
+        for (ManagedConfig config : configs) {
+            if (!(config instanceof DerivedConfig)) {
+                config.validateOuters(_name + ":" + config.getName());
+            }
         }
     }
 
     /**
      * Sets the initial set of configs.
      */
-    protected void initConfigs (T[] configs)
+    protected void initConfigs (ManagedConfig[] configs)
     {
-        for (T config : configs) {
-            _configsByName.put(config.getName(), config);
+        for (ManagedConfig config : configs) {
+            if (config instanceof DerivedConfig) {
+                prepareStoreDerived();
+                DerivedConfig cfg = (DerivedConfig)config;
+                cfg.cclass = _cclass;
+                _derived.put(cfg.getName(), cfg);
+
+            } else {
+                @SuppressWarnings("unchecked")
+                T cfg = (T)config;
+                _configsByName.put(config.getName(), cfg);
+            }
         }
     }
 
@@ -421,31 +542,58 @@ public class ConfigGroup<T extends ManagedConfig>
      * that do not exist in the collection.
      * @param clone if true, we must clone configurations that do not yet exist in the group.
      */
-    protected void load (Collection<T> nconfigs, boolean merge, boolean clone)
+    protected void load (
+            Iterable<ManagedConfig> nconfigs, boolean merge, boolean clone)
     {
+        warn = false;
         // add any configurations that don't already exist and update those that do
         HashSet<String> names = new HashSet<String>();
-        for (T nconfig : nconfigs) {
+        for (ManagedConfig nconfig : nconfigs) {
             String name = nconfig.getName();
             names.add(name);
-            T oconfig = _configsByName.get(name);
+
+            ManagedConfig oconfig = getConfigEditing(name);
             if (oconfig == null) {
-                addConfig(clone ? _cclass.cast(nconfig.clone()) : nconfig);
+                addConfigEditing(clone ? (ManagedConfig)nconfig.clone() : nconfig);
+
             } else if (!nconfig.equals(oconfig)) {
-                nconfig.copy(oconfig);
-                oconfig.wasUpdated();
+                ManagedConfig copied = (ManagedConfig)nconfig.copy(oconfig);
+                if (copied == oconfig) {
+                    oconfig.wasUpdated();
+                } else {
+                    removeConfigEditing(oconfig);
+                    addConfigEditing(copied);
+                }
             }
         }
+
         if (merge) {
+            warn = true;
             return;
         }
 
         // remove any configurations not present in the array (if not merging)
-        for (T oconfig : Lists.newArrayList(_configsByName.values())) {
-            if (!names.contains(oconfig.getName())) {
-                removeConfig(oconfig);
+        for (ManagedConfig cfg : Lists.newArrayList(getConfigsEditing())) {
+            if (!names.contains(cfg.getName())) {
+                removeConfigEditing(cfg);
             }
         }
+        warn = true;
+    }
+
+    protected ManagedConfig[] toSortedArray (
+            Iterable<ManagedConfig> configs,
+            Class<? extends ManagedConfig> arrayElementClass)
+    {
+        @SuppressWarnings("unchecked")
+        Class<ManagedConfig> clazz = (Class<ManagedConfig>)arrayElementClass;
+
+        return Iterables.toArray(
+                new Ordering<ManagedConfig>() {
+                    public int compare (ManagedConfig c1, ManagedConfig c2) {
+                        return c1.getName().compareTo(c2.getName());
+                    }
+                }.immutableSortedCopy(configs), clazz);
     }
 
     /**
@@ -459,6 +607,12 @@ public class ConfigGroup<T extends ManagedConfig>
                         return c1.getName().compareTo(c2.getName());
                     }
                 }.immutableSortedCopy(configs), _cclass);
+    }
+
+    protected DerivedConfig[] toSortedArray (Collection<DerivedConfig> coll)
+    {
+        // TODO: sorting
+        return coll.toArray(new DerivedConfig[coll.size()]);
     }
 
     /**
@@ -495,6 +649,20 @@ public class ConfigGroup<T extends ManagedConfig>
         });
     }
 
+    protected void prepareStoreDerived ()
+    {
+        if (_derived == null) {
+            _derived = new HashMap<String, DerivedConfig>();
+        }
+    }
+
+    protected Collection<DerivedConfig> derivedValues ()
+    {
+        return (_derived == null)
+            ? ImmutableList.<DerivedConfig>of()
+            : _derived.values();
+    }
+
     /** The configuration manager that created this group. */
     protected ConfigManager _cfgmgr;
 
@@ -506,6 +674,9 @@ public class ConfigGroup<T extends ManagedConfig>
 
     /** Configurations mapped by name. */
     protected HashMap<String, T> _configsByName = new HashMap<String, T>();
+
+    /** Derived configs, if any. */
+    protected HashMap<String, DerivedConfig> _derived;
 
     /** Configuration event listeners. */
     protected ObserverList<ConfigGroupListener<T>> _listeners;

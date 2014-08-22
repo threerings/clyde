@@ -27,6 +27,7 @@ package com.threerings.editor.swing.editors;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -46,13 +47,16 @@ import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
+import com.threerings.config.tools.ConfigEditor;
 
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.PropertyEditor;
@@ -72,8 +76,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         if (source == _config) {
             if (_chooser == null) {
                 _chooser = ConfigChooser.createInstance(
-                    _msgmgr, _ctx.getConfigManager(),
-                    _property.getArgumentType(ConfigReference.class));
+                    _msgmgr, _ctx.getConfigManager(), getArgumentType());
             }
             _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
             if (!_chooser.showDialog(this)) {
@@ -84,7 +87,7 @@ public class ConfigReferenceEditor extends PropertyEditor
 
         } else if (source == _edit) {
             BaseConfigEditor editor = BaseConfigEditor.createEditor(
-                _ctx, _property.getArgumentType(ConfigReference.class), ovalue.getName());
+                _ctx, getArgumentType(), ovalue.getName());
             editor.setLocationRelativeTo(this);
             editor.setVisible(true);
             return;
@@ -143,6 +146,14 @@ public class ConfigReferenceEditor extends PropertyEditor
         return editor == null ? "" :
             ("[\"" + editor.getProperty().getName().replace("\"", "\\\"") + "\"]" +
              editor.getComponentPath(comp, mouse));
+    }
+
+    /**
+     * Get the type of the config reference.
+     */
+    protected Class<?> getArgumentType ()
+    {
+        return _property.getArgumentType(ConfigReference.class);
     }
 
     @Override
@@ -212,8 +223,8 @@ public class ConfigReferenceEditor extends PropertyEditor
 
         // resolve the configuration reference
         @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-            (Class<ManagedConfig>)_property.getArgumentType(ConfigReference.class);
-        ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, name);
+                (Class<ManagedConfig>)getArgumentType();
+        ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
         if (!(config instanceof ParameterizedConfig)) {
             _arguments.removeAll();
             value.getArguments().clear();
