@@ -25,23 +25,40 @@ public final class DerivedConfig extends ParameterizedConfig
      */
     public ManagedConfig getActualConfig (ConfigManager cfgmgr)
     {
+        if (base == null) {
+            return null;
+        }
+
         @SuppressWarnings("unchecked")
         ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)base;
         @SuppressWarnings("unchecked")
         Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
 
-        ManagedConfig cfg = cfgmgr.getConfig(clazz, ref);
-        if (cfg != null) {
-            // TODO: this is super dangerous because of the way that ParameterizedConfig caches
-            cfg.setName(getName());
+        ManagedConfig other = cfgmgr.getRawConfig(clazz, ref.getName());
+        if (other == null) {
+            return null;
         }
-        return cfg;
+        ManagedConfig actual = (ManagedConfig)other.copy(null);
+        actual.init(cfgmgr);
+        if (actual instanceof ParameterizedConfig) {
+            ((ParameterizedConfig)other).applyArguments(
+                    (ParameterizedConfig)actual, ref.getArguments());
+            if (actual instanceof DerivedConfig) {
+                actual = ((DerivedConfig)actual).getActualConfig(cfgmgr);
+            }
+            ((ParameterizedConfig)actual).parameters = Parameter.EMPTY_ARRAY;
+        }
+        actual.setComment(getComment());
+        actual.setName(getName());
+        return actual;
     }
 
     @Override
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         super.getUpdateReferences(refs);
+        System.err.println("Wait, I shouldn't be here");
+        Thread.dumpStack();
 
         @SuppressWarnings("unchecked")
         ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)base;

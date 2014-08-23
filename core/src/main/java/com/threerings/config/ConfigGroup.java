@@ -227,6 +227,9 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         _configsByName.put(config.getName(), config);
         config.init(_cfgmgr);
+        if (_derived != null) {
+            _derived.remove(config.getName());
+        }
         fireConfigAdded(config);
     }
 

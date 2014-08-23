@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -35,6 +36,7 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
@@ -114,6 +116,16 @@ public class ConfigFlattener
     public static void flatten (ConfigManager cfgmgr)
     {
         DependentReferenceSet refSet = new DependentReferenceSet();
+
+        // turn all derived configs into their "original" form
+        for (ConfigGroup group : cfgmgr.getGroups()) {
+            for (DerivedConfig der : Lists.newArrayList(
+                    Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
+                ManagedConfig cfg = der.getActualConfig(cfgmgr);
+                group.addRawConfig(cfg);
+            }
+        }
+
         refSet.populate(cfgmgr);
 
         // now go through each ref in dependency ordering
