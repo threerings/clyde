@@ -132,16 +132,7 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public T getConfig (String name)
     {
-        T val = _configsByName.get(name);
-        if (val == null && hasDerived()) {
-            DerivedConfig der = _derived.get(name);
-            if (der != null) {
-                @SuppressWarnings("unchecked")
-                T derval = (T)der.getActualConfig(_cfgmgr);
-                return derval;
-            }
-        }
-        return val;
+        return actualize(getRawConfig(name));
     }
 
     /**
@@ -151,11 +142,7 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public ManagedConfig getRawConfig (String name)
     {
-        ManagedConfig val = _configsByName.get(name);
-        if (val == null && hasDerived()) {
-            val = _derived.get(name);
-        }
-        return val;
+        return _configsByName.get(name);
     }
 
     /**
@@ -163,17 +150,12 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public Iterable<T> getConfigs ()
     {
-        Iterable<T> itr = _configsByName.values();
-        return !hasDerived()
-            ? itr
-            : Iterables.concat(itr, Iterables.transform(_derived.values(),
-                        new Function<DerivedConfig, T>() {
-                            public T apply (DerivedConfig cfg) {
-                                @SuppressWarnings("unchecked")
-                                T actual = (T)cfg.getActualConfig(_cfgmgr);
-                                return actual;
-                            }
-                        }));
+        return Iterables.transform(getRawConfigs(),
+                new Function<ManagedConfig, T>() {
+                    public T apply (ManagedConfig cfg) {
+                        return actualize(cfg);
+                    }
+                });
     }
 
     /**
@@ -183,7 +165,7 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public Iterable<ManagedConfig> getRawConfigs ()
     {
-        return Iterables.concat(_configsByName.values(), derivedValues());
+        return _configsByName.values();
     }
 
     /**
@@ -213,9 +195,9 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Adds all of the supplied configurations to the set.
      */
-    public void addConfigs (Collection<T> configs)
+    public void addConfigs (Collection<ManagedConfig> configs)
     {
-        for (T config : configs) {
+        for (ManagedConfig config : configs) {
             addConfig(config);
         }
     }
@@ -223,62 +205,20 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Adds a configuration to the set.
      */
-    public void addConfig (T config)
+    public void addConfig (ManagedConfig config)
     {
         _configsByName.put(config.getName(), config);
         config.init(_cfgmgr);
-        if (_derived != null) {
-            _derived.remove(config.getName());
-        }
-        fireConfigAdded(config);
+        fireConfigAdded(actualize(config));
     }
 
     /**
      * Removes a configuration from the set.
      */
-    public void removeConfig (T config)
+    public void removeConfig (ManagedConfig config)
     {
         _configsByName.remove(config.getName());
-        fireConfigRemoved(config);
-    }
-
-    public void addRawConfig (ManagedConfig config)
-    {
-        if (config instanceof DerivedConfig) {
-            DerivedConfig derived = (DerivedConfig)config;
-            String name = derived.getName();
-            _configsByName.remove(name);
-            prepareStoreDerived();
-            _derived.put(name, derived);
-            derived.init(_cfgmgr);
-            @SuppressWarnings("unchecked")
-            T tval = (T)derived.getActualConfig(_cfgmgr);
-            fireConfigAdded(tval);
-            return;
-        }
-        if (_derived != null) {
-            _derived.remove(config.getName());
-        }
-        @SuppressWarnings("unchecked")
-        T cfg = (T)config;
-        addConfig(cfg);
-    }
-
-    public void removeRawConfig (ManagedConfig config)
-    {
-        if (config instanceof DerivedConfig) {
-            DerivedConfig derived = (DerivedConfig)config;
-            if (_derived != null) {
-                _derived.remove(derived.getName());
-            }
-            @SuppressWarnings("unchecked")
-            T tval = (T)derived.getActualConfig(_cfgmgr);
-            fireConfigRemoved(tval);
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        T cfg = (T)config;
-        removeConfig(cfg);
+        fireConfigRemoved(actualize(config));
     }
 
     /**
@@ -519,16 +459,9 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         for (ManagedConfig config : configs) {
             if (config instanceof DerivedConfig) {
-                prepareStoreDerived();
-                DerivedConfig cfg = (DerivedConfig)config;
-                cfg.cclass = _cclass;
-                _derived.put(cfg.getName(), cfg);
-
-            } else {
-                @SuppressWarnings("unchecked")
-                T cfg = (T)config;
-                _configsByName.put(config.getName(), cfg);
+                ((DerivedConfig)config).cclass = _cclass;
             }
+            _configsByName.put(config.getName(), config);
         }
     }
 
@@ -549,15 +482,15 @@ public class ConfigGroup<T extends ManagedConfig>
 
             ManagedConfig oconfig = getRawConfig(name);
             if (oconfig == null) {
-                addRawConfig(clone ? (ManagedConfig)nconfig.clone() : nconfig);
+                addConfig(clone ? (ManagedConfig)nconfig.clone() : nconfig);
 
             } else if (!nconfig.equals(oconfig)) {
                 ManagedConfig copied = (ManagedConfig)nconfig.copy(oconfig);
                 if (copied == oconfig) {
                     oconfig.wasUpdated();
                 } else {
-                    removeRawConfig(oconfig);
-                    addRawConfig(copied);
+                    removeConfig(oconfig);
+                    addConfig(copied);
                 }
             }
         }
@@ -569,9 +502,20 @@ public class ConfigGroup<T extends ManagedConfig>
         // remove any configurations not present in the array (if not merging)
         for (ManagedConfig cfg : Lists.newArrayList(getRawConfigs())) {
             if (!names.contains(cfg.getName())) {
-                removeRawConfig(cfg);
+                removeConfig(cfg);
             }
         }
+    }
+
+    /**
+     * Utility to cast/promote a config value to our class type.
+     */
+    protected T actualize (ManagedConfig val)
+    {
+        if (val instanceof DerivedConfig) {
+            val = ((DerivedConfig)val).getActualConfig(_cfgmgr);
+        }
+        return _cclass.cast(val);
     }
 
     /**
@@ -626,28 +570,6 @@ public class ConfigGroup<T extends ManagedConfig>
         });
     }
 
-    /**
-     * Do we have any derived configs?
-     */
-    protected boolean hasDerived ()
-    {
-        return (_derived != null) && !_derived.isEmpty();
-    }
-
-    protected void prepareStoreDerived ()
-    {
-        if (_derived == null) {
-            _derived = new HashMap<String, DerivedConfig>();
-        }
-    }
-
-    protected Collection<DerivedConfig> derivedValues ()
-    {
-        return (_derived == null)
-            ? ImmutableList.<DerivedConfig>of()
-            : _derived.values();
-    }
-
     /** The configuration manager that created this group. */
     protected ConfigManager _cfgmgr;
 
@@ -658,10 +580,7 @@ public class ConfigGroup<T extends ManagedConfig>
     protected Class<T> _cclass;
 
     /** Configurations mapped by name. */
-    protected HashMap<String, T> _configsByName = new HashMap<String, T>();
-
-    /** Derived configs, if any. */
-    protected HashMap<String, DerivedConfig> _derived;
+    protected HashMap<String, ManagedConfig> _configsByName = new HashMap<String, ManagedConfig>();
 
     /** Configuration event listeners. */
     protected ObserverList<ConfigGroupListener<T>> _listeners;

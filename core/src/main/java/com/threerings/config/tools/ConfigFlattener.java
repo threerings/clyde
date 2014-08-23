@@ -122,7 +122,7 @@ public class ConfigFlattener
             for (DerivedConfig der : Lists.newArrayList(
                     Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
                 ManagedConfig cfg = der.getActualConfig(cfgmgr);
-                group.addRawConfig(cfg);
+                group.addConfig(cfg);
             }
         }
 
