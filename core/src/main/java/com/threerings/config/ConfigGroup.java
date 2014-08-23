@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import com.google.common.io.Closer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -132,7 +133,7 @@ public class ConfigGroup<T extends ManagedConfig>
     public T getConfig (String name)
     {
         T val = _configsByName.get(name);
-        if (val == null && _derived != null) {
+        if (val == null && hasDerived()) {
             DerivedConfig der = _derived.get(name);
             if (der != null) {
                 @SuppressWarnings("unchecked")
@@ -143,10 +144,15 @@ public class ConfigGroup<T extends ManagedConfig>
         return val;
     }
 
+    /**
+     * Get the <em>raw</em> configuration by name.
+     * This method is for editing and other "configging the configs" uses and may
+     * return a DerivedConfig instance.
+     */
     public ManagedConfig getRawConfig (String name)
     {
         ManagedConfig val = _configsByName.get(name);
-        if (val == null) {
+        if (val == null && hasDerived()) {
             val = _derived.get(name);
         }
         return val;
@@ -158,7 +164,7 @@ public class ConfigGroup<T extends ManagedConfig>
     public Iterable<T> getConfigs ()
     {
         Iterable<T> itr = _configsByName.values();
-        return (_derived == null)
+        return !hasDerived()
             ? itr
             : Iterables.concat(itr, Iterables.transform(_derived.values(),
                         new Function<DerivedConfig, T>() {
@@ -170,6 +176,11 @@ public class ConfigGroup<T extends ManagedConfig>
                         }));
     }
 
+    /**
+     * Return all the <em>raw</em> configurations.
+     * This method is for editing and other "configging the configs" uses and may
+     * return DerivedConfig instances.
+     */
     public Iterable<ManagedConfig> getRawConfigs ()
     {
         return Iterables.concat(_configsByName.values(), derivedValues());
@@ -288,31 +299,30 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public final void save (File file, boolean xml)
     {
-        save(_configsByName.values(), derivedValues(), file, xml);
+        save(getRawConfigs(), file, xml);
     }
+
+//    /**
+//     * Saves the provided collection of configurations to a file.
+//     */
+//    @Deprecated
+//    public final void save (Collection<T> configs, File file)
+//    {
+//        save(configs, ImmutableList.<DerivedConfig>of(), file, true);
+//    }
 
     /**
      * Saves the provided collection of configurations to a file.
      */
-    @Deprecated
-    public final void save (Collection<T> configs, File file)
+    public final void save (Iterable<? extends ManagedConfig> rawConfigs, File file)
     {
-        save(configs, ImmutableList.<DerivedConfig>of(), file, true);
-    }
-
-    /**
-     * Saves the provided collection of configurations to a file.
-     */
-    public final void save (Collection<T> configs, Collection<DerivedConfig> derived, File file)
-    {
-        save(configs, derived, file, true);
+        save(rawConfigs, file, true);
     }
 
     /**
      * Save the specified configs
      */
-    public void save (
-            Collection<T> configs, Collection<DerivedConfig> derived, File file, boolean xml)
+    public void save (Iterable<? extends ManagedConfig> rawConfigs, File file, boolean xml)
     {
         try {
             Closer closer = Closer.create();
@@ -320,10 +330,11 @@ public class ConfigGroup<T extends ManagedConfig>
                 LazyFileOutputStream stream = closer.register(new LazyFileOutputStream(file));
                 Exporter xport = closer.register(
                         xml ? new XMLExporter(stream) : new BinaryExporter(stream));
-                Class<? extends ManagedConfig> clazz = derived.isEmpty()
-                    ? _cclass
-                    : ManagedConfig.class;
-                xport.writeObject(toSortedArray(Iterables.concat(configs, derived), clazz));
+                Class<? extends ManagedConfig> clazz =
+                        Iterables.any(rawConfigs, Predicates.instanceOf(DerivedConfig.class))
+                    ? ManagedConfig.class
+                    : _cclass;
+                xport.writeObject(toSortedArray(rawConfigs, clazz));
 
             } finally {
                 closer.close();
@@ -373,36 +384,46 @@ public class ConfigGroup<T extends ManagedConfig>
         load(Arrays.asList(array), merge, false);
     }
 
-//    /**
-//     * Writes the fields of this object.
-//     */
-//    public void writeFields (Exporter out)
-//        throws IOException
-//    {
-//        // write the sorted configs out as a raw object
-//        out.write("configs", toSortedArray(getRawConfigs()), null, Object.class);
-//    }
-//
-//    /**
-//     * Reads the fields of this object.
-//     */
-//    public void readFields (Importer in)
-//        throws IOException
-//    {
-//        // read in the configs and determine the type
-//        Object object = in.read("configs", null, Object.class);
-//
-//        @SuppressWarnings("unchecked") T[] configs = (T[])(
-//            object == null ? new ManagedConfig[0] : object);
-//        @SuppressWarnings("unchecked") Class<T> clazz =
-//            (Class<T>)configs.getClass().getComponentType();
-//        initConfigClass(clazz);
-//
-//        DerivedConfig[] der = in.read("derived", null, DerivedConfig[].class);
-//
-//        // populate the maps
-//        initConfigs(configs, der);
-//    }
+    /**
+     * Writes the fields of this object.
+     */
+    public void writeFields (Exporter out)
+        throws IOException
+    {
+        // write the sorted configs out as a raw object
+        out.write("configs", toSortedArray(getRawConfigs(), ManagedConfig.class),
+                null, Object.class);
+        out.write("class", String.valueOf(_cclass.getName()));
+    }
+
+    /**
+     * Reads the fields of this object.
+     */
+    public void readFields (Importer in)
+        throws IOException
+    {
+        // read in the configs and determine the type
+        ManagedConfig[] configs = (ManagedConfig[])in.read("configs", null, Object.class);
+        String classname = in.read("class", (String)null);
+        Class<?> clazz; 
+        if (classname != null) {
+            try {
+                clazz = Class.forName(classname);
+            } catch (Exception e) {
+                throw (IOException)new IOException("Unknown class: " + classname).initCause(e);
+            }
+        } else {
+            // oldstyle- determine class from array element type
+            clazz = configs.getClass().getComponentType();
+        }
+
+        @SuppressWarnings("unchecked")
+        Class<T> tclazz = (Class<T>)clazz;
+        initConfigClass(tclazz);
+
+        // populate the maps
+        initConfigs(configs);
+    }
 
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
@@ -560,8 +581,11 @@ public class ConfigGroup<T extends ManagedConfig>
         }
     }
 
+    /**
+     * Converts the supplied collection of configs to a sorted array.
+     */
     protected ManagedConfig[] toSortedArray (
-            Iterable<ManagedConfig> configs,
+            Iterable<? extends ManagedConfig> configs,
             Class<? extends ManagedConfig> arrayElementClass)
     {
         @SuppressWarnings("unchecked")
@@ -573,25 +597,6 @@ public class ConfigGroup<T extends ManagedConfig>
                         return c1.getName().compareTo(c2.getName());
                     }
                 }.immutableSortedCopy(configs), clazz);
-    }
-
-    /**
-     * Converts the supplied collection of configs to a sorted array.
-     */
-    protected T[] toSortedArray (Collection<T> configs)
-    {
-        return Iterables.toArray(
-                new Ordering<T>() {
-                    public int compare (T c1, T c2) {
-                        return c1.getName().compareTo(c2.getName());
-                    }
-                }.immutableSortedCopy(configs), _cclass);
-    }
-
-    protected DerivedConfig[] toSortedArray (Collection<DerivedConfig> coll)
-    {
-        // TODO: sorting
-        return coll.toArray(new DerivedConfig[coll.size()]);
     }
 
     /**
@@ -626,6 +631,14 @@ public class ConfigGroup<T extends ManagedConfig>
                 return true;
             }
         });
+    }
+
+    /**
+     * Do we have any derived configs?
+     */
+    protected boolean hasDerived ()
+    {
+        return (_derived != null) && !_derived.isEmpty();
     }
 
     protected void prepareStoreDerived ()
