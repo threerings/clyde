@@ -342,7 +342,9 @@ public class ConfigManager
     }
 
     /**
-     * Get the raw config, for editing, with the specified class and name.
+     * Get the <em>raw</em> config witht the specified class/group and name.
+     * This method is for editing and other "configging the configs" usees and may return
+     * a DerivedConfig instance and not a config that implements the specified class!
      */
     public ManagedConfig getRawConfig (Class<? extends ManagedConfig> clazz, String name)
     {
