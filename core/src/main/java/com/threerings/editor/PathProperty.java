@@ -353,9 +353,9 @@ public class PathProperty extends Property
                 }
             }
             final @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-                (Class<ManagedConfig>)refTypeClass;
+                    (Class<ManagedConfig>)refTypeClass;
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
-                (ConfigReference<ManagedConfig>)value;
+                    (ConfigReference<ManagedConfig>)value;
             if (cfgmgr == null) {
                 log.warning("No config manager available.", "ref", value);
                 return null;

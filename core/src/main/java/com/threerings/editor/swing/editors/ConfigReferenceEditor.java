@@ -27,7 +27,6 @@ package com.threerings.editor.swing.editors;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -47,16 +46,13 @@ import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.config.ConfigEvent;
-import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
-import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
-import com.threerings.config.tools.ConfigEditor;
 
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.PropertyEditor;

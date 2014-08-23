@@ -302,15 +302,6 @@ public class ConfigGroup<T extends ManagedConfig>
         save(getRawConfigs(), file, xml);
     }
 
-//    /**
-//     * Saves the provided collection of configurations to a file.
-//     */
-//    @Deprecated
-//    public final void save (Collection<T> configs, File file)
-//    {
-//        save(configs, ImmutableList.<DerivedConfig>of(), file, true);
-//    }
-
     /**
      * Saves the provided collection of configurations to a file.
      */
@@ -405,7 +396,7 @@ public class ConfigGroup<T extends ManagedConfig>
         // read in the configs and determine the type
         ManagedConfig[] configs = (ManagedConfig[])in.read("configs", null, Object.class);
         String classname = in.read("class", (String)null);
-        Class<?> clazz; 
+        Class<?> clazz;
         if (classname != null) {
             try {
                 clazz = Class.forName(classname);
@@ -545,8 +536,7 @@ public class ConfigGroup<T extends ManagedConfig>
      * that do not exist in the collection.
      * @param clone if true, we must clone configurations that do not yet exist in the group.
      */
-    protected void load (
-            Iterable<ManagedConfig> nconfigs, boolean merge, boolean clone)
+    protected void load (Iterable<ManagedConfig> nconfigs, boolean merge, boolean clone)
     {
         // add any configurations that don't already exist and update those that do
         HashSet<String> names = new HashSet<String>();

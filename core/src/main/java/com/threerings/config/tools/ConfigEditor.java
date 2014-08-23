@@ -318,21 +318,6 @@ public class ConfigEditor extends BaseConfigEditor
         }
     }
 
-    /**
-     * Get the currently selected config group, if it can be determined, or null.
-     */
-    public ConfigGroup getSelectedGroup ()
-    {
-        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
-        if (panel != null) {
-            ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
-            if (item != null) {
-                return item.group;
-            }
-        }
-        return null;
-    }
-
     // documentation inherited from interface ClipboardOwner
     public void lostOwnership (Clipboard clipboard, Transferable contents)
     {
@@ -614,8 +599,7 @@ public class ConfigEditor extends BaseConfigEditor
                 if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
                     ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
                     _tree.getSelectedNode().getConfigs(configs);
-                    group.save(configs, ImmutableList.<DerivedConfig>of(),
-                            _chooser.getSelectedFile());
+                    group.save(configs, _chooser.getSelectedFile());
                 }
                 _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
             }
