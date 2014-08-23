@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.io.Closer;
 import com.google.common.collect.ImmutableList;
@@ -207,6 +208,8 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void addConfig (ManagedConfig config)
     {
+        Preconditions.checkArgument(
+                _cclass.isInstance(config) || (config instanceof DerivedConfig));
         _configsByName.put(config.getName(), config);
         config.init(_cfgmgr);
         fireConfigAdded(actualize(config));
