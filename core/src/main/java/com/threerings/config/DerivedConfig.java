@@ -57,8 +57,6 @@ public final class DerivedConfig extends ParameterizedConfig
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         super.getUpdateReferences(refs);
-        System.err.println("Wait, I shouldn't be here");
-        Thread.dumpStack();
 
         @SuppressWarnings("unchecked")
         ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)base;
