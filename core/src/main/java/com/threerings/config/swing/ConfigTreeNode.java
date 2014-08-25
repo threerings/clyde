@@ -260,7 +260,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     public boolean verifyConfigClass (Class<?> clazz)
     {
         if (_config != null) {
-            return clazz.isInstance(_config) || (clazz == DerivedConfig.class);
+            return clazz.isInstance(_config) || (_config instanceof DerivedConfig);
 
         } else if (children != null) {
             for (Object child : children) {
