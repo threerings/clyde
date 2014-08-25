@@ -31,7 +31,7 @@ public class ConfigTypeEditor extends ChoiceEditor
     public void update ()
     {
         super.update();
-        // TODO: hide if only one option
+        setVisible(_box.getItemCount() > 1);
     }
 
     @Override
