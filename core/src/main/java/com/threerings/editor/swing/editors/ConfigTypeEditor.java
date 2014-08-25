@@ -20,13 +20,11 @@ import com.threerings.editor.Property;
 
 import static com.threerings.editor.Log.log;
 
+/**
+ * A special editor for selecting the type of a config that might have subtypes.
+ */
 public class ConfigTypeEditor extends ChoiceEditor
 {
-    public String getConfigName ()
-    {
-        return ((ManagedConfig)_object).getName();
-    }
-
     @Override
     public void update ()
     {
