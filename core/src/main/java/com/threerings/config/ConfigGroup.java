@@ -196,7 +196,7 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Adds all of the supplied configurations to the set.
      */
-    public void addConfigs (Collection<ManagedConfig> configs)
+    public void addConfigs (Collection<? extends ManagedConfig> configs)
     {
         for (ManagedConfig config : configs) {
             addConfig(config);
