@@ -866,6 +866,7 @@ public class TreeEditorPanel extends BaseEditorPanel
             int ccount = node.getChildCount();
             int idx = 0;
             if (property != null) {
+                // TODO: Fuuuuuuuck : TODO Fix this up.
                 @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
                     (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
                 ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
