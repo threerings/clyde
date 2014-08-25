@@ -65,6 +65,12 @@ public class ConfigTypeEditor extends ChoiceEditor
         return new ClassBox[] { new ClassBox(clazz) };
     }
 
+    @Override
+    protected void fireStateChanged ()
+    {
+        // Suppress it
+    }
+
     /**
      * Utility to get the group for any config.
      */

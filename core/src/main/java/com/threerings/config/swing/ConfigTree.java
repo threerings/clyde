@@ -197,7 +197,11 @@ public class ConfigTree extends JTree
                 ((DefaultTreeModel)getModel()).insertNodeInto(
                     point.right, point.left, point.left.getInsertionIndex(point.right));
             }
+            if (_autoSelectAddName != null && _autoSelectAddName.equals(config.getName())) {
+                setSelectedNode(_autoSelectAddName);
+            }
         } finally {
+            _autoSelectAddName = null;
             _block.leave();
         }
     }
@@ -213,6 +217,10 @@ public class ConfigTree extends JTree
             ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
             if (node != null) {
                 if (node.decrementCount() == 0) {
+                    // if this is our selected node, then remember the name
+                    if (node == getSelectedNode()) {
+                        _autoSelectAddName = name;
+                    }
                     if (!isEditable()) {
                         // remove any internal nodes made empty by the removal
                         while (node.getSiblingCount() == 1 && node.getLevel() > 1) {
@@ -646,6 +654,9 @@ public class ConfigTree extends JTree
 
     /** The current config filter. */
     protected Predicate<? super ManagedConfig> _filter;
+
+    /** The name of a config to auto-select if it is added. */
+    protected String _autoSelectAddName;
 
     /** The last non-null selected path when the filter changed. */
     protected String _lastFilterSelectedPath;
