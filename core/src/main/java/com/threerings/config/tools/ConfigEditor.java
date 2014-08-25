@@ -519,7 +519,7 @@ public class ConfigEditor extends BaseConfigEditor
 
                 EditorTypes anno = clazz.getAnnotation(EditorTypes.class);
                 if (anno != null) {
-                    clazz = anno.values()[0];
+                    clazz = anno.value()[0];
                 }
                 try {
                     ManagedConfig cfg = (ManagedConfig)clazz.newInstance();
