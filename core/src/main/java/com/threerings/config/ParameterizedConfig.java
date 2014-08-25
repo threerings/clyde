@@ -52,18 +52,6 @@ public class ParameterizedConfig extends ManagedConfig
     @Editable(weight=1)
     public Parameter[] parameters = Parameter.EMPTY_ARRAY;
 
-    @Editable // see setter
-    public String getType ()
-    {
-        return ConfigGroup.getName(getClass());
-    }
-
-    @Editable(constant=true, weight=-Double.MAX_VALUE)
-    public void setType (String val)
-    {
-        throw new RuntimeException();
-    }
-
     /**
      * Returns a reference to the parameter with the supplied name, or <code>null</code> if it
      * doesn't exist.

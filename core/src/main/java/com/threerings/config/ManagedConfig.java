@@ -45,6 +45,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.resource.ResourceManager.ModificationObserver;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.PropertyUtil;
@@ -73,6 +74,22 @@ public abstract class ManagedConfig extends DeepObject
                 ? new MapMaker().concurrencyLevel(1).weakKeys().<ManagedConfig, String>makeMap()
                 : null;
         }
+    }
+
+    /** The type of this config. */
+    @Editable // see setter
+    public final Class<?> getType ()
+    {
+        return getClass();
+    }
+
+    /** The type of this config. */
+    @Editable(editor="configType", weight=-Double.MAX_VALUE)
+    public final void setType (Class<?> val)
+    {
+        // the 'configType' editor will never actually call this, it will instead make a new
+        // type and set it.
+        throw new UnsupportedOperationException();
     }
 
     /** A helpful comment explaining what this config is and/or used for. */
