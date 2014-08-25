@@ -47,7 +47,6 @@ import com.threerings.util.Validatable;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
-import com.threerings.editor.swing.editors.ConfigTypeEditor;
 import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.log;
@@ -206,8 +205,7 @@ public class ObjectPanel extends BasePropertyEditor
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        Object src = event.getSource();
-        fireStateChanged((src instanceof ConfigTypeEditor) ? src : this);
+        fireStateChanged();
     }
 
     @Override
@@ -217,10 +215,10 @@ public class ObjectPanel extends BasePropertyEditor
     }
 
     @Override
-    protected void fireStateChanged (Object src)
+    protected void fireStateChanged ()
     {
         checkValid(getValue());
-        super.fireStateChanged(src);
+        super.fireStateChanged();
     }
 
     /**

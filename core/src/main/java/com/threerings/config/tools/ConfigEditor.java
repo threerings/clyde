@@ -96,7 +96,6 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
-import com.threerings.editor.swing.editors.ConfigTypeEditor;
 import com.threerings.editor.util.EditorContext;
 
 import com.threerings.config.ConfigGroup;
@@ -895,15 +894,7 @@ public class ConfigEditor extends BaseConfigEditor
         // documentation inherited from interface ChangeListener
         public void stateChanged (ChangeEvent event)
         {
-            Object src = event.getSource();
-            GroupItem item = (GroupItem)gbox.getSelectedItem();
-            if (src instanceof ConfigTypeEditor) {
-                // the type changed, re-select the previously selected config
-                item.select(((ConfigTypeEditor)src).getConfigName());
-
-            } else {
-                item.configChanged();
-            }
+            ((GroupItem)gbox.getSelectedItem()).configChanged();
         }
 
         /** Holds a configuration filtering panel. */

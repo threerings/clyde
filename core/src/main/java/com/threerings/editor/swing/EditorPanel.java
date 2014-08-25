@@ -62,7 +62,6 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
-import com.threerings.editor.swing.editors.ConfigTypeEditor;
 import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.log;
@@ -324,8 +323,7 @@ public class EditorPanel extends BaseEditorPanel
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        Object src = event.getSource();
-        fireStateChanged((src instanceof ConfigTypeEditor) ? src : this);
+        fireStateChanged();
     }
 
     @Override
