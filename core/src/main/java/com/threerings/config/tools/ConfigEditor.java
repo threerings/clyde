@@ -765,7 +765,7 @@ public class ConfigEditor extends BaseConfigEditor
             }
             QuickSort.sort(items, new Comparator<GroupItem>() {
                 public int compare (GroupItem g1, GroupItem g2) {
-                    return g1.toString().compareTo(g2.toString());
+                    return String.CASE_INSENSITIVE_ORDER.compare(g1.toString(), g2.toString());
                 }
             });
             gpanel.add(gbox = new JComboBox(items));
