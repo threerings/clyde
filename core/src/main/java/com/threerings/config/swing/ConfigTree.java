@@ -77,7 +77,7 @@ import static com.threerings.ClydeLog.log;
  * Displays a tree of configurations.
  */
 public class ConfigTree extends JTree
-    implements ConfigGroupListener<ManagedConfig>, ConfigUpdateListener<ManagedConfig>
+    implements ConfigGroupListener, ConfigUpdateListener<ManagedConfig>
 {
     /**
      * Creates a new config tree to display the configurations in the specified groups.

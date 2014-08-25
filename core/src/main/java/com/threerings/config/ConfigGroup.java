@@ -172,7 +172,7 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Adds a listener for configuration events.
      */
-    public void addListener (ConfigGroupListener<T> listener)
+    public void addListener (ConfigGroupListener listener)
     {
         if (_listeners == null) {
             _listeners = ObserverList.newFastUnsafe();
@@ -183,7 +183,7 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Removes a configuration event listener.
      */
-    public void removeListener (ConfigGroupListener<T> listener)
+    public void removeListener (ConfigGroupListener listener)
     {
         if (_listeners != null) {
             _listeners.remove(listener);
@@ -210,9 +210,15 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         Preconditions.checkArgument(
                 _cclass.isInstance(config) || (config instanceof DerivedConfig));
-        _configsByName.put(config.getName(), config);
+        ManagedConfig oldCfg = _configsByName.put(config.getName(), config);
+        if (oldCfg != null) {
+            fireConfigRemoved(oldCfg);
+        }
         config.init(_cfgmgr);
-        fireConfigAdded(actualize(config));
+        if (config instanceof DerivedConfig) {
+            ((DerivedConfig)config).cclass = _cclass;
+        }
+        fireConfigAdded(config);
     }
 
     /**
@@ -220,8 +226,10 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void removeConfig (ManagedConfig config)
     {
-        _configsByName.remove(config.getName());
-        fireConfigRemoved(actualize(config));
+        ManagedConfig oldCfg = _configsByName.remove(config.getName());
+        if (oldCfg != null) {
+            fireConfigRemoved(oldCfg);
+        }
     }
 
     /**
@@ -542,14 +550,14 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Fires a configuration added event.
      */
-    protected void fireConfigAdded (T config)
+    protected void fireConfigAdded (ManagedConfig config)
     {
         if (_listeners == null) {
             return;
         }
-        final ConfigEvent<T> event = new ConfigEvent<T>(this, config);
-        _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener<T>>() {
-            public boolean apply (ConfigGroupListener<T> listener) {
+        final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
+        _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener>() {
+            public boolean apply (ConfigGroupListener listener) {
                 listener.configAdded(event);
                 return true;
             }
@@ -559,14 +567,14 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Fires a configuration removed event.
      */
-    protected void fireConfigRemoved (T config)
+    protected void fireConfigRemoved (ManagedConfig config)
     {
         if (_listeners == null) {
             return;
         }
-        final ConfigEvent<T> event = new ConfigEvent<T>(this, config);
-        _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener<T>>() {
-            public boolean apply (ConfigGroupListener<T> listener) {
+        final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
+        _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener>() {
+            public boolean apply (ConfigGroupListener listener) {
                 listener.configRemoved(event);
                 return true;
             }
@@ -586,5 +594,5 @@ public class ConfigGroup<T extends ManagedConfig>
     protected HashMap<String, ManagedConfig> _configsByName = new HashMap<String, ManagedConfig>();
 
     /** Configuration event listeners. */
-    protected ObserverList<ConfigGroupListener<T>> _listeners;
+    protected ObserverList<ConfigGroupListener> _listeners;
 }

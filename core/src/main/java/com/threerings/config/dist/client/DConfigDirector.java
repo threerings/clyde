@@ -63,7 +63,7 @@ import static com.threerings.ClydeLog.log;
  * Handles the client side of the distributed config system.
  */
 public class DConfigDirector extends BasicDirector
-    implements Subscriber<DConfigObject>, ConfigGroupListener<ManagedConfig>,
+    implements Subscriber<DConfigObject>, ConfigGroupListener,
         ConfigUpdateListener<ManagedConfig>
 {
     /**

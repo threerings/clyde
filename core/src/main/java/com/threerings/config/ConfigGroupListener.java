@@ -28,15 +28,15 @@ package com.threerings.config;
 /**
  * Used to notify objects when managed configurations have been added to or removed from a group.
  */
-public interface ConfigGroupListener<T extends ManagedConfig>
+public interface ConfigGroupListener
 {
     /**
      * Called when a configuration has been added to the group.
      */
-    public void configAdded (ConfigEvent<T> event);
+    public void configAdded (ConfigEvent<ManagedConfig> event);
 
     /**
      * Called when a configuration has been removed from the group.
      */
-    public void configRemoved (ConfigEvent<T> event);
+    public void configRemoved (ConfigEvent<ManagedConfig> event);
 }

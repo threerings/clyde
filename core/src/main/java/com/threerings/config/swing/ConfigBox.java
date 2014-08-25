@@ -44,7 +44,7 @@ import com.threerings.config.ManagedConfig;
  * Allows the user to select a config from a drop-down.
  */
 public class ConfigBox extends JComboBox
-    implements ConfigGroupListener<ManagedConfig>
+    implements ConfigGroupListener
 {
     /**
      * Creates a new config box.
