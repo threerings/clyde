@@ -517,28 +517,10 @@ public class ConfigEditor extends BaseConfigEditor
             {
                 Class<?> clazz = group.getConfigClass();
 
-                List<ClassBox> classes = Lists.newArrayList();
-                classes.add(new ClassBox(clazz));
-
                 EditorTypes anno = clazz.getAnnotation(EditorTypes.class);
                 if (anno != null) {
-                    Class<?>[] val = anno.value();
-                    if (val.length > 0) {
-                        classes.clear();
-                        for (Class<?> c : val) {
-                            classes.add(new ClassBox(c));
-                        }
-                        classes.add(new ClassBox(DerivedConfig.class));
-                    }
+                    clazz = anno.values()[0];
                 }
-                if (classes.size() > 1) {
-                    ClassBox selected = (ClassBox)JOptionPane.showInputDialog(
-                            ConfigEditor.this,
-                            "Which type?", "Title", JOptionPane.QUESTION_MESSAGE,
-                            null, classes.toArray(), classes.get(0));
-                    clazz = selected.clazz;
-                }
-
                 try {
                     ManagedConfig cfg = (ManagedConfig)clazz.newInstance();
                     if (cfg instanceof DerivedConfig) {
@@ -955,25 +937,6 @@ public class ConfigEditor extends BaseConfigEditor
                     _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
                 }
             });
-        }
-    }
-
-    /**
-     * Wee helper.
-     */
-    protected static class ClassBox
-    {
-        public final Class<?> clazz;
-
-        public ClassBox (Class<?> clazz)
-        {
-            this.clazz = clazz;
-        }
-
-        @Override
-        public String toString ()
-        {
-            return ConfigGroup.getName(clazz);
         }
     }
 
