@@ -645,7 +645,7 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public boolean select (String name)
             {
-                if (group.getConfig(name) == null) {
+                if (group.getRawConfig(name) == null) {
                     return false;
                 }
                 _tabs.setSelectedComponent(ManagerPanel.this);
@@ -697,7 +697,7 @@ public class ConfigEditor extends BaseConfigEditor
                 ConfigTreeNode node = _tree.getSelectedNode();
 
                 // update the editor panel
-                _epanel.setObject(node == null ? null : node.getConfig());
+                _epanel.setObject(node == null ? null : node.getRawConfig());
 
                 // enable or disable the menu items
                 boolean enable = (node != null);
