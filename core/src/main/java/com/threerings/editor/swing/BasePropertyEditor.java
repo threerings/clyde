@@ -255,12 +255,20 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
      */
     protected void fireStateChanged ()
     {
+        fireStateChanged(this);
+    }
+
+    /**
+     * Fires a state changed event with the specified source.
+     */
+    protected void fireStateChanged (Object src)
+    {
         Object[] listeners = listenerList.getListenerList();
         ChangeEvent event = null;
         for (int ii = listeners.length - 2; ii >= 0; ii -= 2) {
             if (listeners[ii] == ChangeListener.class) {
                 if (event == null) {
-                    event = new ChangeEvent(this);
+                    event = new ChangeEvent(src);
                 }
                 ((ChangeListener)listeners[ii + 1]).stateChanged(event);
             }

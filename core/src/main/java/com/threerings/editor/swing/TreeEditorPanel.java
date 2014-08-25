@@ -103,6 +103,7 @@ import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
+import com.threerings.editor.swing.editors.ConfigTypeEditor;
 import com.threerings.editor.swing.editors.ObjectPanelArrayListEditor;
 import com.threerings.editor.util.EditorContext;
 
@@ -368,6 +369,12 @@ public class TreeEditorPanel extends BaseEditorPanel
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
+        Object src = event.getSource();
+        if (src instanceof ConfigTypeEditor) {
+            fireStateChanged(src);
+            return;
+        }
+
         DefaultMutableTreeNode node = getSelectedNode();
         NodeObject nodeobj = (NodeObject)node.getUserObject();
         DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();

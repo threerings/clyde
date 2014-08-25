@@ -12,6 +12,7 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.tools.ConfigEditor;
 
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.MethodProperty;
@@ -21,6 +22,11 @@ import static com.threerings.editor.Log.log;
 
 public class ConfigTypeEditor extends ChoiceEditor
 {
+    public String getConfigName ()
+    {
+        return ((ManagedConfig)_object).getName();
+    }
+
     @Override
     public void update ()
     {
