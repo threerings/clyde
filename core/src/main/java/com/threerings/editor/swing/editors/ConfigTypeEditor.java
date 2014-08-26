@@ -7,6 +7,9 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.ArrayUtil;
 
@@ -19,6 +22,7 @@ import com.threerings.config.tools.ConfigEditor;
 
 import com.threerings.editor.MethodProperty;
 import com.threerings.editor.Property;
+import com.threerings.editor.util.PropertyUtil;
 
 import static com.threerings.editor.Log.log;
 
@@ -61,7 +65,8 @@ public class ConfigTypeEditor extends ChoiceEditor
     @Override
     protected void fireStateChanged ()
     {
-        // Suppress it
+        // Suppress. If our state has changed that means we've selected a new type
+        // and so the object we were editing disappears.
     }
 
     /**
@@ -71,6 +76,38 @@ public class ConfigTypeEditor extends ChoiceEditor
     {
         return cfg.getConfigManager().getGroup(cfg);
     }
+
+    /**
+     * Transfer the specified config to a new config with the desired class.
+     */
+    protected static ManagedConfig transfer (ManagedConfig source, Class<?> destClass)
+    {
+        String cfgName = source.getName();
+        if (!cfgName.equals(_cachedName)) {
+            _cachedName = cfgName;
+            _cachedInstances.clear();
+        }
+
+        _cachedInstances.put(source.getClass(), source);
+        ManagedConfig dest = _cachedInstances.get(destClass);
+        if (dest == null) {
+            try {
+                dest = (ManagedConfig)destClass.newInstance();
+            } catch (Exception e) {
+                log.warning("Failed to change type", e);
+                return null;
+            }
+            _cachedInstances.put(destClass, dest);
+        }
+
+        PropertyUtil.transferCompatibleProperties(source, dest);
+        dest.setName(cfgName);
+        return dest;
+    }
+
+    protected static String _cachedName;
+
+    protected static Map<Class<?>, ManagedConfig> _cachedInstances = Maps.newHashMap();
 
     protected static class TypeProperty extends Property
     {
@@ -113,15 +150,7 @@ public class ConfigTypeEditor extends ChoiceEditor
             }
 
             ManagedConfig oldCfg = (ManagedConfig)object;
-            ManagedConfig newCfg;
-            try {
-                newCfg = (ManagedConfig)clazz.newInstance();
-            } catch (Exception e) {
-                log.warning("Failed to change type", e);
-                return;
-            }
-            DeepUtil.transfer(oldCfg, newCfg);
-            newCfg.setComment(oldCfg.getComment());
+            ManagedConfig newCfg = transfer(oldCfg, clazz);
             getGroup(oldCfg).addConfig(newCfg);
         }
 

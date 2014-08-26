@@ -54,6 +54,8 @@ import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.export.ObjectMarshaller;
 
+import static com.threerings.editor.Log.log;
+
 /**
  * Some general utility methods relating to editable properties.
  */
@@ -258,6 +260,33 @@ public class PropertyUtil
     public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
     {
         getResources(cfgmgr, object, paths, new ConfigReferenceSet.Default());
+    }
+
+    /**
+     * Similar to DeepUtil.transfer, but operating on properties.
+     * Attempt to transfer each property with the same name to the dest object,
+     * but recover on any and all errors.
+     * This is used in the editor when changing config types.
+     */
+    public static void transferCompatibleProperties (Object source, Object dest)
+    {
+        // let NPEs happen.
+        Property[] destProps = Introspector.getProperties(dest);
+SOURCE_PROPERTIES:
+        for (Property srcProp : Introspector.getProperties(source)) {
+            String name = srcProp.getName();
+            for (Property destProp : destProps) {
+                if (name.equals(destProp.getName())) {
+                    try {
+                        destProp.set(dest, srcProp.get(source));
+                    } catch (Throwable t) {
+                        log.warning("Could not transfer property", "name", name, t);
+                    }
+                    continue SOURCE_PROPERTIES;
+                }
+            }
+            log.warning("Property not available on dest", "name", name);
+        }
     }
 
     /**
