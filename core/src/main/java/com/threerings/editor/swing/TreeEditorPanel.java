@@ -84,6 +84,7 @@ import com.threerings.media.image.ColorPository.ColorRecord;
 
 import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
@@ -859,9 +860,19 @@ public class TreeEditorPanel extends BaseEditorPanel
             int ccount = node.getChildCount();
             int idx = 0;
             if (property != null) {
-                // TODO: Fuuuuuuuck : TODO Fix this up.
+                Class<?> refTypeClass = property.getArgumentType(ConfigReference.class);
+                // if we can't figure out the reftype class, there's a good chance our
+                // object is a DerivedConfig, and we need to extract the reftype manually.
+                if (refTypeClass == null) {
+                    if (_object instanceof DerivedConfig) {
+                        refTypeClass = ((DerivedConfig)_object).cclass;
+                    }
+                    if (refTypeClass == null) {
+                        log.warning("Couldn't determine config reference type", "ref", ref);
+                    }
+                }
                 @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-                    (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+                    (Class<ManagedConfig>)refTypeClass;
                 ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
                 if (config instanceof ParameterizedConfig) {
                     ParameterizedConfig pconfig = (ParameterizedConfig)config;
