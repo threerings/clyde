@@ -145,6 +145,7 @@ public class ConfigTypeEditor extends ChoiceEditor
             oldCfg.getConfigGroup().addConfig(newCfg);
         }
 
+        /** Our base property, for accessing the annotation. */
         protected MethodProperty _base;
     }
 
