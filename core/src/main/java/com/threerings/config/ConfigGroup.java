@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -49,6 +50,8 @@ import com.google.common.collect.Ordering;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
+
+import com.threerings.editor.EditorTypes;
 
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -109,6 +112,9 @@ public class ConfigGroup<T extends ManagedConfig>
         // provide the configurations with a reference to the manager
         for (ManagedConfig config : getRawConfigs()) {
             config.init(_cfgmgr);
+            if (config instanceof DerivedConfig) {
+                ((DerivedConfig)config).cclass = _cclass;
+            }
         }
     }
 
@@ -126,6 +132,18 @@ public class ConfigGroup<T extends ManagedConfig>
     public Class<T> getConfigClass ()
     {
         return _cclass;
+    }
+
+    /**
+     * Get the classes of possible raw config types that we can use in this group.
+     */
+    public List<Class<?>> getRawConfigClasses ()
+    {
+        // TODO: pre-cache? it's nice to ignore this for non-editing contexts..
+        EditorTypes anno = _cclass.getAnnotation(EditorTypes.class);
+        return (anno == null)
+            ? ImmutableList.<Class<?>>of(_cclass)
+            : ImmutableList.copyOf(anno.value());
     }
 
     /**

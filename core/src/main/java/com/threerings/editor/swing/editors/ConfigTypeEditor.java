@@ -6,15 +6,15 @@ package com.threerings.editor.swing.editors;
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
+import java.util.List;
+
 import com.threerings.util.DeepUtil;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
-import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.tools.ConfigEditor;
 
-import com.threerings.editor.EditorTypes;
 import com.threerings.editor.MethodProperty;
 import com.threerings.editor.Property;
 
@@ -43,24 +43,12 @@ public class ConfigTypeEditor extends ChoiceEditor
     @Override
     public Object[] getOptions ()
     {
-        Class<?> clazz = (_object instanceof DerivedConfig)
-            ? ((DerivedConfig)_object).cclass
-            : _object.getClass();
-
-        for (Class<?> c = clazz; c != ManagedConfig.class; c = c.getSuperclass()) {
-            EditorTypes anno = c.getAnnotation(EditorTypes.class);
-            if (anno != null) {
-                Class<?>[] classes = anno.value();
-                // box up these types so that they have nice names...
-                ClassBox[] boxes = new ClassBox[classes.length];
-                for (int ii = 0; ii < classes.length; ii++) {
-                    boxes[ii] = new ClassBox(classes[ii]);
-                }
-                return boxes;
-            }
+        List<Class<?>> classes = getGroup((ManagedConfig)_object).getRawConfigClasses();
+        ClassBox[] boxes = new ClassBox[classes.size()];
+        for (int ii = 0, nn = classes.size(); ii < nn; ii++) {
+            boxes[ii] = new ClassBox(classes.get(ii));
         }
-        // if we never found it, then only the base type is used
-        return new ClassBox[] { new ClassBox(clazz) };
+        return boxes;
     }
 
     @Override
@@ -74,19 +62,7 @@ public class ConfigTypeEditor extends ChoiceEditor
      */
     protected static ConfigGroup<? extends ManagedConfig> getGroup (ManagedConfig cfg)
     {
-        ConfigManager cfgmgr = cfg.getConfigManager();
-        Class<?> clazz = (cfg instanceof DerivedConfig)
-            ? ((DerivedConfig)cfg).cclass
-            : cfg.getClass();
-        for (Class<?> c = clazz; c != ManagedConfig.class; c = c.getSuperclass()) {
-            @SuppressWarnings("unchecked")
-            Class<ManagedConfig> cm = (Class<ManagedConfig>)c;
-            ConfigGroup<? extends ManagedConfig> group = cfgmgr.getGroup(cm);
-            if (group != null) {
-                return group;
-            }
-        }
-        return null;
+        return cfg.getConfigManager().getGroup(cfg);
     }
 
     protected static class TypeProperty extends Property

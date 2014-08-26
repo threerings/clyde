@@ -92,7 +92,6 @@ import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
-import com.threerings.editor.EditorTypes;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
@@ -515,12 +514,7 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public void newConfig ()
             {
-                Class<?> clazz = group.getConfigClass();
-
-                EditorTypes anno = clazz.getAnnotation(EditorTypes.class);
-                if (anno != null) {
-                    clazz = anno.value()[0];
-                }
+                Class<?> clazz = group.getRawConfigClasses().get(0);
                 try {
                     ManagedConfig cfg = (ManagedConfig)clazz.newInstance();
                     if (cfg instanceof DerivedConfig) {

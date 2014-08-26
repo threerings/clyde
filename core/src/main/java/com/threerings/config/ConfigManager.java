@@ -414,6 +414,25 @@ public class ConfigManager
     }
 
     /**
+     * Get a group from a managed config instance, if possible.
+     */
+    public ConfigGroup<ManagedConfig> getGroup (ManagedConfig instance)
+    {
+        Class<?> clazz = (instance instanceof DerivedConfig)
+            ? ((DerivedConfig)instance).cclass
+            : instance.getClass();
+        for (Class<?> c = clazz; c != ManagedConfig.class; c = c.getSuperclass()) {
+            ConfigGroup group = _groups.get(c);
+            if (group != null) {
+                @SuppressWarnings("unchecked")
+                ConfigGroup<ManagedConfig> ret = (ConfigGroup<ManagedConfig>)group;
+                return ret;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Retrieves the groups with the specified name in this manager and all of its ancestors.
      */
     public ConfigGroup[] getGroups (String name)
