@@ -57,7 +57,7 @@ public class ConfigTypeEditor extends ChoiceEditor
         List<Class<?>> classes = group.getRawConfigClasses();
         ClassBox[] boxes = new ClassBox[classes.size()];
         for (int ii = 0, nn = classes.size(); ii < nn; ii++) {
-            boxes[ii] = new ClassBox(classes.get(ii));
+            boxes[ii] = new ClassBox(classes.get(ii), getLabel(classes.get(ii)));
         }
         return boxes;
     }
@@ -101,7 +101,7 @@ public class ConfigTypeEditor extends ChoiceEditor
 
     protected static Map<Class<?>, ManagedConfig> _cachedInstances = Maps.newHashMap();
 
-    protected static class TypeProperty extends Property
+    protected class TypeProperty extends Property
     {
         public TypeProperty (MethodProperty prop)
         {
@@ -130,7 +130,7 @@ public class ConfigTypeEditor extends ChoiceEditor
         @Override
         public Object get (Object object)
         {
-            return new ClassBox(object.getClass());
+            return new ClassBox(object.getClass(), getLabel(object.getClass()));
         }
 
         @Override
@@ -154,17 +154,22 @@ public class ConfigTypeEditor extends ChoiceEditor
      */
     protected static class ClassBox
     {
+        /** The class we're representing. */
         public final Class<?> clazz;
 
-        public ClassBox (Class<?> clazz)
+        /** The label for this class. */
+        public final String label;
+
+        public ClassBox (Class<?> clazz, String label)
         {
             this.clazz = clazz;
+            this.label = label;
         }
 
         @Override
         public String toString ()
         {
-            return ConfigGroup.getName(clazz);
+            return label;
         }
 
         @Override
