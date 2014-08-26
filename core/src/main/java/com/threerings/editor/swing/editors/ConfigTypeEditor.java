@@ -8,6 +8,8 @@ import java.lang.reflect.Type;
 
 import java.util.List;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.util.DeepUtil;
 
 import com.threerings.config.ConfigGroup;
@@ -43,7 +45,12 @@ public class ConfigTypeEditor extends ChoiceEditor
     @Override
     public Object[] getOptions ()
     {
-        List<Class<?>> classes = getGroup((ManagedConfig)_object).getRawConfigClasses();
+        ConfigGroup group = getGroup((ManagedConfig)_object);
+        if (group == null) {
+            return ArrayUtil.EMPTY_OBJECT;
+        }
+        @SuppressWarnings("unchecked") // compiler bug???
+        List<Class<?>> classes = group.getRawConfigClasses();
         ClassBox[] boxes = new ClassBox[classes.size()];
         for (int ii = 0, nn = classes.size(); ii < nn; ii++) {
             boxes[ii] = new ClassBox(classes.get(ii));
