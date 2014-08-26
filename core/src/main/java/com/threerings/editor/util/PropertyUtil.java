@@ -272,7 +272,6 @@ public class PropertyUtil
     {
         // let NPEs happen.
         Property[] destProps = Introspector.getProperties(dest);
-SOURCE_PROPERTIES:
         for (Property srcProp : Introspector.getProperties(source)) {
             String name = srcProp.getName();
             for (Property destProp : destProps) {
@@ -280,12 +279,12 @@ SOURCE_PROPERTIES:
                     try {
                         destProp.set(dest, srcProp.get(source));
                     } catch (Throwable t) {
-                        log.warning("Could not transfer property", "name", name, t);
+                        // The dest property must be incompatible. Ignore.
                     }
-                    continue SOURCE_PROPERTIES;
+                    break;
                 }
             }
-            log.warning("Property not available on dest", "name", name);
+            // if property not found on dest: ignore
         }
     }
 
