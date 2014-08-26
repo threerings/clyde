@@ -49,7 +49,7 @@ public class ConfigTypeEditor extends ChoiceEditor
     @Override
     public Object[] getOptions ()
     {
-        ConfigGroup group = getGroup((ManagedConfig)_object);
+        ConfigGroup group = ((ManagedConfig)_object).getConfigGroup();
         if (group == null) {
             return ArrayUtil.EMPTY_OBJECT;
         }
@@ -67,14 +67,6 @@ public class ConfigTypeEditor extends ChoiceEditor
     {
         // Suppress. If our state has changed that means we've selected a new type
         // and so the object we were editing disappears.
-    }
-
-    /**
-     * Utility to get the group for any config.
-     */
-    protected static ConfigGroup<? extends ManagedConfig> getGroup (ManagedConfig cfg)
-    {
-        return cfg.getConfigManager().getGroup(cfg);
     }
 
     /**
@@ -151,7 +143,7 @@ public class ConfigTypeEditor extends ChoiceEditor
 
             ManagedConfig oldCfg = (ManagedConfig)object;
             ManagedConfig newCfg = transfer(oldCfg, clazz);
-            getGroup(oldCfg).addConfig(newCfg);
+            oldCfg.getConfigGroup().addConfig(newCfg);
         }
 
         protected MethodProperty _base;
