@@ -47,4 +47,7 @@ public @interface FileConstraints
 
     /** The directory preference key (if empty, use current directory). */
     String directory () default "";
+
+    /** Should we strip the extension off the filename? Use at your own risk. */
+    boolean stripExtension () default false;
 }

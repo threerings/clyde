@@ -94,6 +94,14 @@ public class FileEditor extends PropertyEditor
                 return;
             }
             value = _chooser.getSelectedFile();
+            // possibly strip the extension
+            if (constraints != null && constraints.stripExtension()) {
+                String filename = value.toString();
+                int dot = filename.lastIndexOf('.');
+                if (dot > -1 && dot > filename.lastIndexOf(File.pathSeparatorChar)) {
+                    value = new File(filename.substring(0, dot));
+                }
+            }
 
         } else { // source == _clear
             value = null;
