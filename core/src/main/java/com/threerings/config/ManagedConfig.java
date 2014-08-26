@@ -78,14 +78,14 @@ public abstract class ManagedConfig extends DeepObject
 
     /** The type of this config. */
     @Editable // see setter
-    public final Class<?> getType ()
+    public final Class<?> getConfigType ()
     {
         return getClass();
     }
 
     /** The type of this config. */
     @Editable(editor="configType", weight=-Double.MAX_VALUE)
-    public final void setType (Class<?> val)
+    public final void setConfigType (Class<?> val)
     {
         // Do nothing.
         // The 'configType' editor will never actually call this, it will instead make a new
