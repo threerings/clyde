@@ -97,10 +97,9 @@ public class ConfigTypeEditor extends ChoiceEditor
         return dest;
     }
 
-    protected static String _cachedName;
-
-    protected static Map<Class<?>, ManagedConfig> _cachedInstances = Maps.newHashMap();
-
+    /**
+     * A special property for getting/setting the type.
+     */
     protected class TypeProperty extends Property
     {
         public TypeProperty (MethodProperty prop)
@@ -184,4 +183,10 @@ public class ConfigTypeEditor extends ChoiceEditor
             return clazz.hashCode();
         }
     }
+
+    /** The name of the last config that was having its type edited. */
+    protected static String _cachedName;
+
+    /** A cache of configs, by type, that have been created with the specified name. */
+    protected static Map<Class<?>, ManagedConfig> _cachedInstances = Maps.newHashMap();
 }
