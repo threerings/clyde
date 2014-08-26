@@ -87,9 +87,9 @@ public abstract class ManagedConfig extends DeepObject
     @Editable(editor="configType", weight=-Double.MAX_VALUE)
     public final void setType (Class<?> val)
     {
-        // the 'configType' editor will never actually call this, it will instead make a new
-        // type and set it.
-        throw new UnsupportedOperationException();
+        // Do nothing.
+        // The 'configType' editor will never actually call this, it will instead make a new
+        // config of the new type, and overwrite this config.
     }
 
     /** A helpful comment explaining what this config is and/or used for. */
