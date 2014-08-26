@@ -162,6 +162,15 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
+     * Returns a reference to the config group containing this config, or null if it's
+     * a resource config.
+     */
+    public ConfigGroup<ManagedConfig> getConfigGroup ()
+    {
+        return _cfgmgr.getGroup(this);
+    }
+
+    /**
      * Returns the derived instance with the supplied arguments.
      */
     public final ManagedConfig getInstance (String firstKey, Object firstValue, Object... otherArgs)

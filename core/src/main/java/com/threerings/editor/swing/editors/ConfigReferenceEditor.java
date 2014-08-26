@@ -80,6 +80,9 @@ public class ConfigReferenceEditor extends PropertyEditor
             }
             String config = _chooser.getSelectedConfig();
             nvalue = (config == null) ? null : new ConfigReference(config);
+            if (nvalue != null && !validateNewValue(nvalue)) {
+                return;
+            }
 
         } else if (source == _edit) {
             BaseConfigEditor editor = BaseConfigEditor.createEditor(
@@ -180,6 +183,14 @@ public class ConfigReferenceEditor extends PropertyEditor
         _content.add(_arguments = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         _arguments.setBackground(null);
+    }
+
+    /**
+     * Validate that the new value is good, possibly informing the user if not.
+     */
+    protected boolean validateNewValue (ConfigReference value)
+    {
+        return true;
     }
 
     /**
