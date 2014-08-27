@@ -31,6 +31,8 @@ import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import java.io.File;
 
@@ -228,6 +230,21 @@ public abstract class ConfigChooser extends JPanel
             };
             _ok.addActionListener(al);
             _cancel.addActionListener(al);
+
+            // listen for double-clicks on the tree
+            tree.addMouseListener(new MouseAdapter() {
+                @Override public void mousePressed (MouseEvent event) {
+                    if (event.getClickCount() == 2) {
+                        int row = tree.getRowForLocation(event.getX(), event.getY());
+                        ConfigTreeNode node = tree.getSelectedNode();
+                        if (row != -1 && node != null && node.getConfig() != null) {
+                            _selected = node.getName();
+                            result[0] = true;
+                            dialog.setVisible(false);
+                        }
+                    }
+                }
+            });
 
             // listen for selection events. select the current path
             tree.addTreeSelectionListener(new TreeSelectionListener() {
