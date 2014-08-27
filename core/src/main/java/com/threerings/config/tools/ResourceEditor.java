@@ -64,6 +64,7 @@ import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
 import com.threerings.editor.tools.BatchValidateDialog;
+import com.threerings.editor.util.Validator;
 
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -288,9 +289,9 @@ public class ResourceEditor extends BaseConfigEditor
             _epanel.revalidate();
         } else if (action.equals("batch_validate")) {
             new BatchValidateDialog(this, this, _prefs) {
-                @Override protected boolean validate (String path, PrintStream out) {
+                @Override protected boolean validate (Validator validator, String path) {
                     ManagedConfig config = _cfgmgr.getResourceConfig(path);
-                    return config == null || config.validateReferences(path, out);
+                    return config == null || config.validateReferences(validator);
                 }
             }.setVisible(true);
         } else {

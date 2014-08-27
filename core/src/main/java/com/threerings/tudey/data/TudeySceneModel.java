@@ -69,6 +69,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.util.PropertyUtil;
+import com.threerings.editor.util.Validator;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
@@ -1949,16 +1950,16 @@ public class TudeySceneModel extends SceneModel
     /**
      * Validates the references in the scene.
      */
-    public boolean validateReferences (String where, PrintStream out)
+    public boolean validateReferences (Validator validator)
     {
-        boolean valid = true;
-        Set<Tuple<Class<?>, String>> configs = Sets.newHashSet();
-        Set<String> resources = Sets.newHashSet();
-        for (Entry entry : getEntries()) {
-            PropertyUtil.getReferences(_cfgmgr, entry, configs, resources);
+        // validate all the entries
+        boolean valid = validator.validate(_cfgmgr, getEntries());
+        validator.pushWhere(":");
+        try {
+            return _cfgmgr.validateReferences(validator) & valid;
+        } finally {
+            validator.popWhere();
         }
-        valid = PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out) && valid;
-        return _cfgmgr.validateReferences(where + ":", out) && valid;
     }
 
     /**

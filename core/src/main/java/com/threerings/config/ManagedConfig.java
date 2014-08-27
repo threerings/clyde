@@ -25,8 +25,6 @@
 
 package com.threerings.config;
 
-import java.io.PrintStream;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -48,7 +46,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
-import com.threerings.editor.util.PropertyUtil;
+import com.threerings.editor.util.Validator;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
@@ -279,12 +277,9 @@ public abstract class ManagedConfig extends DeepObject
      *
      * @return true if the references are valid
      */
-    public boolean validateReferences (String where, PrintStream out)
+    public boolean validateReferences (Validator validator)
     {
-        Set<Tuple<Class<?>, String>> configs = Sets.newHashSet();
-        Set<String> resources = Sets.newHashSet();
-        PropertyUtil.getReferences(_cfgmgr, this, configs, resources);
-        return PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
+        return validator.validate(_cfgmgr, this);
     }
 
     /**

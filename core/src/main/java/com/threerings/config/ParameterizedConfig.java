@@ -25,8 +25,6 @@
 
 package com.threerings.config;
 
-import java.io.PrintStream;
-
 import java.lang.ref.SoftReference;
 
 import java.util.Iterator;
@@ -37,6 +35,7 @@ import com.google.common.collect.Lists;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
+import com.threerings.editor.util.Validator;
 import com.threerings.expr.Scope;
 import com.threerings.util.CacheUtil;
 import com.threerings.util.DeepOmit;
@@ -140,12 +139,13 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override
-    public boolean validateReferences (String where, PrintStream out)
+    public boolean validateReferences (Validator validator)
     {
         // validate the parameter paths, too
-        boolean result = super.validateReferences(where, out);
+        boolean result = super.validateReferences(validator);
         for (Parameter parameter : parameters) {
-            result &= parameter.validatePaths(where, this, out);
+            result &= parameter.validatePaths(
+                    validator.getWhere(), this, validator.getPrintStream());
         }
         return result;
     }

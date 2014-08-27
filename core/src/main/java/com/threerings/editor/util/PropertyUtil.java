@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.samskivert.util.Tuple;
 
 import com.threerings.resource.ResourceManager;
 
@@ -193,64 +192,6 @@ public class PropertyUtil
             }
         }
         return +Integer.MAX_VALUE;
-    }
-
-    /**
-     * Finds all configs and resources referenced in the supplied editable object and places them
-     * in the supplied sets.
-     */
-    public static void getReferences (
-        ConfigManager cfgmgr, Object object,
-        Set<Tuple<Class<?>, String>> configs, Set<String> resources)
-    {
-        if (object == null) {
-            return;
-        }
-        if (object instanceof Object[]) {
-            for (Object element : (Object[])object) {
-                getReferences(cfgmgr, element, configs, resources);
-            }
-            return;
-        }
-        if (object instanceof List) {
-            List list = (List)object;
-            for (int ii = 0, nn = list.size(); ii < nn; ii++) {
-                getReferences(cfgmgr, list.get(ii), configs, resources);
-            }
-            return;
-        }
-        for (Property property : Introspector.getProperties(object)) {
-            getReferences(cfgmgr, object, property, configs, resources);
-        }
-    }
-
-    /**
-     * Valides the supplied sets of configs and resources.
-     *
-     * @return true if the references are valid
-     */
-    public static boolean validateReferences (
-        String where, ConfigManager cfgmgr, Set<Tuple<Class<?>, String>> configs,
-        Set<String> resources, PrintStream out)
-    {
-        boolean result = true;
-        for (Tuple<Class<?>, String> tuple : configs) {
-            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
-                (Class<ManagedConfig>)tuple.left;
-            if (cfgmgr.getConfig(cclass, tuple.right) == null) {
-                out.println(where + " references missing config of type " +
-                    ConfigGroup.getName(cclass) + ": " + tuple.right);
-                result = false;
-            }
-        }
-        ResourceManager rsrcmgr = cfgmgr.getResourceManager();
-        for (String resource : resources) {
-            if (!rsrcmgr.getResourceFile(resource).exists()) {
-                out.println(where + " references missing resource: " + resource);
-                result = false;
-            }
-        }
-        return result;
     }
 
     /**
@@ -414,62 +355,6 @@ public class PropertyUtil
     {
         return clazz != null && (clazz.isAnnotationPresent(Strippable.class) ||
             isStrippable(clazz.getComponentType()) || isStrippable(clazz.getSuperclass()));
-    }
-
-    /**
-     * Finds all configs and resources referenced by the supplied property of the supplied object
-     * and places them in the given sets.  This is not without side effects: when it finds
-     * arguments in references that don't correspond to matching parameters, it strips them out.
-     */
-    protected static void getReferences (
-        ConfigManager cfgmgr, Object object, Property property,
-        Set<Tuple<Class<?>, String>> configs, Set<String> resources)
-    {
-        Object value = property.get(object);
-        if (value == null) {
-            return;
-        }
-        Editable annotation = property.getAnnotation();
-        String editor = annotation.editor();
-        if (editor.equals("resource")) {
-            resources.add((String)value);
-
-        } else if (editor.equals("config")) {
-            ConfigGroup group = cfgmgr.getGroup(annotation.mode());
-            if (group != null) {
-                configs.add(new Tuple<Class<?>, String>(group.getConfigClass(), (String)value));
-            }
-        } else if (property.getType().equals(ConfigReference.class)) {
-            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
-                (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
-            @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
-                (ConfigReference<ManagedConfig>)value;
-            configs.add(new Tuple<Class<?>, String>(cclass, ref.getName()));
-            ArgumentMap args = ref.getArguments();
-            if (args.isEmpty()) {
-                return;
-            }
-            ManagedConfig config = cfgmgr.getConfig(cclass, ref.getName());
-            if (!(config instanceof ParameterizedConfig)) {
-                return;
-            }
-            ParameterizedConfig pconfig = (ParameterizedConfig)config;
-            for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
-                    it.hasNext(); ) {
-                Map.Entry<String, Object> entry = it.next();
-                Parameter param = pconfig.getParameter(entry.getKey());
-                if (param == null) {
-                    it.remove(); // argument is obsolete; strip it out
-                    continue;
-                }
-                Property prop = param.getArgumentProperty(pconfig);
-                if (prop != null) {
-                    getReferences(cfgmgr, args, prop, configs, resources);
-                }
-            }
-        } else {
-            getReferences(cfgmgr, value, configs, resources);
-        }
     }
 
     /**

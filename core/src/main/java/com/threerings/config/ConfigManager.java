@@ -51,6 +51,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
 
+import com.threerings.editor.util.Validator;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
@@ -565,13 +566,17 @@ public class ConfigManager
      *
      * @return true if the references are valid
      */
-    public boolean validateReferences (String where, PrintStream out)
+    public boolean validateReferences (Validator validator)
     {
         boolean result = true;
         for (ConfigGroup<?> group : getGroups()) {
-            String gwhere = where + group.getName() + ":";
-            for (ManagedConfig config : group.getConfigs()) {
-                result = config.validateReferences(gwhere + config.getName(), out) && result;
+            validator.pushWhere(group.getName() + ":");
+            try {
+                for (ManagedConfig config : group.getConfigs()) {
+                    result &= config.validateReferences(validator);
+                }
+            } finally {
+                validator.popWhere();
             }
         }
         return result;

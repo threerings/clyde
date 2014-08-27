@@ -53,6 +53,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.editor.util.EditorContext;
+import com.threerings.editor.util.Validator;
 import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableInteger;
 import com.threerings.util.MessageBundle;
@@ -143,7 +144,7 @@ public abstract class BatchValidateDialog extends JDialog
                 if (idx.value < files.length && isVisible()) {
                     String file = files[idx.value++];
                     try {
-                        valid.value = validate(file, out) && valid.value;
+                        valid.value &= validate(createValidator(file, out), file);
                     } catch (Exception e) {
                         log.warning("Error in validation.", "file", file, e);
                     }
@@ -157,9 +158,17 @@ public abstract class BatchValidateDialog extends JDialog
     }
 
     /**
+     * Create the validator to use for this batch validate.
+     */
+    protected Validator createValidator (String where, PrintStream out)
+    {
+        return new Validator(where, out);
+    }
+
+    /**
      * Performs the actual validation.
      */
-    protected abstract boolean validate (String path, PrintStream out) throws Exception;
+    protected abstract boolean validate (Validator validator, String path) throws Exception;
 
     /** The application context. */
     protected EditorContext _ctx;

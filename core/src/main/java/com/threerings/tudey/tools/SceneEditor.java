@@ -112,6 +112,7 @@ import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.tools.BatchValidateDialog;
+import com.threerings.editor.util.Validator;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
@@ -1045,12 +1046,12 @@ public class SceneEditor extends TudeyTool
             wasUpdated();
         } else if (action.equals("batch_validate")) {
             new BatchValidateDialog(this, _frame, _prefs) {
-                @Override protected boolean validate (String path, PrintStream out)
+                @Override protected boolean validate (Validator validator, String path)
                         throws Exception {
                     TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
                         new FileInputStream(_rsrcmgr.getResourceFile(path))).readObject();
                     model.getConfigManager().init("scene", _cfgmgr);
-                    return model.validateReferences(path, out);
+                    return model.validateReferences(validator);
                 }
             }.setVisible(true);
         } else {
@@ -1782,8 +1783,16 @@ public class SceneEditor extends TudeyTool
     {
         PrintStreamDialog dialog = new PrintStreamDialog(
             _frame, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
-        _scene.validateReferences("", dialog.getPrintStream());
+        _scene.validateReferences(createValidator(dialog.getPrintStream()));
         dialog.maybeShow();
+    }
+
+    /**
+     * Create the validator for use with validation.
+     */
+    protected Validator createValidator (PrintStream out)
+    {
+        return new Validator(out);
     }
 
     /**

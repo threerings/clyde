@@ -50,6 +50,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.editor.util.Validator;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
@@ -755,10 +756,15 @@ public class ModelConfig extends ParameterizedConfig
     }
 
     @Override
-    public boolean validateReferences (String where, PrintStream out)
+    public boolean validateReferences (Validator validator)
     {
-        boolean valid = super.validateReferences(where, out);
-        return _configs.validateReferences(where + ":", out) && valid;
+        boolean valid = super.validateReferences(validator);
+        validator.pushWhere(":");
+        try {
+            return _configs.validateReferences(validator) & valid;
+        } finally {
+            validator.popWhere();
+        }
     }
 
     @Override

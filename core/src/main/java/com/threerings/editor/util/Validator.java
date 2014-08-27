@@ -32,7 +32,7 @@ import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 
 /**
- * Validates shit.
+ * Validates configs and resources.
  */
 public class Validator
 {
@@ -103,18 +103,29 @@ public class Validator
         }
     }
 
+    /**
+     * A hook for a pre-validate step.
+     * Ensure that we're not re-entrantly validating.
+     */
     protected void preValidate ()
     {
         Preconditions.checkState(_configs.isEmpty());
         Preconditions.checkState(_resources.isEmpty());
     }
 
+    /**
+     * Hook for a post-validate step.
+     * Clear any internal data structures.
+     */
     protected void postValidate ()
     {
         _configs.clear();
         _resources.clear();
     }
 
+    /**
+     * Finds all configs and resources in the specified object.
+     */
     protected void getReferences (ConfigManager cfgmgr, Object object)
     {
         if (object == null) {
@@ -195,6 +206,9 @@ public class Validator
         }
     }
 
+    /**
+     * Validate the internal data structures against the supplied config manager.
+     */
     protected boolean validate (ConfigManager cfgmgr)
     {
         boolean result = true;
@@ -223,14 +237,18 @@ public class Validator
         _out.println(_where + " " + message);
     }
 
+    /** Our output stream. */
     protected final PrintStream _out;
 
     /** The current location context. */
     protected String _where;
 
+    /** The stack of wheres. */
     protected Deque<String> _wheres = new ArrayDeque<String>();
 
+    /** The gathered resources while validating the current object. */
     protected List<String> _resources = Lists.newArrayList();
 
+    /** The gathered configs while validating the current object. */
     protected Set<ConfigId> _configs = Sets.newHashSet();
 }

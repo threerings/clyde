@@ -39,6 +39,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -92,6 +93,7 @@ import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.util.Validator;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
@@ -444,8 +446,16 @@ public class ConfigEditor extends BaseConfigEditor
     {
         PrintStreamDialog dialog = new PrintStreamDialog(
             this, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
-        _cfgmgr.validateReferences("", dialog.getPrintStream());
+        _cfgmgr.validateReferences(createValidator(dialog.getPrintStream()));
         dialog.maybeShow();
+    }
+
+    /**
+     * Create a validator for validating config references.
+     */
+    protected Validator createValidator (PrintStream out)
+    {
+        return new Validator(out);
     }
 
     /**
