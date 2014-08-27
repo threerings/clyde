@@ -41,6 +41,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ConfigToolUtil;
+import com.threerings.config.util.ConfigId;
 
 import static com.threerings.ClydeLog.log;
 
@@ -220,47 +221,6 @@ public class ConfigFlattener
             }
         }
         return 0;
-    }
-
-    /**
-     * The bare minimum needed to identify a config.
-     */
-    protected static class ConfigId
-    {
-        /** The type of the referenced config. */
-        public final Class<? extends ManagedConfig> clazz;
-
-        /** The name of the referenced config. */
-        public final String name;
-
-        /** Constructor. */
-        public ConfigId (Class<? extends ManagedConfig> clazz, String name)
-        {
-            this.clazz = clazz;
-            this.name = name;
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return clazz.hashCode() * 31 + name.hashCode();
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            if (!(other instanceof ConfigId)) {
-                return false;
-            }
-            ConfigId that = (ConfigId)other;
-            return (this.clazz == that.clazz) && this.name.equals(that.name);
-        }
-
-        @Override
-        public String toString ()
-        {
-            return "ConfigId[" + clazz + ", " + name + "]";
-        }
     }
 
     /**
