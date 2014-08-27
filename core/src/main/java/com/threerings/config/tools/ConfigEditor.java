@@ -372,7 +372,9 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("save_all")) {
             panel.cfgmgr.saveAll();
         } else if (action.equals("revert_all")) {
-            panel.cfgmgr.revertAll();
+            if (showCantUndo()) {
+                panel.cfgmgr.revertAll();
+            }
         } else {
             super.actionPerformed(event);
         }
