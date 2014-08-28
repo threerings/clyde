@@ -573,7 +573,12 @@ public class ConfigManager
             validator.pushWhere(group.getName() + ":");
             try {
                 for (ManagedConfig config : group.getConfigs()) {
-                    result &= config.validateReferences(validator);
+                    validator.pushWhere(config.getName());
+                    try {
+                        result &= config.validateReferences(validator);
+                    } finally {
+                        validator.popWhere();
+                    }
                 }
             } finally {
                 validator.popWhere();
