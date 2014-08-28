@@ -64,6 +64,7 @@ import com.threerings.editor.swing.editors.Color4fEditor;
 import com.threerings.editor.swing.editors.ColorizationEditor;
 import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
+import com.threerings.editor.swing.editors.ConfigReferencePanelArrayListEditor;
 import com.threerings.editor.swing.editors.ConfigTypeEditor;
 import com.threerings.editor.swing.editors.DateTimeEditor;
 import com.threerings.editor.swing.editors.DerivedConfigReferenceEditor;
@@ -145,6 +146,13 @@ public abstract class PropertyEditor extends BasePropertyEditor
             return TableArrayListEditor.class;
         } else if (ctype.isEnum() || (ctype.isArray() && ctype.getComponentType().isEnum())) {
             return EnumPanelArrayListEditor.class;
+        } else if (_classesByType.containsKey(ctype)) {
+            // Note: There's actually nothing ConfigReference-specific in
+            // ConfigReferencePanelArrayListEditor, such that in theory it could take the place of
+            // ObjectPanelArrayListEditor.
+            // But it only seems to work on ConfigReferences, for which is was designed.
+            // In the future, someone may want to dig around in there.
+            return ConfigReferencePanelArrayListEditor.class;
         } else {
             return ObjectPanelArrayListEditor.class;
         }
@@ -388,6 +396,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
             return Short.valueOf((short)0);
         } else if (type == String.class) {
             return "";
+        } else if (type == ConfigReference.class) {
+            return null; // otherwise, ReflectionUtil will make one with a null name and null args
         } else if (type.isEnum()) {
             return type.getEnumConstants()[0];
         } else if (type.isArray()) {

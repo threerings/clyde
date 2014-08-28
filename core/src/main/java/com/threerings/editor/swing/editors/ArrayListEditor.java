@@ -30,6 +30,7 @@ import java.awt.event.ActionListener;
 
 import java.lang.reflect.Array;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -161,6 +162,9 @@ public abstract class ArrayListEditor extends PropertyEditor
         } else {
             List values = (List)_property.get(_object);
             if (values == null) {
+                if (type == List.class) {
+                    type = ArrayList.class;
+                }
                 try {
                     _property.set(_object, values = (List)type.newInstance());
                 } catch (Exception e) {
