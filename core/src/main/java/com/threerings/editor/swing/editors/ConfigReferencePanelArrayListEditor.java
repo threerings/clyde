@@ -61,18 +61,14 @@ import com.threerings.config.ConfigReference;
 import static com.threerings.editor.Log.log;
 
 /**
- * An editor for arrays of lists of config references.
+ * An editor for Lists (or arrays) of config references.
  */
 public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
 {
     @Override
     protected void updatePanel (EntryPanel panel, Object value)
     {
-        // TODO::::: ?
-        PropertyEditor editor = ((WrappedEditorEntryPanel)panel).getEditor();
-        System.err.println("Updating panel: " + value);
-        editor.setObject(value);
-        editor.update();
+        ((WrappedEditorEntryPanel)panel).getEditor().setObject(value);
     }
 
     @Override
@@ -89,6 +85,7 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
      */
     protected class WrappedEditorEntryPanel extends EntryPanel
     {
+        /** Constructor. */
         public WrappedEditorEntryPanel (Object value)
         {
             super(value);
@@ -118,46 +115,98 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
             Object val = _property.get(_object);
             // this object should never be null: our superclass ArrayListEditor will create it
 
-            @SuppressWarnings("unchecked")
-            final List<Object> fvalue = (List<Object>)val;
-            Property prop = new Property() {
-                {
-                    _name = ""; //_property.getName() + "[" + _idx + "]";
-                }
-                @Override
-                public boolean shouldTranslateName ()
-                {
-                    return false;
-                }
-                @Override
-                public Member getMember () {
-                    return _property.getMember();
-                }
-                @Override
-                public Class<?> getType () {
-                    return _property.getComponentType();
-                }
-                @Override
-                public Type getGenericType () {
-                    return _property.getGenericComponentType();
-                }
-                @Override
-                public Object get (Object object) {
-                    int idx = getIndex();
-                    return (idx == -1) // happens when this panel is removed...?
-                        ? null
-                        : fvalue.get(idx);
-                }
-                @Override
-                public void set (Object object, Object value) {
-                    fvalue.set(getIndex(), value);
-                }
-            };
+            Property prop;
+            if (val instanceof List) {
+                @SuppressWarnings("unchecked")
+                final List<Object> list = (List<Object>)val;
+                prop = new IndexedProperty() {
+                    @Override protected Object getAtIndex (int idx) {
+                        return list.get(idx);
+                    }
+                    @Override protected void setAtIndex (int idx, Object value) {
+                        list.set(idx, value);
+                    }
+                };
+
+            } else if (val instanceof Object[]) {
+                final Object[] array = (Object[])val;
+                prop = new IndexedProperty() {
+                    @Override protected Object getAtIndex (int idx) {
+                        return array[idx];
+                    }
+                    @Override protected void setAtIndex (int idx, Object value) {
+                        array[idx] = value;
+                    }
+                };
+
+            } else {
+                throw new RuntimeException("What is this: " + val);
+            }
+
             _editor = PropertyEditor.createEditor(_ctx, prop, _lineage);
             return _editor.getContent();
         }
 
         /** Our wrapped property editor. */
         protected PropertyEditor _editor; 
+
+        /**
+         * Base property for accessing elements of the array or List.
+         */
+        protected abstract class IndexedProperty extends Property
+        {
+            { // initializer
+                _name = "";
+            }
+
+            @Override
+            public boolean shouldTranslateName ()
+            {
+                return false;
+            }
+
+            @Override
+            public Member getMember ()
+            {
+                return _property.getMember();
+            }
+
+            @Override
+            public Class<?> getType ()
+            {
+                return _property.getComponentType();
+            }
+
+            @Override
+            public Type getGenericType ()
+            {
+                return _property.getGenericComponentType();
+            }
+
+            @Override
+            public Object get (Object object)
+            {
+                int idx = getIndex();
+                return (idx == -1) // this happens when this panel is removed.
+                    ? null
+                    : getAtIndex(idx);
+            }
+
+            @Override
+            public void set (Object object, Object value)
+            {
+                setAtIndex(getIndex(), value);
+            }
+
+            /**
+             * Get the value at the specified index.
+             */
+            protected abstract Object getAtIndex (int idx);
+
+            /**
+             * Set the value at the specified index.
+             */
+            protected abstract void setAtIndex (int idx, Object value);
+        }
     }
 }
