@@ -71,7 +71,7 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override
-    public ParameterizedConfig getInstance (Scope scope, ArgumentMap args)
+    public ManagedConfig getInstance (Scope scope, ArgumentMap args)
     {
         if (args == null || args.isEmpty() || parameters.length == 0) {
             return getBound(scope);
