@@ -226,6 +226,7 @@ public class ConfigReferenceEditor extends PropertyEditor
             return;
         }
         String name = value.getName();
+        _config.setToolTipText(name);
         _config.setText(name.substring(name.lastIndexOf('/') + 1));
 
         // resolve the configuration reference
