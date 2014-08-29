@@ -22,6 +22,7 @@ import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
@@ -173,8 +174,12 @@ public class Validator
             }
 
         } else if (property.getType().equals(ConfigReference.class)) {
+            Class<?> clazz = property.getArgumentType(ConfigReference.class);
+            if (clazz == null && (object instanceof DerivedConfig)) {
+                clazz = ((DerivedConfig)object).cclass;
+            }
             @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
-                (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+                (Class<ManagedConfig>)clazz;
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                 (ConfigReference<ManagedConfig>)value;
             _configs.add(new ConfigId(cclass, ref.getName()));
@@ -182,7 +187,7 @@ public class Validator
             if (args.isEmpty()) {
                 return;
             }
-            ManagedConfig config = cfgmgr.getConfig(cclass, ref.getName());
+            ManagedConfig config = cfgmgr.getRawConfig(cclass, ref.getName());
             if (!(config instanceof ParameterizedConfig)) {
                 return;
             }

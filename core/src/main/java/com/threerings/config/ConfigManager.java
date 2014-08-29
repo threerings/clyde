@@ -572,7 +572,7 @@ public class ConfigManager
         for (ConfigGroup<?> group : getGroups()) {
             validator.pushWhere(group.getName() + ":");
             try {
-                for (ManagedConfig config : group.getConfigs()) {
+                for (ManagedConfig config : group.getRawConfigs()) {
                     validator.pushWhere(config.getName());
                     try {
                         result &= config.validateReferences(validator);
