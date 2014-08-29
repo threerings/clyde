@@ -117,25 +117,30 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
 
             Property prop;
             if (val instanceof List) {
-                @SuppressWarnings("unchecked")
-                final List<Object> list = (List<Object>)val;
                 prop = new IndexedProperty() {
                     @Override protected Object getAtIndex (int idx) {
-                        return list.get(idx);
+                        return getList().get(idx);
                     }
                     @Override protected void setAtIndex (int idx, Object value) {
-                        list.set(idx, value);
+                        getList().set(idx, value);
+                    }
+                    protected List<Object> getList () {
+                        @SuppressWarnings("unchecked")
+                        List<Object> list = (List<Object>)_property.get(_object);
+                        return list;
                     }
                 };
 
             } else if (val instanceof Object[]) {
-                final Object[] array = (Object[])val;
                 prop = new IndexedProperty() {
                     @Override protected Object getAtIndex (int idx) {
-                        return array[idx];
+                        return getArray()[idx];
                     }
                     @Override protected void setAtIndex (int idx, Object value) {
-                        array[idx] = value;
+                        getArray()[idx] = value;
+                    }
+                    protected Object[] getArray () {
+                        return (Object[])_property.get(_object);
                     }
                 };
 
@@ -148,7 +153,7 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
         }
 
         /** Our wrapped property editor. */
-        protected PropertyEditor _editor; 
+        protected PropertyEditor _editor;
 
         /**
          * Base property for accessing elements of the array or List.
