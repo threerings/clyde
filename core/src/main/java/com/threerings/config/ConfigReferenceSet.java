@@ -25,6 +25,9 @@
 
 package com.threerings.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.google.common.collect.HashMultimap;
@@ -38,16 +41,41 @@ public abstract class ConfigReferenceSet
     /**
      * Adds a reference to the set.
      */
+    public abstract <T extends ManagedConfig> boolean add (
+            Class<T> clazz, @Nullable ConfigReference<T> ref);
+
+    /**
+     * Adds a reference to the set, by name only.
+     */
     public <T extends ManagedConfig> boolean add (Class<T> clazz, @Nullable String name)
     {
         return name != null && add(clazz, new ConfigReference<T>(name));
     }
 
     /**
-     * Adds a reference to the set.
+     * Convenience method for adding an entire list of refs.
      */
-    public abstract <T extends ManagedConfig> boolean add (
-            Class<T> clazz, @Nullable ConfigReference<T> ref);
+    public <T extends ManagedConfig> boolean addAll
+            (Class<T> clazz, @Nullable List<ConfigReference<T>> list)
+    {
+        if (list == null) {
+            return false;
+        }
+        boolean anyAdded = false;
+        for (ConfigReference<T> ref : list) {
+            anyAdded |= add(clazz, ref);
+        }
+        return anyAdded;
+    }
+
+    /**
+     * Convenience method for adding an entire array of refs.
+     */
+    public <T extends ManagedConfig> boolean addAll
+            (Class<T> clazz, @Nullable ConfigReference<T>[] array)
+    {
+        return (array != null) && addAll(clazz, Arrays.asList(array));
+    }
 
     /**
      * A default implementation.
