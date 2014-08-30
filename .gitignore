@@ -1,5 +1,5 @@
-dist
-target
+/dist/
+/target/
 .classpath
 .settings
 .project
