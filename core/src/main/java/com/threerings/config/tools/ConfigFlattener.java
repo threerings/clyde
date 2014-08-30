@@ -51,7 +51,7 @@ import static com.threerings.ClydeLog.log;
 public class ConfigFlattener
 {
     /**
-     * Tool entry point.
+     * Command-line tool entry point.
      */
     @SuppressWarnings("fallthrough")
     public static void main (String[] args)
@@ -77,7 +77,21 @@ public class ConfigFlattener
             outDir = args[1];
             break;
         }
+    }
 
+    /**
+     * Entry point for other tools.
+     */
+    public static void flatten (String rsrcDir, String outDir)
+    {
+        flatten(rsrcDir, outRsrcDir, ".xml", true);
+    }
+
+    /**
+     * Entry point for other tools.
+     */
+    public static void flatten (String rsrcDir, String outDir, String extension, boolean isXML)
+    {
         ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
         File configDir = rsrcmgr.getResourceFile("config/");
 
@@ -97,7 +111,7 @@ public class ConfigFlattener
 
         // Save everything!
 //        log.info("Saving...");
-        cfgmgr.saveAll(destDir, ext, isXML);
+        cfgmgr.saveAll(destDir, extension, isXML);
 //        log.info("Done!");
     }
 
@@ -122,8 +136,8 @@ public class ConfigFlattener
         for (ConfigGroup group : cfgmgr.getGroups()) {
             for (DerivedConfig der : Lists.newArrayList(
                     Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
-                ManagedConfig cfg = der.getActualConfig(cfgmgr);
-                group.addConfig(cfg);
+                // get the non-raw version and re-store it, overwriting
+                group.addConfig(group.getConfig(der.getName()));
             }
         }
 
