@@ -170,7 +170,7 @@ public class ParameterizedConfig extends ManagedConfig
     /**
      * Returns an instance of this config bound in the specified scope.
      */
-    protected ParameterizedConfig getBound (Scope scope)
+    protected ManagedConfig getBound (Scope scope)
     {
         return this;
     }
