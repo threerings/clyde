@@ -127,7 +127,7 @@ public class ConfigUpdater
         @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
             (Class<ManagedConfig>)key.getConfigClass();
         ConfigGroup<ManagedConfig> group = _cfgmgr.getGroup(mclass);
-        ManagedConfig config = group.getConfig(key.getName());
+        ManagedConfig config = group.getRawConfig(key.getName());
         if (config != null) {
             group.removeConfig(config);
         } else {
