@@ -84,7 +84,7 @@ public class ConfigFlattener
      */
     public static void flatten (String rsrcDir, String outDir)
     {
-        flatten(rsrcDir, outRsrcDir, ".xml", true);
+        flatten(rsrcDir, outDir, ".xml", true);
     }
 
     /**
