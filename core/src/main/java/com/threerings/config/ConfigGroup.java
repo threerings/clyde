@@ -542,7 +542,7 @@ public class ConfigGroup<T extends ManagedConfig>
     protected T actualize (ManagedConfig val)
     {
         if (val instanceof DerivedConfig) {
-            val = ((DerivedConfig)val).getActualConfig(_cfgmgr);
+            val = val.getInstance((ArgumentMap)null);
         }
         return _cclass.cast(val);
     }

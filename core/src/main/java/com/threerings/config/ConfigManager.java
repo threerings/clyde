@@ -223,6 +223,17 @@ public class ConfigManager
     }
 
     /**
+     * Retrieves a configuration by class and name.  If the configuration is not found in this
+     * manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
+    {
+        return getConfig(clazz, name, null, null);
+    }
+
+    /**
      * Retrieves a configuration by class and reference.  If the configuration is not found in this
      * manager, the request will be forwarded to the parent, and so on.
      *
@@ -304,42 +315,30 @@ public class ConfigManager
     public <T extends ManagedConfig> T getConfig (
         Class<T> clazz, String name, Scope scope, ArgumentMap args)
     {
-        T config = getConfig(clazz, name);
-        return (config == null) ? null : clazz.cast(config.getInstance(scope, args));
-    }
-
-    /**
-     * Retrieves a configuration by class and name.  If the configuration is not found in this
-     * manager, the request will be forwarded to the parent, and so on.
-     *
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
-    {
         // check for a null name
         if (name == null) {
             return null;
         }
 
+        ManagedConfig cfg;
         // for resource-loaded configs, go through the cache
         if (isResourceClass(clazz)) {
-            ManagedConfig cfg = getResourceConfig(name);
-            if (cfg == null || clazz.isInstance(cfg)) {
-                return clazz.cast(cfg);
+            cfg = getResourceConfig(name);
+            if (cfg != null && !clazz.isInstance(cfg)) {
+                throw new ClassCastException("[config=" + name + ", expected=" + clazz +
+                    ", actual=" + cfg.getClass() + "]");
             }
-            throw new ClassCastException("[config=" + name + ", expected=" + clazz +
-                ", actual=" + cfg.getClass() + "]");
+
+        } else {
+            // otherwise, look for a group of the desired type
+            ConfigGroup<T> group = getGroup(clazz);
+            cfg = (group == null) ? null : group.getRawConfig(name); // TODO ??
+            if (cfg == null) {
+                return (_parent == null) ? null : _parent.getConfig(clazz, name, scope, args);
+            }
         }
 
-        // otherwise, look for a group of the desired type
-        ConfigGroup<T> group = getGroup(clazz);
-        if (group != null) {
-            T config = group.getConfig(name);
-            if (config != null) {
-                return config;
-            }
-        }
-        return (_parent == null) ? null : _parent.getConfig(clazz, name);
+        return clazz.cast(cfg.getInstance(scope, args));
     }
 
     /**
@@ -597,7 +596,7 @@ public class ConfigManager
             (ConfigGroup<ManagedConfig>[])getGroups(clazz);
         if (groups.length > 0) {
             for (ConfigGroup<ManagedConfig> group : groups) {
-                for (ManagedConfig config : group.getConfigs()) {
+                for (ManagedConfig config : group.getRawConfigs()) {
                     refresh(config);
                 }
             }
@@ -636,7 +635,7 @@ public class ConfigManager
         // write out the non-empty groups as a sorted array
         List<ConfigGroup> list = Lists.newArrayList();
         for (ConfigGroup group : _groups.values()) {
-            if (!Iterables.isEmpty(group.getConfigs())) {
+            if (!Iterables.isEmpty(group.getRawConfigs())) {
                 list.add(group);
             }
         }

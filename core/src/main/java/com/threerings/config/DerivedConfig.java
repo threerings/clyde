@@ -3,7 +3,13 @@
 
 package com.threerings.config;
 
+import java.util.List;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 import com.threerings.editor.Editable;
+import com.threerings.expr.Scope;
 
 import com.threerings.util.Shallow;
 
@@ -20,11 +26,14 @@ public final class DerivedConfig extends ParameterizedConfig
     @Shallow
     public transient Class<? extends ManagedConfig> cclass;
 
-    /**
-     * Get the config.
-     */
-    public ManagedConfig getActualConfig (ConfigManager cfgmgr)
+    @Override
+    protected ManagedConfig getBound (Scope scope)
     {
+        // A derived config can never itself be a bound config, because we are final.
+        // We use this method to actualize the config.
+        assert(java.lang.reflect.Modifier.isFinal(getClass().getModifiers()));
+
+        // if we have no base then jump ship now
         if (base == null) {
             return null;
         }
@@ -34,23 +43,42 @@ public final class DerivedConfig extends ParameterizedConfig
         @SuppressWarnings("unchecked")
         Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
 
-        ManagedConfig other = cfgmgr.getRawConfig(clazz, ref.getName());
-        if (other == null) {
-            return null;
-        }
-        ManagedConfig actual = (ManagedConfig)other.copy(null);
-        actual.init(cfgmgr);
-        if (actual instanceof ParameterizedConfig) {
-            ((ParameterizedConfig)other).applyArguments(
-                    (ParameterizedConfig)actual, ref.getArguments());
-            if (actual instanceof DerivedConfig) {
-                actual = ((DerivedConfig)actual).getActualConfig(cfgmgr);
+        ManagedConfig cfg = _cfgmgr.getConfig(clazz, ref, scope);
+        if (cfg != null) {
+            // TODO: this value should be cached
+            cfg = (ManagedConfig)cfg.clone();
+            cfg._cfgmgr = _cfgmgr;
+            cfg.setName(getName());
+            cfg.setComment(getComment());
+            if (cfg instanceof ParameterizedConfig) {
+                // translate our parameter paths...
+                List<Parameter> params = Lists.newArrayList();
+                for (Parameter p : parameters) {
+                    // TODO: handle Choice
+                    if (p instanceof Parameter.Direct) {
+                        Parameter.Direct pDirect = (Parameter.Direct)p;
+                        for (String path : pDirect.paths) {
+                            if (!path.startsWith("base[\"") || !path.endsWith("\"]")) {
+                                throw new RuntimeException("What the hell?");
+                            }
+                            String name = path.substring(6, path.length() - 2);
+                            System.err.println("Looking for param: " + name);
+                            // find the parameter on actual with that path
+                            Parameter actualParam = ParameterizedConfig.getParameter(
+                                    ((ParameterizedConfig)cfg).parameters, name);
+                            if (actualParam != null) {
+                                actualParam.name = p.name;
+                                params.add(actualParam);
+                            }
+                        }
+                    } else {
+                        throw new RuntimeException("TODO: handle translating " + p.getClass());
+                    }
+                }
+                ((ParameterizedConfig)cfg).parameters = Iterables.toArray(params, Parameter.class);
             }
-            ((ParameterizedConfig)actual).parameters = Parameter.EMPTY_ARRAY;
         }
-        actual.setComment(getComment());
-        actual.setName(getName());
-        return actual;
+        return cfg;
     }
 
     @Override

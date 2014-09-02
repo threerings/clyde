@@ -285,7 +285,7 @@ public class ConfigFlattener
             for (ConfigGroup<?> group : cfgmgr.getGroups()) {
                 Class<? extends ManagedConfig> clazz = group.getConfigClass();
                 _cfgClasses.add(clazz);
-                for (ManagedConfig cfg : group.getConfigs()) {
+                for (ManagedConfig cfg : group.getRawConfigs()) {
                     graph.add(new ConfigId(clazz, cfg.getName()));
                     _allSeen.add(new ConfigId(clazz, cfg.getName()));
                     count++;
@@ -298,7 +298,7 @@ public class ConfigFlattener
             try {
                 for (ConfigGroup<?> group : cfgmgr.getGroups()) {
                     Class<? extends ManagedConfig> clazz = group.getConfigClass();
-                    for (ManagedConfig cfg : group.getConfigs()) {
+                    for (ManagedConfig cfg : group.getRawConfigs()) {
                         _current = new ConfigId(clazz, cfg.getName());
                         ConfigToolUtil.getUpdateReferences(cfg, this);
                     }
