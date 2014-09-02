@@ -62,7 +62,6 @@ public final class DerivedConfig extends ParameterizedConfig
                                 throw new RuntimeException("What the hell?");
                             }
                             String name = path.substring(6, path.length() - 2);
-                            System.err.println("Looking for param: " + name);
                             // find the parameter on actual with that path
                             Parameter actualParam = ParameterizedConfig.getParameter(
                                     ((ParameterizedConfig)cfg).parameters, name);
