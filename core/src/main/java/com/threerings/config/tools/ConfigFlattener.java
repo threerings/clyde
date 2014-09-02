@@ -47,6 +47,29 @@ import static com.threerings.ClydeLog.log;
 
 /**
  * Flattens configs for export to clients such that there are no parameters.
+ *
+ * This is not an ant task because you probably need to pass jvmarg arguments,
+ * and Sur-Fucking-PRIZE! You can't do that with a proper ant task.?!?!?!
+ *
+ * You probably want something like this in your build.xml:
+ * <pre>{@code
+ *
+ * <!-- flatten configs for the client -->
+ * <target name="flatten" depends="-preptools">
+ *   <copy file="${rsrc.dir}/config/manager.properties"
+ *         tofile="${clientResource.dir}/config/manager.txt"/>
+ *   <java fork="true" classpathref="classpath" failonerror="true"
+ *         classname="com.threerings.config.tools.ConfigFlattener">
+ *     <jvmarg value="-Djava.awt.headless=true"/>
+ *     <!-- needed unless we want to operate on dist -->
+ *     <jvmarg value="-Dresource_dir=${basedir}/${rsrc.dir}"/>
+ *     <arg value="${rsrc.dir}/"/>
+ *     <arg value="${clientResource.dir}/config/"/>
+ *     <arg value=".xml"/>
+ *   </java>
+ * </target>
+ *
+ * }</pre>
  */
 public class ConfigFlattener
 {
@@ -77,10 +100,12 @@ public class ConfigFlattener
             outDir = args[1];
             break;
         }
+
+        flatten(rsrcDir, outDir, ext, isXML);
     }
 
     /**
-     * Entry point for other tools.
+     * Potential entry point for other tools.
      */
     public static void flatten (String rsrcDir, String outDir)
     {
@@ -88,7 +113,7 @@ public class ConfigFlattener
     }
 
     /**
-     * Entry point for other tools.
+     * Potential entry point for other tools.
      */
     public static void flatten (String rsrcDir, String outDir, String extension, boolean isXML)
     {
