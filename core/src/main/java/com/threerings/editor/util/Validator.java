@@ -71,6 +71,14 @@ public class Validator
     }
 
     /**
+     * Output a validation error message.
+     */
+    public void output (String message)
+    {
+        _out.println(_where + " " + message);
+    }
+
+    /**
      * Push an identifier onto the "where" string.
      * This should be immediately followed by a try block that pops in its finally.
      */
@@ -232,14 +240,6 @@ public class Validator
             }
         }
         return result;
-    }
-
-    /**
-     * Output a validation error message.
-     */
-    protected void output (String message)
-    {
-        _out.println(_where + " " + message);
     }
 
     /** Our output stream. */
