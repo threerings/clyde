@@ -120,20 +120,7 @@ public class ParticleEditor extends ModelTool
 
         JMenu file = createMenu("file", KeyEvent.VK_F);
         menubar.add(file);
-        file.add(createMenuItem("new", KeyEvent.VK_N, KeyEvent.VK_N));
-        file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
-        file.addSeparator();
-        file.add(createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
-        file.add(createMenuItem("save_as", KeyEvent.VK_A, KeyEvent.VK_A));
-        file.add(_revert = createMenuItem("revert", KeyEvent.VK_R, KeyEvent.VK_R));
-        _revert.setEnabled(false);
-        file.addSeparator();
-        file.add(createMenuItem("import", KeyEvent.VK_I, -1));
-        file.add(createMenuItem("export", KeyEvent.VK_E, -1));
-        file.addSeparator();
-        file.add(createMenuItem("import_layers", KeyEvent.VK_L, KeyEvent.VK_L));
-        file.addSeparator();
-        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+        createFileMenuItems(file);
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
@@ -330,6 +317,24 @@ public class ParticleEditor extends ModelTool
         } else {
             super.actionPerformed(event);
         }
+    }
+
+    protected void createFileMenuItems (JMenu file)
+    {
+        file.add(createMenuItem("new", KeyEvent.VK_N, KeyEvent.VK_N));
+        file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
+        file.addSeparator();
+        file.add(createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
+        file.add(createMenuItem("save_as", KeyEvent.VK_A, KeyEvent.VK_A));
+        file.add(_revert = createMenuItem("revert", KeyEvent.VK_R, KeyEvent.VK_R));
+        _revert.setEnabled(false);
+        file.addSeparator();
+        file.add(createMenuItem("import", KeyEvent.VK_I, -1));
+        file.add(createMenuItem("export", KeyEvent.VK_E, -1));
+        file.addSeparator();
+        file.add(createMenuItem("import_layers", KeyEvent.VK_L, KeyEvent.VK_L));
+        file.addSeparator();
+        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
     }
 
     @Override
