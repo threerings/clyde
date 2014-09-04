@@ -5,12 +5,12 @@ package com.threerings.config;
 
 import java.util.List;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
+import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
 /**
@@ -25,6 +25,14 @@ public final class DerivedConfig extends ParameterizedConfig
     /** The config class of the base, that we are actually deriving from. */
     @Shallow
     public transient Class<? extends ManagedConfig> cclass;
+
+//    @Override
+//    public void wasUpdated ()
+//    {
+//        System.err.println("Was updated: " + getName());
+//
+//        super.wasUpdated();
+//    }
 
     @Override
     protected ManagedConfig getBound (Scope scope)
@@ -44,44 +52,61 @@ public final class DerivedConfig extends ParameterizedConfig
         Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
 
         ManagedConfig cfg = _cfgmgr.getConfig(clazz, ref, scope);
-        if (cfg != null) {
-            // TODO: this value should be cached
-            cfg = (ManagedConfig)cfg.clone();
-            cfg._cfgmgr = _cfgmgr;
-            cfg.setName(getName());
-            cfg.setComment(getComment());
-            if (cfg instanceof ParameterizedConfig) {
-                // translate our parameter paths...
-                List<Parameter> params = Lists.newArrayList();
-                for (Parameter p : parameters) {
-                    // TODO: handle Choice
-                    if (p instanceof Parameter.Direct) {
-                        Parameter.Direct pDirect = (Parameter.Direct)p;
-                        for (String path : pDirect.paths) {
-                            if (!path.startsWith("base[\"") || !path.endsWith("\"]")) {
-                                throw new RuntimeException("What the hell?");
-                            }
-                            String name = path.substring(6, path.length() - 2);
-                            // find the parameter on actual with that path
-                            Parameter actualParam = ParameterizedConfig.getParameter(
-                                    ((ParameterizedConfig)cfg).parameters, name);
-                            if (actualParam != null) {
-                                actualParam.name = p.name;
-                                params.add(actualParam);
-                            }
-                        }
-                    } else {
-                        throw new RuntimeException("TODO: handle translating " + p.getClass());
-                    }
+        // yes, object equality: we keep using the same instance if we get the same source
+        if (cfg != _source) {
+            _source = cfg;
+            if (cfg == null) {
+                _instance = null;
+            } else {
+                // _instance must be a clone so that we can change the name
+                _instance = cfg = (ManagedConfig)cfg.clone();
+                cfg._cfgmgr = _cfgmgr;
+                cfg.setName(getName());
+                cfg.setComment(getComment());
+                if (cfg instanceof ParameterizedConfig) {
+                    translateParameters((ParameterizedConfig)cfg);
                 }
-                ((ParameterizedConfig)cfg).parameters = Iterables.toArray(params, Parameter.class);
             }
         }
-        return cfg;
+        return _instance;
+    }
+
+    /**
+     * Translate OUR parameters so that the paths point to their new locations on the _instance.
+     */
+    protected void translateParameters (ParameterizedConfig cfg)
+    {
+        // translate our parameter paths...
+        List<Parameter> params = Lists.newArrayList();
+        for (Parameter p : parameters) {
+            // TODO: handle Choice
+            // TODO: argggg lots of edge cases here, TODO
+            if (p instanceof Parameter.Direct) {
+                Parameter.Direct pDirect = (Parameter.Direct)p;
+                for (String path : pDirect.paths) {
+                    if (!isValidParameterPath(path)) {
+                        continue; // skip it for now, but this will fail validation
+                    }
+                    if (!path.startsWith("base[\"") || !path.endsWith("\"]")) {
+                        throw new RuntimeException("What the hell?");
+                    }
+                    String name = path.substring(6, path.length() - 2); // get just the arg part
+                    // find the parameter on actual with that path
+                    Parameter actualParam = ParameterizedConfig.getParameter(cfg.parameters, name);
+                    if (actualParam != null) {
+                        actualParam.name = p.name;
+                        params.add(actualParam);
+                    }
+                }
+            } else {
+                throw new RuntimeException("TODO: handle translating " + p.getClass());
+            }
+        }
+        cfg.parameters = params.toArray(Parameter.EMPTY_ARRAY);
     }
 
     @Override
-    public void getUpdateReferences (ConfigReferenceSet refs)
+    protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         super.getUpdateReferences(refs);
 
@@ -91,4 +116,27 @@ public final class DerivedConfig extends ParameterizedConfig
         Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
         refs.add(clazz, ref);
     }
+
+//    @Override
+//    protected void fireConfigUpdated ()
+//    {
+//        System.err.println("I am derived (" + _name + "), I was updated..." + 
+//                ParameterizedConfig.class.isAssignableFrom(cclass));
+//
+//        super.fireConfigUpdated();
+//    }
+
+    @Override
+    protected boolean isValidParameterPath (String path)
+    {
+        return super.isValidParameterPath(path)
+            && !path.equals("base")
+            && !path.equals("config_type");
+    }
+
+    @DeepOmit
+    protected transient ManagedConfig _source;
+
+    @DeepOmit
+    protected transient ManagedConfig _instance;
 }
