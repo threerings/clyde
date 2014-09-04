@@ -141,11 +141,15 @@ public class ParameterizedConfig extends ManagedConfig
     @Override
     public boolean validateReferences (Validator validator)
     {
-        // validate the parameter paths, too
         boolean result = super.validateReferences(validator);
+        // validate the parameter paths, too
         for (Parameter parameter : parameters) {
-            result &= parameter.validatePaths(
-                    validator.getWhere(), this, validator.getPrintStream());
+            validator.pushWhere(":" + parameter.name);
+            try {
+                result &= parameter.validatePaths(validator, this);
+            } finally {
+                validator.popWhere();
+            }
         }
         return result;
     }
@@ -201,6 +205,16 @@ public class ParameterizedConfig extends ManagedConfig
                 }
             }
         }
+    }
+
+    /**
+     * Is the specified parameter path valid for this config?
+     */
+    protected boolean isValidParameterPath (String path)
+    {
+        // let's throw NPE if possible, and everything's valid except for 'comment'.
+        // You can't parameterize the comment, you crazy fucknut.
+        return !path.equals("comment");
     }
 
     /**

@@ -51,6 +51,7 @@ import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
 import com.threerings.editor.TranslatedPathProperty;
+import com.threerings.editor.util.Validator;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -83,16 +84,22 @@ public abstract class Parameter extends DeepObject
         public String[] paths = ArrayUtil.EMPTY_STRING;
 
         @Override
-        public boolean validatePaths (String where, ParameterizedConfig reference, PrintStream out)
+        public boolean validatePaths (Validator validator, ParameterizedConfig reference)
         {
             boolean result = true;
             for (String path : paths) {
-                try {
-                    new PathProperty(reference.getConfigManager(), name, reference, path);
-                } catch (InvalidPathsException e) {
-                    out.println(where + ":" + name + " has invalid path: " + path);
-                    result = false;
+                if (reference.isValidParameterPath(path)) {
+                    try {
+                        new PathProperty(reference.getConfigManager(), name, reference, path);
+                        continue; // it must have worked
+
+                    } catch (InvalidPathsException e) {
+                        // fall through to below
+                    }
                 }
+                // we only get here on failure:
+                validator.output("invalid path: " + path);
+                result = false;
             }
             return result;
         }
@@ -287,12 +294,11 @@ public abstract class Parameter extends DeepObject
         }
 
         @Override
-        public boolean validatePaths (String where, ParameterizedConfig reference, PrintStream out)
+        public boolean validatePaths (Validator validator, ParameterizedConfig reference)
         {
-            where += (":" + name);
             boolean result = true;
             for (Direct direct : directs) {
-                result &= direct.validatePaths(where, reference, out);
+                result &= direct.validatePaths(validator, reference);
             }
             return result;
         }
@@ -466,8 +472,7 @@ public abstract class Parameter extends DeepObject
      *
      * @return true if the paths are valid.
      */
-    public abstract boolean validatePaths (
-        String where, ParameterizedConfig reference, PrintStream out);
+    public abstract boolean validatePaths (Validator validator, ParameterizedConfig reference);
 
     /**
      * Validates the parameter's outer object references.
