@@ -3,6 +3,8 @@
 
 package com.threerings.config;
 
+import java.lang.ref.SoftReference;
+
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -27,40 +29,60 @@ public final class DerivedConfig extends ParameterizedConfig
     public transient Class<? extends ManagedConfig> cclass;
 
     @Override
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
+    {
+        // clear out our derivation
+        _derivation = NO_DERIVATION;
+        super.configUpdated(event);
+    }
+
+    @Override
     protected ManagedConfig getBound (Scope scope)
     {
         // A derived config can never itself be a bound config, because we are final.
         // We use this method to actualize the config.
         assert(java.lang.reflect.Modifier.isFinal(getClass().getModifiers()));
 
+        ManagedConfig instance = _derivation.get();
+        if (instance != null) {
+            return instance;
+        }
+
         // if we have no base then jump ship now
         if (base == null) {
             return null;
         }
 
+        // loose types slip lines
         @SuppressWarnings("unchecked")
         ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)base;
         @SuppressWarnings("unchecked")
         Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
 
-        ManagedConfig cfg = _cfgmgr.getConfig(clazz, ref, scope);
-        // yes, object equality: we keep using the same instance if we get the same source
-        if (cfg != _source) {
-            _source = cfg;
-            if (cfg == null) {
-                _instance = null;
-            } else {
-                // _instance must be a clone so that we can change the name
-                _instance = cfg = (ManagedConfig)cfg.clone();
-                cfg._cfgmgr = _cfgmgr;
-                cfg.setName(getName());
-                cfg.setComment(getComment());
-                if (cfg instanceof ParameterizedConfig) {
-                    translateParameters((ParameterizedConfig)cfg);
-                }
-            }
+        // keep a hard reference to our source
+        _source = _cfgmgr.getConfig(clazz, ref, scope);
+        if (_source == null) {
+            return null;
         }
-        return _instance;
+
+        // instance must be a clone so that we can change the name
+        instance = (ManagedConfig)_source.clone();
+        instance.init(_cfgmgr);
+        instance.setName(getName());
+        instance.setComment(getComment());
+        if (instance instanceof ParameterizedConfig) {
+            ParameterizedConfig instanceP = (ParameterizedConfig)instance;
+            // have the instance keep a hard reference to us, after all we could be held softly
+            // by the real DerivedConfig if we are a clone based on parameters...!
+            instanceP._base = this;
+            instanceP._args = this._args;
+            translateParameters(instanceP);
+        }
+        addListener(instance);
+
+        // finally, keep a soft reference to it and return it
+        _derivation = new SoftReference<ManagedConfig>(instance);
+        return instance;
     }
 
     /**
@@ -122,5 +144,9 @@ public final class DerivedConfig extends ParameterizedConfig
 
     /** The derivation we create. */
     @DeepOmit
-    protected transient ManagedConfig _instance;
+    protected transient SoftReference<ManagedConfig> _derivation = NO_DERIVATION;
+
+    /** A sharable empty reference. */
+    protected static final SoftReference<ManagedConfig> NO_DERIVATION =
+            new SoftReference<ManagedConfig>(null);
 }
