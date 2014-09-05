@@ -26,14 +26,6 @@ public final class DerivedConfig extends ParameterizedConfig
     @Shallow
     public transient Class<? extends ManagedConfig> cclass;
 
-//    @Override
-//    public void wasUpdated ()
-//    {
-//        System.err.println("Was updated: " + getName());
-//
-//        super.wasUpdated();
-//    }
-
     @Override
     protected ManagedConfig getBound (Scope scope)
     {
@@ -117,15 +109,6 @@ public final class DerivedConfig extends ParameterizedConfig
         refs.add(clazz, ref);
     }
 
-//    @Override
-//    protected void fireConfigUpdated ()
-//    {
-//        System.err.println("I am derived (" + _name + "), I was updated..." + 
-//                ParameterizedConfig.class.isAssignableFrom(cclass));
-//
-//        super.fireConfigUpdated();
-//    }
-
     @Override
     protected boolean isValidParameterPath (String path)
     {
@@ -134,9 +117,11 @@ public final class DerivedConfig extends ParameterizedConfig
             && !path.equals("config_type");
     }
 
+    /** A hard reference to the instance of the config from which we create our derivation. */
     @DeepOmit
     protected transient ManagedConfig _source;
 
+    /** The derivation we create. */
     @DeepOmit
     protected transient ManagedConfig _instance;
 }
