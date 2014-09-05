@@ -25,6 +25,7 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -133,6 +134,10 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
             path = path.substring(1);
         }
         if (path.length() > 0 && _object instanceof ParameterizedConfig) {
+            if (((ParameterizedConfig)_object).isInvalidParameterPath(path)) {
+                Toolkit.getDefaultToolkit().beep();
+                return;
+            }
             String name = path.substring(path.lastIndexOf(".") + 1);
             if (name.endsWith("]")) {
                 int brack1 = name.lastIndexOf('[');
