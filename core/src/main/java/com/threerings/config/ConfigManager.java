@@ -569,7 +569,7 @@ public class ConfigManager
     {
         boolean result = true;
         for (ConfigGroup<?> group : getGroups()) {
-            validator.pushWhere(group.getName() + ":");
+            validator.pushWhere(group.getName());
             try {
                 for (ManagedConfig config : group.getRawConfigs()) {
                     validator.pushWhere(config.getName());

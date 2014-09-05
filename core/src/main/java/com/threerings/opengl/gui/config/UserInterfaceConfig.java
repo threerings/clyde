@@ -264,7 +264,7 @@ public class UserInterfaceConfig extends ParameterizedConfig
     public boolean validateReferences (Validator validator)
     {
         boolean valid = super.validateReferences(validator);
-        validator.pushWhere(":");
+        validator.pushWhere("ui.cfgmgr");
         try {
             return _configs.validateReferences(validator) & valid;
         } finally {

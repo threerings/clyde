@@ -144,7 +144,7 @@ public class ParameterizedConfig extends ManagedConfig
         boolean result = super.validateReferences(validator);
         // validate the parameter paths, too
         for (Parameter parameter : parameters) {
-            validator.pushWhere(":" + parameter.name);
+            validator.pushWhere(parameter.name);
             try {
                 result &= parameter.validatePaths(validator, this);
             } finally {

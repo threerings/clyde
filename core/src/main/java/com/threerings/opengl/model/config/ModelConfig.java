@@ -759,7 +759,7 @@ public class ModelConfig extends ParameterizedConfig
     public boolean validateReferences (Validator validator)
     {
         boolean valid = super.validateReferences(validator);
-        validator.pushWhere(":");
+        validator.pushWhere("model.cfgmgr");
         try {
             return _configs.validateReferences(validator) & valid;
         } finally {

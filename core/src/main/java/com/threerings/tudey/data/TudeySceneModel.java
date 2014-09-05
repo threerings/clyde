@@ -1954,7 +1954,7 @@ public class TudeySceneModel extends SceneModel
     {
         // validate all the entries
         boolean valid = validator.validate(_cfgmgr, getEntries());
-        validator.pushWhere(":");
+        validator.pushWhere("scene.cfgmgr");
         try {
             return _cfgmgr.validateReferences(validator) & valid;
         } finally {

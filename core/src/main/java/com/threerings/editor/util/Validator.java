@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -42,7 +43,7 @@ public class Validator
      */
     public Validator (PrintStream out)
     {
-        this("", out);
+        _out = out;
     }
 
     /**
@@ -50,8 +51,8 @@ public class Validator
      */
     public Validator (String where, PrintStream out)
     {
-        _where = where;
-        _out = out;
+        this(out);
+        pushWhere(where);
     }
 
     /**
@@ -59,7 +60,7 @@ public class Validator
      */
     public String getWhere ()
     {
-        return _where;
+        return Joiner.on(" : ").join(_wheres);
     }
 
     /**
@@ -75,7 +76,7 @@ public class Validator
      */
     public void output (String message)
     {
-        _out.println(_where + " " + message);
+        _out.println(getWhere() + " " + message);
     }
 
     /**
@@ -84,8 +85,7 @@ public class Validator
      */
     public void pushWhere (String where)
     {
-        _wheres.push(_where); // save the old one
-        _where += where;
+        _wheres.addLast(where); // save the old one
     }
 
     /**
@@ -93,7 +93,7 @@ public class Validator
      */
     public void popWhere ()
     {
-        _where = _wheres.pop();
+        _wheres.removeLast();
     }
 
     /**
@@ -246,9 +246,6 @@ public class Validator
     protected final PrintStream _out;
 
     /** The current location context. */
-    protected String _where;
-
-    /** The stack of wheres. */
     protected Deque<String> _wheres = new ArrayDeque<String>();
 
     /** The gathered resources while validating the current object. */
