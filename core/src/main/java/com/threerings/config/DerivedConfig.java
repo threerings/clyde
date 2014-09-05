@@ -31,9 +31,19 @@ public final class DerivedConfig extends ParameterizedConfig
     @Override
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        // clear out our derivation
+        // instead of calling super, we call wasUpdated, which will more broadly update us
+        // and will end up calling fireConfigUpdated() anyway, which is what super does.
+        wasUpdated();
+    }
+
+    @Override
+    public void wasUpdated ()
+    {
+        // release our derivation and clear the hard reference to the source
         _derivation = NO_DERIVATION;
-        super.configUpdated(event);
+        _source = null;
+
+        super.wasUpdated();
     }
 
     @Override
@@ -78,6 +88,7 @@ public final class DerivedConfig extends ParameterizedConfig
             instanceP._args = this._args;
             translateParameters(instanceP);
         }
+        // the instance should listen for changes from us
         addListener(instance);
 
         // finally, keep a soft reference to it and return it

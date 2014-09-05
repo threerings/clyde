@@ -391,9 +391,7 @@ public abstract class ManagedConfig extends DeepObject
             for (ConfigReference<?> ref : entry.getValue()) {
                 @SuppressWarnings("unchecked")
                 ConfigReference<ManagedConfig> mref = (ConfigReference<ManagedConfig>)ref;
-                // TODO!
-                //ManagedConfig config = _cfgmgr.getConfig(mclass, mref); //.getName());
-                ManagedConfig config = _cfgmgr.getConfig(mclass, mref.getName());
+                ManagedConfig config = _cfgmgr.getConfig(mclass, mref);
                 if (config != null) {
                     config.addListener(this);
                     _updateConfigs.add(config);
