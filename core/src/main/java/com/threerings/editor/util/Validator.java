@@ -85,7 +85,7 @@ public class Validator
      */
     public void pushWhere (String where)
     {
-        _wheres.addLast(where); // save the old one
+        _wheres.addLast(where);
     }
 
     /**

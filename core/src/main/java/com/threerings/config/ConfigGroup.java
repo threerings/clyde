@@ -48,7 +48,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
-import com.samskivert.util.DependencyGraph;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 
