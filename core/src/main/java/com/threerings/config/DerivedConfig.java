@@ -47,6 +47,13 @@ public final class DerivedConfig extends ParameterizedConfig
     }
 
     @Override
+    public boolean isInvalidParameterPath (String path)
+    {
+        // do not let 'base' be parameterized!
+        return super.isInvalidParameterPath(path) || path.equals("base");
+    }
+
+    @Override
     protected ManagedConfig getBound (Scope scope)
     {
         // A derived config can never itself be a bound config, because we are final.
@@ -141,13 +148,6 @@ public final class DerivedConfig extends ParameterizedConfig
         @SuppressWarnings("unchecked")
         Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
         refs.add(clazz, ref);
-    }
-
-    @Override
-    protected boolean isInvalidParameterPath (String path)
-    {
-        // do not let 'base' be parameterized!
-        return super.isInvalidParameterPath(path) || path.equals("base");
     }
 
     /** A hard reference to the instance of the config from which we create our derivation. */

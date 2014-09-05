@@ -138,6 +138,17 @@ public class ParameterizedConfig extends ManagedConfig
         }
     }
 
+    /**
+     * Is the specified parameter path blacklisted for this config?
+     * If this method returns false that is no guarantee that the path is valid.
+     */
+    public boolean isInvalidParameterPath (String path)
+    {
+        // let's throw NPE if possible, and everything's valid except for 'comment'.
+        // You can't parameterize the comment or the type (if using DerivedConfig).
+        return path.equals("comment") || path.equals("config_type");
+    }
+
     @Override
     public boolean validateReferences (Validator validator)
     {
@@ -205,17 +216,6 @@ public class ParameterizedConfig extends ManagedConfig
                 }
             }
         }
-    }
-
-    /**
-     * Is the specified parameter path blacklisted for this config?
-     * If this method returns false that is no guarantee that the path is valid.
-     */
-    protected boolean isInvalidParameterPath (String path)
-    {
-        // let's throw NPE if possible, and everything's valid except for 'comment'.
-        // You can't parameterize the comment or the type (if using DerivedConfig).
-        return path.equals("comment") || path.equals("config_type");
     }
 
     /**

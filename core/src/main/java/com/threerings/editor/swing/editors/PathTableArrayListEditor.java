@@ -31,6 +31,8 @@ import java.awt.Component;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import com.threerings.config.ParameterizedConfig;
+
 import com.threerings.editor.PathProperty;
 
 /**
@@ -50,8 +52,12 @@ public class PathTableArrayListEditor extends TableArrayListEditor
                     table, value, isSelected, hasFocus, row, column);
                 Color color = isSelected ? table.getSelectionForeground() : table.getForeground();
                 if (value instanceof String) {
-                    if (PathProperty.createPath(_ctx.getConfigManager(),
-                            getRootObject(), (String)value) == null) {
+                    String p = (String)value;
+                    Object root = getRootObject();
+                    if (((root instanceof ParameterizedConfig) &&
+                            ((ParameterizedConfig)root).isInvalidParameterPath(p))
+                            ||
+                            (PathProperty.createPath(_ctx.getConfigManager(), root, p) == null)) {
                         color = isSelected ? Color.red.brighter() : Color.red;
                     }
                 }
