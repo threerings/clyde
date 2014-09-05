@@ -185,7 +185,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         boolean updated = false;
         for (Parameter param : pc.parameters) {
             if (param instanceof Parameter.Direct) {
-                updateDirect((Parameter.Direct)param, replace);
+                updated |= updateDirect((Parameter.Direct)param, replace);
             } else if (param instanceof Parameter.Choice) {
                 for (Parameter.Direct direct : ((Parameter.Choice)param).directs) {
                     updated |= updateDirect(direct, replace);
