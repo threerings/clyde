@@ -97,9 +97,9 @@ public final class DerivedConfig extends ParameterizedConfig
     }
 
     /**
-     * Translate OUR parameters so that the paths point to their new locations on the _instance.
+     * Translate OUR parameters so that the paths point to their new locations on the instance.
      */
-    protected void translateParameters (ParameterizedConfig cfg)
+    protected void translateParameters (ParameterizedConfig instance)
     {
         // translate our parameter paths...
         List<Parameter> params = Lists.newArrayList();
@@ -109,7 +109,7 @@ public final class DerivedConfig extends ParameterizedConfig
             if (p instanceof Parameter.Direct) {
                 Parameter.Direct pDirect = (Parameter.Direct)p;
                 for (String path : pDirect.paths) {
-                    if (!isValidParameterPath(path)) {
+                    if (isInvalidParameterPath(path)) {
                         continue; // skip it for now, but this will fail validation
                     }
                     if (!path.startsWith("base[\"") || !path.endsWith("\"]")) {
@@ -117,7 +117,8 @@ public final class DerivedConfig extends ParameterizedConfig
                     }
                     String name = path.substring(6, path.length() - 2); // get just the arg part
                     // find the parameter on actual with that path
-                    Parameter actualParam = ParameterizedConfig.getParameter(cfg.parameters, name);
+                    Parameter actualParam = ParameterizedConfig.getParameter(
+                            instance.parameters, name);
                     if (actualParam != null) {
                         actualParam.name = p.name;
                         params.add(actualParam);
@@ -127,7 +128,7 @@ public final class DerivedConfig extends ParameterizedConfig
                 throw new RuntimeException("TODO: handle translating " + p.getClass());
             }
         }
-        cfg.parameters = params.toArray(Parameter.EMPTY_ARRAY);
+        instance.parameters = params.toArray(Parameter.EMPTY_ARRAY);
     }
 
     @Override
@@ -143,10 +144,10 @@ public final class DerivedConfig extends ParameterizedConfig
     }
 
     @Override
-    protected boolean isValidParameterPath (String path)
+    protected boolean isInvalidParameterPath (String path)
     {
         // do not let 'base' be parameterized!
-        return super.isValidParameterPath(path) && !path.equals("base");
+        return super.isInvalidParameterPath(path) || path.equals("base");
     }
 
     /** A hard reference to the instance of the config from which we create our derivation. */

@@ -88,7 +88,7 @@ public abstract class Parameter extends DeepObject
         {
             boolean result = true;
             for (String path : paths) {
-                if (reference.isValidParameterPath(path)) {
+                if (!reference.isInvalidParameterPath(path)) {
                     try {
                         new PathProperty(reference.getConfigManager(), name, reference, path);
                         continue; // it must have worked
