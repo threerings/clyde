@@ -48,6 +48,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
+import com.samskivert.util.DependencyGraph;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 
@@ -111,10 +112,7 @@ public class ConfigGroup<T extends ManagedConfig>
 
         // provide the configurations with a reference to the manager
         for (ManagedConfig config : getRawConfigs()) {
-            config.init(_cfgmgr);
-            if (config instanceof DerivedConfig) {
-                ((DerivedConfig)config).cclass = _cclass;
-            }
+            initConfig(config);
         }
     }
 
@@ -229,14 +227,16 @@ public class ConfigGroup<T extends ManagedConfig>
         Preconditions.checkArgument(
                 _cclass.isInstance(config) || (config instanceof DerivedConfig));
         ManagedConfig oldCfg = _configsByName.put(config.getName(), config);
-        if (oldCfg != null) {
-            fireConfigRemoved(oldCfg);
+        initConfig(config);
+        if (oldCfg == null) {
+            fireConfigAdded(config);
+
+        } else {
+            // do a change on the old listeners rather than a removed?
+            config._listeners = oldCfg._listeners;
+            oldCfg._listeners = null;
+            config.wasUpdated();
         }
-        config.init(_cfgmgr);
-        if (config instanceof DerivedConfig) {
-            ((DerivedConfig)config).cclass = _cclass;
-        }
-        fireConfigAdded(config);
     }
 
     /**
@@ -246,6 +246,7 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         ManagedConfig oldCfg = _configsByName.remove(config.getName());
         if (oldCfg != null) {
+            oldCfg._listeners = null;
             fireConfigRemoved(oldCfg);
         }
     }
@@ -487,10 +488,20 @@ public class ConfigGroup<T extends ManagedConfig>
     protected void initConfigs (ManagedConfig[] configs)
     {
         for (ManagedConfig config : configs) {
-            if (config instanceof DerivedConfig) {
-                ((DerivedConfig)config).cclass = _cclass;
-            }
+            initConfig(config);
             _configsByName.put(config.getName(), config);
+        }
+    }
+
+    /**
+     * Initialize a config.
+     * Lame.
+     */
+    protected void initConfig (ManagedConfig config)
+    {
+        config.init(_cfgmgr);
+        if (config instanceof DerivedConfig) {
+            ((DerivedConfig)config).cclass = _cclass;
         }
     }
 
