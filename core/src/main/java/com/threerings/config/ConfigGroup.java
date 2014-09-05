@@ -228,15 +228,13 @@ public class ConfigGroup<T extends ManagedConfig>
                 _cclass.isInstance(config) || (config instanceof DerivedConfig));
         ManagedConfig oldCfg = _configsByName.put(config.getName(), config);
         initConfig(config);
-        if (oldCfg == null) {
-            fireConfigAdded(config);
-
-        } else {
-            // do a change on the old listeners rather than a removed?
-            config._listeners = oldCfg._listeners;
-            oldCfg._listeners = null;
-            config.wasUpdated();
+        if (oldCfg != null) {
+            // tell any listeners that the old one has changed. They should in turn end up
+            // listening on the new one...
+            oldCfg.wasUpdated();
+            fireConfigRemoved(oldCfg);
         }
+        fireConfigAdded(config);
     }
 
     /**
@@ -246,7 +244,8 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         ManagedConfig oldCfg = _configsByName.remove(config.getName());
         if (oldCfg != null) {
-            oldCfg._listeners = null;
+            // notify listeners that the config has "changed" and then remove it
+            oldCfg.wasUpdated();
             fireConfigRemoved(oldCfg);
         }
     }
