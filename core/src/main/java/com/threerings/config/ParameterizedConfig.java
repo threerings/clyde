@@ -213,8 +213,8 @@ public class ParameterizedConfig extends ManagedConfig
     protected boolean isValidParameterPath (String path)
     {
         // let's throw NPE if possible, and everything's valid except for 'comment'.
-        // You can't parameterize the comment, you crazy fucknut.
-        return !path.equals("comment");
+        // You can't parameterize the comment or the type (if using DerivedConfig).
+        return !path.equals("comment") && !path.equals("config_type");
     }
 
     /**

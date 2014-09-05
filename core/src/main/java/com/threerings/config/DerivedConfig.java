@@ -112,9 +112,8 @@ public final class DerivedConfig extends ParameterizedConfig
     @Override
     protected boolean isValidParameterPath (String path)
     {
-        return super.isValidParameterPath(path)
-            && !path.equals("base")
-            && !path.equals("config_type");
+        // do not let 'base' be parameterized!
+        return super.isValidParameterPath(path) && !path.equals("base");
     }
 
     /** A hard reference to the instance of the config from which we create our derivation. */
