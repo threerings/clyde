@@ -5,9 +5,14 @@ package com.threerings.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import com.samskivert.util.ArrayUtil;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
@@ -109,33 +114,52 @@ public final class DerivedConfig extends ParameterizedConfig
     protected void translateParameters (ParameterizedConfig instance)
     {
         // translate our parameter paths...
-        List<Parameter> params = Lists.newArrayList();
+        List<Parameter> newParams = Lists.newArrayList();
         for (Parameter p : parameters) {
-            // TODO: handle Choice
-            // TODO: argggg lots of edge cases here, TODO
             if (p instanceof Parameter.Direct) {
-                Parameter.Direct pDirect = (Parameter.Direct)p;
-                for (String path : pDirect.paths) {
-                    if (isInvalidParameterPath(path)) {
-                        continue; // skip it for now, but this will fail validation
-                    }
-                    if (!path.startsWith("base[\"") || !path.endsWith("\"]")) {
-                        throw new RuntimeException("What the hell?");
-                    }
-                    String name = path.substring(6, path.length() - 2); // get just the arg part
-                    // find the parameter on actual with that path
-                    Parameter actualParam = ParameterizedConfig.getParameter(
-                            instance.parameters, name);
-                    if (actualParam != null) {
-                        actualParam.name = p.name;
-                        params.add(actualParam);
-                    }
+                newParams.add(translateDirectParameter(instance, (Parameter.Direct)p));
+
+            } else if (p instanceof Parameter.Choice) {
+                Parameter.Choice pChoice = (Parameter.Choice)p;
+                List<Parameter.Direct> newDirects = Lists.newArrayList();
+                for (Parameter.Direct direct : pChoice.directs) {
+                    newDirects.add(translateDirectParameter(instance, direct));
                 }
-            } else {
-                throw new RuntimeException("TODO: handle translating " + p.getClass());
+                Parameter.Choice newChoice = (Parameter.Choice)pChoice.clone();
+                newChoice.directs = newDirects.toArray(Parameter.Direct.EMPTY_ARRAY);
+                newChoice.setOuter(instance);
+                newParams.add(newChoice);
             }
         }
-        instance.parameters = params.toArray(Parameter.EMPTY_ARRAY);
+        instance.parameters = newParams.toArray(Parameter.EMPTY_ARRAY);
+    }
+
+    /**
+     * Return a clone of the specified Direct parameter, translated such that its paths
+     * refer now to the derived instance.
+     */
+    protected Parameter.Direct translateDirectParameter (
+            ParameterizedConfig instance, Parameter.Direct ourParam)
+    {
+        Set<String> newPaths = Sets.newLinkedHashSet(); // remove dupes, but preserve order
+        for (String path : ourParam.paths) {
+            if (isInvalidParameterPath(path) ||
+                    !path.startsWith("base[\"") || !path.endsWith("\"]")) {
+                continue; // skip it for now, but it will fail validation
+            }
+            String name = path.substring(6, path.length() - 2); // get just the arg part
+            // find the parameter on actual with that path
+            Parameter instanceParam = ParameterizedConfig.getParameter(instance.parameters, name);
+            if (instanceParam instanceof Parameter.Direct) {
+                newPaths.addAll(Arrays.asList(((Parameter.Direct)instanceParam).paths));
+
+            } else if (instanceParam instanceof Parameter.Choice) {
+                System.err.println("NEED TO HANDLE : " + instanceParam);
+            }
+        }
+        Parameter.Direct newParam = (Parameter.Direct)ourParam.clone();
+        newParam.paths = newPaths.toArray(ArrayUtil.EMPTY_STRING);
+        return newParam;
     }
 
     @Override
