@@ -154,7 +154,7 @@ public final class DerivedConfig extends ParameterizedConfig
                 newPaths.addAll(Arrays.asList(((Parameter.Direct)instanceParam).paths));
 
             } else if (instanceParam instanceof Parameter.Choice) {
-                System.err.println("NEED TO HANDLE : " + instanceParam);
+                System.err.println("Todo : " + instanceParam);
             }
         }
         Parameter.Direct newParam = (Parameter.Direct)ourParam.clone();
