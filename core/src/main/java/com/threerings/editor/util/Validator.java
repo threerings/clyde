@@ -5,6 +5,10 @@ package com.threerings.editor.util;
 
 import java.io.PrintStream;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
+import java.util.Arrays;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
@@ -172,16 +176,20 @@ public class Validator
         String editor = annotation.editor();
         if (editor.equals("resource")) {
             _resources.add((String)value);
-
-        } else if (editor.equals("config")) {
+            return;
+        }
+        if (editor.equals("config")) {
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
                     (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(annotation.mode());
             if (group != null) {
                 _configs.add(new ConfigId(group.getConfigClass(), (String)value));
             }
+            return;
+        }
 
-        } else if (property.getType().equals(ConfigReference.class)) {
+        Class<?> type = property.getType();
+        if (ConfigReference.class.equals(type)) {
             Class<?> clazz = property.getArgumentType(ConfigReference.class);
             if (clazz == null && (object instanceof DerivedConfig)) {
                 clazz = ((DerivedConfig)object).cclass;
@@ -213,10 +221,33 @@ public class Validator
                     getReferences(cfgmgr, args, prop);
                 }
             }
-
-        } else {
-            getReferences(cfgmgr, value);
+            return;
         }
+
+        // validate an array or list of config references
+        if ((type.isArray() || List.class.isAssignableFrom(type)) &&
+                (ConfigReference.class.equals(property.getComponentType()))) {
+            @SuppressWarnings("unchecked")
+            List<ConfigReference> list = type.isArray()
+                ? Arrays.asList((ConfigReference[])value)
+                : (List<ConfigReference>)value;
+            Type ctype = property.getGenericComponentType();
+            if (!(ctype instanceof ParameterizedType)) {
+                output("can't determine type of refs");
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Class<ManagedConfig> cclass = (Class<ManagedConfig>)
+                    ((ParameterizedType)ctype).getActualTypeArguments()[0];
+
+            for (ConfigReference raw : list) {
+                _configs.add(new ConfigId(cclass, raw.getName()));
+            }
+            return;
+        }
+
+        // otherwise: no special handling
+        getReferences(cfgmgr, value);
     }
 
     /**
