@@ -152,6 +152,7 @@ public final class DerivedConfig extends ParameterizedConfig
             Parameter instanceParam = ParameterizedConfig.getParameter(instance.parameters, name);
             if (instanceParam instanceof Parameter.Direct) {
                 newPaths.addAll(Arrays.asList(((Parameter.Direct)instanceParam).paths));
+                // also, per the note below, we treat Translated parameters as normal directs.
 
             } else if (instanceParam instanceof Parameter.Choice) {
                 // We cannot translate a choice parameter (unless it's very simple)
