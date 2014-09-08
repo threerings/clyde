@@ -51,6 +51,7 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
+import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
 
@@ -72,7 +73,8 @@ public class ConfigReferenceEditor extends PropertyEditor
         if (source == _config) {
             if (_chooser == null) {
                 _chooser = ConfigChooser.createInstance(
-                    _msgmgr, _ctx.getConfigManager(), getArgumentType());
+                    _msgmgr, _ctx.getConfigManager(), getArgumentType(),
+                    getProperty().getAnnotation(ReferenceConstraints.class));
             }
             _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
             if (!_chooser.showDialog(this)) {

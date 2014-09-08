@@ -36,6 +36,8 @@ import java.awt.event.MouseEvent;
 
 import java.io.File;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
@@ -48,6 +50,12 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
@@ -56,9 +64,12 @@ import com.threerings.util.MessageManager;
 
 import com.threerings.editor.Introspector;
 
+import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.ReferenceConstraints;
 
 /**
  * A simple dialog that allows the user to select a configuration from a tree.
@@ -71,7 +82,53 @@ public abstract class ConfigChooser extends JPanel
     public static ConfigChooser createInstance (
         MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz)
     {
-        return createInstance(msgmgr, cfgmgr, clazz, null);
+        return cfgmgr.isResourceClass(clazz)
+                ? new ResourceChooser(msgmgr, cfgmgr.getResourceManager(), clazz)
+                : new TreeChooser(msgmgr, cfgmgr, clazz);
+    }
+
+    /**
+     * Creates a new configuration chooser for the specified config class.
+     */
+    public static ConfigChooser createInstance (
+        MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz,
+        ReferenceConstraints constraints)
+    {
+        ConfigChooser chooser = createInstance(msgmgr, cfgmgr, clazz);
+        if (constraints != null) {
+            if (!(chooser instanceof TreeChooser)) {
+                throw new UnsupportedOperationException(
+                        "Constraints can't yet be used with resources");
+            }
+
+            final List<Class<? extends ManagedConfig>> vals = Arrays.asList(constraints.value());
+            String desc = constraints.description();
+            if ("".equals(desc)) {
+                desc = Joiner.on(", ").join(Iterables.transform(vals,
+                            new Function<Class<?>, String>() {
+                                public String apply (Class<?> clazz) {
+                                    return ConfigGroup.getName(clazz);
+                                }
+                            }));
+
+            } else {
+                MessageBundle msgs = msgmgr.getBundle(Introspector.getMessageBundle(clazz));
+                if (msgs.exists(desc)) {
+                    desc = msgs.get(desc);
+                }
+            }
+            // the tree deals with raw configs so we may need to actualize..
+            Predicate<ManagedConfig> pred = new Predicate<ManagedConfig>() {
+                public boolean apply (ManagedConfig cfg) {
+                    if (cfg instanceof DerivedConfig) {
+                        cfg = cfg.getInstance((ArgumentMap)null);
+                    }
+                    return vals.contains(cfg.getClass());
+                }
+            };
+            ((TreeChooser)chooser)._filterPanel.addConstraint(desc, pred, false);
+        }
+        return chooser;
     }
 
     /**
@@ -82,9 +139,7 @@ public abstract class ConfigChooser extends JPanel
     public static ConfigChooser createInstance (
         MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz, String config)
     {
-        ConfigChooser chooser = cfgmgr.isResourceClass(clazz) ?
-            new ResourceChooser(msgmgr, cfgmgr.getResourceManager(), clazz) :
-                new TreeChooser(msgmgr, cfgmgr, clazz);
+        ConfigChooser chooser = createInstance(msgmgr, cfgmgr, clazz);
         if (config != null) {
             chooser.setSelectedConfig(config);
         }
