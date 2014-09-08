@@ -338,7 +338,11 @@ public class ConfigManager
             }
         }
 
-        return clazz.cast(cfg.getInstance(scope, args));
+        if (cfg != null) {
+            cfg = cfg.getInstance(scope, args);
+        }
+
+        return clazz.cast(cfg);
     }
 
     /**
