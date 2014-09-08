@@ -146,7 +146,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             return TableArrayListEditor.class;
         } else if (ctype.isEnum() || (ctype.isArray() && ctype.getComponentType().isEnum())) {
             return EnumPanelArrayListEditor.class;
-        } else if (_classesByType.containsKey(ctype)) {
+        } else if (ConfigReference.class == ctype) {
             // Note: There's actually nothing ConfigReference-specific in
             // ConfigReferencePanelArrayListEditor, such that in theory it could take the place of
             // ObjectPanelArrayListEditor.
