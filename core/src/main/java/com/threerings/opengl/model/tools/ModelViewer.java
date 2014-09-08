@@ -190,7 +190,9 @@ public class ModelViewer extends ModelTool
                 return;
             }
             try {
-                _model.getConfig().wasUpdated();
+                if (_model != null) {
+                    _model.getConfig().wasUpdated();
+                }
             } finally {
                 _block.leave();
             }
