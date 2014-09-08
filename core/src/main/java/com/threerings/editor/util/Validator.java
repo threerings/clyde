@@ -205,6 +205,7 @@ public class Validator
             }
             ManagedConfig config = cfgmgr.getRawConfig(cclass, ref.getName());
             if (!(config instanceof ParameterizedConfig)) {
+                args.clear();
                 return;
             }
             ParameterizedConfig pconfig = (ParameterizedConfig)config;
