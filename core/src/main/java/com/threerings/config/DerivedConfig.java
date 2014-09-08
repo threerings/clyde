@@ -154,7 +154,17 @@ public final class DerivedConfig extends ParameterizedConfig
                 newPaths.addAll(Arrays.asList(((Parameter.Direct)instanceParam).paths));
 
             } else if (instanceParam instanceof Parameter.Choice) {
-                System.err.println("Todo : " + instanceParam);
+                // We cannot translate a choice parameter (unless it's very simple)
+                // because a choice bundles together multiple settings into one. A direct parameter
+                // can only apply one value to a series of properties.
+                // - Just clear out the path.
+                //
+                // This can be revisited... other options are:
+                // - add a comment field to parameters and note the lost path there.
+                // - make paths able to hold comments...
+                // - create a new type of parameter that can do what we need.
+
+                // (suppress adding this path)
             }
         }
         Parameter.Direct newParam = (Parameter.Direct)ourParam.clone();
