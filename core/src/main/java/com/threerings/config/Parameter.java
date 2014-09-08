@@ -154,6 +154,32 @@ public abstract class Parameter extends DeepObject
     }
 
     /**
+     * A marker parameter to indicate that we're from a derived config.
+     * This is not a normally-selectable Parameter type, but rather one that a DerivedConfig
+     * when it is forced to "show its work" and list the parameters that went into it.
+     */
+    public static class DerivedConfigParameter extends Direct
+    {
+        @Editable // see setter
+        public String getImportantInfo ()
+        {
+            return "This isn't a real parameter. This config was created from a derivation.";
+        }
+
+        @Editable(constant=true)
+        public void setImportantInfo (String s)
+        {
+            // nada
+        }
+
+        @Override
+        public String toString ()
+        {
+            return name + "(derived parameter)";
+        }
+    }
+
+    /**
      * A parameter that allows choosing between several options.
      */
     public static class Choice extends Parameter

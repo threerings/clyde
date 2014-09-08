@@ -141,36 +141,41 @@ public final class DerivedConfig extends ParameterizedConfig
     protected Parameter.Direct translateDirectParameter (
             ParameterizedConfig instance, Parameter.Direct ourParam)
     {
-        Set<String> newPaths = Sets.newLinkedHashSet(); // remove dupes, but preserve order
-        for (String path : ourParam.paths) {
-            if (isInvalidParameterPath(path) ||
-                    !path.startsWith("base[\"") || !path.endsWith("\"]")) {
-                continue; // skip it for now, but it will fail validation
-            }
-            String name = path.substring(6, path.length() - 2); // get just the arg part
-            // find the parameter on actual with that path
-            Parameter instanceParam = ParameterizedConfig.getParameter(instance.parameters, name);
-            if (instanceParam instanceof Parameter.Direct) {
-                newPaths.addAll(Arrays.asList(((Parameter.Direct)instanceParam).paths));
-                // also, per the note below, we treat Translated parameters as normal directs.
-
-            } else if (instanceParam instanceof Parameter.Choice) {
-                // We cannot translate a choice parameter (unless it's very simple)
-                // because a choice bundles together multiple settings into one. A direct parameter
-                // can only apply one value to a series of properties.
-                // - Just clear out the path.
-                //
-                // This can be revisited... other options are:
-                // - add a comment field to parameters and note the lost path there.
-                // - make paths able to hold comments...
-                // - create a new type of parameter that can do what we need.
-
-                // (suppress adding this path)
-            }
-        }
-        Parameter.Direct newParam = (Parameter.Direct)ourParam.clone();
-        newParam.paths = newPaths.toArray(ArrayUtil.EMPTY_STRING);
+        // Since we can't do all of it correctly, do none of it correctly.
+        Parameter.DerivedConfigParameter newParam = new Parameter.DerivedConfigParameter();
+        newParam.name = ourParam.name;
         return newParam;
+//
+//        Set<String> newPaths = Sets.newLinkedHashSet(); // remove dupes, but preserve order
+//        for (String path : ourParam.paths) {
+//            if (isInvalidParameterPath(path) ||
+//                    !path.startsWith("base[\"") || !path.endsWith("\"]")) {
+//                continue; // skip it for now, but it will fail validation
+//            }
+//            String name = path.substring(6, path.length() - 2); // get just the arg part
+//            // find the parameter on actual with that path
+//            Parameter instanceParam = ParameterizedConfig.getParameter(instance.parameters, name);
+//            if (instanceParam instanceof Parameter.Direct) {
+//                newPaths.addAll(Arrays.asList(((Parameter.Direct)instanceParam).paths));
+//                // also, per the note below, we treat Translated parameters as normal directs.
+//
+//            } else if (instanceParam instanceof Parameter.Choice) {
+//                // We cannot translate a choice parameter (unless it's very simple)
+//                // because a choice bundles together multiple settings into one. A direct parameter
+//                // can only apply one value to a series of properties.
+//                // - Just clear out the path.
+//                //
+//                // This can be revisited... other options are:
+//                // - add a comment field to parameters and note the lost path there.
+//                // - make paths able to hold comments...
+//                // - create a new type of parameter that can do what we need.
+//
+//                // (suppress adding this path)
+//            }
+//        }
+//        Parameter.Direct newParam = (Parameter.Direct)ourParam.clone();
+//        newParam.paths = newPaths.toArray(ArrayUtil.EMPTY_STRING);
+//        return newParam;
     }
 
     @Override
