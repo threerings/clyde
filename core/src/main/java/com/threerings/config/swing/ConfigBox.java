@@ -30,6 +30,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 import com.samskivert.util.QuickSort;
 
@@ -39,6 +41,9 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigGroupListener;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.ReferenceConstraints;
+
+import com.threerings.editor.util.PropertyUtil;
 
 /**
  * Allows the user to select a config from a drop-down.
@@ -49,23 +54,17 @@ public class ConfigBox extends JComboBox
     /**
      * Creates a new config box.
      */
-    public ConfigBox (MessageBundle msgs, ConfigGroup[] groups, boolean nullable)
-    {
-        this(msgs, groups, nullable, null);
-    }
-
-    /**
-     * Creates a new config box.
-     */
-    public ConfigBox (MessageBundle msgs, ConfigGroup[] groups, boolean nullable, String config)
+    public ConfigBox (
+            MessageBundle msgs, ConfigGroup[] groups, boolean nullable,
+            ReferenceConstraints constraints)
     {
         _msgs = msgs;
         @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups = groups;
         _groups = mgroups;
+        _filter = PropertyUtil.getRawConfigPredicate(constraints);
         _nullable = nullable;
 
         updateModel();
-        setSelectedConfig(config);
     }
 
     /**
@@ -124,7 +123,7 @@ public class ConfigBox extends JComboBox
         // gather all config names into a set
         HashSet<String> names = new HashSet<String>();
         for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : group.getRawConfigs()) {
+            for (ManagedConfig config : Iterables.filter(group.getRawConfigs(), _filter)) {
                 names.add(config.getName());
             }
         }
@@ -187,6 +186,9 @@ public class ConfigBox extends JComboBox
 
     /** The configuration groups. */
     protected ConfigGroup<ManagedConfig>[] _groups;
+
+    /** The filter used for configs. */
+    protected Predicate<ManagedConfig> _filter;
 
     /** Whether or not the null value is selectable. */
     protected boolean _nullable;
