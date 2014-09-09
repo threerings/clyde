@@ -140,6 +140,7 @@ public class Validator
     {
         _configs.clear();
         _resources.clear();
+        _hasNulls = false;
         _configsByConstraints = null;
     }
 
@@ -224,9 +225,11 @@ public class Validator
             @SuppressWarnings("unchecked")
             Class<ManagedConfig> cclass = (Class<ManagedConfig>)
                     ((ParameterizedType)ctype).getActualTypeArguments()[0];
-            for (ConfigReference raw : list) {
-                if (raw != null) { // TODO: null should not be allowed... but everything allows it
-                    noteReference(cfgmgr, cclass, raw, property);
+            for (ConfigReference ref : list) {
+                if (ref == null) {
+                    _hasNulls = true;
+                } else {
+                    noteReference(cfgmgr, cclass, ref, property);
                 }
             }
             return;
@@ -296,6 +299,10 @@ public class Validator
     protected boolean validate (ConfigManager cfgmgr)
     {
         boolean result = true;
+        if (_hasNulls) {
+            output("has null config references");
+            result = false;
+        }
         for (ConfigId configId : _configs) {
             if (cfgmgr.getConfig(configId.clazz, configId.name) == null) {
                 noteMissing(configId);
@@ -348,6 +355,9 @@ public class Validator
 
     /** The gathered configs while validating the current object. */
     protected Set<ConfigId> _configs = Sets.newHashSet();
+
+    /** If we have null config references. */
+    protected boolean _hasNulls;
 
     /** Configs organized by their constraints. Initialized only when needed. */
     protected ListMultimap<ReferenceConstraints, ConfigId> _configsByConstraints;
