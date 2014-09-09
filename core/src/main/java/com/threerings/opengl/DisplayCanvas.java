@@ -422,12 +422,18 @@ public class DisplayCanvas extends JPanel
         // handle non-event mouse business (once the pointer is outside the window, we no longer
         // receive events)
         Point pt = getRelativeMouseLocation();
-        checkEntered(now, pt.x, pt.y);
-        checkExited(now, pt.x, pt.y);
-        checkMoved(now, pt.x, pt.y);
-        checkButtonState(now, pt.x, pt.y, 0, Mouse.isButtonDown(0));
-        checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
-        checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
+        // NULL_MOUSE_WORKAROUND
+        if (pt != null) {
+        // end: NULL_MOUSE_WORKAROUND
+            checkEntered(now, pt.x, pt.y);
+            checkExited(now, pt.x, pt.y);
+            checkMoved(now, pt.x, pt.y);
+            checkButtonState(now, pt.x, pt.y, 0, Mouse.isButtonDown(0));
+            checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
+            checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
+        // NULL_MOUSE_WORKAROUND
+        }
+        // end: NULL_MOUSE_WORKAROUND
 
         // clear modifiers and release keys if we don't have focus
         if (!windowIsFocused()) {
@@ -553,9 +559,26 @@ public class DisplayCanvas extends JPanel
      */
     protected Point getRelativeMouseLocation ()
     {
-        Point pt = MouseInfo.getPointerInfo().getLocation();
+        // NULL_MOUSE_WORKAROUND
+        java.awt.PointerInfo info = MouseInfo.getPointerInfo();
+        if (info == null) {
+            // What in the heck?
+            log.warning("Checking graphics devices");
+            for (java.awt.GraphicsDevice gd :
+                    java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+                log.warning("gd: " + gd.getIDstring() + ": " +
+                        gd.getDefaultConfiguration().getBounds());
+            }
+
+            return null;
+        }
+        Point pt = info.getLocation();
         SwingUtilities.convertPointFromScreen(pt, this);
         return pt;
+
+//        Point pt = MouseInfo.getPointerInfo().getLocation();
+//        SwingUtilities.convertPointFromScreen(pt, this);
+//        return pt;
     }
 
     /**
