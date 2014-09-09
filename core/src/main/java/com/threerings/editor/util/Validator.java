@@ -18,7 +18,11 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 
 import com.threerings.resource.ResourceManager;
@@ -31,6 +35,7 @@ import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.util.ConfigId;;
 
 import com.threerings.editor.Editable;
@@ -124,6 +129,7 @@ public class Validator
     {
         Preconditions.checkState(_configs.isEmpty());
         Preconditions.checkState(_resources.isEmpty());
+        Preconditions.checkState(_configsByConstraints == null);
     }
 
     /**
@@ -134,6 +140,7 @@ public class Validator
     {
         _configs.clear();
         _resources.clear();
+        _configsByConstraints = null;
     }
 
     /**
@@ -183,7 +190,7 @@ public class Validator
             ConfigGroup<ManagedConfig> group =
                     (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(annotation.mode());
             if (group != null) {
-                _configs.add(new ConfigId(group.getConfigClass(), (String)value));
+                noteReference(cfgmgr, group.getConfigClass(), (String)value, property);
             }
             return;
         }
@@ -198,30 +205,7 @@ public class Validator
                 (Class<ManagedConfig>)clazz;
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                 (ConfigReference<ManagedConfig>)value;
-            _configs.add(new ConfigId(cclass, ref.getName()));
-            ArgumentMap args = ref.getArguments();
-            if (args.isEmpty()) {
-                return;
-            }
-            ManagedConfig config = cfgmgr.getRawConfig(cclass, ref.getName());
-            if (!(config instanceof ParameterizedConfig)) {
-                args.clear();
-                return;
-            }
-            ParameterizedConfig pconfig = (ParameterizedConfig)config;
-            for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
-                    it.hasNext(); ) {
-                Map.Entry<String, Object> entry = it.next();
-                Parameter param = pconfig.getParameter(entry.getKey());
-                if (param == null) {
-                    it.remove(); // argument is obsolete; strip it out
-                    continue;
-                }
-                Property prop = param.getArgumentProperty(pconfig);
-                if (prop != null) {
-                    getReferences(cfgmgr, args, prop);
-                }
-            }
+            noteReference(cfgmgr, cclass, ref, property);
             return;
         }
 
@@ -240,15 +224,70 @@ public class Validator
             @SuppressWarnings("unchecked")
             Class<ManagedConfig> cclass = (Class<ManagedConfig>)
                     ((ParameterizedType)ctype).getActualTypeArguments()[0];
-
             for (ConfigReference raw : list) {
-                _configs.add(new ConfigId(cclass, raw.getName()));
+                if (raw != null) { // TODO: null should not be allowed... but it will NPE validator
+                    noteReference(cfgmgr, cclass, raw, property);
+                }
             }
             return;
         }
 
         // otherwise: no special handling
         getReferences(cfgmgr, value);
+    }
+
+    /**
+     * Note a config reference.
+     */
+    protected void noteReference (
+            ConfigManager cfgmgr, Class<? extends ManagedConfig> clazz, String name,
+            Property property)
+    {
+        ConfigId configId = new ConfigId(clazz, name);
+        ReferenceConstraints constraints = property.getAnnotation(ReferenceConstraints.class);
+        if (constraints == null) {
+            _configs.add(configId);
+
+        } else {
+            if (_configsByConstraints == null) {
+                _configsByConstraints = ArrayListMultimap.create();
+            }
+            _configsByConstraints.put(constraints, configId);
+        }
+    }
+
+    /**
+     * Note a config reference and possibly massage the args.
+     */
+    protected void noteReference (
+            ConfigManager cfgmgr, Class<? extends ManagedConfig> clazz, ConfigReference<?> ref,
+            Property property)
+    {
+        noteReference(cfgmgr, clazz, ref.getName(), property);
+
+        ArgumentMap args = ref.getArguments();
+        if (args.isEmpty()) {
+            return;
+        }
+        ManagedConfig config = cfgmgr.getRawConfig(clazz, ref.getName());
+        if (!(config instanceof ParameterizedConfig)) {
+            args.clear();
+            return;
+        }
+        ParameterizedConfig pconfig = (ParameterizedConfig)config;
+        for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
+                it.hasNext(); ) {
+            Map.Entry<String, Object> entry = it.next();
+            Parameter param = pconfig.getParameter(entry.getKey());
+            if (param == null) {
+                it.remove(); // argument is obsolete; strip it out
+                continue;
+            }
+            Property prop = param.getArgumentProperty(pconfig);
+            if (prop != null) {
+                getReferences(cfgmgr, args, prop);
+            }
+        }
     }
 
     /**
@@ -259,9 +298,24 @@ public class Validator
         boolean result = true;
         for (ConfigId configId : _configs) {
             if (cfgmgr.getConfig(configId.clazz, configId.name) == null) {
-                output("references missing config of type " +
-                        ConfigGroup.getName(configId.clazz) + ": " + configId.name);
+                noteMissing(configId);
                 result = false;
+            }
+        }
+        if (_configsByConstraints != null) {
+            for (Map.Entry<ReferenceConstraints, List<ConfigId>> entry :
+                    Multimaps.asMap(_configsByConstraints).entrySet()) {
+                Predicate<ManagedConfig> pred = PropertyUtil.getRawConfigPredicate(entry.getKey());
+                for (ConfigId configId : entry.getValue()) {
+                    ManagedConfig cfg = cfgmgr.getRawConfig(configId.clazz, configId.name);
+                    if (cfg == null) {
+                        noteMissing(configId);
+                        result = false;
+                    } else if (!pred.apply(cfg)) {
+                        output("references invalid config: " + configId.name);
+                        result = false;
+                    }
+                }
             }
         }
         ResourceManager rsrcmgr = cfgmgr.getResourceManager();
@@ -272,6 +326,15 @@ public class Validator
             }
         }
         return result;
+    }
+
+    /**
+     * Note a missing config.
+     */
+    protected void noteMissing (ConfigId configId)
+    {
+        output("references missing config of type " +
+                ConfigGroup.getName(configId.clazz) + ": " + configId.name);
     }
 
     /** Our output stream. */
@@ -285,4 +348,7 @@ public class Validator
 
     /** The gathered configs while validating the current object. */
     protected Set<ConfigId> _configs = Sets.newHashSet();
+
+    /** Configs organized by their constraints. Initialized only when needed. */
+    protected ListMultimap<ReferenceConstraints, ConfigId> _configsByConstraints;
 }
