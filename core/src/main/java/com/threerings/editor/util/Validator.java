@@ -225,7 +225,7 @@ public class Validator
             Class<ManagedConfig> cclass = (Class<ManagedConfig>)
                     ((ParameterizedType)ctype).getActualTypeArguments()[0];
             for (ConfigReference raw : list) {
-                if (raw != null) { // TODO: null should not be allowed... but it will NPE validator
+                if (raw != null) { // TODO: null should not be allowed... but everything allows it
                     noteReference(cfgmgr, cclass, raw, property);
                 }
             }

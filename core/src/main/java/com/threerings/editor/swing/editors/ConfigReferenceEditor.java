@@ -56,6 +56,7 @@ import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
 
 import com.threerings.editor.Property;
+import com.threerings.editor.util.PropertyUtil;
 import com.threerings.editor.swing.PropertyEditor;
 
 /**
@@ -241,6 +242,11 @@ public class ConfigReferenceEditor extends PropertyEditor
             if (config == null) {
                 _config.setForeground(Color.red);
             }
+            return;
+        }
+        if (!PropertyUtil.getRawConfigPredicate(
+                    getProperty().getAnnotation(ReferenceConstraints.class)).apply(config)) {
+            _config.setForeground(Color.red);
             return;
         }
         _config.setForeground(_content.getForeground());
