@@ -52,7 +52,6 @@ import javax.swing.filechooser.FileFilter;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -63,6 +62,7 @@ import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
 import com.threerings.editor.Introspector;
+import com.threerings.editor.util.PropertyUtil;
 
 import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
@@ -101,9 +101,9 @@ public abstract class ConfigChooser extends JPanel
                         "Constraints can't yet be used with resources");
             }
 
-            final List<Class<? extends ManagedConfig>> vals = Arrays.asList(constraints.value());
             String desc = constraints.description();
             if ("".equals(desc)) {
+                List<Class<? extends ManagedConfig>> vals = Arrays.asList(constraints.value());
                 desc = Joiner.on(", ").join(Iterables.transform(vals,
                             new Function<Class<?>, String>() {
                                 public String apply (Class<?> clazz) {
@@ -117,16 +117,8 @@ public abstract class ConfigChooser extends JPanel
                     desc = msgs.get(desc);
                 }
             }
-            // the tree deals with raw configs so we may need to actualize..
-            Predicate<ManagedConfig> pred = new Predicate<ManagedConfig>() {
-                public boolean apply (ManagedConfig cfg) {
-                    if (cfg instanceof DerivedConfig) {
-                        cfg = cfg.getInstance((ArgumentMap)null);
-                    }
-                    return vals.contains(cfg.getClass());
-                }
-            };
-            ((TreeChooser)chooser)._filterPanel.addConstraint(desc, pred, false);
+            ((TreeChooser)chooser)._filterPanel.addConstraint(
+                    desc, PropertyUtil.getRawConfigPredicate(constraints), false);
         }
         return chooser;
     }

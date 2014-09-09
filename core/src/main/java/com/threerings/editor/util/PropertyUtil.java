@@ -29,11 +29,14 @@ import java.io.PrintStream;
 
 import java.lang.reflect.Array;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 
 import com.threerings.resource.ResourceManager;
@@ -43,9 +46,11 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.ReferenceConstraints;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
@@ -192,6 +197,25 @@ public class PropertyUtil
             }
         }
         return +Integer.MAX_VALUE;
+    }
+
+    /**
+     * Get a predicate for filtering raw configs given the specified constraints.
+     */
+    public static Predicate<ManagedConfig> getRawConfigPredicate (ReferenceConstraints constraints)
+    {
+        if (constraints == null) {
+            return Predicates.alwaysTrue();
+        }
+        final List<Class<? extends ManagedConfig>> vals = Arrays.asList(constraints.value());
+        return new Predicate<ManagedConfig>() {
+            public boolean apply (ManagedConfig cfg) {
+                if (cfg instanceof DerivedConfig) {
+                    cfg = cfg.getInstance((ArgumentMap)null);
+                }
+                return vals.contains(cfg.getClass());
+            }
+        };
     }
 
     /**
