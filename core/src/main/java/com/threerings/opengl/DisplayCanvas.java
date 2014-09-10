@@ -422,18 +422,12 @@ public class DisplayCanvas extends JPanel
         // handle non-event mouse business (once the pointer is outside the window, we no longer
         // receive events)
         Point pt = getRelativeMouseLocation();
-        // NULL_MOUSE_WORKAROUND
-        if (pt != null) {
-        // end: NULL_MOUSE_WORKAROUND
-            checkEntered(now, pt.x, pt.y);
-            checkExited(now, pt.x, pt.y);
-            checkMoved(now, pt.x, pt.y);
-            checkButtonState(now, pt.x, pt.y, 0, Mouse.isButtonDown(0));
-            checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
-            checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
-        // NULL_MOUSE_WORKAROUND
-        }
-        // end: NULL_MOUSE_WORKAROUND
+        checkEntered(now, pt.x, pt.y);
+        checkExited(now, pt.x, pt.y);
+        checkMoved(now, pt.x, pt.y);
+        checkButtonState(now, pt.x, pt.y, 0, Mouse.isButtonDown(0));
+        checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
+        checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
 
         // clear modifiers and release keys if we don't have focus
         if (!windowIsFocused()) {
@@ -570,11 +564,12 @@ public class DisplayCanvas extends JPanel
                         gd.getDefaultConfiguration().getBounds());
             }
 
-            return null;
+            return new Point(0, 0);
         }
         Point pt = info.getLocation();
         SwingUtilities.convertPointFromScreen(pt, this);
         return pt;
+        // end: NULL_MOUSE_WORKAROUND
 
 //        Point pt = MouseInfo.getPointerInfo().getLocation();
 //        SwingUtilities.convertPointFromScreen(pt, this);
