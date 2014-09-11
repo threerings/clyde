@@ -67,7 +67,7 @@ public class NumberEditor extends PropertyEditor
     {
         double value = ((Number)_property.get(_object)).doubleValue() / _scale;
         if (_property.getAnnotation().constant()) {
-            _value.setText(String.valueOf(value));
+            _value.setText(String.valueOf(fromDouble(value)));
             return;
         }
         _spinner.setValue(value);
@@ -86,7 +86,7 @@ public class NumberEditor extends PropertyEditor
         _scale = getScale();
         if (_property.getAnnotation().constant()) {
             add(_value = new JLabel(" "));
-            return;
+
         } else {
             if (getMode().equals("wide") && min != -Double.MAX_VALUE &&
                     max != +Double.MAX_VALUE) {
