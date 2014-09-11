@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import com.google.common.base.Objects;
 
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigBox;
 
 import com.threerings.editor.swing.PropertyEditor;
@@ -70,8 +71,11 @@ public class ConfigEditor extends PropertyEditor
             log.warning("Missing groups for config editor.", "name", getMode());
             return;
         }
-        add(_box = new ConfigBox(_msgs, groups, _property.getAnnotation().nullable()));
+        _box = new ConfigBox(
+                _msgs, groups, _property.getAnnotation().nullable(),
+                _property.getAnnotation(ReferenceConstraints.class));
         _box.addActionListener(this);
+        add(_box);
     }
 
     /** The combo box. */
