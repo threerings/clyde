@@ -22,8 +22,10 @@ import com.threerings.util.Shallow;
 
 /**
  * Represents a config that is directly derived from another config.
+ *
+ * This class should not typically be subclassed.
  */
-public final class DerivedConfig extends ParameterizedConfig
+public class DerivedConfig extends ParameterizedConfig
 {
     /** The other configuration from which we derive. */
     @Editable(editor="derivedRef", nullable=true)
@@ -61,10 +63,9 @@ public final class DerivedConfig extends ParameterizedConfig
     @Override
     protected ManagedConfig getBound (Scope scope)
     {
-        // A derived config can never itself be a bound config, because we are final.
+        // A derived config can never itself be a bound config, but the configs we derive from
+        // can be.
         // We use this method to actualize the config.
-        assert(java.lang.reflect.Modifier.isFinal(getClass().getModifiers()));
-
         ManagedConfig instance = _derivation.get();
         if (instance != null) {
             return instance;
@@ -89,6 +90,20 @@ public final class DerivedConfig extends ParameterizedConfig
 
         // instance must be a clone so that we can change the name
         instance = (ManagedConfig)_source.clone();
+        initializeInstance(instance);
+        // the instance should listen for changes from us
+        addListener(instance);
+
+        // finally, keep a soft reference to it and return it
+        _derivation = new SoftReference<ManagedConfig>(instance);
+        return instance;
+    }
+
+    /**
+     * Initialize the derivated instance that we've created.
+     */
+    protected void initializeInstance (ManagedConfig instance)
+    {
         instance.init(_cfgmgr);
         instance.setName(getName());
         instance.setComment(getComment());
@@ -100,12 +115,6 @@ public final class DerivedConfig extends ParameterizedConfig
             instanceP._args = this._args;
             translateParameters(instanceP);
         }
-        // the instance should listen for changes from us
-        addListener(instance);
-
-        // finally, keep a soft reference to it and return it
-        _derivation = new SoftReference<ManagedConfig>(instance);
-        return instance;
     }
 
     /**
