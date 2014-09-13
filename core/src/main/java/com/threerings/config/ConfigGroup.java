@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.io.Closer;
 import com.google.common.collect.ImmutableList;
@@ -223,8 +222,10 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void addConfig (ManagedConfig config)
     {
-        Preconditions.checkArgument(
-                _cclass.isInstance(config) || (config instanceof DerivedConfig));
+        if (!_cclass.isInstance(config) && !(config instanceof DerivedConfig)) {
+            Class<?> clazz = (config == null) ? null : config.getClass();
+            throw new IllegalArgumentException(clazz + " is not of type " + _cclass);
+        }
         ManagedConfig oldCfg = _configsByName.put(config.getName(), config);
         initConfig(config);
         if (oldCfg != null) {
