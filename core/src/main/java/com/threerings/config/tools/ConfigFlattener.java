@@ -101,13 +101,23 @@ public class ConfigFlattener
             break;
         }
 
-        flatten(rsrcDir, outDir, ext, isXML);
+        new ConfigFlattener().flatten(rsrcDir, outDir, ext, isXML);
+    }
+
+    /**
+     * Dump standalone usage information to stderr and exit with an error code.
+     */
+    protected static void errUsageAndExit ()
+    {
+        System.err.println("Args: <rsrcDir> <outDir> [fileExtension (default='.xml')]");
+        System.err.println("If the extension is provided and not '.xml', output will be binary.");
+        System.exit(1);
     }
 
     /**
      * Potential entry point for other tools.
      */
-    public static void flatten (String rsrcDir, String outDir)
+    public void flatten (String rsrcDir, String outDir)
     {
         flatten(rsrcDir, outDir, ".xml", true);
     }
@@ -115,7 +125,7 @@ public class ConfigFlattener
     /**
      * Potential entry point for other tools.
      */
-    public static void flatten (String rsrcDir, String outDir, String extension, boolean isXML)
+    public void flatten (String rsrcDir, String outDir, String extension, boolean isXML)
     {
         ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
         File configDir = rsrcmgr.getResourceFile("config/");
@@ -141,19 +151,9 @@ public class ConfigFlattener
     }
 
     /**
-     * Dump standalone usage information to stderr and exit with an error code.
-     */
-    protected static void errUsageAndExit ()
-    {
-        System.err.println("Args: <rsrcDir> <outDir> [fileExtension (default='.xml')]");
-        System.err.println("If the extension is provided and not '.xml', output will be binary.");
-        System.exit(1);
-    }
-
-    /**
      * Flatten all the configs in-place in the specified config manager.
      */
-    public static void flatten (ConfigManager cfgmgr)
+    public void flatten (ConfigManager cfgmgr)
     {
         DependentReferenceSet refSet = new DependentReferenceSet();
 
@@ -235,7 +235,7 @@ public class ConfigFlattener
     /**
      * Generate a stable hash code for the specified argument map.
      */
-    protected static int generateHash (ArgumentMap args)
+    protected int generateHash (ArgumentMap args)
     {
         // Note: ArgumentMap stores args in a sorted order, but let's assume we don't know that.
 
@@ -249,7 +249,7 @@ public class ConfigFlattener
     /**
      * Return a stable hash code for the specified object if we can, or simply return 0.
      */
-    protected static int generateHash (Object obj)
+    protected int generateHash (Object obj)
     {
         if (obj != null) {
             if (obj instanceof String || Primitives.isWrapperType(obj.getClass())) {
