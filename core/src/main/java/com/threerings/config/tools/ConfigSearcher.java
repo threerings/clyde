@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -498,6 +499,11 @@ public class ConfigSearcher extends JFrame
         if (c.isArray()) {
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
                 count += count(Array.get(val, ii), detector, seen);
+            }
+
+        } else if (val instanceof Collection) {
+            for (Object o : ((Collection)val)) {
+                count += count(o, detector, seen);
             }
 
         } else if (val instanceof ConfigReference) {
