@@ -228,7 +228,7 @@ public class ConfigManager
      *
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
+    public final <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
     {
         return getConfig(clazz, name, null, null);
     }
@@ -239,7 +239,7 @@ public class ConfigManager
      *
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
+    public final <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
     {
         return getConfig(clazz, ref, null);
     }
@@ -250,7 +250,7 @@ public class ConfigManager
      *
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (
+    public final <T extends ManagedConfig> T getConfig (
         Class<T> clazz, ConfigReference<T> ref, Scope scope)
     {
         return (ref == null) ? null : getConfig(clazz, ref.getName(), scope, ref.getArguments());
@@ -262,7 +262,7 @@ public class ConfigManager
      *
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (
+    public final <T extends ManagedConfig> T getConfig (
         Class<T> clazz, String name, String firstKey, Object firstValue, Object... otherArgs)
     {
         return getConfig(clazz, name, null, firstKey, firstValue, otherArgs);
@@ -274,7 +274,7 @@ public class ConfigManager
      *
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (
+    public final <T extends ManagedConfig> T getConfig (
         Class<T> clazz, String name, Scope scope,
         String firstKey, Object firstValue, Object... otherArgs)
     {
@@ -287,7 +287,7 @@ public class ConfigManager
      *
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, Scope scope)
+    public final <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, Scope scope)
     {
         return getConfig(clazz, name, scope, null);
     }
@@ -299,7 +299,8 @@ public class ConfigManager
      * @param args the configuration arguments, or <code>null</code> for none.
      * @return the requested configuration, or <code>null</code> if not found.
      */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, ArgumentMap args)
+    public final <T extends ManagedConfig> T getConfig (
+        Class<T> clazz, String name, ArgumentMap args)
     {
         return getConfig(clazz, name, null, args);
     }
