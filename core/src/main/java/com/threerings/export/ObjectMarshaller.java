@@ -33,6 +33,9 @@ import java.lang.reflect.Modifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -134,8 +137,13 @@ public class ObjectMarshaller
         ArrayList<Field> fields = new ArrayList<Field>();
         getExportableFields(clazz, fields);
         _fields = new FieldData[fields.size()];
+        Set<String> names = Sets.newHashSet();
         for (int ii = 0; ii < _fields.length; ii++) {
             _fields[ii] = new FieldData(fields.get(ii));
+            if (!names.add(_fields[ii]._name)) {
+                throw new IllegalArgumentException("Class has fields with duplicated export name " +
+                        "[class=" + clazz + ", field=" + _fields[ii]._name + "]");
+            }
         }
 
         // create the prototype
