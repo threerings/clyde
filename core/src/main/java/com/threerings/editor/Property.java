@@ -40,6 +40,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ClassUtil;
@@ -520,6 +523,32 @@ public abstract class Property extends DeepObject
     public String toString ()
     {
         return _name;
+    }
+
+    /**
+     * Is this property compatible with the other property, based only on type and
+     * annotations?
+     *
+     * Two properties are compatible if they have the same generic Type and the exact same
+     * set of annotations. The names of the properties, their lineage, and the kinds of Member
+     * that define them do not matter.
+     */
+    public boolean isCompatible (Property other)
+    {
+        // make sure they have the same generic type
+        if (!getGenericType().equals(other.getGenericType())) {
+            return false;
+        }
+
+        // Do a Setwise comparison of all their annotations and require an exact match.
+        // Note: in theory we could be less anal, but we don't know which of the annotation
+        // values are "important" for the property. For example, the "min" and "max"
+        // values of the Editable annotation may define a fixed array size for a field.
+        Set<Annotation> annos = Sets.newHashSet(
+                ((AnnotatedElement)this.getMember()).getAnnotations());
+        Set<Annotation> otherAnnos = Sets.newHashSet(
+                ((AnnotatedElement)other.getMember()).getAnnotations());
+        return annos.equals(otherAnnos);
     }
 
     /**

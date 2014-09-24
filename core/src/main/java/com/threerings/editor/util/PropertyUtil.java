@@ -241,10 +241,14 @@ public class PropertyUtil
             String name = srcProp.getName();
             for (Property destProp : destProps) {
                 if (name.equals(destProp.getName())) {
-                    try {
-                        destProp.set(dest, srcProp.get(source));
-                    } catch (Throwable t) {
-                        // The dest property must be incompatible. Ignore.
+                    // require a name match, but then only transfer the value if the
+                    // properties are fully compatible
+                    if (srcProp.isCompatible(destProp)) {
+                        try {
+                            destProp.set(dest, srcProp.get(source));
+                        } catch (Throwable t) {
+                            log.warning("Destination property not compatible after all?", t);
+                        }
                     }
                     break;
                 }
