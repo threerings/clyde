@@ -466,12 +466,12 @@ public class ConfigSearcher extends JFrame
                 return null;
             }
             model.init(_ctx.getConfigManager());
-            Multiset<Presence> attrs = HashMultiset.create();
+            Multiset<Presence> attrs = null;
             for (TudeySceneModel.Entry entry : model.getEntries()) {
-                attrs.addAll(
+                attrs = addAll(attrs,
                         findAttributes(entry.getReference(), entry.getReferenceType(), detector));
             }
-            return attrs.isEmpty()
+            return (attrs == null)
                 ? null
                 : new FileResult(_dir, file, attrs);
         }
@@ -602,26 +602,26 @@ public class ConfigSearcher extends JFrame
         }
 
         // make a list of sub-fields
-        Multiset<T> attrs = HashMultiset.create();
+        Multiset<T> attrs = null;
         if (val instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference<?>)val;
             Class<?> refType = asClass(getFirstGenericType(valGenericType));
 
-            attrs.addAll(detector.apply(ref, refType));
+            attrs = addAll(attrs, detector.apply(ref, refType));
             for (Object value : ref.getArguments().values()) {
-                attrs.addAll(findAttributes(value, null, detector, seen));
+                attrs = addAll(attrs, findAttributes(value, null, detector, seen));
             }
 
         } else if (c.isArray()) {
             Type subType = c.getComponentType();
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-                attrs.addAll(findAttributes(Array.get(val, ii), subType, detector, seen));
+                attrs = addAll(attrs, findAttributes(Array.get(val, ii), subType, detector, seen));
             }
 
         } else if (val instanceof Collection) {
             Type subType = getFirstGenericType(valGenericType);
             for (Object o : ((Collection)val)) {
-                attrs.addAll(findAttributes(o, subType, detector, seen));
+                attrs = addAll(attrs, findAttributes(o, subType, detector, seen));
             }
 
         } else {
@@ -632,10 +632,24 @@ public class ConfigSearcher extends JFrame
                 } catch (IllegalAccessException iae) {
                     continue;
                 }
-                attrs.addAll(findAttributes(o, f.getGenericType(), detector, seen));
+                attrs = addAll(attrs, findAttributes(o, f.getGenericType(), detector, seen));
             }
         }
-        return attrs;
+        return (attrs != null) ? attrs : ImmutableMultiset.<T>of();
+    }
+
+    /**
+     * A helper for findAttributes as a small nod towards avoiding garbage creation.
+     */
+    protected static <T> Multiset<T> addAll (Multiset<T> accum, Multiset<T> toAdd)
+    {
+        if (!toAdd.isEmpty()) {
+            if (accum == null) {
+                accum = HashMultiset.create();
+            }
+            accum.addAll(toAdd);
+        }
+        return accum;
     }
 
     /**
@@ -665,6 +679,9 @@ public class ConfigSearcher extends JFrame
         return null;
     }
 
+    /**
+     * Adapt a simple detector to be used as an AttributeDetector.
+     */
     protected static class AttributeDetectorAdapter
         implements AttributeDetector<Boolean>
     {
