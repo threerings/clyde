@@ -109,27 +109,6 @@ public class ConfigSearcher extends JFrame
         public String formatLabel (String label, Multiset<T> accumulatedAttrs);
     }
 
-    @Deprecated // TEMP
-    private static Detector toDetector (final Predicate<? super ConfigReference<?>> predicate)
-    {
-        return new Detector() {
-            public boolean apply (ConfigReference<?> ref, Class<?> typeIgnored) {
-                return predicate.apply(ref);
-            }
-        };
-    }
-
-    @Deprecated // TEMP
-    private static <T> AttributeDetector<T> toDetector (
-            final Function<? super ConfigReference<?>, ? extends Iterable<T>> func)
-    {
-        return new AttributeDetector<T>() {
-            public Multiset<T> apply (ConfigReference<?> ref, Class<?> typeIgnored) {
-                return HashMultiset.create(func.apply(ref));
-            }
-        };
-    }
-
     /**
      * Find if anything satisfies the predicate in the specified object and any sub-objects.
      */
@@ -139,29 +118,11 @@ public class ConfigSearcher extends JFrame
     }
 
     /**
-     * Find if anything satisfies the predicate in the specified object and any sub-objects.
-     */
-    @Deprecated
-    public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
-    {
-        return find(val, toDetector(detector));
-    }
-
-    /**
      * Count how many configs satisfy the predicate in the specified object and any sub-objects.
      */
     public static int count (Object val, Detector detector)
     {
         return findAttributes(val, new AttributeDetectorAdapter(detector)).size();
-    }
-
-    /**
-     * Count how many configs satisfy the predicate in the specified object and any sub-objects.
-     */
-    @Deprecated
-    public static int count (Object val, Predicate<? super ConfigReference<?>> detector)
-    {
-        return count(val, toDetector(detector));
     }
 
     /**
@@ -179,16 +140,6 @@ public class ConfigSearcher extends JFrame
             Object val, Type valType, AttributeDetector<T> detector)
     {
         return findAttributes(val, valType, detector, Sets.newIdentityHashSet());
-    }
-
-    /**
-     * Find all the attributes in the specified object and any sub-objects.
-     */
-    @Deprecated
-    public static <T> Iterable<T> findAttributes (
-        Object val, Function<? super ConfigReference<?>, ? extends Iterable<T>> detector)
-    {
-        return findAttributes(val, toDetector(detector));
     }
 
     /**
@@ -433,6 +384,9 @@ public class ConfigSearcher extends JFrame
                 : new FileResult(_dir, file, detector, attrs);
         }
 
+        /**
+         * Get the attributes for the object(s) in the specified file.
+         */
         protected abstract <T> Multiset<T> attrsForFile (File file, SearchReporter<T> detector);
 
         /**
