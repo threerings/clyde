@@ -576,14 +576,6 @@ public class ConfigSearcher extends JFrame
         new ToolUtil.EditablePrefs(Preferences.userNodeForPackage(ConfigSearcher.class));
 
     /**
-     * Return the new path with the prefix prepended.
-     */
-    protected static String prefixPath (String prefix, String path)
-    {
-        return "".equals(path) ? prefix : (prefix + "." + path);
-    }
-
-    /**
      * Internal helper for findAttributes.
      */
     protected static <T> Multiset<T> findAttributes (
