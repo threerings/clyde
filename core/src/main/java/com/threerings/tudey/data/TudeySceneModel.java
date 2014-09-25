@@ -206,6 +206,11 @@ public class TudeySceneModel extends SceneModel
         public abstract ConfigReference getReference ();
 
         /**
+         * Get the type of the config reference.
+         */
+        public abstract Class<?> getReferenceType ();
+
+        /**
          * Determines whether this entry has a valid configuration.
          */
         public abstract boolean isValid (ConfigManager cfgmgr);
@@ -457,6 +462,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
+        public Class<?> getReferenceType ()
+        {
+            return TileConfig.class;
+        }
+
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != TileConfig.NULL_ORIGINAL;
@@ -652,6 +663,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
+        public Class<?> getReferenceType ()
+        {
+            return SceneGlobalConfig.class;
+        }
+
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != SceneGlobalConfig.NULL_ORIGINAL;
@@ -737,6 +754,12 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return placeable;
+        }
+
+        @Override
+        public Class<?> getReferenceType ()
+        {
+            return PlaceableConfig.class;
         }
 
         @Override
@@ -916,6 +939,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
+        public Class<?> getReferenceType ()
+        {
+            return PathConfig.class;
+        }
+
+        @Override
         public boolean isValid (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr) != PathConfig.NULL_ORIGINAL;
@@ -1079,6 +1108,12 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return area;
+        }
+
+        @Override
+        public Class<?> getReferenceType ()
+        {
+            return AreaConfig.class;
         }
 
         @Override
