@@ -98,6 +98,17 @@ public class ConfigSearcher extends JFrame
         public Multiset<T> apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
     }
 
+    /**
+     * Detects attributes and formats the results.
+     */
+    public interface SearchReporter<T> extends AttributeDetector<T>
+    {
+        /**
+         * Format the label for the result according to the non-empty accumulated attributes.
+         */
+        public String formatLabel (String label, Multiset<T> accumulatedAttrs);
+    }
+
     @Deprecated // TEMP
     private static Detector toDetector (final Predicate<? super ConfigReference<?>> predicate)
     {
@@ -192,9 +203,37 @@ public class ConfigSearcher extends JFrame
         POSSIBLE_MATCH,
         ;
 
-        public static final ImmutableMultiset<Presence> RESULT_NONE = ImmutableMultiset.of();
-        public static final ImmutableMultiset<Presence> RESULT_MATCH = ImmutableMultiset.of(MATCH);
-        public static final ImmutableMultiset<Presence> RESULT_POSSIBLE_MATCH =
+        /**
+         * Get a reporter that reports presence.
+         */
+        public static SearchReporter<Presence> getReporter (
+                final Class<?> clazz, final Predicate<? super ConfigReference<?>> pred)
+        {
+            return new SearchReporter<Presence>() {
+                @Override
+                public Multiset<Presence> apply (ConfigReference<?> ref, @Nullable Class<?> type)
+                {
+                    boolean fuzzy = (type == null);
+                    return ((fuzzy || type.equals(clazz)) && pred.apply(ref))
+                        ? (fuzzy ? RESULT_POSSIBLE_MATCH : RESULT_MATCH)
+                        : RESULT_NONE;
+                }
+                @Override
+                public String formatLabel (String label, Multiset<Presence> attrs)
+                {
+                    int possible = attrs.count(POSSIBLE_MATCH);
+                    return attrs.count(MATCH) + ": " +
+                            ((possible == 0) ? "" : ("(" + possible + " maybe): ")) +
+                            label;
+                }
+            };
+        }
+
+        protected static final ImmutableMultiset<Presence> RESULT_NONE =
+                ImmutableMultiset.of();
+        protected static final ImmutableMultiset<Presence> RESULT_MATCH =
+                ImmutableMultiset.of(MATCH);
+        protected static final ImmutableMultiset<Presence> RESULT_POSSIBLE_MATCH =
                 ImmutableMultiset.of(POSSIBLE_MATCH);
     }
 
@@ -219,19 +258,13 @@ public class ConfigSearcher extends JFrame
         /**
          * Construct a result with the specified label.
          */
-        public Result (String label, Multiset<Presence> result)
+        public Result (String label)
         {
-            int possible = result.count(Presence.POSSIBLE_MATCH);
-            _label = result.count(Presence.MATCH) + ": " +
-                    ((possible == 0) ? "" : ("(" + possible + " maybe): ")) +
-                    label;
+            _label = label;
         }
 
         /** The label for this result. */
         protected String _label;
-
-        /** Is this a strong match? */
-        protected boolean _strong;
     }
 
     /**
@@ -247,7 +280,7 @@ public class ConfigSearcher extends JFrame
         /**
          * Null results should be returned to allow the UI/interaction updates.
          */
-        public Iterator<Result> getResults (AttributeDetector<Presence> detector);
+        public <T> Iterator<Result> getResults (SearchReporter<T> detector);
     }
 
     /**
@@ -271,7 +304,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        public Iterator<Result> getResults (final AttributeDetector<Presence> detector)
+        public <T> Iterator<Result> getResults (final SearchReporter<T> detector)
         {
             return new AbstractIterator<Result>() {
                 protected Result computeNext () {
@@ -284,10 +317,11 @@ public class ConfigSearcher extends JFrame
                     }
                     final ManagedConfig cfg = _cfgIterator.next();
                     final ConfigGroup<?> group = _currentGroup;
-                    Multiset<Presence> attrs = findAttributes(cfg, detector);
+                    Multiset<T> attrs = findAttributes(cfg, detector);
                     return attrs.isEmpty()
                         ? null
-                        : new Result(group.getName() + ": " + cfg.getName(), attrs) {
+                        : new Result(
+                            detector.formatLabel(group.getName() + ": " + cfg.getName(), attrs)) {
                                 public void onClick () {
                                     BaseConfigEditor
                                         .createEditor(_ctx, group.getConfigClass(), cfg.getName())
@@ -346,7 +380,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        public Iterator<Result> getResults (final AttributeDetector<Presence> detector)
+        public <T> Iterator<Result> getResults (final SearchReporter<T> detector)
         {
             Iterable<File> allFiles = Iterables.concat(
                 Iterables.transform(_dirs,
@@ -391,7 +425,15 @@ public class ConfigSearcher extends JFrame
         /**
          * Generate a Result for the specified file, or return null.
          */
-        protected abstract Result resultForFile (File file, AttributeDetector<Presence> detector);
+        protected <T> Result resultForFile (File file, SearchReporter<T> detector)
+        {
+            Multiset<T> attrs = attrsForFile(file, detector);
+            return attrs.isEmpty()
+                ? null
+                : new FileResult(_dir, file, detector, attrs);
+        }
+
+        protected abstract <T> Multiset<T> attrsForFile (File file, SearchReporter<T> detector);
 
         /**
          * Called to edit the file. You must implement this.
@@ -415,9 +457,12 @@ public class ConfigSearcher extends JFrame
          */
         protected class FileResult extends Result
         {
-            public FileResult (File topDir, File file, Multiset<Presence> result)
+            public <T> FileResult (
+                    File topDir, File file, SearchReporter<T> det, Multiset<T> result)
             {
-                super(file.getAbsolutePath().substring(topDir.getAbsolutePath().length()), result);
+                super(det.formatLabel(
+                    file.getAbsolutePath().substring(topDir.getAbsolutePath().length()),
+                    result));
                 _file = file;
             }
 
@@ -457,7 +502,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        protected Result resultForFile (File file, AttributeDetector<Presence> detector)
+        protected <T> Multiset<T> attrsForFile (File file, SearchReporter<T> detector)
         {
             TudeySceneModel model;
             try {
@@ -466,22 +511,21 @@ public class ConfigSearcher extends JFrame
                 return null;
             }
             model.init(_ctx.getConfigManager());
-            Multiset<Presence> attrs = null;
+
+            Multiset<T> attrs = null;
             for (TudeySceneModel.Entry entry : model.getEntries()) {
                 attrs = addAll(attrs,
                         findAttributes(entry.getReference(), entry.getReferenceType(), detector));
             }
-            return (attrs == null)
-                ? null
-                : new FileResult(_dir, file, attrs);
+            return (attrs == null) ? ImmutableMultiset.<T>of() : attrs;
         }
     }
 
     /**
      * Create a ConfigSearcher ui.
      */
-    public ConfigSearcher (
-        EditorContext ctx, String title, final AttributeDetector<Presence> detector,
+    public <T> ConfigSearcher (
+        EditorContext ctx, String title, final SearchReporter<T> detector,
         final Iterable<Domain> domains)
     {
         _ctx = ctx;

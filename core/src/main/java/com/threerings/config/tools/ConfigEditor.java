@@ -422,29 +422,21 @@ public class ConfigEditor extends BaseConfigEditor
      * Finds the uses of the specified config.
      */
     protected void findUses (
-            final String cfgNameOrPrefix, final Class<? extends ManagedConfig> clazz,
+            final String cfgNameOrPrefix, Class<? extends ManagedConfig> clazz,
             final boolean exact)
     {
         if (cfgNameOrPrefix == null) {
             return;
         }
         new ConfigSearcher(this, cfgNameOrPrefix,
-                new ConfigSearcher.AttributeDetector<ConfigSearcher.Presence>() {
-                public Multiset<ConfigSearcher.Presence> apply (
-                        ConfigReference<?> ref, @Nullable Class<?> typeIfKnown) {
-                    if (typeIfKnown != null && !typeIfKnown.equals(clazz)) {
-                        return ConfigSearcher.Presence.RESULT_NONE;
+                ConfigSearcher.Presence.getReporter(clazz, new Predicate<ConfigReference<?>>() {
+                    public boolean apply (ConfigReference<?> ref) {
+                        return exact
+                            ? ref.getName().equals(cfgNameOrPrefix)
+                            : ref.getName().startsWith(cfgNameOrPrefix);
                     }
-                    boolean matches = exact
-                        ? ref.getName().equals(cfgNameOrPrefix)
-                        : ref.getName().startsWith(cfgNameOrPrefix);
-                    return matches
-                        ? ((typeIfKnown != null)
-                            ? ConfigSearcher.Presence.RESULT_MATCH
-                            : ConfigSearcher.Presence.RESULT_POSSIBLE_MATCH)
-                        : ConfigSearcher.Presence.RESULT_NONE;
-                }
-            }, getSearcherDomains());
+                }),
+                getSearcherDomains());
     }
 
     /**
