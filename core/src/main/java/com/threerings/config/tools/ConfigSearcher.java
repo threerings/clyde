@@ -41,10 +41,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 
@@ -69,6 +72,8 @@ import com.threerings.tudey.data.TudeySceneModel;
  */
 public class ConfigSearcher extends JFrame
 {
+    /**
+     */
     public interface Detector
     {
         /**
@@ -79,6 +84,8 @@ public class ConfigSearcher extends JFrame
         public boolean apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
     }
 
+    /**
+     */
     public interface AttributeDetector<T>
     {
         /**
@@ -86,7 +93,7 @@ public class ConfigSearcher extends JFrame
          * The type may or may not be provided, and your detector will
          * probably want to err on false positives when there is no type.
          */
-        public Iterable<T> apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
+        public Multiset<T> apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
     }
 
     // TEMP
@@ -104,8 +111,8 @@ public class ConfigSearcher extends JFrame
             final Function<? super ConfigReference<?>, ? extends Iterable<T>> func)
     {
         return new AttributeDetector<T>() {
-            public Iterable<T> apply (ConfigReference<?> ref, Class<?> typeIgnored) {
-                return func.apply(ref);
+            public Multiset<T> apply (ConfigReference<?> ref, Class<?> typeIgnored) {
+                return HashMultiset.create(func.apply(ref));
             }
         };
     }
@@ -161,14 +168,14 @@ public class ConfigSearcher extends JFrame
         return findAttributes(val, detector, Sets.newIdentityHashSet());
     }
 
-    /**
-     * Find the path to the search config from the specified starting point.
-     * Experimental.
-     */
-    public static String findPath (Object val, Predicate<? super ConfigReference<?>> detector)
-    {
-        return findPath(val, detector, Sets.newIdentityHashSet());
-    }
+//    /**
+//     * Find the path to the search config from the specified starting point.
+//     * Experimental.
+//     */
+//    public static String findPath (Object val, Predicate<? super ConfigReference<?>> detector)
+//    {
+//        return findPath(val, detector, Sets.newIdentityHashSet());
+//    }
 
     /**
      * Represents something found while searching.
@@ -608,81 +615,61 @@ public class ConfigSearcher extends JFrame
         return count;
     }
 
-    protected static Class<?> asClass (Type type)
-    {
-        if (type instanceof Class) {
-            return (Class)type;
-        }
-
-        return null;
-    }
-
-    protected static Type getFirstGenericType (Type type)
-    {
-        if (type instanceof ParameterizedType) {
-            Type[] args = ((ParameterizedType)type).getActualTypeArguments();
-            return (args.length > 0) ? args[0] : null;
-        }
-        // TODO: more?
-
-        return null;
-    }
-
-    /**
-     * Internal helper for findPath.
-     */
-    protected static String findPath (
-        Object val, Predicate<? super ConfigReference<?>> detector,
-        Set<Object> seen)
-    {
-        if (val == null) {
-            return null;
-        }
-
-        Class<?> c = val.getClass();
-        if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
-                !seen.add(val)) {
-            return null;
-        }
-
-        // make a list of sub-fields
-        String path;
-        if (val instanceof ConfigReference) {
-            ConfigReference<?> ref = (ConfigReference<?>)val;
-            if (detector.apply(ref)) {
-                return "";
-            }
-            for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
-                path = findPath(entry.getValue(), detector, seen);
-                if (path != null) {
-                    return prefixPath("{" + entry.getKey() + "}", path);
-                }
-            }
-
-        } else if (c.isArray()) {
-            for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-                path = findPath(Array.get(val, ii), detector, seen);
-                if (path != null) {
-                    return prefixPath("[" + ii + "]", path);
-                }
-            }
-
-        } else {
-            for (Field f : FIELDS.getUnchecked(c)) {
-                Object o;
-                try {
-                    o = f.get(val);
-                } catch (IllegalAccessException iae) {
-                    continue;
-                }
-                path = findPath(o, detector, seen);
-                if (path != null) {
-                    return prefixPath(f.getName(), path);
-                }
-            }
-        }
-        return null;
-    }
+//    /**
+//     * Internal helper for findPath.
+//     */
+//    protected static String findPath (
+//        Object val, Predicate<? super ConfigReference<?>> detector,
+//        Set<Object> seen)
+//    {
+//        if (val == null) {
+//            return null;
+//        }
+//
+//        Class<?> c = val.getClass();
+//        if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
+//                !seen.add(val)) {
+//            return null;
+//        }
+//
+//        // make a list of sub-fields
+//        String path;
+//        if (val instanceof ConfigReference) {
+//            ConfigReference<?> ref = (ConfigReference<?>)val;
+//            if (detector.apply(ref)) {
+//                return "";
+//            }
+//            for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
+//                path = findPath(entry.getValue(), detector, seen);
+//                if (path != null) {
+//                    return prefixPath("{" + entry.getKey() + "}", path);
+//                }
+//            }
+//
+//        } else if (c.isArray()) {
+//            for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
+//                path = findPath(Array.get(val, ii), detector, seen);
+//                if (path != null) {
+//                    return prefixPath("[" + ii + "]", path);
+//                }
+//            }
+//
+//        } else {
+//            for (Field f : FIELDS.getUnchecked(c)) {
+//                Object o;
+//                try {
+//                    o = f.get(val);
+//                } catch (IllegalAccessException iae) {
+//                    continue;
+//                }
+//                path = findPath(o, detector, seen);
+//                if (path != null) {
+//                    return prefixPath(f.getName(), path);
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * Return the new path with the prefix prepended.
@@ -735,6 +722,33 @@ public class ConfigSearcher extends JFrame
             }
         }
         return Iterables.concat(list);
+    }
+
+    /**
+     * Turn the Type into a class, if possible.
+     */
+    protected static Class<?> asClass (Type type)
+    {
+        if (type instanceof Class) {
+            return (Class)type;
+        }
+        // TODO: more
+
+        return null;
+    }
+
+    /**
+     * Get the first generic type argument of the specified type.
+     */
+    protected static Type getFirstGenericType (Type type)
+    {
+        if (type instanceof ParameterizedType) {
+            Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+            return (args.length > 0) ? args[0] : null;
+        }
+        // TODO: more?
+
+        return null;
     }
 
     /** All the fields (and superfields...) of a class, cached. */
