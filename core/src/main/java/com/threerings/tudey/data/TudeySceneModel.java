@@ -206,7 +206,7 @@ public class TudeySceneModel extends SceneModel
         public abstract ConfigReference getReference ();
 
         /**
-         * Provides the generic type of the ConfigReference returned by {@link getReference}.
+         * Provides the generic type of the ConfigReference returned by {@link #getReference()}.
          */
         public abstract Class<?> getReferenceType ();
 
