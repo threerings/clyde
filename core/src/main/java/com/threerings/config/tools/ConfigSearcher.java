@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 
 import java.util.prefs.Preferences;
+
+import javax.annotation.Nullable;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -65,20 +69,87 @@ import com.threerings.tudey.data.TudeySceneModel;
  */
 public class ConfigSearcher extends JFrame
 {
+    public interface Detector
+    {
+        /**
+         * Detect if the config reference meets some criteria.
+         * The type may or may not be provided, and your detector will
+         * probably want to err on false positives when there is no type.
+         */
+        public boolean apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
+    }
+
+    public interface AttributeDetector<T>
+    {
+        /**
+         * Detect certain attributes on a config reference.
+         * The type may or may not be provided, and your detector will
+         * probably want to err on false positives when there is no type.
+         */
+        public Iterable<T> apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
+    }
+
+    // TEMP
+    private static Detector toDetector (final Predicate<? super ConfigReference<?>> predicate)
+    {
+        return new Detector() {
+            public boolean apply (ConfigReference<?> ref, Class<?> typeIgnored) {
+                return predicate.apply(ref);
+            }
+        };
+    }
+
+    // TEMP
+    private static <T> AttributeDetector<T> toDetector (
+            final Function<? super ConfigReference<?>, ? extends Iterable<T>> func)
+    {
+        return new AttributeDetector<T>() {
+            public Iterable<T> apply (ConfigReference<?> ref, Class<?> typeIgnored) {
+                return func.apply(ref);
+            }
+        };
+    }
+
     /**
      * Find if anything satisfies the predicate in the specified object and any sub-objects.
      */
-    public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
+    public static boolean find (Object val, Detector detector)
     {
         return 0 < count(val, detector);
     }
 
     /**
+     * Find if anything satisfies the predicate in the specified object and any sub-objects.
+     */
+    @Deprecated
+    public static boolean find (Object val, Predicate<? super ConfigReference<?>> detector)
+    {
+        return find(val, toDetector(detector));
+    }
+
+    /**
      * Count how many configs satisfy the predicate in the specified object and any sub-objects.
      */
+    public static int count (Object val, Detector detector)
+    {
+        return count(val, null, detector);
+    }
+
+    /**
+     * Count, with a provided type of the top-level object.
+     */
+    public static int count (Object val, Type valType, Detector detector)
+    {
+        return count(val, valType, detector, Sets.newIdentityHashSet());
+    }
+
+    /**
+     * Count how many configs satisfy the predicate in the specified object and any sub-objects.
+     */
+    @Deprecated
     public static int count (Object val, Predicate<? super ConfigReference<?>> detector)
     {
-        return count(val, detector, Sets.newIdentityHashSet());
+        return count(val, toDetector(detector));
     }
 
     /**
@@ -142,7 +213,7 @@ public class ConfigSearcher extends JFrame
         /**
          * Null results should be returned to allow the UI/interaction updates.
          */
-        public Iterator<Result> getResults (Predicate<? super ConfigReference<?>> detector);
+        public Iterator<Result> getResults (Detector detector);
     }
 
     /**
@@ -166,7 +237,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
+        public Iterator<Result> getResults (final Detector detector)
         {
             return new AbstractIterator<Result>() {
                 protected Result computeNext () {
@@ -240,7 +311,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        public Iterator<Result> getResults (final Predicate<? super ConfigReference<?>> detector)
+        public Iterator<Result> getResults (final Detector detector)
         {
             Iterable<File> allFiles = Iterables.concat(
                 Iterables.transform(_dirs,
@@ -285,8 +356,7 @@ public class ConfigSearcher extends JFrame
         /**
          * Generate a Result for the specified file, or return null.
          */
-        protected abstract Result resultForFile (
-            File file, Predicate<? super ConfigReference<?>> detector);
+        protected abstract Result resultForFile (File file, Detector detector);
 
         /**
          * Called to edit the file. You must implement this.
@@ -358,7 +428,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        protected Result resultForFile (File file, Predicate<? super ConfigReference<?>> detector)
+        protected Result resultForFile (File file, Detector detector)
         {
             TudeySceneModel model;
             try {
@@ -369,7 +439,7 @@ public class ConfigSearcher extends JFrame
             model.init(_ctx.getConfigManager());
             int count = 0;
             for (TudeySceneModel.Entry entry : model.getEntries()) {
-                count += count(entry.getReference(), detector);
+                count += count(entry.getReference(), entry.getReferenceType(), detector);
             }
             return (0 < count)
                 ? new FileResult(_dir, file, count)
@@ -377,12 +447,19 @@ public class ConfigSearcher extends JFrame
         }
     }
 
+    @Deprecated
+    public ConfigSearcher (
+        EditorContext ctx, String title, final Predicate<? super ConfigReference<?>> detector,
+        final Iterable<Domain> domains)
+    {
+        this(ctx, title, toDetector(detector), domains);
+    }
+
     /**
      * Create a ConfigSearcher ui.
      */
     public ConfigSearcher (
-        EditorContext ctx, String title, final Predicate<? super ConfigReference<?>> detector,
-        final Iterable<Domain> domains)
+        EditorContext ctx, String title, final Detector detector, final Iterable<Domain> domains)
     {
         _ctx = ctx;
         _content = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.LEFT, GroupLayout.STRETCH);
@@ -481,8 +558,7 @@ public class ConfigSearcher extends JFrame
      * Internal helper for count.
      */
     protected static int count (
-        Object val, Predicate<? super ConfigReference<?>> detector,
-        Set<Object> seen)
+        Object val, Type valGenericType, Detector detector, Set<Object> seen)
     {
         if (val == null) {
             return 0;
@@ -498,21 +574,24 @@ public class ConfigSearcher extends JFrame
         // make a list of sub-fields
         if (c.isArray()) {
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-                count += count(Array.get(val, ii), detector, seen);
+                count += count(Array.get(val, ii), c.getComponentType(), detector, seen);
             }
 
         } else if (val instanceof Collection) {
+            Type subType = getFirstGenericType(valGenericType);
             for (Object o : ((Collection)val)) {
-                count += count(o, detector, seen);
+                count += count(o, subType, detector, seen);
             }
 
         } else if (val instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference<?>)val;
-            if (detector.apply(ref)) {
+            Class<?> refType = asClass(getFirstGenericType(valGenericType));
+
+            if (detector.apply(ref, refType)) {
                 count += 1;
             }
             for (Object value : ref.getArguments().values()) {
-                count += count(value, detector, seen);
+                count += count(value, null, detector, seen);
             }
 
         } else {
@@ -523,10 +602,30 @@ public class ConfigSearcher extends JFrame
                 } catch (IllegalAccessException iae) {
                     continue;
                 }
-                count += count(o, detector, seen);
+                count += count(o, f.getGenericType(), detector, seen);
             }
         }
         return count;
+    }
+
+    protected static Class<?> asClass (Type type)
+    {
+        if (type instanceof Class) {
+            return (Class)type;
+        }
+
+        return null;
+    }
+
+    protected static Type getFirstGenericType (Type type)
+    {
+        if (type instanceof ParameterizedType) {
+            Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+            return (args.length > 0) ? args[0] : null;
+        }
+        // TODO: more?
+
+        return null;
     }
 
     /**

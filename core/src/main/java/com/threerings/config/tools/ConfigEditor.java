@@ -45,6 +45,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -361,7 +363,8 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("delete")) {
             item.deleteNode();
         } else if (action.equals("find_uses")) {
-            findUses(panel.getSelected(), (null != panel.getEditorPanel().getObject()));
+            findUses(panel.getSelected(), item.group.getConfigClass(),
+                    (null != panel.getEditorPanel().getObject())); // on folders, do a prefix match
         } else if (action.equals("validate_refs")) {
             validateReferences();
         } else if (action.equals("resources")) {
@@ -417,13 +420,18 @@ public class ConfigEditor extends BaseConfigEditor
     /**
      * Finds the uses of the specified config.
      */
-    protected void findUses (final String cfgNameOrPrefix, final boolean exact)
+    protected void findUses (
+            final String cfgNameOrPrefix, final Class<? extends ManagedConfig> clazz,
+            final boolean exact)
     {
         if (cfgNameOrPrefix == null) {
             return;
         }
-        new ConfigSearcher(this, cfgNameOrPrefix, new Predicate<ConfigReference<?>>() {
-                public boolean apply (ConfigReference<?> ref) {
+        new ConfigSearcher(this, cfgNameOrPrefix, new ConfigSearcher.Detector() {
+                public boolean apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown) {
+                    if (typeIfKnown != null && !typeIfKnown.equals(clazz)) {
+                        return false;
+                    }
                     return exact
                         ? ref.getName().equals(cfgNameOrPrefix)
                         : ref.getName().startsWith(cfgNameOrPrefix);
