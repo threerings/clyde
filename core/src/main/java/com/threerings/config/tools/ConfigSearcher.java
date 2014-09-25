@@ -462,7 +462,7 @@ public class ConfigSearcher extends JFrame
             try {
                 model = ExportFileUtil.readObject(file, TudeySceneModel.class);
             } catch (Exception e) {
-                return null;
+                return ImmutableMultiset.<T>of();
             }
             model.init(_ctx.getConfigManager());
 
