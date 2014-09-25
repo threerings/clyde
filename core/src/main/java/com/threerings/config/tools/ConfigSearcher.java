@@ -73,6 +73,7 @@ import com.threerings.tudey.data.TudeySceneModel;
 public class ConfigSearcher extends JFrame
 {
     /**
+     * Detects a config reference.
      */
     public interface Detector
     {
@@ -85,6 +86,7 @@ public class ConfigSearcher extends JFrame
     }
 
     /**
+     * Detects attributes of a config reference.
      */
     public interface AttributeDetector<T>
     {
@@ -96,7 +98,7 @@ public class ConfigSearcher extends JFrame
         public Multiset<T> apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown);
     }
 
-    // TEMP
+    @Deprecated // TEMP
     private static Detector toDetector (final Predicate<? super ConfigReference<?>> predicate)
     {
         return new Detector() {
@@ -106,7 +108,7 @@ public class ConfigSearcher extends JFrame
         };
     }
 
-    // TEMP
+    @Deprecated // TEMP
     private static <T> AttributeDetector<T> toDetector (
             final Function<? super ConfigReference<?>, ? extends Iterable<T>> func)
     {
@@ -122,7 +124,7 @@ public class ConfigSearcher extends JFrame
      */
     public static boolean find (Object val, Detector detector)
     {
-        return 0 < count(val, detector);
+        return !findAttributes(val, new AttributeDetectorAdapter(detector)).isEmpty();
     }
 
     /**
@@ -139,15 +141,7 @@ public class ConfigSearcher extends JFrame
      */
     public static int count (Object val, Detector detector)
     {
-        return count(val, null, detector);
-    }
-
-    /**
-     * Count, with a provided type of the top-level object.
-     */
-    public static int count (Object val, Type valType, Detector detector)
-    {
-        return count(val, valType, detector, Sets.newIdentityHashSet());
+        return findAttributes(val, new AttributeDetectorAdapter(detector)).size();
     }
 
     /**
@@ -162,20 +156,47 @@ public class ConfigSearcher extends JFrame
     /**
      * Find all the attributes in the specified object and any sub-objects.
      */
+    public static <T> Multiset<T> findAttributes (Object val, AttributeDetector<T> detector)
+    {
+        return findAttributes(val, null, detector);
+    }
+
+    /**
+     * Find all the attributes in the specified object and any sub-objects.
+     */
+    public static <T> Multiset<T> findAttributes (
+            Object val, Type valType, AttributeDetector<T> detector)
+    {
+        return findAttributes(val, valType, detector, Sets.newIdentityHashSet());
+    }
+
+    /**
+     * Find all the attributes in the specified object and any sub-objects.
+     */
+    @Deprecated
     public static <T> Iterable<T> findAttributes (
         Object val, Function<? super ConfigReference<?>, ? extends Iterable<T>> detector)
     {
-        return findAttributes(val, detector, Sets.newIdentityHashSet());
+        return findAttributes(val, toDetector(detector));
     }
 
-//    /**
-//     * Find the path to the search config from the specified starting point.
-//     * Experimental.
-//     */
-//    public static String findPath (Object val, Predicate<? super ConfigReference<?>> detector)
-//    {
-//        return findPath(val, detector, Sets.newIdentityHashSet());
-//    }
+    /**
+     * A simple binary attribute regarding how well an object matched an attribute detector.
+     */
+    public enum Presence
+    {
+        /** A match was found. */
+        MATCH,
+
+        /** A possible match was found (the typeIfKnown was null, but otherwise it matched). */
+        POSSIBLE_MATCH,
+        ;
+
+        public static final ImmutableMultiset<Presence> RESULT_NONE = ImmutableMultiset.of();
+        public static final ImmutableMultiset<Presence> RESULT_MATCH = ImmutableMultiset.of(MATCH);
+        public static final ImmutableMultiset<Presence> RESULT_POSSIBLE_MATCH =
+                ImmutableMultiset.of(POSSIBLE_MATCH);
+    }
 
     /**
      * Represents something found while searching.
@@ -198,13 +219,19 @@ public class ConfigSearcher extends JFrame
         /**
          * Construct a result with the specified label.
          */
-        public Result (String label)
+        public Result (String label, Multiset<Presence> result)
         {
-            _label = label;
+            int possible = result.count(Presence.POSSIBLE_MATCH);
+            _label = result.count(Presence.MATCH) + ": " +
+                    ((possible == 0) ? "" : ("(" + possible + " maybe): ")) +
+                    label;
         }
 
         /** The label for this result. */
         protected String _label;
+
+        /** Is this a strong match? */
+        protected boolean _strong;
     }
 
     /**
@@ -220,7 +247,7 @@ public class ConfigSearcher extends JFrame
         /**
          * Null results should be returned to allow the UI/interaction updates.
          */
-        public Iterator<Result> getResults (Detector detector);
+        public Iterator<Result> getResults (AttributeDetector<Presence> detector);
     }
 
     /**
@@ -244,7 +271,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        public Iterator<Result> getResults (final Detector detector)
+        public Iterator<Result> getResults (final AttributeDetector<Presence> detector)
         {
             return new AbstractIterator<Result>() {
                 protected Result computeNext () {
@@ -257,15 +284,16 @@ public class ConfigSearcher extends JFrame
                     }
                     final ManagedConfig cfg = _cfgIterator.next();
                     final ConfigGroup<?> group = _currentGroup;
-                    return find(cfg, detector)
-                        ? new Result(group.getName() + ": " + cfg.getName()) {
+                    Multiset<Presence> attrs = findAttributes(cfg, detector);
+                    return attrs.isEmpty()
+                        ? null
+                        : new Result(group.getName() + ": " + cfg.getName(), attrs) {
                                 public void onClick () {
                                     BaseConfigEditor
                                         .createEditor(_ctx, group.getConfigClass(), cfg.getName())
                                         .setVisible(true);
                                 }
-                            }
-                        : null;
+                            };
                 }
                 protected Iterator<? extends ManagedConfig> _cfgIterator =
                         Iterators.emptyIterator();
@@ -318,7 +346,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        public Iterator<Result> getResults (final Detector detector)
+        public Iterator<Result> getResults (final AttributeDetector<Presence> detector)
         {
             Iterable<File> allFiles = Iterables.concat(
                 Iterables.transform(_dirs,
@@ -347,7 +375,7 @@ public class ConfigSearcher extends JFrame
         /**
          * Find all the files matching the specified filter underneath the specified directory.
          */
-        protected Iterable<File> findFiles (File directory, FileFilter filter)
+        protected Iterable<File> findFiles (File directory, final FileFilter filter)
         {
             return Iterables.concat(
                 Arrays.asList(directory.listFiles(filter)),
@@ -355,7 +383,7 @@ public class ConfigSearcher extends JFrame
                     Iterables.transform(Arrays.asList(directory.listFiles(DIR_FILTER)),
                         new Function<File, Iterable<File>>() {
                             public Iterable<File> apply (File dir) {
-                                return findFiles(dir); // recurse
+                                return findFiles(dir, filter); // recurse
                             }
                         })));
         }
@@ -363,7 +391,7 @@ public class ConfigSearcher extends JFrame
         /**
          * Generate a Result for the specified file, or return null.
          */
-        protected abstract Result resultForFile (File file, Detector detector);
+        protected abstract Result resultForFile (File file, AttributeDetector<Presence> detector);
 
         /**
          * Called to edit the file. You must implement this.
@@ -387,16 +415,10 @@ public class ConfigSearcher extends JFrame
          */
         protected class FileResult extends Result
         {
-            public FileResult (File topDir, File file)
+            public FileResult (File topDir, File file, Multiset<Presence> result)
             {
-                super(file.getAbsolutePath().substring(topDir.getAbsolutePath().length()));
+                super(file.getAbsolutePath().substring(topDir.getAbsolutePath().length()), result);
                 _file = file;
-            }
-
-            public FileResult (File topDir, File file, int count)
-            {
-                this(topDir, file);
-                _label = (count + ": " + _label);
             }
 
             @Override
@@ -435,7 +457,7 @@ public class ConfigSearcher extends JFrame
         }
 
         @Override
-        protected Result resultForFile (File file, Detector detector)
+        protected Result resultForFile (File file, AttributeDetector<Presence> detector)
         {
             TudeySceneModel model;
             try {
@@ -444,29 +466,23 @@ public class ConfigSearcher extends JFrame
                 return null;
             }
             model.init(_ctx.getConfigManager());
-            int count = 0;
+            Multiset<Presence> attrs = HashMultiset.create();
             for (TudeySceneModel.Entry entry : model.getEntries()) {
-                count += count(entry.getReference(), entry.getReferenceType(), detector);
+                attrs.addAll(
+                        findAttributes(entry.getReference(), entry.getReferenceType(), detector));
             }
-            return (0 < count)
-                ? new FileResult(_dir, file, count)
-                : null;
+            return attrs.isEmpty()
+                ? null
+                : new FileResult(_dir, file, attrs);
         }
-    }
-
-    @Deprecated
-    public ConfigSearcher (
-        EditorContext ctx, String title, final Predicate<? super ConfigReference<?>> detector,
-        final Iterable<Domain> domains)
-    {
-        this(ctx, title, toDetector(detector), domains);
     }
 
     /**
      * Create a ConfigSearcher ui.
      */
     public ConfigSearcher (
-        EditorContext ctx, String title, final Detector detector, final Iterable<Domain> domains)
+        EditorContext ctx, String title, final AttributeDetector<Presence> detector,
+        final Iterable<Domain> domains)
     {
         _ctx = ctx;
         _content = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.LEFT, GroupLayout.STRETCH);
@@ -562,116 +578,6 @@ public class ConfigSearcher extends JFrame
         new ToolUtil.EditablePrefs(Preferences.userNodeForPackage(ConfigSearcher.class));
 
     /**
-     * Internal helper for count.
-     */
-    protected static int count (
-        Object val, Type valGenericType, Detector detector, Set<Object> seen)
-    {
-        if (val == null) {
-            return 0;
-        }
-
-        Class<?> c = val.getClass();
-        if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
-                !seen.add(val)) {
-            return 0;
-        }
-
-        int count = 0;
-        // make a list of sub-fields
-        if (c.isArray()) {
-            for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-                count += count(Array.get(val, ii), c.getComponentType(), detector, seen);
-            }
-
-        } else if (val instanceof Collection) {
-            Type subType = getFirstGenericType(valGenericType);
-            for (Object o : ((Collection)val)) {
-                count += count(o, subType, detector, seen);
-            }
-
-        } else if (val instanceof ConfigReference) {
-            ConfigReference<?> ref = (ConfigReference<?>)val;
-            Class<?> refType = asClass(getFirstGenericType(valGenericType));
-
-            if (detector.apply(ref, refType)) {
-                count += 1;
-            }
-            for (Object value : ref.getArguments().values()) {
-                count += count(value, null, detector, seen);
-            }
-
-        } else {
-            for (Field f : FIELDS.getUnchecked(c)) {
-                Object o;
-                try {
-                    o = f.get(val);
-                } catch (IllegalAccessException iae) {
-                    continue;
-                }
-                count += count(o, f.getGenericType(), detector, seen);
-            }
-        }
-        return count;
-    }
-
-//    /**
-//     * Internal helper for findPath.
-//     */
-//    protected static String findPath (
-//        Object val, Predicate<? super ConfigReference<?>> detector,
-//        Set<Object> seen)
-//    {
-//        if (val == null) {
-//            return null;
-//        }
-//
-//        Class<?> c = val.getClass();
-//        if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
-//                !seen.add(val)) {
-//            return null;
-//        }
-//
-//        // make a list of sub-fields
-//        String path;
-//        if (val instanceof ConfigReference) {
-//            ConfigReference<?> ref = (ConfigReference<?>)val;
-//            if (detector.apply(ref)) {
-//                return "";
-//            }
-//            for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
-//                path = findPath(entry.getValue(), detector, seen);
-//                if (path != null) {
-//                    return prefixPath("{" + entry.getKey() + "}", path);
-//                }
-//            }
-//
-//        } else if (c.isArray()) {
-//            for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-//                path = findPath(Array.get(val, ii), detector, seen);
-//                if (path != null) {
-//                    return prefixPath("[" + ii + "]", path);
-//                }
-//            }
-//
-//        } else {
-//            for (Field f : FIELDS.getUnchecked(c)) {
-//                Object o;
-//                try {
-//                    o = f.get(val);
-//                } catch (IllegalAccessException iae) {
-//                    continue;
-//                }
-//                path = findPath(o, detector, seen);
-//                if (path != null) {
-//                    return prefixPath(f.getName(), path);
-//                }
-//            }
-//        }
-//        return null;
-//    }
-
-    /**
      * Return the new path with the prefix prepended.
      */
     protected static String prefixPath (String prefix, String path)
@@ -682,32 +588,40 @@ public class ConfigSearcher extends JFrame
     /**
      * Internal helper for findAttributes.
      */
-    protected static <T> Iterable<T> findAttributes (
-        Object val, Function<? super ConfigReference<?>, ? extends Iterable<T>> detector,
-        Set<Object> seen)
+    protected static <T> Multiset<T> findAttributes (
+        Object val, Type valGenericType, AttributeDetector<T> detector, Set<Object> seen)
     {
         if (val == null) {
-            return ImmutableList.<T>of();
+            return ImmutableMultiset.<T>of();
         }
 
         Class<?> c = val.getClass();
         if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
                 !seen.add(val)) {
-            return ImmutableList.<T>of();
+            return ImmutableMultiset.<T>of();
         }
 
         // make a list of sub-fields
-        List<Iterable<T>> list = Lists.newArrayList();
+        Multiset<T> attrs = HashMultiset.create();
         if (val instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference<?>)val;
-            list.add(detector.apply(ref));
+            Class<?> refType = asClass(getFirstGenericType(valGenericType));
+
+            attrs.addAll(detector.apply(ref, refType));
             for (Object value : ref.getArguments().values()) {
-                list.add(findAttributes(value, detector, seen));
+                attrs.addAll(findAttributes(value, null, detector, seen));
             }
 
         } else if (c.isArray()) {
+            Type subType = c.getComponentType();
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-                list.add(findAttributes(Array.get(val, ii), detector, seen));
+                attrs.addAll(findAttributes(Array.get(val, ii), subType, detector, seen));
+            }
+
+        } else if (val instanceof Collection) {
+            Type subType = getFirstGenericType(valGenericType);
+            for (Object o : ((Collection)val)) {
+                attrs.addAll(findAttributes(o, subType, detector, seen));
             }
 
         } else {
@@ -718,10 +632,10 @@ public class ConfigSearcher extends JFrame
                 } catch (IllegalAccessException iae) {
                     continue;
                 }
-                list.add(findAttributes(o, detector, seen));
+                attrs.addAll(findAttributes(o, f.getGenericType(), detector, seen));
             }
         }
-        return Iterables.concat(list);
+        return attrs;
     }
 
     /**
@@ -749,6 +663,25 @@ public class ConfigSearcher extends JFrame
         // TODO: more?
 
         return null;
+    }
+
+    protected static class AttributeDetectorAdapter
+        implements AttributeDetector<Boolean>
+    {
+        public AttributeDetectorAdapter (Detector det)
+        {
+            _det = det;
+        }
+
+        @Override
+        public Multiset<Boolean> apply (ConfigReference<?> ref, Class<?> typeIfKnown)
+        {
+            return _det.apply(ref, typeIfKnown) ? YES : NO;
+        }
+
+        protected final Detector _det;
+        protected static final Multiset<Boolean> NO = ImmutableMultiset.of();
+        protected static final Multiset<Boolean> YES = ImmutableMultiset.of(true);
     }
 
     /** All the fields (and superfields...) of a class, cached. */

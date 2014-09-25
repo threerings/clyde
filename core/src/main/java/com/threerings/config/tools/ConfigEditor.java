@@ -82,6 +82,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -427,14 +428,21 @@ public class ConfigEditor extends BaseConfigEditor
         if (cfgNameOrPrefix == null) {
             return;
         }
-        new ConfigSearcher(this, cfgNameOrPrefix, new ConfigSearcher.Detector() {
-                public boolean apply (ConfigReference<?> ref, @Nullable Class<?> typeIfKnown) {
+        new ConfigSearcher(this, cfgNameOrPrefix,
+                new ConfigSearcher.AttributeDetector<ConfigSearcher.Presence>() {
+                public Multiset<ConfigSearcher.Presence> apply (
+                        ConfigReference<?> ref, @Nullable Class<?> typeIfKnown) {
                     if (typeIfKnown != null && !typeIfKnown.equals(clazz)) {
-                        return false;
+                        return ConfigSearcher.Presence.RESULT_NONE;
                     }
-                    return exact
+                    boolean matches = exact
                         ? ref.getName().equals(cfgNameOrPrefix)
                         : ref.getName().startsWith(cfgNameOrPrefix);
+                    return matches
+                        ? ((typeIfKnown != null)
+                            ? ConfigSearcher.Presence.RESULT_MATCH
+                            : ConfigSearcher.Presence.RESULT_POSSIBLE_MATCH)
+                        : ConfigSearcher.Presence.RESULT_NONE;
                 }
             }, getSearcherDomains());
     }
