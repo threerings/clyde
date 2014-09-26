@@ -37,8 +37,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -178,14 +176,6 @@ public class ConfigEditor extends BaseConfigEditor
         Class<?> clazz, String name)
     {
         super(msgmgr, cfgmgr, colorpos, "config");
-
-        // suppress superclass DISPOSE_ON_CLOSE and instead route through a method..
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing (WindowEvent event) {
-                closeThisWindow();
-            }
-        });
 
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
@@ -411,6 +401,22 @@ public class ConfigEditor extends BaseConfigEditor
     }
 
     @Override
+    public void dispose ()
+    {
+        if (DirtyGroupManager.getRegisteredEditorCount() == 1) {
+            // if we're the last editor...
+            boolean dirty = false;
+            for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+                dirty |= DirtyGroupManager.isDirty(((ManagerPanel)_tabs.getComponentAt(ii)).cfgmgr);
+            }
+            if (dirty && !showUnsavedChanges()) {
+                return;
+            }
+        }
+        super.dispose();
+    }
+
+    @Override
     public void addNotify ()
     {
         super.addNotify();
@@ -449,24 +455,6 @@ public class ConfigEditor extends BaseConfigEditor
                 return;
             }
         }
-    }
-
-    /**
-     * Called to close just this window..
-     */
-    protected void closeThisWindow ()
-    {
-        if (DirtyGroupManager.getRegisteredEditorCount() == 1) {
-            // if we're the last editor...
-            boolean dirty = false;
-            for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
-                dirty |= DirtyGroupManager.isDirty(((ManagerPanel)_tabs.getComponentAt(ii)).cfgmgr);
-            }
-            if (dirty && !showUnsavedChanges()) {
-                return;
-            }
-        }
-        dispose();
     }
 
     /**
