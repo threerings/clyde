@@ -126,6 +126,14 @@ public abstract class ManagedConfig extends DeepObject
         return result;
     }
 
+    @Override
+    public boolean equals (Object other)
+    {
+        // factor-in our comment, which is stored externally.
+        // Note: this doesn't need to be included in the hashcode.
+        return super.equals(other) && getComment().equals(((ManagedConfig)other).getComment());
+    }
+
     /**
      * Sets the name of this configuration.
      */
