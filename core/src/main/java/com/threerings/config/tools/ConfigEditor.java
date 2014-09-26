@@ -37,6 +37,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -102,7 +104,9 @@ import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
 import com.threerings.editor.util.EditorContext;
 
+import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.ConfigGroupListener;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;
@@ -171,6 +175,14 @@ public class ConfigEditor extends BaseConfigEditor
         Class<?> clazz, String name)
     {
         super(msgmgr, cfgmgr, colorpos, "config");
+
+        // suppress normal window closing and instead route through a method..
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing (WindowEvent event) {
+                closeThisWindow();
+            }
+        });
 
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
@@ -342,10 +354,10 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("folder")) {
             item.newFolder();
         } else if (action.equals("save_group")) {
-            item.group.save();
+            item.saveGroup();
         } else if (action.equals("revert_group")) {
-            if (showCantUndo()) {
-                item.group.revert();
+            if (!item.isDirty() || showCantUndo()) {
+                item.revertGroup();
             }
         } else if (action.equals("import_group")) {
             item.importGroup();
@@ -377,10 +389,17 @@ public class ConfigEditor extends BaseConfigEditor
             }
         } else if (action.equals("save_all")) {
             panel.cfgmgr.saveAll();
+            panel.setAllDirty(false);
         } else if (action.equals("revert_all")) {
-            if (showCantUndo()) {
+            if (!panel.anyDirty() || showCantUndo()) {
                 panel.cfgmgr.revertAll();
+                panel.setAllDirty(false);
             }
+        } else if (action.equals("quit")) {
+            if (!panel.anyDirty() || showUnsavedChanges()) {
+                super.actionPerformed(event);
+            }
+
         } else {
             super.actionPerformed(event);
         }
@@ -409,12 +428,33 @@ public class ConfigEditor extends BaseConfigEditor
     }
 
     /**
+     * Called to close just this window..
+     */
+    protected void closeThisWindow ()
+    {
+        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+        if (!panel.anyDirty() || showUnsavedChanges()) {
+            dispose();
+        }
+    }
+
+    /**
      * Shows a confirm dialog.
      */
     protected boolean showCantUndo ()
     {
         return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
                 _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE) == 0;
+    }
+
+    /**
+     * Shows a confirm dialog.
+     */
+    protected boolean showUnsavedChanges ()
+    {
+        return JOptionPane.showConfirmDialog(this, _msgs.get("m.unsaved_changes"),
+                _msgs.get("t.unsaved_changes"), JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE) == 0;
     }
 
@@ -499,6 +539,14 @@ public class ConfigEditor extends BaseConfigEditor
                 @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
                     group;
                 this.group = mgroup;
+                this.group.addListener(new ConfigGroupListener() {
+                        public void configAdded (ConfigEvent<ManagedConfig> evt) {
+                            setDirty(true);
+                        }
+                        public void configRemoved (ConfigEvent<ManagedConfig> evt) {
+                            setDirty(true);
+                        }
+                    });
                 _label = getLabel(group.getConfigClass(), group.getName());
             }
 
@@ -509,7 +557,8 @@ public class ConfigEditor extends BaseConfigEditor
             {
                 if (_tree == null) {
                     _tree = new ConfigTree(group, true) {
-                        public void selectedConfigUpdated () {
+                        @Override public void selectedConfigUpdated () {
+                            super.selectedConfigUpdated();
                             _epanel.update();
                         }
                     };
@@ -527,6 +576,24 @@ public class ConfigEditor extends BaseConfigEditor
                 _filterPanel.setTree(_tree);
                 _paste.setEnabled(_clipclass == group.getConfigClass());
                 updateSelection();
+            }
+
+            /**
+             * Save this group.
+             */
+            public void saveGroup ()
+            {
+                group.save();
+                setDirty(false);
+            }
+
+            /**
+             * Revert this group to the last saved state.
+             */
+            public void revertGroup ()
+            {
+                group.revert();
+                setDirty(false);
             }
 
             /**
@@ -644,6 +711,7 @@ public class ConfigEditor extends BaseConfigEditor
                 if (node != _tree.getModel().getRoot()) {
                     _tree.setSelectionPath(new TreePath(node.getPath()));
                 }
+                setDirty(true);
             }
 
             /**
@@ -651,6 +719,8 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public void configChanged ()
             {
+                // TODO: detect if it's changed *back* to what it was?
+                setDirty(true);
                 _tree.selectedConfigChanged();
             }
 
@@ -699,7 +769,26 @@ public class ConfigEditor extends BaseConfigEditor
             @Override
             public String toString ()
             {
-                return _label;
+                return _label + (_dirty ? " *" : "");
+            }
+
+            /**
+             * Is this GroupItem dirty (has unsaved changes)?
+             */
+            public boolean isDirty ()
+            {
+                return _dirty;
+            }
+
+            /**
+             * Set this group as dirty, in need of saving.
+             */
+            protected void setDirty (boolean newDirty)
+            {
+                if (_dirty != newDirty) {
+                    _dirty = newDirty;
+                    SwingUtil.refresh(gbox);
+                }
             }
 
             /**
@@ -743,10 +832,14 @@ public class ConfigEditor extends BaseConfigEditor
                 ((DefaultTreeModel)_tree.getModel()).insertNodeInto(
                     child, parent, parent.getInsertionIndex(child));
                 _tree.startEditingAtPath(new TreePath(child.getPath()));
+                setDirty(true);
             }
 
             /** The (possibly translated) group label. */
             protected String _label;
+
+            /** Do we have unsaved changes? */
+            protected boolean _dirty;
 
             /** The configuration tree. */
             protected ConfigTree _tree;
@@ -794,6 +887,29 @@ public class ConfigEditor extends BaseConfigEditor
             // create the editor panel
             _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
             _epanel.addChangeListener(this);
+        }
+
+        /**
+         * Are any of the item groups dirty?
+         */
+        public boolean anyDirty ()
+        {
+            for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+                if (((GroupItem)gbox.getItemAt(ii)).isDirty()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Set all the groups as clean or dirty.
+         */
+        public void setAllDirty (boolean dirty)
+        {
+            for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+                ((GroupItem)gbox.getItemAt(ii)).setDirty(dirty);
+            }
         }
 
         /**
