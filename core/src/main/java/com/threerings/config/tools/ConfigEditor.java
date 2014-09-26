@@ -68,6 +68,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
@@ -462,9 +463,7 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected boolean showCantUndo ()
     {
-        return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
-                _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE) == 0;
+        return showConfirm("m.cant_undo", "t.cant_undo");
     }
 
     /**
@@ -472,9 +471,22 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected boolean showUnsavedChanges ()
     {
-        return JOptionPane.showConfirmDialog(this, _msgs.get("m.unsaved_changes"),
-                _msgs.get("t.unsaved_changes"), JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE) == 0;
+        return showConfirm("m.unsaved_changes", "t.unsaved_changes");
+    }
+
+    /**
+     * Shows a confirm dialog.
+     */
+    protected boolean showConfirm (String msg, String title)
+    {
+        String[] options = {
+            UIManager.getString("OptionPane.okButtonText"),
+            UIManager.getString("OptionPane.cancelButtonText")
+        };
+        return 0 == JOptionPane.showOptionDialog(
+                this, _msgs.get(msg), _msgs.get(title),
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                options, options[1]); // default to cancel
     }
 
     /**
