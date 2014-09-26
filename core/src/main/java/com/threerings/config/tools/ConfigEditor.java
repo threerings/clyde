@@ -732,7 +732,6 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public void configChanged ()
             {
-                // TODO: detect if it's changed *back* to what it was?
                 DirtyGroupManager.setDirty(group, true);
                 _tree.selectedConfigChanged();
             }
@@ -794,7 +793,12 @@ public class ConfigEditor extends BaseConfigEditor
                 ConfigTreeNode node = _tree.getSelectedNode();
 
                 // update the editor panel
-                _epanel.setObject(node == null ? null : node.getConfig());
+                _epanel.removeChangeListener(ManagerPanel.this);
+                try {
+                    _epanel.setObject(node == null ? null : node.getConfig());
+                } finally {
+                    _epanel.addChangeListener(ManagerPanel.this);
+                }
 
                 // enable or disable the menu items
                 boolean enable = (node != null);
