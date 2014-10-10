@@ -186,7 +186,7 @@ public abstract class Scene extends DynamicScope
         // clear out the model's updater, if any
         model.setUpdater(null);
 
-        ConfigReference ref = (ConfigReference)model.getUserObject();
+        ConfigReference<?> ref = (ConfigReference<?>)model.getUserObject();
         ArrayList<SoftReference<Transient>> list = _transientPool.get(ref);
         if (list == null) {
             _transientPool.put(ref, list = new ArrayList<SoftReference<Transient>>());
@@ -805,7 +805,7 @@ public abstract class Scene extends DynamicScope
     protected ViewerEffectSet _effects = new ViewerEffectSet();
 
     /** Pooled transient models. */
-    protected HashMap<ConfigReference, ArrayList<SoftReference<Transient>>> _transientPool =
+    protected HashMap<ConfigReference<?>, ArrayList<SoftReference<Transient>>> _transientPool =
         Maps.newHashMap();
 
     /** Removes transient models and returns them to the pool when they complete. */

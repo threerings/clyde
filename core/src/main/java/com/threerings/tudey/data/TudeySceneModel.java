@@ -198,12 +198,12 @@ public class TudeySceneModel extends SceneModel
         /**
          * Sets this entry's config reference.
          */
-        public abstract void setReference (ConfigReference reference);
+        public abstract void setReference (ConfigReference<?> reference);
 
         /**
          * Returns a reference to this entry's config reference.
          */
-        public abstract ConfigReference getReference ();
+        public abstract ConfigReference<?> getReference ();
 
         /**
          * Provides the generic type of the ConfigReference returned by {@link #getReference()}.
@@ -448,15 +448,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
-        public void setReference (ConfigReference reference)
+        public void setReference (ConfigReference<?> reference)
         {
-            @SuppressWarnings("unchecked") ConfigReference<TileConfig> ref =
-                reference;
+            @SuppressWarnings("unchecked")
+            ConfigReference<TileConfig> ref = (ConfigReference<TileConfig>)reference;
             tile = ref;
         }
 
         @Override
-        public ConfigReference getReference ()
+        public ConfigReference<TileConfig> getReference ()
         {
             return tile;
         }
@@ -649,15 +649,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
-        public void setReference (ConfigReference reference)
+        public void setReference (ConfigReference<?> reference)
         {
-            @SuppressWarnings("unchecked") ConfigReference<SceneGlobalConfig> ref =
-                reference;
+            @SuppressWarnings("unchecked")
+            ConfigReference<SceneGlobalConfig> ref = (ConfigReference<SceneGlobalConfig>)reference;
             sceneGlobal = ref;
         }
 
         @Override
-        public ConfigReference getReference ()
+        public ConfigReference<SceneGlobalConfig> getReference ()
         {
             return sceneGlobal;
         }
@@ -743,15 +743,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
-        public void setReference (ConfigReference reference)
+        public void setReference (ConfigReference<?> reference)
         {
-            @SuppressWarnings("unchecked") ConfigReference<PlaceableConfig> ref =
-                reference;
+            @SuppressWarnings("unchecked")
+            ConfigReference<PlaceableConfig> ref = (ConfigReference<PlaceableConfig>) reference;
             placeable = ref;
         }
 
         @Override
-        public ConfigReference getReference ()
+        public ConfigReference<PlaceableConfig> getReference ()
         {
             return placeable;
         }
@@ -925,15 +925,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
-        public void setReference (ConfigReference reference)
+        public void setReference (ConfigReference<?> reference)
         {
-            @SuppressWarnings("unchecked") ConfigReference<PathConfig> ref =
-                reference;
+            @SuppressWarnings("unchecked")
+            ConfigReference<PathConfig> ref = (ConfigReference<PathConfig>)reference;
             path = ref;
         }
 
         @Override
-        public ConfigReference getReference ()
+        public ConfigReference<PathConfig> getReference ()
         {
             return path;
         }
@@ -1097,15 +1097,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override
-        public void setReference (ConfigReference reference)
+        public void setReference (ConfigReference<?> reference)
         {
-            @SuppressWarnings("unchecked") ConfigReference<AreaConfig> ref =
-                reference;
+            @SuppressWarnings("unchecked")
+            ConfigReference<AreaConfig> ref = (ConfigReference<AreaConfig>)reference;
             area = ref;
         }
 
         @Override
-        public ConfigReference getReference ()
+        public ConfigReference<AreaConfig> getReference ()
         {
             return area;
         }
@@ -2769,11 +2769,11 @@ public class TudeySceneModel extends SceneModel
      */
     protected void canonicalizeReference (Entry entry)
     {
-        ConfigReference eref = entry.getReference();
+        ConfigReference<?> eref = entry.getReference();
         if (eref == null) {
             return;
         }
-        ConfigReference cref = _references.get(eref);
+        ConfigReference<?> cref = _references.get(eref);
         if (cref == null) {
             _references.put(eref, eref);
         } else {
@@ -3060,8 +3060,8 @@ public class TudeySceneModel extends SceneModel
     /** The set of entry references (used to ensure that entries with equal references use the same
      * instance. */
     @DeepOmit
-    protected transient WeakHashMap<ConfigReference, ConfigReference> _references =
-        new WeakHashMap<ConfigReference, ConfigReference>();
+    protected transient WeakHashMap<ConfigReference<?>, ConfigReference<?>> _references =
+        new WeakHashMap<ConfigReference<?>, ConfigReference<?>>();
 
     /** Maps locations to the encoded coordinates of any tiles intersecting them. */
     @DeepOmit

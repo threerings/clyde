@@ -214,9 +214,9 @@ public class Validator
         if ((type.isArray() || List.class.isAssignableFrom(type)) &&
                 (ConfigReference.class.equals(property.getComponentType()))) {
             @SuppressWarnings("unchecked")
-            List<ConfigReference> list = type.isArray()
-                ? Arrays.asList((ConfigReference[])value)
-                : (List<ConfigReference>)value;
+            List<ConfigReference<?>> list = type.isArray()
+                ? Arrays.asList((ConfigReference<?>[])value)
+                : (List<ConfigReference<?>>)value;
             Type ctype = property.getGenericComponentType();
             if (!(ctype instanceof ParameterizedType)) {
                 output("can't determine type of refs");
@@ -225,7 +225,7 @@ public class Validator
             @SuppressWarnings("unchecked")
             Class<ManagedConfig> cclass = (Class<ManagedConfig>)
                     ((ParameterizedType)ctype).getActualTypeArguments()[0];
-            for (ConfigReference ref : list) {
+            for (ConfigReference<?> ref : list) {
                 if (ref == null) {
                     _hasNulls = true;
                 } else {

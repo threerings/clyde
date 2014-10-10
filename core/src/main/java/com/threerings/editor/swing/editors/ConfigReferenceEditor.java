@@ -68,8 +68,8 @@ public class ConfigReferenceEditor extends PropertyEditor
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
-        ConfigReference ovalue = (ConfigReference)_property.get(_object);
-        ConfigReference nvalue;
+        ConfigReference<?> ovalue = (ConfigReference<?>)_property.get(_object);
+        ConfigReference<?> nvalue;
         Object source = event.getSource();
         if (source == _config) {
             if (_chooser == null) {
@@ -82,7 +82,7 @@ public class ConfigReferenceEditor extends PropertyEditor
                 return;
             }
             String config = _chooser.getSelectedConfig();
-            nvalue = (config == null) ? null : new ConfigReference(config);
+            nvalue = (config == null) ? null : new ConfigReference<ManagedConfig>(config);
             if (nvalue != null && !validateNewValue(nvalue)) {
                 return;
             }
@@ -191,7 +191,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     /**
      * Validate that the new value is good, possibly informing the user if not.
      */
-    protected boolean validateNewValue (ConfigReference value)
+    protected boolean validateNewValue (ConfigReference<?> value)
     {
         return true;
     }
@@ -202,7 +202,7 @@ public class ConfigReferenceEditor extends PropertyEditor
      * @param transfer if true, attempt to transfer values from the existing set of editors into
      * the current arguments.
      */
-    protected void update (ConfigReference value, boolean transfer)
+    protected void update (ConfigReference<?> value, boolean transfer)
     {
         // make sure we're not listening to anything
         if (_listenee != null) {

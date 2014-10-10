@@ -23,6 +23,7 @@ import com.google.common.base.Splitter;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
 
 /**
  * Displays and saves recent configs.
@@ -74,7 +75,7 @@ public class RecentConfigList extends JPanel
                 }
                 Object selected = _list.getSelectedValue();
                 if (selected != null) {
-                    configSelected(new ConfigReference((String)selected));
+                    configSelected(new ConfigReference<ManagedConfig>((String)selected));
                 }
             }
         });

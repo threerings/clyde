@@ -22,7 +22,7 @@ public class DerivedConfigReferenceEditor extends ConfigReferenceEditor
     }
 
     @Override
-    protected boolean validateNewValue (ConfigReference value)
+    protected boolean validateNewValue (ConfigReference<?> value)
     {
         DerivedConfig der = (DerivedConfig)_object;
         ConfigGroup<ManagedConfig> group = der.getConfigManager().getGroup(der);

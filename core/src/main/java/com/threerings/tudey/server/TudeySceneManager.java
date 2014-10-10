@@ -1643,7 +1643,7 @@ public class TudeySceneManager extends SceneManager
             Logic logic = (Logic)participant;
             participant = logic.getSceneManager().getLogic(logic.getEntityKey());
         }
-        ConfigReference ref = null;
+        ConfigReference<?> ref = null;
         if (participant instanceof ActorLogic) {
             ref = ((ActorLogic)participant).getActor().getConfig();
         } else if (participant instanceof EntryLogic) {
