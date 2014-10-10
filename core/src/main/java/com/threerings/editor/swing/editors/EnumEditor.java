@@ -71,8 +71,8 @@ public class EnumEditor extends PropertyEditor
         add(new JLabel(getPropertyLabel() + ":"));
         final MessageBundle msgs =
             _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
-        Object[] labels = Lists.transform(getValues(), new Function<Enum, String>() {
-            public String apply (Enum value) {
+        Object[] labels = Lists.transform(getValues(), new Function<Enum<?>, String>() {
+            public String apply (Enum<?> value) {
                 return getLabel(value, msgs);
             }
         }).toArray();
@@ -83,9 +83,9 @@ public class EnumEditor extends PropertyEditor
     /**
      * Get the valid values for this enum property, which may or may not include null.
      */
-    protected List<Enum> getValues ()
+    protected List<Enum<?>> getValues ()
     {
-        Enum[] constants = (Enum[])_property.getType().getEnumConstants();
+        Enum<?>[] constants = (Enum<?>[])_property.getType().getEnumConstants();
         return _property.getAnnotation().nullable()
             ? Lists.asList(null, constants)
             : Arrays.asList(constants);

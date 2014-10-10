@@ -723,4 +723,7 @@ public abstract class Exporter
 
     /** Used for object comparisons using {@link Arrays#deepEquals}. */
     protected Object[] _a1 = new Object[1], _a2 = new Object[1];
+
+    /** A Dummy enum class used to provide satisfaction to the type system. */
+    protected enum DummyEnum {}
 }

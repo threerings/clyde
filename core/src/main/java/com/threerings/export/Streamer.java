@@ -59,12 +59,14 @@ public abstract class Streamer<T>
         if (streamer == null) {
             // create custom streamers for enums and encodable types
             if (clazz.isEnum()) {
-                _streamers.put(clazz, streamer = new Streamer<Enum<Dummy>>() {
-                    public void write (Enum value, DataOutputStream out) throws IOException {
+                _streamers.put(clazz, streamer = new Streamer<Enum<Exporter.DummyEnum>>() {
+                    public void write (Enum<Exporter.DummyEnum> value, DataOutputStream out)
+                        throws IOException {
                         out.writeUTF(value.name());
                     }
-                    public Enum<Dummy> read (DataInputStream in) throws IOException {
-                        @SuppressWarnings("unchecked") Class<Dummy> eclass = (Class<Dummy>)clazz;
+                    public Enum<Exporter.DummyEnum> read (DataInputStream in) throws IOException {
+                        @SuppressWarnings("unchecked")
+                        Class<Exporter.DummyEnum> eclass = (Class<Exporter.DummyEnum>)clazz;
                         return Enum.valueOf(eclass, in.readUTF());
                     }
                 });
@@ -101,9 +103,6 @@ public abstract class Streamer<T>
      */
     public abstract T read (DataInputStream in)
         throws IOException, ClassNotFoundException;
-
-    /** Used to satisfy the type system. */
-    protected static enum Dummy {}
 
     /** Registered streamers. */
     protected static HashMap<Class<?>, Streamer> _streamers = new HashMap<Class<?>, Streamer>();

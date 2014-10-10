@@ -314,10 +314,9 @@ public class XMLImporter extends Importer
                 wasRead = true;
 
             } else if (EnumSet.class.isAssignableFrom(cclazz)) {
-                @SuppressWarnings("unchecked") Class<? extends Enum> eclazz =
-                    (Class<? extends Enum>)getClassByName(element.getAttribute("eclass"), null);
-                @SuppressWarnings("unchecked") EnumSet<?> set = EnumSet.noneOf(eclazz);
-                value = set;
+                @SuppressWarnings("unchecked") Class<Exporter.DummyEnum> eclazz =
+                    (Class<Exporter.DummyEnum>)getClassByName(element.getAttribute("eclass"), null);
+                value = EnumSet.noneOf(eclazz);
 
             } else {
                 value = ReflectionUtil.newInstance(cclazz,

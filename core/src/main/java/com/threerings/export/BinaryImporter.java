@@ -335,10 +335,9 @@ public class BinaryImporter extends Importer
                     wasRead = true;
 
                 } else if (EnumSet.class.isAssignableFrom(wclazz)) {
-                    @SuppressWarnings("unchecked") Class<? extends Enum> eclazz =
-                        (Class<? extends Enum>)readClass().getWrappedClass();
-                    @SuppressWarnings("unchecked") EnumSet<?> set = EnumSet.noneOf(eclazz);
-                    value = set;
+                    @SuppressWarnings("unchecked") Class<Exporter.DummyEnum> eclazz =
+                        (Class<Exporter.DummyEnum>)readClass().getWrappedClass();
+                    value = EnumSet.noneOf(eclazz);
 
                 } else {
                     value = ReflectionUtil.newInstance(wclazz, outer);

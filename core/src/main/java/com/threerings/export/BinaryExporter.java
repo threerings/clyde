@@ -273,7 +273,7 @@ public class BinaryExporter extends Exporter
             writeEntries((Object[])value, ctype);
         } else if (value instanceof Collection) {
             if (value instanceof EnumSet) {
-                writeEntries((EnumSet)value);
+                writeEntries((EnumSet<?>)value);
             } else if (value instanceof Multiset) {
                 writeEntries((Multiset)value);
             } else {
@@ -348,12 +348,11 @@ public class BinaryExporter extends Exporter
      * Writes out the enum class of an EnumSet before writing the entries.  This will fail if the
      * enum class has no defined enums.
      */
-    protected void writeEntries (EnumSet set)
+    protected void writeEntries (EnumSet<?> set)
         throws IOException
     {
-        @SuppressWarnings("unchecked") Class<Object> ctype =
-                ((Enum)(set.isEmpty() ? EnumSet.complementOf(set) : set)
-                        .iterator().next()).getDeclaringClass();
+        EnumSet<?> typer = set.isEmpty() ? EnumSet.complementOf(set) : set;
+        Class<?> ctype = typer.iterator().next().getDeclaringClass();
         writeClass(ctype);
         writeEntries((Collection)set);
     }

@@ -241,7 +241,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     /**
      * A special version of getLabel for enums.
      */
-    protected String getLabel (Enum value, MessageBundle msgs)
+    protected String getLabel (Enum<?> value, MessageBundle msgs)
     {
         if (value == null) {
             return _msgs.get("m.null_value");

@@ -311,12 +311,11 @@ public class XMLExporter extends Exporter
      * Writes out the enum class of an EnumSet before writing the entries.  This will fail if the
      * enum class has no defined enums.
      */
-    protected void writeEntries (EnumSet set)
+    protected void writeEntries (EnumSet<?> set)
         throws IOException
     {
-        @SuppressWarnings("unchecked") Class<Object> ctype =
-                ((Enum)(set.isEmpty() ? EnumSet.complementOf(set) : set)
-                        .iterator().next()).getDeclaringClass();
+        EnumSet<?> typer = set.isEmpty() ? EnumSet.complementOf(set) : set;
+        Class<?> ctype = typer.iterator().next().getDeclaringClass();
         _element.setAttribute("eclass", ctype.getName());
         writeEntries((Collection)set);
     }

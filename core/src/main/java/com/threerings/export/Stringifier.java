@@ -57,12 +57,13 @@ public abstract class Stringifier<T>
         if (stringifier == null) {
             // create custom stringifiers for enums and encodable types
             if (clazz.isEnum()) {
-                _stringifiers.put(clazz, stringifier = new Stringifier<Enum<Dummy>>() {
-                    public String toString (Enum<Dummy> value) {
+                _stringifiers.put(clazz, stringifier = new Stringifier<Exporter.DummyEnum>() {
+                    public String toString (Exporter.DummyEnum value) {
                         return value.name();
                     }
-                    public Enum<Dummy> fromString (String string) {
-                        @SuppressWarnings("unchecked") Class<Dummy> eclazz = (Class<Dummy>)clazz;
+                    public Exporter.DummyEnum fromString (String string) {
+                        @SuppressWarnings("unchecked")
+                        Class<Exporter.DummyEnum> eclazz = (Class<Exporter.DummyEnum>)clazz;
                         return Enum.valueOf(eclazz, string);
                     }
                 });
@@ -93,9 +94,6 @@ public abstract class Stringifier<T>
      */
     public abstract T fromString (String string)
         throws Exception;
-
-    /** Used to satisfy the type system. */
-    protected static enum Dummy {}
 
     /** Registered stringifiers. */
     protected static HashMap<Class<?>, Stringifier> _stringifiers =

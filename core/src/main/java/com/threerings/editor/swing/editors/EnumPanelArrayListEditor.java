@@ -71,9 +71,9 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
     /**
      * Get the valid values for this enum property, which may or may not include null.
      */
-    protected List<Enum> getValues ()
+    protected List<Enum<?>> getValues ()
     {
-        return Arrays.asList((Enum[])getEnumType().getEnumConstants());
+        return Arrays.asList((Enum<?>[])getEnumType().getEnumConstants());
     }
 
     protected Class<?> getEnumType ()
@@ -123,9 +123,9 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
                         GroupLayout.NONE, GroupLayout.CONSTRAIN, 5, GroupLayout.TOP));
             final MessageBundle msgs =
                 _msgmgr.getBundle(Introspector.getMessageBundle(getEnumType()));
-            List<Enum> values = getValues();
-            Object[] labels = Lists.transform(values, new Function<Enum, String>() {
-                public String apply (Enum value) {
+            List<Enum<?>> values = getValues();
+            Object[] labels = Lists.transform(values, new Function<Enum<?>, String>() {
+                public String apply (Enum<?> value) {
                     return getLabel(value, msgs);
                 }
             }).toArray();
@@ -143,7 +143,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
         /**
          * A special version of getLabel for enums.
          */
-        protected String getLabel (Enum value, MessageBundle msgs)
+        protected String getLabel (Enum<?> value, MessageBundle msgs)
         {
             if (value == null) {
                 return _msgs.get("m.none");
