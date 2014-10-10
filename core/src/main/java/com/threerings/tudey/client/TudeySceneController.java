@@ -973,7 +973,8 @@ public class TudeySceneController extends SceneController
      */
     protected static IntMap<Float>[] createDirectionPresses ()
     {
-        @SuppressWarnings("unchecked") IntMap<Float>[] presses = new IntMap[4];
+        @SuppressWarnings("unchecked")
+        IntMap<Float>[] presses = (IntMap<Float>[])new IntMap<?>[4];
         for (int ii = 0; ii < 4; ii++) {
             presses[ii] = IntMaps.newHashIntMap();
         }

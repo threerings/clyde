@@ -96,7 +96,8 @@ public class QuaternionPanel extends BasePropertyEditor
         panel.setBackground(null);
         add(panel);
         panel.add(new JLabel(getLabel(name) + ":"));
-        JSpinner spinner = new DraggableSpinner(0f, (Comparable)min, (Comparable)max, 1f);
+        JSpinner spinner = new DraggableSpinner(
+                0f, (Comparable<Float>)min, (Comparable<Float>)max, 1f);
         panel.add(spinner);
         spinner.addChangeListener(this);
         return spinner;

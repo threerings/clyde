@@ -402,7 +402,7 @@ public class PropertyUtil
             return;
         }
         if (object instanceof List) {
-            List list = (List)object;
+            List<?> list = (List<?>)object;
             for (int ii = 0, nn = list.size(); ii < nn; ii++) {
                 getResources(cfgmgr, list.get(ii), paths, refs);
             }

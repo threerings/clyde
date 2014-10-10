@@ -351,7 +351,7 @@ public abstract class ExpressionBinding extends DeepObject
             }
         }
         @SuppressWarnings("unchecked") Tuple<Property, Object>[] array =
-            new Tuple[list.size()];
+            (Tuple<Property, Object>[])new Tuple<?, ?>[list.size()];
         return list.toArray(array);
     }
 

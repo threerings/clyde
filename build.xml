@@ -1,5 +1,6 @@
 <?xml version="1.0" standalone="yes"?>
 <project name="clyde" default="compile" basedir="." xmlns:artifact="urn:maven-artifact-ant">
+  <property name="build.compiler" value="javac1.6"/>
   <property name="src.dir"      value="core/src/main/java"/>
   <property name="tsrc.dir"     value="core/src/test/java"/>
   <property name="deploy.dir"   value="dist"/>
@@ -67,6 +68,19 @@
   </target>
 
   <target name="compile" depends="-prepare" description="Builds the Java code.">
+
+  <path id="bootpath.ref.jdk1.6">
+    <fileset dir="/export/skmobile/build/lib/java/jdk1.6" includes="*.jar"/>
+  </path>
+  <presetdef name="javac1.6">
+    <javac>
+      <compilerarg line="-source 1.6"/>
+      <compilerarg line="-target 1.6"/>
+      <compilerarg value="-Xbootclasspath/p:${toString:bootpath.ref.jdk1.6}"/>
+    </javac>
+  </presetdef>
+
+
     <mkdir dir="${classes.dir}"/>
     <copy todir="${classes.dir}/rsrc">
       <fileset dir="core/rsrc" includes="**/*"/>
@@ -77,6 +91,8 @@
       <classpath refid="classpath"/>
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
+      <compilerarg value="-Xlint:-overrides"/>
+      <compilerarg value="-Xbootclasspath/p:${toString:bootpath.ref.jdk1.6}"/>
     </javac>
 
     <mkdir dir="${tclasses.dir}"/>

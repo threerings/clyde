@@ -149,8 +149,8 @@ public class ColorizationEditor extends PropertyEditor
     protected JComboBox createClassBox ()
     {
         ArrayList<ClassItem> classes = new ArrayList<ClassItem>();
-        for (Iterator it = _ctx.getColorPository().enumerateClasses(); it.hasNext(); ) {
-            classes.add(new ClassItem((ClassRecord)it.next()));
+        for (ClassRecord rec : _ctx.getColorPository().getClasses()) {
+            classes.add(new ClassItem(rec));
         }
         QuickSort.sort(classes);
         JComboBox box = new JComboBox(classes.toArray(new ClassItem[classes.size()]));

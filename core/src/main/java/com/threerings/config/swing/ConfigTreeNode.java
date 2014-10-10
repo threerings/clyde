@@ -404,7 +404,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
             cnode._config = (ManagedConfig)_config.clone();
 
         } else if (children != null) {
-            cnode.children = new Vector();
+            cnode.children = new Vector<ConfigTreeNode>();
             for (int ii = 0, nn = children.size(); ii < nn; ii++) {
                 ConfigTreeNode child = (ConfigTreeNode)children.get(ii);
                 cnode.insert(child.clone(), ii);

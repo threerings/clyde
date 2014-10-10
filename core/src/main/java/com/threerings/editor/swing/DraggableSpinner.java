@@ -58,7 +58,9 @@ public class DraggableSpinner extends JSpinner
             Integer.valueOf(maximum), Integer.valueOf(stepSize));
     }
 
-    public DraggableSpinner (Number value, Comparable minimum, Comparable maximum, Number stepSize)
+    public DraggableSpinner (
+            Number value, Comparable<? extends Number> minimum,
+            Comparable<? extends Number> maximum, Number stepSize)
     {
         this(new NumberModel(value, minimum, maximum, stepSize));
     }
@@ -150,7 +152,9 @@ public class DraggableSpinner extends JSpinner
      */
     protected static class NumberModel extends SpinnerNumberModel
     {
-        public NumberModel (Number value, Comparable minimum, Comparable maximum, Number stepSize)
+        public NumberModel (
+                Number value, Comparable<? extends Number> minimum,
+                Comparable<? extends Number> maximum, Number stepSize)
         {
             super(value, minimum, maximum, stepSize);
             setValue(value);

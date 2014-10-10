@@ -323,7 +323,7 @@ public class XMLExporter extends Exporter
     /**
      * Writes out the entries of a collection.
      */
-    protected void writeEntries (Collection collection)
+    protected void writeEntries (Collection<?> collection)
         throws IOException
     {
         for (Object entry : collection) {
@@ -349,7 +349,7 @@ public class XMLExporter extends Exporter
     protected void writeEntries (Map<?, ?> map)
         throws IOException
     {
-        for (Map.Entry entry : map.entrySet()) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
             append("key", entry.getKey(), Object.class);
             append("value", entry.getValue(), Object.class);
         }

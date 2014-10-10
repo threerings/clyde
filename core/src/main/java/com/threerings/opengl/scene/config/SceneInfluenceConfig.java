@@ -171,7 +171,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
                 list.add(Tuple.newTuple(definition.name, definition.getValue(scope, updaters)));
             }
             @SuppressWarnings("unchecked") Tuple<String, Object>[] array =
-                new Tuple[list.size()];
+                (Tuple<String, Object>[])new Tuple<?, ?>[list.size()];
             return new DefinerInfluence(list.toArray(array));
         }
     }

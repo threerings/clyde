@@ -142,8 +142,8 @@ public class Vector3fPanel extends BasePropertyEditor
         add(panel);
         panel.add(new JLabel(getLabel(name) + ":"));
         JSpinner spinner = new DraggableSpinner(0f,
-            (min == -Float.MAX_VALUE) ? null : (Comparable)min,
-            (max == +Float.MAX_VALUE) ? null : (Comparable)max, step);
+            (min == -Float.MAX_VALUE) ? null : (Comparable<Float>)min,
+            (max == +Float.MAX_VALUE) ? null : (Comparable<Float>)max, step);
         panel.add(spinner);
         spinner.addChangeListener(this);
         return spinner;

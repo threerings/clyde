@@ -908,7 +908,7 @@ public class TreeEditorPanel extends BaseEditorPanel
             node.setUserObject(new NodeObject(label, value, property, comp));
             node.setAllowsChildren(true);
             Class<?>[] componentSubtypes = (property != null) ?
-                property.getComponentSubtypes() : new Class[0];
+                property.getComponentSubtypes() : new Class<?>[0];
             int ccount = node.getChildCount();
             int length = (value instanceof List) ? ((List)value).size() : Array.getLength(value);
             for (int ii = 0; ii < length; ii++) {

@@ -107,7 +107,7 @@ public class WeakObserverSet<T>
         if (_dirty) {
             if (_snap == null || _snap.length < ocount || _snap.length > (ocount << 3)) {
                 @SuppressWarnings("unchecked") ObserverRef<T>[] snap =
-                    new ObserverRef[ocount];
+                    (ObserverRef<T>[])new ObserverRef<?>[ocount];
                 _snap = snap;
             }
             int idx = 0;

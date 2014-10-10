@@ -160,19 +160,19 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, nvalues);
 
         } else {
-            List values = (List)_property.get(_object);
+            List<?> values = (List<?>)_property.get(_object);
             if (values == null) {
                 if (type == List.class) {
                     type = ArrayList.class;
                 }
                 try {
-                    _property.set(_object, values = (List)type.newInstance());
+                    _property.set(_object, values = (List<?>)type.newInstance());
                 } catch (Exception e) {
                     log.warning("Failed to instantiate list [class=" + type + "].", e);
                     return;
                 }
             }
-            @SuppressWarnings("unchecked") List<Object> list = values;
+            @SuppressWarnings("unchecked") List<Object> list = (List<Object>)values;
             list.add(value);
             _property.set(_object, values);
         }
@@ -220,7 +220,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, nvalues);
 
         } else {
-            List values = (List)_property.get(_object);
+            List<?> values = (List<?>)_property.get(_object);
             values.remove(idx);
             _property.set(_object, values);
         }

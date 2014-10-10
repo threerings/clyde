@@ -354,13 +354,13 @@ public class BinaryExporter extends Exporter
         EnumSet<?> typer = set.isEmpty() ? EnumSet.complementOf(set) : set;
         Class<?> ctype = typer.iterator().next().getDeclaringClass();
         writeClass(ctype);
-        writeEntries((Collection)set);
+        writeEntries((Collection<?>)set);
     }
 
     /**
      * Writes out the entries of a collection.
      */
-    protected void writeEntries (Collection collection)
+    protected void writeEntries (Collection<?> collection)
         throws IOException
     {
         _out.writeInt(collection.size());
@@ -372,13 +372,14 @@ public class BinaryExporter extends Exporter
     /**
      * Writes out the entries of a multiset.
      */
-    protected void writeEntries (Multiset multiset)
+    protected void writeEntries (Multiset<?> multiset)
         throws IOException
     {
-        @SuppressWarnings("unchecked") // compiler weirdness- maybe this can be fixed-up someday
-        Set<Multiset.Entry> entrySet = multiset.entrySet();
+        @SuppressWarnings("unchecked")
+        Multiset<Object> mset = (Multiset<Object>)multiset;
+        Set<Multiset.Entry<Object>> entrySet = mset.entrySet();
         _out.writeInt(entrySet.size());
-        for (Multiset.Entry entry : entrySet) {
+        for (Multiset.Entry<Object> entry : entrySet) {
             write(entry.getElement(), Object.class);
             _out.writeInt(entry.getCount());
         }
@@ -391,7 +392,7 @@ public class BinaryExporter extends Exporter
         throws IOException
     {
         _out.writeInt(map.size());
-        for (Map.Entry entry : map.entrySet()) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
             write(entry.getKey(), Object.class);
             write(entry.getValue(), Object.class);
         }
