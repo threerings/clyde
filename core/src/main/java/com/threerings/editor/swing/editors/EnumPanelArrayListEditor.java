@@ -140,19 +140,6 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
             return panel;
         }
 
-        /**
-         * A special version of getLabel for enums.
-         */
-        protected String getLabel (Enum<?> value, MessageBundle msgs)
-        {
-            if (value == null) {
-                return _msgs.get("m.none");
-            }
-            String key = "m." + StringUtil.toUSLowerCase(value.name());
-            return msgs.exists(key) ? msgs.get(key) : value.toString();
-        }
-
         protected JComboBox _box;
     }
-
 }
