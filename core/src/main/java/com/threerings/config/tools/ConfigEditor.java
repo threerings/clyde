@@ -565,10 +565,10 @@ public class ConfigEditor extends BaseConfigEditor
             /** The actual group reference. */
             public ConfigGroup<ManagedConfig> group;
 
-            public GroupItem (ConfigGroup group)
+            public GroupItem (ConfigGroup<?> group)
             {
-                @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
-                    group;
+                @SuppressWarnings("unchecked")
+                ConfigGroup<ManagedConfig> mgroup = (ConfigGroup<ManagedConfig>)group;
                 this.group = mgroup;
                 this.group.addListener(new ConfigGroupListener() {
                         public void configAdded (ConfigEvent<ManagedConfig> evt) {
@@ -859,10 +859,10 @@ public class ConfigEditor extends BaseConfigEditor
             gpanel.add(new JLabel(_msgs.get("m.group")), GroupLayout.FIXED);
 
             // initialize the list of groups
-            Collection<ConfigGroup> groups = cfgmgr.getGroups();
+            Collection<ConfigGroup<?>> groups = cfgmgr.getGroups();
             GroupItem[] items = new GroupItem[groups.size()];
             int idx = 0;
-            for (ConfigGroup group : groups) {
+            for (ConfigGroup<?> group : groups) {
                 items[idx++] = new GroupItem(group);
             }
             QuickSort.sort(items, new Comparator<GroupItem>() {

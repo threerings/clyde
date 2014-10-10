@@ -420,12 +420,12 @@ public class PropertyUtil
                 Class<ManagedConfig> cclass;
                 ConfigReference<ManagedConfig> ref;
                 if (cfg) {
-                    ConfigGroup group = cfgmgr.getGroup(annotation.mode());
+                    ConfigGroup<?> group = cfgmgr.getGroup(annotation.mode());
                     if (group == null) {
                         continue;
                     }
-                    @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
-                        group.getConfigClass();
+                    @SuppressWarnings("unchecked")
+                    Class<ManagedConfig> mclass = (Class<ManagedConfig>)group.getConfigClass();
                     cclass = mclass;
                     ref = new ConfigReference<ManagedConfig>((String)value);
                 } else {

@@ -66,7 +66,7 @@ public class ConfigEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        ConfigGroup[] groups = _ctx.getConfigManager().getGroups(getMode());
+        ConfigGroup<?>[] groups = _ctx.getConfigManager().getGroups(getMode());
         if (groups.length == 0) {
             log.warning("Missing groups for config editor.", "name", getMode());
             return;

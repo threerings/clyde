@@ -220,26 +220,28 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Adds a listener to notify on updates.
      */
-    public void addListener (ConfigUpdateListener listener)
+    public void addListener (ConfigUpdateListener<?> listener)
     {
         if (_listeners == null) {
             // we disable duplicate checking for performance; don't fuck up
             (_listeners = WeakObserverList.newFastUnsafe()).setCheckDuplicates(false);
             addUpdateDependencies();
         }
-        @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
-            listener;
+        @SuppressWarnings("unchecked")
+        ConfigUpdateListener<ManagedConfig> mlistener =
+                (ConfigUpdateListener<ManagedConfig>)listener;
         _listeners.add(mlistener);
     }
 
     /**
      * Removes a listener from the list.
      */
-    public void removeListener (ConfigUpdateListener listener)
+    public void removeListener (ConfigUpdateListener<?> listener)
     {
         if (_listeners != null) {
-            @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
-                listener;
+            @SuppressWarnings("unchecked")
+            ConfigUpdateListener<ManagedConfig> mlistener =
+                    (ConfigUpdateListener<ManagedConfig>)listener;
             _listeners.remove(mlistener);
             if (_listeners.isEmpty()) {
                 _listeners = null;

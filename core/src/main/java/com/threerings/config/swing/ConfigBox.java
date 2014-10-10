@@ -55,11 +55,12 @@ public class ConfigBox extends JComboBox
      * Creates a new config box.
      */
     public ConfigBox (
-            MessageBundle msgs, ConfigGroup[] groups, boolean nullable,
+            MessageBundle msgs, ConfigGroup<?>[] groups, boolean nullable,
             ReferenceConstraints constraints)
     {
         _msgs = msgs;
-        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups = groups;
+        @SuppressWarnings("unchecked")
+        ConfigGroup<ManagedConfig>[] mgroups = (ConfigGroup<ManagedConfig>[])groups;
         _groups = mgroups;
         _filter = PropertyUtil.getRawConfigPredicate(constraints);
         _nullable = nullable;

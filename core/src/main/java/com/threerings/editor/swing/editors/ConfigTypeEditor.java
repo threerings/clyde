@@ -49,7 +49,7 @@ public class ConfigTypeEditor extends ChoiceEditor
     @Override
     public Object[] getOptions ()
     {
-        ConfigGroup group = ((ManagedConfig)_object).getConfigGroup();
+        ConfigGroup<?> group = ((ManagedConfig)_object).getConfigGroup();
         if (group == null) {
             return ArrayUtil.EMPTY_OBJECT;
         }

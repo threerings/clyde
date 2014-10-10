@@ -96,7 +96,7 @@ public class ConfigResourcesTask extends Task
         try {
             BufferedReader in = new BufferedReader(new FileReader(_configfile));
             String line;
-            ConfigGroup group = null;
+            ConfigGroup<?> group = null;
             while ((line = in.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) { // ignore blank lines
@@ -156,7 +156,7 @@ public class ConfigResourcesTask extends Task
      * Attempts to resolve the given config line and add the referenced resources to the set.
      */
     protected void getResources (
-        ConfigManager cfgmgr, ConfigGroup group, String line, Set<String> paths)
+        ConfigManager cfgmgr, ConfigGroup<?> group, String line, Set<String> paths)
     {
         // TODO: handle wildcards?
         PropertyUtil.getResources(cfgmgr, group.getConfig(line), paths);

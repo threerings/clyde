@@ -343,7 +343,7 @@ public abstract class ConfigChooser extends JPanel
         protected ConfigTreeFilterPanel _filterPanel;
 
         /** The configuration groups. */
-        protected ConfigGroup[] _groups;
+        protected ConfigGroup<?>[] _groups;
 
         /** The OK button. */
         protected JButton _ok;

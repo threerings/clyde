@@ -282,7 +282,7 @@ public class ConfigSearcher extends JFrame
                 }
                 protected Iterator<? extends ManagedConfig> _cfgIterator =
                         Iterators.emptyIterator();
-                protected Iterator<ConfigGroup> _groupIterator =
+                protected Iterator<ConfigGroup<?>> _groupIterator =
                         _ctx.getConfigManager().getGroups().iterator();
                 protected ConfigGroup<?> _currentGroup;
             };
@@ -603,7 +603,7 @@ public class ConfigSearcher extends JFrame
             }
 
         } else if (c.isArray()) {
-            Type subType = c.getComponentType();
+            Type subType = (Type)c.getComponentType();
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
                 attrs = addAll(attrs, findAttributes(Array.get(val, ii), subType, detector, seen));
             }

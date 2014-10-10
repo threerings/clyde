@@ -138,14 +138,14 @@ public class ConfigManager
         _classes = parent._classes;
 
         // copy the groups over (any group not in the list will be silently discarded)
-        HashMap<Class<?>, ConfigGroup> ogroups = _groups;
-        _groups = new HashMap<Class<?>, ConfigGroup>();
+        HashMap<Class<?>, ConfigGroup<?>> ogroups = _groups;
+        _groups = new HashMap<Class<?>, ConfigGroup<?>>();
         Class<?>[] classes = _classes.get(type);
         if (classes == null) {
             return;
         }
         for (Class<?> clazz : classes) {
-            ConfigGroup group = ogroups.get(clazz);
+            ConfigGroup<?> group = ogroups.get(clazz);
             if (group == null) {
                 @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
                     (Class<ManagedConfig>)clazz;
@@ -404,8 +404,8 @@ public class ConfigManager
                 groups.add(group);
             }
         }
-        @SuppressWarnings("unchecked") ConfigGroup<T>[] array =
-            new ConfigGroup[groups.size()];
+        @SuppressWarnings("unchecked")
+        ConfigGroup<T>[] array = (ConfigGroup<T>[])new ConfigGroup<?>[groups.size()];
         return groups.toArray(array);
     }
 
@@ -414,7 +414,7 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> ConfigGroup<T> getGroup (Class<T> clazz)
     {
-        @SuppressWarnings("unchecked") ConfigGroup<T> group = _groups.get(clazz);
+        @SuppressWarnings("unchecked") ConfigGroup<T> group = (ConfigGroup<T>)_groups.get(clazz);
         return group;
     }
 
@@ -427,7 +427,7 @@ public class ConfigManager
             ? ((DerivedConfig)instance).cclass
             : instance.getClass();
         for (Class<?> c = clazz; c != ManagedConfig.class; c = c.getSuperclass()) {
-            ConfigGroup group = _groups.get(c);
+            ConfigGroup<?> group = _groups.get(c);
             if (group != null) {
                 @SuppressWarnings("unchecked")
                 ConfigGroup<ManagedConfig> ret = (ConfigGroup<ManagedConfig>)group;
@@ -440,23 +440,23 @@ public class ConfigManager
     /**
      * Retrieves the groups with the specified name in this manager and all of its ancestors.
      */
-    public ConfigGroup[] getGroups (String name)
+    public ConfigGroup<?>[] getGroups (String name)
     {
-        ArrayList<ConfigGroup> groups = new ArrayList<ConfigGroup>();
+        ArrayList<ConfigGroup<?>> groups = new ArrayList<ConfigGroup<?>>();
         for (ConfigManager cfgmgr = this; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
-            ConfigGroup group = cfgmgr.getGroup(name, false);
+            ConfigGroup<?> group = cfgmgr.getGroup(name, false);
             if (group != null) {
                 groups.add(group);
             }
         }
-        return groups.toArray(new ConfigGroup[groups.size()]);
+        return groups.toArray(new ConfigGroup<?>[groups.size()]);
     }
 
     /**
      * Returns the configuration group with the specified name.  If the group is not found in
      * this manager, the request will be forwarded to the parent, and so on.
      */
-    public ConfigGroup getGroup (String name)
+    public ConfigGroup<?> getGroup (String name)
     {
         return getGroup(name, true);
     }
@@ -466,9 +466,9 @@ public class ConfigManager
      *
      * @param forward if true and there's no such group, forward the request to the parent.
      */
-    public ConfigGroup getGroup (String name, boolean forward)
+    public ConfigGroup<?> getGroup (String name, boolean forward)
     {
-        for (ConfigGroup group : _groups.values()) {
+        for (ConfigGroup<?> group : _groups.values()) {
             if (group.getName().equals(name)) {
                 return group;
             }
@@ -479,7 +479,7 @@ public class ConfigManager
     /**
      * Returns the collection of all registered groups.
      */
-    public Collection<ConfigGroup> getGroups ()
+    public Collection<ConfigGroup<?>> getGroups ()
     {
         return _groups.values();
     }
@@ -487,24 +487,24 @@ public class ConfigManager
     /**
      * Adds a listener that will be notified on all config updates.
      */
-    public void addUpdateListener (ConfigUpdateListener listener)
+    public void addUpdateListener (ConfigUpdateListener<?> listener)
     {
         if (_updateListeners == null) {
             _updateListeners = ObserverList.newFastUnsafe();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
-            listener;
+            (ConfigUpdateListener<ManagedConfig>)listener;
         _updateListeners.add(mlistener);
     }
 
     /**
      * Removes an update listener.
      */
-    public void removeUpdateListener (ConfigUpdateListener listener)
+    public void removeUpdateListener (ConfigUpdateListener<?> listener)
     {
         if (_updateListeners != null) {
             @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
-                listener;
+                (ConfigUpdateListener<ManagedConfig>)listener;
             _updateListeners.remove(mlistener);
             if (_updateListeners.isEmpty()) {
                 _updateListeners = null;
@@ -517,7 +517,7 @@ public class ConfigManager
      */
     public void saveAll ()
     {
-        for (ConfigGroup group : _groups.values()) {
+        for (ConfigGroup<?> group : _groups.values()) {
             group.save();
         }
     }
@@ -531,7 +531,7 @@ public class ConfigManager
      */
     public void saveAll (File dir, String extension, boolean xml)
     {
-        for (ConfigGroup group : _groups.values()) {
+        for (ConfigGroup<?> group : _groups.values()) {
             group.save(new File(dir, group.getName() + extension), xml);
         }
     }
@@ -541,7 +541,7 @@ public class ConfigManager
      */
     public void revertAll ()
     {
-        for (ConfigGroup group : _groups.values()) {
+        for (ConfigGroup<?> group : _groups.values()) {
             group.revert();
         }
     }
@@ -638,19 +638,19 @@ public class ConfigManager
         throws IOException
     {
         // write out the non-empty groups as a sorted array
-        List<ConfigGroup> list = Lists.newArrayList();
-        for (ConfigGroup group : _groups.values()) {
+        List<ConfigGroup<?>> list = Lists.newArrayList();
+        for (ConfigGroup<?> group : _groups.values()) {
             if (!Iterables.isEmpty(group.getRawConfigs())) {
                 list.add(group);
             }
         }
-        ConfigGroup[] groups = Iterables.toArray(
-                new Ordering<ConfigGroup>() {
-                    public int compare (ConfigGroup g1, ConfigGroup g2) {
+        ConfigGroup<?>[] groups = Iterables.toArray(
+                new Ordering<ConfigGroup<?>>() {
+                    public int compare (ConfigGroup<?> g1, ConfigGroup<?> g2) {
                         return g1.getName().compareTo(g2.getName());
                     }
                 }.immutableSortedCopy(list), ConfigGroup.class);
-        out.write("groups", groups, new ConfigGroup[0], ConfigGroup[].class);
+        out.write("groups", groups, new ConfigGroup<?>[0], ConfigGroup[].class);
     }
 
     /**
@@ -660,8 +660,8 @@ public class ConfigManager
         throws IOException
     {
         // read in the groups and populate the map
-        ConfigGroup[] groups = in.read("groups", new ConfigGroup[0], ConfigGroup[].class);
-        for (ConfigGroup group : groups) {
+        ConfigGroup<?>[] groups = in.read("groups", new ConfigGroup<?>[0], ConfigGroup[].class);
+        for (ConfigGroup<?> group : groups) {
             _groups.put(group.getConfigClass(), group);
         }
     }
@@ -677,10 +677,10 @@ public class ConfigManager
     {
         ConfigManager other = (dest instanceof ConfigManager) ?
             (ConfigManager)dest : new ConfigManager();
-        for (ConfigGroup group : _groups.values()) {
+        for (ConfigGroup<?> group : _groups.values()) {
             Class<?> clazz = group.getConfigClass();
-            ConfigGroup ogroup = other._groups.get(clazz);
-            other._groups.put(clazz, (ConfigGroup)group.copy(ogroup));
+            ConfigGroup<?> ogroup = other._groups.get(clazz);
+            other._groups.put(clazz, (ConfigGroup<?>)group.copy(ogroup));
         }
         return other;
     }
@@ -779,7 +779,7 @@ public class ConfigManager
     protected String _configPath;
 
     /** Registered configuration groups mapped by config class. */
-    protected HashMap<Class<?>, ConfigGroup> _groups = new HashMap<Class<?>, ConfigGroup>();
+    protected HashMap<Class<?>, ConfigGroup<?>> _groups = new HashMap<Class<?>, ConfigGroup<?>>();
 
     /** Resource-loaded configs mapped by path. */
     protected Map<String, ManagedConfig> _resources;

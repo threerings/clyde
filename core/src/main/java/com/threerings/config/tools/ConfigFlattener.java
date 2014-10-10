@@ -158,7 +158,7 @@ public class ConfigFlattener
         DependentReferenceSet refSet = new DependentReferenceSet();
 
         // turn all derived configs into their "original" form
-        for (ConfigGroup group : cfgmgr.getGroups()) {
+        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
             for (DerivedConfig der : Lists.newArrayList(
                     Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
                 // get the non-raw version and re-store it, overwriting

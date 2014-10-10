@@ -75,9 +75,9 @@ public class DConfigDirector extends BasicDirector
         _cfgmgr = cfgmgr;
 
         // listen to all groups and for all updates
-        for (ConfigGroup group : cfgmgr.getGroups()) {
-            @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
-                group;
+        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+            @SuppressWarnings("unchecked")
+            ConfigGroup<ManagedConfig> mgroup = (ConfigGroup<ManagedConfig>)group;
             mgroup.addListener(this);
         }
         _cfgmgr.addUpdateListener(this);

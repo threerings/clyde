@@ -82,7 +82,7 @@ public class ConfigTree extends JTree
     /**
      * Creates a new config tree to display the configurations in the specified groups.
      */
-    public ConfigTree (ConfigGroup... groups)
+    public ConfigTree (ConfigGroup<?>... groups)
     {
         this(groups, false);
     }
@@ -92,9 +92,9 @@ public class ConfigTree extends JTree
      *
      * @param editable if true, the tree will allow editing the configurations.
      */
-    public ConfigTree (ConfigGroup group, boolean editable)
+    public ConfigTree (ConfigGroup<?> group, boolean editable)
     {
-        this(new ConfigGroup[] { group }, editable);
+        this(new ConfigGroup<?>[] { group }, editable);
     }
 
     /**
@@ -256,10 +256,10 @@ public class ConfigTree extends JTree
      * @param editable if true, the tree will allow editing the configurations (only allowed for
      * trees depicting a single group).
      */
-    protected ConfigTree (ConfigGroup[] groups, boolean editable)
+    protected ConfigTree (ConfigGroup<?>[] groups, boolean editable)
     {
-        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups =
-            groups;
+        @SuppressWarnings("unchecked")
+        ConfigGroup<ManagedConfig>[] mgroups = (ConfigGroup<ManagedConfig>[])groups;
         _groups = mgroups;
         setModel(new DefaultTreeModel(new ConfigTreeNode(null, null), true) {
             public void valueForPathChanged (TreePath path, Object newValue) {
