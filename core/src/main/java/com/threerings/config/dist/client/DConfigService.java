@@ -26,6 +26,7 @@
 package com.threerings.config.dist.client;
 
 import com.threerings.presents.client.InvocationService;
+import com.threerings.presents.data.ClientObject;
 
 import com.threerings.config.dist.data.ConfigEntry;
 import com.threerings.config.dist.data.ConfigKey;
@@ -33,7 +34,7 @@ import com.threerings.config.dist.data.ConfigKey;
 /**
  * Allows admins to manipulate the set of configs.
  */
-public interface DConfigService extends InvocationService
+public interface DConfigService extends InvocationService<ClientObject>
 {
     /**
      * Requests to add, update, and remove the provided configs.

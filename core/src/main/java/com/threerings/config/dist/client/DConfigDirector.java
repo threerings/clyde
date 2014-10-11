@@ -35,6 +35,7 @@ import com.samskivert.util.Interval;
 
 import com.threerings.presents.client.BasicDirector;
 import com.threerings.presents.client.Client;
+import com.threerings.presents.dobj.DSet;
 import com.threerings.presents.dobj.EntryAddedEvent;
 import com.threerings.presents.dobj.EntryRemovedEvent;
 import com.threerings.presents.dobj.EntryUpdatedEvent;
@@ -95,7 +96,7 @@ public class DConfigDirector extends BasicDirector
     {
         // create an update to apply events that did not originate on this client
         new ConfigUpdater(_cfgmgr) {
-            @Override public void entryAdded (EntryAddedEvent event) {
+            @Override public void entryAdded (EntryAddedEvent<DSet.Entry> event) {
                 int clientOid = ((DConfigObject.ClientEntryAddedEvent)event).getClientOid();
                 if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
                     try {
@@ -105,7 +106,7 @@ public class DConfigDirector extends BasicDirector
                     }
                 }
             }
-            @Override public void entryUpdated (EntryUpdatedEvent event) {
+            @Override public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event) {
                 int clientOid = ((DConfigObject.ClientEntryUpdatedEvent)event).getClientOid();
                 if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
                     try {
@@ -115,7 +116,7 @@ public class DConfigDirector extends BasicDirector
                     }
                 }
             }
-            @Override public void entryRemoved (EntryRemovedEvent event) {
+            @Override public void entryRemoved (EntryRemovedEvent<DSet.Entry> event) {
                 int clientOid = ((DConfigObject.ClientEntryRemovedEvent)event).getClientOid();
                 if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
                     try {

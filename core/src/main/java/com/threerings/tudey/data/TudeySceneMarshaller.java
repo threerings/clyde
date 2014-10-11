@@ -27,8 +27,10 @@ package com.threerings.tudey.data;
 
 import javax.annotation.Generated;
 
+import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.data.InvocationMarshaller;
 import com.threerings.presents.net.Transport;
+
 import com.threerings.tudey.client.TudeySceneService;
 import com.threerings.tudey.config.CameraConfig;
 
@@ -41,7 +43,7 @@ import com.threerings.tudey.config.CameraConfig;
  */
 @Generated(value={"com.threerings.presents.tools.GenServiceTask"},
            comments="Derived from TudeySceneService.java.")
-public class TudeySceneMarshaller extends InvocationMarshaller
+public class TudeySceneMarshaller extends InvocationMarshaller<ClientObject>
     implements TudeySceneService
 {
     /** The method id used to dispatch {@link #enqueueInputReliable} requests. */

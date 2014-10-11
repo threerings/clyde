@@ -27,11 +27,12 @@ package com.threerings.config.dist.server;
 
 import javax.annotation.Generated;
 
+import com.threerings.presents.data.ClientObject;
+import com.threerings.presents.server.InvocationProvider;
+
 import com.threerings.config.dist.client.DConfigService;
 import com.threerings.config.dist.data.ConfigEntry;
 import com.threerings.config.dist.data.ConfigKey;
-import com.threerings.presents.data.ClientObject;
-import com.threerings.presents.server.InvocationProvider;
 
 /**
  * Defines the server-side of the {@link DConfigService}.

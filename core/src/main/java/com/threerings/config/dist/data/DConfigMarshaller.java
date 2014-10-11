@@ -27,8 +27,10 @@ package com.threerings.config.dist.data;
 
 import javax.annotation.Generated;
 
-import com.threerings.config.dist.client.DConfigService;
+import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.data.InvocationMarshaller;
+
+import com.threerings.config.dist.client.DConfigService;
 
 /**
  * Provides the implementation of the {@link DConfigService} interface
@@ -39,7 +41,7 @@ import com.threerings.presents.data.InvocationMarshaller;
  */
 @Generated(value={"com.threerings.presents.tools.GenServiceTask"},
            comments="Derived from DConfigService.java.")
-public class DConfigMarshaller extends InvocationMarshaller
+public class DConfigMarshaller extends InvocationMarshaller<ClientObject>
     implements DConfigService
 {
     /** The method id used to dispatch {@link #updateConfigs} requests. */

@@ -27,6 +27,7 @@ package com.threerings.tudey.client;
 
 import com.threerings.presents.annotation.TransportHint;
 import com.threerings.presents.client.InvocationService;
+import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.net.Transport;
 
 import com.threerings.tudey.config.CameraConfig;
@@ -35,7 +36,7 @@ import com.threerings.tudey.data.InputFrame;
 /**
  * Provides services relating to Tudey scenes.
  */
-public interface TudeySceneService extends InvocationService
+public interface TudeySceneService extends InvocationService<ClientObject>
 {
     /**
      * Notifies the server that the client has successfully entered the place.

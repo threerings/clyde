@@ -25,6 +25,7 @@
 
 package com.threerings.config.dist.util;
 
+import com.threerings.presents.dobj.DSet;
 import com.threerings.presents.dobj.EntryAddedEvent;
 import com.threerings.presents.dobj.EntryRemovedEvent;
 import com.threerings.presents.dobj.EntryUpdatedEvent;
@@ -44,7 +45,7 @@ import static com.threerings.ClydeLog.log;
  * object to the set of managed configs.
  */
 public class ConfigUpdater
-    implements SetListener
+    implements SetListener<DSet.Entry>
 {
     /**
      * Creates a new updater.
@@ -75,7 +76,7 @@ public class ConfigUpdater
     }
 
     // documentation inherited from interface SetListener
-    public void entryAdded (EntryAddedEvent event)
+    public void entryAdded (EntryAddedEvent<DSet.Entry> event)
     {
         String name = event.getName();
         if (name.equals(DConfigObject.ADDED)) {
@@ -92,7 +93,7 @@ public class ConfigUpdater
     }
 
     // documentation inherited from interface SetListener
-    public void entryRemoved (EntryRemovedEvent event)
+    public void entryRemoved (EntryRemovedEvent<DSet.Entry> event)
     {
         if (event.getName().equals(DConfigObject.ADDED)) {
             removeConfig((ConfigKey)event.getKey());
@@ -100,7 +101,7 @@ public class ConfigUpdater
     }
 
     // documentation inherited from interface SetListener
-    public void entryUpdated (EntryUpdatedEvent event)
+    public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event)
     {
         String name = event.getName();
         if (name.equals(DConfigObject.ADDED) || name.equals(DConfigObject.UPDATED)) {
