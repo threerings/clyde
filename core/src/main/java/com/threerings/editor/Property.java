@@ -649,7 +649,7 @@ public abstract class Property extends DeepObject
         if (type == clazz) {
             return args;
         }
-        TypeVariable[] params = type.getTypeParameters();
+        TypeVariable<?>[] params = type.getTypeParameters();
         for (Type iface : type.getGenericInterfaces()) {
             Type[] result = getTypeArguments(iface, params, args, clazz);
             if (result != null) {
@@ -670,7 +670,7 @@ public abstract class Property extends DeepObject
      * not found.
      */
     protected static Type[] getTypeArguments (
-        Type type, TypeVariable[] params, Type[] values, Class<?> clazz)
+        Type type, TypeVariable<?>[] params, Type[] values, Class<?> clazz)
     {
         if (type instanceof ParameterizedType) {
             ParameterizedType ptype = (ParameterizedType)type;

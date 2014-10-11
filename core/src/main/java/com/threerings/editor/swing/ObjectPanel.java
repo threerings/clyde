@@ -258,9 +258,9 @@ public class ObjectPanel extends BasePropertyEditor
         if (_lvalue != null) {
             boolean inner = ReflectionUtil.isInner(type);
             _lvalue.getClass();
-            Constructor cctor = null;
+            Constructor<?> cctor = null;
             Class<?> cptype = null;
-            for (Constructor ctor : type.getConstructors()) {
+            for (Constructor<?> ctor : type.getConstructors()) {
                 Class<?>[] ptypes = ctor.getParameterTypes();
                 if (inner ? (ptypes.length != 2 || !ptypes[0].isInstance(_outer)) :
                         (ptypes.length != 1)) {

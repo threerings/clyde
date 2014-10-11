@@ -251,7 +251,7 @@ public class BinaryExporter extends Exporter
         }
         // see if we can stream the value directly
         @SuppressWarnings("unchecked") Streamer<Object> streamer =
-            Streamer.getStreamer(cclazz);
+            (Streamer<Object>)Streamer.getStreamer(cclazz);
         if (streamer != null) {
             streamer.write(value, _out);
             return;

@@ -250,7 +250,7 @@ public class XMLExporter extends Exporter
         }
         // see if we can convert the value to a string
         @SuppressWarnings("unchecked") Stringifier<Object> stringifier =
-            Stringifier.getStringifier(cclazz);
+            (Stringifier<Object>)Stringifier.getStringifier(cclazz);
         if (stringifier != null) {
             // because empty text nodes are removed, we must include a comment to
             // signify an empty string

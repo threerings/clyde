@@ -267,7 +267,8 @@ public class XMLImporter extends Importer
         String id = element.getAttribute("id");
         String depth = element.getAttribute("depth");
         Class<?> cclazz = getClassByName(element.getAttribute("class"), clazz);
-        Stringifier stringifier = Stringifier.getStringifier(cclazz);
+        @SuppressWarnings("unchecked")
+        Stringifier<Object> stringifier = (Stringifier<Object>)Stringifier.getStringifier(cclazz);
         if (stringifier != null) {
             String string = element.getTextContent();
             Object value = null;

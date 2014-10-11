@@ -50,10 +50,10 @@ public abstract class Stringifier<T>
     /**
      * Returns the stringifier, if any, for the specified class.
      */
-    public static Stringifier getStringifier (final Class<?> clazz)
+    public static Stringifier<?> getStringifier (final Class<?> clazz)
     {
         // look for a specific one
-        Stringifier stringifier = _stringifiers.get(clazz);
+        Stringifier<?> stringifier = _stringifiers.get(clazz);
         if (stringifier == null) {
             // create custom stringifiers for enums and encodable types
             if (clazz.isEnum()) {
@@ -96,8 +96,8 @@ public abstract class Stringifier<T>
         throws Exception;
 
     /** Registered stringifiers. */
-    protected static HashMap<Class<?>, Stringifier> _stringifiers =
-        new HashMap<Class<?>, Stringifier>();
+    protected static HashMap<Class<?>, Stringifier<?>> _stringifiers =
+        new HashMap<Class<?>, Stringifier<?>>();
     static {
         // register basic stringifiers for wrapper types, primitive arrays
         _stringifiers.put(Boolean.class, new Stringifier<Boolean>() {

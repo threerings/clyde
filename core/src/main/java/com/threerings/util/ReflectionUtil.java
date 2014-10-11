@@ -88,9 +88,9 @@ public class ReflectionUtil
         if (!isInner(clazz)) {
             outer = null;
         }
-        Constructor ctor = _ctors.get(clazz);
+        Constructor<?> ctor = _ctors.get(clazz);
         if (ctor == null) {
-            for (Constructor octor : clazz.getDeclaredConstructors()) {
+            for (Constructor<?> octor : clazz.getDeclaredConstructors()) {
                 Class<?>[] ptypes = octor.getParameterTypes();
                 if (outer == null ? (ptypes.length == 0) :
                         (ptypes.length == 1 && ptypes[0].isInstance(outer))) {
@@ -174,7 +174,7 @@ public class ReflectionUtil
                 oclazz = dclazz;
 
             } else if (Inner.class.isAssignableFrom(clazz)) {
-                for (Constructor ctor : clazz.getDeclaredConstructors()) {
+                for (Constructor<?> ctor : clazz.getDeclaredConstructors()) {
                     Class<?>[] ptypes = ctor.getParameterTypes();
                     if (ptypes.length > 0) {
                         oclazz = ptypes[0];
@@ -217,5 +217,6 @@ public class ReflectionUtil
     protected static HashMap<Class<?>, Class<?>> _oclasses = new HashMap<Class<?>, Class<?>>();
 
     /** Maps classes to their default constructors. */
-    protected static HashMap<Class<?>, Constructor> _ctors = new HashMap<Class<?>, Constructor>();
+    protected static HashMap<Class<?>, Constructor<?>> _ctors =
+            new HashMap<Class<?>, Constructor<?>>();
 }

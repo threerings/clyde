@@ -52,10 +52,10 @@ public abstract class Streamer<T>
     /**
      * Returns the streamer, if any, for the specified class.
      */
-    public static Streamer getStreamer (final Class<?> clazz)
+    public static Streamer<?> getStreamer (final Class<?> clazz)
     {
         // look for a specific one
-        Streamer streamer = _streamers.get(clazz);
+        Streamer<?> streamer = _streamers.get(clazz);
         if (streamer == null) {
             // create custom streamers for enums and encodable types
             if (clazz.isEnum()) {
@@ -105,10 +105,11 @@ public abstract class Streamer<T>
         throws IOException, ClassNotFoundException;
 
     /** Registered streamers. */
-    protected static HashMap<Class<?>, Streamer> _streamers = new HashMap<Class<?>, Streamer>();
+    protected static HashMap<Class<?>, Streamer<?>> _streamers =
+            new HashMap<Class<?>, Streamer<?>>();
     static {
         // register basic streamers for wrapper types, primitive arrays
-        Streamer streamer = new Streamer<Boolean>() {
+        Streamer<?> streamer = new Streamer<Boolean>() {
             public void write (Boolean value, DataOutputStream out) throws IOException {
                 out.writeBoolean(value.booleanValue());
             }

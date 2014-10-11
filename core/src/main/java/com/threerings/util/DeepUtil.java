@@ -87,7 +87,7 @@ public class DeepUtil
             dest = null;
         }
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
-            getObjectHandler(clazz);
+            (ObjectHandler<T>)getObjectHandler(clazz);
         try {
             return handler.copy(source, dest, outer);
         } catch (IllegalAccessException e) {
@@ -123,7 +123,7 @@ public class DeepUtil
             clazz = clazz.getSuperclass();
         }
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
-            getObjectHandler(clazz);
+            (ObjectHandler<T>)getObjectHandler(clazz);
         try {
             return handler.copy(source, dest, outer);
         } catch (IllegalAccessException e) {
@@ -146,7 +146,7 @@ public class DeepUtil
             return false;
         }
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
-            getObjectHandler(c1);
+            (ObjectHandler<T>)getObjectHandler(c1);
         try {
             return handler.equals(o1, o2);
         } catch (IllegalAccessException e) {
@@ -164,7 +164,7 @@ public class DeepUtil
             return 0;
         }
         @SuppressWarnings("unchecked") ObjectHandler<Object> handler =
-            getObjectHandler(object.getClass());
+            (ObjectHandler<Object>)getObjectHandler(object.getClass());
         try {
             return handler.hashCode(object);
         } catch (IllegalAccessException e) {
@@ -185,7 +185,7 @@ public class DeepUtil
             return "null";
         }
         @SuppressWarnings("unchecked") ObjectHandler<Object> handler =
-            getObjectHandler(object.getClass());
+            (ObjectHandler<Object>)getObjectHandler(object.getClass());
         try {
             return handler.toString(object);
         } catch (IllegalAccessException e) {
@@ -197,9 +197,9 @@ public class DeepUtil
     /**
      * Retrieves the handler for the supplied class.
      */
-    protected static ObjectHandler getObjectHandler (Class<?> clazz)
+    protected static ObjectHandler<?> getObjectHandler (Class<?> clazz)
     {
-        ObjectHandler handler = _objectHandlers.get(clazz);
+        ObjectHandler<?> handler = _objectHandlers.get(clazz);
         if (handler == null) {
             if (Enum.class.isAssignableFrom(clazz) ||
                     ImmutableCollection.class.isAssignableFrom(clazz) ||
@@ -402,7 +402,8 @@ public class DeepUtil
     }
 
     /** Field handler for immutable fields, which can be handled by reference. */
-    protected static final ObjectHandler IMMUTABLE_OBJECT_HANDLER = new ObjectHandler<Object>() {
+    protected static final ObjectHandler<Object> IMMUTABLE_OBJECT_HANDLER =
+            new ObjectHandler<Object>() {
         public Object copy (Object source, Object dest, Object outer)
             throws IllegalAccessException {
             return source;
@@ -422,7 +423,8 @@ public class DeepUtil
     };
 
     /** Object handlers mapped by class. */
-    protected static final Map<Class<?>, ObjectHandler> _objectHandlers = Maps.newConcurrentMap();
+    protected static final Map<Class<?>, ObjectHandler<?>> _objectHandlers =
+            Maps.newConcurrentMap();
     static {
         _objectHandlers.put(boolean[].class, new ObjectHandler<boolean[]>() {
             public boolean[] copy (boolean[] source, boolean[] dest, Object outer)
@@ -598,7 +600,8 @@ public class DeepUtil
     }
 
     /** Field handler for object arrays. */
-    protected static final ObjectHandler ARRAY_OBJECT_HANDLER = new ObjectHandler<Object[]>() {
+    protected static final ObjectHandler<Object[]> ARRAY_OBJECT_HANDLER =
+            new ObjectHandler<Object[]>() {
         public Object[] copy (Object[] source, Object[] dest, Object outer)
             throws IllegalAccessException {
             if (dest == null || dest.length != source.length) {

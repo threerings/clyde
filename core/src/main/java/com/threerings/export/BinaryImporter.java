@@ -292,7 +292,8 @@ public class BinaryImporter extends Importer
         // see if we can stream the value directly
         Class<?> wclazz = cclazz.getWrappedClass();
         if (wclazz != null) {
-            Streamer streamer = Streamer.getStreamer(wclazz);
+            @SuppressWarnings("unchecked")
+            Streamer<Object> streamer = (Streamer<Object>)Streamer.getStreamer(wclazz);
             if (streamer != null) {
                 Object value = null;
                 try {
