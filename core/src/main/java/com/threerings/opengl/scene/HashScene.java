@@ -491,7 +491,7 @@ public class HashScene extends Scene
             return new InternalNode<T>(levels);
         }
         @SuppressWarnings("unchecked") InternalNode<T> node =
-            _internalNodePool.remove(size - 1);
+            (InternalNode<T>)_internalNodePool.remove(size - 1);
         node.reinit(levels);
         return node;
     }
@@ -506,7 +506,7 @@ public class HashScene extends Scene
             return new LeafNode<T>();
         }
         @SuppressWarnings("unchecked") LeafNode<T> node =
-            _leafNodePool.remove(size - 1);
+            (LeafNode<T>)_leafNodePool.remove(size - 1);
         return node;
     }
 
@@ -682,7 +682,7 @@ public class HashScene extends Scene
             if (!super.isEmpty()) {
                 return false;
             }
-            for (Node child : _children) {
+            for (Node<T> child : _children) {
                 if (child != null) {
                     return false;
                 }
@@ -841,7 +841,7 @@ public class HashScene extends Scene
 
         /** The children of the node. */
         @SuppressWarnings("unchecked")
-        public Node<T>[] _children = new Node[8];
+        public Node<T>[] _children = (Node<T>[])new Node<?>[8];
     }
 
     /**
@@ -966,8 +966,8 @@ public class HashScene extends Scene
     protected Vector3f[] _lresults;
 
     /** A pool of internal nodes to reuse. */
-    protected List<InternalNode> _internalNodePool = Lists.newArrayList();
+    protected List<InternalNode<?>> _internalNodePool = Lists.newArrayList();
 
     /** A pool of leaf nodes to reuse. */
-    protected List<LeafNode> _leafNodePool = Lists.newArrayList();
+    protected List<LeafNode<?>> _leafNodePool = Lists.newArrayList();
 }

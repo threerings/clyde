@@ -313,7 +313,7 @@ public class ComboBox<T> extends Label
         if (_psize == null) {
             _psize = new Dimension();
             LabelRenderer label = new LabelRenderer(this);
-            for (ComboMenuItem mitem : _items) {
+            for (ComboMenuItem<T> mitem : _items) {
                 label.setIcon(mitem.getIcon());
                 label.setText(mitem.getText());
                 Dimension lsize = label.computePreferredSize(-1, -1);

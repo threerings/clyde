@@ -415,8 +415,8 @@ public abstract class BooleanExpression extends DeepObject
         @Override
         public Evaluator createEvaluator (Scope scope)
         {
-            final StringExpression.Evaluator eval1 = firstOperand.createEvaluator(scope);
-            final StringExpression.Evaluator eval2 = secondOperand.createEvaluator(scope);
+            final ObjectExpression.Evaluator<String> eval1 = firstOperand.createEvaluator(scope);
+            final ObjectExpression.Evaluator<String> eval2 = secondOperand.createEvaluator(scope);
             return new Evaluator() {
                 public boolean evaluate () {
                     return eval1.evaluate().equals(eval2.evaluate());

@@ -379,7 +379,7 @@ public class HashSpace extends Space
             return new InternalNode<T>(levels);
         }
         @SuppressWarnings("unchecked") InternalNode<T> node =
-            _internalNodePool.remove(size - 1);
+            (InternalNode<T>)_internalNodePool.remove(size - 1);
         node.reinit(levels);
         return node;
     }
@@ -394,7 +394,7 @@ public class HashSpace extends Space
             return new LeafNode<T>();
         }
         @SuppressWarnings("unchecked") LeafNode<T> node =
-            _leafNodePool.remove(size - 1);
+            (LeafNode<T>)_leafNodePool.remove(size - 1);
         return node;
     }
 
@@ -572,7 +572,7 @@ public class HashSpace extends Space
             if (!super.isEmpty()) {
                 return false;
             }
-            for (Node child : _children) {
+            for (Node<T> child : _children) {
                 if (child != null) {
                     return false;
                 }
@@ -715,7 +715,7 @@ public class HashSpace extends Space
 
         /** The children of the node. */
         @SuppressWarnings("unchecked")
-        public Node<T>[] _children = new Node[4];
+        public Node<T>[] _children = (Node<T>[])new Node<?>[4];
     }
 
     /**
@@ -764,8 +764,8 @@ public class HashSpace extends Space
     protected Vector2f _pt = new Vector2f();
 
     /** A pool of internal nodes to reuse. */
-    protected List<InternalNode> _internalNodePool = Lists.newArrayList();
+    protected List<InternalNode<?>> _internalNodePool = Lists.newArrayList();
 
     /** A pool of leaf nodes to reuse. */
-    protected List<LeafNode> _leafNodePool = Lists.newArrayList();
+    protected List<LeafNode<?>> _leafNodePool = Lists.newArrayList();
 }
