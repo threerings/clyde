@@ -57,11 +57,11 @@ public abstract class Stringifier<T>
         if (stringifier == null) {
             // create custom stringifiers for enums and encodable types
             if (clazz.isEnum()) {
-                _stringifiers.put(clazz, stringifier = new Stringifier<Exporter.DummyEnum>() {
-                    public String toString (Exporter.DummyEnum value) {
+                _stringifiers.put(clazz, stringifier = new Stringifier<Enum<?>>() {
+                    public String toString (Enum<?> value) {
                         return value.name();
                     }
-                    public Exporter.DummyEnum fromString (String string) {
+                    public Enum<?> fromString (String string) {
                         @SuppressWarnings("unchecked")
                         Class<Exporter.DummyEnum> eclazz = (Class<Exporter.DummyEnum>)clazz;
                         return Enum.valueOf(eclazz, string);

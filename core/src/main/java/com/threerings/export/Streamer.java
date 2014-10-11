@@ -59,12 +59,12 @@ public abstract class Streamer<T>
         if (streamer == null) {
             // create custom streamers for enums and encodable types
             if (clazz.isEnum()) {
-                _streamers.put(clazz, streamer = new Streamer<Enum<Exporter.DummyEnum>>() {
-                    public void write (Enum<Exporter.DummyEnum> value, DataOutputStream out)
+                _streamers.put(clazz, streamer = new Streamer<Enum<?>>() {
+                    public void write (Enum<?> value, DataOutputStream out)
                         throws IOException {
                         out.writeUTF(value.name());
                     }
-                    public Enum<Exporter.DummyEnum> read (DataInputStream in) throws IOException {
+                    public Enum<?> read (DataInputStream in) throws IOException {
                         @SuppressWarnings("unchecked")
                         Class<Exporter.DummyEnum> eclass = (Class<Exporter.DummyEnum>)clazz;
                         return Enum.valueOf(eclass, in.readUTF());
