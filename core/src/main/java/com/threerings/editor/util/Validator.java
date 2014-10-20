@@ -36,7 +36,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ReferenceConstraints;
-import com.threerings.config.util.ConfigId;;
+import com.threerings.config.util.ConfigId;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
