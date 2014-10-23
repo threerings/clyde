@@ -19,6 +19,10 @@ import com.google.common.io.ByteStreams;
 
 import static com.threerings.export.Log.log;
 
+/**
+ * Utility methods for combining and re-splitting arbitrary streams of data into a single
+ * stream, with length prefixes for each piece.
+ */
 public class MetaStreams
 {
     /**
