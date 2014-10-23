@@ -22,52 +22,6 @@ import static com.threerings.export.Log.log;
 public class MetaStreams
 {
     /**
-     * Return an iterable of length-prefixed inputStreams.
-     * The source input stream should not be used after calling this method. It's state may be
-     * inconsistent or at EOF, but it also should not be closed.
-     * NOTE that IOExceptions may be suppressed as there is no way to throw them out of
-     * an iterator.
-     *
-     * @deprecated Probably not a good idea because of the suppressed exceptions...
-     */
-    @Deprecated
-    public static Iterable<InputStream> splitInput (final InputStream source)
-    {
-        return new Iterable<InputStream>() {
-            public Iterator<InputStream> iterator ()
-            {
-                return new AbstractIterator<InputStream>() {
-                    protected InputStream computeNext ()
-                    {
-                        try {
-                            // ensure any 'last' is fully read so that 'source' is ready.
-                            if (_last != null) {
-                                while (-1 != _last.read()) { }
-                            }
-                            // try reading the length
-                            long length = readLength(source);
-                            if (length != -1) {
-                                return _last = ByteStreams.limit(source, length);
-                            }
-
-                        } catch (IOException ioe) {
-                            log.warning("Suppressed Exception reading from MetaStream", ioe);
-                        }
-                        _last = null;
-                        try {
-                            source.close();
-                        } catch (IOException ioe) {
-                            log.warning("Suppressed Exception closing MetaStream", ioe);
-                        }
-                        return endOfData();
-                    }
-                    protected InputStream _last;
-                };
-            }
-        };
-    }
-
-    /**
      * Return the next InputStream, or null if we've reached the end of the stream.
      * This adds a level of safety in that the returned Stream does not need to actually be
      * read from at all in order to get the next stream from the source. This is accomplished
