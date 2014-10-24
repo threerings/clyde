@@ -555,6 +555,12 @@ public class ConfigEditor extends BaseConfigEditor
         return ((ManagerPanel)_tabs.getSelectedComponent()).getEditorPanel();
     }
 
+    @Override
+    protected ConfigEditorPrefs createEditablePrefs (Preferences prefs)
+    {
+        return new ConfigEditorPrefs(_prefs);
+    }
+
     /**
      * The panel for a single manager.
      */
