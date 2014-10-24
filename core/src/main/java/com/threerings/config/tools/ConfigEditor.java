@@ -98,6 +98,7 @@ import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
+import com.threerings.util.ResourceUtil;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.util.Validator;
@@ -1014,7 +1015,7 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected void restorePrefs ()
     {
-        final String p = "ConfigEditor."; // TODO? getClass().getSimpleName() + "." ???
+        final String p = "ConfigEditor." + ResourceUtil.getPrefsPrefix();
 
         // restore/bind window bounds
         _eprefs.bindWindowBounds(p, this);

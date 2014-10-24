@@ -55,6 +55,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.util.ResourceUtil;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.config.ConfigGroup;
@@ -492,7 +493,7 @@ public class ConfigSearcher extends JFrame
 
         setSize(850, 600);
         SwingUtil.centerWindow(this);
-        _eprefs.bindWindowBounds("ConfigSearcher.", this);
+        _eprefs.bindWindowBounds("ConfigSearcher." + ResourceUtil.getPrefsPrefix(), this);
         setVisible(true);
 
         EventQueue.invokeLater(new Runnable() {
