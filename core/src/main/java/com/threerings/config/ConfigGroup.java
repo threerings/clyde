@@ -45,7 +45,6 @@ import com.google.common.io.Closer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
@@ -297,7 +296,7 @@ public class ConfigGroup<T extends ManagedConfig>
                         Iterables.any(rawConfigs, Predicates.instanceOf(DerivedConfig.class))
                     ? ManagedConfig.class
                     : _cclass;
-                xport.writeObject(toSortedArray(rawConfigs, clazz));
+                xport.writeObject(_cfgmgr.toSortedArray(rawConfigs, clazz));
 
             } finally {
                 closer.close();
@@ -354,7 +353,7 @@ public class ConfigGroup<T extends ManagedConfig>
         throws IOException
     {
         // write the sorted configs out as a raw object
-        out.write("configs", toSortedArray(getRawConfigs(), ManagedConfig.class),
+        out.write("configs", _cfgmgr.toSortedArray(getRawConfigs(), ManagedConfig.class),
                 null, Object.class);
         out.write("class", String.valueOf(_cclass.getName()));
     }
@@ -558,24 +557,6 @@ public class ConfigGroup<T extends ManagedConfig>
             val = val.getInstance((ArgumentMap)null);
         }
         return _cclass.cast(val);
-    }
-
-    /**
-     * Converts the supplied collection of configs to a sorted array.
-     */
-    protected ManagedConfig[] toSortedArray (
-            Iterable<? extends ManagedConfig> configs,
-            Class<? extends ManagedConfig> arrayElementClass)
-    {
-        @SuppressWarnings("unchecked")
-        Class<ManagedConfig> clazz = (Class<ManagedConfig>)arrayElementClass;
-
-        return Iterables.toArray(
-                new Ordering<ManagedConfig>() {
-                    public int compare (ManagedConfig c1, ManagedConfig c2) {
-                        return c1.getName().compareTo(c2.getName());
-                    }
-                }.immutableSortedCopy(configs), clazz);
     }
 
     /**

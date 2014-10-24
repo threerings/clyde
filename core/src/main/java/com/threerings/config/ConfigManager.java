@@ -763,6 +763,24 @@ public class ConfigManager
         }
     }
 
+    /**
+     * Converts the supplied collection of configs to a sorted array.
+     */
+    protected ManagedConfig[] toSortedArray (
+            Iterable<? extends ManagedConfig> configs,
+            Class<? extends ManagedConfig> arrayElementClass)
+    {
+        @SuppressWarnings("unchecked")
+        Class<ManagedConfig> clazz = (Class<ManagedConfig>)arrayElementClass;
+
+        return Iterables.toArray(
+                new Ordering<ManagedConfig>() {
+                    public int compare (ManagedConfig c1, ManagedConfig c2) {
+                        return c1.getName().compareTo(c2.getName());
+                    }
+                }.immutableSortedCopy(configs), clazz);
+    }
+
     /** The type of this manager. */
     protected String _type;
 
