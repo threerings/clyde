@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 import javax.annotation.Nullable;
 
@@ -101,6 +102,7 @@ import com.threerings.util.MessageManager;
 import com.threerings.util.ResourceUtil;
 import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.Editable;
 import com.threerings.editor.util.Validator;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
@@ -117,6 +119,8 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.swing.ConfigTree;
 import com.threerings.config.swing.ConfigTreeFilterPanel;
 import com.threerings.config.swing.ConfigTreeNode;
+
+import com.threerings.opengl.renderer.Color4f;
 
 import static com.threerings.ClydeLog.log;
 
@@ -1015,7 +1019,7 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected void restorePrefs ()
     {
-        final String p = "ConfigEditor." + ResourceUtil.getPrefsPrefix();
+        final String p = getConfigKey();
 
         // restore/bind window bounds
         _eprefs.bindWindowBounds(p, this);
@@ -1040,6 +1044,49 @@ public class ConfigEditor extends BaseConfigEditor
                     _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
                 }
             });
+        }
+
+        // restore color
+        setBackground(((ConfigEditorPrefs)_eprefs).getBackgroundColor());
+    }
+
+    /**
+     * Set the background color for this editor.
+     */
+    protected void setBackground (Color4f color)
+    {
+        setBackground(color.getColor());
+    }
+
+    /**
+     * Get our prefs key prefix.
+     */
+    protected String getConfigKey ()
+    {
+        return "ConfigEditor." + ResourceUtil.getPrefsPrefix();
+    }
+
+    /**
+     * Our prefs.
+     */
+    protected class ConfigEditorPrefs extends ToolUtil.EditablePrefs
+    {
+        public ConfigEditorPrefs (Preferences prefs)
+        {
+            super(prefs);
+        }
+
+        @Editable(weight=3)
+        public void setBackgroundColor (Color4f color)
+        {
+            putPref(getConfigKey() + "background_color", color);
+            ConfigEditor.this.setBackground(color);
+        }
+
+        @Editable // see setter
+        public Color4f getBackgroundColor ()
+        {
+            return getPref(getConfigKey() + "background_color", Color4f.GRAY);
         }
     }
 
