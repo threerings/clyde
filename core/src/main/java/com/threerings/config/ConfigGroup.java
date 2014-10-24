@@ -296,7 +296,7 @@ public class ConfigGroup<T extends ManagedConfig>
                         Iterables.any(rawConfigs, Predicates.instanceOf(DerivedConfig.class))
                     ? ManagedConfig.class
                     : _cclass;
-                xport.writeObject(_cfgmgr.toSaveable(rawConfigs, clazz));
+                xport.writeObject(_cfgmgr.toSaveableArray(rawConfigs, clazz));
 
             } finally {
                 closer.close();
@@ -353,7 +353,7 @@ public class ConfigGroup<T extends ManagedConfig>
         throws IOException
     {
         // write the sorted configs out as a raw object
-        out.write("configs", _cfgmgr.toSaveable(getRawConfigs(), ManagedConfig.class),
+        out.write("configs", _cfgmgr.toSaveableArray(getRawConfigs(), ManagedConfig.class),
                 null, Object.class);
         out.write("class", String.valueOf(_cclass.getName()));
     }
