@@ -43,10 +43,13 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ConfigToolUtil;
 import com.threerings.config.util.ConfigId;
 
+import com.threerings.editor.util.PropertyUtil;
+
 import static com.threerings.ClydeLog.log;
 
 /**
  * Flattens configs for export to clients such that there are no parameters.
+ * <em>Also performs stripping, honoring the Strippable annotation.</em>
  *
  * This is not an ant task because you probably need to pass jvmarg arguments,
  * and Sur-Fucking-PRIZE! You can't do that with a proper ant task.?!?!?!
@@ -101,7 +104,33 @@ public class ConfigFlattener
             break;
         }
 
-        new ConfigFlattener().flatten(rsrcDir, outDir, ext, isXML);
+        new ConfigFlattener().flattenAndStrip(rsrcDir, outDir, ext, isXML);
+    }
+
+    /**
+     * A handy ConfigManager that strips all its configs just prior to saving.
+     */
+    public static class StripOnSaveConfigManager extends ConfigManager
+    {
+        public StripOnSaveConfigManager (
+                ResourceManager rsrcmgr, MessageManager msgmgr, String configPath)
+        {
+            super(rsrcmgr, msgmgr, configPath);
+        }
+
+        public StripOnSaveConfigManager () {}
+
+        @Override
+        protected ManagedConfig[] toSaveableArray (
+                Iterable<? extends ManagedConfig> configs,
+                Class<? extends ManagedConfig> arrayElementClass)
+        {
+            @SuppressWarnings("unchecked")
+            List<? extends ManagedConfig> stripList = (List<? extends ManagedConfig>)
+                    // the flattener needs a list to work with
+                    PropertyUtil.strip(this, Lists.newArrayList(configs));
+            return super.toSaveableArray(stripList, arrayElementClass);
+        }
     }
 
     /**
@@ -117,15 +146,15 @@ public class ConfigFlattener
     /**
      * Potential entry point for other tools.
      */
-    public void flatten (String rsrcDir, String outDir)
+    public void flattenAndStrip (String rsrcDir, String outDir)
     {
-        flatten(rsrcDir, outDir, ".xml", true);
+        flattenAndStrip(rsrcDir, outDir, ".xml", true);
     }
 
     /**
      * Potential entry point for other tools.
      */
-    public void flatten (String rsrcDir, String outDir, String extension, boolean isXML)
+    public void flattenAndStrip (String rsrcDir, String outDir, String extension, boolean isXML)
     {
         ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
         File configDir = rsrcmgr.getResourceFile("config/");
@@ -139,7 +168,7 @@ public class ConfigFlattener
         Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
 
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
+        ConfigManager cfgmgr = new StripOnSaveConfigManager(rsrcmgr, msgmgr, "config/");
 //        log.info("Starting up...");
         cfgmgr.init();
         flatten(cfgmgr);
@@ -152,11 +181,10 @@ public class ConfigFlattener
 
     /**
      * Flatten all the configs in-place in the specified config manager.
+     * Stripping is not performed- that is up to the ConfigManager you use..
      */
     public void flatten (ConfigManager cfgmgr)
     {
-        DependentReferenceSet refSet = new DependentReferenceSet();
-
         // turn all derived configs into their "original" form
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
             for (DerivedConfig der : Lists.newArrayList(
@@ -166,6 +194,7 @@ public class ConfigFlattener
             }
         }
 
+        DependentReferenceSet refSet = new DependentReferenceSet();
         refSet.populate(cfgmgr);
 
         // now go through each ref in dependency ordering
