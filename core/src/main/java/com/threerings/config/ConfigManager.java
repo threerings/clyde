@@ -764,9 +764,9 @@ public class ConfigManager
     }
 
     /**
-     * Converts the supplied collection of configs to a sorted array.
+     * Converts the supplied collection of configs to a sorted array for saving.
      */
-    protected ManagedConfig[] toSortedArray (
+    protected ManagedConfig[] toSaveableArray (
             Iterable<? extends ManagedConfig> configs,
             Class<? extends ManagedConfig> arrayElementClass)
     {
