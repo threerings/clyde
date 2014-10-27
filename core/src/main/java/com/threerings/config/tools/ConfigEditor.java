@@ -1062,6 +1062,7 @@ public class ConfigEditor extends BaseConfigEditor
     protected void setBackground (Color4f color)
     {
         setBackground(color.getColor());
+        getContentPane().setBackground(color.getColor());
     }
 
     /**
