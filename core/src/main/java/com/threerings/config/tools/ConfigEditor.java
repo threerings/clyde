@@ -27,6 +27,7 @@ package com.threerings.config.tools;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
@@ -1072,12 +1073,17 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected void setBackground (Color4f color)
     {
-        Color c = color.getColor();
+        final Color c = color.getColor();
         setBackground(c);
         getContentPane().setBackground(c);
         for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
             ((ManagerPanel)_tabs.getComponentAt(ii)).setBackground(c);
         }
+//        SwingUtil.applyToHierarchy(this, new SwingUtil.ComponentOp() {
+//                public void apply (Component comp) {
+//                    comp.setBackground(c);
+//                }
+//            });
     }
 
     /**
