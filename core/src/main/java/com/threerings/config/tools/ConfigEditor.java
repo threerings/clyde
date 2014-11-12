@@ -26,6 +26,7 @@
 package com.threerings.config.tools;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
@@ -895,6 +896,16 @@ public class ConfigEditor extends BaseConfigEditor
             _epanel.addChangeListener(this);
         }
 
+        @Override
+        public void setBackground (Color c)
+        {
+            super.setBackground(c);
+            if (_pane != null) {
+                _pane.setBackground(c);
+                _epanel.setBackground(c);
+            }
+        }
+
         /**
          * Called when the panel is shown.
          */
@@ -1061,8 +1072,12 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected void setBackground (Color4f color)
     {
-        setBackground(color.getColor());
-        getContentPane().setBackground(color.getColor());
+        Color c = color.getColor();
+        setBackground(c);
+        getContentPane().setBackground(c);
+        for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+            ((ManagerPanel)_tabs.getComponentAt(ii)).setBackground(c);
+        }
     }
 
     /**
