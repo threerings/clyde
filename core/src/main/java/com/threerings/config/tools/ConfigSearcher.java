@@ -10,19 +10,16 @@ import java.awt.event.MouseEvent;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import java.util.prefs.Preferences;
@@ -46,7 +43,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
@@ -138,7 +134,7 @@ public class ConfigSearcher extends JFrame
      * Find all the attributes in the specified object and any sub-objects.
      */
     public static <T> Multiset<T> findAttributes (
-            Object val, Type valType, AttributeDetector<T> detector)
+            Object val, java.lang.reflect.Type valType, AttributeDetector<T> detector)
     {
         return findAttributes(val, valType, detector, Sets.newIdentityHashSet());
     }
@@ -580,7 +576,7 @@ public class ConfigSearcher extends JFrame
      * Internal helper for findAttributes.
      */
     protected static <T> Multiset<T> findAttributes (
-        Object val, Type valGenericType, AttributeDetector<T> detector, Set<Object> seen)
+        Object val, java.lang.reflect.Type valGenericType, AttributeDetector<T> detector, Set<Object> seen)
     {
         if (val == null) {
             return ImmutableMultiset.<T>of();
@@ -604,13 +600,13 @@ public class ConfigSearcher extends JFrame
             }
 
         } else if (c.isArray()) {
-            Type subType = (Type)c.getComponentType();
+            java.lang.reflect.Type subType = (java.lang.reflect.Type)c.getComponentType();
             for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
                 attrs = addAll(attrs, findAttributes(Array.get(val, ii), subType, detector, seen));
             }
 
         } else if (val instanceof Collection) {
-            Type subType = getFirstGenericType(valGenericType);
+            java.lang.reflect.Type subType = getFirstGenericType(valGenericType);
             for (Object o : ((Collection)val)) {
                 attrs = addAll(attrs, findAttributes(o, subType, detector, seen));
             }
@@ -646,7 +642,7 @@ public class ConfigSearcher extends JFrame
     /**
      * Turn the Type into a class, if possible.
      */
-    protected static Class<?> asClass (Type type)
+    protected static Class<?> asClass (java.lang.reflect.Type type)
     {
         if (type instanceof Class) {
             return (Class)type;
@@ -659,10 +655,10 @@ public class ConfigSearcher extends JFrame
     /**
      * Get the first generic type argument of the specified type.
      */
-    protected static Type getFirstGenericType (Type type)
+    protected static java.lang.reflect.Type getFirstGenericType (java.lang.reflect.Type type)
     {
         if (type instanceof ParameterizedType) {
-            Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+            java.lang.reflect.Type[] args = ((ParameterizedType)type).getActualTypeArguments();
             return (args.length > 0) ? args[0] : null;
         }
         // TODO: more?
