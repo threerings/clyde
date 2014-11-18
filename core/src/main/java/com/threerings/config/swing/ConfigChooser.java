@@ -243,8 +243,8 @@ public abstract class ConfigChooser extends JPanel
 
             JPanel bpanel = new JPanel();
             add(bpanel, BorderLayout.SOUTH);
-            bpanel.add(_ok = new JButton(_msgs.get("m.ok")));
-            bpanel.add(_cancel = new JButton(_msgs.get("m.cancel")));
+            bpanel.add(_ok = new JButton(_msgs.get("b.ok")));
+            bpanel.add(_cancel = new JButton(_msgs.get("b.cancel")));
         }
 
         @Override

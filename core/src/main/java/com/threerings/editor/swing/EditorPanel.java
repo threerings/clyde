@@ -107,7 +107,7 @@ public class EditorPanel extends BaseEditorPanel
         epanel.setObject(object);
         JPanel bpanel = new JPanel();
         dialog.add(bpanel, BorderLayout.SOUTH);
-        JButton ok = new JButton(msgs.get("m.ok"));
+        JButton ok = new JButton(msgs.get("b.ok"));
         bpanel.add(ok);
         ok.addActionListener(new ActionListener() {
             public void actionPerformed (ActionEvent event) {

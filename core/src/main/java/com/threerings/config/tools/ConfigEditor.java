@@ -531,7 +531,7 @@ public class ConfigEditor extends BaseConfigEditor
     protected void validateReferences ()
     {
         PrintStreamDialog dialog = new PrintStreamDialog(
-            this, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
+            this, _msgs.get("m.validate_refs"), _msgs.get("b.ok"));
         _cfgmgr.validateReferences(createValidator(dialog.getPrintStream()));
         dialog.maybeShow();
     }
