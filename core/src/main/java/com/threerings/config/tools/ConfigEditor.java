@@ -183,7 +183,7 @@ public class ConfigEditor extends BaseConfigEditor
         MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
         Class<?> clazz, String name)
     {
-        super(msgmgr, cfgmgr, colorpos, "config");
+        super(msgmgr, cfgmgr, colorpos, "editor.config");
 
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();

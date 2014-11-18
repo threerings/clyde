@@ -45,7 +45,8 @@ public class ConfigTreeFilterPanel extends JPanel
         _input.getDocument().addDocumentListener(_inputListener);
 
         JPanel box = GroupLayout.makeHBox(HGroupLayout.STRETCH);
-        box.add(new JLabel(msgmgr.getBundle("config").get("l.filter_config")), HGroupLayout.FIXED);
+        box.add(new JLabel(msgmgr.getBundle("editor.config").get("l.filter_config")),
+                HGroupLayout.FIXED);
         box.add(_input);
         box.add(new JButton(_clearAction), HGroupLayout.FIXED);
         add(box);

@@ -173,7 +173,7 @@ public abstract class ConfigChooser extends JPanel
         public ResourceChooser (final MessageManager msgmgr, ResourceManager rsrcmgr, Class<?> clazz)
         {
             _rsrcmgr = rsrcmgr;
-            final MessageBundle msgs = msgmgr.getBundle("config");
+            final MessageBundle msgs = msgmgr.getBundle("editor.config");
             String ddir = rsrcmgr.getResourceFile("").toString();
             String type = ConfigGroup.getName(clazz);
             final String label = getLabel(msgmgr, clazz, type);
@@ -228,7 +228,7 @@ public abstract class ConfigChooser extends JPanel
     {
         public TreeChooser (MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz)
         {
-            _msgs = msgmgr.getBundle("config");
+            _msgs = msgmgr.getBundle("editor.config");
             _label = getLabel(msgmgr, clazz, ConfigGroup.getName(clazz));
 
             // get the list of groups
