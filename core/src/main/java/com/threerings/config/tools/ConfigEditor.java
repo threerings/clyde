@@ -545,6 +545,15 @@ public class ConfigEditor extends BaseConfigEditor
     }
 
     /**
+     * Create a paste helper for copy/paste or move operations.
+     */
+    protected PasteHelper createPasteHelper (ConfigGroup<?> group)
+    {
+        // return the default do-nothing paste helper
+        return new PasteHelper();
+    }
+
+    /**
      * Used to add addition items to the edit menu.
      */
     protected void addEditMenuItems (JMenu edit)
@@ -718,8 +727,11 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public void pasteNode ()
             {
+                PasteHelper paster = createPasteHelper(group);
                 Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
-                _tree.getTransferHandler().importData(_tree, clipboard.getContents(this));
+                if (_tree.getTransferHandler().importData(_tree, clipboard.getContents(this))) {
+                    paster.didPaste();
+                }
             }
 
             /**
@@ -1216,6 +1228,20 @@ public class ConfigEditor extends BaseConfigEditor
 
         /** The editors currently registered to hear about dirty groups. */
         protected static ObserverList<ConfigEditor> _editors = ObserverList.newFastUnsafe();
+    }
+
+    /**
+     * A default PasteHelper that does nothing.
+     */
+    protected static class PasteHelper
+    {
+        /**
+         * Called at the completion of the paste.
+         */
+        public void didPaste ()
+        {
+            // do nothing
+        }
     }
 
     /** The config tree pop-up menu. */
