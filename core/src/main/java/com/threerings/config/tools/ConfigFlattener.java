@@ -5,12 +5,16 @@ package com.threerings.config.tools;
 
 import java.io.IOException;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -26,6 +30,7 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 
 import com.samskivert.util.DependencyGraph;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageManager;
 
@@ -105,7 +110,8 @@ public class ConfigFlattener
             break;
         }
 
-        new ConfigFlattener().flattenAndStrip(rsrcDir, outDir, ext, isXML);
+        ConfigFlattener flattener = new ConfigFlattener();
+        flattener.flattenAndStrip(rsrcDir, outDir, ext, isXML);
     }
 
     /**
@@ -266,6 +272,43 @@ public class ConfigFlattener
             }
         }
 //        log.info("Flattened " + count);
+    }
+
+    /**
+     * Copy the manager.properties file, removing config types that are wholly stripped.
+     */
+    public void copyManagerProperties (String sourceIdentifier, File source, File dest)
+        throws IOException
+    {
+        Properties props = new Properties();
+        props.load(new FileReader(source));
+        List<String> types = Lists.newArrayList(
+                StringUtil.parseStringArray(props.getProperty("types", "")));
+        types.add("resource");
+        for (String type : types) {
+            String key = type + ".classes";
+            List<String> classes = Lists.newArrayList(StringUtil.parseStringArray(
+                        props.getProperty(key, "")));
+            boolean changed = false;
+            for (Iterator<String> itr = classes.iterator(); itr.hasNext(); ) {
+                try {
+                    Class<?> clazz = Class.forName(itr.next());
+                    if (clazz.isAnnotationPresent(Strippable.class)) {
+                        itr.remove();
+                        changed = true;
+                    }
+
+                } catch (ClassNotFoundException e) {
+                    throw new IOException("This shouldn't happen", e);
+                }
+            }
+            if (changed) {
+                props.put(key, StringUtil.joinEscaped(Iterables.toArray(classes, String.class)));
+            }
+        }
+        props.store(new FileWriter(dest),
+                " Generated. Do not edit!\n" +
+                " (from " + sourceIdentifier + ")\n\n");
     }
 
     /**
