@@ -110,8 +110,7 @@ public class ConfigFlattener
             break;
         }
 
-        ConfigFlattener flattener = new ConfigFlattener();
-        flattener.flattenAndStrip(rsrcDir, outDir, ext, isXML);
+        new ConfigFlattener().flattenAndStrip(rsrcDir, outDir, ext, isXML);
     }
 
     /**
@@ -160,6 +159,7 @@ public class ConfigFlattener
      * Potential entry point for other tools.
      */
     public void flattenAndStrip (String rsrcDir, String outDir)
+        throws IOException
     {
         flattenAndStrip(rsrcDir, outDir, ".xml", true);
     }
@@ -168,6 +168,7 @@ public class ConfigFlattener
      * Potential entry point for other tools.
      */
     public void flattenAndStrip (String rsrcDir, String outDir, String extension, boolean isXML)
+        throws IOException
     {
         ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
         File configDir = rsrcmgr.getResourceFile("config/");
@@ -190,6 +191,10 @@ public class ConfigFlattener
 //        log.info("Saving...");
         cfgmgr.saveAll(destDir, extension, isXML);
 //        log.info("Done!");
+
+        // also copy the manager properties over
+        copyManagerProperties("rsrc/config/manager.properties",
+                new File(configDir, "manager.properties"), new File(destDir, "manager.txt"));
     }
 
     /**
