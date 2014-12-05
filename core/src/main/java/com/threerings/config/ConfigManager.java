@@ -764,9 +764,15 @@ public class ConfigManager
     }
 
     /**
-     * Converts the supplied collection of configs to a sorted array for saving.
+     * Converts the supplied collection of configs to a sorted array for saving, or returns
+     * null to indicate that this group should not actually be saved in this instance.
+     *
+     * @param groupClass the primary class for the group.
+     * @param configs the configs to save
+     * @param arrayElementClass the class to use for making the array.
      */
     protected ManagedConfig[] toSaveableArray (
+            Class<? extends ManagedConfig> groupClass,
             Iterable<? extends ManagedConfig> configs,
             Class<? extends ManagedConfig> arrayElementClass)
     {

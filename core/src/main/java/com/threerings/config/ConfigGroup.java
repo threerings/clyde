@@ -286,17 +286,21 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void save (Iterable<? extends ManagedConfig> rawConfigs, File file, boolean xml)
     {
+        Class<? extends ManagedConfig> clazz =
+                Iterables.any(rawConfigs, Predicates.instanceOf(DerivedConfig.class))
+            ? ManagedConfig.class
+            : _cclass;
+        ManagedConfig[] array = _cfgmgr.toSaveableArray(_cclass, rawConfigs, clazz);
+        if (array == null) {
+            return; // nothing to do
+        }
         try {
             Closer closer = Closer.create();
             try {
                 LazyFileOutputStream stream = closer.register(new LazyFileOutputStream(file));
                 Exporter xport = closer.register(
                         xml ? new XMLExporter(stream) : new BinaryExporter(stream));
-                Class<? extends ManagedConfig> clazz =
-                        Iterables.any(rawConfigs, Predicates.instanceOf(DerivedConfig.class))
-                    ? ManagedConfig.class
-                    : _cclass;
-                xport.writeObject(_cfgmgr.toSaveableArray(rawConfigs, clazz));
+                xport.writeObject(array);
 
             } finally {
                 closer.close();
@@ -353,7 +357,7 @@ public class ConfigGroup<T extends ManagedConfig>
         throws IOException
     {
         // write the sorted configs out as a raw object
-        out.write("configs", _cfgmgr.toSaveableArray(getRawConfigs(), ManagedConfig.class),
+        out.write("configs", _cfgmgr.toSaveableArray(_cclass, getRawConfigs(), ManagedConfig.class),
                 null, Object.class);
         out.write("class", String.valueOf(_cclass.getName()));
     }

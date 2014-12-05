@@ -43,6 +43,7 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ConfigToolUtil;
 import com.threerings.config.util.ConfigId;
 
+import com.threerings.editor.Strippable;
 import com.threerings.editor.util.PropertyUtil;
 
 import static com.threerings.ClydeLog.log;
@@ -122,14 +123,20 @@ public class ConfigFlattener
 
         @Override
         protected ManagedConfig[] toSaveableArray (
+                Class<? extends ManagedConfig> groupClass,
                 Iterable<? extends ManagedConfig> configs,
                 Class<? extends ManagedConfig> arrayElementClass)
         {
+            // hide the class outright from the client if the whole thing is strippable
+            if (groupClass.isAnnotationPresent(Strippable.class)) {
+                return null;
+            }
+
             @SuppressWarnings("unchecked")
             List<? extends ManagedConfig> stripList = (List<? extends ManagedConfig>)
                     // the flattener needs a list to work with
                     PropertyUtil.strip(this, Lists.newArrayList(configs));
-            return super.toSaveableArray(stripList, arrayElementClass);
+            return super.toSaveableArray(groupClass, stripList, arrayElementClass);
         }
     }
 
