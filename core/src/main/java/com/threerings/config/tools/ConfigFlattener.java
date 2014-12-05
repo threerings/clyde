@@ -311,9 +311,16 @@ public class ConfigFlattener
                 props.put(key, StringUtil.joinEscaped(Iterables.toArray(classes, String.class)));
             }
         }
-        props.store(new FileWriter(dest),
-                " Generated. Do not edit!\n" +
-                " (from " + sourceIdentifier + ")\n\n");
+
+        // Oh for fuck's sake: Properties always saves a timestamp comment,
+        // so let's read-in the old version and make sure something's actually changed.
+        Properties oldProps = new Properties();
+        oldProps.load(new FileReader(dest));
+        if (!props.equals(oldProps)) {
+            props.store(new FileWriter(dest),
+                    " Generated. Do not edit!\n" +
+                    " (from " + sourceIdentifier + ")\n\n");
+        }
     }
 
     /**
