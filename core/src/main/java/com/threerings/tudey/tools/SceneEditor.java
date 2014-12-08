@@ -1782,7 +1782,7 @@ public class SceneEditor extends TudeyTool
     protected void validateReferences ()
     {
         PrintStreamDialog dialog = new PrintStreamDialog(
-            _frame, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
+            _frame, _msgs.get("m.validate_refs"), _msgs.get("b.ok"));
         _scene.validateReferences(createValidator(dialog.getPrintStream()));
         dialog.maybeShow();
     }
