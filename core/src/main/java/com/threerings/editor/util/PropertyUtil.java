@@ -213,7 +213,13 @@ public class PropertyUtil
                 if (cfg instanceof DerivedConfig) {
                     cfg = cfg.getInstance((ArgumentMap)null);
                 }
-                return vals.contains(cfg.getClass());
+                Class<? extends ManagedConfig> clazz = cfg.getClass();
+                for (Class<? extends ManagedConfig> listedClass : vals) {
+                    if (listedClass.isAssignableFrom(clazz)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         };
     }
