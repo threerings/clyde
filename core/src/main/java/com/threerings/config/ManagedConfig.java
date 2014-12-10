@@ -105,7 +105,7 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /** A helpful comment explaining what this config is and/or used for. */
-    @Editable(height=3, width=40, collapsible=true)
+    @Editable(height=3, width=40, collapsible=true, weight=-DoubleMAX_VALUE/2)
     @Strippable
     public void setComment (String comment)
     {
