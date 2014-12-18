@@ -72,7 +72,7 @@ public class ConfigEditor extends PropertyEditor
             return;
         }
         _box = new ConfigBox(
-                _msgs, groups, _property.getAnnotation().nullable(),
+                _msgs, groups, _property.nullable(),
                 _property.getAnnotation(ReferenceConstraints.class));
         _box.addActionListener(this);
         add(_box);

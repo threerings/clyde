@@ -289,7 +289,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
         } else {
             Property[] properties = Introspector.getProperties(ctype);
-            if (!_property.getAnnotation().nullable()) {
+            if (!_property.nullable()) {
                 ArrayList<Column> columns = new ArrayList<Column>();
                 final MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(ctype));
                 for (final Property property : properties) {

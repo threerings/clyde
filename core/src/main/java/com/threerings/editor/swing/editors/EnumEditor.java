@@ -86,7 +86,7 @@ public class EnumEditor extends PropertyEditor
     protected List<Enum<?>> getValues ()
     {
         Enum<?>[] constants = (Enum<?>[])_property.getType().getEnumConstants();
-        return _property.getAnnotation().nullable()
+        return _property.nullable()
             ? Lists.asList(null, constants)
             : Arrays.asList(constants);
     }

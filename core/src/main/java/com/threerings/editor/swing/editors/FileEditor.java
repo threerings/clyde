@@ -128,7 +128,7 @@ public class FileEditor extends PropertyEditor
         add(new JLabel(getPropertyLabel() + ":"));
         add(_file = new JButton(" "));
         _file.addActionListener(this);
-        if (_property.getAnnotation().nullable()) {
+        if (_property.nullable()) {
             add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);
         }

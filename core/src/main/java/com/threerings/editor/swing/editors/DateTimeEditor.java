@@ -136,8 +136,7 @@ public class DateTimeEditor extends PropertyEditor
         try {
             Object oldVal = _property.get(_object);
             Object newVal;
-            if (("".equals(text) || _nullStr.equals(text)) &&
-                    _property.getAnnotation().nullable()) {
+            if (("".equals(text) || _nullStr.equals(text)) && _property.nullable()) {
                 newVal = null;
 
             } else {

@@ -310,6 +310,14 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Is the value nullable?
+     */
+    public boolean nullable ()
+    {
+        return getAnnotation().nullable();
+    }
+
+    /**
      * Returns the minimum value.
      */
     public double getMinimum ()
@@ -569,7 +577,7 @@ public abstract class Property extends DeepObject
         ArrayList<Class<?>> types = new ArrayList<Class<?>>();
 
         // start with the null class, if allowed
-        boolean nullable = getAnnotation().nullable();
+        boolean nullable = nullable();
         if (nullable) {
             types.add(null);
         }
@@ -723,7 +731,7 @@ public abstract class Property extends DeepObject
             type = ClassUtil.objectEquivalentOf(type);
         }
         return (value == null)
-            ? getAnnotation().nullable()
+            ? nullable()
             : type.isInstance(value);
     }
 

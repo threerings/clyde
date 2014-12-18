@@ -55,8 +55,6 @@ import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
 
-import com.threerings.editor.ArgumentPathProperty;
-import com.threerings.editor.FieldProperty;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.PropertyUtil;
 import com.threerings.editor.swing.PropertyEditor;
@@ -181,7 +179,7 @@ public class ConfigReferenceEditor extends PropertyEditor
             cpanel.add(_edit = new JButton(_msgs.get("m.edit")));
             _edit.addActionListener(this);
         }
-        if (_property.getAnnotation().nullable()) {
+        if (_property.nullable()) {
             cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);
         }
@@ -228,13 +226,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         if (!enable) {
             _config.setText(_msgs.get("m.null_value"));
             _arguments.removeAll();
-            // null is only valid if there's an @Editable(nullable=true) directly on a single
-            // ConfigReference field or if it came from a parameter. Otherwise
-            // if it's in a List or array: we ignore the annotation and it's always invalid.
-            boolean valid = _property.getAnnotation().nullable() &&
-                    ((_property instanceof ArgumentPathProperty) ||
-                     (_property instanceof FieldProperty));
-            _config.setForeground(valid ? _content.getForeground() : Color.red);
+            _config.setForeground(_property.nullable() ? _content.getForeground() : Color.red);
             return;
         }
         String name = value.getName();

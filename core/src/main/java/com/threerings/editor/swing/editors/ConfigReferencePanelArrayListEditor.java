@@ -189,6 +189,12 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
             }
 
             @Override
+            public boolean nullable ()
+            {
+                return false; // do not permit null cfgrefs in a List or array
+            }
+
+            @Override
             public Object get (Object object)
             {
                 int idx = getIndex();
