@@ -55,6 +55,7 @@ import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
 
+import com.threerings.editor.ArgumentPathProperty;
 import com.threerings.editor.FieldProperty;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.PropertyUtil;
@@ -228,10 +229,11 @@ public class ConfigReferenceEditor extends PropertyEditor
             _config.setText(_msgs.get("m.null_value"));
             _arguments.removeAll();
             // null is only valid if there's an @Editable(nullable=true) directly on a single
-            // ConfigReference field. If we're in a List or array: always invalid.
-            // we're invalid if our property isn't a straight-up FieldProperty or if
-            boolean valid = (_property instanceof FieldProperty) &&
-                    _property.getAnnotation().nullable();
+            // ConfigReference field or if it came from a parameter. Otherwise
+            // if it's in a List or array: we ignore the annotation and it's always invalid.
+            boolean valid = _property.getAnnotation().nullable() &&
+                    ((_property instanceof ArgumentPathProperty) ||
+                     (_property instanceof FieldProperty));
             _config.setForeground(valid ? _content.getForeground() : Color.red);
             return;
         }
