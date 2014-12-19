@@ -266,11 +266,27 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
-     * Save the specified configs
+     * Saves this group's configurations to the specified file.
      */
-    public void save (File file, boolean xml)
+    public final void save (File file, boolean xml)
     {
-        ManagedConfig[] array = toSaveableArray();
+        save(getRawConfigs(), file, xml);
+    }
+
+    /**
+     * Saves this group's configurations to the specified file.
+     */
+    public final void save (Iterable<? extends ManagedConfig> rawConfigs, File file)
+    {
+        save(rawConfigs, file, true);
+    }
+
+    /**
+     * Save the specified configs to the specified file.
+     */
+    public void save (Iterable<? extends ManagedConfig> rawConfigs, File file, boolean xml)
+    {
+        ManagedConfig[] array = toSaveableArray(rawConfigs);
         if (array == null) {
             return; // nothing to do
         }
@@ -297,11 +313,20 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public ManagedConfig[] toSaveableArray ()
     {
+        return toSaveableArray(getRawConfigs());
+    }
+
+    /**
+     * Return the raw configs as they should be saved, which may be an empty array,
+     * or null if the entire group is stripped.
+     */
+    protected ManagedConfig[] toSaveableArray (Iterable<? extends ManagedConfig> rawConfigs)
+    {
         Class<? extends ManagedConfig> clazz =
-                Iterables.any(getRawConfigs(), Predicates.instanceOf(DerivedConfig.class))
+                Iterables.any(rawConfigs, Predicates.instanceOf(DerivedConfig.class))
             ? ManagedConfig.class
             : _cclass;
-        return _cfgmgr.toSaveableArray(_cclass, getRawConfigs(), clazz);
+        return _cfgmgr.toSaveableArray(_cclass, rawConfigs, clazz);
     }
 
     /**
