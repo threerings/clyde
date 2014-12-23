@@ -27,18 +27,9 @@ package com.threerings.editor.tools;
 
 import java.io.File;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.FileSet;
 
-import com.google.common.collect.Lists;
+import com.threerings.tools.FileSetTask;
 
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
@@ -50,16 +41,8 @@ import com.threerings.config.ConfigManager;
 /**
  * Abstract class for performing validation.
  */
-public abstract class AbstractValidatorTask extends Task
+public abstract class AbstractValidatorTask extends FileSetTask
 {
-    /**
-     * Adds a fileset to the list of sets to process.
-     */
-    public void addFileset (FileSet set)
-    {
-        _filesets.add(set);
-    }
-
     @Override
     public void execute ()
         throws BuildException
@@ -85,36 +68,10 @@ public abstract class AbstractValidatorTask extends Task
             ConfigManager cfgmgr, Iterable<File> files, Validator validator);
 
     /**
-     * Get the files to check for validation.
-     */
-    protected Iterable<File> getFiles ()
-    {
-        return Iterables.concat(Iterables.transform(_filesets, _filesetToFiles));
-    }
-
-    /**
      * Create the validator to use for this task.
      */
     protected Validator createValidator ()
     {
         return new Validator(System.err);
     }
-
-    /** A function to transform a fileset into the files it represents. */
-    protected Function<FileSet, Iterable<File>> _filesetToFiles =
-            new Function<FileSet, Iterable<File>>() {
-                public Iterable<File> apply (FileSet fileset) {
-                    DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
-                    final File fromDir = fileset.getDir(getProject());
-                    return Iterables.transform(Arrays.asList(ds.getIncludedFiles()),
-                            new Function<String, File>() {
-                                public File apply (String file) {
-                                    return new File(fromDir, file);
-                                }
-                            });
-                }
-            };
-
-    /** A list of filesets that contain resource configs. */
-    protected List<FileSet> _filesets = Lists.newArrayList();
 }
