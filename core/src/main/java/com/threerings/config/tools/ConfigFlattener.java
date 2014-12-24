@@ -65,8 +65,6 @@ import static com.threerings.ClydeLog.log;
  *
  * <!-- flatten configs for the client -->
  * <target name="flatten" depends="-preptools">
- *   <copy file="${rsrc.dir}/config/manager.properties"
- *         tofile="${clientResource.dir}/config/manager.txt"/>
  *   <java fork="true" classpathref="classpath" failonerror="true"
  *         classname="com.threerings.config.tools.ConfigFlattener">
  *     <jvmarg value="-Djava.awt.headless=true"/>
