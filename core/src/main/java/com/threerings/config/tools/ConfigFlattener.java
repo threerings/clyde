@@ -112,6 +112,16 @@ public class ConfigFlattener
     }
 
     /**
+     * Dump standalone usage information to stderr and exit with an error code.
+     */
+    protected static void errUsageAndExit ()
+    {
+        System.err.println("Args: <rsrcDir> <outDir> [fileExtension (default='.xml')]");
+        System.err.println("If the extension is provided and not '.xml', output will be binary.");
+        System.exit(1);
+    }
+
+    /**
      * A handy ConfigManager that strips all its configs just prior to saving.
      */
     public static class StripOnSaveConfigManager extends ConfigManager
@@ -141,16 +151,6 @@ public class ConfigFlattener
                     PropertyUtil.strip(this, Lists.newArrayList(configs));
             return super.toSaveableArray(groupClass, stripList, arrayElementClass);
         }
-    }
-
-    /**
-     * Dump standalone usage information to stderr and exit with an error code.
-     */
-    protected static void errUsageAndExit ()
-    {
-        System.err.println("Args: <rsrcDir> <outDir> [fileExtension (default='.xml')]");
-        System.err.println("If the extension is provided and not '.xml', output will be binary.");
-        System.exit(1);
     }
 
     /**
