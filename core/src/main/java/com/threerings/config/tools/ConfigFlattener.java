@@ -285,6 +285,35 @@ public class ConfigFlattener
     {
         Properties props = new Properties();
         props.load(new FileReader(source));
+
+        // and remove stripped classes
+        stripManagerProperties(props);
+
+        // Oh for fuck's sake: Properties always saves a timestamp comment,
+        // so let's read-in the old version and make sure something's actually changed.
+        try {
+            Properties oldProps = new Properties();
+            oldProps.load(new FileReader(dest));
+            if (props.equals(oldProps)) {
+                log.debug("No change to manager.properties, not writing file.");
+                return;
+            }
+
+        } catch (Exception e) {
+            log.info("Unable to read existing props. Proceeding.", "file", dest, e);
+            // and, proceed with writing the new file
+        }
+
+        props.store(new FileWriter(dest),
+                " Generated. Do not edit!\n" +
+                " (from " + sourceIdentifier + ")\n\n");
+    }
+
+    /**
+     * Alter the manager.properties to remove stripped classes.
+     */
+    public void stripManagerProperties (Properties props)
+    {
         List<String> types = Lists.newArrayList(
                 StringUtil.parseStringArray(props.getProperty("types", "")));
         types.add("resource");
@@ -302,22 +331,12 @@ public class ConfigFlattener
                     }
 
                 } catch (ClassNotFoundException e) {
-                    throw new IOException("This shouldn't happen", e);
+                    throw new RuntimeException("This shouldn't happen", e);
                 }
             }
             if (changed) {
                 props.put(key, StringUtil.joinEscaped(Iterables.toArray(classes, String.class)));
             }
-        }
-
-        // Oh for fuck's sake: Properties always saves a timestamp comment,
-        // so let's read-in the old version and make sure something's actually changed.
-        Properties oldProps = new Properties();
-        oldProps.load(new FileReader(dest));
-        if (!props.equals(oldProps)) {
-            props.store(new FileWriter(dest),
-                    " Generated. Do not edit!\n" +
-                    " (from " + sourceIdentifier + ")\n\n");
         }
     }
 
