@@ -168,31 +168,20 @@ public class ConfigFlattener
     public void flattenAndStrip (String rsrcDir, String outDir, String extension, boolean isXML)
         throws IOException
     {
-        ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
-        File configDir = rsrcmgr.getResourceFile("config/");
+        FlattenContext ctx = new FlattenContext(rsrcDir, outDir);
 
-        Preconditions.checkArgument(configDir.isDirectory(), "%s isn't a directory", configDir);
-        Preconditions.checkArgument(
-                new File(configDir, "manager.properties").exists() ||
-                new File(configDir, "manager.txt").exists(), "cannot find manager descriptor");
-
-        File destDir = new File(outDir);
-        Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
-
-        MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        ConfigManager cfgmgr = new StripOnSaveConfigManager(rsrcmgr, msgmgr, "config/");
-//        log.info("Starting up...");
-        cfgmgr.init();
-        flatten(cfgmgr);
+        flatten(ctx.cfgmgr);
 
         // Save everything!
 //        log.info("Saving...");
-        cfgmgr.saveAll(destDir, extension, isXML);
+        ctx.cfgmgr.saveAll(ctx.destDir, extension, isXML);
 //        log.info("Done!");
 
         // also copy the manager properties over
-        copyManagerProperties("rsrc/config/manager.properties",
-                new File(configDir, "manager.properties"), new File(destDir, "manager.txt"));
+        copyManagerProperties(
+                "rsrc/config/manager.properties",
+                new File(ctx.configDir, "manager.properties"),
+                new File(ctx.destDir, "manager.txt"));
     }
 
     /**
@@ -368,6 +357,43 @@ public class ConfigFlattener
             }
         }
         return 0;
+    }
+
+    /**
+     * Helper for configuring and validating the source and dest directories.
+     */
+    protected static class FlattenContext
+    {
+        /** The config manager. */
+        public final StripOnSaveConfigManager cfgmgr;
+
+        /** The directory where the source configs are found. */
+        public final File configDir;
+
+        /** The destination directory. */
+        public final File destDir;
+
+        /**
+         */
+        public FlattenContext (String rsrcDir, String outDir)
+            throws IOException
+        {
+            ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
+            this.configDir = rsrcmgr.getResourceFile("config/");
+
+            Preconditions.checkArgument(configDir.isDirectory(), "%s isn't a directory", configDir);
+            Preconditions.checkArgument(
+                    new File(configDir, "manager.properties").exists() ||
+                    new File(configDir, "manager.txt").exists(), "cannot find manager descriptor");
+
+            this.destDir = new File(outDir);
+            Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
+
+            MessageManager msgmgr = new MessageManager("rsrc.i18n");
+            this.cfgmgr = new StripOnSaveConfigManager(rsrcmgr, msgmgr, "config/");
+//            log.info("Starting up...");
+            cfgmgr.init();
+        }
     }
 
     /**
