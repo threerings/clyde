@@ -120,6 +120,18 @@ public class Introspector
 
     /**
      * Finds the editor message bundle for the supplied class.
+     *
+     * <P><em>NOTE</em>: if the class itself doesn't have an EditorMessageBundle annotation,
+     * this code attempts to find the annotation on the package, climbing up the package
+     * hierarchy one level at a time.
+     *
+     * <P>However, this is fundamentally flawed. Packages are not resolved until a class
+     * within them is, nor is there a way to force the resolution of a package. So the results
+     * of this method will change over the lifetime of the JVM depending on what other
+     * code has been running.
+     *
+     * <P>That is a shit situation. My recommendation is to create a package-info.java
+     * directly in the desired package, and duplicate the annotation as necessary.
      */
     protected static String findMessageBundle (Class<?> clazz)
     {
