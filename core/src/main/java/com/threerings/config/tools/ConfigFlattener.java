@@ -168,7 +168,7 @@ public class ConfigFlattener
     public void flattenAndStrip (String rsrcDir, String outDir, String extension, boolean isXML)
         throws IOException
     {
-        FlattenContext ctx = new FlattenContext(rsrcDir, outDir);
+        FlattenContext ctx = new FlattenContext(rsrcDir, outDir, true);
 
         flatten(ctx.cfgmgr);
 
@@ -365,7 +365,7 @@ public class ConfigFlattener
     protected static class FlattenContext
     {
         /** The config manager. */
-        public final StripOnSaveConfigManager cfgmgr;
+        public final ConfigManager cfgmgr;
 
         /** The directory where the source configs are found. */
         public final File configDir;
@@ -375,7 +375,7 @@ public class ConfigFlattener
 
         /**
          */
-        public FlattenContext (String rsrcDir, String outDir)
+        public FlattenContext (String rsrcDir, String outDir, boolean stripOnSave)
             throws IOException
         {
             ResourceManager rsrcmgr = new ResourceManager(rsrcDir);
@@ -390,7 +390,9 @@ public class ConfigFlattener
             Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
 
             MessageManager msgmgr = new MessageManager("rsrc.i18n");
-            this.cfgmgr = new StripOnSaveConfigManager(rsrcmgr, msgmgr, "config/");
+            this.cfgmgr = stripOnSave
+                ? new StripOnSaveConfigManager(rsrcmgr, msgmgr, "config/")
+                : new ConfigManager(rsrcmgr, msgmgr, "config/");
 //            log.info("Starting up...");
             cfgmgr.init();
         }
