@@ -319,7 +319,7 @@ public abstract class BehaviorLogic extends Logic
             super.transfer(source, refs);
 
             WanderCollision wsource = (WanderCollision)source;
-            _action = wsource._action;
+            _action = (ActionLogic)refs.get(wsource._action);
         }
 
         @Override
