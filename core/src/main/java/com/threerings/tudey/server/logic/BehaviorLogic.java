@@ -303,6 +303,36 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Handles the wander collision behavior.
+     */
+    public static class WanderCollision extends BaseWander
+    {
+        @Override
+        public void penetratedEnvironment (Vector2f penetration)
+        {
+            _action.execute(_scenemgr.getTimestamp(), _agent);
+        }
+
+        @Override
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            WanderCollision wsource = (WanderCollision)source;
+            _action = wsource._action;
+        }
+
+        @Override
+        protected void didInit ()
+        {
+            super.didInit();
+            _action = createAction(((BehaviorConfig.WanderCollision)_config).action, _agent);
+        }
+
+        protected ActionLogic _action;
+    }
+
+    /**
      * Handles the grid wander behavior.
      */
     public static class GridWander extends BaseWander

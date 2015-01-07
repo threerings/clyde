@@ -47,8 +47,8 @@ public class BehaviorConfig extends ParameterizedConfig
       * Contains the actual implementation of the behavior.
       */
     @EditorTypes({
-        Original.class, Derived.class, Wander.class, GridWander.class, Patrol.class,
-        Follow.class, Random.class, Scripted.class, Combined.class })
+        Original.class, Derived.class, Wander.class, WanderCollision.class, GridWander.class,
+        Patrol.class, Follow.class, Random.class, Scripted.class, Combined.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -169,6 +169,21 @@ public class BehaviorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Wander";
+        }
+    }
+
+    /**
+     * Wanders around randomly, runs an action when it collides.
+     */
+    public static class WanderCollision extends BaseWander
+    {
+        @Editable(nullable=true)
+        public ActionConfig action;
+
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$WanderCollision";
         }
     }
 
