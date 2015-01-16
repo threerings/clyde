@@ -441,7 +441,7 @@ public class TableArrayListEditor extends ArrayListEditor
         bpanel.add(_add = new JButton(is2DArray() ?
             getActionLabel("new", "row") : _msgs.get("m.new")));
         _add.addActionListener(this);
-        if (is2DArray()) {
+        if (is2DArray() && !_fixed) {
             bpanel.add(_addColumn = new JButton(getActionLabel("new", "column")));
             _addColumn.addActionListener(this);
         }
@@ -732,7 +732,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
         _delete.setEnabled(column || row && getLength() > _min);
         _copy.setEnabled(column || row && getLength() < _max);
-        _add.setEnabled(getLength() < _max);
+        _add.setEnabled(!_fixed && getLength() < _max);
         if (_opanel != null) {
             if (selection == null) {
                 _opanel.setVisible(false);

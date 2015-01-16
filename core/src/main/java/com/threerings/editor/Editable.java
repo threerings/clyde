@@ -106,6 +106,9 @@ public @interface Editable
     /** For String, or list and array properties, the maximum size. */
     int maxsize () default +Integer.MAX_VALUE;
 
+    /** For list and array properties, fix the size of the array/list. */
+    boolean fixedsize () default false;
+
     /** For object properties, whether or not the property can be null. */
     boolean nullable () default false;
 

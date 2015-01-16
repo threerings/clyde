@@ -366,6 +366,14 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Returns if we're a fixed sized array/list.
+     */
+    public boolean isFixedSize ()
+    {
+        return getAnnotation().fixedsize();
+    }
+
+    /**
      * Returns a reference to the {@link Editable} annotation, which contains simple constraints.
      */
     public Editable getAnnotation ()

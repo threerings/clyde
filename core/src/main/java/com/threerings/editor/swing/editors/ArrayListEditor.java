@@ -74,6 +74,7 @@ public abstract class ArrayListEditor extends PropertyEditor
     {
         _min = getMinSize();
         _max = getMaxSize();
+        _fixed = isFixedSize();
 
         makeCollapsible(_ctx, getPropertyLabel(), false);
     }
@@ -176,7 +177,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             list.add(value);
             _property.set(_object, values);
         }
-        _add.setEnabled(getLength() < _max);
+        _add.setEnabled(!_fixed && getLength() < _max);
         fireStateChanged();
     }
 
@@ -201,7 +202,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             values.add(idx + 1, DeepUtil.copy(values.get(idx)));
             _property.set(_object, values);
         }
-        _add.setEnabled(getLength() < _max);
+        _add.setEnabled(!_fixed && getLength() < _max);
         fireStateChanged();
     }
 
@@ -224,7 +225,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             values.remove(idx);
             _property.set(_object, values);
         }
-        _add.setEnabled(getLength() < _max);
+        _add.setEnabled(!_fixed && getLength() < _max);
         fireStateChanged();
     }
 
@@ -241,6 +242,9 @@ public abstract class ArrayListEditor extends PropertyEditor
 
     /** The minimum and maximum sizes of the list. */
     protected int _min, _max;
+
+    /** A fixed size list. */
+    protected boolean _fixed;
 
     /** The add value button. */
     protected JButton _add;

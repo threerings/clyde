@@ -200,6 +200,22 @@ public class PropertyUtil
     }
 
     /**
+     * Finds if it's fixed size by walking up the lineage.
+     *
+     * @param lineage the property lineage, with the actual property at the end.
+     */
+    public static boolean isFixedSize (Property[] lineage)
+    {
+        for (int ii = lineage.length - 1; ii >= 0; ii--) {
+            if (lineage[ii].isFixedSize()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * Get a predicate for filtering raw configs given the specified constraints.
      */
     public static Predicate<ManagedConfig> getRawConfigPredicate (ReferenceConstraints constraints)

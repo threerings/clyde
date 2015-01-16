@@ -363,6 +363,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
     }
 
     /**
+     * Checks if fixed size by walking up the lineage.
+     */
+    protected boolean isFixedSize ()
+    {
+        return PropertyUtil.isFixedSize(_lineage);
+    }
+
+    /**
      * Checks whether the supplied type can be edited in the cell of a table.
      */
     protected static boolean isTableCellType (Class<?> type)
