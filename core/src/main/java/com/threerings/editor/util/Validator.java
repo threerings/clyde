@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.samskivert.util.StringUtil;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -39,6 +41,7 @@ import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.util.ConfigId;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.FileConstraints;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 
@@ -183,7 +186,7 @@ public class Validator
         Editable annotation = property.getAnnotation();
         String editor = annotation.editor();
         if (editor.equals("resource")) {
-            _resources.add((String)value);
+            addResource((String)value, property, _resources);
             return;
         }
         if (editor.equals("config")) {
@@ -344,6 +347,31 @@ public class Validator
                 ConfigGroup.getName(configId.clazz) + ": " + configId.name);
     }
 
+    /**
+     * Adds a resource to the resources set.  If the resource has a stripped extension, it will
+     * postfix an extension if a there's a single valid extension available.
+     */
+    protected void addResource (String value, Property property, Set<String> resources)
+    {
+        FileConstraints constraints = property.getAnnotation(FileConstraints.class);
+        if (constraints != null && constraints.stripExtension()) {
+            // slap the extension back on..
+            String[] exts = constraints.extensions();
+            if (exts.length == 1) {
+                value += exts[0];
+
+            } else {
+                output("resource has ambiguous extensions [prop=" + property +
+                        ", count=" + exts.length +
+                        ", exts='" + StringUtil.join(exts) + "']");
+                // but, we will add it anyway and warn again later when we can't find the
+                // file
+            }
+        }
+
+        resources.add(value);
+    }
+
     /** Our output stream. */
     protected final PrintStream _out;
 
@@ -351,7 +379,7 @@ public class Validator
     protected Deque<String> _wheres = new ArrayDeque<String>();
 
     /** The gathered resources while validating the current object. */
-    protected List<String> _resources = Lists.newArrayList();
+    protected Set<String> _resources = Sets.newHashSet();
 
     /** The gathered configs while validating the current object. */
     protected Set<ConfigId> _configs = Sets.newHashSet();
