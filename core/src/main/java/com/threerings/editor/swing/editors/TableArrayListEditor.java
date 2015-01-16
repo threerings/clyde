@@ -730,8 +730,8 @@ public class TableArrayListEditor extends ArrayListEditor
             row = (selection.right == -1);
             column = (selection.left == -1);
         }
-        _delete.setEnabled(column || row && getLength() > _min);
-        _copy.setEnabled(column || row && getLength() < _max);
+        _delete.setEnabled(!_fixed && (column || row && getLength() > _min));
+        _copy.setEnabled(!_fixed && (column || row && getLength() < _max));
         _add.setEnabled(!_fixed && getLength() < _max);
         if (_opanel != null) {
             if (selection == null) {

@@ -337,7 +337,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             if (_raise != null) {
                 _raise.setEnabled(idx > 0);
                 _lower.setEnabled(idx < count - 1);
-                _delete.setEnabled(count > _min);
+                _delete.setEnabled(!_fixed && count > _min);
             }
             updateBorder();
         }
