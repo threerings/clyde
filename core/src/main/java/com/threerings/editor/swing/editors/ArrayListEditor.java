@@ -31,10 +31,13 @@ import java.awt.event.ActionListener;
 import java.lang.reflect.Array;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+
+import com.google.common.collect.ImmutableList;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -42,6 +45,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.export.ObjectMarshaller;
 import com.threerings.util.DeepUtil;
 
 import static com.threerings.editor.Log.log;
@@ -161,20 +165,24 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, nvalues);
 
         } else {
-            List<?> values = (List<?>)_property.get(_object);
+            @SuppressWarnings("unchecked")
+            List<Object> values = (List<Object>)_property.get(_object);
             if (values == null) {
                 if (type == List.class) {
                     type = ArrayList.class;
                 }
                 try {
-                    _property.set(_object, values = (List<?>)type.newInstance());
+                    @SuppressWarnings("unchecked")
+                    List<Object> newList = (List<Object>)type.newInstance();
+                    _property.set(_object, values = newList);
                 } catch (Exception e) {
                     log.warning("Failed to instantiate list [class=" + type + "].", e);
                     return;
                 }
+            } else if (values == Collections.EMPTY_LIST || values instanceof ImmutableList) {
+                values = new ArrayList<Object>(values);
             }
-            @SuppressWarnings("unchecked") List<Object> list = (List<Object>)values;
-            list.add(value);
+            values.add(value);
             _property.set(_object, values);
         }
         _add.setEnabled(!_fixed && getLength() < _max);
@@ -223,6 +231,16 @@ public abstract class ArrayListEditor extends PropertyEditor
         } else {
             List<?> values = (List<?>)_property.get(_object);
             values.remove(idx);
+            if (values.isEmpty()) {
+                // if we've removed the last element, possibly reset to the prototype value
+                Object proto = ObjectMarshaller.getObjectMarshaller(_object.getClass())
+                        .getPrototype();
+                List<?> protoValue = (List<?>)_property.get(proto);
+                if (protoValue == null || protoValue == Collections.EMPTY_LIST ||
+                        protoValue == ImmutableList.of()) {
+                    values = protoValue;
+                }
+            }
             _property.set(_object, values);
         }
         _add.setEnabled(!_fixed && getLength() < _max);
