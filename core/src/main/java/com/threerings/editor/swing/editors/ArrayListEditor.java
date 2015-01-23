@@ -142,9 +142,11 @@ public abstract class ArrayListEditor extends PropertyEditor
         }
         if (values.getClass().isArray()) {
             Array.set(values, idx, value);
+
         } else {
-            @SuppressWarnings("unchecked") List<Object> list = (List<Object>)values;
+            List<Object> list = getListPropertyForModification(_property.getType());
             list.set(idx, value);
+            _property.set(_object, list);
         }
     }
 
@@ -165,23 +167,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, nvalues);
 
         } else {
-            @SuppressWarnings("unchecked")
-            List<Object> values = (List<Object>)_property.get(_object);
-            if (values == null) {
-                if (type == List.class) {
-                    type = ArrayList.class;
-                }
-                try {
-                    @SuppressWarnings("unchecked")
-                    List<Object> newList = (List<Object>)type.newInstance();
-                    _property.set(_object, values = newList);
-                } catch (Exception e) {
-                    log.warning("Failed to instantiate list [class=" + type + "].", e);
-                    return;
-                }
-            } else if (values == Collections.EMPTY_LIST || values instanceof ImmutableList) {
-                values = new ArrayList<Object>(values);
-            }
+            List<Object> values = getListPropertyForModification(type);
             values.add(value);
             _property.set(_object, values);
         }
@@ -205,8 +191,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, nvalues);
 
         } else {
-            @SuppressWarnings("unchecked") List<Object> values =
-                (List<Object>)_property.get(_object);
+            List<Object> values = getListPropertyForModification(type);
             values.add(idx + 1, DeepUtil.copy(values.get(idx)));
             _property.set(_object, values);
         }
@@ -229,13 +214,14 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, nvalues);
 
         } else {
-            List<?> values = (List<?>)_property.get(_object);
+            List<Object> values = getListPropertyForModification(type);
             values.remove(idx);
             if (values.isEmpty()) {
                 // if we've removed the last element, possibly reset to the prototype value
                 Object proto = ObjectMarshaller.getObjectMarshaller(_object.getClass())
                         .getPrototype();
-                List<?> protoValue = (List<?>)_property.get(proto);
+                @SuppressWarnings("unchecked")
+                List<Object> protoValue = (List<Object>)_property.get(proto);
                 if (protoValue == null || protoValue == Collections.EMPTY_LIST ||
                         protoValue == ImmutableList.of()) {
                     values = protoValue;
@@ -245,6 +231,32 @@ public abstract class ArrayListEditor extends PropertyEditor
         }
         _add.setEnabled(!_fixed && getLength() < _max);
         fireStateChanged();
+    }
+
+    /**
+     * Get the property, as a List<Object>, such that it has been prepared for modification,
+     * if necessary.
+     */
+    protected List<Object> getListPropertyForModification (Class<?> type)
+    {
+        @SuppressWarnings("unchecked")
+        List<Object> values = (List<Object>)_property.get(_object);
+        if (values == null) {
+            if (type == List.class) {
+                type = ArrayList.class;
+            }
+            try {
+                @SuppressWarnings("unchecked")
+                List<Object> newList = (List<Object>)type.newInstance();
+                values = newList;
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to instantiate list [class=" + type + "]", e);
+            }
+
+        } else if (values == Collections.EMPTY_LIST || values instanceof ImmutableList) {
+            values = new ArrayList<Object>(values);
+        }
+        return values;
     }
 
     /**
