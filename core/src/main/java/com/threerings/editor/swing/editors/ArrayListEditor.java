@@ -217,14 +217,13 @@ public abstract class ArrayListEditor extends PropertyEditor
             List<Object> values = getListPropertyForModification(type);
             values.remove(idx);
             if (values.isEmpty()) {
-                // if we've removed the last element, possibly reset to the prototype value
+                // If we've removed the last element and the prototype value is null, reset to that.
+                // (There's no need to reset an ArrayList back to Collections.emptyList() because
+                // they will be equal() anyway and so won't export.)
                 Object proto = ObjectMarshaller.getObjectMarshaller(_object.getClass())
                         .getPrototype();
-                @SuppressWarnings("unchecked")
-                List<Object> protoValue = (List<Object>)_property.get(proto);
-                if (protoValue == null || protoValue == Collections.EMPTY_LIST ||
-                        protoValue == ImmutableList.of()) {
-                    values = protoValue;
+                if (null == _property.get(proto)) {
+                    values = null;
                 }
             }
             _property.set(_object, values);
