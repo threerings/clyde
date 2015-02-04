@@ -289,7 +289,8 @@ public class ConfigFlattener
             }
 
         } catch (Exception e) {
-            log.info("Unable to read existing props. Proceeding.", "file", dest, e);
+            log.info("Unable to read existing props. Proceeding.",
+                    "file", dest, "message", e.getMessage());
             // and, proceed with writing the new file
         }
 
