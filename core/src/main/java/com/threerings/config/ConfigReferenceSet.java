@@ -52,20 +52,21 @@ public abstract class ConfigReferenceSet
         return name != null && add(clazz, new ConfigReference<T>(name));
     }
 
-    /**
-     * Adds a list of references to the set, by name only.
-     */
-    public <T extends ManagedConfig> boolean addAll (Class<T> clazz, @Nullable List<String> names)
-    {
-        if (names == null) {
-            return false;
-        }
-        boolean anyAdded = false;
-        for (String name : names) {
-            anyAdded |= add(clazz, name);
-        }
-        return anyAdded;
-    }
+//    /**
+//     * Adds a list of references to the set, by name only.
+//     */
+//    public <T extends ManagedConfig> boolean addAllNames (
+//            Class<T> clazz, @Nullable List<String> names)
+//    {
+//        if (names == null) {
+//            return false;
+//        }
+//        boolean anyAdded = false;
+//        for (String name : names) {
+//            anyAdded |= add(clazz, name);
+//        }
+//        return anyAdded;
+//    }
 
     /**
      * Convenience method for adding an entire list of refs.
