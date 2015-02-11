@@ -174,17 +174,22 @@ public class EditorPanel extends BaseEditorPanel
             return;
         }
 
-        // if the object is the same class as the current object, we can reuse the existing editors
-        Class<?> oclazz = (_object == null) ? null : _object.getClass();
-        Class<?> nclazz = (object == null) ? null : object.getClass();
+        // COMMENTED OUT: Ray Greenwell 2015 Feb 11
+        // This has caused us various issues over the years, and it's a completely pointless
+        // optimization. It's ok if we wholly remove and re-create all the editors..
+        // - this only happens in response to the user making a selection
+        // - we're editing, not in a game render loop
+//        // if the object is the same class as the current object, we can reuse the existing editors
+//        Class<?> oclazz = (_object == null) ? null : _object.getClass();
+//        Class<?> nclazz = (object == null) ? null : object.getClass();
         super.setObject(object);
-        if (oclazz == nclazz) {
-            for (PropertyEditor editor : _editors) {
-                editor.setObject(_object);
-            }
-            updateDynamicProperties();
-            return;
-        }
+//        if (oclazz == nclazz) {
+//            for (PropertyEditor editor : _editors) {
+//                editor.setObject(_object);
+//            }
+//            updateDynamicProperties();
+//            return;
+//        }
 
         // remove any existing editors
         removeAll();
