@@ -485,9 +485,6 @@ public class ConfigFlattener
             try {
                 if (!graph.dependsOn(id, _current)) {
                     graph.addDependency(id, _current);
-                } else {
-                    // TEMP debugging
-                    log.info("Didn't add dependency: already dependended.");
                 }
             } catch (Exception e) {
                 log.warning("Oh fugging shit",
