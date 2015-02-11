@@ -31,8 +31,12 @@ import java.awt.event.ActionListener;
 import javax.swing.JLabel;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
 
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.ManagedConfig;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigBox;
 
@@ -73,7 +77,23 @@ public class ConfigEditor extends PropertyEditor
         }
         _box = new ConfigBox(
                 _msgs, groups, _property.nullable(),
-                _property.getAnnotation(ReferenceConstraints.class));
+                _property.getAnnotation(ReferenceConstraints.class),
+                new Supplier<Predicate<? super ManagedConfig>>() {
+                            public Predicate<? super ManagedConfig> get () {
+                                // if we're not editing a ManagedConfig, anything goes
+                                if (!(_object instanceof ManagedConfig)) {
+                                    return Predicates.alwaysTrue();
+                                }
+                                // if we are, don't let ourselves be referenced
+                                final ManagedConfig ourCfg = (ManagedConfig)_object;
+                                return new Predicate<ManagedConfig>() {
+                                    public boolean apply (ManagedConfig cfg) {
+                                        return (ourCfg.getName() != cfg.getName()) ||
+                                                (ourCfg.getConfigGroup() != cfg.getConfigGroup());
+                                    }
+                                };
+                            }
+                        });
         _box.addActionListener(this);
         add(_box);
     }

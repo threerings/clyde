@@ -26,11 +26,16 @@
 package com.threerings.config.swing;
 
 import java.util.HashSet;
+
+import javax.annotation.Nullable;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
 
 import com.samskivert.util.QuickSort;
@@ -56,14 +61,16 @@ public class ConfigBox extends JComboBox
      */
     public ConfigBox (
             MessageBundle msgs, ConfigGroup<?>[] groups, boolean nullable,
-            ReferenceConstraints constraints)
+            ReferenceConstraints constraints,
+            @Nullable Supplier<Predicate<? super ManagedConfig>> additionalFilterSupplier)
     {
         _msgs = msgs;
         @SuppressWarnings("unchecked")
         ConfigGroup<ManagedConfig>[] mgroups = (ConfigGroup<ManagedConfig>[])groups;
         _groups = mgroups;
-        _filter = PropertyUtil.getRawConfigPredicate(constraints);
         _nullable = nullable;
+        _filter = PropertyUtil.getRawConfigPredicate(constraints);
+        _additionalFilter = additionalFilterSupplier;
 
         updateModel();
     }
@@ -123,8 +130,14 @@ public class ConfigBox extends JComboBox
     {
         // gather all config names into a set
         HashSet<String> names = new HashSet<String>();
+        Predicate<? super ManagedConfig> curFilter; // cannot convert to ternary: compiler bug.
+        if (_additionalFilter == null) {
+            curFilter = _filter;
+        } else {
+            curFilter = Predicates.and(_filter, _additionalFilter.get());
+        }
         for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : Iterables.filter(group.getRawConfigs(), _filter)) {
+            for (ManagedConfig config : Iterables.filter(group.getRawConfigs(), curFilter)) {
                 names.add(config.getName());
             }
         }
@@ -185,12 +198,15 @@ public class ConfigBox extends JComboBox
     /** The message bundle to use for translation. */
     protected MessageBundle _msgs;
 
+    /** Whether or not the null value is selectable. */
+    protected boolean _nullable;
+
     /** The configuration groups. */
     protected ConfigGroup<ManagedConfig>[] _groups;
 
     /** The filter used for configs. */
     protected Predicate<ManagedConfig> _filter;
 
-    /** Whether or not the null value is selectable. */
-    protected boolean _nullable;
+    /** A supplier of additional filters. */
+    protected Supplier<Predicate<? super ManagedConfig>> _additionalFilter;
 }
