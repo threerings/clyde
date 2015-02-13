@@ -10,6 +10,8 @@ import java.io.FileWriter;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 import java.util.Iterator;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -27,6 +30,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 import com.google.common.primitives.Primitives;
 
 import com.samskivert.util.DependencyGraph;
@@ -48,6 +52,7 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ConfigToolUtil;
 import com.threerings.config.util.ConfigId;
 
+import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.PropertyUtil;
 
@@ -190,6 +195,9 @@ public class ConfigFlattener
      */
     public void flatten (ConfigManager cfgmgr)
     {
+        DependentReferenceSet refSet = new DependentReferenceSet();
+        refSet.prepopulate(cfgmgr);
+
         // turn all derived configs into their "original" form
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
             for (DerivedConfig der : Lists.newArrayList(
@@ -199,7 +207,6 @@ public class ConfigFlattener
             }
         }
 
-        DependentReferenceSet refSet = new DependentReferenceSet();
         refSet.populate(cfgmgr);
 
         // now go through each ref in dependency ordering
@@ -208,13 +215,14 @@ public class ConfigFlattener
         while (!refSet.graph.isEmpty()) {
             count++;
             ConfigId id = refSet.graph.removeAvailableElement();
-            //log.info("Checking " + id.name);
+            //log.info("Checking " + id);
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
                     (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
             ManagedConfig cfg = group.getConfig(id.name);
             List<ConfigReference<?>> list = refSet.refs.get(id);
             if (!list.isEmpty()) {
+                //log.info("References for that: " + list);
                 Set<String> paramNames;
                 Map<ArgumentMap, String> newNames;
                 if (cfg instanceof ParameterizedConfig) {
@@ -411,6 +419,21 @@ public class ConfigFlattener
         /** The references that point to a particular config, indexed by config. */
         public final ListMultimap<ConfigId, ConfigReference<?>> refs = ArrayListMultimap.create();
 
+        public final Table<ConfigId, String, Class<ManagedConfig>> refParameterClasses =
+                HashBasedTable.create();
+
+        public void prepopulate (ConfigManager cfgmgr)
+        {
+            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+                Class<? extends ManagedConfig> clazz = group.getConfigClass();
+                for (ParameterizedConfig cfg :
+                        Iterables.filter(group.getRawConfigs(), ParameterizedConfig.class)) {
+                    populateRefParameterClasses(clazz, cfg);
+                }
+            }
+            log.info("Prepopulated: " + refParameterClasses);
+        }
+
         /**
          * Populate this reference set with all the configs in the specified cfgmgr.
          */
@@ -424,7 +447,10 @@ public class ConfigFlattener
                 _cfgClasses.add(clazz);
                 for (ManagedConfig cfg : group.getRawConfigs()) {
                     graph.add(new ConfigId(clazz, cfg.getName()));
-                    _allSeen.add(new ConfigId(clazz, cfg.getName()));
+                    if (!_allSeen.add(new ConfigId(clazz, cfg.getName()))) {
+                        log.warning("Already added to allseen: " +
+                                new ConfigId(clazz, cfg.getName()));
+                    }
                     count++;
                 }
             }
@@ -447,6 +473,40 @@ public class ConfigFlattener
         }
 
         /**
+         * Determine the config reference class for parameters in this config.
+         */
+        protected void populateRefParameterClasses (
+                Class<? extends ManagedConfig> clazz, ParameterizedConfig cfg)
+        {
+            ConfigId id = new ConfigId(clazz, cfg.getName());
+            for (Parameter param : cfg.parameters) {
+                Property prop = param.getProperty(cfg);
+                addParameterClass(id, param.name, prop.getGenericType());
+            }
+        }
+
+        protected void addParameterClass (ConfigId id, String name, Type type)
+        {
+            if (type instanceof ParameterizedType) {
+                ParameterizedType ptype = (ParameterizedType)type;
+                Type rawType = ptype.getRawType();
+                if (ConfigReference.class.equals(rawType)) {
+                    @SuppressWarnings("unchecked")
+                    Class<ManagedConfig> clazz =
+                            (Class<ManagedConfig>)ptype.getActualTypeArguments()[0];
+                    refParameterClasses.put(id, name, clazz);
+
+                } else if (List.class.equals(rawType)) {
+                    addParameterClass(id, name, ptype.getActualTypeArguments()[0]);
+
+                } else {
+                    log.info("What's that?", "rawType", rawType);
+                }
+            }
+                // TODO: handle Arrays?
+        }
+
+        /**
          * Add a newly-created config to the reference set.
          */
         public void addNewConfig (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
@@ -454,8 +514,12 @@ public class ConfigFlattener
             _current = new ConfigId(clazz, cfg.getName());
             try {
                 graph.add(_current);
-                _allSeen.add(_current);
+                if (!_allSeen.add(_current)) {
+                    log.warning("Already added to allseen; " + _current);
+                }
+                //System.err.println("Adding refs for " + _current);
                 ConfigToolUtil.getUpdateReferences(cfg, this);
+                //System.err.println("           done "  + _current);
             } finally {
                 _current = null;
             }
@@ -492,6 +556,35 @@ public class ConfigFlattener
                     "current", _current, "seen current?", _allSeen.contains(_current),
                     e);
             }
+
+            // recurse and add any arguments inside the arguments
+            ConfigId oldCurrent = _current;
+            _current = id;
+            try {
+                for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
+                    Object value = entry.getValue();
+                    Class<ManagedConfig> pclazz = refParameterClasses.get(id, entry.getKey());
+                    if (pclazz == null) {
+                        continue;
+                    }
+                    if (value instanceof ConfigReference<?>) {
+                        @SuppressWarnings("unchecked")
+                        ConfigReference<ManagedConfig> pref = (ConfigReference<ManagedConfig>)value;
+                        add(pclazz, pref);
+
+                    } else if (value instanceof List<?>) {
+                        @SuppressWarnings("unchecked")
+                        List<ConfigReference<ManagedConfig>> list =
+                                (List<ConfigReference<ManagedConfig>>)value;
+                        for (ConfigReference<ManagedConfig> pref : list) {
+                            add(pclazz, pref);
+                        }
+                    }
+                }
+            } finally {
+                _current = oldCurrent;
+            }
+
             return true;
         }
 
