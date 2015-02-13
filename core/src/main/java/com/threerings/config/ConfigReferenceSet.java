@@ -113,6 +113,7 @@ public abstract class ConfigReferenceSet
             // NOTE: this is fucked because it does not add references that are *arguments*
             // in the specified reference. We can't just add them here, because of type
             // erasure (we don't know the clazz).
+            // Or, an argument could be a List or array that contains references!
             return (ref != null) && _refs.put(clazz, ref);
         }
 
