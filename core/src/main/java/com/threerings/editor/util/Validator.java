@@ -387,7 +387,9 @@ public class Validator
         {
             this.path = path;
             this.extensions = extensions;
-            Arrays.sort(this.extensions);
+            if (this.extensions != null) {
+                Arrays.sort(this.extensions);
+            }
         }
 
         /**
