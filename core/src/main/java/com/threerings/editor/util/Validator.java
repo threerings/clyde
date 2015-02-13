@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.samskivert.util.StringUtil;
@@ -328,11 +329,10 @@ public class Validator
                 }
             }
         }
-        ResourceManager rsrcmgr = cfgmgr.getResourceManager();
-        for (String resource : _resources) {
-            if (!rsrcmgr.getResourceFile(resource).exists()) {
-                output("references missing resource: " + resource);
+        for (Resource resource : _resources) {
+            if (!resource.validate(cfgmgr)) {
                 result = false;
+                output("references missing resource: " + resource);
             }
         }
         return result;
@@ -351,25 +351,101 @@ public class Validator
      * Adds a resource to the resources set.  If the resource has a stripped extension, it will
      * postfix an extension if a there's a single valid extension available.
      */
-    protected void addResource (String value, Property property, Set<String> resources)
+    protected void addResource (String value, Property property, Set<Resource> resources)
     {
         FileConstraints constraints = property.getAnnotation(FileConstraints.class);
         if (constraints != null && constraints.stripExtension()) {
             // slap the extension back on..
             String[] exts = constraints.extensions();
-            if (exts.length == 1) {
-                value += exts[0];
 
-            } else {
-                output("resource has ambiguous extensions [prop=" + property +
-                        ", count=" + exts.length +
-                        ", exts='" + StringUtil.join(exts) + "']");
-                // but, we will add it anyway and warn again later when we can't find the
-                // file
-            }
+            resources.add(createResource(value, exts));
+            return;
+
+            // if (exts.length == 1) {
+            //     value += exts[0];
+
+            // } else {
+            //     output("resource has ambiguous extensions [prop=" + property +
+            //             ", count=" + exts.length +
+            //             ", exts='" + StringUtil.join(exts) + "']");
+            //     // but, we will add it anyway and warn again later when we can't find the
+            //     // file
+            // }
         }
 
-        resources.add(value);
+        resources.add(createResource(value, null));
+    }
+
+    /**
+     * Create resource object.
+     */
+    protected Resource createResource (String path, String[] extensions)
+    {
+        return new Resource(path, extensions);
+    }
+
+    /**
+     * Wrapper class for resource path and extension. Used for validating the resource.
+     */
+    protected class Resource
+    {
+        /** Resource path. */
+        public String path;
+
+        /** Resource potential extensions. If null, extension will be in path variable. */
+        public String[] extensions;
+
+        /** Default constructor. */
+        public Resource (String path, String[] extensions)
+        {
+            this.path = path;
+            this.extensions = extensions;
+            Arrays.sort(this.extensions);
+        }
+
+        /**
+         * Validate the resource.
+         */
+        public boolean validate (ConfigManager cfgmgr)
+        {
+            if (extensions == null) {
+                return validateFullPath(cfgmgr, path);
+            }
+
+            boolean result = false;
+            for (String extension : extensions) {
+                result |= validateFullPath(cfgmgr, path + extension);
+            }
+
+            return result;
+        }
+
+        /**
+         * Validate the specified path with extension.
+         */
+        protected boolean validateFullPath (ConfigManager cfgmgr, String path)
+        {
+            return cfgmgr.getResourceManager().getResourceFile(path).exists();
+        }
+
+        @Override
+        public boolean equals (Object o)
+        {
+            return (o instanceof Resource) && ((Resource)o).path.equals(this.path)
+                && Arrays.equals(((Resource)o).extensions, this.extensions);
+        }
+
+        @Override
+        public int hashCode ()
+        {
+            return Objects.hash(path, this.extensions);
+        }
+
+        @Override
+        public String toString ()
+        {
+            return path + ", " + Arrays.toString(extensions);
+        }
     }
 
     /** Our output stream. */
@@ -379,7 +455,7 @@ public class Validator
     protected Deque<String> _wheres = new ArrayDeque<String>();
 
     /** The gathered resources while validating the current object. */
-    protected Set<String> _resources = Sets.newHashSet();
+    protected Set<Resource> _resources = Sets.newHashSet();
 
     /** The gathered configs while validating the current object. */
     protected Set<ConfigId> _configs = Sets.newHashSet();
