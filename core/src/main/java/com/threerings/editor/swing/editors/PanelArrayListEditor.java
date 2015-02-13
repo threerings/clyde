@@ -98,8 +98,9 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     public String getComponentPath (Component comp, boolean mouse)
     {
         EntryPanel entry = getNextChildComponent(EntryPanel.class, comp);
-        int idx = _panels.getComponentZOrder(entry);
-        return (idx == -1) ? "" : ("[" + idx + "]" + entry.getComponentPath(comp, mouse));
+        return entry == null
+                ? ""
+                : ("[" + entry.getIndex() + "]" + entry.getComponentPath(comp, mouse));
     }
 
     @Override
@@ -138,26 +139,31 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     }
 
     /**
-     * Swaps two values in the list.
+     * Inserts a value in the list at the index, shifting remaining values.
      */
-    protected void swapValues (int idx1, int idx2)
+    protected void insertValue (int idx, int newIdx)
     {
-        Object tmp = getValue(idx1);
-        setValue(idx1, getValue(idx2));
-        setValue(idx2, tmp);
-        _panels.setComponentZOrder(_panels.getComponent(idx1), idx2);
+        int dir = Integer.signum(newIdx - idx);
+        Object tmp = getValue(idx);
+        for (int ii = idx; ii != newIdx; ii += dir) {
+            Object val = getValue(ii + dir);
+            setValue(ii, val);
+            updatePanel((EntryPanel)_panels.getComponent(ii), val);
+        }
+        setValue(newIdx, tmp);
+        updatePanel((EntryPanel)_panels.getComponent(newIdx), tmp);
         fireStateChanged(true);
         updatePanels();
-        updatePaths(idx1, idx2);
+        updatePaths(idx, newIdx);
     }
 
     /**
      * Updates direct paths that reference this location in the array.
      *
-     * @param idx1 The index being modified
-     * @param idx2 The index being swapped, of -1 if idx1 is being removed.
+     * @param idx The index being modified
+     * @param newIdx The index being moved to, of -1 if idx is being removed.
      */
-    protected void updatePaths (int idx1, int idx2)
+    protected void updatePaths (int idx, int newIdx)
     {
         String path = getPropertyPath();
         ParameterizedConfig pc = ObjectUtil.as(getRootObject(), ParameterizedConfig.class);
@@ -165,22 +171,19 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             return;
         }
         Map<String, String> replace;
-        if (idx2 == -1) {
-            ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
-            builder.put(path + "[" + idx1 + "]", "");
-            for (int ii = idx1, nn = _panels.getComponentCount(); ii < nn; ii++) {
-                // shift down
-                builder.put(path + "[" + (ii + 1) + "]", path + "[" + ii + "]");
-            }
-            replace = builder.build();
-
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
+        if (newIdx == -1) {
+            builder.put(pathIndex(path, idx), "");
+            newIdx = _panels.getComponentCount() - 1;
         } else {
-            replace = ImmutableMap.<String, String>builder()
-                // swap
-                .put(path + "[" + idx1 + "]", path + "[" + idx2 + "]")
-                .put(path + "[" + idx2 + "]", path + "[" + idx1 + "]")
-                .build();
+            builder.put(pathIndex(path, idx), pathIndex(path, newIdx));
         }
+        int dir = Integer.signum(idx - newIdx);
+        for (int ii = newIdx; ii != idx; ii += dir) {
+            // shift paths
+            builder.put(pathIndex(path, ii), pathIndex(path, ii + dir));
+        }
+        replace = builder.build();
 
         boolean updated = false;
         for (Parameter param : pc.parameters) {
@@ -195,6 +198,11 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         if (updated) {
             pc.wasUpdated();
         }
+    }
+
+    protected String pathIndex (String path, int idx)
+    {
+        return path + "[" + idx + "]";
     }
 
     /**
@@ -281,6 +289,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
                 _raiseIcon = loadIcon("raise", _ctx);
                 _lowerIcon = loadIcon("lower", _ctx);
                 _deleteIcon = loadIcon("delete", _ctx);
+                _insertIcon = loadIcon("insert", _ctx);
             }
 
             // create the button panel and buttons
@@ -292,6 +301,8 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             tcont.add(_highlight = createButton(_highlightIcon));
             _highlight.addActionListener(this);
             if (!_property.getAnnotation().constant()) {
+                tcont.add(_insert = createButton(_insertIcon));
+                _insert.addActionListener(this);
                 tcont.add(_raise = createButton(_raiseIcon));
                 _raise.addActionListener(this);
                 tcont.add(_lower = createButton(_lowerIcon));
@@ -338,6 +349,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
                 _raise.setEnabled(idx > 0);
                 _lower.setEnabled(idx < count - 1);
                 _delete.setEnabled(!_fixed && count > _min);
+                _insert.setEnabled(!_fixed && getLength() < _max);
             }
             updateBorder();
         }
@@ -348,15 +360,19 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             Object source = event.getSource();
             if (source == _raise) {
                 int idx = getIndex();
-                swapValues(idx, idx - 1);
+                insertValue(idx, idx - 1);
             } else if (source == _lower) {
                 int idx = getIndex();
-                swapValues(idx, idx + 1);
+                insertValue(idx, idx + 1);
             } else if (source == _delete) {
                 removeValue(getIndex());
             } else if (source == _highlight) {
                 _highlighted = !_highlighted;
                 updateBorder();
+            } else if (source == _insert) {
+                int idx = getIndex();
+                addValue();
+                insertValue(getLength() - 1, idx);
             } else { // source == _trigger
                 super.actionPerformed(event);
             }
@@ -371,7 +387,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         /**
          * Returns this entry's array index.
          */
-        protected int getIndex ()
+        public int getIndex ()
         {
             return ListUtil.indexOfRef(_panels.getComponents(), this);
         }
@@ -392,7 +408,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         protected abstract JPanel createPanel (Object value);
 
         /** The action buttons. */
-        protected JButton _raise, _lower, _delete, _highlight;
+        protected JButton _raise, _lower, _delete, _highlight, _insert;
 
         /** The highlighted state. */
         protected boolean _highlighted;
@@ -405,5 +421,5 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
     protected JPanel _panels;
 
     /** Entry panel icons. */
-    protected static Icon _raiseIcon, _lowerIcon, _deleteIcon;
+    protected static Icon _raiseIcon, _lowerIcon, _deleteIcon, _insertIcon;
 }

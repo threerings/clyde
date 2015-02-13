@@ -90,7 +90,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
      */
     protected void boxUpdated (JComboBox box)
     {
-        int idx = _panels.getComponentZOrder(box.getParent().getParent());
+        int idx = ((EntryPanel)box.getParent().getParent()).getIndex();
         setValue(idx, getValues().get(box.getSelectedIndex()));
         fireStateChanged(true);
     }

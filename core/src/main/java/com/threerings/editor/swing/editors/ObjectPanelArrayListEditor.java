@@ -42,7 +42,7 @@ public class ObjectPanelArrayListEditor extends PanelArrayListEditor
     public void stateChanged (ChangeEvent event)
     {
         ObjectPanel panel = (ObjectPanel)event.getSource();
-        int idx = _panels.getComponentZOrder(panel.getParent());
+        int idx = ((EntryPanel)panel.getParent()).getIndex();
         setValue(idx, panel.getValue());
         fireStateChanged(true);
     }

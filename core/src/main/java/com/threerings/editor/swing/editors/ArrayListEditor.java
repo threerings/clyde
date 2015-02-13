@@ -65,9 +65,7 @@ public abstract class ArrayListEditor extends PropertyEditor
     public void actionPerformed (ActionEvent event)
     {
         if (event.getSource() == _add) {
-            Class<?>[] types = _property.getComponentSubtypes();
-            Class<?> type = (types[0] == null) ? types[1] : types[0];
-            addValue(getDefaultInstance(type, _object));
+            addValue();
         } else {
             super.actionPerformed(event);
         }
@@ -148,6 +146,16 @@ public abstract class ArrayListEditor extends PropertyEditor
             list.set(idx, value);
             _property.set(_object, list);
         }
+    }
+
+    /**
+     * Adds the default object to the end of the list.
+     */
+    protected final void addValue ()
+    {
+        Class<?>[] types = _property.getComponentSubtypes();
+        Class<?> type = (types[0] == null) ? types[1] : types[0];
+        addValue(getDefaultInstance(type, _object));
     }
 
     /**
