@@ -35,6 +35,18 @@ import com.google.common.collect.SetMultimap;
 
 /**
  * A set of config references of different types.
+ *
+ * NOTE: <em>Problem!</em> This is incapable of correctly collecting ConfigReferences because the
+ * arguments of a ConfigReference may contain more ConfigReferences, but those will have
+ * their Class lost due to type erasure. We've coped with this deficiency in the past but
+ * if we wanted to correct it..
+ * <ul>
+ *   <li> We could have a new subclass of ConfigReference that contains the Class, and have
+ *        configs and new code use that...</li>
+ *   <li> If we have access to the ConfigManager we can look up the Properties associated with
+ *        each parameter argument and determine the generic type of the ConfigReference. This
+ *        is done by the subclass in ConfigFlattener.</li>
+ * </ul>
  */
 public abstract class ConfigReferenceSet
 {
@@ -71,8 +83,8 @@ public abstract class ConfigReferenceSet
     /**
      * Convenience method for adding an entire list of refs.
      */
-    public <T extends ManagedConfig> boolean addAll
-            (Class<T> clazz, @Nullable List<ConfigReference<T>> list)
+    public <T extends ManagedConfig> boolean addAll (
+            Class<T> clazz, @Nullable List<ConfigReference<T>> list)
     {
         if (list == null) {
             return false;
@@ -87,8 +99,8 @@ public abstract class ConfigReferenceSet
     /**
      * Convenience method for adding an entire array of refs.
      */
-    public <T extends ManagedConfig> boolean addAll
-            (Class<T> clazz, @Nullable ConfigReference<T>[] array)
+    public <T extends ManagedConfig> boolean addAll (
+            Class<T> clazz, @Nullable ConfigReference<T>[] array)
     {
         return (array != null) && addAll(clazz, Arrays.asList(array));
     }
@@ -110,10 +122,6 @@ public abstract class ConfigReferenceSet
         public <T extends ManagedConfig> boolean add (
                 Class<T> clazz, @Nullable ConfigReference<T> ref)
         {
-            // NOTE: this is fucked because it does not add references that are *arguments*
-            // in the specified reference. We can't just add them here, because of type
-            // erasure (we don't know the clazz).
-            // Or, an argument could be a List or array that contains references!
             return (ref != null) && _refs.put(clazz, ref);
         }
 
