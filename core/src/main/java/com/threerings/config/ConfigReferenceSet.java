@@ -110,6 +110,9 @@ public abstract class ConfigReferenceSet
         public <T extends ManagedConfig> boolean add (
                 Class<T> clazz, @Nullable ConfigReference<T> ref)
         {
+            // NOTE: this is fucked because it does not add references that are *arguments*
+            // in the specified reference. We can't just add them here, because of type
+            // erasure (we don't know the clazz).
             return (ref != null) && _refs.put(clazz, ref);
         }
 
