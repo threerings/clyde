@@ -532,11 +532,11 @@ public class ConfigFlattener
             _current = id;
             try {
                 for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
-                    Object value = entry.getValue();
                     Class<ManagedConfig> pclazz = _paramCfgTypes.get(id, entry.getKey());
                     if (pclazz == null) {
                         continue;
                     }
+                    Object value = entry.getValue();
                     if (value instanceof ConfigReference<?>) {
                         @SuppressWarnings("unchecked")
                         ConfigReference<ManagedConfig> pref = (ConfigReference<ManagedConfig>)value;
