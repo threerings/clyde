@@ -196,7 +196,9 @@ public class ConfigFlattener
     public void flatten (ConfigManager cfgmgr)
     {
         DependentReferenceSet refSet = new DependentReferenceSet();
-        refSet.prepopulate(cfgmgr);
+
+        // prior to losing parameter/derivation information, examine parameters
+        refSet.examineParameters(cfgmgr);
 
         // turn all derived configs into their "original" form
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
@@ -207,6 +209,7 @@ public class ConfigFlattener
             }
         }
 
+        // then populate those configs into the refSet
         refSet.populate(cfgmgr);
 
         // now go through each ref in dependency ordering
@@ -419,19 +422,18 @@ public class ConfigFlattener
         /** The references that point to a particular config, indexed by config. */
         public final ListMultimap<ConfigId, ConfigReference<?>> refs = ArrayListMultimap.create();
 
-        public final Table<ConfigId, String, Class<ManagedConfig>> refParameterClasses =
-                HashBasedTable.create();
-
-        public void prepopulate (ConfigManager cfgmgr)
+        /**
+         * Examine the parameters for type information.
+         */
+        public void examineParameters (ConfigManager cfgmgr)
         {
             for (ConfigGroup<?> group : cfgmgr.getGroups()) {
                 Class<? extends ManagedConfig> clazz = group.getConfigClass();
                 for (ParameterizedConfig cfg :
                         Iterables.filter(group.getRawConfigs(), ParameterizedConfig.class)) {
-                    populateRefParameterClasses(clazz, cfg);
+                    populateParamterConfigTypes(clazz, cfg);
                 }
             }
-            log.info("Prepopulated: " + refParameterClasses);
         }
 
         /**
@@ -447,10 +449,10 @@ public class ConfigFlattener
                 _cfgClasses.add(clazz);
                 for (ManagedConfig cfg : group.getRawConfigs()) {
                     graph.add(new ConfigId(clazz, cfg.getName()));
-                    if (!_allSeen.add(new ConfigId(clazz, cfg.getName()))) {
-                        log.warning("Already added to allseen: " +
-                                new ConfigId(clazz, cfg.getName()));
-                    }
+//                    if (!_allSeen.add(new ConfigId(clazz, cfg.getName()))) {
+//                        log.warning("Already added to allseen: " +
+//                                new ConfigId(clazz, cfg.getName()));
+//                    }
                     count++;
                 }
             }
@@ -473,40 +475,6 @@ public class ConfigFlattener
         }
 
         /**
-         * Determine the config reference class for parameters in this config.
-         */
-        protected void populateRefParameterClasses (
-                Class<? extends ManagedConfig> clazz, ParameterizedConfig cfg)
-        {
-            ConfigId id = new ConfigId(clazz, cfg.getName());
-            for (Parameter param : cfg.parameters) {
-                Property prop = param.getProperty(cfg);
-                addParameterClass(id, param.name, prop.getGenericType());
-            }
-        }
-
-        protected void addParameterClass (ConfigId id, String name, Type type)
-        {
-            if (type instanceof ParameterizedType) {
-                ParameterizedType ptype = (ParameterizedType)type;
-                Type rawType = ptype.getRawType();
-                if (ConfigReference.class.equals(rawType)) {
-                    @SuppressWarnings("unchecked")
-                    Class<ManagedConfig> clazz =
-                            (Class<ManagedConfig>)ptype.getActualTypeArguments()[0];
-                    refParameterClasses.put(id, name, clazz);
-
-                } else if (List.class.equals(rawType)) {
-                    addParameterClass(id, name, ptype.getActualTypeArguments()[0]);
-
-                } else {
-                    log.info("What's that?", "rawType", rawType);
-                }
-            }
-                // TODO: handle Arrays?
-        }
-
-        /**
          * Add a newly-created config to the reference set.
          */
         public void addNewConfig (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
@@ -514,9 +482,9 @@ public class ConfigFlattener
             _current = new ConfigId(clazz, cfg.getName());
             try {
                 graph.add(_current);
-                if (!_allSeen.add(_current)) {
-                    log.warning("Already added to allseen; " + _current);
-                }
+//                if (!_allSeen.add(_current)) {
+//                    log.warning("Already added to allseen; " + _current);
+//                }
                 //System.err.println("Adding refs for " + _current);
                 ConfigToolUtil.getUpdateReferences(cfg, this);
                 //System.err.println("           done "  + _current);
@@ -552,8 +520,10 @@ public class ConfigFlattener
                 }
             } catch (Exception e) {
                 log.warning("Oh fugging shit",
-                    "id", id, "seen id?", _allSeen.contains(id),
-                    "current", _current, "seen current?", _allSeen.contains(_current),
+                    "id", id,
+//                    "seen id?", _allSeen.contains(id),
+                    "current", _current,
+//                    "seen current?", _allSeen.contains(_current),
                     e);
             }
 
@@ -563,7 +533,7 @@ public class ConfigFlattener
             try {
                 for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
                     Object value = entry.getValue();
-                    Class<ManagedConfig> pclazz = refParameterClasses.get(id, entry.getKey());
+                    Class<ManagedConfig> pclazz = _paramCfgTypes.get(id, entry.getKey());
                     if (pclazz == null) {
                         continue;
                     }
@@ -588,13 +558,60 @@ public class ConfigFlattener
             return true;
         }
 
+        /**
+         * Determine the config reference class for parameters in this config.
+         */
+        protected void populateParamterConfigTypes (
+                Class<? extends ManagedConfig> clazz, ParameterizedConfig cfg)
+        {
+            ConfigId id = new ConfigId(clazz, cfg.getName());
+            for (Parameter param : cfg.parameters) {
+                Property prop = param.getProperty(cfg);
+                addParameterConfigType(id, param.name, prop.getGenericType());
+            }
+        }
+
+        /**
+         * Look at the type of a parameter to see if it expects ConfigReferences in
+         * some way.
+         */
+        protected void addParameterConfigType (ConfigId id, String name, Type type)
+        {
+            if (type instanceof ParameterizedType) {
+                ParameterizedType ptype = (ParameterizedType)type;
+                Type rawType = ptype.getRawType();
+                if (ConfigReference.class.equals(rawType)) {
+                    @SuppressWarnings("unchecked")
+                    Class<ManagedConfig> clazz =
+                            (Class<ManagedConfig>)ptype.getActualTypeArguments()[0];
+                    _paramCfgTypes.put(id, name, clazz);
+
+                } else if (List.class.equals(rawType)) {
+                    addParameterConfigType(id, name, ptype.getActualTypeArguments()[0]);
+
+                } else {
+                    log.info("What's that?", "rawType", rawType);
+                }
+            }
+            // TODO: fuck arrays.... arrays never worked well because of the generic arguments
+            // and we support Lists now. We love Lists.
+            // Nothing using flattening should have config reference arrays.
+            // And even if they did, we'd have a Class type here
+            // (like ProjectX's ItemConfigReference), and we'd have to dive into that to discover
+            // that it has an array. Fuck that.
+        }
+
         /** The config we're currently examining while adding dependencies. */
         protected ConfigId _current;
 
         /** All valid config classes. */
         protected Set<Class<?>> _cfgClasses = Sets.newHashSet();
 
-        // TEMP: for debugging when flattening goes awry
-        protected Set<ConfigId> _allSeen = Sets.newHashSet();
+        /** A mapping of config/parameter to the type of config that parameter expects, if any. */
+        public final Table<ConfigId, String, Class<ManagedConfig>> _paramCfgTypes =
+                HashBasedTable.create();
+
+//        // TEMP: for debugging when flattening goes awry
+//        protected Set<ConfigId> _allSeen = Sets.newHashSet();
     }
 }
