@@ -14,12 +14,12 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import com.samskivert.util.StringUtil;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
@@ -425,7 +425,7 @@ public class Validator
         @Override
         public int hashCode ()
         {
-            return Objects.hash(path, this.extensions);
+            return Objects.hashCode(path, this.extensions);
         }
 
         @Override
