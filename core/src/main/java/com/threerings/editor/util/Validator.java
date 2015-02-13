@@ -355,22 +355,9 @@ public class Validator
     {
         FileConstraints constraints = property.getAnnotation(FileConstraints.class);
         if (constraints != null && constraints.stripExtension()) {
-            // slap the extension back on..
             String[] exts = constraints.extensions();
-
             resources.add(createResource(value, exts));
             return;
-
-            // if (exts.length == 1) {
-            //     value += exts[0];
-
-            // } else {
-            //     output("resource has ambiguous extensions [prop=" + property +
-            //             ", count=" + exts.length +
-            //             ", exts='" + StringUtil.join(exts) + "']");
-            //     // but, we will add it anyway and warn again later when we can't find the
-            //     // file
-            // }
         }
 
         resources.add(createResource(value, null));
