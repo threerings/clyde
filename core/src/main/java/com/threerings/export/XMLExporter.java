@@ -44,6 +44,7 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
@@ -266,9 +267,11 @@ public class XMLExporter extends Exporter
         try {
             appendln();
             // write the outer class information, if applicable
-            Object outer = ReflectionUtil.getOuter(value);
-            if (outer != null) {
-                write("outer", outer, Object.class);
+            if (!(value instanceof ImmutableCollection)) {
+                Object outer = ReflectionUtil.getOuter(value);
+                if (outer != null) {
+                    write("outer", outer, Object.class);
+                }
             }
             if (value instanceof Exportable) {
                 writeFields((Exportable)value);

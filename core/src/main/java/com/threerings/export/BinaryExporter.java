@@ -41,6 +41,7 @@ import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
@@ -261,9 +262,11 @@ public class BinaryExporter extends Exporter
             _out.writeInt(Array.getLength(value));
         }
         // and the outer class reference
-        Object outer = ReflectionUtil.getOuter(value);
-        if (outer != null) {
-            write(outer, Object.class);
+        if (!(value instanceof ImmutableCollection)) {
+            Object outer = ReflectionUtil.getOuter(value);
+            if (outer != null) {
+                write(outer, Object.class);
+            }
         }
         if (value instanceof Exportable) {
             writeFields((Exportable)value);
