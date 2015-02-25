@@ -6,7 +6,7 @@ package com.threerings.config.tools;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.StringWriter;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
@@ -31,6 +32,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import com.google.common.io.Files;
 import com.google.common.primitives.Primitives;
 
 import com.samskivert.util.DependencyGraph;
@@ -278,36 +280,49 @@ public class ConfigFlattener
     }
 
     /**
+     * Read the manager properties.
+     */
+    public Properties getManagerProperties (File source)
+        throws IOException
+    {
+        Properties props = new Properties();
+        props.load(new FileReader(source));
+        return props;
+    }
+
+    /**
      * Copy the manager.properties file, removing config types that are wholly stripped.
      */
     public void copyManagerProperties (String sourceIdentifier, File source, File dest)
         throws IOException
     {
-        Properties props = new Properties();
-        props.load(new FileReader(source));
+        Files.write(getStrippedManagerProperties(getManagerProperties(source)), dest);
+    }
 
-        // and remove stripped classes
+    /**
+     * Get a byte[] representing the specified manager properties, stripped.
+     */
+    public byte[] getStrippedManagerProperties (Properties props)
+        throws IOException
+    {
         stripManagerProperties(props);
 
-        // Oh for fuck's sake: Properties always saves a timestamp comment,
-        // so let's read-in the old version and make sure something's actually changed.
-        try {
-            Properties oldProps = new Properties();
-            oldProps.load(new FileReader(dest));
-            if (props.equals(oldProps)) {
-                log.debug("No change to manager.properties, not writing file.");
-                return;
-            }
+        // output it to a string
+        StringWriter writer = new StringWriter();
+        props.store(writer, "");
+        String value = writer.toString();
 
-        } catch (Exception e) {
-            log.info("Unable to read existing props. Proceeding.",
-                    "file", dest, "message", e.getMessage());
-            // and, proceed with writing the new file
-        }
+        // strip the goddamn comments out of the string
+        // Pattern: multiline mode; if line begins with # strip from there to linebreak
+        final String PATTERN = "(?m)" + // multiline mode
+                "^\\#" + // look for a # at the beginning of a line...
+                ".*" + // followed by anything...
+                "[\\r\\n]+"; // ending with one or more CR/NL characters. (TODO JDK8: "\\R")
+                // (Note that we can't use "$" because the newlines will be outside of the pattern)
+        value = value.replaceAll(PATTERN, ""); // replace pattern with nothing
 
-        props.store(new FileWriter(dest),
-                " Generated. Do not edit!\n" +
-                " (from " + sourceIdentifier + ")\n\n");
+        // encode the string to UTF8
+        return value.getBytes(Charsets.UTF_8);
     }
 
     /**
