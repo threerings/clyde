@@ -186,7 +186,6 @@ public class ConfigFlattener
 
         // also copy the manager properties over
         copyManagerProperties(
-                "rsrc/config/manager.properties",
                 new File(ctx.configDir, "manager.properties"),
                 new File(ctx.destDir, "manager.txt"));
     }
@@ -293,7 +292,7 @@ public class ConfigFlattener
     /**
      * Copy the manager.properties file, removing config types that are wholly stripped.
      */
-    public void copyManagerProperties (String sourceIdentifier, File source, File dest)
+    public void copyManagerProperties (File source, File dest)
         throws IOException
     {
         Files.write(getStrippedManagerProperties(getManagerProperties(source)), dest);
