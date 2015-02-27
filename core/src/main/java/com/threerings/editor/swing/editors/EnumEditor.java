@@ -76,7 +76,7 @@ public class EnumEditor extends PropertyEditor
                 return getLabel(value, msgs);
             }
         }).toArray();
-        add(_box = new JComboBox(labels));
+        add(_box = new JComboBox<>(labels));
         _box.addActionListener(this);
     }
 
@@ -92,5 +92,5 @@ public class EnumEditor extends PropertyEditor
     }
 
     /** The combo box. */
-    protected JComboBox _box;
+    protected JComboBox<?> _box;
 }

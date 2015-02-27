@@ -53,7 +53,7 @@ import com.threerings.editor.util.PropertyUtil;
 /**
  * Allows the user to select a config from a drop-down.
  */
-public class ConfigBox extends JComboBox
+public class ConfigBox extends JComboBox<ConfigBox.ConfigItem>
     implements ConfigGroupListener
 {
     /**
@@ -158,7 +158,7 @@ public class ConfigBox extends JComboBox
 
         // update the model, preserving the selected config
         String config = getSelectedConfig();
-        setModel(new DefaultComboBoxModel(items));
+        setModel(new DefaultComboBoxModel<>(items));
         setSelectedConfig(config);
     }
 

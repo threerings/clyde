@@ -98,7 +98,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     {
         super(editor, AreaConfig.class, new AreaReference());
 
-        _snapStyle = new JComboBox(SnapStyle.values());
+        _snapStyle = new JComboBox<>(SnapStyle.values());
         add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED);
     }
 
@@ -277,7 +277,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     }
 
     /** Our current snap style. */
-    protected JComboBox _snapStyle;
+    protected JComboBox<?> _snapStyle;
 
     /** The entry containing the vertex we're moving, if any. */
     protected AreaEntry _entry;
