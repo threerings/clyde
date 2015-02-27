@@ -97,7 +97,8 @@ public class CullState extends RenderState
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return _cullFace;
     }
 

@@ -987,7 +987,8 @@ public class ModelDef
         }
 
         @Override
-        public int hashCode() {
+        public int hashCode()
+        {
             return tcoords != null ? Arrays.hashCode(tcoords) : 0;
         }
     }
@@ -1106,7 +1107,8 @@ public class ModelDef
         }
 
         @Override
-        public int hashCode() {
+        public int hashCode()
+        {
             return (weight != +0.0f ? Float.floatToIntBits(weight) : 0);
         }
         @Override
