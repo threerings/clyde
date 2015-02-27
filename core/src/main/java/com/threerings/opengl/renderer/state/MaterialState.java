@@ -347,7 +347,8 @@ public class MaterialState extends RenderState
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         int result = _frontAmbient != null ? _frontAmbient.hashCode() : 0;
         result = 31 * result + (_frontDiffuse != null ? _frontDiffuse.hashCode() : 0);
         result = 31 * result + (_frontSpecular != null ? _frontSpecular.hashCode() : 0);
