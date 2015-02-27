@@ -132,6 +132,11 @@ public class Program extends ShaderObject
             return other instanceof IntegerUniform &&
                 ((IntegerUniform)other).value == value;
         }
+
+        @Override
+        public int hashCode() {
+            return value;
+        }
     }
 
     /**
@@ -179,6 +184,11 @@ public class Program extends ShaderObject
         {
             return other instanceof FloatUniform &&
                 ((FloatUniform)other).value == value;
+        }
+
+        @Override
+        public int hashCode() {
+            return (value != +0.0f ? Float.floatToIntBits(value) : 0);
         }
     }
 
@@ -228,6 +238,11 @@ public class Program extends ShaderObject
             return other instanceof Vector2fUniform &&
                 ((Vector2fUniform)other).value.equals(value);
         }
+
+        @Override
+        public int hashCode() {
+            return value != null ? value.hashCode() : 0;
+        }
     }
 
     /**
@@ -275,6 +290,11 @@ public class Program extends ShaderObject
         {
             return other instanceof Vector3fUniform &&
                 ((Vector3fUniform)other).value.equals(value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value != null ? value.hashCode() : 0;
         }
     }
 
@@ -324,6 +344,11 @@ public class Program extends ShaderObject
             return other instanceof Vector4fUniform &&
                 ((Vector4fUniform)other).value.equals(value);
         }
+
+        @Override
+        public int hashCode() {
+            return value != null ? value.hashCode() : 0;
+        }
     }
 
     /**
@@ -372,6 +397,11 @@ public class Program extends ShaderObject
         {
             return other instanceof Matrix4fUniform &&
                 ((Matrix4fUniform)other).value.equals(value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value != null ? value.hashCode() : 0;
         }
     }
 

@@ -96,6 +96,11 @@ public class CullState extends RenderState
             _cullFace == ((CullState)other)._cullFace;
     }
 
+    @Override
+    public int hashCode() {
+        return _cullFace;
+    }
+
     /** The cull face (or -1 if disabled). */
     protected int _cullFace = -1;
 

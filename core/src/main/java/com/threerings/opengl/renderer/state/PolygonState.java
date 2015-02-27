@@ -138,6 +138,15 @@ public class PolygonState extends RenderState
             _polygonOffsetUnits == ostate._polygonOffsetUnits;
     }
 
+    @Override
+    public int hashCode() {
+        int result = _frontPolygonMode;
+        result = 31 * result + _backPolygonMode;
+        result = 31 * result + (_polygonOffsetFactor != +0.0f ? Float.floatToIntBits(_polygonOffsetFactor) : 0);
+        result = 31 * result + (_polygonOffsetUnits != +0.0f ? Float.floatToIntBits(_polygonOffsetUnits) : 0);
+        return result;
+    }
+
     /** The front polygon mode. */
     protected int _frontPolygonMode;
 

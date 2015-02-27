@@ -91,6 +91,11 @@ public class PointState extends RenderState
         return other instanceof PointState && _pointSize == ((PointState)other)._pointSize;
     }
 
+    @Override
+    public int hashCode() {
+        return (_pointSize != +0.0f ? Float.floatToIntBits(_pointSize) : 0);
+    }
+
     /** The point size. */
     protected float _pointSize;
 }

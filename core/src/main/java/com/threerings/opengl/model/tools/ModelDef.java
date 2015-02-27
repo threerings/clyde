@@ -985,6 +985,11 @@ public class ModelDef
         {
             return Arrays.equals(tcoords, ((Extra)other).tcoords);
         }
+
+        @Override
+        public int hashCode() {
+            return tcoords != null ? Arrays.hashCode(tcoords) : 0;
+        }
     }
 
     /**
@@ -1100,6 +1105,10 @@ public class ModelDef
             return weight == ((BoneWeight)other).weight;
         }
 
+        @Override
+        public int hashCode() {
+            return (weight != +0.0f ? Float.floatToIntBits(weight) : 0);
+        }
         @Override
         public String toString ()
         {

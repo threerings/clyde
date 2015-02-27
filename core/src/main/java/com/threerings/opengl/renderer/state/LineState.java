@@ -91,6 +91,11 @@ public class LineState extends RenderState
         return other instanceof LineState && _lineWidth == ((LineState)other)._lineWidth;
     }
 
+    @Override
+    public int hashCode() {
+        return (_lineWidth != +0.0f ? Float.floatToIntBits(_lineWidth) : 0);
+    }
+
     /** The line width. */
     protected float _lineWidth;
 }
