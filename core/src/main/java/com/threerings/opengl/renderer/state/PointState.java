@@ -92,7 +92,8 @@ public class PointState extends RenderState
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return (_pointSize != +0.0f ? Float.floatToIntBits(_pointSize) : 0);
     }
 
