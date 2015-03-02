@@ -95,6 +95,12 @@ public class ColorState extends RenderState
         return other instanceof ColorState && _color.equals(((ColorState)other)._color);
     }
 
+    @Override
+    public int hashCode()
+    {
+        return _color != null ? _color.hashCode() : 0;
+    }
+
     /** The draw color. */
     protected Color4f _color = new Color4f();
 }

@@ -129,4 +129,12 @@ public class ConfigKey extends SimpleStreamableObject
 
     /** The config name. */
     protected String _name;
+
+    @Override
+    public int hashCode()
+    {
+        int result = _cclass != null ? _cclass.hashCode() : 0;
+        result = 31 * result + (_name != null ? _name.hashCode() : 0);
+        return result;
+    }
 }
