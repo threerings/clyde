@@ -190,6 +190,16 @@ public class DeepUtilTest extends TestCase
             Child ochild = (Child)other;
             return v1 == ochild.v1 && v2 == ochild.v2 && Arrays.deepEquals(v3, ochild.v3);
         }
+        
+        @Override
+        public int hashCode()
+        {
+        	int hash = 1;
+        	hash = hash * 17 + v1;
+        	hash = hash * 31 + (v2 ? 0 : 1);
+        	hash = hash * 13 + v3.hashCode();
+        	return hash;
+        }
     }
 
     protected static class Other
@@ -216,6 +226,14 @@ public class DeepUtilTest extends TestCase
             }
             Other oother = (Other)other;
             return v1 == oother.v1 && v2 == oother.v2;
+        }
+        
+        @Override
+        public int hashCode() {
+        	int hash = 1;
+        	hash = hash * 17 +  Float.floatToIntBits(v1);
+        	hash = hash * 31 + (int)(v2 ^ (v2 >>> 32));
+        	return hash;
         }
     }
 }

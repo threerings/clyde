@@ -67,6 +67,7 @@
   <target name="clean" description="Cleans out build results">
     <delete dir="${deploy.dir}/classes"/>
     <delete dir="${deploy.dir}/docs"/>
+    <delete dir="${tclasses.dir}"/>
     <delete failonerror="false"><fileset dir="${deploy.dir}" includes="*.jar"/></delete>
   </target>
 
@@ -90,7 +91,7 @@
     <mkdir dir="${tclasses.dir}"/>
     <copy todir="${tclasses.dir}"><fileset dir="core/src/test/resources" includes="**"/></copy>
     <javac srcdir="${tsrc.dir}" destdir="${tclasses.dir}" includeAntRuntime="false"
-           debug="on" optimize="${build.optimize}" source="1.6" target="1.6"
+           debug="on" optimize="${build.optimize}" source="1.8" target="1.8"
            encoding="utf-8" classpathref="test.classpath">
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
