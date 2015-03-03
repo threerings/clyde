@@ -37,7 +37,7 @@ import com.samskivert.swing.VGroupLayout;
 import com.threerings.editor.swing.ObjectPanel;
 import com.threerings.editor.swing.PropertyEditor;
 
-import com.threerings.opengl.gui.config.ComponentConfig;
+// import com.threerings.opengl.gui.config.ComponentConfig; // ARMHACK
 
 /**
  * An editor for objects with editable properties.
@@ -49,9 +49,12 @@ public class ObjectEditor extends PropertyEditor
     public void stateChanged (ChangeEvent event)
     {
         Object value = _panel.getValue();
+
+        /* ARMHACK
         if (value instanceof ComponentConfig) {
             ((ComponentConfig)value).editorHighlight = _highlighted;
         }
+        */
 
         _property.set(_object, value);
         fireStateChanged();
@@ -86,6 +89,7 @@ public class ObjectEditor extends PropertyEditor
         _panel.setTreeModeEnabled(enabled);
     }
 
+    /* ARMHACK
     @Override
     protected void toggleHighlight ()
     {
@@ -94,6 +98,8 @@ public class ObjectEditor extends PropertyEditor
             stateChanged(null);
         }
     }
+    */
+
 
     /** The object panel. */
     protected ObjectPanel _panel;
