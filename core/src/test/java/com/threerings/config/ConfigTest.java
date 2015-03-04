@@ -8,8 +8,11 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -19,7 +22,9 @@ import com.threerings.config.ConfigManager;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
-
+// for sample config lookup.
+import com.threerings.opengl.compositor.config.RenderSchemeConfig;
+import com.threerings.opengl.model.config.ModelConfig;
 /**
  * Tests create a new config to read and write 
  */
@@ -51,6 +56,7 @@ public class ConfigTest
     {	
         File rsrcFolder = testFolder.newFolder("tmp_rsrc");
         
+        
         //File msgFolder = new File(rsrcFolder.getPath() + File.separator + "i18n/");
         //String msgPropPath = msgFolder.getPath()  + File.separator + "global.properties";
         //createFileWithContent( msgPropPath, "" );
@@ -72,7 +78,11 @@ public class ConfigTest
         		"types = global\nglobal.classes = com.threerings.config.ExampleConfig\n" );        
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config");
     	
-        cfgmgr.init();
+        cfgmgr.init();        
+        
+        ConfigGroup exampleGroup = cfgmgr.getGroup(ExampleConfig.class);
+        exampleGroup.addConfig( new ExampleConfig(123,"MyString"));
+        exampleGroup.save();
         
         cfgmgr.saveAll(cfgFolder, ".xml", true);
         cfgmgr.saveAll(cfgFolder, ".dat", false);
@@ -84,5 +94,37 @@ public class ConfigTest
         for (File f : cfgFolder.listFiles()) {
         	System.out.println("ReadConfigTest created " + f.getName() + " with " + f.length() + " bytes");
         }
+    }
+
+    /*
+     * Load the default testing resources and modify their contents.
+     */
+    
+    @Test
+    public void testLoadConfig ()
+        throws IOException
+    {
+    	ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+    	MessageManager msgmgr = new MessageManager("rsrc.i18n");
+    	ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
+    	
+    	cfgmgr.init();
+    	
+    	Collection<ConfigGroup<?>> groups = cfgmgr.getGroups();
+    	for (ConfigGroup<?> group : groups ) {
+    		//System.out.println("got group " + group.getName() + " class " + group._cclass );
+    		for (Object configObj : group.getConfigs()) {
+    			ManagedConfig config = (ManagedConfig) configObj;
+    			//System.out.println("   " + config.getName() );
+    		}	
+    	}
+    	
+    	RenderSchemeConfig renderConfig = cfgmgr.getConfig(RenderSchemeConfig.class, "Translucent");
+    	assertTrue( renderConfig != null );
+    	//System.out.println("Got config " + renderConfig.getName() );
+
+    	ModelConfig modelConfig = cfgmgr.getConfig(ModelConfig.class, "model/knight/model.dat");
+    	assertTrue( modelConfig != null );
+    	//System.out.println("Got config " + modelConfig.getName());
     }
 }
