@@ -202,6 +202,12 @@ public class ColorizationEditor extends PropertyEditor
         {
             return record == ((ClassItem)other).record;
         }
+
+        @Override
+        public int hashCode()
+        {
+            return record != null ? record.hashCode() : 0;
+        }
     }
 
     /**
@@ -234,6 +240,12 @@ public class ColorizationEditor extends PropertyEditor
         public boolean equals (Object other)
         {
             return record == ((ColorItem)other).record;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return record != null ? record.hashCode() : 0;
         }
     }
 

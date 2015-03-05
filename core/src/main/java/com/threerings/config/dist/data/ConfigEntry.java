@@ -113,6 +113,15 @@ public class ConfigEntry extends SimpleStreamableObject
             Arrays.equals(oentry._bytes, _bytes);
     }
 
+    @Override
+    public int hashCode()
+    {
+        int result = _key != null ? _key.hashCode() : 0;
+        result = 31 * result + (_bytes != null ? Arrays.hashCode(_bytes) : 0);
+        result = 31 * result + (_config != null ? _config.hashCode() : 0);
+        return result;
+    }
+
     /** The config key. */
     protected ConfigKey _key;
 

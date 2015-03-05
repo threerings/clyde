@@ -169,4 +169,17 @@ public class ClientArray
             offset == oarray.offset && arrayBuffer == oarray.arrayBuffer &&
             floatArray == oarray.floatArray;
     }
+
+    @Override
+    public int hashCode()
+    {
+        int result = size;
+        result = 31 * result + type;
+        result = 31 * result + (normalized ? 1 : 0);
+        result = 31 * result + stride;
+        result = 31 * result + (int) (offset ^ (offset >>> 32));
+        result = 31 * result + (arrayBuffer != null ? arrayBuffer.hashCode() : 0);
+        result = 31 * result + (floatArray != null ? floatArray.hashCode() : 0);
+        return result;
+    }
 }
