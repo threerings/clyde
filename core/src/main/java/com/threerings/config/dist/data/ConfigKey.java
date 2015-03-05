@@ -131,7 +131,7 @@ public class ConfigKey extends SimpleStreamableObject
     protected String _name;
 
     @Override
-    public int hashCode()
+    public int hashCode ()
     {
         int result = _cclass != null ? _cclass.hashCode() : 0;
         result = 31 * result + (_name != null ? _name.hashCode() : 0);

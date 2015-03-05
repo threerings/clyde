@@ -92,7 +92,7 @@ public class LineState extends RenderState
     }
 
     @Override
-    public int hashCode()
+    public int hashCode ()
     {
         return (_lineWidth != +0.0f ? Float.floatToIntBits(_lineWidth) : 0);
     }

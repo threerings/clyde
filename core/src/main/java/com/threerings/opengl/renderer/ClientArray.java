@@ -171,7 +171,7 @@ public class ClientArray
     }
 
     @Override
-    public int hashCode()
+    public int hashCode ()
     {
         int result = size;
         result = 31 * result + type;
