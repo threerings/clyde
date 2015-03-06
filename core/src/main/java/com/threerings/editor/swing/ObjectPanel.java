@@ -103,7 +103,7 @@ public class ObjectPanel extends BasePropertyEditor
             for (int ii = 0; ii < _types.length; ii++) {
                 labels[ii] = getLabel(_types[ii]);
             }
-            tpanel.add(_box = new JComboBox(labels));
+            tpanel.add(_box = new JComboBox<>(labels));
             _box.addActionListener(this);
             _values = new Object[_types.length];
         }
@@ -285,7 +285,7 @@ public class ObjectPanel extends BasePropertyEditor
     protected EditorContext _ctx;
 
     /** The type box. */
-    protected JComboBox _box;
+    protected JComboBox<?> _box;
 
     /** The editor panel. */
     protected BaseEditorPanel _panel;

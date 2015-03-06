@@ -240,7 +240,7 @@ public class EditorPanel extends BaseEditorPanel
             JPanel cpanel = new JPanel();
             add(cpanel, GroupLayout.FIXED);
             cpanel.add(new JLabel(_msgs.get("m.category")));
-            final JComboBox cbox = new JComboBox(getLabels(cats, cmsgs));
+            final JComboBox<?> cbox = new JComboBox<>(getLabels(cats, cmsgs));
             cpanel.add(cbox);
             final CardLayout cards = new CardLayout();
             final JPanel inner = new JPanel(cards);
