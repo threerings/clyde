@@ -204,7 +204,7 @@ public class RecentConfigList extends JPanel
     {
         StringBuilder builder = new StringBuilder();
         for (int ii = 0, nn = _listModel.getSize(); ii < nn; ii++) {
-            String value = (String)_listModel.getElementAt(ii);
+            String value = _listModel.getElementAt(ii);
             value = value.replace("|", "%BAR%");
             if (builder.length() + value.length() + 1 > Preferences.MAX_VALUE_LENGTH) {
                 break;
