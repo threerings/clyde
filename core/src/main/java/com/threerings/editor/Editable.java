@@ -59,7 +59,10 @@ public @interface Editable
     /** Neighboring properties with the same hgroup will be grouped into horizontal sublayouts. */
     String hgroup () default "";
 
-    /** The names of any properties upon whose values this property depends. */
+    /** The names of any properties upon whose values this property depends.
+     * Note that because these are "property names" they don't match up to the variable names,
+     * so the variable called "bigText" would be called "big_text" here in the depends section. */
+    // TODO: fix, maybe add Property.getPlainName();
     String[] depends () default {};
 
     /** The custom editor to use (empty string for the default editor for the type). */

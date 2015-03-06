@@ -193,6 +193,12 @@ public class ConfigBox extends JComboBox<ConfigBox.ConfigItem>
         {
             return Objects.equal(name, ((ConfigItem)other).name);
         }
+
+        @Override
+        public int hashCode ()
+        {
+            return name != null ? name.hashCode() : 0;
+        }
     }
 
     /** The message bundle to use for translation. */
