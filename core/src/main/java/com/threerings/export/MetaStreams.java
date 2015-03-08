@@ -3,26 +3,17 @@
 
 package com.threerings.export;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.EOFException;
 import java.io.OutputStream;
-import java.io.StreamCorruptedException;
-
-import java.util.Iterator;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.AbstractIterator;
-import com.google.common.io.ByteStreams;
-
-import static com.threerings.export.Log.log;
 
 /**
  * Utility methods for combining and re-splitting arbitrary streams of data into a single
  * stream, with length prefixes for each piece.
+ *
+ * @deprecated Use Streams.
  */
+@Deprecated
 public class MetaStreams
 {
     /**
@@ -34,16 +25,7 @@ public class MetaStreams
     public static InputStream input (InputStream source)
         throws IOException
     {
-        long length = readLength(source);
-        if (length == -1) {
-            return null;
-
-        } else if (length > Integer.MAX_VALUE) {
-            throw new IOException("Next stream is too long! [length=" + length + "]");
-        }
-        byte[] bytes = new byte[(int)length];
-        ByteStreams.readFully(source, bytes); // may throw EOF, IOE
-        return new ByteArrayInputStream(bytes);
+        return Streams.input(source);
     }
 
     /**
@@ -52,17 +34,7 @@ public class MetaStreams
      */
     public static OutputStream output (final OutputStream dest)
     {
-        return new ByteArrayOutputStream() {
-            @Override
-            public void close ()
-                throws IOException
-            {
-                writeLength(dest, size());
-                writeTo(dest);
-                dest.flush();
-                reset();
-            }
-        };
+        return Streams.output(dest);
     }
 
     /**
@@ -75,16 +47,7 @@ public class MetaStreams
     public static void writeLength (OutputStream out, long length)
         throws IOException
     {
-        Preconditions.checkArgument(length >= 0);
-        while (true) {
-            int bite = (int)(length & 0x7f);
-            length >>= 7;
-            if (length == 0) {
-                out.write(bite); // write the byte and exit
-                return;
-            }
-            out.write(bite | 0x80); // write the byte with the continuation flag
-        }
+        Streams.writeVarLong(out, length);
     }
 
     /**
@@ -95,23 +58,6 @@ public class MetaStreams
     public static long readLength (InputStream in)
         throws IOException
     {
-        long ret = 0;
-        for (int shift = 0; shift < 63; shift += 7) {
-            int bite = in.read();
-            if (bite == -1) {
-                if (shift == 0) {
-                    return -1; // expected: we're at the end of the stream
-                }
-                break; // throw StreamCorrupted
-            }
-            ret |= ((long)(bite & 0x7f)) << shift;
-            if ((bite & 0x80) == 0) {
-                if (shift > 0 && ((bite & 0x7f) == 0)) {
-                    break; // detect invalid extra 0-padding; throw StreamCorrupted
-                }
-                return ret;
-            }
-        }
-        throw new StreamCorruptedException();
+        return Streams.readVarLong(in);
     }
 }
