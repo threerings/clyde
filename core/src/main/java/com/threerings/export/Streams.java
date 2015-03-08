@@ -118,7 +118,7 @@ public class Streams
     }
 
     /**
-     * Write a positive long to the specified stream, encoded little-endian, variable length.
+     * Write a positive int to the specified stream, encoded little-endian, variable length.
      *
      * This presently merely calls writeVarLong but perhaps an optimized 32-bit impl hahaah
      * that was pretty good for a bit there, I had you going.
