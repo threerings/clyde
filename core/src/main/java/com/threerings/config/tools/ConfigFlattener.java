@@ -445,7 +445,7 @@ public class ConfigFlattener
                 Class<? extends ManagedConfig> clazz = group.getConfigClass();
                 for (ParameterizedConfig cfg :
                         Iterables.filter(group.getRawConfigs(), ParameterizedConfig.class)) {
-                    populateParamterConfigTypes(clazz, cfg);
+                    populateParameterConfigTypes(clazz, cfg);
                 }
             }
         }
@@ -575,7 +575,7 @@ public class ConfigFlattener
         /**
          * Determine the config reference class for parameters in this config.
          */
-        protected void populateParamterConfigTypes (
+        protected void populateParameterConfigTypes (
                 Class<? extends ManagedConfig> clazz, ParameterizedConfig cfg)
         {
             ConfigId id = new ConfigId(clazz, cfg.getName());
