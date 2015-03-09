@@ -30,6 +30,7 @@ import java.util.HashSet;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
@@ -166,11 +167,13 @@ public class StyleConfig extends ParameterizedConfig
         public Color4f color = new Color4f();
 
         /** The cursor. */
-        @Editable(editor="config", mode="cursor", nullable=true, hgroup="c")
+        @Editable(nullable=true, hgroup="c")
+        @Reference(CursorConfig.class)
         public String cursor;
 
         /** The font. */
-        @Editable(editor="config", mode="font", nullable=true, hgroup="f")
+        @Editable(nullable=true, hgroup="f")
+        @Reference(FontConfig.class)
         public String font;
 
         /** The font style. */
