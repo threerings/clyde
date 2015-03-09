@@ -43,6 +43,7 @@ import com.google.common.base.Objects;
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.Reference;
 import com.threerings.util.ReflectionUtil;
 
 import com.threerings.math.Quaternion;
@@ -101,15 +102,19 @@ public abstract class PropertyEditor extends BasePropertyEditor
     public static PropertyEditor createEditor (
         EditorContext ctx, Property property, Property[] ancestors)
     {
-        // look first by name, if a custom editor is specified
         String name = property.getAnnotation().editor();
+        Class<?> type = property.getType();
         Class<? extends PropertyEditor> clazz = null;
+        // look first by name, if a custom editor is specified
         if (name.length() > 0 && (clazz = _classesByName.get(name)) == null) {
             log.warning("Missing custom editor class [name=" + name + "].");
+
+        // if a String, and the @Reference annotation is present, it's a bare config reference.
+        } else if (type == String.class && (null != property.getAnnotation(Reference.class))) {
+            clazz = ConfigEditor.class;
         }
-        // then by type
-        Class<?> type = property.getType();
         PropertyEditor editor;
+        // then by type
         if (clazz != null || (clazz = _classesByType.get(type)) != null) {
             try {
                 editor = clazz.newInstance();
