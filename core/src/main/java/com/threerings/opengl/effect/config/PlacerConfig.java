@@ -35,7 +35,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.camera.Camera;
-import com.threerings.opengl.effect.BaseParticleSystem.Layer;
+//import com.threerings.opengl.effect.BaseParticleSystem.Layer; // ARMHACK
 import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.Placer;
 
@@ -53,15 +53,16 @@ public abstract class PlacerConfig extends DeepObject
      */
     public static class Point extends PlacerConfig
     {
-        @Override
-        public Placer createPlacer (Layer layer)
-        {
-            return new SimplePlacer(layer) {
-                protected Vector3f place (Vector3f position) {
-                    return position.set(0f, 0f, 0f);
-                }
-            };
-        }
+		// ARMHACK
+//        @Override
+//        public Placer createPlacer (Layer layer)
+//        {
+//            return new SimplePlacer(layer) {
+//                protected Vector3f place (Vector3f position) {
+//                    return position.set(0f, 0f, 0f);
+//                }
+//            };
+//        }
     }
 
     /**
@@ -73,15 +74,16 @@ public abstract class PlacerConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float length = 1f;
 
-        @Override
-        public Placer createPlacer (Layer layer)
-        {
-            return new SimplePlacer(layer) {
-                protected Vector3f place (Vector3f position) {
-                    return position.set(FloatMath.random(-0.5f, +0.5f) * length, 0f, 0f);
-                }
-            };
-        }
+		// ARMHACK
+//        @Override
+//        public Placer createPlacer (Layer layer)
+//        {
+//            return new SimplePlacer(layer) {
+//                protected Vector3f place (Vector3f position) {
+//                    return position.set(FloatMath.random(-0.5f, +0.5f) * length, 0f, 0f);
+//                }
+//            };
+//        }
     }
 
     /**
@@ -105,42 +107,43 @@ public abstract class PlacerConfig extends DeepObject
         @Editable
         public boolean solid = true;
 
-        @Override
-        public Placer createPlacer (Layer layer)
-        {
-            return new SimplePlacer(layer) {
-                protected Vector3f place (Vector3f position) {
-                    if (solid) {
-                        return position.set(
-                            FloatMath.random(-0.5f, +0.5f) * width,
-                            FloatMath.random(-0.5f, +0.5f) * length,
-                            FloatMath.random(-0.5f, +0.5f) * height);
-                    }
-                    // choose a face pair according to their dimensions
-                    float xy = width * length;
-                    float xz = width * height;
-                    float yz = length * height;
-                    Randoms r = Randoms.threadLocal();
-                    float rand = r.getFloat(xy + xz + yz);
-                    if (rand < xy) {
-                        return position.set(
-                            r.getInRange(-0.5f, +0.5f) * width,
-                            r.getInRange(-0.5f, +0.5f) * length,
-                            (r.getBoolean() ? -0.5f : +0.5f) * height);
-                    } else if (rand < xy + xz) {
-                        return position.set(
-                            r.getInRange(-0.5f, +0.5f) * width,
-                            (r.getBoolean() ? -0.5f : +0.5f) * length,
-                            r.getInRange(-0.5f, +0.5f) * height);
-                    } else {
-                        return position.set(
-                            (r.getBoolean() ? -0.5f : +0.5f) * width,
-                            r.getInRange(-0.5f, +0.5f) * length,
-                            r.getInRange(-0.5f, +0.5f) * height);
-                    }
-                }
-            };
-        }
+		// ARMHACK
+//        @Override
+//        public Placer createPlacer (Layer layer)
+//        {
+//            return new SimplePlacer(layer) {
+//                protected Vector3f place (Vector3f position) {
+//                    if (solid) {
+//                        return position.set(
+//                            FloatMath.random(-0.5f, +0.5f) * width,
+//                            FloatMath.random(-0.5f, +0.5f) * length,
+//                            FloatMath.random(-0.5f, +0.5f) * height);
+//                    }
+//                    // choose a face pair according to their dimensions
+//                    float xy = width * length;
+//                    float xz = width * height;
+//                    float yz = length * height;
+//                    Randoms r = Randoms.threadLocal();
+//                    float rand = r.getFloat(xy + xz + yz);
+//                    if (rand < xy) {
+//                        return position.set(
+//                            r.getInRange(-0.5f, +0.5f) * width,
+//                            r.getInRange(-0.5f, +0.5f) * length,
+//                            (r.getBoolean() ? -0.5f : +0.5f) * height);
+//                    } else if (rand < xy + xz) {
+//                        return position.set(
+//                            r.getInRange(-0.5f, +0.5f) * width,
+//                            (r.getBoolean() ? -0.5f : +0.5f) * length,
+//                            r.getInRange(-0.5f, +0.5f) * height);
+//                    } else {
+//                        return position.set(
+//                            (r.getBoolean() ? -0.5f : +0.5f) * width,
+//                            r.getInRange(-0.5f, +0.5f) * length,
+//                            r.getInRange(-0.5f, +0.5f) * height);
+//                    }
+//                }
+//            };
+//        }
     }
 
     /**
@@ -156,22 +159,23 @@ public abstract class PlacerConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float outerRadius = 1f;
 
-        @Override
-        public Placer createPlacer (Layer layer)
-        {
-            return new SimplePlacer(layer) {
-                protected Vector3f place (Vector3f position) {
-                    // find a radius based on the area distribution
-                    float radius = FloatMath.sqrt(
-                        FloatMath.random(innerRadius*innerRadius, outerRadius*outerRadius));
-                    float angle = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
-                    return position.set(
-                        radius * FloatMath.cos(angle),
-                        radius * FloatMath.sin(angle),
-                        0f);
-                }
-            };
-        }
+		// ARMHACK
+//        @Override
+//        public Placer createPlacer (Layer layer)
+//        {
+//            return new SimplePlacer(layer) {
+//                protected Vector3f place (Vector3f position) {
+//                    // find a radius based on the area distribution
+//                    float radius = FloatMath.sqrt(
+//                        FloatMath.random(innerRadius*innerRadius, outerRadius*outerRadius));
+//                    float angle = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
+//                    return position.set(
+//                        radius * FloatMath.cos(angle),
+//                        radius * FloatMath.sin(angle),
+//                        0f);
+//                }
+//            };
+//        }
     }
 
     /**
@@ -187,28 +191,29 @@ public abstract class PlacerConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float outerRadius = 1f;
 
-        @Override
-        public Placer createPlacer (Layer layer)
-        {
-            return new SimplePlacer(layer) {
-                protected Vector3f place (Vector3f position) {
-                    // find a radius based on the volume distribution
-                    float radius = FloatMath.pow(
-                        FloatMath.random(
-                            innerRadius*innerRadius*innerRadius,
-                            outerRadius*outerRadius*outerRadius),
-                        1f / 3f);
-                    // elevation based on the surface area distribution
-                    float sine = FloatMath.random(-1f, +1f);
-                    float cose = FloatMath.sqrt(1f - sine*sine);
-                    float angle = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
-                    return position.set(
-                        radius * FloatMath.cos(angle) * cose,
-                        radius * FloatMath.sin(angle) * cose,
-                        radius * sine);
-                }
-            };
-        }
+		// ARMHACK
+//        @Override
+//        public Placer createPlacer (Layer layer)
+//        {
+//            return new SimplePlacer(layer) {
+//                protected Vector3f place (Vector3f position) {
+//                    // find a radius based on the volume distribution
+//                    float radius = FloatMath.pow(
+//                        FloatMath.random(
+//                            innerRadius*innerRadius*innerRadius,
+//                            outerRadius*outerRadius*outerRadius),
+//                        1f / 3f);
+//                    // elevation based on the surface area distribution
+//                    float sine = FloatMath.random(-1f, +1f);
+//                    float cose = FloatMath.sqrt(1f - sine*sine);
+//                    float angle = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
+//                    return position.set(
+//                        radius * FloatMath.cos(angle) * cose,
+//                        radius * FloatMath.sin(angle) * cose,
+//                        radius * sine);
+//                }
+//            };
+//        }
     }
 
     /**
@@ -228,89 +233,92 @@ public abstract class PlacerConfig extends DeepObject
         @Editable
         public boolean solid = true;
 
-        @Override
-        public Placer createPlacer (final Layer layer)
-        {
-            return new Placer() {
-                public void place (Particle particle) {
-                    // choose a distance according to the volume distribution
-                    // or surface area distribution, depending on solidity
-                    float exp = solid ? 3f : 2f;
-                    float distance = FloatMath.pow(FloatMath.random(
-                        FloatMath.pow(nearDistance, exp), FloatMath.pow(farDistance, exp)),
-                            1f / exp);
-
-                    // find the location of the edges at the distance
-                    Camera camera = layer.getCamera();
-                    float scale = distance / camera.getNear();
-                    float left = camera.getLeft() * scale;
-                    float right = camera.getRight() * scale;
-                    float bottom = camera.getBottom() * scale;
-                    float top = camera.getTop() * scale;
-
-                    // if it's solid, choose a random point in the rect; otherwise, choose an edge
-                    // pair according to their lengths
-                    Vector3f position = particle.getPosition();
-                    if (solid) {
-                        position.set(
-                            FloatMath.random(left, right),
-                            FloatMath.random(bottom, top),
-                            -distance);
-                    } else {
-                        float width = right - left;
-                        float height = top - bottom;
-                        Randoms r = Randoms.threadLocal();
-                        if (r.getFloat(width + height) < width) {
-                            position.set(
-                                r.getInRange(left, right),
-                                r.getBoolean() ? top : bottom,
-                                -distance);
-                        } else {
-                            position.set(
-                                r.getBoolean() ? left : right,
-                                r.getInRange(top, bottom),
-                                -distance);
-                        }
-                    }
-
-                    // transform into world space, then into layer space
-                    layer.pointToLayer(camera.getWorldTransform().transformPointLocal(position),
-                        false);
-                }
-            };
-        }
+		// ARMHACK
+//        @Override
+//        public Placer createPlacer (final Layer layer)
+//        {
+//            return new Placer() {
+//                public void place (Particle particle) {
+//                    // choose a distance according to the volume distribution
+//                    // or surface area distribution, depending on solidity
+//                    float exp = solid ? 3f : 2f;
+//                    float distance = FloatMath.pow(FloatMath.random(
+//                        FloatMath.pow(nearDistance, exp), FloatMath.pow(farDistance, exp)),
+//                            1f / exp);
+//
+//                    // find the location of the edges at the distance
+//                    Camera camera = layer.getCamera();
+//                    float scale = distance / camera.getNear();
+//                    float left = camera.getLeft() * scale;
+//                    float right = camera.getRight() * scale;
+//                    float bottom = camera.getBottom() * scale;
+//                    float top = camera.getTop() * scale;
+//
+//                    // if it's solid, choose a random point in the rect; otherwise, choose an edge
+//                    // pair according to their lengths
+//                    Vector3f position = particle.getPosition();
+//                    if (solid) {
+//                        position.set(
+//                            FloatMath.random(left, right),
+//                            FloatMath.random(bottom, top),
+//                            -distance);
+//                    } else {
+//                        float width = right - left;
+//                        float height = top - bottom;
+//                        Randoms r = Randoms.threadLocal();
+//                        if (r.getFloat(width + height) < width) {
+//                            position.set(
+//                                r.getInRange(left, right),
+//                                r.getBoolean() ? top : bottom,
+//                                -distance);
+//                        } else {
+//                            position.set(
+//                                r.getBoolean() ? left : right,
+//                                r.getInRange(top, bottom),
+//                                -distance);
+//                        }
+//                    }
+//
+//                    // transform into world space, then into layer space
+//                    layer.pointToLayer(camera.getWorldTransform().transformPointLocal(position),
+//                        false);
+//                }
+//            };
+//        }
     }
 
-    /**
-     * Creates the placer corresponding to this config.
-     */
-    public abstract Placer createPlacer (Layer layer);
+		// ARMHACK
+//    /**
+//     * Creates the placer corresponding to this config.
+//     */
+//    public abstract Placer createPlacer (Layer layer);
 
-    /**
-     * Base class for simple emitter space placers.
-     */
-    protected static abstract class SimplePlacer
-        implements Placer
-    {
-        public SimplePlacer (Layer layer)
-        {
-            _layer = layer;
-        }
-
-        // documentation inherited from interface Placer
-        public void place (Particle particle)
-        {
-            _layer.pointToLayer(place(particle.getPosition()), true);
-        }
-
-        /**
-         * Sets the position in emitter space.
-         *
-         * @return a reference to the position point, for chaining.
-         */
-        protected abstract Vector3f place (Vector3f position);
-
-        /** The owning layer. */
-        protected Layer _layer;
-    }
+		// ARMHACK
+//    /**
+//     * Base class for simple emitter space placers.
+//     */
+//    protected static abstract class SimplePlacer
+//        implements Placer
+//    {
+//        public SimplePlacer (Layer layer)
+//        {
+//            _layer = layer;
+//        }
+//
+//        // documentation inherited from interface Placer
+//        public void place (Particle particle)
+//        {
+//            _layer.pointToLayer(place(particle.getPosition()), true);
+//        }
+//
+//        /**
+//         * Sets the position in emitter space.
+//         *
+//         * @return a reference to the position point, for chaining.
+//         */
+//        protected abstract Vector3f place (Vector3f position);
+//
+//        /** The owning layer. */
+//        protected Layer _layer;
+//    }
 }

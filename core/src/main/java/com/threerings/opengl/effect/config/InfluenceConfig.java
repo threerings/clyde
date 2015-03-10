@@ -35,7 +35,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.NoiseUtil;
 
-import com.threerings.opengl.effect.BaseParticleSystem.Layer;
+//import com.threerings.opengl.effect.BaseParticleSystem.Layer; // ARMHACK
 import com.threerings.opengl.effect.Influence;
 import com.threerings.opengl.effect.Particle;
 
@@ -64,19 +64,20 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override
-        public Influence createInfluence (final Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    layer.vectorToLayer(acceleration.mult(elapsed, _delta), rotateWithEmitter);
-                }
-                public void apply (Particle particle) {
-                    particle.getVelocity().addLocal(_delta);
-                }
-                protected Vector3f _delta = new Vector3f();
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (final Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            layer.vectorToLayer(acceleration.mult(elapsed, _delta), rotateWithEmitter);
+        //        }
+        //        public void apply (Particle particle) {
+        //            particle.getVelocity().addLocal(_delta);
+        //        }
+        //        protected Vector3f _delta = new Vector3f();
+        //    };
+        //}
     }
 
     /**
@@ -96,20 +97,21 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override
-        public Influence createInfluence (final Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    layer.vectorToLayer(direction.mult(strength * elapsed, _delta),
-                        rotateWithEmitter);
-                }
-                public void apply (Particle particle) {
-                    particle.getVelocity().addLocal(_delta);
-                }
-                protected Vector3f _delta = new Vector3f();
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (final Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            layer.vectorToLayer(direction.mult(strength * elapsed, _delta),
+        //                rotateWithEmitter);
+        //        }
+        //        public void apply (Particle particle) {
+        //            particle.getVelocity().addLocal(_delta);
+        //        }
+        //        protected Vector3f _delta = new Vector3f();
+        //    };
+        //}
     }
 
     /**
@@ -121,19 +123,20 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float amount = 1f;
 
-        @Override
-        public Influence createInfluence (Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    _drag = Math.max(0f, 1f - amount*elapsed);
-                }
-                public void apply (Particle particle) {
-                    particle.getVelocity().multLocal(_drag);
-                }
-                protected float _drag;
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            _drag = Math.max(0f, 1f - amount*elapsed);
+        //        }
+        //        public void apply (Particle particle) {
+        //            particle.getVelocity().multLocal(_drag);
+        //        }
+        //        protected float _drag;
+        //    };
+        //}
     }
 
     /**
@@ -146,20 +149,21 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float amount = 1f;
 
-        @Override
-        public Influence createInfluence (Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    _drag = amount * elapsed;
-                }
-                public void apply (Particle particle) {
-                    Vector3f velocity = particle.getVelocity();
-                    velocity.multLocal(Math.max(0f, 1f - _drag*velocity.length()));
-                }
-                protected float _drag;
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            _drag = amount * elapsed;
+        //        }
+        //        public void apply (Particle particle) {
+        //            Vector3f velocity = particle.getVelocity();
+        //            velocity.multLocal(Math.max(0f, 1f - _drag*velocity.length()));
+        //        }
+        //        protected float _drag;
+        //    };
+        //}
     }
 
     /**
@@ -183,39 +187,40 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override
-        public Influence createInfluence (final Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    // compute the delta amount
-                    _delta = strength * elapsed;
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (final Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            // compute the delta amount
+        //            _delta = strength * elapsed;
 
-                    // transform the origin and axis into layer space
-                    layer.pointToLayer(_torigin.set(Vector3f.ZERO), true);
-                    layer.vectorToLayer(_taxis.set(axis), rotateWithEmitter);
+        //            // transform the origin and axis into layer space
+        //            layer.pointToLayer(_torigin.set(Vector3f.ZERO), true);
+        //            layer.vectorToLayer(_taxis.set(axis), rotateWithEmitter);
 
-                    // find divergence rotation
-                    _rotation.setToRotation(-divergence, _taxis);
-                }
-                public void apply (Particle particle) {
-                    // cross product of vortex axis and relative position is direction
-                    _taxis.cross(particle.getPosition().subtract(_torigin, _vector), _vector);
-                    float length = _vector.length();
-                    if (length < FloatMath.EPSILON) {
-                        return; // particle is on the axis
-                    }
-                    // normalize direction, scale by delta, rotate, add to velocity
-                    particle.getVelocity().addLocal(
-                        _rotation.transformLocal(_vector.multLocal(_delta / length)));
-                }
-                protected float _delta;
-                protected Vector3f _torigin = new Vector3f();
-                protected Vector3f _taxis = new Vector3f();
-                protected Vector3f _vector = new Vector3f();
-                protected Matrix3f _rotation = new Matrix3f();
-            };
-        }
+        //            // find divergence rotation
+        //            _rotation.setToRotation(-divergence, _taxis);
+        //        }
+        //        public void apply (Particle particle) {
+        //            // cross product of vortex axis and relative position is direction
+        //            _taxis.cross(particle.getPosition().subtract(_torigin, _vector), _vector);
+        //            float length = _vector.length();
+        //            if (length < FloatMath.EPSILON) {
+        //                return; // particle is on the axis
+        //            }
+        //            // normalize direction, scale by delta, rotate, add to velocity
+        //            particle.getVelocity().addLocal(
+        //                _rotation.transformLocal(_vector.multLocal(_delta / length)));
+        //        }
+        //        protected float _delta;
+        //        protected Vector3f _torigin = new Vector3f();
+        //        protected Vector3f _taxis = new Vector3f();
+        //        protected Vector3f _vector = new Vector3f();
+        //        protected Matrix3f _rotation = new Matrix3f();
+        //    };
+        //}
     }
 
     /**
@@ -247,56 +252,57 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable
         public boolean rotateWithEmitter;
 
-        @Override
-        public Influence createInfluence (final Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    // compute the delta amount
-                    _delta = strength * elapsed;
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (final Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            // compute the delta amount
+        //            _delta = strength * elapsed;
 
-                    // transform the origin and axis into layer space
-                    layer.pointToLayer(_torigin.set(Vector3f.ZERO), true);
-                    layer.vectorToLayer(_taxis.set(axis), rotateWithEmitter);
-                }
-                public void apply (Particle particle) {
-                    // cross product of ring axis and particle position is tangent
-                    particle.getPosition().subtract(_torigin, _position);
-                    _taxis.cross(_position, _tangent);
-                    float length = _tangent.length();
-                    if (length < FloatMath.EPSILON) {
-                        return; // particle is on the axis
-                    }
-                    _tangent.multLocal(1f / length);
+        //            // transform the origin and axis into layer space
+        //            layer.pointToLayer(_torigin.set(Vector3f.ZERO), true);
+        //            layer.vectorToLayer(_taxis.set(axis), rotateWithEmitter);
+        //        }
+        //        public void apply (Particle particle) {
+        //            // cross product of ring axis and particle position is tangent
+        //            particle.getPosition().subtract(_torigin, _position);
+        //            _taxis.cross(_position, _tangent);
+        //            float length = _tangent.length();
+        //            if (length < FloatMath.EPSILON) {
+        //                return; // particle is on the axis
+        //            }
+        //            _tangent.multLocal(1f / length);
 
-                    // cross product of tangent and axis is direction from axis to position
-                    _tangent.cross(_taxis, _vector);
+        //            // cross product of tangent and axis is direction from axis to position
+        //            _tangent.cross(_taxis, _vector);
 
-                    // find vector from closest point on ring to position
-                    _vector.multLocal(radius).addScaledLocal(
-                        _taxis, height).subtractLocal(_position);
-                    length = _vector.length();
-                    if (length < FloatMath.EPSILON) {
-                        return; // particle is on the ring
-                    }
-                    _vector.multLocal(1f / length);
+        //            // find vector from closest point on ring to position
+        //            _vector.multLocal(radius).addScaledLocal(
+        //                _taxis, height).subtractLocal(_position);
+        //            length = _vector.length();
+        //            if (length < FloatMath.EPSILON) {
+        //                return; // particle is on the ring
+        //            }
+        //            _vector.multLocal(1f / length);
 
-                    // compute the rotation angle
-                    _rotation.fromAngleAxis(-divergence, _tangent);
+        //            // compute the rotation angle
+        //            _rotation.fromAngleAxis(-divergence, _tangent);
 
-                    // cross product of vector and tangent is direction
-                    particle.getVelocity().addLocal(
-                        _rotation.transformLocal(_vector.crossLocal(_tangent).multLocal(_delta)));
-                }
-                protected float _delta;
-                protected Vector3f _torigin = new Vector3f();
-                protected Vector3f _taxis = new Vector3f();
-                protected Vector3f _position = new Vector3f();
-                protected Vector3f _tangent = new Vector3f();
-                protected Vector3f _vector = new Vector3f();
-                protected Quaternion _rotation = new Quaternion();
-            };
-        }
+        //            // cross product of vector and tangent is direction
+        //            particle.getVelocity().addLocal(
+        //                _rotation.transformLocal(_vector.crossLocal(_tangent).multLocal(_delta)));
+        //        }
+        //        protected float _delta;
+        //        protected Vector3f _torigin = new Vector3f();
+        //        protected Vector3f _taxis = new Vector3f();
+        //        protected Vector3f _position = new Vector3f();
+        //        protected Vector3f _tangent = new Vector3f();
+        //        protected Vector3f _vector = new Vector3f();
+        //        protected Quaternion _rotation = new Quaternion();
+        //    };
+        //}
     }
 
     /**
@@ -312,30 +318,31 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float strength = 0.05f;
 
-        @Override
-        public Influence createInfluence (Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    // the unscaled strength was based on an expected frame rate of sixty
-                    // frames per second
-                    _time += elapsed * frequency;
-                    _sstrength = strength * elapsed * 60f;
-                }
-                public void apply (Particle particle) {
-                    // using the system hash gives each particle a consistent unique identity;
-                    // adding an offset to the time prevents synchronization of the zero points
-                    // (the noise function is always zero at integers)
-                    int pid = System.identityHashCode(particle);
-                    float time = _time + (pid & 255) / 256f;
-                    particle.getVelocity().addLocal(
-                        NoiseUtil.getNoise(time, pid) * _sstrength,
-                        NoiseUtil.getNoise(time, pid + 1) * _sstrength,
-                        NoiseUtil.getNoise(time, pid + 2) * _sstrength);
-                }
-                protected float _time, _sstrength;
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            // the unscaled strength was based on an expected frame rate of sixty
+        //            // frames per second
+        //            _time += elapsed * frequency;
+        //            _sstrength = strength * elapsed * 60f;
+        //        }
+        //        public void apply (Particle particle) {
+        //            // using the system hash gives each particle a consistent unique identity;
+        //            // adding an offset to the time prevents synchronization of the zero points
+        //            // (the noise function is always zero at integers)
+        //            int pid = System.identityHashCode(particle);
+        //            float time = _time + (pid & 255) / 256f;
+        //            particle.getVelocity().addLocal(
+        //                NoiseUtil.getNoise(time, pid) * _sstrength,
+        //                NoiseUtil.getNoise(time, pid + 1) * _sstrength,
+        //                NoiseUtil.getNoise(time, pid + 2) * _sstrength);
+        //        }
+        //        protected float _time, _sstrength;
+        //    };
+        //}
     }
 
     /**
@@ -351,26 +358,27 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(min=0.0, step=0.01)
         public float strength = 0.02f;
 
-        @Override
-        public Influence createInfluence (Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    _time += elapsed * frequency;
-                    _sstrength = strength * elapsed * 60f;
-                }
-                public void apply (Particle particle) {
-                    // jitter is just like wander, except it directly influences the position
-                    int pid = System.identityHashCode(particle);
-                    float time = _time + (pid & 255) / 256f;
-                    particle.getPosition().addLocal(
-                        NoiseUtil.getNoise(time, pid) * _sstrength,
-                        NoiseUtil.getNoise(time, pid + 1) * _sstrength,
-                        NoiseUtil.getNoise(time, pid + 2) * _sstrength);
-                }
-                protected float _time, _sstrength;
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            _time += elapsed * frequency;
+        //            _sstrength = strength * elapsed * 60f;
+        //        }
+        //        public void apply (Particle particle) {
+        //            // jitter is just like wander, except it directly influences the position
+        //            int pid = System.identityHashCode(particle);
+        //            float time = _time + (pid & 255) / 256f;
+        //            particle.getPosition().addLocal(
+        //                NoiseUtil.getNoise(time, pid) * _sstrength,
+        //                NoiseUtil.getNoise(time, pid + 1) * _sstrength,
+        //                NoiseUtil.getNoise(time, pid + 2) * _sstrength);
+        //        }
+        //        protected float _time, _sstrength;
+        //    };
+        //}
     }
 
     /**
@@ -382,23 +390,25 @@ public abstract class InfluenceConfig extends DeepObject
         @Editable(scale=Math.PI/180.0)
         public Vector3f acceleration = new Vector3f();
 
-        @Override
-        public Influence createInfluence (final Layer layer)
-        {
-            return new Influence() {
-                public void tick (float elapsed) {
-                    acceleration.mult(elapsed, _delta);
-                }
-                public void apply (Particle particle) {
-                    particle.getAngularVelocity().addLocal(_delta);
-                }
-                protected Vector3f _delta = new Vector3f();
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Influence createInfluence (final Layer layer)
+        //{
+        //    return new Influence() {
+        //        public void tick (float elapsed) {
+        //            acceleration.mult(elapsed, _delta);
+        //        }
+        //        public void apply (Particle particle) {
+        //            particle.getAngularVelocity().addLocal(_delta);
+        //        }
+        //        protected Vector3f _delta = new Vector3f();
+        //    };
+        //}
     }
 
-    /**
-     * Creates the influence corresponding to this config for the specified layer.
-     */
-    public abstract Influence createInfluence (Layer layer);
+	// ARMHACK
+    ///**
+    // * Creates the influence corresponding to this config for the specified layer.
+    // */
+    //public abstract Influence createInfluence (Layer layer);
 }

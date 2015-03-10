@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.camera;
 
-//import org.lwjgl.opengl.GL11;  // TODO: ARMHACK
+//import org.lwjgl.opengl.GL11;  // ARMHACK
 
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -36,7 +36,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
-//import com.threerings.opengl.renderer.Renderer; // TODO: ARMHACK
+//import com.threerings.opengl.renderer.Renderer; // ARMHACK
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -236,7 +236,7 @@ public class Camera
         _localVolume.transform(_worldTransform, _worldVolume);
     }
 
-	// TODO: ARMHACK
+	// ARMHACK
     ///**
     // * Applies the camera state to the specified renderer.
     // */
