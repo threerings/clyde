@@ -181,12 +181,19 @@ public class Validator
      */
     protected void getReferences (ConfigManager cfgmgr, Object object, Property property)
     {
+        Editable annotation = property.getAnnotation();
         Object value = property.get(object);
         if (value == null) {
-            // TODO: check nullable!
+            if (isNullValidated() && !annotation.nullable()) {
+                output("Non-nullable property is null: " + property.getName());
+            }
             return;
         }
-        Editable annotation = property.getAnnotation();
+
+        // TODO: it would be keen to validate properties against their Editable annotation
+        // to ensure that things like min/max or whatever are still valid. This would probably
+        // need to be handled individually by each type of PropertyEditor.
+
         String editor = annotation.editor();
         if (editor.equals("resource")) {
             addResource((String)value, property, _resources);
@@ -378,6 +385,15 @@ public class Validator
     protected Resource createResource (String path, String[] extensions)
     {
         return new Resource(path, extensions);
+    }
+
+    /**
+     * Do we validate properties that are null?
+     */
+    protected boolean isNullValidated ()
+    {
+        // legacy: we never used to, so the default is not to. This is overridden in trinity!
+        return false;
     }
 
     /**
