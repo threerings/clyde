@@ -784,7 +784,7 @@ public abstract class Property extends DeepObject
     @DeepOmit
     protected HashMap<Class<?>, Type[]> _genericArgumentTypes;
 
-    /** Class<?> lists read from the type configuration. */
+    /** Class lists read from the type configuration. */
     protected static HashMap<String, Class<?>[]> _configTypes = new HashMap<String, Class<?>[]>();
 
     static {

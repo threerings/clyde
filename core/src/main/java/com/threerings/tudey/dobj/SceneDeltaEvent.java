@@ -202,7 +202,7 @@ public class SceneDeltaEvent extends DEvent
     /** The actors added to the scene since the referenced update (or <code>null</code>). */
     protected Actor[] _addedActors;
 
-    /** The deltas of the actors updated since the referenced update (or <code>null</code). */
+    /** The deltas of the actors updated since the referenced update (or <code>null</code>). */
     protected ActorDelta[] _updatedActorDeltas;
 
     /** The ids of the actors removed since the referenced update (or <code>null</code>). */

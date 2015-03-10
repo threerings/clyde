@@ -241,7 +241,7 @@ public abstract class ArrayListEditor extends PropertyEditor
     }
 
     /**
-     * Get the property, as a List<Object>, such that it has been prepared for modification,
+     * Get the property, as a List&lt;Object&gt;, such that it has been prepared for modification,
      * if necessary.
      */
     protected List<Object> getListPropertyForModification (Class<?> type)

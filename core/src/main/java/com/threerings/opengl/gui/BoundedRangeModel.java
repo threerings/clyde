@@ -161,7 +161,7 @@ public class BoundedRangeModel
 
     /**
      * Configures the value of this model. The new value will be adjusted if it does not fall
-     * within the range of <code>min <= value <= max - extent<code>.
+     * within the range of <code>min &lt;= value &lt;= max - extent</code>.
      */
     public void setValue (int value)
     {
@@ -171,7 +171,7 @@ public class BoundedRangeModel
 
     /**
      * Configures the extent of this model. The new value will be adjusted if it does not fall
-     * within the range of <code>0 <= extent <= max - value<code>.
+     * within the range of <code>0 &lt;= extent &lt;= max - value</code>.
      */
     public void setExtent (int extent)
     {

@@ -550,6 +550,6 @@ public class BinaryExporter extends Exporter
     /** Field values associated with the current object. */
     protected HashMap<String, Tuple<Object, Class<?>>> _fields;
 
-    /** Class<?> data. */
+    /** Class data. */
     protected HashMap<Class<?>, ClassData> _classData = new HashMap<Class<?>, ClassData>();
 }
