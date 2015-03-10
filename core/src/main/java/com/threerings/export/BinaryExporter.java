@@ -50,6 +50,8 @@ import com.samskivert.util.Tuple;
 
 import com.threerings.util.ReflectionUtil;
 
+import static com.threerings.export.Log.log;
+
 /**
  * Exports to a compact binary format.
  */
@@ -109,6 +111,13 @@ public class BinaryExporter extends Exporter
         for (Class<?> clazz : BOOTSTRAP_CLASSES) {
             _classIds.put(clazz, ++_lastClassId);
         }
+    }
+
+    @Override
+    public BinaryExporter setReplacer (Replacer replacer)
+    {
+        super.setReplacer(replacer);
+        return this;
     }
 
     @Override
@@ -193,7 +202,16 @@ public class BinaryExporter extends Exporter
     public <T> void write (String name, T value, Class<T> clazz)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, clazz));
+        Object tVal = value;
+        Class<?> tClazz = clazz;
+        if (_replacer != null) {
+            Replacement repl = _replacer.getReplacement(value, clazz);
+            if (repl != null) {
+                tVal = repl.value;
+                tClazz = repl.clazz;
+            }
+        }
+        _fields.put(name, new Tuple<Object, Class<?>>(tVal, tClazz));
     }
 
     @Override
@@ -218,6 +236,24 @@ public class BinaryExporter extends Exporter
      * Writes out an object of the specified class.
      */
     protected void write (Object value, Class<?> clazz)
+        throws IOException
+    {
+        // possibly sub the value on the way out
+        if (_replacer != null) {
+            Replacement repl = _replacer.getReplacement(value, clazz);
+            if (repl != null) {
+                value = repl.value;
+                clazz = repl.clazz;
+            }
+        }
+
+        writeNoReplace(value, clazz);
+    }
+
+    /**
+     * Writes out an object of the specified class, after the replacement has been done.
+     */
+    protected void writeNoReplace (Object value, Class<?> clazz)
         throws IOException
     {
         // write primitive types out directly
@@ -468,12 +504,12 @@ public class BinaryExporter extends Exporter
             if (fieldId == null) {
                 Streams.writeVarInt(_out, ++_lastFieldId);
                 _fieldIds.put(field, _lastFieldId);
-                write(name, String.class);
+                writeNoReplace(name, String.class);
                 writeClass(clazz);
             } else {
                 Streams.writeVarInt(_out, fieldId.intValue());
             }
-            write(value, clazz);
+            writeNoReplace(value, clazz);
         }
 
         /** Maps field name/class pairs to field ids. */

@@ -63,6 +63,49 @@ public abstract class Exporter
     implements Closeable
 {
     /**
+     * Can be used to rewrite objects on as they are exported.
+     */
+    public interface Replacer
+    {
+        /**
+         * Return the replacement to use, or null.
+         *
+         * @param value the value to be written
+         * @param clazz the expected class type
+         */
+        public Replacement getReplacement (Object value, Class<?> clazz);
+    }
+
+    /**
+     * Helper class for Replacer.
+     */
+    public static class Replacement
+    {
+        /** The new value to write instead. */
+        public final Object value;
+
+        /** The class type to write instead. */
+        public final Class<?> clazz;
+
+        /**
+         * Construct a replacement. */
+        public Replacement (Object value, Class<?> clazz)
+        {
+            this.value = value;
+            this.clazz = clazz;
+        }
+    }
+
+    /**
+     * Set the replacer to use with this Exporter.
+     */
+    public Exporter setReplacer (Replacer replacer)
+    {
+        _replacer = replacer;
+        return this;
+    }
+
+    /**
      * Writes the object to the underlying stream.
      */
     public abstract void writeObject (Object oject)
@@ -720,6 +763,9 @@ public abstract class Exporter
 
     /** The marshaller for the current object. */
     protected ObjectMarshaller _marshaller;
+
+    /** An optional replacer, for rewriting objects on their way out. */
+    protected Replacer _replacer;
 
     /** Used for object comparisons using {@link Arrays#deepEquals}. */
     protected Object[] _a1 = new Object[1], _a2 = new Object[1];
