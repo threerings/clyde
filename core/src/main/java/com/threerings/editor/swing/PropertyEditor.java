@@ -110,7 +110,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             log.warning("Missing custom editor class [name=" + name + "].");
 
         // if a String, and the @Reference annotation is present, it's a bare config reference.
-        } else if (type == String.class && (null != property.getAnnotation(Reference.class))) {
+        } else if (type == String.class && property.isAnnotationPresent(Reference.class)) {
             clazz = ConfigEditor.class;
         }
         PropertyEditor editor;

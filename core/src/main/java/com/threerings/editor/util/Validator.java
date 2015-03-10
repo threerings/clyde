@@ -38,6 +38,7 @@ import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.util.ConfigId;
 
@@ -182,6 +183,7 @@ public class Validator
     {
         Object value = property.get(object);
         if (value == null) {
+            // TODO: check nullable!
             return;
         }
         Editable annotation = property.getAnnotation();
@@ -190,6 +192,13 @@ public class Validator
             addResource((String)value, property, _resources);
             return;
         }
+        // see if it's a reference property
+        Reference refAnno = property.getAnnotation(Reference.class);
+        if (refAnno != null) {
+            noteReference(cfgmgr, refAnno.value(), (String)value, property);
+            return;
+        }
+        // also check the old way...
         if (editor.equals("config")) {
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
