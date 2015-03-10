@@ -37,17 +37,14 @@
 
   <target name="-prepare" depends="-init-maven-ant">
     <mkdir dir="${deploy.dir}"/>
+	<mkdir dir="${deploy.dir}/lib"/>
 	<!-- Copy local libraries -->
-	<!--
     <copy todir="${deploy.dir}/lib">
       <fileset dir="lib" includes="**/*.jar"/>
 	</copy>
-	-->
     <path id="classpath">
       <path refid="compile.classpath"/>
-	<!--
       <fileset dir="${deploy.dir}/lib" includes="**/*.jar"/>
-	-->
 	</path>
     <path id="built.classpath">
       <path refid="classpath"/>
