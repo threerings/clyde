@@ -27,7 +27,6 @@ package com.threerings.editor.swing.editors;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,7 +39,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.Icon;
-import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import com.google.common.collect.ImmutableMap;
@@ -54,8 +52,6 @@ import com.samskivert.util.ObjectUtil;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.editor.swing.BaseEditorPanel;
-import com.threerings.editor.swing.BasePropertyEditor;
-import com.threerings.editor.swing.ObjectPanel;
 
 import static com.threerings.editor.Log.log;
 

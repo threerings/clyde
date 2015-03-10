@@ -41,7 +41,6 @@ import java.util.List;
 import com.samskivert.util.ClassUtil;
 import com.samskivert.util.StringUtil;
 
-import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;

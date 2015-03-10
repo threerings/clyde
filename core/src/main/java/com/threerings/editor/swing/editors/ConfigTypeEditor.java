@@ -13,12 +13,8 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.ArrayUtil;
 
-import com.threerings.util.DeepUtil;
-
 import com.threerings.config.ConfigGroup;
-import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
-import com.threerings.config.tools.ConfigEditor;
 
 import com.threerings.editor.MethodProperty;
 import com.threerings.editor.Property;

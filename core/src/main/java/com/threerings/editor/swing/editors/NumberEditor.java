@@ -32,7 +32,6 @@ import javax.swing.event.ChangeListener;
 
 import com.google.common.primitives.Primitives;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.PropertyEditor;
 

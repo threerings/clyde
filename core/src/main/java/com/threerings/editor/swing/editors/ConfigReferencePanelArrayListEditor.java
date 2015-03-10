@@ -28,37 +28,14 @@ package com.threerings.editor.swing.editors;
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
-import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.List;
 
 import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.JComboBox;
+
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-
-import com.samskivert.swing.CollapsiblePanel;
-import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
-import com.samskivert.util.StringUtil;
-
-import com.threerings.util.MessageBundle;
-
-import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.PropertyEditor;
-
-import com.threerings.config.ConfigReference;
-
-import static com.threerings.editor.Log.log;
 
 /**
  * An editor for Lists (or arrays) of config references.

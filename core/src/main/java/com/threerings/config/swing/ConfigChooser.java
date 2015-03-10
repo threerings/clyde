@@ -53,7 +53,6 @@ import javax.swing.filechooser.FileFilter;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import com.samskivert.util.StringUtil;
 
@@ -64,10 +63,8 @@ import com.threerings.util.MessageManager;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.util.PropertyUtil;
 
-import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
-import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ReferenceConstraints;
 

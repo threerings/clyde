@@ -25,13 +25,7 @@
 
 package com.threerings.config;
 
-import java.lang.ref.SoftReference;
-
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;

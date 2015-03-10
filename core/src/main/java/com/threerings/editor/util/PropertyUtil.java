@@ -25,8 +25,6 @@
 
 package com.threerings.editor.util;
 
-import java.io.PrintStream;
-
 import java.lang.reflect.Array;
 
 import java.util.Arrays;
@@ -40,8 +38,6 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-
-import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;

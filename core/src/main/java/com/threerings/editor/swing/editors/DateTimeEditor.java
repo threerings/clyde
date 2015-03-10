@@ -25,7 +25,6 @@
 
 package com.threerings.editor.swing.editors;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -54,7 +53,6 @@ import com.samskivert.util.Calendars;
 
 import com.threerings.util.MessageBundle;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
 
 import static com.threerings.editor.Log.log;

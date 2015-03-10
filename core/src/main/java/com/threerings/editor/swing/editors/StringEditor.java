@@ -37,7 +37,6 @@ import javax.swing.text.JTextComponent;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
 
 /**
