@@ -20,11 +20,6 @@
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
-      <artifactId>narya</artifactId>
-      <version>1.14.3</version>
-    </dependency>
-    <dependency>
-      <groupId>com.threerings</groupId>
       <artifactId>nenya</artifactId>
       <version>1.5</version>
     </dependency>
