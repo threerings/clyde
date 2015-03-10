@@ -34,21 +34,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 
 import com.google.common.collect.ImmutableList;
 
-import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.swing.PropertyEditor;
 import com.threerings.export.ObjectMarshaller;
 import com.threerings.util.DeepUtil;
-
-import static com.threerings.editor.Log.log;
 
 /**
  * Superclass of the array/list editors.

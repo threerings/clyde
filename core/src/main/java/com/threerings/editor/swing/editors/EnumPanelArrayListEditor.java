@@ -29,26 +29,20 @@ import java.util.Arrays;
 import java.util.List;
 
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
-import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
-import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Introspector;
-
-import static com.threerings.editor.Log.log;
 
 /**
  * An editor for arrays of lists of enums.

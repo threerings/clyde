@@ -26,7 +26,6 @@
 package com.threerings.editor.swing;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -77,7 +76,6 @@ import com.google.common.collect.Lists;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ListUtil;
-import com.samskivert.util.StringUtil;
 
 import com.threerings.media.image.ColorPository.ClassRecord;
 import com.threerings.media.image.ColorPository.ColorRecord;

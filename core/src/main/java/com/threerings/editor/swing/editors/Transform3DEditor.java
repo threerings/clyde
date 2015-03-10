@@ -36,7 +36,6 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Transform3D;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
 import com.threerings.editor.swing.Transform3DPanel;
 

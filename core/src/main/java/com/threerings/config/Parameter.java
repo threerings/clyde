@@ -25,8 +25,6 @@
 
 package com.threerings.config;
 
-import java.io.PrintStream;
-
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 

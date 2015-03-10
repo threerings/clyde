@@ -32,18 +32,15 @@ import java.util.Set;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
 import com.google.common.collect.SetMultimap;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.WeakObserverList;
-import com.samskivert.util.Tuple;
 
 import com.threerings.resource.ResourceManager;
 import com.threerings.resource.ResourceManager.ModificationObserver;
 
 import com.threerings.editor.Editable;
-import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.Validator;

@@ -33,16 +33,13 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.config.ConfigEvent;

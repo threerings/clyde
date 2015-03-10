@@ -58,8 +58,6 @@ import com.threerings.util.MessageBundle;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.util.EditorContext;
 
-import static com.threerings.editor.Log.log;
-
 /**
  * Finds text in a container.
  */

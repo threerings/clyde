@@ -5,14 +5,9 @@ package com.threerings.config;
 
 import java.lang.ref.SoftReference;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import com.samskivert.util.ArrayUtil;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;

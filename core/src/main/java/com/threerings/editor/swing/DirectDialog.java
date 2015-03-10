@@ -26,33 +26,25 @@
 package com.threerings.editor.swing;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractButton;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.text.JTextComponent;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
 
@@ -60,8 +52,6 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.util.EditorContext;
-
-import static com.threerings.editor.Log.log;
 
 /**
  * Creates a direct parameter.

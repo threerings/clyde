@@ -14,8 +14,6 @@ import java.util.Set;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.google.common.base.Preconditions;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -23,7 +21,6 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.swing.util.SwingUtil;
 
-import com.threerings.editor.swing.editors.ObjectEditor;
 import com.threerings.editor.swing.editors.PathTableArrayListEditor;
 
 import static com.threerings.editor.Log.log;

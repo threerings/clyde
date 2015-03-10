@@ -46,12 +46,9 @@ import org.w3c.dom.ls.LSSerializer;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
 import com.threerings.util.ReflectionUtil;
-
-import static com.threerings.export.Log.log;
 
 /**
  * Exports to an XML format.

@@ -25,8 +25,6 @@
 
 package com.threerings.editor.util;
 
-import java.io.PrintStream;
-
 import java.lang.reflect.Array;
 
 import java.util.Arrays;
@@ -38,8 +36,6 @@ import java.util.Set;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
-
-import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;

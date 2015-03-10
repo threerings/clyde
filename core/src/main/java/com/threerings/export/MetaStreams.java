@@ -7,17 +7,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.EOFException;
 import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 
-import java.util.Iterator;
-
 import com.google.common.base.Preconditions;
-import com.google.common.collect.AbstractIterator;
 import com.google.common.io.ByteStreams;
-
-import static com.threerings.export.Log.log;
 
 /**
  * Utility methods for combining and re-splitting arbitrary streams of data into a single

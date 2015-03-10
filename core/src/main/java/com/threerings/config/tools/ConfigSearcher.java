@@ -60,8 +60,6 @@ import com.threerings.config.ManagedConfig;
 
 import com.threerings.editor.util.EditorContext;
 
-import com.threerings.export.util.ExportFileUtil;
-
 //import com.threerings.tudey.data.TudeySceneModel; // ARMHACK
 
 /**

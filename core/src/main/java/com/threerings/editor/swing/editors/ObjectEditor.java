@@ -27,12 +27,8 @@ package com.threerings.editor.swing.editors;
 
 import java.awt.Component;
 
-import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.editor.swing.ObjectPanel;
 import com.threerings.editor.swing.PropertyEditor;
