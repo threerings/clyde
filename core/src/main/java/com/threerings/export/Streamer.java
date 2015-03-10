@@ -40,7 +40,6 @@ import java.nio.ShortBuffer;
 
 import java.util.HashMap;
 
-//import org.lwjgl.BufferUtils;
 import com.threerings.util.BufferUtils;
 
 import static com.threerings.export.Log.log;

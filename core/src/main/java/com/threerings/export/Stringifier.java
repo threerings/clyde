@@ -38,7 +38,6 @@ import java.nio.ShortBuffer;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-//import org.lwjgl.BufferUtils;
 import com.threerings.util.BufferUtils;
 
 import com.samskivert.util.StringUtil;
