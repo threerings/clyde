@@ -103,7 +103,7 @@ public abstract class DependencyGatherer
      */
     public DependencyGatherer (ManagedConfig config)
     {
-        //populateParameters(config.getConfigGroup().getConfigClass(), config);
+        populateParameters(config.getConfigGroup().getConfigClass(), config);
     }
 
     public void gather (ManagedConfig config)
@@ -114,7 +114,6 @@ public abstract class DependencyGatherer
     public void gather (ConfigManager cfgmgr)
     {
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-            Class<? extends ManagedConfig> clazz = group.getConfigClass();
             for (ManagedConfig cfg : group.getRawConfigs()) {
                 findReferences(cfg);
             }
@@ -223,6 +222,15 @@ public abstract class DependencyGatherer
         // add the reference
         add(clazz, ref);
 
+        findArgumentReferences(ref, clazz, seen);
+    }
+
+    /**
+     * Add any config references that are arguments in the specified reference.
+     */
+    protected void findArgumentReferences (
+            ConfigReference<?> ref, Class<? extends ManagedConfig> clazz, Set<Object> seen)
+    {
         // examine the arguments of the reference...
         ConfigId id = new ConfigId(clazz, ref.getName());
         for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
