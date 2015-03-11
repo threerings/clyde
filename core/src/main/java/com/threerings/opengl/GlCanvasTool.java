@@ -43,6 +43,7 @@ import com.samskivert.util.RunQueue;
 
 import com.threerings.math.Vector3f;
 
+import com.threerings.config.Reference;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.config.tools.ResourceEditor;
 import com.threerings.editor.Editable;
@@ -55,6 +56,7 @@ import com.threerings.util.ToolUtil;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.MouseOrbiter;
 import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.Compass;
 import com.threerings.opengl.util.DebugBounds;
@@ -382,7 +384,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
         /**
          * Sets the render scheme to use.
          */
-        @Editable(editor="config", mode="render_scheme", nullable=true, weight=5)
+        @Editable(nullable=true, weight=5)
+        @Reference(RenderSchemeConfig.class)
         public void setRenderScheme (String scheme)
         {
             GlCanvasTool.this.setRenderScheme(scheme);
@@ -397,6 +400,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
          * Returns the active render scheme.
          */
         @Editable
+        @Reference(RenderSchemeConfig.class)
         public String getRenderScheme ()
         {
             return _renderScheme;
