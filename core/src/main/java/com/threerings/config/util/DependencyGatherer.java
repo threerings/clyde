@@ -63,6 +63,9 @@ public abstract class DependencyGatherer
      */
     public static class Default extends DependencyGatherer
     {
+        /**
+         * Construct a Default gatherer.
+         */
         public Default (ConfigManager cfgmgr, ManagedConfig config)
         {
             _cfgmgr = cfgmgr;
@@ -278,7 +281,15 @@ public abstract class DependencyGatherer
                     Reference refAnno = f.getAnnotation(Reference.class);
                     if (refAnno != null) {
                         // add it!
-                        addBareReference(f, val, refAnno.value(), (String)o);
+                        String newValue = addBareReference(refAnno.value(), (String)o);
+                        if (newValue != null) {
+                            try {
+                                f.set(val, newValue);
+
+                            } catch (IllegalAccessException iae) {
+                                throw new RuntimeException(iae); // shouldn't happen
+                            }
+                        }
                     }
 
                 } else {
@@ -338,12 +349,13 @@ public abstract class DependencyGatherer
 
     /**
      * Add a bare string reference.
-     * Provides extra information for subclasses.
+     *
+     * @return a new String if you want that value set back in the field, or null.
      */
-    protected void addBareReference (
-            Field f, Object host, Class<? extends ManagedConfig> clazz, String cfgName)
+    protected String addBareReference (Class<? extends ManagedConfig> clazz, String cfgName)
     {
         add(clazz, new ConfigReference<ManagedConfig>(cfgName));
+        return null;
     }
 
     /**

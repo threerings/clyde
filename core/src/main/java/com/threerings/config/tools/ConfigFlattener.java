@@ -32,7 +32,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
-import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
 import com.google.common.io.Files;
 import com.google.common.primitives.Primitives;
@@ -193,16 +192,6 @@ public class ConfigFlattener
                 new File(ctx.configDir, "manager.properties"),
                 new File(ctx.destDir, "manager.txt"));
     }
-
-//    // tEMP
-//    protected <K, V> void dumpIt (SetMultimap<K, V> set)
-//    {
-//        Set<K> keys = set.keySet();
-//        log.info("keySize: " + keys.size());
-//        for (K key : keys) {
-//            log.info("\t" + key + ": " + set.get(key).size());
-//        }
-//    }
 
     /**
      * Flatten all the configs in-place in the specified config manager.
@@ -591,6 +580,19 @@ public class ConfigFlattener
             }
         }
 
+        @Override
+        protected String addBareReference (Class<? extends ManagedConfig> clazz, String cfgName)
+        {
+            // make a new String that we can identify uniquely later
+            cfgName = new String(cfgName);
+            // map it
+            _bareToClass.put(cfgName, clazz);
+            // tell super about it...
+            super.addBareReference(clazz, cfgName);
+            // return it so that it's re-set into the Field
+            return cfgName;
+        }
+
         /** The config we're currently examining while adding dependencies. */
         protected ConfigId _current;
 
@@ -607,8 +609,7 @@ public class ConfigFlattener
         /** Maps all config references to their class. */
         protected final Map<ConfigReference<?>, Class<?>> _refToClass = Maps.newIdentityHashMap();
 
-        /** A mapping of config/parameter to the type of config that parameter expects, if any. */
-        protected final Table<ConfigId, String, Class<ManagedConfig>> _paramCfgTypes =
-                HashBasedTable.create();
+        /** Maps bare references to their class. */
+        protected final Map<String, Class<?>> _bareToClass = Maps.newIdentityHashMap();
     }
 }
