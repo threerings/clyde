@@ -315,32 +315,6 @@ public abstract class DependencyGatherer
         return null;
     }
 
-//    /**
-//     * Look at the generic type of a parameter to see if it expects ConfigReferences in some way.
-//     */
-//    protected void populateParameterConfigType (ConfigId id, String name, Type type)
-//    {
-//        if (type instanceof ParameterizedType) {
-//            ParameterizedType ptype = (ParameterizedType)type;
-//            Type rawType = ptype.getRawType();
-//            if (ConfigReference.class.equals(rawType)) {
-//                @SuppressWarnings("unchecked")
-//                Class<ManagedConfig> clazz =
-//                        (Class<ManagedConfig>)ptype.getActualTypeArguments()[0];
-//                _paramCfgTypes.put(id, name, clazz);
-//
-//            } else if (List.class.equals(rawType)) {
-//                populateParameterConfigType(id, name, ptype.getActualTypeArguments()[0]);
-//            }
-//        }
-//        // TODO: fuck arrays.... arrays never worked well because of the generic arguments
-//        // and we support Lists now. We love Lists.
-//        // Nothing using flattening should have config reference arrays.
-//        // And even if they did, we'd have a Class type here
-//        // (like ProjectX's ItemConfigReference), and we'd have to dive into that to discover
-//        // that it has an array. Fuck that.
-//    }
-
     /** A cache of field information. */
     protected final FieldCache _fieldCache = new FieldCache();
 
