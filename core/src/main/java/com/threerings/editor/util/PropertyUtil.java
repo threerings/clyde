@@ -46,6 +46,7 @@ import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
@@ -432,13 +433,16 @@ public class PropertyUtil
                 continue;
             }
             Editable annotation = property.getAnnotation();
+            Reference refAnno = property.getAnnotation(Reference.class);
             String editor = annotation.editor();
-            boolean cfg = editor.equals("config");
+            boolean cfg = editor.equals("config") || (refAnno != null);
             if (cfg || property.getType().equals(ConfigReference.class)) {
                 Class<ManagedConfig> cclass;
                 ConfigReference<ManagedConfig> ref;
                 if (cfg) {
-                    ConfigGroup<?> group = cfgmgr.getGroup(annotation.mode());
+                    ConfigGroup<?> group = (refAnno != null)
+                            ? cfgmgr.getGroup(refAnno.value()) // new way
+                            : cfgmgr.getGroup(annotation.mode()); // old way
                     if (group == null) {
                         continue;
                     }

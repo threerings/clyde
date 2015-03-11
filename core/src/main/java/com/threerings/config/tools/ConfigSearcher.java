@@ -34,9 +34,6 @@ import javax.swing.JScrollPane;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
@@ -57,6 +54,7 @@ import com.threerings.util.ToolUtil;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.util.FieldCache;
 
 import com.threerings.editor.util.EditorContext;
 
@@ -576,7 +574,8 @@ public class ConfigSearcher extends JFrame
      * Internal helper for findAttributes.
      */
     protected static <T> Multiset<T> findAttributes (
-        Object val, java.lang.reflect.Type valGenericType, AttributeDetector<T> detector, Set<Object> seen)
+        Object val, java.lang.reflect.Type valGenericType, AttributeDetector<T> detector,
+        Set<Object> seen)
     {
         if (val == null) {
             return ImmutableMultiset.<T>of();
@@ -612,7 +611,7 @@ public class ConfigSearcher extends JFrame
             }
 
         } else {
-            for (Field f : FIELDS.getUnchecked(c)) {
+            for (Field f : _fieldCache.getFields(c)) {
                 Object o;
                 try {
                     o = f.get(val);
@@ -689,27 +688,5 @@ public class ConfigSearcher extends JFrame
     }
 
     /** All the fields (and superfields...) of a class, cached. */
-    protected static final LoadingCache<Class<?>, ImmutableList<Field>> FIELDS =
-        CacheBuilder.newBuilder()
-        .concurrencyLevel(1)
-        .build(
-            new CacheLoader<Class<?>, ImmutableList<Field>>() {
-                public ImmutableList<Field> load (Class<?> clazz) {
-                    ImmutableList.Builder<Field> builder = ImmutableList.builder();
-                    // add recurse on superclass
-                    Class<?> superClazz = clazz.getSuperclass();
-                    if (superClazz != null) {
-                        builder.addAll(FIELDS.getUnchecked(superClazz));
-                    }
-                    // get all fields of the specified class, and filter out the static ones..
-                    for (Field f : clazz.getDeclaredFields()) {
-                        // add all non-static fields; make them accessible
-                        if (0 == (f.getModifiers() & (Modifier.STATIC|Modifier.TRANSIENT))) {
-                            f.setAccessible(true);
-                            builder.add(f);
-                        }
-                    }
-                    return builder.build();
-                }
-            });
+    protected static final FieldCache _fieldCache = new FieldCache();
 }

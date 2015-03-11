@@ -37,6 +37,7 @@ import com.google.common.base.Supplier;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigBox;
 
@@ -70,10 +71,26 @@ public class ConfigEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        ConfigGroup<?>[] groups = _ctx.getConfigManager().getGroups(getMode());
-        if (groups.length == 0) {
-            log.warning("Missing groups for config editor.", "name", getMode());
-            return;
+
+        // look for a @Reference annotation
+        Reference ref = _property.getAnnotation(Reference.class);
+        ConfigGroup<?>[] groups;
+        if (ref != null) {
+            // @Reference is preferred
+            ConfigGroup<?> group = _ctx.getConfigManager().getGroup(ref.value());
+            if (group == null) {
+                log.warning("Missing valid type for Reference", "value", ref.value());
+                return;
+            }
+            groups = new ConfigGroup<?>[] { group };
+
+        } else {
+            // fall back to the old way: the mode argument of @Editable (boo hiss)
+            groups = _ctx.getConfigManager().getGroups(getMode());
+            if (groups.length == 0) {
+                log.warning("Missing groups for config editor.", "name", getMode());
+                return;
+            }
         }
         _box = new ConfigBox(
                 _msgs, groups, _property.nullable(),

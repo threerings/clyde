@@ -38,6 +38,7 @@ import java.util.EnumSet;
 
 import java.util.zip.InflaterInputStream;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -97,13 +98,28 @@ public class BinaryImporter extends Importer
             // verify the preamble
             int magic = _in.readInt();
             if (magic != BinaryExporter.MAGIC_NUMBER) {
-                throw new IOException("Invalid magic number [magic=" +
-                    Integer.toHexString(magic) + "].");
+                throw new IOException(String.format("Invalid magic number [magic=%#x].", magic));
             }
             short version = _in.readShort();
-            if (version != BinaryExporter.VERSION) {
-                throw new IOException("Invalid version [version=" +
-                    Integer.toHexString(version) + "].");
+            switch (version) {
+                default:
+                    throw new IOException(String.format("Invalid version [version=%#x].", version));
+
+                case BinaryExporter.VERSION:
+                    _idReaderSupplier = new Supplier<IdReader>() {
+                                public IdReader get () {
+                                    return new VarIntIdReader();
+                                }
+                            };
+                    break;
+
+                case ClassicIdReader.VERSION:
+                    _idReaderSupplier = new Supplier<IdReader>() {
+                                public IdReader get () {
+                                    return new ClassicIdReader();
+                                }
+                            };
+                    break;
             }
             short flags = _in.readShort();
             boolean compressed = (flags & BinaryExporter.COMPRESSED_FORMAT_FLAG) != 0;
@@ -112,6 +128,9 @@ public class BinaryImporter extends Importer
             if (compressed) {
                 _in = new DataInputStream(new InflaterInputStream(_base));
             }
+
+            _objectIdReader = _idReaderSupplier.get();
+            _classIdReader = _idReaderSupplier.get();
 
             // initialize mapping
             _objects = new HashIntMap<Object>();
@@ -710,20 +729,31 @@ public class BinaryImporter extends Importer
             new HashIntMap<Tuple<String, ClassWrapper>>();
 
         /** Used to read field ids. */
-        protected IDReader _fieldIdReader = new IDReader();
+        protected IdReader _fieldIdReader = _idReaderSupplier.get();
     }
 
     /**
-     * Reads in integer identifiers using a width that depends on the highest value read so
-     * far.
-     *
-     * @see BinaryExporter.IDWriter
+     * Reads field, object, or class ids off the stream.
      */
-    protected class IDReader
+    interface IdReader
     {
         /**
-         * Reads in an id whose width depends on the highest value read so far.
+         * Read the next id on the stream.
          */
+        public int read ()
+            throws IOException;
+    }
+
+    /**
+     * Compatability with classic export id style.
+     */
+    protected class ClassicIdReader
+        implements IdReader
+    {
+        /** The BinaryExporter version number that we read. */
+        public static final int VERSION = 0x1000;
+
+        @Override
         public int read ()
             throws IOException
         {
@@ -743,6 +773,20 @@ public class BinaryImporter extends Importer
         protected int _highest;
     }
 
+    /**
+     * Ids are encoded as "varints".
+     */
+    protected class VarIntIdReader
+        implements IdReader
+    {
+        @Override
+        public int read ()
+            throws IOException
+        {
+            return Streams.readVarInt(_in);
+        }
+    }
+
     /** The underlying input stream. */
     protected InputStream _base;
 
@@ -753,8 +797,11 @@ public class BinaryImporter extends Importer
      * initialized. */
     protected HashIntMap<Object> _objects;
 
+    /** Supplies us with IdReader instances. */
+    protected Supplier<IdReader> _idReaderSupplier;
+
     /** Used to read object ids. */
-    protected IDReader _objectIdReader = new IDReader();
+    protected IdReader _objectIdReader;
 
     /** Field values associated with the current object. */
     protected HashMap<String, Object> _fields;
@@ -775,9 +822,9 @@ public class BinaryImporter extends Importer
     protected ClassWrapper _stringClass;
 
     /** Used to read class ids. */
-    protected IDReader _classIdReader = new IDReader();
+    protected IdReader _classIdReader;
 
-    /** Class<?> data. */
+    /** Class data. */
     protected Map<ClassWrapper, ClassData> _classData = Maps.newHashMap();
 
     /** Signifies a null entry in the object map. */
