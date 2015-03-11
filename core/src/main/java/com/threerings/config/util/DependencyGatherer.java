@@ -97,7 +97,7 @@ public abstract class DependencyGatherer
             ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
             Parameter p = pcfg.getParameter(param);
             if (p == null) {
-                log.warning("Missing parameter!", "id", id, "param", param);
+                log.debug("Missing parameter!", "id", id, "param", param);
                 return null;
             }
 
