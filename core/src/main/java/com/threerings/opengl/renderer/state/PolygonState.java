@@ -143,8 +143,8 @@ public class PolygonState extends RenderState
     {
         int result = _frontPolygonMode;
         result = 31 * result + _backPolygonMode;
-        result = 31 * result + (_polygonOffsetFactor != +0.0f ? Float.floatToIntBits(_polygonOffsetFactor) : 0);
-        result = 31 * result + (_polygonOffsetUnits != +0.0f ? Float.floatToIntBits(_polygonOffsetUnits) : 0);
+        result = 31 * result + Float.floatToIntBits(_polygonOffsetFactor);
+        result = 31 * result + Float.floatToIntBits(_polygonOffsetUnits);
         return result;
     }
 

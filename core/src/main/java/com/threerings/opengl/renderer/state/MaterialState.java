@@ -353,12 +353,12 @@ public class MaterialState extends RenderState
         result = 31 * result + (_frontDiffuse != null ? _frontDiffuse.hashCode() : 0);
         result = 31 * result + (_frontSpecular != null ? _frontSpecular.hashCode() : 0);
         result = 31 * result + (_frontEmission != null ? _frontEmission.hashCode() : 0);
-        result = 31 * result + (_frontShininess != +0.0f ? Float.floatToIntBits(_frontShininess) : 0);
+        result = 31 * result + Float.floatToIntBits(_frontShininess);
         result = 31 * result + (_backAmbient != null ? _backAmbient.hashCode() : 0);
         result = 31 * result + (_backDiffuse != null ? _backDiffuse.hashCode() : 0);
         result = 31 * result + (_backSpecular != null ? _backSpecular.hashCode() : 0);
         result = 31 * result + (_backEmission != null ? _backEmission.hashCode() : 0);
-        result = 31 * result + (_backShininess != +0.0f ? Float.floatToIntBits(_backShininess) : 0);
+        result = 31 * result + Float.floatToIntBits(_backShininess);
         result = 31 * result + _colorMaterialMode;
         result = 31 * result + _colorMaterialFace;
         result = 31 * result + (_twoSide ? 1 : 0);
