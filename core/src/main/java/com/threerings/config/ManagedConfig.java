@@ -228,7 +228,7 @@ public abstract class ManagedConfig extends DeepObject
     {
         if (_listeners == null) {
             // we disable duplicate checking for performance; don't fuck up
-            (_listeners = WeakObserverList.newFastUnsafe()).setCheckDuplicates(false);
+            (_listeners = WeakObserverList.newSafeInOrder()).setCheckDuplicates(false);
             addUpdateDependencies();
         }
         @SuppressWarnings("unchecked")
