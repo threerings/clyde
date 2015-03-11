@@ -15,16 +15,16 @@ import com.samskivert.io.ByteArrayOutInputStream;
 import junit.framework.TestCase;
 
 /**
- * Tests some things with the MetaStreams.
+ * Tests some things with Streams.
  */
-public class MetaStreamsTest extends TestCase
+public class StreamsTest extends TestCase
 {
-    public MetaStreamsTest (String name)
+    public StreamsTest (String name)
     {
         super(name);
     }
 
-    public void testLengths ()
+    public void testValues ()
         throws IOException
     {
         List<Long> testValues = ImmutableList.of(0L, Long.MAX_VALUE, (long)Integer.MAX_VALUE, 127L);
@@ -38,24 +38,24 @@ public class MetaStreamsTest extends TestCase
             long value = testValues.get(ii);
             int expectedCount = byteCounts.get(ii);
 
-            MetaStreams.writeLength(out, value);
+            Streams.writeVarLong(out, value);
             assertEquals(expectedCount, out.size());
-            long readBack = MetaStreams.readLength(out.getInputStream());
+            long readBack = Streams.readVarLong(out.getInputStream());
             assertEquals(value, readBack);
             out.reset();
         }
 
         // write them all!
         for (Long value : testValues) {
-            MetaStreams.writeLength(out, value);
+            Streams.writeVarLong(out, value);
         }
         // read them all back!
         InputStream in = out.getInputStream();
         for (Long value : testValues) {
-            assertEquals((long)value, MetaStreams.readLength(in));
+            assertEquals((long)value, Streams.readVarLong(in));
         }
 
         // try one more read: we should get -1
-        assertEquals(-1L, MetaStreams.readLength(in));
+        assertEquals(-1L, Streams.readVarLong(in));
     }
 }
