@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
 import com.google.common.io.Files;
 import com.google.common.primitives.Primitives;
@@ -46,17 +48,18 @@ import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
-import com.threerings.config.ConfigToolUtil;
 import com.threerings.config.util.ConfigId;
+import com.threerings.config.util.DependencyGatherer;
 
 import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.PropertyUtil;
+
+import com.threerings.export.Exporter;
 
 import static com.threerings.ClydeLog.log;
 
@@ -177,10 +180,11 @@ public class ConfigFlattener
     {
         FlattenContext ctx = new FlattenContext(rsrcDir, outDir, true);
 
-        flatten(ctx.cfgmgr);
+        Exporter.Replacer replacer = flatten(ctx.cfgmgr);
 
         // Save everything!
 //        log.info("Saving...");
+        // TODO: use the replacer for the "superflat" bundle
         ctx.cfgmgr.saveAll(ctx.destDir, extension, isXML);
 //        log.info("Done!");
 
@@ -190,16 +194,24 @@ public class ConfigFlattener
                 new File(ctx.destDir, "manager.txt"));
     }
 
+//    // tEMP
+//    protected <K, V> void dumpIt (SetMultimap<K, V> set)
+//    {
+//        Set<K> keys = set.keySet();
+//        log.info("keySize: " + keys.size());
+//        for (K key : keys) {
+//            log.info("\t" + key + ": " + set.get(key).size());
+//        }
+//    }
+
     /**
      * Flatten all the configs in-place in the specified config manager.
      * Stripping is not performed- that is up to the ConfigManager you use..
      */
-    public void flatten (ConfigManager cfgmgr)
+    public Exporter.Replacer flatten (ConfigManager cfgmgr)
     {
-        DependentReferenceSet refSet = new DependentReferenceSet();
-
         // prior to losing parameter/derivation information, examine parameters
-        refSet.examineParameters(cfgmgr);
+        FlatDependencyGatherer gatherer = new FlatDependencyGatherer(cfgmgr);
 
         // turn all derived configs into their "original" form
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
@@ -210,21 +222,21 @@ public class ConfigFlattener
             }
         }
 
-        // then populate those configs into the refSet
-        refSet.populate(cfgmgr);
+        // then gather references...
+        gatherer.gather(cfgmgr);
 
         // now go through each ref in dependency ordering
 //        log.info("Flattening...");
         int count = 0;
-        while (!refSet.graph.isEmpty()) {
+        ConfigId id;
+        while (null != (id = gatherer.getNextAvailable())) {
             count++;
-            ConfigId id = refSet.graph.removeAvailableElement();
             //log.info("Checking " + id);
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
                     (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
             ManagedConfig cfg = group.getConfig(id.name);
-            List<ConfigReference<?>> list = refSet.refs.get(id);
+            List<ConfigReference<?>> list = gatherer.getReferences(id);
             if (!list.isEmpty()) {
                 //log.info("References for that: " + list);
                 Set<String> paramNames;
@@ -264,7 +276,7 @@ public class ConfigFlattener
                         newCfg.setName(id.name + "~" + newName);
                         group.addConfig(newCfg);
                         newNames.put(key, newName);
-                        refSet.addNewConfig(id.clazz, newCfg);
+                        gatherer.addNewConfig(id.clazz, newCfg);
                     }
 
                     // now, copy a new config reference with the new name to the existing ref
@@ -276,6 +288,7 @@ public class ConfigFlattener
             }
         }
 //        log.info("Flattened " + count);
+        return gatherer.getReplacer(cfgmgr);
     }
 
     /**
@@ -425,67 +438,91 @@ public class ConfigFlattener
     }
 
     /**
-     * A ConfigReferenceSet that gathers dependencies between config references
+     * A gatherer that gathers dependencies between config references
      * as well as collects each ConfigReference uniquely for later rewriting.
      */
-    protected static class DependentReferenceSet extends ConfigReferenceSet
+    protected static class FlatDependencyGatherer extends DependencyGatherer
     {
-        /** The dependency graph. */
-        public final DependencyGraph<ConfigId> graph = new DependencyGraph<ConfigId>();
-
-        /** The references that point to a particular config, indexed by config. */
-        public final ListMultimap<ConfigId, ConfigReference<?>> refs = ArrayListMultimap.create();
-
-        /**
-         * Examine the parameters for type information.
-         */
-        public void examineParameters (ConfigManager cfgmgr)
+        public FlatDependencyGatherer (ConfigManager preFlattened)
         {
-            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-                Class<? extends ManagedConfig> clazz = group.getConfigClass();
-                for (ParameterizedConfig cfg :
-                        Iterables.filter(group.getRawConfigs(), ParameterizedConfig.class)) {
-                    populateParamterConfigTypes(clazz, cfg);
-                }
-            }
+            super(preFlattened);
         }
 
         /**
-         * Populate this reference set with all the configs in the specified cfgmgr.
+         * Get the next not-depended-on config id, or null if we're finished.
          */
-        public void populate (ConfigManager cfgmgr)
+        public ConfigId getNextAvailable ()
         {
-//            log.info("Populating graph...");
-            // first populate all configs into the graph
-            int count = 0;
+            return _graph.isEmpty()
+                    ? null
+                    : _graph.removeAvailableElement();
+        }
+
+        public List<ConfigReference<?>> getReferences (ConfigId id)
+        {
+            return Collections.unmodifiableList(_refs.get(id));
+        }
+
+        @Override
+        public void gather (ConfigManager cfgmgr)
+        {
+            // configs have been actualized at this point
             for (ConfigGroup<?> group : cfgmgr.getGroups()) {
                 Class<? extends ManagedConfig> clazz = group.getConfigClass();
                 _cfgClasses.add(clazz);
                 for (ManagedConfig cfg : group.getRawConfigs()) {
-                    graph.add(new ConfigId(clazz, cfg.getName()));
-//                    if (!_allSeen.add(new ConfigId(clazz, cfg.getName()))) {
-//                        log.warning("Already added to allseen: " +
-//                                new ConfigId(clazz, cfg.getName()));
-//                    }
-                    count++;
+                    _graph.add(new ConfigId(clazz, cfg.getName()));
                 }
             }
-//            log.info("Populated " + count);
 
-//            log.info("Gathering configs...");
-            // then go through again, track refs, and make note of dependencies
+            super.gather(cfgmgr);
+        }
+
+        @Override
+        protected void findReferences (ManagedConfig cfg)
+        {
+            Class<? extends ManagedConfig> clazz = cfg.getConfigGroup().getConfigClass();
+            _current = new ConfigId(clazz, cfg.getName());
             try {
-                for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-                    Class<? extends ManagedConfig> clazz = group.getConfigClass();
-                    for (ManagedConfig cfg : group.getRawConfigs()) {
-                        _current = new ConfigId(clazz, cfg.getName());
-                        ConfigToolUtil.getUpdateReferences(cfg, this);
-                    }
-                }
+                super.findReferences(cfg);
             } finally {
                 _current = null;
             }
-//            log.info("Gathered configs!");
+        }
+
+        /**
+         * Get a replacer for exporting the bare configs instead of their references!
+         */
+        public Exporter.Replacer getReplacer (final ConfigManager cfgmgr)
+        {
+            return null; // no replacing
+//            return new Exporter.Replacer() {
+//                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
+//                {
+//                    if (value instanceof ConfigReference<?>) {
+//                        @SuppressWarnings("unchecked")
+//                        Class<ManagedConfig> refClazz = (Class<ManagedConfig>)refToClass.get(value);
+//                        if (refClazz == null) {
+//                            log.warning("I found a ref we don't know about... ",
+//                                    "ref", value);
+//                            return new Exporter.Replacement(null, clazz);
+//                        }
+//                        @SuppressWarnings("unchecked")
+//                        ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)value;
+//                        ManagedConfig cfg = cfgmgr.getConfig(refClazz, ref);
+//                        if (cfg == null) {
+//                            log.warning("Reference not satisfied?", "ref", ref);
+//                            return new Exporter.Replacement(null, clazz);
+//                        }
+//                        if (clazz == ConfigReference.class) {
+//                            clazz = refClazz;
+//                        }
+//                        // TODO
+//                        //return new Exporter.Replacement(null, Object.class);
+//                    }
+//                    return null;
+//                }
+//            };
         }
 
         /**
@@ -495,42 +532,37 @@ public class ConfigFlattener
         {
             _current = new ConfigId(clazz, cfg.getName());
             try {
-                graph.add(_current);
-//                if (!_allSeen.add(_current)) {
-//                    log.warning("Already added to allseen; " + _current);
-//                }
-                //System.err.println("Adding refs for " + _current);
-                ConfigToolUtil.getUpdateReferences(cfg, this);
-                //System.err.println("           done "  + _current);
+                _graph.add(_current);
+                super.findReferences(cfg);
             } finally {
                 _current = null;
             }
         }
 
         @Override
-        public <T extends ManagedConfig> boolean add (Class<T> clazz, String name)
+        public void add (Class<? extends ManagedConfig> clazz, ConfigReference<?> ref)
         {
-            // Anything added with a name only *has no parameters*, and
-            // therefore we don't care about it.
-            return false;
-        }
+            if (ref != null) {
+                Class<?> oldValue = _refToClass.put(ref, clazz);
+                if (oldValue != null && oldValue != clazz) {
+                    log.warning("Holy shnikes, the same config ref for two types?",
+                            "ref", ref, "clazz", clazz, "oldClass", oldValue);
+                }
+            }
 
-        @Override
-        public <T extends ManagedConfig> boolean add (Class<T> clazz, ConfigReference<T> ref)
-        {
             // omit config refs with no args: we don't care
             if (ref == null || ref.getArguments().isEmpty() || !_cfgClasses.contains(clazz)) {
-                return false;
+                return;
             }
 
             // track the ref...
             ConfigId id = new ConfigId(clazz, ref.getName());
-            refs.put(id, ref);
+            _refs.put(id, ref);
 
             // and add the dependency
             try {
-                if (!graph.dependsOn(id, _current)) {
-                    graph.addDependency(id, _current);
+                if (!_graph.dependsOn(id, _current)) {
+                    _graph.addDependency(id, _current);
                 }
             } catch (Exception e) {
                 log.warning("Oh fugging shit",
@@ -540,92 +572,40 @@ public class ConfigFlattener
 //                    "seen current?", _allSeen.contains(_current),
                     e);
             }
+        }
 
-            // recurse and add any arguments inside the arguments
+        @Override
+        protected void findArgumentReferences (
+                ConfigReference<?> ref, Class<? extends ManagedConfig> clazz, Set<Object> seen)
+        {
             ConfigId oldCurrent = _current;
-            _current = id;
+            _current = new ConfigId(clazz, ref.getName());
             try {
-                for (Map.Entry<String, Object> entry : ref.getArguments().entrySet()) {
-                    Class<ManagedConfig> pclazz = _paramCfgTypes.get(id, entry.getKey());
-                    if (pclazz == null) {
-                        continue;
-                    }
-                    Object value = entry.getValue();
-                    if (value instanceof ConfigReference<?>) {
-                        @SuppressWarnings("unchecked")
-                        ConfigReference<ManagedConfig> pref = (ConfigReference<ManagedConfig>)value;
-                        add(pclazz, pref);
+                super.findArgumentReferences(ref, clazz, seen);
 
-                    } else if (value instanceof List<?>) {
-                        @SuppressWarnings("unchecked")
-                        List<ConfigReference<ManagedConfig>> list =
-                                (List<ConfigReference<ManagedConfig>>)value;
-                        for (ConfigReference<ManagedConfig> pref : list) {
-                            add(pclazz, pref);
-                        }
-                    }
-                }
             } finally {
                 _current = oldCurrent;
             }
-
-            return true;
-        }
-
-        /**
-         * Determine the config reference class for parameters in this config.
-         */
-        protected void populateParamterConfigTypes (
-                Class<? extends ManagedConfig> clazz, ParameterizedConfig cfg)
-        {
-            ConfigId id = new ConfigId(clazz, cfg.getName());
-            for (Parameter param : cfg.parameters) {
-                Property prop = param.getProperty(cfg);
-                addParameterConfigType(id, param.name, prop.getGenericType());
-            }
-        }
-
-        /**
-         * Look at the type of a parameter to see if it expects ConfigReferences in
-         * some way.
-         */
-        protected void addParameterConfigType (ConfigId id, String name, Type type)
-        {
-            if (type instanceof ParameterizedType) {
-                ParameterizedType ptype = (ParameterizedType)type;
-                Type rawType = ptype.getRawType();
-                if (ConfigReference.class.equals(rawType)) {
-                    @SuppressWarnings("unchecked")
-                    Class<ManagedConfig> clazz =
-                            (Class<ManagedConfig>)ptype.getActualTypeArguments()[0];
-                    _paramCfgTypes.put(id, name, clazz);
-
-                } else if (List.class.equals(rawType)) {
-                    addParameterConfigType(id, name, ptype.getActualTypeArguments()[0]);
-
-                } else {
-                    log.info("What's that?", "rawType", rawType);
-                }
-            }
-            // TODO: fuck arrays.... arrays never worked well because of the generic arguments
-            // and we support Lists now. We love Lists.
-            // Nothing using flattening should have config reference arrays.
-            // And even if they did, we'd have a Class type here
-            // (like ProjectX's ItemConfigReference), and we'd have to dive into that to discover
-            // that it has an array. Fuck that.
         }
 
         /** The config we're currently examining while adding dependencies. */
         protected ConfigId _current;
 
         /** All valid config classes. */
-        protected Set<Class<?>> _cfgClasses = Sets.newHashSet();
+        protected final Set<Class<?>> _cfgClasses = Sets.newHashSet();
+
+        /** The references that point to a particular config, indexed by config. */
+        protected final ListMultimap<ConfigId, ConfigReference<?>> _refs =
+                ArrayListMultimap.create();
+
+        /** The dependency graph. */
+        protected final DependencyGraph<ConfigId> _graph = new DependencyGraph<ConfigId>();
+
+        /** Maps all config references to their class. */
+        protected final Map<ConfigReference<?>, Class<?>> _refToClass = Maps.newIdentityHashMap();
 
         /** A mapping of config/parameter to the type of config that parameter expects, if any. */
-        public final Table<ConfigId, String, Class<ManagedConfig>> _paramCfgTypes =
+        protected final Table<ConfigId, String, Class<ManagedConfig>> _paramCfgTypes =
                 HashBasedTable.create();
-
-//        // TEMP: for debugging when flattening goes awry
-//        protected Set<ConfigId> _allSeen = Sets.newHashSet();
     }
 }

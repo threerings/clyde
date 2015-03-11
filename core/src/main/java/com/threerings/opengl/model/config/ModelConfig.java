@@ -45,6 +45,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
@@ -58,6 +59,7 @@ import com.threerings.math.Box;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
@@ -544,7 +546,8 @@ public class ModelConfig extends ParameterizedConfig
         implements Exportable
     {
         /** The render scheme with which this model is associated. */
-        @Editable(editor="config", mode="render_scheme", nullable=true)
+        @Editable(nullable=true)
+        @Reference(RenderSchemeConfig.class)
         public String scheme;
 
         /** The model reference. */

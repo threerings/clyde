@@ -32,6 +32,7 @@ import com.google.common.base.Objects;
 import com.threerings.config.BoundConfig;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
+import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -206,7 +207,8 @@ public class RenderEffectConfig extends BoundConfig
         implements Exportable
     {
         /** The render scheme with which this technique is associated. */
-        @Editable(editor="config", mode="render_scheme", nullable=true)
+        @Editable(nullable=true)
+        @Reference(RenderSchemeConfig.class)
         public String scheme;
 
         /** The intermediate targets. */

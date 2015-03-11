@@ -139,7 +139,7 @@ public class PolygonState extends RenderState
     }
 
     @Override
-    public int hashCode()
+    public int hashCode ()
     {
         int result = _frontPolygonMode;
         result = 31 * result + _backPolygonMode;

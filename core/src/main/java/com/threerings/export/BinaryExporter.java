@@ -50,6 +50,8 @@ import com.samskivert.util.Tuple;
 
 import com.threerings.util.ReflectionUtil;
 
+import static com.threerings.export.Log.log;
+
 /**
  * Exports to a compact binary format.
  */
@@ -59,7 +61,7 @@ public class BinaryExporter extends Exporter
     public static final int MAGIC_NUMBER = 0xFACEAF0E;
 
     /** The format version. */
-    public static final short VERSION = 0x1000;
+    public static final short VERSION = 0x1001;
 
     /** The compressed format flag. */
     public static final short COMPRESSED_FORMAT_FLAG = 0x1000;
@@ -109,6 +111,13 @@ public class BinaryExporter extends Exporter
         for (Class<?> clazz : BOOTSTRAP_CLASSES) {
             _classIds.put(clazz, ++_lastClassId);
         }
+    }
+
+    @Override
+    public BinaryExporter setReplacer (Replacer replacer)
+    {
+        super.setReplacer(replacer);
+        return this;
     }
 
     @Override
@@ -193,7 +202,16 @@ public class BinaryExporter extends Exporter
     public <T> void write (String name, T value, Class<T> clazz)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, clazz));
+        Object tVal = value;
+        Class<?> tClazz = clazz;
+        if (_replacer != null) {
+            Replacement repl = _replacer.getReplacement(value, clazz);
+            if (repl != null) {
+                tVal = repl.value;
+                tClazz = repl.clazz;
+            }
+        }
+        _fields.put(name, new Tuple<Object, Class<?>>(tVal, tClazz));
     }
 
     @Override
@@ -220,6 +238,24 @@ public class BinaryExporter extends Exporter
     protected void write (Object value, Class<?> clazz)
         throws IOException
     {
+        // possibly sub the value on the way out
+        if (_replacer != null) {
+            Replacement repl = _replacer.getReplacement(value, clazz);
+            if (repl != null) {
+                value = repl.value;
+                clazz = repl.clazz;
+            }
+        }
+
+        writeNoReplace(value, clazz);
+    }
+
+    /**
+     * Writes out an object of the specified class, after the replacement has been done.
+     */
+    protected void writeNoReplace (Object value, Class<?> clazz)
+        throws IOException
+    {
         // write primitive types out directly
         if (clazz.isPrimitive()) {
             writeValue(value, clazz);
@@ -229,11 +265,11 @@ public class BinaryExporter extends Exporter
         // see if we've written it before
         Integer objectId = _objectIds.get(value);
         if (objectId != null) {
-            _objectIdWriter.write(objectId);
+            Streams.writeVarInt(_out, objectId);
             return;
         }
         // if not, assign and write a new id
-        _objectIdWriter.write(++_lastObjectId);
+        Streams.writeVarInt(_out, ++_lastObjectId);
         _objectIds.put(value, _lastObjectId);
 
         // and write the value
@@ -303,11 +339,11 @@ public class BinaryExporter extends Exporter
         // see if we've written it before
         Integer classId = _classIds.get(clazz);
         if (classId != null) {
-            _classIdWriter.write(classId);
+            Streams.writeVarInt(_out, classId);
             return;
         }
         // if not, assign and write a new id
-        _classIdWriter.write(++_lastClassId);
+        Streams.writeVarInt(_out, ++_lastClassId);
         _classIds.put(clazz, _lastClassId);
 
         // write the name
@@ -466,54 +502,22 @@ public class BinaryExporter extends Exporter
             Tuple<String, Class<?>> field = new Tuple<String, Class<?>>(name, clazz);
             Integer fieldId = _fieldIds.get(field);
             if (fieldId == null) {
-                _fieldIdWriter.write(++_lastFieldId);
+                Streams.writeVarInt(_out, ++_lastFieldId);
                 _fieldIds.put(field, _lastFieldId);
-                write(name, String.class);
+                writeNoReplace(name, String.class);
                 writeClass(clazz);
             } else {
-                _fieldIdWriter.write(fieldId.intValue());
+                Streams.writeVarInt(_out, fieldId.intValue());
             }
-            write(value, clazz);
+            writeNoReplace(value, clazz);
         }
 
         /** Maps field name/class pairs to field ids. */
         protected HashMap<Tuple<String, Class<?>>, Integer> _fieldIds =
             new HashMap<Tuple<String, Class<?>>, Integer>();
 
-        /** Used to write field ids. */
-        protected IDWriter _fieldIdWriter = new IDWriter();
-
         /** The last field id assigned. */
         protected int _lastFieldId;
-    }
-
-    /**
-     * Writes out integer identifiers using a width that depends on the highest value written so
-     * far.  Thus, IDs will take one byte until the value 255 is written, after which they'll
-     * take two bytes, until the value 65535 is written, after which they'll take four bytes.
-     * Obviously, this relies on the fact that any new id will be one greater than the previous
-     * highest id.
-     */
-    protected class IDWriter
-    {
-        /**
-         * Writes out an id using a width that depends on the highest value written so far.
-         */
-        public void write (int id)
-            throws IOException
-        {
-            if (_highest < 255) {
-                _out.writeByte(id);
-            } else if (_highest < 65535) {
-                _out.writeShort(id);
-            } else {
-                _out.writeInt(id);
-            }
-            _highest = Math.max(_highest, id);
-        }
-
-        /** The highest value written so far. */
-        protected int _highest;
     }
 
     /** The underlying output stream. */
@@ -532,17 +536,11 @@ public class BinaryExporter extends Exporter
      * yet been initialized. */
     protected IdentityHashMap<Object, Integer> _objectIds;
 
-    /** Used to write object ids. */
-    protected IDWriter _objectIdWriter = new IDWriter();
-
     /** The last object id assigned. */
     protected int _lastObjectId;
 
     /** Maps classes written to their integer ids. */
     protected HashMap<Class<?>, Integer> _classIds = new HashMap<Class<?>, Integer>();
-
-    /** Used to write class ids. */
-    protected IDWriter _classIdWriter = new IDWriter();
 
     /** The last class id assigned. */
     protected int _lastClassId;

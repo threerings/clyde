@@ -96,7 +96,7 @@ public class ColorState extends RenderState
     }
 
     @Override
-    public int hashCode()
+    public int hashCode ()
     {
         return _color != null ? _color.hashCode() : 0;
     }

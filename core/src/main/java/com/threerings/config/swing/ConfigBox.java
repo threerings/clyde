@@ -195,7 +195,7 @@ public class ConfigBox extends JComboBox<ConfigBox.ConfigItem>
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return name != null ? name.hashCode() : 0;
         }

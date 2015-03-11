@@ -38,6 +38,7 @@ import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.util.ConfigId;
 
@@ -180,16 +181,31 @@ public class Validator
      */
     protected void getReferences (ConfigManager cfgmgr, Object object, Property property)
     {
+        Editable annotation = property.getAnnotation();
         Object value = property.get(object);
         if (value == null) {
+            if (isNullValidated() && !annotation.nullable()) {
+                output("Non-nullable property is null: " + property.getName());
+            }
             return;
         }
-        Editable annotation = property.getAnnotation();
+
+        // TODO: it would be keen to validate properties against their Editable annotation
+        // to ensure that things like min/max or whatever are still valid. This would probably
+        // need to be handled individually by each type of PropertyEditor.
+
         String editor = annotation.editor();
         if (editor.equals("resource")) {
             addResource((String)value, property, _resources);
             return;
         }
+        // see if it's a reference property
+        Reference refAnno = property.getAnnotation(Reference.class);
+        if (refAnno != null) {
+            noteReference(cfgmgr, refAnno.value(), (String)value, property);
+            return;
+        }
+        // also check the old way...
         if (editor.equals("config")) {
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
@@ -369,6 +385,15 @@ public class Validator
     protected Resource createResource (String path, String[] extensions)
     {
         return new Resource(path, extensions);
+    }
+
+    /**
+     * Do we validate properties that are null?
+     */
+    protected boolean isNullValidated ()
+    {
+        // legacy: we never used to, so the default is not to. This is overridden in trinity!
+        return false;
     }
 
     /**

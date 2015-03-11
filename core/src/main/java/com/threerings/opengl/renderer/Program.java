@@ -134,7 +134,7 @@ public class Program extends ShaderObject
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return value;
         }
@@ -188,7 +188,7 @@ public class Program extends ShaderObject
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return (value != +0.0f ? Float.floatToIntBits(value) : 0);
         }
@@ -242,7 +242,7 @@ public class Program extends ShaderObject
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return value != null ? value.hashCode() : 0;
         }
@@ -296,7 +296,7 @@ public class Program extends ShaderObject
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return value != null ? value.hashCode() : 0;
         }
@@ -350,7 +350,7 @@ public class Program extends ShaderObject
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return value != null ? value.hashCode() : 0;
         }
@@ -405,7 +405,7 @@ public class Program extends ShaderObject
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return value != null ? value.hashCode() : 0;
         }
