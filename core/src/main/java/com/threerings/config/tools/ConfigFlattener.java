@@ -184,7 +184,8 @@ public class ConfigFlattener
 
         // Save everything!
 //        log.info("Saving...");
-        ctx.cfgmgr.saveAll(ctx.destDir, extension, isXML, replacer);
+        // TODO: use the replacer for the "superflat" bundle
+        ctx.cfgmgr.saveAll(ctx.destDir, extension, isXML);
 //        log.info("Done!");
 
         // also copy the manager properties over
