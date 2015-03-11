@@ -50,6 +50,15 @@ import static com.threerings.ClydeLog.log;
 public abstract class DependencyGatherer
 {
     /**
+     * Convenience method for gathering the dependencies of a single config.
+     */
+    public static SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> gather (
+            ConfigManager cfgmgr, ManagedConfig config)
+    {
+        return new Default(cfgmgr, config).getGathered();
+    }
+
+    /**
      * A default DependencyGatherer for use inside ManagedConfigs.
      */
     public static class Default extends DependencyGatherer
@@ -58,6 +67,23 @@ public abstract class DependencyGatherer
         {
             _cfgmgr = cfgmgr;
             findReferences(config);
+        }
+
+        /**
+         * Get the gathered up references.
+         */
+        public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
+        {
+            return Multimaps.unmodifiableSetMultimap(_refs);
+        }
+
+        @Override
+        protected void add (
+                Class<? extends ManagedConfig> clazz, @Nullable ConfigReference<?> ref)
+        {
+            if (ref != null) {
+                _refs.put(clazz, ref);
+            }
         }
 
         @Override
@@ -89,13 +115,17 @@ public abstract class DependencyGatherer
 
         /** Where we look to determine parameter types for config references. */
         protected final ConfigManager _cfgmgr;
+
+        /** Our gathered references. */
+        protected final SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
+                HashMultimap.create();
     }
 
     /**
      * A gatherer that pre-fetches argument information, such that the config manager
      * can be flattened and the configs altered at the time of gathering.
      */
-    public static class PreExamined extends DependencyGatherer
+    public abstract static class PreExamined extends DependencyGatherer
     {
         /**
          * Construct a PreExamined gatherer, examining parameter information in the specified mgr.
@@ -167,22 +197,10 @@ public abstract class DependencyGatherer
     }
 
     /**
-     * Get the gathered up references.
-     */
-    public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
-    {
-        return Multimaps.unmodifiableSetMultimap(_refs);
-    }
-
-    /**
      * Add a reference to the set.
      */
-    protected void add (Class<? extends ManagedConfig> clazz, @Nullable ConfigReference<?> ref)
-    {
-        if (ref != null) {
-            _refs.put(clazz, ref);
-        }
-    }
+    protected abstract void add (
+            Class<? extends ManagedConfig> clazz, @Nullable ConfigReference<?> ref);
 
     /**
      * Find references inside the specified object.
@@ -360,10 +378,6 @@ public abstract class DependencyGatherer
         // TODO: figure out arrays?
         return null;
     }
-
-    /** Our gathered references. */
-    protected final SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
-            HashMultimap.create();
 
     /** A cache of field information. */
     protected final FieldCache _fieldCache = new FieldCache();
