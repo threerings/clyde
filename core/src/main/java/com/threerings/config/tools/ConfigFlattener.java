@@ -31,6 +31,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
 import com.google.common.io.Files;
 import com.google.common.primitives.Primitives;
@@ -53,10 +54,13 @@ import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ConfigToolUtil;
 import com.threerings.config.util.ConfigId;
+import com.threerings.config.util.DependencyGatherer;
 
 import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.PropertyUtil;
+
+import com.threerings.export.Exporter;
 
 import static com.threerings.ClydeLog.log;
 
@@ -177,11 +181,11 @@ public class ConfigFlattener
     {
         FlattenContext ctx = new FlattenContext(rsrcDir, outDir, true);
 
-        flatten(ctx.cfgmgr);
+        Exporter.Replacer replacer = flatten(ctx.cfgmgr);
 
         // Save everything!
 //        log.info("Saving...");
-        ctx.cfgmgr.saveAll(ctx.destDir, extension, isXML);
+        ctx.cfgmgr.saveAll(ctx.destDir, extension, isXML, replacer);
 //        log.info("Done!");
 
         // also copy the manager properties over
@@ -190,16 +194,46 @@ public class ConfigFlattener
                 new File(ctx.destDir, "manager.txt"));
     }
 
+//    // tEMP
+//    protected <K, V> void dumpIt (SetMultimap<K, V> set)
+//    {
+//        Set<K> keys = set.keySet();
+//        log.info("keySize: " + keys.size());
+//        for (K key : keys) {
+//            log.info("\t" + key + ": " + set.get(key).size());
+//        }
+//    }
+
     /**
      * Flatten all the configs in-place in the specified config manager.
      * Stripping is not performed- that is up to the ConfigManager you use..
      */
-    public void flatten (ConfigManager cfgmgr)
+    public Exporter.Replacer flatten (ConfigManager cfgmgr)
     {
         DependentReferenceSet refSet = new DependentReferenceSet();
 
         // prior to losing parameter/derivation information, examine parameters
         refSet.examineParameters(cfgmgr);
+
+//        // NEW STUFF
+//        // Let's do an examination of things
+//        ConfigReferenceSet.Default crs = new ConfigReferenceSet.Default();
+//        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+//            for (ManagedConfig cfg : group.getRawConfigs()) {
+//                ConfigToolUtil.getUpdateReferences(cfg, crs);
+//            }
+//        }
+//        DependencyGatherer.Default dep = new DependencyGatherer.Default(cfgmgr);
+//        dep.gather(cfgmgr);
+//
+//        SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> crsSet = crs.getGathered();
+//        SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> depSet = dep.getGathered();
+//        log.info("Testing testing!", "crsSet", crsSet.size(), "depSet", depSet.size());
+//        log.info("CRS====");
+//        dumpIt(crsSet);
+//        log.info("DEP====");
+//        dumpIt(depSet);
+//        // END: NEW STUFF
 
         // turn all derived configs into their "original" form
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
@@ -276,6 +310,7 @@ public class ConfigFlattener
             }
         }
 //        log.info("Flattened " + count);
+        return refSet.getReplacer(cfgmgr);
     }
 
     /**
@@ -436,6 +471,43 @@ public class ConfigFlattener
         /** The references that point to a particular config, indexed by config. */
         public final ListMultimap<ConfigId, ConfigReference<?>> refs = ArrayListMultimap.create();
 
+        /** Maps all config references to their class. */
+        public final Map<ConfigReference<?>, Class<?>> refToClass = Maps.newIdentityHashMap();
+
+        /**
+         * Get a replacer for exporting the bare configs instead of their references!
+         */
+        public Exporter.Replacer getReplacer (final ConfigManager cfgmgr)
+        {
+            return new Exporter.Replacer() {
+                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
+                {
+                    if (value instanceof ConfigReference<?>) {
+                        @SuppressWarnings("unchecked")
+                        Class<ManagedConfig> refClazz = (Class<ManagedConfig>)refToClass.get(value);
+                        if (refClazz == null) {
+                            log.warning("I found a ref we don't know about... ",
+                                    "ref", value);
+                            return new Exporter.Replacement(null, clazz);
+                        }
+                        @SuppressWarnings("unchecked")
+                        ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)value;
+                        ManagedConfig cfg = cfgmgr.getConfig(refClazz, ref);
+                        if (cfg == null) {
+                            log.warning("Reference not satisfied?", "ref", ref);
+                            return new Exporter.Replacement(null, clazz);
+                        }
+                        if (clazz == ConfigReference.class) {
+                            clazz = refClazz;
+                        }
+                        // TODO
+                        //return new Exporter.Replacement(null, Object.class);
+                    }
+                    return null;
+                }
+            };
+        }
+
         /**
          * Examine the parameters for type information.
          */
@@ -518,6 +590,14 @@ public class ConfigFlattener
         @Override
         public <T extends ManagedConfig> boolean add (Class<T> clazz, ConfigReference<T> ref)
         {
+            if (ref != null) {
+                Class<?> oldValue = refToClass.put(ref, clazz);
+                if (oldValue != null && oldValue != clazz) {
+                    log.warning("Holy shnikes, the same config ref for two types?",
+                            "ref", ref, "clazz", clazz, "oldClass", oldValue);
+                }
+            }
+
             // omit config refs with no args: we don't care
             if (ref == null || ref.getArguments().isEmpty() || !_cfgClasses.contains(clazz)) {
                 return false;
