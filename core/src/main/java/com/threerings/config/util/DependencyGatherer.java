@@ -50,81 +50,139 @@ import static com.threerings.ClydeLog.log;
 public abstract class DependencyGatherer
 {
     /**
-     * A default DependencyGatherer.
+     * A default DependencyGatherer for use inside ManagedConfigs.
      */
     public static class Default extends DependencyGatherer
     {
-        public Default (ConfigManager cfgmgr)
+        public Default (ConfigManager cfgmgr, ManagedConfig config)
         {
-            super(cfgmgr);
-        }
-
-        public Default (ManagedConfig config)
-        {
-            super(config);
-        }
-
-        /**
-         * Get the gathered up references.
-         */
-        public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
-        {
-            return Multimaps.unmodifiableSetMultimap(_refs);
+            _cfgmgr = cfgmgr;
+            findReferences(config);
         }
 
         @Override
-        protected void add (
-                Class<? extends ManagedConfig> clazz, @Nullable ConfigReference<?> ref)
+        protected Class<? extends ManagedConfig> getParameterConfigType (ConfigId id, String param)
         {
-            if (ref != null) {
-                _refs.put(clazz, ref);
+            ManagedConfig cfg = _cfgmgr.getRawConfig(id.clazz, id.name);
+            if (!(cfg instanceof ParameterizedConfig)) {
+                log.warning("Expected parameterized config, got none", "id", id, "cfg", cfg);
+                return null;
             }
+            ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
+            Parameter p = pcfg.getParameter(param);
+            if (p == null) {
+                log.warning("Missing parameter!", "id", id, "param", param);
+                return null;
+            }
+
+            Property prop = p.getProperty(pcfg);
+            if (prop == null) {
+                log.warning("No property for parameter?", "id", id, "param", param);
+                return null;
+            }
+            Reference refAnno = prop.getAnnotation(Reference.class);
+            if (refAnno != null) {
+                return refAnno.value();
+            }
+            return getConfigReferenceType(prop.getGenericType());
         }
 
-        protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
-                HashMultimap.create();
+        /** Where we look to determine parameter types for config references. */
+        protected final ConfigManager _cfgmgr;
     }
 
     /**
-     * Construct a dependency gatherer for the entire config manager.
+     * A gatherer that pre-fetches argument information, such that the config manager
+     * can be flattened and the configs altered at the time of gathering.
      */
-    public DependencyGatherer (ConfigManager cfgmgr)
+    public static class PreExamined extends DependencyGatherer
     {
-        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-            Class<? extends ManagedConfig> clazz = group.getConfigClass();
-            for (ManagedConfig cfg : group.getRawConfigs()) {
-                populateParameters(clazz, cfg);
+        /**
+         * Construct a PreExamined gatherer, examining parameter information in the specified mgr.
+         */
+        public PreExamined (ConfigManager cfgmgr)
+        {
+            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+                Class<? extends ManagedConfig> clazz = group.getConfigClass();
+                for (ManagedConfig cfg : group.getRawConfigs()) {
+                    populateParameters(clazz, cfg);
+                }
             }
         }
+
+        /**
+         * Gather references from another manager, using pre-calculated parameter types.
+         */
+        public void gather (ConfigManager cfgmgr)
+        {
+            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+                for (ManagedConfig cfg : group.getRawConfigs()) {
+                    findReferences(cfg);
+                }
+            }
+        }
+
+        /**
+         * Figure out if any of the parameters of the specified config expect ConfigReferences,
+         * and record their type.
+         */
+        protected void populateParameters (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
+        {
+            if (!(cfg instanceof ParameterizedConfig)) {
+                return;
+            }
+            ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
+            ConfigId id = new ConfigId(clazz, cfg.getName());
+            for (Parameter param : pcfg.parameters) {
+                Property prop = param.getProperty(pcfg);
+                if (prop == null) {
+                    log.warning("No property for parameter?",
+                            "config", cfg.getName(), "class", clazz, "param", param.name);
+                    continue;
+                }
+                Reference refAnno = prop.getAnnotation(Reference.class);
+                Class<? extends ManagedConfig> refClazz;
+                if (refAnno != null) {
+                    refClazz = refAnno.value();
+
+                } else {
+                    refClazz = getConfigReferenceType(prop.getGenericType());
+                    if (refClazz == null) {
+                        continue;
+                    }
+                }
+                _paramCfgTypes.put(id, param.name, refClazz);
+            }
+        }
+
+        @Override
+        protected Class<? extends ManagedConfig> getParameterConfigType (ConfigId id, String param)
+        {
+            return _paramCfgTypes.get(id, param);
+        }
+
+        /** A mapping of config/parameter to the type of config that parameter expects, if any. */
+        protected final Table<ConfigId, String, Class<? extends ManagedConfig>> _paramCfgTypes =
+                    HashBasedTable.create();
     }
 
     /**
-     * Construct a dependency gatherer for a single config.
+     * Get the gathered up references.
      */
-    public DependencyGatherer (ManagedConfig config)
+    public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
     {
-        populateParameters(config.getConfigGroup().getConfigClass(), config);
-    }
-
-    public void gather (ManagedConfig config)
-    {
-        findReferences(config);
-    }
-
-    public void gather (ConfigManager cfgmgr)
-    {
-        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-            for (ManagedConfig cfg : group.getRawConfigs()) {
-                findReferences(cfg);
-            }
-        }
+        return Multimaps.unmodifiableSetMultimap(_refs);
     }
 
     /**
      * Add a reference to the set.
      */
-    protected abstract void add (
-            Class<? extends ManagedConfig> clazz, @Nullable ConfigReference<?> ref);
+    protected void add (Class<? extends ManagedConfig> clazz, @Nullable ConfigReference<?> ref)
+    {
+        if (ref != null) {
+            _refs.put(clazz, ref);
+        }
+    }
 
     /**
      * Find references inside the specified object.
@@ -201,9 +259,8 @@ public abstract class DependencyGatherer
                     // this may be a reference! (otherwise: we don't care)
                     Reference refAnno = f.getAnnotation(Reference.class);
                     if (refAnno != null) {
-                        // TODO: HERE: for rewriting the field value to a unique String...
                         // add it!
-                        add(refAnno.value(), new ConfigReference<ManagedConfig>((String)o));
+                        addBareReference(f, val, refAnno.value(), (String)o);
                     }
 
                 } else {
@@ -238,7 +295,7 @@ public abstract class DependencyGatherer
             if (value == null) {
                 continue;
             }
-            Class<? extends ManagedConfig> pclazz = _paramCfgTypes.get(id, entry.getKey());
+            Class<? extends ManagedConfig> pclazz = getParameterConfigType(id, entry.getKey());
             if (pclazz != null) {
                 if (value instanceof ConfigReference<?>) {
                     findReferences((ConfigReference<?>)value, pclazz, seen);
@@ -262,38 +319,27 @@ public abstract class DependencyGatherer
     }
 
     /**
-     * Figure out if any of the parameters of the specified config expect ConfigReferences,
-     * and record their type.
+     * Add a bare string reference.
+     * Provides extra information for subclasses.
      */
-    protected void populateParameters (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
+    protected void addBareReference (
+            Field f, Object host, Class<? extends ManagedConfig> clazz, String cfgName)
     {
-        if (!(cfg instanceof ParameterizedConfig)) {
-            return;
-        }
-        ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
-        ConfigId id = new ConfigId(clazz, cfg.getName());
-        for (Parameter param : pcfg.parameters) {
-            Property prop = param.getProperty(pcfg);
-            if (prop == null) {
-                log.warning("No property for parameter?",
-                        "config", cfg.getName(), "class", clazz, "param", param.name);
-                continue;
-            }
-            Reference refAnno = prop.getAnnotation(Reference.class);
-            Class<? extends ManagedConfig> refClazz;
-            if (refAnno != null) {
-                refClazz = refAnno.value();
-
-            } else {
-                refClazz = getConfigReferenceType(prop.getGenericType());
-                if (refClazz == null) {
-                    continue;
-                }
-            }
-            _paramCfgTypes.put(id, param.name, refClazz);
-        }
+        add(clazz, new ConfigReference<ManagedConfig>(cfgName));
     }
 
+    /**
+     * Get the config type of the specified parameter, or null if unknown or
+     * it's not a config-ish parameter.
+     */
+    protected abstract Class<? extends ManagedConfig> getParameterConfigType (
+            ConfigId id, String param);
+
+    /**
+     * Figure out the config type for the specified type, as best we can.
+     *
+     * This will accept a type like List<ConfigReference<ActorConfig>> and return ActorConfig.
+     */
     protected Class<? extends ManagedConfig> getConfigReferenceType (Type type)
     {
         if (type instanceof ParameterizedType) {
@@ -315,11 +361,10 @@ public abstract class DependencyGatherer
         return null;
     }
 
+    /** Our gathered references. */
+    protected final SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
+            HashMultimap.create();
+
     /** A cache of field information. */
     protected final FieldCache _fieldCache = new FieldCache();
-
-    /** A mapping of config/parameter to the type of config that parameter expects, if any. */
-    protected final Table<ConfigId, String, Class<? extends ManagedConfig>> _paramCfgTypes =
-                HashBasedTable.create();
-
 }
