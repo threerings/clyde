@@ -441,7 +441,7 @@ public class ConfigFlattener
      * A gatherer that gathers dependencies between config references
      * as well as collects each ConfigReference uniquely for later rewriting.
      */
-    protected static class FlatDependencyGatherer extends DependencyGatherer
+    protected static class FlatDependencyGatherer extends DependencyGatherer.PreExamined
     {
         public FlatDependencyGatherer (ConfigManager preFlattened)
         {
@@ -458,6 +458,9 @@ public class ConfigFlattener
                     : _graph.removeAvailableElement();
         }
 
+        /**
+         * Get all the references that point at the specified id.
+         */
         public List<ConfigReference<?>> getReferences (ConfigId id)
         {
             return Collections.unmodifiableList(_refs.get(id));
