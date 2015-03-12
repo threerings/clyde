@@ -44,6 +44,7 @@ import com.threerings.media.image.ColorPository.ClassRecord;
 import com.threerings.media.image.ColorPository.ColorRecord;
 
 import com.threerings.editor.swing.PropertyEditor;
+import static com.threerings.editor.Log.log;
 
 /**
  * Edits colorization reference properties.
@@ -76,7 +77,10 @@ public class ColorizationEditor extends PropertyEditor
         if (_color == null) {
             ClassRecord clazz = _ctx.getColorPository().getClassRecord(value);
             if (clazz == null) {
-                _class.setSelectedIndex(0);
+            	log.warning("Missing classRecord value", "value", value, "property", _property );
+            	 if (_class.getItemCount() > 0) {
+            		 _class.setSelectedIndex(0);
+            	 }
             } else {
                 _class.setSelectedItem(new ClassItem(clazz));
             }
@@ -85,18 +89,27 @@ public class ColorizationEditor extends PropertyEditor
         ColorRecord color = _ctx.getColorPository().getColorRecord(value >> 8, value & 0xFF);
         if (color == null) {
             if (_class != null) {
-                // because we're setting two things, we need to avoid
-                // responding to the first (incomplete) change
-                _class.removeActionListener(this);
-                try {
-                    _class.setSelectedIndex(0);
-                } finally {
-                    _class.addActionListener(this);
-                }
-                populateColor(((ClassItem)_class.getSelectedItem()).record);
+            	if (_class.getItemCount() > 0) {
+                    // because we're setting two things, we need to avoid
+                    // responding to the first (incomplete) change
+	                _class.removeActionListener(this);
+	                try {
+	                	_class.setSelectedIndex(0);
+		            } catch (IllegalArgumentException iae) {
+		            	log.warning("Missing _class items for Colorization.", "property", _property );
+		            	// getItemCount is 0, ignore and fall through.
+		            }
+	                finally {
+		            	_class.addActionListener(this);
+		            }
+	                populateColor(((ClassItem)_class.getSelectedItem()).record);
+            	}
             }
-            _color.setSelectedIndex(0);
-
+            if (_color.getItemCount() > 0) {
+            	_color.setSelectedIndex(0);
+            } else {
+            	log.warning("No _color items defined", "property", _property );
+            }
         } else {
             if (_class != null) {
                 _class.removeActionListener(this);
@@ -126,6 +139,7 @@ public class ColorizationEditor extends PropertyEditor
             _color.addActionListener(this);
 
         } else {
+            log.warning("Missing 'mode' for property", "property", _property );
             setTitle(getPropertyLabel());
             setLayout(new HGroupLayout(
                 GroupLayout.STRETCH, GroupLayout.NONE, 5, GroupLayout.CENTER));
@@ -166,6 +180,9 @@ public class ColorizationEditor extends PropertyEditor
         ArrayList<ColorItem> colors = new ArrayList<>();
         for (Object color : crec.colors.values()) {
             colors.add(new ColorItem((ColorRecord)color));
+        }
+        if (colors.isEmpty()) {
+        	log.warning("Missing color record.", "class", crec);
         }
         QuickSort.sort(colors);
         ColorItem[] colorItems = colors.toArray(new ColorItem[colors.size()]);
