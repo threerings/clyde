@@ -108,7 +108,7 @@ public abstract class DependencyGatherer
 
             Property prop = p.getProperty(pcfg);
             if (prop == null) {
-                log.warning("No property for parameter?", "id", id, "param", param);
+                log.debug("No property for parameter?", "id", id, "param", param);
                 return null;
             }
             Reference refAnno = prop.getAnnotation(Reference.class);
@@ -116,6 +116,12 @@ public abstract class DependencyGatherer
                 return refAnno.value();
             }
             return getConfigReferenceType(prop.getGenericType());
+        }
+
+        @Override
+        protected boolean shouldWarn ()
+        {
+            return false;
         }
 
         /** Where we look to determine parameter types for config references. */
@@ -238,8 +244,9 @@ public abstract class DependencyGatherer
             ConfigReference<?> ref = (ConfigReference<?>)val;
             Class<? extends ManagedConfig> clazz = getConfigReferenceType(type);
             if (clazz == null) {
-                log.warning("==== Found reference of unknown type: " + ref);
-                // TODO: ???
+                if (shouldWarn()) {
+                    log.warning("==== Found reference of unknown type: " + ref);
+                }
                 return;
             }
             // defer to special handling for ConfigReference
@@ -366,6 +373,14 @@ public abstract class DependencyGatherer
      */
     protected abstract Class<? extends ManagedConfig> getParameterConfigType (
             ConfigId id, String param);
+
+    /**
+     * Should we warn about unusual things?
+     */
+    protected boolean shouldWarn ()
+    {
+        return true;
+    }
 
     /**
      * Figure out the config type for the specified type, as best we can.
