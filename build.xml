@@ -36,6 +36,7 @@
   </target>
 
   <target name="-prepare" depends="-init-maven-ant">
+	<mkdir dir="lib"/>
     <mkdir dir="${deploy.dir}"/>
 	<mkdir dir="${deploy.dir}/lib"/>
 	<!-- Copy local libraries -->
