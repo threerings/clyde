@@ -50,8 +50,6 @@ import com.samskivert.util.Tuple;
 
 import com.threerings.util.ReflectionUtil;
 
-import static com.threerings.export.Log.log;
-
 /**
  * Exports to a compact binary format.
  */
