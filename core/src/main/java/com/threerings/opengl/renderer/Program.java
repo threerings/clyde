@@ -190,7 +190,7 @@ public class Program extends ShaderObject
         @Override
         public int hashCode ()
         {
-            return (value != +0.0f ? Float.floatToIntBits(value) : 0);
+            return Float.floatToIntBits(value);
         }
     }
 

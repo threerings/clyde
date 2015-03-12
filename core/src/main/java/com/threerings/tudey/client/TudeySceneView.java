@@ -506,6 +506,9 @@ public class TudeySceneView extends DynamicScope
                 @Override protected void maybeFireOnConfigManager () {
                     // no-op
                 }
+                @Override protected void addUpdateDependencies () {
+                    // no-op
+                }
             });
             _scene.add(model);
 

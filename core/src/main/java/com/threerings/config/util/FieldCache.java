@@ -18,21 +18,29 @@ import com.google.common.collect.ImmutableList;
 public class FieldCache
 {
     /**
+     * Get the default predicate, which returns non-transient instance fields.
+     */
+    public static Predicate<Field> getDefaultPredicate ()
+    {
+        return new Predicate<Field>() {
+                    public boolean apply (Field field) {
+                        return 0 == (field.getModifiers() & (Modifier.STATIC | Modifier.TRANSIENT));
+                    }
+                };
+    }
+
+    /**
      * Create a FieldCache that finds non-static, non-transient fields.
      */
     public FieldCache ()
     {
-        this(new Predicate<Field>() {
-                    public boolean apply (Field field) {
-                        return 0 == (field.getModifiers() & (Modifier.STATIC | Modifier.TRANSIENT));
-                    }
-                });
+        this(getDefaultPredicate());
     }
 
     /**
      * Create a FieldCache that selects fields according to the specified predicate.
      */
-    public FieldCache (Predicate<Field> pred)
+    public FieldCache (Predicate<? super Field> pred)
     {
         _pred = pred;
     }
@@ -46,7 +54,7 @@ public class FieldCache
     }
 
     /** Our predicate for selecting fields. */
-    protected final Predicate<Field> _pred;
+    protected final Predicate<? super Field> _pred;
 
     /** All the fields (and superfields...) of a class, cached. */
     protected final LoadingCache<Class<?>, ImmutableList<Field>> _fields =

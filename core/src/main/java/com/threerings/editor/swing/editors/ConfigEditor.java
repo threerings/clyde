@@ -74,23 +74,13 @@ public class ConfigEditor extends PropertyEditor
 
         // look for a @Reference annotation
         Reference ref = _property.getAnnotation(Reference.class);
-        ConfigGroup<?>[] groups;
-        if (ref != null) {
-            // @Reference is preferred
-            ConfigGroup<?> group = _ctx.getConfigManager().getGroup(ref.value());
-            if (group == null) {
-                log.warning("Missing valid type for Reference", "value", ref.value());
-                return;
-            }
-            groups = new ConfigGroup<?>[] { group };
-
-        } else {
-            // fall back to the old way: the mode argument of @Editable (boo hiss)
-            groups = _ctx.getConfigManager().getGroups(getMode());
-            if (groups.length == 0) {
-                log.warning("Missing groups for config editor.", "name", getMode());
-                return;
-            }
+        ConfigGroup<?>[] groups = (ref != null)
+                ? _ctx.getConfigManager().getGroups(ref.value()) // new way
+                : _ctx.getConfigManager().getGroups(getMode()); // old way
+        if (groups.length == 0) {
+            log.warning("Missing groups for config editor.",
+                    "type", (ref != null) ? ref.value() : getMode());
+            return;
         }
         _box = new ConfigBox(
                 _msgs, groups, _property.nullable(),
