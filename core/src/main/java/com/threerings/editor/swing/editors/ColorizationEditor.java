@@ -77,7 +77,7 @@ public class ColorizationEditor extends PropertyEditor
         if (_color == null) {
             ClassRecord clazz = _ctx.getColorPository().getClassRecord(value);
             if (clazz == null) {
-            	log.warning("Missing classRecord value", "value", value, "property", _property );
+            	log.warning("ColorizationEditor - Missing classRecord value", "value", value, "property", _property );
             	 if (_class.getItemCount() > 0) {
             		 _class.setSelectedIndex(0);
             	 }
