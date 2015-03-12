@@ -33,6 +33,7 @@ import java.util.Set;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.WeakObserverList;
