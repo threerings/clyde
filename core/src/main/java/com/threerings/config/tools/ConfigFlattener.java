@@ -207,7 +207,7 @@ public class ConfigFlattener
             for (DerivedConfig der : Lists.newArrayList(
                     Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
                 // get the non-raw version and re-store it, overwriting
-                group.addConfig(group.getConfig(der.getName()));
+                group.addConfig(group.getConfig(der.getName()), false);
             }
         }
 
