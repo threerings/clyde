@@ -25,19 +25,14 @@
 
 package com.threerings.opengl.effect.config;
 
-import com.samskivert.util.Randoms;
-
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
-import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
 //import com.threerings.opengl.effect.BaseParticleSystem.Layer; // ARMHACK
-import com.threerings.opengl.effect.Particle;
-import com.threerings.opengl.effect.Shooter;
 
 /**
  * Determines the particles' initial velocities.

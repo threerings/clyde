@@ -8,9 +8,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.StringWriter;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -21,14 +18,12 @@ import java.util.Set;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Table;
 import com.google.common.io.Files;
 import com.google.common.primitives.Primitives;
 
@@ -50,7 +45,6 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.util.ConfigId;
 import com.threerings.config.util.DependencyGatherer;
 
-import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
 import com.threerings.editor.util.PropertyUtil;
 

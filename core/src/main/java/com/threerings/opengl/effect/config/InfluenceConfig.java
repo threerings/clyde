@@ -28,16 +28,10 @@ package com.threerings.opengl.effect.config;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.math.FloatMath;
-import com.threerings.math.Matrix3f;
-import com.threerings.math.Quaternion;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
-import com.threerings.util.NoiseUtil;
 
 //import com.threerings.opengl.effect.BaseParticleSystem.Layer; // ARMHACK
-import com.threerings.opengl.effect.Influence;
-import com.threerings.opengl.effect.Particle;
 
 /**
  * Modifies the state of a set of particles.
