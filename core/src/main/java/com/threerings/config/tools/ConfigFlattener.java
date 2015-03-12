@@ -512,6 +512,12 @@ public class ConfigFlattener
 //                        // TODO
 //                        //return new Exporter.Replacement(null, Object.class);
 //                    }
+//                    if (value instanceof String) {
+//                        Class<?> bareClazz = _bareToClass.get((String)value);
+//                        if (bareClazz != null) {
+//                            log.info("I'm so excited, I found my bare reference: " + value);
+//                        }
+//                    }
 //                    return null;
 //                }
 //            };
