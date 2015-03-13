@@ -261,7 +261,10 @@ public class BinaryExporter extends Exporter
             writeValue(value, clazz);
             return;
         }
-
+        // intern all strings before looking them up. Strings are immutable. We can share them.
+        if (value instanceof String) {
+            value = ((String)value).intern();
+        }
         // see if we've written it before
         Integer objectId = _objectIds.get(value);
         if (objectId != null) {
