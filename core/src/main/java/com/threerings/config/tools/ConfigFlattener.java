@@ -494,43 +494,44 @@ public class ConfigFlattener
          */
         public Exporter.Replacer getReplacer (final ConfigManager cfgmgr)
         {
-            return new Exporter.Replacer() {
-                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
-                {
-                    Class<?> cfgClazz;
-                    ConfigReference<?> ref;
-
-                    if (value instanceof ConfigReference<?>) {
-                        cfgClazz = _refToClass.get(value);
-                        ref = (ConfigReference<?>)value;
-
-                    } else if (value instanceof String) {
-                        cfgClazz = _bareToClass.get((String)value);
-                        if (cfgClazz == null) {
-                            return null; // not a reference string
-                        }
-                        ref = new ConfigReference<ManagedConfig>((String)value);
-
-                    } else {
-                        return null;
-                    }
-
-                    if (cfgClazz == null) {
-                        log.warning("I found a ref we don't know about...", "ref", ref);
-                        return null;
-                    }
-                    @SuppressWarnings("unchecked")
-                    ConfigReference<ManagedConfig> cref = (ConfigReference<ManagedConfig>)ref;
-                    @SuppressWarnings("unchecked")
-                    Class<ManagedConfig> cclazz = (Class<ManagedConfig>)cfgClazz;
-                    ManagedConfig cfg = cfgmgr.getConfig(cclazz, cref);
-                    if (cfg == null) {
-                        log.warning("Reference not satisfied?", "cref", cref);
-                        return null;
-                    }
-                    return new Exporter.Replacement(cfg, (clazz == Object.class) ? clazz : cclazz);
-                }
-            };
+            return null;
+//            return new Exporter.Replacer() {
+//                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
+//                {
+//                    Class<?> cfgClazz;
+//                    ConfigReference<?> ref;
+//
+//                    if (value instanceof ConfigReference<?>) {
+//                        cfgClazz = _refToClass.get(value);
+//                        ref = (ConfigReference<?>)value;
+//
+//                    } else if (value instanceof String) {
+//                        cfgClazz = _bareToClass.get((String)value);
+//                        if (cfgClazz == null) {
+//                            return null; // not a reference string
+//                        }
+//                        ref = new ConfigReference<ManagedConfig>((String)value);
+//
+//                    } else {
+//                        return null;
+//                    }
+//
+//                    if (cfgClazz == null) {
+//                        log.warning("I found a ref we don't know about...", "ref", ref);
+//                        return null;
+//                    }
+//                    @SuppressWarnings("unchecked")
+//                    ConfigReference<ManagedConfig> cref = (ConfigReference<ManagedConfig>)ref;
+//                    @SuppressWarnings("unchecked")
+//                    Class<ManagedConfig> cclazz = (Class<ManagedConfig>)cfgClazz;
+//                    ManagedConfig cfg = cfgmgr.getConfig(cclazz, cref);
+//                    if (cfg == null) {
+//                        log.warning("Reference not satisfied?", "cref", cref);
+//                        return null;
+//                    }
+//                    return new Exporter.Replacement(cfg, (clazz == Object.class) ? clazz : cclazz);
+//                }
+//            };
         }
 
         /**
