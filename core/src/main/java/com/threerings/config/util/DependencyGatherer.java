@@ -95,13 +95,13 @@ public abstract class DependencyGatherer
             ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
             Parameter p = pcfg.getParameter(param);
             if (p == null) {
-                log.debug("Missing parameter!", "id", id, "param", param);
+                log.warning("Missing parameter!", "id", id, "param", param);
                 return null;
             }
 
             Property prop = p.getProperty(pcfg);
             if (prop == null) {
-                log.debug("No property for parameter?", "id", id, "param", param);
+                log.warning("No property for parameter?", "id", id, "param", param);
                 return null;
             }
             Reference refAnno = prop.getAnnotation(Reference.class);
@@ -112,10 +112,17 @@ public abstract class DependencyGatherer
         }
 
         @Override
-        protected boolean shouldWarn ()
+        protected void findArgumentReferences (
+                ConfigReference<?> ref, Class<? extends ManagedConfig> clazz, Set<Object> seen)
         {
-            return false;
+            // don't do that here
         }
+
+//        @Override
+//        protected boolean shouldWarn ()
+//        {
+//            return false;
+//        }
 
         /** Where we look to determine parameter types for config references. */
         protected final ConfigManager _cfgmgr;

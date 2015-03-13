@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -23,6 +24,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.common.primitives.Primitives;
@@ -194,10 +198,15 @@ public class ConfigFlattener
 
         // turn all derived configs into their "original" form
         for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-            for (DerivedConfig der : Lists.newArrayList(
-                    Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
+            for (DerivedConfig der : Ordering.natural()
+                    .onResultOf(new Function<ManagedConfig, String>() {
+                        public String apply (ManagedConfig cfg) {
+                            return cfg.getName();
+                        }
+                    }).immutableSortedCopy(
+                        Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
                 // get the non-raw version and re-store it, overwriting
-                group.addConfig(group.getConfig(der.getName()));
+                group.addConfig(group.getConfig(der.getName()), false);
             }
         }
 

@@ -69,6 +69,7 @@ import com.threerings.config.ConfigGroupListener;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.util.PasteHelper;
 
 import static com.threerings.ClydeLog.log;
 
@@ -282,11 +283,13 @@ public class ConfigTree extends JTree
                 if (!_block.enter()) {
                     return;
                 }
+                PasteHelper helper = createPasteHelper(_groups[0]);
                 try {
                     ((ConfigTreeNode)child).addConfigs(_groups[0]);
                 } finally {
                     _block.leave();
                 }
+                helper.didPaste();
             }
             public void removeNodeFromParent (MutableTreeNode node) {
                 ConfigTreeNode ctnode = (ConfigTreeNode)node;
@@ -508,6 +511,14 @@ public class ConfigTree extends JTree
     protected void selectedConfigUpdated ()
     {
         // nothing by default
+    }
+
+    /**
+     * Create a paste helper.
+     */
+    protected PasteHelper createPasteHelper (ConfigGroup<?> group)
+    {
+        return new PasteHelper();
     }
 
     /**
