@@ -550,6 +550,9 @@ public class ConfigTree extends JTree
      */
     protected void readExpanded ()
     {
+    	if (_groups==null || _groups.length<1 ) {
+    		return;
+    	}
         String names = _prefs.get(_groups[0].getName() + ".expanded", null);
         if (names != null) {
             _expanded.addAll(Arrays.asList(StringUtil.parseStringArray(names)));
