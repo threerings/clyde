@@ -110,7 +110,15 @@ public class BinaryImporter extends Importer
                 case BinaryExporter.VERSION:
                     _idReaderSupplier = new Supplier<IdReader>() {
                                 public IdReader get () {
-                                    return new VarIntIdReader();
+                                    return new VarIntReader();
+                                }
+                            };
+                    break;
+
+                case IntermediateIdReader.VERSION:
+                    _idReaderSupplier = new Supplier<IdReader>() {
+                                public IdReader get () {
+                                    return new IntermediateIdReader();
                                 }
                             };
                     break;
@@ -331,7 +339,7 @@ public class BinaryImporter extends Importer
         int length = 0;
         boolean wasRead = false;
         if (cclazz.isArray()) {
-            length = _in.readInt();
+            length = _objectIdReader.readLength();
             if (wclazz != null) {
                 value = Array.newInstance(wclazz.getComponentType(), length);
             }
@@ -437,7 +445,7 @@ public class BinaryImporter extends Importer
     protected Collection<Object> readEntries (Collection<Object> collection)
         throws IOException
     {
-        for (int ii = 0, nn = _in.readInt(); ii < nn; ii++) {
+        for (int ii = 0, nn = _objectIdReader.readLength(); ii < nn; ii++) {
             collection.add(read(_objectClass));
         }
         return collection;
@@ -451,8 +459,8 @@ public class BinaryImporter extends Importer
     protected Multiset<Object> readEntries (Multiset<Object> multiset)
         throws IOException
     {
-        for (int ii = 0, nn = _in.readInt(); ii < nn; ii++) {
-            multiset.add(read(_objectClass), _in.readInt());
+        for (int ii = 0, nn = _objectIdReader.readLength(); ii < nn; ii++) {
+            multiset.add(read(_objectClass), _objectIdReader.readLength());
         }
         return multiset;
     }
@@ -465,7 +473,7 @@ public class BinaryImporter extends Importer
     protected Map<Object, Object> readEntries (Map<Object, Object> map)
         throws IOException
     {
-        for (int ii = 0, nn = _in.readInt(); ii < nn; ii++) {
+        for (int ii = 0, nn = _objectIdReader.readLength(); ii < nn; ii++) {
             map.put(read(_objectClass), read(_objectClass));
         }
         return map;
@@ -701,7 +709,7 @@ public class BinaryImporter extends Importer
         public HashMap<String, Object> readFields ()
             throws IOException
         {
-            int size = _in.readInt();
+            int size = _fieldIdReader.readLength();
             HashMap<String, Object> fields = new HashMap<String, Object>(size);
             for (int ii = 0; ii < size; ii++) {
                 readField(fields);
@@ -744,6 +752,14 @@ public class BinaryImporter extends Importer
          */
         public int read ()
             throws IOException;
+
+        /**
+         * Read the next length on the stream.
+         * (This can technically use the nearest available IdReader as there is no "state" in
+         * any version.).
+         */
+        public int readLength ()
+            throws IOException;
     }
 
     /**
@@ -771,14 +787,21 @@ public class BinaryImporter extends Importer
             return id;
         }
 
+        @Override
+        public int readLength ()
+            throws IOException
+        {
+            return _in.readInt();
+        }
+
         /** The highest value written so far. */
         protected int _highest;
     }
 
     /**
-     * Ids are encoded as "varints".
+     * Ids and lengths are encoded as varints.
      */
-    protected class VarIntIdReader
+    protected class VarIntReader
         implements IdReader
     {
         @Override
@@ -786,6 +809,29 @@ public class BinaryImporter extends Importer
             throws IOException
         {
             return Streams.readVarInt(_in);
+        }
+
+        @Override
+        public int readLength ()
+            throws IOException
+        {
+            return Streams.readVarInt(_in);
+        }
+    }
+
+    /**
+     * Ids are encoded as "varints", lengths are always ints.
+     */
+    protected class IntermediateIdReader extends VarIntReader
+    {
+        /** The BinaryExporter version number that we read. */
+        public static final int VERSION = 0x1001;
+
+        @Override
+        public int readLength ()
+            throws IOException
+        {
+            return _in.readInt(); // old way
         }
     }
 
