@@ -107,9 +107,6 @@
       <classpath refid="built.classpath"/>
       <link href="http://download.oracle.com/javase/6/docs/api/"/>
       <link href="http://samskivert.googlecode.com/svn/apidocs"/>
-      <link href="http://threerings.github.com/narya/apidocs/"/>
-      <link href="http://threerings.github.com/nenya/apidocs/"/>
-      <link href="http://threerings.github.com/vilya/apidocs/"/>
     </javadoc>
   </target>
 
