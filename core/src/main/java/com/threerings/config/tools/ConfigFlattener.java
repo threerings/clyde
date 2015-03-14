@@ -489,9 +489,19 @@ public class ConfigFlattener
             }
         }
 
+        // TEMP?
+        protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
+                "com.threerings.trinity.gui.config.ColorConfig",
+                "com.threerings.trinity.gui.config.FontConfig");
+
         // TEMP
         protected static final ImmutableSet<String> WHITELIST = ImmutableSet.of(
+                "com.threerings.skm.item.config.LootTableConfig",
+                "com.threerings.skm.item.config.ItemConfig",
+                "com.threerings.skm.item.config.ItemReferenceConfig",
                 "com.threerings.skm.battle.config.PolygonConfig",
+                "com.threerings.skm.item.config.EvolveConfig",
+                "com.threerings.skm.ftue.config.TutorialStepConfig",
                 "com.threerings.skm.battle.config.FxConfig");
 
 
@@ -523,6 +533,12 @@ public class ConfigFlattener
 
                     if (cfgClazz == null) {
                         log.warning("I found a ref we don't know about...", "ref", ref);
+                        return null;
+                    }
+
+                    // TEMP?
+                    // some classes we will never convert
+                    if (BLACKLIST.contains(cfgClazz.getName())) {
                         return null;
                     }
 
