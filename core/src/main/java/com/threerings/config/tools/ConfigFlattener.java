@@ -498,6 +498,7 @@ public class ConfigFlattener
 
         // TEMP
         protected static final ImmutableSet<String> WHITELIST = ImmutableSet.of(
+                "com.threerings.skm.battle.config.ActorConfig",
                 "com.threerings.skm.battle.config.BaseStatsConfig",
                 "com.threerings.skm.battle.config.BattleConfig",
                 "com.threerings.skm.battle.config.ClassConfig",
@@ -505,6 +506,7 @@ public class ConfigFlattener
                 "com.threerings.skm.battle.config.FxConfig",
                 "com.threerings.skm.battle.config.PolygonConfig",
                 "com.threerings.skm.battle.config.TraitConfig",
+                "com.threerings.skm.battle.config.WeaponConfig",
                 "com.threerings.skm.ftue.config.TutorialBattleFriendConfig",
                 "com.threerings.skm.ftue.config.TutorialStepConfig",
                 "com.threerings.skm.item.config.EvolveConfig",
