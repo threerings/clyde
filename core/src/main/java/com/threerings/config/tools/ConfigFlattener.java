@@ -492,17 +492,27 @@ public class ConfigFlattener
         // TEMP?
         protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
                 "com.threerings.trinity.gui.config.ColorConfig",
-                "com.threerings.trinity.gui.config.FontConfig");
+                "com.threerings.trinity.gui.config.FontConfig",
+                "com.threerings.trinity.gui.config.PositionConfig",
+                "");
 
         // TEMP
         protected static final ImmutableSet<String> WHITELIST = ImmutableSet.of(
-                "com.threerings.skm.item.config.LootTableConfig",
+                "com.threerings.skm.battle.config.BaseStatsConfig",
+                "com.threerings.skm.battle.config.BattleConfig",
+                "com.threerings.skm.battle.config.ClassConfig",
+                "com.threerings.skm.battle.config.ElementConfig",
+                "com.threerings.skm.battle.config.FxConfig",
+                "com.threerings.skm.battle.config.PolygonConfig",
+                "com.threerings.skm.battle.config.TraitConfig",
+                "com.threerings.skm.ftue.config.TutorialBattleFriendConfig",
+                "com.threerings.skm.ftue.config.TutorialStepConfig",
+                "com.threerings.skm.item.config.EvolveConfig",
                 "com.threerings.skm.item.config.ItemConfig",
                 "com.threerings.skm.item.config.ItemReferenceConfig",
-                "com.threerings.skm.battle.config.PolygonConfig",
-                "com.threerings.skm.item.config.EvolveConfig",
-                "com.threerings.skm.ftue.config.TutorialStepConfig",
-                "com.threerings.skm.battle.config.FxConfig");
+                "com.threerings.skm.item.config.LootTableConfig",
+                "com.threerings.skm.item.config.RecruitConfig",
+                "");
 
 
         /**
