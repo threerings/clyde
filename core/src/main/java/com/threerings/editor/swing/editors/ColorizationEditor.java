@@ -222,7 +222,7 @@ public class ColorizationEditor extends PropertyEditor
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return record != null ? record.hashCode() : 0;
         }
@@ -261,7 +261,7 @@ public class ColorizationEditor extends PropertyEditor
         }
 
         @Override
-        public int hashCode()
+        public int hashCode ()
         {
             return record != null ? record.hashCode() : 0;
         }

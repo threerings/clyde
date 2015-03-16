@@ -70,6 +70,13 @@ public class XMLExporter extends Exporter
     }
 
     @Override
+    public XMLExporter setReplacer (Replacer replacer)
+    {
+        super.setReplacer(replacer);
+        return this;
+    }
+
+    @Override
     public void writeObject (Object object)
         throws IOException
     {
@@ -205,9 +212,18 @@ public class XMLExporter extends Exporter
     protected void write (Element element, Object value, Class<?> clazz)
         throws IOException
     {
+        if (_replacer != null) {
+            Replacement repl = _replacer.getReplacement(value, clazz);
+            if (repl != null) {
+                value = repl.value;
+                clazz = repl.clazz;
+            }
+        }
+
         if (value == null) {
             return;
         }
+
         // to help readability, always write the values for certain (immutable) types
         if (value instanceof Boolean || value instanceof Byte || value instanceof Character ||
             value instanceof Class<?> || value instanceof Double || value instanceof Enum ||

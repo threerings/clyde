@@ -25,10 +25,12 @@
 
 package com.threerings.opengl.gui.config;
 
+import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
 import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.compositor.config.RenderQueueConfig;
 import com.threerings.opengl.gui.ComponentBillboard;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ArticulatedConfig.BillboardRotationX;
@@ -69,7 +71,8 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
     public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
 
     /** The queue into which we render. */
-    @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")
+    @Editable(nullable=true, hgroup="q")
+    @Reference(RenderQueueConfig.class)
     public String queue = RenderQueue.TRANSPARENT;
 
     /** The priority at which the batch is enqueued. */

@@ -38,6 +38,8 @@ import java.util.Set;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 import com.threerings.resource.ResourceManager;
 
@@ -45,11 +47,11 @@ import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
@@ -246,7 +248,7 @@ public class PropertyUtil
      */
     public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
     {
-        getResources(cfgmgr, object, paths, new ConfigReferenceSet.Default());
+        getResources(cfgmgr, object, paths, new ReferenceSet());
     }
 
     /**
@@ -412,7 +414,7 @@ public class PropertyUtil
      * by that object, etc.) and places them in the supplied set.
      */
     protected static void getResources (
-        ConfigManager cfgmgr, Object object, Set<String> paths, ConfigReferenceSet refs)
+        ConfigManager cfgmgr, Object object, Set<String> paths, ReferenceSet refs)
     {
         if (object == null) {
             return;
@@ -436,13 +438,16 @@ public class PropertyUtil
                 continue;
             }
             Editable annotation = property.getAnnotation();
+            Reference refAnno = property.getAnnotation(Reference.class);
             String editor = annotation.editor();
-            boolean cfg = editor.equals("config");
+            boolean cfg = editor.equals("config") || (refAnno != null);
             if (cfg || property.getType().equals(ConfigReference.class)) {
                 Class<ManagedConfig> cclass;
                 ConfigReference<ManagedConfig> ref;
                 if (cfg) {
-                    ConfigGroup<?> group = cfgmgr.getGroup(annotation.mode());
+                    ConfigGroup<?> group = (refAnno != null)
+                            ? cfgmgr.getGroup(refAnno.value()) // new way
+                            : cfgmgr.getGroup(annotation.mode()); // old way
                     if (group == null) {
                         continue;
                     }
@@ -475,6 +480,24 @@ public class PropertyUtil
                 getResources(cfgmgr, value, paths, refs);
             }
         }
+    }
+
+    /**
+     * Tracks which references we've seen.
+     */
+    protected static class ReferenceSet
+    {
+        /**
+         * Return true if this is a newly-seen reference.
+         */
+        public boolean add (Class<? extends ManagedConfig> clazz, ConfigReference<?> ref)
+        {
+            return _set.put(clazz, ref);
+        }
+
+        /** The gathered references. */
+        protected final SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _set =
+                HashMultimap.create();
     }
 
     /** Signifies that a property should be stripped out completely. */

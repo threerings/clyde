@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
+import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -49,6 +50,7 @@ import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
+import com.threerings.opengl.compositor.config.RenderQueueConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.geometry.config.DeformerConfig;
@@ -268,7 +270,8 @@ public class TechniqueConfig extends DeepObject
     public static class NormalEnqueuer extends Enqueuer
     {
         /** The queue into which we render. */
-        @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")
+        @Editable(nullable=true, hgroup="q")
+        @Reference(RenderQueueConfig.class)
         public String queue = RenderQueue.OPAQUE;
 
         /** The priority at which the batch is enqueued. */
@@ -556,7 +559,8 @@ public class TechniqueConfig extends DeepObject
     public static class GroupedEnqueuer extends CompoundEnqueuer
     {
         /** The queue into which we render. */
-        @Editable(editor="config", mode="render_queue", nullable=true, weight=-1, hgroup="q")
+        @Editable(nullable=true, weight=-1, hgroup="q")
+        @Reference(RenderQueueConfig.class)
         public String queue = RenderQueue.OPAQUE;
 
         /** The group into which the batches are enqueued. */
@@ -659,7 +663,8 @@ public class TechniqueConfig extends DeepObject
     }
 
     /** The render scheme with which this technique is associated. */
-    @Editable(editor="config", mode="render_scheme", nullable=true, hgroup="s")
+    @Editable(nullable=true, hgroup="s")
+    @Reference(RenderSchemeConfig.class)
     public String scheme;
 
     /** Whether or not this technique receives projections. */

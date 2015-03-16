@@ -176,10 +176,10 @@ public class AlphaState extends RenderState
     }
 
     @Override
-    public int hashCode()
+    public int hashCode ()
     {
         int result = _alphaTestFunc;
-        result = 31 * result + (_alphaTestRef != +0.0f ? Float.floatToIntBits(_alphaTestRef) : 0);
+        result = 31 * result + Float.floatToIntBits(_alphaTestRef);
         result = 31 * result + _srcBlendFactor;
         result = 31 * result + _destBlendFactor;
         return result;

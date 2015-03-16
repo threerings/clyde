@@ -118,6 +118,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.util.PasteHelper;
 import com.threerings.config.swing.ConfigTree;
 import com.threerings.config.swing.ConfigTreeFilterPanel;
 import com.threerings.config.swing.ConfigTreeNode;
@@ -622,6 +623,10 @@ public class ConfigEditor extends BaseConfigEditor
                         @Override public void selectedConfigUpdated () {
                             super.selectedConfigUpdated();
                             _epanel.update();
+                        }
+                        @Override protected PasteHelper createPasteHelper (ConfigGroup<?> group)
+                        {
+                            return ConfigEditor.this.createPasteHelper(group);
                         }
                     };
                     _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -1237,20 +1242,6 @@ public class ConfigEditor extends BaseConfigEditor
 
         /** The editors currently registered to hear about dirty groups. */
         protected static ObserverList<ConfigEditor> _editors = ObserverList.newFastUnsafe();
-    }
-
-    /**
-     * A default PasteHelper that does nothing.
-     */
-    protected static class PasteHelper
-    {
-        /**
-         * Called at the completion of the paste.
-         */
-        public void didPaste ()
-        {
-            // do nothing
-        }
     }
 
     /** The config tree pop-up menu. */

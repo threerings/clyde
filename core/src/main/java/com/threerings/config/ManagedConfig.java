@@ -42,6 +42,8 @@ import com.samskivert.util.Tuple;
 import com.threerings.resource.ResourceManager;
 import com.threerings.resource.ResourceManager.ModificationObserver;
 
+import com.threerings.config.util.DependencyGatherer;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
@@ -53,6 +55,8 @@ import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
+
+import static com.threerings.ClydeLog.log;
 
 /**
  * Represents a configuration managed by the {@link ConfigManager}.
@@ -224,7 +228,7 @@ public abstract class ManagedConfig extends DeepObject
     {
         if (_listeners == null) {
             // we disable duplicate checking for performance; don't fuck up
-            (_listeners = WeakObserverList.newFastUnsafe()).setCheckDuplicates(false);
+            (_listeners = WeakObserverList.newSafeInOrder()).setCheckDuplicates(false);
             addUpdateDependencies();
         }
         @SuppressWarnings("unchecked")
@@ -389,10 +393,10 @@ public abstract class ManagedConfig extends DeepObject
      */
     protected void addUpdateDependencies ()
     {
-        // add the config dependencies
-        ConfigReferenceSet.Default refSet = new ConfigReferenceSet.Default();
-        getUpdateReferences(refSet);
-        SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> refs = refSet.getGathered();
+        // gather up the dependencies
+        SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> refs =
+                DependencyGatherer.gather(_cfgmgr, this);
+
         _updateConfigs = new ArrayList<ManagedConfig>(refs.size());
         for (Map.Entry<Class<? extends ManagedConfig>, Set<ConfigReference<?>>> entry :
                 Multimaps.asMap(refs).entrySet()) {
@@ -408,13 +412,42 @@ public abstract class ManagedConfig extends DeepObject
                 }
             }
         }
-
         // add the resource dependencies
         getUpdateResources(_updateResources = new HashSet<String>());
         ResourceManager rsrcmgr = _cfgmgr.getResourceManager();
         for (String path : _updateResources) {
             rsrcmgr.addModificationObserver(path, this);
         }
+
+        // TEMP: do some debugging
+        // add the config dependencies
+        ConfigReferenceSet.Default refSet = new ConfigReferenceSet.Default();
+        getUpdateReferences(refSet);
+        showDiffs(refs, refSet.getGathered());
+        // END TEMP
+    }
+
+    // TEMP: TODO: REMOVE
+    protected <K, V> void showDiffs (SetMultimap<K, V> newSet, SetMultimap<K, V> oldSet)
+    {
+//        if (newSet.isEmpty() && oldSet.isEmpty()) {
+//            return;
+//        }
+        if (newSet.size() >= oldSet.size()) {
+            return;
+        }
+        log.info("Update Dependencies for " + getName(),
+                "new", newSet.size(), "old", oldSet.size());
+//        if (oldSet.size() > newSet.size()) {
+//            log.info("**********************");
+//        }
+        for (K key : Sets.union(newSet.keySet(), oldSet.keySet())) {
+            Set<V> diffs = Sets.symmetricDifference(newSet.get(key), oldSet.get(key));
+            if (!diffs.isEmpty()) {
+                log.info("Found difference: " + key, "diffs", diffs);
+            }
+        }
+        log.info("---");
     }
 
     /**

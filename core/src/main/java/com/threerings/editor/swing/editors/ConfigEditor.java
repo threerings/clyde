@@ -37,6 +37,7 @@ import com.google.common.base.Supplier;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigBox;
 
@@ -70,9 +71,15 @@ public class ConfigEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        ConfigGroup<?>[] groups = _ctx.getConfigManager().getGroups(getMode());
+
+        // look for a @Reference annotation
+        Reference ref = _property.getAnnotation(Reference.class);
+        ConfigGroup<?>[] groups = (ref != null)
+                ? _ctx.getConfigManager().getGroups(ref.value()) // new way
+                : _ctx.getConfigManager().getGroups(getMode()); // old way
         if (groups.length == 0) {
-            log.warning("Missing groups for config editor.", "name", getMode());
+            log.warning("Missing groups for config editor.",
+                    "type", (ref != null) ? ref.value() : getMode());
             return;
         }
         _box = new ConfigBox(

@@ -224,19 +224,31 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void addConfig (ManagedConfig config)
     {
+        addConfig(config, true);
+    }
+
+    /**
+     * Adds a configuration to the set, avoiding the normal event firing.
+     *
+     * Don't use this unless you know what you're doing.
+     */
+    public void addConfig (ManagedConfig config, boolean fireEvents)
+    {
         if (!_cclass.isInstance(config) && !(config instanceof DerivedConfig)) {
             Class<?> clazz = (config == null) ? null : config.getClass();
             throw new IllegalArgumentException(clazz + " is not of type " + _cclass);
         }
         ManagedConfig oldCfg = _configsByName.put(config.getName(), config);
         initConfig(config);
-        if (oldCfg != null) {
-            // tell any listeners that the old one has changed. They should in turn end up
-            // listening on the new one...
-            oldCfg.wasUpdated();
-            fireConfigRemoved(oldCfg);
+        if (fireEvents) {
+            if (oldCfg != null) {
+                // tell any listeners that the old one has changed. They should in turn end up
+                // listening on the new one...
+                oldCfg.wasUpdated();
+                fireConfigRemoved(oldCfg);
+            }
+            fireConfigAdded(config);
         }
-        fireConfigAdded(config);
     }
 
     /**

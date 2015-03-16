@@ -487,7 +487,11 @@ public class ConfigManager
      */
     public Collection<ConfigGroup<?>> getGroups ()
     {
-        return _groups.values();
+        return new Ordering<ConfigGroup<?>>() {
+                    public int compare (ConfigGroup<?> g1, ConfigGroup<?> g2) {
+                        return g1.getName().compareTo(g2.getName());
+                    }
+                }.immutableSortedCopy(_groups.values());
     }
 
     /**
@@ -645,17 +649,12 @@ public class ConfigManager
     {
         // write out the non-empty groups as a sorted array
         List<ConfigGroup<?>> list = Lists.newArrayList();
-        for (ConfigGroup<?> group : _groups.values()) {
+        for (ConfigGroup<?> group : getGroups()) { // getGroups() sorts
             if (!Iterables.isEmpty(group.getRawConfigs())) {
                 list.add(group);
             }
         }
-        ConfigGroup<?>[] groups = Iterables.toArray(
-                new Ordering<ConfigGroup<?>>() {
-                    public int compare (ConfigGroup<?> g1, ConfigGroup<?> g2) {
-                        return g1.getName().compareTo(g2.getName());
-                    }
-                }.immutableSortedCopy(list), ConfigGroup.class);
+        ConfigGroup<?>[] groups = Iterables.toArray(list, ConfigGroup.class);
         out.write("groups", groups, new ConfigGroup<?>[0], ConfigGroup[].class);
     }
 
