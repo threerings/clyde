@@ -215,7 +215,7 @@ public class ConfigManager
     	if (rsrcClasses != null && rsrcClasses.length > 0) {
     		return ListUtil.contains(rsrcClasses, clazz);	
     	} else {
-			log.warning("ConfigManager - no resource classes defined.");
+			log.debug("ConfigManager - no resource classes defined.");
 			return false;
     	}
     }
