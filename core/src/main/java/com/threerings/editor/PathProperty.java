@@ -78,7 +78,7 @@ public class PathProperty extends Property
         try {
             while (tok.nextToken() != StreamTokenizer.TT_EOF) {
                 if (tok.ttype != StreamTokenizer.TT_WORD) {
-                    log.warning("Unexpected token [path=" + path + ", token=" + tok + "].");
+                    log.warning("PathProperty - Unexpected token [path=" + path + ", token=" + tok + "].");
                     return null;
                 }
                 Property prop = getProperty(cfgmgr, object, tok);
