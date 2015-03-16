@@ -61,7 +61,7 @@ public class BinaryExporter extends Exporter
     public static final int MAGIC_NUMBER = 0xFACEAF0E;
 
     /** The format version. */
-    public static final short VERSION = 0x1001;
+    public static final short VERSION = 0x1002;
 
     /** The compressed format flag. */
     public static final short COMPRESSED_FORMAT_FLAG = 0x1000;
@@ -261,7 +261,10 @@ public class BinaryExporter extends Exporter
             writeValue(value, clazz);
             return;
         }
-
+        // intern all strings before looking them up. Strings are immutable. We can share them.
+        if (value instanceof String) {
+            value = ((String)value).intern();
+        }
         // see if we've written it before
         Integer objectId = _objectIds.get(value);
         if (objectId != null) {
@@ -296,7 +299,7 @@ public class BinaryExporter extends Exporter
         }
         // write the array dimension, if applicable
         if (cclazz.isArray()) {
-            _out.writeInt(Array.getLength(value));
+            Streams.writeVarInt(_out, Array.getLength(value));
         }
         // and the outer class reference
         if (!(value instanceof ImmutableCollection) && !(value instanceof ImmutableMap)) {
@@ -403,7 +406,7 @@ public class BinaryExporter extends Exporter
     protected void writeEntries (Collection<?> collection)
         throws IOException
     {
-        _out.writeInt(collection.size());
+        Streams.writeVarInt(_out, collection.size());
         for (Object entry : collection) {
             write(entry, Object.class);
         }
@@ -418,10 +421,10 @@ public class BinaryExporter extends Exporter
         @SuppressWarnings("unchecked")
         Multiset<Object> mset = (Multiset<Object>)multiset;
         Set<Multiset.Entry<Object>> entrySet = mset.entrySet();
-        _out.writeInt(entrySet.size());
+        Streams.writeVarInt(_out, entrySet.size());
         for (Multiset.Entry<Object> entry : entrySet) {
             write(entry.getElement(), Object.class);
-            _out.writeInt(entry.getCount());
+            Streams.writeVarInt(_out, entry.getCount());
         }
     }
 
@@ -431,7 +434,7 @@ public class BinaryExporter extends Exporter
     protected void writeEntries (Map<?, ?> map)
         throws IOException
     {
-        _out.writeInt(map.size());
+        Streams.writeVarInt(_out, map.size());
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             write(entry.getKey(), Object.class);
             write(entry.getValue(), Object.class);
@@ -486,7 +489,7 @@ public class BinaryExporter extends Exporter
         public void writeFields (HashMap<String, Tuple<Object, Class<?>>> fields)
             throws IOException
         {
-            _out.writeInt(fields.size());
+            Streams.writeVarInt(_out, fields.size());
             for (Map.Entry<String, Tuple<Object, Class<?>>> entry : fields.entrySet()) {
                 Tuple<Object, Class<?>> value = entry.getValue();
                 writeField(entry.getKey(), value.left, value.right);

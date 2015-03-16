@@ -489,45 +489,62 @@ public class ConfigFlattener
             }
         }
 
+        // TEMP?
+        protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
+                "com.threerings.trinity.gui.config.ColorConfig",
+                "com.threerings.trinity.gui.config.FontConfig",
+                "com.threerings.trinity.gui.config.PositionConfig",
+                "");
+
         /**
          * Get a replacer for exporting the bare configs instead of their references!
          */
         public Exporter.Replacer getReplacer (final ConfigManager cfgmgr)
         {
-            return null; // no replacing
-//            return new Exporter.Replacer() {
-//                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
-//                {
-//                    if (value instanceof ConfigReference<?>) {
-//                        @SuppressWarnings("unchecked")
-//                        Class<ManagedConfig> refClazz = (Class<ManagedConfig>)refToClass.get(value);
-//                        if (refClazz == null) {
-//                            log.warning("I found a ref we don't know about... ",
-//                                    "ref", value);
-//                            return new Exporter.Replacement(null, clazz);
-//                        }
-//                        @SuppressWarnings("unchecked")
-//                        ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)value;
-//                        ManagedConfig cfg = cfgmgr.getConfig(refClazz, ref);
-//                        if (cfg == null) {
-//                            log.warning("Reference not satisfied?", "ref", ref);
-//                            return new Exporter.Replacement(null, clazz);
-//                        }
-//                        if (clazz == ConfigReference.class) {
-//                            clazz = refClazz;
-//                        }
-//                        // TODO
-//                        //return new Exporter.Replacement(null, Object.class);
-//                    }
-//                    if (value instanceof String) {
-//                        Class<?> bareClazz = _bareToClass.get((String)value);
-//                        if (bareClazz != null) {
-//                            log.info("I'm so excited, I found my bare reference: " + value);
-//                        }
-//                    }
-//                    return null;
-//                }
-//            };
+            return new Exporter.Replacer() {
+                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
+                {
+                    Class<?> cfgClazz;
+                    ConfigReference<?> ref;
+
+                    if (value instanceof ConfigReference<?>) {
+                        cfgClazz = _refToClass.get(value);
+                        ref = (ConfigReference<?>)value;
+
+                    } else if (value instanceof String) {
+                        cfgClazz = _bareToClass.get((String)value);
+                        if (cfgClazz == null) {
+                            return null; // not a reference string
+                        }
+                        ref = new ConfigReference<ManagedConfig>((String)value);
+
+                    } else {
+                        return null;
+                    }
+
+                    if (cfgClazz == null) {
+                        log.warning("I found a ref we don't know about...", "ref", ref);
+                        return null;
+                    }
+
+                    // TEMP?
+                    // some classes we will never convert
+                    if (BLACKLIST.contains(cfgClazz.getName())) {
+                        return null;
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    ConfigReference<ManagedConfig> cref = (ConfigReference<ManagedConfig>)ref;
+                    @SuppressWarnings("unchecked")
+                    Class<ManagedConfig> cclazz = (Class<ManagedConfig>)cfgClazz;
+                    ManagedConfig cfg = cfgmgr.getConfig(cclazz, cref);
+                    if (cfg == null) {
+                        log.warning("Reference not satisfied?", "cref", cref);
+                        return null;
+                    }
+                    return new Exporter.Replacement(cfg, (clazz == Object.class) ? clazz : cclazz);
+                }
+            };
         }
 
         /**
