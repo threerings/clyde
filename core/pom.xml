@@ -28,6 +28,11 @@
       <artifactId>jsr305</artifactId>
       <version>2.0.1</version>
     </dependency>
+    <dependency>
+      <groupId>com.samskivert</groupId>
+      <artifactId>jmustache</artifactId>
+      <version>1.4</version>
+    </dependency>
 
     <!-- normally we don't need guava explicitly but ooo-util is bringing in an old-ass version -->
     <dependency>
