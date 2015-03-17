@@ -579,11 +579,16 @@ public abstract class Property extends DeepObject
     /**
      * Returns an array containing the available subtypes of the specified type, first looking to
      * subtypes listed in the annotation, then attempting to find a method using reflection.
+     * @return Class array of valid subtype, or null if type is null.  If type is nullable(), the first entry will be null.  
      */
     protected Class<?>[] getSubtypes (Class<?> type)
     {
         ArrayList<Class<?>> types = new ArrayList<Class<?>>();
 
+        if (type == null) {
+        	return null;
+        }
+        
         // start with the null class, if allowed
         boolean nullable = nullable();
         if (nullable) {

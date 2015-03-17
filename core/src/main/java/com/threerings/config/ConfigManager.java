@@ -209,7 +209,13 @@ public class ConfigManager
      */
     public boolean isResourceClass (Class<?> clazz)
     {
-        return ListUtil.contains(getResourceClasses(), clazz);
+    	Class<?>[] rsrcClasses = getResourceClasses();
+    	if (rsrcClasses != null && rsrcClasses.length > 0) {
+    		return ListUtil.contains(rsrcClasses, clazz);	
+    	} else {
+			log.debug("ConfigManager - no resource classes defined.");
+			return false;
+    	}
     }
 
     /**

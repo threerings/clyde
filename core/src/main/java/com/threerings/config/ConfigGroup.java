@@ -71,6 +71,9 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public static String getName (Class<?> clazz)
     {
+    	if (clazz == null) {
+    		return null;
+    	}
         String cstr = clazz.getName();
         cstr = cstr.substring(Math.max(cstr.lastIndexOf('.'), cstr.lastIndexOf('$')) + 1);
         cstr = cstr.endsWith("Config") ? cstr.substring(0, cstr.length() - 6) : cstr;

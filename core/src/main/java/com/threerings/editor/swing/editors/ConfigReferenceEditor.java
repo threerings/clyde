@@ -25,11 +25,12 @@
 
 package com.threerings.editor.swing.editors;
 
+import static com.threerings.editor.Log.log;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -41,20 +42,18 @@ import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
-
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
-import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
-
 import com.threerings.editor.Property;
-import com.threerings.editor.util.PropertyUtil;
 import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.editor.util.PropertyUtil;
 
 /**
  * An editor for configuration references.
@@ -162,6 +161,16 @@ public class ConfigReferenceEditor extends PropertyEditor
             add(new JLabel(getPropertyLabel() + ":"));
             add(_name = new JLabel(" "));
             return;
+        }
+        
+        if (getArgumentType() == null) {
+        	// error case, add fields to prevent 
+        	log.warning("ConfigReferenceEditor missing argument type", "property", _property);
+            add(new JLabel(getPropertyLabel() + ":"));
+        	add(_name = new JLabel("Invalid Class!"));
+        	_config = new JButton("");
+        	_arguments = new JPanel();
+        	return;
         }
 
         makeCollapsible(_ctx, getPropertyLabel(), false);

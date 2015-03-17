@@ -242,8 +242,13 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected Objects.ToStringHelper toStringHelper ()
     {
-        return Objects.toStringHelper(this)
-            .add("property", _property.getName());
+    	Objects.ToStringHelper helper = Objects.toStringHelper(this);
+    	if  (_property != null) {
+    		helper = helper.add("property", _property.getName());
+    	} else {
+    		helper = helper.add( "property", null);
+    	}
+    	return helper;
     }
 
     /**

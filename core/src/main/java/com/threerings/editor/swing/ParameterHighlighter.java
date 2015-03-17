@@ -4,6 +4,7 @@
 package com.threerings.editor.swing;
 
 import java.awt.Component;
+
 import java.awt.Container;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
@@ -144,6 +145,11 @@ public class ParameterHighlighter
                     break;
                 }
             }
+            if (name == null) {
+            	log.warning("ParameterHighligher missing name.  No EditorPanel in hiearchy?", "paths", paths );
+            	name = new ObjectEditor();  // hack - use empty blank one.
+            }
+            
             _pathsEditor = paths;
             _nameEditor = name;
             _pathsEditor.addChangeListener(this);
@@ -205,7 +211,10 @@ public class ParameterHighlighter
                 pe.setParameterLabel(null, "");
             }
             // assign the new targets and update the name
-            String label = String.valueOf(_nameEditor.getProperty().get(_nameEditor.getObject()));
+            String label = "";
+            if (_nameEditor != null && _nameEditor.getProperty() != null ) {
+            	String.valueOf(_nameEditor.getProperty().get(_nameEditor.getObject()));
+            }
             for (Map.Entry<BasePropertyEditor, String> entry : newTargets.entrySet()) {
                 entry.getKey().setParameterLabel(label, entry.getValue());
             }

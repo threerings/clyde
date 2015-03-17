@@ -127,7 +127,7 @@ public class ObjectPanel extends BasePropertyEditor
     {
         int tidx = getTypeIndex(value);
         if (tidx == -1) {
-            log.warning("Wrong type for object panel.", "value", value, "types", _types);
+            log.warning("ObjectPanel - wrong type for value.", "value", value, "types", _types);
             return;
         }
         if (_box != null) {
