@@ -82,16 +82,20 @@ public class ChoiceEditor extends PropertyEditor
     {
         Object mobj = _property.getMemberObject(_object);
         if (mobj == null) {
+            log.warning("Missing member object for choice", "property", _property);
             return new Object[0];
         }
         Class<?> mclass = mobj.getClass();
         Member member = _property.getMember();
         String mname = member.getName();
         mname = (member instanceof Method) ? mname.substring(3) : StringUtil.capitalize(mname);
+        String optionsMethodName = null;
         try {
-            return (Object[])mclass.getMethod("get" + mname + "Options").invoke(mobj);
+        	optionsMethodName = "get" + mname + "Options";
+            return (Object[])mclass.getMethod(optionsMethodName).invoke(mobj);
         } catch (NoSuchMethodException nsme) {
             // fall through
+            log.warning("Missing options method.", "methodName", optionsMethodName, "class", mclass);
         } catch (Exception e) {
             log.warning("Error retrieving options.", "class", mclass, "member", mname, e);
         }

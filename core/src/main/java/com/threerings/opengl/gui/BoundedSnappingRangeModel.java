@@ -44,7 +44,7 @@ public class BoundedSnappingRangeModel extends BoundedRangeModel
     /**
      * Configures the value of this model.  The new value will be
      * adjusted if it does not fall within the range of <code>min
-     * <= value <= max - extent<code> or if value is not a modulus
+     * &lt;= value &lt;= max - extent</code> or if value is not a modulus
      * of <code>snap</code>.
      */
     public void setValue (int value)

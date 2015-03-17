@@ -33,6 +33,7 @@ import javax.swing.JButton;
 
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.swing.BasePropertyEditor;
+import static com.threerings.editor.Log.log;
 
 /**
  * A property editor that simply returns the path to the current property.
@@ -76,6 +77,7 @@ public class GetPathEditor extends ObjectEditor
         if (_property instanceof PathProperty) {
             super.didInit();
         } else {
+        	log.warning("GetPathEditor - property not instanceof PathProperty", "property", _property, "class", _property.getClass());
             JButton getPath = new JButton(_msgs.get("m.get_path"));
             add(getPath);
             getPath.addActionListener(this);

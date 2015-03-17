@@ -72,6 +72,7 @@ import com.threerings.util.MessageBundle;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.ObjectPanel;
+import static com.threerings.editor.Log.log;
 
 /**
  * An editor for objects or lists of objects or primitives.  Uses a table.
@@ -261,7 +262,11 @@ public class TableArrayListEditor extends ArrayListEditor
         // determine the column model
         final Class<?> ctype = _property.getComponentType();
         boolean showHeader = true;
-        if (is2DArray()) {
+        if (ctype == null) {
+        	log.warning("TableArrayListEditor missing component type. Is property collection or array?", "property", _property);
+        	_columns = new Column[0];
+        }
+        else if (is2DArray()) {
             _columns = new Column[0]; // actual columns will be created on update
 
         } else if (isTableCellType(ctype)) {
@@ -590,7 +595,7 @@ public class TableArrayListEditor extends ArrayListEditor
     protected boolean is2DArray ()
     {
         Class<?> ctype = _property.getComponentType();
-        return ctype.isArray() && isTableCellType(ctype.getComponentType());
+        return ctype != null && ctype.isArray() && isTableCellType(ctype.getComponentType());
     }
 
     /**

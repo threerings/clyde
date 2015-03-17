@@ -154,8 +154,12 @@ public abstract class ArrayListEditor extends PropertyEditor
     protected final void addValue ()
     {
         Class<?>[] types = _property.getComponentSubtypes();
-        Class<?> type = (types[0] == null) ? types[1] : types[0];
-        addValue(getDefaultInstance(type, _object));
+        if (types != null) {
+        	Class<?> type = (types[0] == null) ? types[1] : types[0];
+        	addValue(getDefaultInstance(type, _object));
+        } else {
+        	log.warning("ArrayListEditor - No valid Component Subtypes to add default value", "property", _property );
+        }
     }
 
     /**
@@ -241,7 +245,7 @@ public abstract class ArrayListEditor extends PropertyEditor
     }
 
     /**
-     * Get the property, as a List<Object>, such that it has been prepared for modification,
+     * Get the property, as a List&lt;Object&gt;, such that it has been prepared for modification,
      * if necessary.
      */
     protected List<Object> getListPropertyForModification (Class<?> type)

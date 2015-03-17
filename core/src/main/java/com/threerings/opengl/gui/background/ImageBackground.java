@@ -46,13 +46,13 @@ import static com.threerings.opengl.Log.log;
  *
  * <pre>
  * +----------+----------------+----------+
- * | unscaled |  <- scaled ->  | unscaled |
+ * | unscaled |  &lt;- scaled -&gt;  | unscaled |
  * +----------+----------------+----------+
  * |    ^     |       ^        |    ^     |
- * |  scaled  |  <- scaled ->  |  scaled  |
+ * |  scaled  |  &lt;- scaled -&gt;  |  scaled  |
  * |    v     |       v        |    v     |
  * +----------+----------------+----------+
- * | unscaled |  <- scaled ->  | unscaled |
+ * | unscaled |  &lt;- scaled -&gt;  | unscaled |
  * +----------+----------------+----------+
  * </pre>
  * </ul>

@@ -9,6 +9,7 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
+import static com.threerings.editor.Log.log;
 
 /**
  * An editor for the configuration references in a DerivedConfig.
@@ -18,7 +19,12 @@ public class DerivedConfigReferenceEditor extends ConfigReferenceEditor
     @Override
     protected Class<?> getArgumentType ()
     {
-        return ((DerivedConfig)_object).cclass;
+    	if (_object != null && _object instanceof DerivedConfig) {
+    		return ((DerivedConfig)_object).cclass;
+    	} else {
+    		log.warning("DerivedConfigReferenceEditor - missing or bad object type", "object", _object);
+    		return null;
+    	}
     }
 
     @Override

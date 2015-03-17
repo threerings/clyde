@@ -40,6 +40,8 @@ public abstract class LayoutManager
      * Components added to a container will result in a call to this method,
      * informing the layout manager of said constraints. The default
      * implementation does nothing.
+     * @param comp the Component that was added
+     * @param constraints that were used
      */
     public void addLayoutComponent (Component comp, Object constraints)
     {
@@ -49,6 +51,7 @@ public abstract class LayoutManager
      * Components removed to a container for which a layout manager has been
      * configured will result in a call to this method. The default
      * implementation does nothing.
+     * @param comp the Component that was removed
      */
     public void removeLayoutComponent (Component comp)
     {
@@ -57,6 +60,8 @@ public abstract class LayoutManager
     /**
      * Returns a reference to the constraints associated with the specified component, or
      * <code>null</code> for none.  The default implementation always returns null.
+     * @param comp the Component
+     * @return the Constraints
      */
     public Object getConstraints (Component comp)
     {
@@ -68,6 +73,10 @@ public abstract class LayoutManager
      * preferred sizes of its children and the layout policy implemented by
      * this manager. <em>Note:</em> it is not necessary to add the container's
      * insets to the returned preferred size.
+     * @param target the Container
+     * @param whint width hint
+     * @param hhint height hint
+     * @return the Preferred Size
      */
     public abstract Dimension computePreferredSize (
         Container target, int whint, int hhint);
@@ -77,6 +86,7 @@ public abstract class LayoutManager
      * adjusting the size and position of its children based on the size and
      * position of the target at the time of this call. <em>Note:</em> the
      * target's insets must be accounted for when laying out the children.
+     * @param target the Container
      */
     public abstract void layoutContainer (Container target);
 }

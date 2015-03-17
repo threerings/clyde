@@ -105,6 +105,9 @@ public class Introspector
      */
     public static String getMessageBundle (Class<?> clazz)
     {
+    	if (clazz == null ) {
+    		return null;
+    	}
         while (clazz.isArray()) {
             clazz = clazz.getComponentType();
         }

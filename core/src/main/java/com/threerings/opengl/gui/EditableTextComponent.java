@@ -125,7 +125,7 @@ public abstract class EditableTextComponent extends TextComponent
     /**
      * Configures the maximum length of this text field. This will replace
      * any currently set document with a LengthLimitedDocument (or no document
-     * at all if maxLength is <= 0).
+     * at all if maxLength is &lt;= 0).
      */
     public void setMaxLength (int maxLength)
     {

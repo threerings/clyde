@@ -872,7 +872,7 @@ public class BinaryImporter extends Importer
     /** Used to read class ids. */
     protected IdReader _classIdReader;
 
-    /** Class<?> data. */
+    /** Class data. */
     protected Map<ClassWrapper, ClassData> _classData = Maps.newHashMap();
 
     /** Signifies a null entry in the object map. */
