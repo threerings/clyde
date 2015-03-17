@@ -40,8 +40,9 @@ import com.samskivert.util.Logger;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.annotation.TransportHint;
-import com.threerings.presents.client.Client;
-import com.threerings.presents.client.InvocationService.InvocationListener;
+// import com.threerings.presents.client.Client; // ARMHACK
+//import com.threerings.presents.client.InvocationService.InvocationListener; // ARMHACK
+import com.threerings.presents.client.InvocationListener;
 import com.threerings.presents.net.Transport;
 
 /**
@@ -70,15 +71,16 @@ public abstract class InvocationTask extends GenTask
             return name.replace("Listener", "Marshaller");
         }
 
-        public String getActionScriptMarshaller () {
-            // handle ye olde special case
-            String name = listener.getName();
-            if (name.endsWith("InvocationService$InvocationListener")) {
-                return "InvocationMarshaller_ListenerMarshaller";
-            } else {
-                return getMarshaller().replace('.', '_');
-            }
-        }
+		// ARMHACK
+        //public String getActionScriptMarshaller () {
+        //    // handle ye olde special case
+        //    String name = listener.getName();
+        //    if (name.endsWith("InvocationService$InvocationListener")) {
+        //        return "InvocationMarshaller_ListenerMarshaller";
+        //    } else {
+        //        return getMarshaller().replace('.', '_');
+        //    }
+        //}
 
         public int getIndex () {
             return _index+1;
@@ -399,7 +401,9 @@ public abstract class InvocationTask extends GenTask
     {
         // resolve the InvocationListener and Client classes using our classloader
         _ilistener = loadClass(InvocationListener.class.getName());
-        _iclient = loadClass(Client.class.getName());
+
+        // ARMHACK
+        //_iclient = loadClass(Client.class.getName());
 
         super.execute();
     }
@@ -432,7 +436,8 @@ public abstract class InvocationTask extends GenTask
      * to loaded derived classes. */
     protected Class<?> _ilistener;
 
-    /** {@link Client} resolved with the proper classloader so that we can compare it to loaded
-     * derived classes. */
-    protected Class<?> _iclient;
+    // ARMHACK
+//    /** {@link Client} resolved with the proper classloader so that we can compare it to loaded
+//     * derived classes. */
+//    protected Class<?> _iclient;
 }
