@@ -392,7 +392,7 @@ public abstract class DependencyGatherer
     /**
      * Figure out the config type for the specified type, as best we can.
      *
-     * This will accept a type like List<ConfigReference<ActorConfig>> and return ActorConfig.
+     * This will accept a type like List&lt;ConfigReference&lt;ActorConfig&gt;&gt; and return ActorConfig.
      */
     protected Class<? extends ManagedConfig> getConfigReferenceType (Type type)
     {
