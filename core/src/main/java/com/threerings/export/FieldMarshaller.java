@@ -171,12 +171,10 @@ public abstract class FieldMarshaller
                 public void readField (
                     Field field, String name, Object target, Object prototype, Importer importer)
                         throws IOException, IllegalAccessException {
-                    @SuppressWarnings("unchecked") Class<Object> clazz =
-                        (Class<Object>)field.getType();
                     // only set the field if it's present; otherwise, we would have to clone the
                     // value of the prototype field
                     Object defvalue = field.get(prototype);
-                    Object value = importer.read(name, defvalue, clazz);
+                    Object value = importer.read(name, defvalue, field);
                     if (value != defvalue) {
                         field.set(target, value);
                     }

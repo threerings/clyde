@@ -28,6 +28,8 @@ package com.threerings.export;
 import java.io.Closeable;
 import java.io.IOException;
 
+import java.lang.reflect.Field;
+
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
@@ -336,6 +338,17 @@ public abstract class Importer
      */
     public abstract void close ()
         throws IOException;
+
+    /**
+     * Internal method for reading from a FieldMarshaller.
+     */
+    protected Object read (String name, Object defvalue, Field field)
+        throws IOException
+    {
+        @SuppressWarnings("unchecked")
+        Class<Object> clazz = (Class<Object>)field.getType();
+        return read(name, defvalue, clazz);
+    }
 
     /**
      * Reads an object's fields.
