@@ -33,6 +33,11 @@
       <artifactId>jmustache</artifactId>
       <version>1.4</version>
     </dependency>
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>1.8</version>
+    </dependency>
 
     <!-- normally we don't need guava explicitly but ooo-util is bringing in an old-ass version -->
     <dependency>

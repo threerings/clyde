@@ -45,6 +45,8 @@ import com.threerings.editor.swing.PropertyEditor;
 import com.threerings.export.ObjectMarshaller;
 import com.threerings.util.DeepUtil;
 
+import static com.threerings.editor.Log.log;
+
 /**
  * Superclass of the array/list editors.
  */

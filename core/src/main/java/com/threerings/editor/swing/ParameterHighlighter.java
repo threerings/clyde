@@ -147,7 +147,7 @@ public class ParameterHighlighter
             }
             if (name == null) {
             	log.warning("ParameterHighligher missing name.  No EditorPanel in hiearchy?", "paths", paths );
-            	name = new ObjectEditor();  // hack - use empty blank one.
+            	//name = new ObjectEditor();  // hack - use empty blank one.
             }
             
             _pathsEditor = paths;
