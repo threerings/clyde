@@ -57,9 +57,7 @@ import com.threerings.config.util.FieldCache;
 
 import com.threerings.editor.util.EditorContext;
 
-import com.threerings.export.util.ExportFileUtil;
-
-import com.threerings.tudey.data.TudeySceneModel;
+//import com.threerings.tudey.data.TudeySceneModel; // ARMHACK
 
 /**
  * Utilitiies for searching for and in ConfigReferences.
@@ -442,6 +440,7 @@ public class ConfigSearcher extends JFrame
     /**
      * An abstract class for creating a Domain that searches scene files.
      */
+    /*        ARMHACK
     public abstract static class TudeySceneDomain extends FileDomain
     {
         public TudeySceneDomain (EditorContext ctx, String label, File dir, String... subdirs)
@@ -468,6 +467,7 @@ public class ConfigSearcher extends JFrame
             return (attrs == null) ? ImmutableMultiset.<T>of() : attrs;
         }
     }
+    */
 
     /**
      * Create a ConfigSearcher ui.

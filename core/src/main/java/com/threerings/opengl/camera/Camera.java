@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.camera;
 
-import org.lwjgl.opengl.GL11;
+//import org.lwjgl.opengl.GL11;  // ARMHACK
 
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -36,7 +36,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
-import com.threerings.opengl.renderer.Renderer;
+//import com.threerings.opengl.renderer.Renderer; // ARMHACK
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -236,15 +236,16 @@ public class Camera
         _localVolume.transform(_worldTransform, _worldVolume);
     }
 
-    /**
-     * Applies the camera state to the specified renderer.
-     */
-    public void apply (Renderer renderer)
-    {
-        renderer.setViewport(_viewport);
-        renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _nearFarNormal, _ortho);
-        renderer.setFrontFace(_mirrored ? GL11.GL_CW : GL11.GL_CCW);
-    }
+	// ARMHACK
+    ///**
+    // * Applies the camera state to the specified renderer.
+    // */
+    //public void apply (Renderer renderer)
+    //{
+    //    renderer.setViewport(_viewport);
+    //    renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _nearFarNormal, _ortho);
+    //    renderer.setFrontFace(_mirrored ? GL11.GL_CW : GL11.GL_CCW);
+    //}
 
     /**
      * Transforms and projects a box in world space into window space.

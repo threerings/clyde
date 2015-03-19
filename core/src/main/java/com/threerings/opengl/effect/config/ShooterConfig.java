@@ -25,19 +25,14 @@
 
 package com.threerings.opengl.effect.config;
 
-import com.samskivert.util.Randoms;
-
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
-import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.effect.BaseParticleSystem.Layer;
-import com.threerings.opengl.effect.Particle;
-import com.threerings.opengl.effect.Shooter;
+//import com.threerings.opengl.effect.BaseParticleSystem.Layer; // ARMHACK
 
 /**
  * Determines the particles' initial velocities.
@@ -63,27 +58,28 @@ public abstract class ShooterConfig extends DeepObject
         @Editable(min=0.0, max=180.0, scale=Math.PI/180.0)
         public float maximumAngle = FloatMath.PI / 4f;
 
-        @Override
-        public Shooter createShooter (Layer layer)
-        {
-            final Matrix4f matrix = new Matrix4f();
-            matrix.setToRotation(Vector3f.UNIT_Z, direction);
-            return new Shooter() {
-                public Vector3f shoot (Particle particle) {
-                    // pick an angle off the vertical based on the surface area distribution
-                    float cosa = FloatMath.random(
-                        FloatMath.cos(minimumAngle), FloatMath.cos(maximumAngle));
-                    float sina = FloatMath.sqrt(1f - cosa*cosa);
-                    float theta = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
+		// ARMHACK
+        //@Override
+        //public Shooter createShooter (Layer layer)
+        //{
+        //    final Matrix4f matrix = new Matrix4f();
+        //    matrix.setToRotation(Vector3f.UNIT_Z, direction);
+        //    return new Shooter() {
+        //        public Vector3f shoot (Particle particle) {
+        //            // pick an angle off the vertical based on the surface area distribution
+        //            float cosa = FloatMath.random(
+        //                FloatMath.cos(minimumAngle), FloatMath.cos(maximumAngle));
+        //            float sina = FloatMath.sqrt(1f - cosa*cosa);
+        //            float theta = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
 
-                    // set, transform
-                    return matrix.transformVectorLocal(particle.getVelocity().set(
-                        FloatMath.cos(theta) * sina,
-                        FloatMath.sin(theta) * sina,
-                        cosa));
-                }
-            };
-        }
+        //            // set, transform
+        //            return matrix.transformVectorLocal(particle.getVelocity().set(
+        //                FloatMath.cos(theta) * sina,
+        //                FloatMath.sin(theta) * sina,
+        //                cosa));
+        //        }
+        //    };
+        //}
     }
 
     /**
@@ -95,34 +91,36 @@ public abstract class ShooterConfig extends DeepObject
         @Editable(step=0.01)
         public float upwardBias;
 
-        @Override
-        public Shooter createShooter (final Layer layer)
-        {
-            return new Shooter() {
-                public Vector3f shoot (Particle particle) {
-                    Vector3f velocity = particle.getVelocity().set(Vector3f.ZERO);
-                    layer.pointToLayer(velocity, true);
-                    particle.getPosition().subtract(velocity, velocity);
-                    float length = velocity.length();
-                    if (length > 0.001f) { // use the vector from origin to particle
-                        velocity.multLocal(1f / length);
-                    } else { // pick a random direction
-                        float cosa = FloatMath.random(-1f, +1f);
-                        float sina = FloatMath.sqrt(1f - cosa*cosa);
-                        float theta = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
-                        velocity.set(
-                            FloatMath.cos(theta) * sina,
-                            FloatMath.sin(theta) * sina,
-                            cosa);
-                    }
-                    return velocity.addLocal(0f, 0f, upwardBias).normalizeLocal();
-                }
-            };
-        }
+		// ARMHACK
+        //@Override
+        //public Shooter createShooter (final Layer layer)
+        //{
+        //    return new Shooter() {
+        //        public Vector3f shoot (Particle particle) {
+        //            Vector3f velocity = particle.getVelocity().set(Vector3f.ZERO);
+        //            layer.pointToLayer(velocity, true);
+        //            particle.getPosition().subtract(velocity, velocity);
+        //            float length = velocity.length();
+        //            if (length > 0.001f) { // use the vector from origin to particle
+        //                velocity.multLocal(1f / length);
+        //            } else { // pick a random direction
+        //                float cosa = FloatMath.random(-1f, +1f);
+        //                float sina = FloatMath.sqrt(1f - cosa*cosa);
+        //                float theta = Randoms.threadLocal().getFloat(FloatMath.TWO_PI);
+        //                velocity.set(
+        //                    FloatMath.cos(theta) * sina,
+        //                    FloatMath.sin(theta) * sina,
+        //                    cosa);
+        //            }
+        //            return velocity.addLocal(0f, 0f, upwardBias).normalizeLocal();
+        //        }
+        //    };
+        //}
     }
 
-    /**
-     * Creates the shooter corresponding to this config.
-     */
-    public abstract Shooter createShooter (Layer layer);
+	// ARMHACK
+    ///**
+    // * Creates the shooter corresponding to this config.
+    // */
+    //public abstract Shooter createShooter (Layer layer);
 }

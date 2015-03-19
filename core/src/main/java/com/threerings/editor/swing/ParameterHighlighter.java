@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.swing.util.SwingUtil;
 
-import com.threerings.editor.swing.editors.ObjectEditor;
 import com.threerings.editor.swing.editors.PathTableArrayListEditor;
 
 import static com.threerings.editor.Log.log;
@@ -148,7 +147,7 @@ public class ParameterHighlighter
             }
             if (name == null) {
             	log.warning("ParameterHighligher missing name.  No EditorPanel in hiearchy?", "paths", paths );
-            	name = new ObjectEditor();  // hack - use empty blank one.
+            	//name = new ObjectEditor();  // hack - use empty blank one.
             }
             
             _pathsEditor = paths;
