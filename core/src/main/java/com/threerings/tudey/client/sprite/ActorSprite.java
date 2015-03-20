@@ -748,6 +748,7 @@ public class ActorSprite extends Sprite
             /**
              * Creates a new activity.
              */
+            @SafeVarargs
             public Activity (ConfigReference<AnimationConfig>... anims)
             {
                 List<Animation> list = Lists.newArrayListWithCapacity(anims.length);
