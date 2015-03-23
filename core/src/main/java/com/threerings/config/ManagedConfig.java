@@ -32,7 +32,6 @@ import java.util.Set;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
 import com.google.common.collect.SetMultimap;
 
 import com.samskivert.util.ObserverList;
@@ -344,7 +343,10 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Collects all of the references within this config to configs that, when updated, should
      * trigger a call to {@link #fireConfigUpdated}.
+     *
+     * @deprecated this is no longer necessary, it is handled reflectively.
      */
+    @Deprecated
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         // nothing by default
@@ -418,36 +420,6 @@ public abstract class ManagedConfig extends DeepObject
         for (String path : _updateResources) {
             rsrcmgr.addModificationObserver(path, this);
         }
-
-        // TEMP: do some debugging
-        // add the config dependencies
-        ConfigReferenceSet.Default refSet = new ConfigReferenceSet.Default();
-        getUpdateReferences(refSet);
-        showDiffs(refs, refSet.getGathered());
-        // END TEMP
-    }
-
-    // TEMP: TODO: REMOVE
-    protected <K, V> void showDiffs (SetMultimap<K, V> newSet, SetMultimap<K, V> oldSet)
-    {
-//        if (newSet.isEmpty() && oldSet.isEmpty()) {
-//            return;
-//        }
-        if (newSet.size() >= oldSet.size()) {
-            return;
-        }
-        log.info("Update Dependencies for " + getName(),
-                "new", newSet.size(), "old", oldSet.size());
-//        if (oldSet.size() > newSet.size()) {
-//            log.info("**********************");
-//        }
-        for (K key : Sets.union(newSet.keySet(), oldSet.keySet())) {
-            Set<V> diffs = Sets.symmetricDifference(newSet.get(key), oldSet.get(key));
-            if (!diffs.isEmpty()) {
-                log.info("Found difference: " + key, "diffs", diffs);
-            }
-        }
-        log.info("---");
     }
 
     /**

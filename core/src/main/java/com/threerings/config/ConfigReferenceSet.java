@@ -48,6 +48,7 @@ import com.google.common.collect.SetMultimap;
  *        is done by the subclass in ConfigFlattener.</li>
  * </ul>
  */
+@Deprecated
 public abstract class ConfigReferenceSet
 {
     /**
