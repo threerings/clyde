@@ -49,9 +49,7 @@ public class WallConfig extends PaintableConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -127,14 +125,6 @@ public class WallConfig extends PaintableConfig
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (Case caze : cases) {
-                caze.getUpdateReferences(refs);
-            }
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
@@ -157,12 +147,6 @@ public class WallConfig extends PaintableConfig
         /** The wall reference. */
         @Editable(nullable=true)
         public ConfigReference<WallConfig> wall;
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(WallConfig.class, wall);
-        }
 
         @Override
         public Original getOriginal (ConfigManager cfgmgr)
@@ -190,11 +174,5 @@ public class WallConfig extends PaintableConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

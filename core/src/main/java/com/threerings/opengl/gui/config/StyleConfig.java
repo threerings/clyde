@@ -130,10 +130,10 @@ public class StyleConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
-        public abstract void getUpdateReferences (ConfigReferenceSet refs);
+        @Deprecated
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+        }
 
         /**
          * Adds the implementation's update resources to the provided set.
@@ -245,13 +245,6 @@ public class StyleConfig extends ParameterizedConfig
         public BackgroundConfig selectionBackground;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(CursorConfig.class, cursor);
-            refs.add(FontConfig.class, font);
-        }
-
-        @Override
         public void getUpdateResources (HashSet<String> paths)
         {
             if (feedbackSound != null) {
@@ -302,12 +295,6 @@ public class StyleConfig extends ParameterizedConfig
         public ConfigReference<StyleConfig> style;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(StyleConfig.class, style);
-        }
-
-        @Override
         public Original getOriginal (GlContext ctx)
         {
             StyleConfig config = ctx.getConfigManager().getConfig(StyleConfig.class, style);
@@ -333,12 +320,6 @@ public class StyleConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     @Override

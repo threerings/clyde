@@ -53,10 +53,11 @@ public class RenderEffectConfig extends BoundConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
-        public abstract void getUpdateReferences (ConfigReferenceSet refs);
+        @Deprecated
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            // nothing. Deprecated.
+        }
 
         /**
          * Gets the priority of the effect.
@@ -89,14 +90,6 @@ public class RenderEffectConfig extends BoundConfig
         /** The techniques available to render the effect. */
         @Editable
         public Technique[] techniques = new Technique[0];
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (Technique technique : techniques) {
-                technique.getUpdateReferences(refs);
-            }
-        }
 
         @Override
         public int getPriority (GlContext ctx)
@@ -178,12 +171,6 @@ public class RenderEffectConfig extends BoundConfig
         public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(RenderEffectConfig.class, renderEffect);
-        }
-
-        @Override
         public int getPriority (GlContext ctx)
         {
             RenderEffectConfig config = ctx.getConfigManager().getConfig(
@@ -219,15 +206,9 @@ public class RenderEffectConfig extends BoundConfig
         @Editable
         public TargetConfig.Output output = new TargetConfig.Output();
 
-        /**
-         * Adds the technique's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
-            for (TargetConfig target : targets) {
-                target.getUpdateReferences(refs);
-            }
-            output.getUpdateReferences(refs);
         }
 
         /**
@@ -307,11 +288,5 @@ public class RenderEffectConfig extends BoundConfig
         // invalidate the implementation
         implementation.invalidate();
         super.wasUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

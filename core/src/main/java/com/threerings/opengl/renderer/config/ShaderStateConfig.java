@@ -95,13 +95,6 @@ public abstract class ShaderStateConfig extends DeepObject
         public boolean vertexProgramTwoSide;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ShaderConfig.class, vertex);
-            refs.add(ShaderConfig.class, fragment);
-        }
-
-        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return (vertex == null || GLContext.getCapabilities().GL_ARB_vertex_shader) &&
@@ -177,9 +170,7 @@ public abstract class ShaderStateConfig extends DeepObject
         }
     }
 
-    /**
-     * Adds the state's update references to the provided set.
-     */
+    @Deprecated
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         // nothing by default

@@ -59,9 +59,7 @@ public class SounderConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -508,15 +506,6 @@ public class SounderConfig extends ParameterizedConfig
         public ConfigReference<SounderConfig> defaultSounder;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (Case caze : cases) {
-                refs.add(SounderConfig.class, caze.sounder);
-            }
-            refs.add(SounderConfig.class, defaultSounder);
-        }
-
-        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -562,14 +551,6 @@ public class SounderConfig extends ParameterizedConfig
         public ComponentSounder[] sounders = new ComponentSounder[0];
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (ComponentSounder comp : sounders) {
-                refs.add(SounderConfig.class, comp.sounder);
-            }
-        }
-
-        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -597,14 +578,6 @@ public class SounderConfig extends ParameterizedConfig
         /** The component sounders. */
         @Editable
         public ComponentSounder[] sounders = new ComponentSounder[0];
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (ComponentSounder comp : sounders) {
-                refs.add(SounderConfig.class, comp.sounder);
-            }
-        }
 
         @Override
         public Sounder.Implementation getSounderImplementation (
@@ -647,14 +620,6 @@ public class SounderConfig extends ParameterizedConfig
         public TimedSounder[] sounders = new TimedSounder[0];
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (TimedSounder comp : sounders) {
-                refs.add(SounderConfig.class, comp.sounder);
-            }
-        }
-
-        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -693,14 +658,6 @@ public class SounderConfig extends ParameterizedConfig
         /** The component sounders. */
         @Editable
         public WeightedSounder[] sounders = new WeightedSounder[0];
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (WeightedSounder comp : sounders) {
-                refs.add(SounderConfig.class, comp.sounder);
-            }
-        }
 
         @Override
         public Sounder.Implementation getSounderImplementation (
@@ -743,12 +700,6 @@ public class SounderConfig extends ParameterizedConfig
         public ConfigReference<SounderConfig> sounder;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(SounderConfig.class, sounder);
-        }
-
-        @Override
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
@@ -781,12 +732,6 @@ public class SounderConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     @Override

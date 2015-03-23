@@ -55,10 +55,10 @@ public class MaterialConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable, Preloadable.LoadableConfig
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
-        public abstract void getUpdateReferences (ConfigReferenceSet refs);
+        @Deprecated
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+        }
 
         /**
          * Returns a technique to use to render this material.
@@ -88,14 +88,6 @@ public class MaterialConfig extends ParameterizedConfig
         {
             for (TechniqueConfig technique : techniques) {
                 technique.preload(ctx);
-            }
-        }
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (TechniqueConfig technique : techniques) {
-                technique.getUpdateReferences(refs);
             }
         }
 
@@ -206,12 +198,6 @@ public class MaterialConfig extends ParameterizedConfig
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(MaterialConfig.class, material);
-        }
-
-        @Override
         public TechniqueConfig getTechnique (GlContext ctx, String scheme)
         {
             if (material == null) {
@@ -249,11 +235,5 @@ public class MaterialConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

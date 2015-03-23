@@ -65,9 +65,7 @@ public class PlaceableConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -356,12 +354,6 @@ public class PlaceableConfig extends ParameterizedConfig
         public ConfigReference<PlaceableConfig> placeable;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(PlaceableConfig.class, placeable);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
@@ -433,11 +425,5 @@ public class PlaceableConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

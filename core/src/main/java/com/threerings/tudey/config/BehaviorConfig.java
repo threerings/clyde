@@ -52,9 +52,7 @@ public class BehaviorConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -102,12 +100,6 @@ public class BehaviorConfig extends ParameterizedConfig
         /** The actor reference. */
         @Editable(nullable=true)
         public ConfigReference<BehaviorConfig> behavior;
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(BehaviorConfig.class, behavior);
-        }
 
         @Override
         public Original getOriginal (ConfigManager cfgmgr)
@@ -350,11 +342,5 @@ public class BehaviorConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

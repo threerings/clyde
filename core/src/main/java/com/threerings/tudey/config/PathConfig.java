@@ -59,9 +59,7 @@ public class PathConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -214,12 +212,6 @@ public class PathConfig extends ParameterizedConfig
         public ConfigReference<PathConfig> path;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(PathConfig.class, path);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
@@ -289,11 +281,5 @@ public class PathConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

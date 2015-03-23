@@ -83,9 +83,7 @@ public class ShaderConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -347,12 +345,6 @@ public class ShaderConfig extends ParameterizedConfig
         /** The shader reference. */
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> shader;
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ShaderConfig.class, shader);
-        }
 
         @Override
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
@@ -1027,12 +1019,6 @@ public class ShaderConfig extends ParameterizedConfig
     public UniformConfig[] getUniforms (GlContext ctx)
     {
         return implementation.getUniforms(ctx);
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     @Override

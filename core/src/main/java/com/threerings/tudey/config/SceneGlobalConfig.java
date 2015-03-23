@@ -59,9 +59,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -216,12 +214,6 @@ public class SceneGlobalConfig extends ParameterizedConfig
         public ConfigReference<SceneGlobalConfig> sceneGlobal;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(SceneGlobalConfig.class, sceneGlobal);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
@@ -270,11 +262,5 @@ public class SceneGlobalConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

@@ -64,14 +64,9 @@ public abstract class PaintableConfig extends ParameterizedConfig
         @Editable(weight=1)
         public Tile[] tiles = new Tile[0];
 
-        /**
-         * Adds the cases's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
-            for (Tile tile : tiles) {
-                refs.add(TileConfig.class, tile.tile);
-            }
         }
 
         /**

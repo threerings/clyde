@@ -88,13 +88,6 @@ public abstract class TargetConfig extends DeepObject
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(TextureConfig.class, color);
-            refs.add(TextureConfig.class, depth);
-        }
-
-        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
@@ -131,9 +124,7 @@ public abstract class TargetConfig extends DeepObject
     @Editable
     public StepConfig[] steps = new StepConfig[0];
 
-    /**
-     * Adds the target's update references to the provided set.
-     */
+    @Deprecated
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         // nothing by default

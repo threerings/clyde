@@ -128,9 +128,7 @@ public class ModelConfig extends ParameterizedConfig
             // nothing by default
         }
 
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -445,12 +443,6 @@ public class ModelConfig extends ParameterizedConfig
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ModelConfig.class, model);
-        }
-
-        @Override
         public void preload (GlContext ctx)
         {
             new Preloadable.Model(model).preload(ctx);
@@ -495,14 +487,6 @@ public class ModelConfig extends ParameterizedConfig
         /** The models and their associated render schemes. */
         @Editable
         public SchemedModel[] models = new SchemedModel[0];
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (SchemedModel smodel : models) {
-                refs.add(ModelConfig.class, smodel.model);
-            }
-        }
 
         @Override
         public void preload (GlContext ctx)
@@ -776,12 +760,6 @@ public class ModelConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     /**

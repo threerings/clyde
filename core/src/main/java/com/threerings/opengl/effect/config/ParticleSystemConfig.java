@@ -148,9 +148,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
     @EditorTypes({ Points.class, Lines.class, Quads.class, Meshes.class })
     public static abstract class ParticleGeometryConfig extends GeometryConfig
     {
-        /**
-         * Adds the geometry's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -304,12 +302,6 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         public ConfigReference<ModelConfig> model;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ModelConfig.class, model);
-        }
-
-        @Override
         public float getRadius (GlContext ctx)
         {
             GeometryConfig geom = getParticleGeometry(ctx);
@@ -356,14 +348,6 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
     public BaseParticleSystemConfig.Layer[] getLayers ()
     {
         return layers;
-    }
-
-    @Override
-    public void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        for (Layer layer : layers) {
-            layer.geometry.getUpdateReferences(refs);
-        }
     }
 
     @Override

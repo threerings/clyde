@@ -57,14 +57,9 @@ public class TextureStateConfig extends DeepObject
     @Editable
     public TextureUnitConfig[] units = new TextureUnitConfig[0];
 
-    /**
-     * Adds the state's update references to the provided set.
-     */
+    @Deprecated
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
-        for (TextureUnitConfig unit : units) {
-            refs.add(TextureConfig.class, unit.texture);
-        }
     }
 
     /**

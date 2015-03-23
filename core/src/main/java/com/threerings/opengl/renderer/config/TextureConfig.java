@@ -353,9 +353,7 @@ public class TextureConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -1212,12 +1210,6 @@ public class TextureConfig extends ParameterizedConfig
         public ConfigReference<TextureConfig> texture;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(TextureConfig.class, texture);
-        }
-
-        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             TextureConfig config = getConfig(ctx);
@@ -1571,14 +1563,6 @@ public class TextureConfig extends ParameterizedConfig
         public Frame[] frames = new Frame[0];
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (Frame frame : frames) {
-                frame.getUpdateReferences(refs);
-            }
-        }
-
-        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (Frame frame : frames) {
@@ -1717,12 +1701,6 @@ public class TextureConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     @Override

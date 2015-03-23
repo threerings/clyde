@@ -225,10 +225,10 @@ public class TechniqueConfig extends DeepObject
             // Do nothing
         }
 
-        /**
-         * Adds the enqueuer's update references to the provided set.
-         */
-        public abstract void getUpdateReferences (ConfigReferenceSet refs);
+        @Deprecated
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+        }
 
         /**
          * Determines whether this enqueuer is supported by the hardware.
@@ -287,14 +287,6 @@ public class TechniqueConfig extends DeepObject
         {
             for (PassConfig pass : passes) {
                 pass.preload(ctx);
-            }
-        }
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (PassConfig pass : passes) {
-                pass.getUpdateReferences(refs);
             }
         }
 
@@ -482,14 +474,6 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            for (Enqueuer enqueuer : enqueuers) {
-                enqueuer.getUpdateReferences(refs);
-            }
-        }
-
-        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -603,12 +587,6 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            _wrapped.getUpdateReferences(refs);
-        }
-
-        @Override
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return _wrapped.isSupported(ctx, fallback);
@@ -692,12 +670,9 @@ public class TechniqueConfig extends DeepObject
         enqueuer.preload(ctx);
     }
 
-    /**
-     * Adds the technique's update references to the provided set.
-     */
+    @Deprecated
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
-        enqueuer.getUpdateReferences(refs);
     }
 
     /**

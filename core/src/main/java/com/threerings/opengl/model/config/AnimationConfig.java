@@ -74,9 +74,7 @@ public class AnimationConfig extends ParameterizedConfig
             // nothing by default
         }
 
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -410,12 +408,6 @@ public class AnimationConfig extends ParameterizedConfig
         public ConfigReference<AnimationConfig> animation;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(AnimationConfig.class, animation);
-        }
-
-        @Override
         public Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl)
         {
@@ -554,12 +546,6 @@ public class AnimationConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     /** Parses animation exports. */

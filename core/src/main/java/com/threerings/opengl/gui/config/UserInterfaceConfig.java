@@ -59,9 +59,7 @@ public class UserInterfaceConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -192,12 +190,6 @@ public class UserInterfaceConfig extends ParameterizedConfig
         public ConfigReference<UserInterfaceConfig> userInterface;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(UserInterfaceConfig.class, userInterface);
-        }
-
-        @Override
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             UserInterfaceConfig config = cfgmgr.getConfig(
@@ -278,12 +270,6 @@ public class UserInterfaceConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 
     /** The model's local config library. */

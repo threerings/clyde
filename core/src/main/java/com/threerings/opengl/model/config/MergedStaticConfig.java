@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 import com.threerings.math.Box;
@@ -91,14 +90,6 @@ public class MergedStaticConfig extends ModelConfig.Implementation
     {
         for (ComponentModel model : models) {
             new Preloadable.Model(model.model).preload(ctx);
-        }
-    }
-
-    @Override
-    public void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        for (ComponentModel cmodel : models) {
-            refs.add(ModelConfig.class, cmodel.model);
         }
     }
 

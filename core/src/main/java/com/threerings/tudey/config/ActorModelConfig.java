@@ -27,7 +27,6 @@ package com.threerings.tudey.config;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 
 import com.threerings.opengl.util.GlContext;
@@ -53,12 +52,6 @@ public abstract class ActorModelConfig extends ModelConfig
         public void preload (GlContext ctx)
         {
             new Preloadable.Config(ActorConfig.class, actor).preload(ctx);
-        }
-
-        @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ActorConfig.class, actor);
         }
 
         @Override

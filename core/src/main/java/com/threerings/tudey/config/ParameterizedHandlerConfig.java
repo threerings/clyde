@@ -49,9 +49,7 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -117,12 +115,6 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
         public ConfigReference<ParameterizedHandlerConfig> ref;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ParameterizedHandlerConfig.class, ref);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             ParameterizedHandlerConfig config =
@@ -150,11 +142,4 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
         implementation.invalidate();
         super.fireConfigUpdated();
     }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
-    }
-
 }

@@ -187,18 +187,6 @@ public class DerivedConfig extends ParameterizedConfig
 //        return newParam;
     }
 
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        super.getUpdateReferences(refs);
-
-        @SuppressWarnings("unchecked")
-        ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)base;
-        @SuppressWarnings("unchecked")
-        Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
-        refs.add(clazz, ref);
-    }
-
     /** A hard reference to the instance of the config from which we create our derivation. */
     @DeepOmit
     protected transient ManagedConfig _source;

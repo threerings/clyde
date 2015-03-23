@@ -149,13 +149,9 @@ public class PassConfig extends DeepObject
         }
     }
 
-    /**
-     * Adds the technique's update references to the provided set.
-     */
+    @Deprecated
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
-        shaderState.getUpdateReferences(refs);
-        textureState.getUpdateReferences(refs);
     }
 
     /**

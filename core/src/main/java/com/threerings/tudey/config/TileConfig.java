@@ -66,9 +66,7 @@ public class TileConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -263,12 +261,6 @@ public class TileConfig extends ParameterizedConfig
         }
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(ModelConfig.class, model);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
@@ -354,12 +346,6 @@ public class TileConfig extends ParameterizedConfig
         public ConfigReference<TileConfig> tile;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(TileConfig.class, tile);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             TileConfig config = cfgmgr.getConfig(TileConfig.class, tile);
@@ -429,11 +415,5 @@ public class TileConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }

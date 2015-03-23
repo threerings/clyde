@@ -56,9 +56,7 @@ public class EffectConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Adds the implementation's update references to the provided set.
-         */
+        @Deprecated
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
@@ -175,12 +173,6 @@ public class EffectConfig extends ParameterizedConfig
         public ConfigReference<EffectConfig> effect;
 
         @Override
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(EffectConfig.class, effect);
-        }
-
-        @Override
         public Original getOriginal (ConfigManager cfgmgr)
         {
             EffectConfig config = cfgmgr.getConfig(EffectConfig.class, effect);
@@ -228,11 +220,5 @@ public class EffectConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.fireConfigUpdated();
-    }
-
-    @Override
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        implementation.getUpdateReferences(refs);
     }
 }
