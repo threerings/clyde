@@ -123,6 +123,7 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
                     }
                     @Override protected void setAtIndex (int idx, Object value) {
                         getList().set(idx, value);
+                        fireStateChanged();
                     }
                     protected List<Object> getList () {
                         @SuppressWarnings("unchecked")
@@ -138,6 +139,7 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
                     }
                     @Override protected void setAtIndex (int idx, Object value) {
                         getArray()[idx] = value;
+                        fireStateChanged();
                     }
                     protected Object[] getArray () {
                         return (Object[])_property.get(_object);
