@@ -773,42 +773,6 @@ public class BinaryImporter extends Importer
     }
 
     /**
-     * Compatability with classic export id style.
-     */
-    protected class ClassicIdReader
-        implements IdReader
-    {
-        /** The BinaryExporter version number that we read. */
-        public static final int VERSION = 0x1000;
-
-        @Override
-        public int read ()
-            throws IOException
-        {
-            int id;
-            if (_highest < 255) {
-                id = _in.readUnsignedByte();
-            } else if (_highest < 65535) {
-                id = _in.readUnsignedShort();
-            } else {
-                id = _in.readInt();
-            }
-            _highest = Math.max(_highest, id);
-            return id;
-        }
-
-        @Override
-        public int readLength ()
-            throws IOException
-        {
-            return _in.readInt();
-        }
-
-        /** The highest value written so far. */
-        protected int _highest;
-    }
-
-    /**
      * Ids and lengths are encoded as varints.
      */
     protected class VarIntReader
@@ -843,6 +807,42 @@ public class BinaryImporter extends Importer
         {
             return _in.readInt(); // old way
         }
+    }
+
+    /**
+     * Compatability with classic export id style.
+     */
+    protected class ClassicIdReader
+        implements IdReader
+    {
+        /** The BinaryExporter version number that we read. */
+        public static final int VERSION = 0x1000;
+
+        @Override
+        public int read ()
+            throws IOException
+        {
+            int id;
+            if (_highest < 255) {
+                id = _in.readUnsignedByte();
+            } else if (_highest < 65535) {
+                id = _in.readUnsignedShort();
+            } else {
+                id = _in.readInt();
+            }
+            _highest = Math.max(_highest, id);
+            return id;
+        }
+
+        @Override
+        public int readLength ()
+            throws IOException
+        {
+            return _in.readInt();
+        }
+
+        /** The highest value written so far. */
+        protected int _highest;
     }
 
     /** The underlying input stream. */
