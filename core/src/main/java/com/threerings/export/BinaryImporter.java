@@ -257,14 +257,24 @@ public class BinaryImporter extends Importer
     public <T> T read (String name, T defvalue, Class<T> clazz)
         throws IOException
     {
-        try {
-            T value = clazz.cast(_fields.get(name));
-            return (value == null) ? defvalue : value;
-        } catch (ClassCastException e) {
-            log.warning("Can't cast to class.", "class", clazz.getName(),
-                "name", name, "value", _fields.get(name), e);
-            return defvalue;
+        Object value = _fields.get(name);
+        if (value == null) {
+            if (_fields.containsKey(name)) {
+                return null; // it's a legitimate null
+            }
+            // otherwise it wasn't in the map and we'll return defvalue
+
+        } else if (clazz.isInstance(value)) {
+            @SuppressWarnings("unchecked") // we actually just checked it!
+            T tvalue = (T)value;
+            return tvalue;
+
+        } else {
+            log.warning("Read value is not the correct type.",
+                    "name", name, "expectedType", expectedType,
+                    "actualType", value.getClass().getName());
         }
+        return defvalue;
     }
 
     @Override
