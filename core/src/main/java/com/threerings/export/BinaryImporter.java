@@ -271,7 +271,7 @@ public class BinaryImporter extends Importer
 
         } else {
             log.warning("Read value is not the correct type.",
-                    "name", name, "expectedType", expectedType,
+                    "name", name, "expectedType", clazz.getName(),
                     "actualType", value.getClass().getName());
         }
         return defvalue;
