@@ -51,7 +51,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
 import com.samskivert.util.HashIntMap;
-import com.samskivert.util.Tuple;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -716,11 +715,11 @@ public class BinaryImporter extends Importer
         /**
          * Reads the field values in the supplied map.
          */
-        public HashMap<String, Object> readFields ()
+        public Map<String, Object> readFields ()
             throws IOException
         {
             int size = _fieldIdReader.readLength();
-            HashMap<String, Object> fields = new HashMap<String, Object>(size);
+            Map<String, Object> fields = new HashMap<String, Object>(size);
             for (int ii = 0; ii < size; ii++) {
                 readField(fields);
             }
@@ -730,26 +729,45 @@ public class BinaryImporter extends Importer
         /**
          * Reads in a single field value.
          */
-        protected void readField (HashMap<String, Object> fields)
+        protected void readField (Map<String, Object> fields)
             throws IOException
         {
             int fieldId = _fieldIdReader.read();
-            Tuple<String, ClassWrapper> fieldData = _fieldData.get(fieldId);
+            FieldData fieldData = _fieldData.get(fieldId);
             if (fieldData == null) {
                 String name = (String)read(_stringClass);
                 ClassWrapper clazz = readClass();
-                _fieldData.put(fieldId, fieldData = new Tuple<String, ClassWrapper>(
-                    name, clazz));
+                _fieldData.put(fieldId, fieldData = new FieldData(name, clazz));
             }
-            fields.put(fieldData.left, read(fieldData.right));
+            fields.put(fieldData.name, read(fieldData.clazz));
         }
 
         /** Maps field ids to name/class pairs. */
-        protected HashIntMap<Tuple<String, ClassWrapper>> _fieldData =
-            new HashIntMap<Tuple<String, ClassWrapper>>();
+        protected HashIntMap<FieldData> _fieldData = new HashIntMap<FieldData>();
 
         /** Used to read field ids. */
         protected IdReader _fieldIdReader = _idReaderSupplier.get();
+
+        /**
+         * Holds data on incoming fields.
+         */
+        protected static class FieldData
+        {
+            /** The name of the field. */
+            public final String name;
+
+            /** The class wrapper for this field. */
+            public final ClassWrapper clazz;
+
+            /**
+             * Constructor.
+             */
+            public FieldData (String name, ClassWrapper clazz)
+            {
+                this.name = name;
+                this.clazz = clazz;
+            }
+        }
     }
 
     /**
@@ -862,7 +880,7 @@ public class BinaryImporter extends Importer
     protected IdReader _objectIdReader;
 
     /** Field values associated with the current object. */
-    protected HashMap<String, Object> _fields;
+    protected Map<String, Object> _fields;
 
     /** Maps class names to wrapper objects (for classes identified in the stream). */
     protected Map<String, ClassWrapper> _wrappersByName = Maps.newHashMap(/*_staticMappings*/);

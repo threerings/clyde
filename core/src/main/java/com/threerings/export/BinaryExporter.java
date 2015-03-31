@@ -41,12 +41,12 @@ import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-
-import com.samskivert.util.Tuple;
+import com.google.common.collect.Table;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -146,56 +146,56 @@ public class BinaryExporter extends Exporter
     public void write (String name, boolean value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Boolean.TYPE));
+        _fields.put(name, new FieldValue(value, Boolean.TYPE));
     }
 
     @Override
     public void write (String name, byte value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Byte.TYPE));
+        _fields.put(name, new FieldValue(value, Byte.TYPE));
     }
 
     @Override
     public void write (String name, char value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Character.TYPE));
+        _fields.put(name, new FieldValue(value, Character.TYPE));
     }
 
     @Override
     public void write (String name, double value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Double.TYPE));
+        _fields.put(name, new FieldValue(value, Double.TYPE));
     }
 
     @Override
     public void write (String name, float value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Float.TYPE));
+        _fields.put(name, new FieldValue(value, Float.TYPE));
     }
 
     @Override
     public void write (String name, int value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Integer.TYPE));
+        _fields.put(name, new FieldValue(value, Integer.TYPE));
     }
 
     @Override
     public void write (String name, long value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Long.TYPE));
+        _fields.put(name, new FieldValue(value, Long.TYPE));
     }
 
     @Override
     public void write (String name, short value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class<?>>(value, Short.TYPE));
+        _fields.put(name, new FieldValue(value, Short.TYPE));
     }
 
     @Override
@@ -211,7 +211,7 @@ public class BinaryExporter extends Exporter
                 tClazz = repl.clazz;
             }
         }
-        _fields.put(name, new Tuple<Object, Class<?>>(tVal, tClazz));
+        _fields.put(name, new FieldValue(tVal, tClazz));
     }
 
     @Override
@@ -361,8 +361,7 @@ public class BinaryExporter extends Exporter
         throws IOException
     {
         // populate the field map
-        HashMap<String, Tuple<Object, Class<?>>> fields =
-            new HashMap<String, Tuple<Object, Class<?>>>();
+        Map<String, FieldValue> fields = new HashMap<String, FieldValue>();
         _fields = fields;
         super.writeFields(object);
         _fields = null;
@@ -486,13 +485,13 @@ public class BinaryExporter extends Exporter
         /**
          * Writes out the field values in the supplied map.
          */
-        public void writeFields (HashMap<String, Tuple<Object, Class<?>>> fields)
+        public void writeFields (Map<String, FieldValue> fields)
             throws IOException
         {
             Streams.writeVarInt(_out, fields.size());
-            for (Map.Entry<String, Tuple<Object, Class<?>>> entry : fields.entrySet()) {
-                Tuple<Object, Class<?>> value = entry.getValue();
-                writeField(entry.getKey(), value.left, value.right);
+            for (Map.Entry<String, FieldValue> entry : fields.entrySet()) {
+                FieldValue value = entry.getValue();
+                writeField(entry.getKey(), value.value, value.clazz);
             }
         }
 
@@ -502,11 +501,10 @@ public class BinaryExporter extends Exporter
         protected void writeField (String name, Object value, Class<?> clazz)
             throws IOException
         {
-            Tuple<String, Class<?>> field = new Tuple<String, Class<?>>(name, clazz);
-            Integer fieldId = _fieldIds.get(field);
+            Integer fieldId = _fieldIds.get(name, clazz);
             if (fieldId == null) {
                 Streams.writeVarInt(_out, ++_lastFieldId);
-                _fieldIds.put(field, _lastFieldId);
+                _fieldIds.put(name, clazz, _lastFieldId);
                 writeNoReplace(name, String.class);
                 writeClass(clazz);
             } else {
@@ -516,11 +514,31 @@ public class BinaryExporter extends Exporter
         }
 
         /** Maps field name/class pairs to field ids. */
-        protected HashMap<Tuple<String, Class<?>>, Integer> _fieldIds =
-            new HashMap<Tuple<String, Class<?>>, Integer>();
+        protected Table<String, Class<?>, Integer> _fieldIds = HashBasedTable.create();
 
         /** The last field id assigned. */
         protected int _lastFieldId;
+    }
+
+    /**
+     * Contains the value and class for a sub-field of an exportable object.
+     */
+    protected static class FieldValue
+    {
+        /** The value. */
+        public final Object value;
+
+        /** The upper bound class type. */
+        public final Class<?> clazz;
+
+        /**
+         * Construct a FieldValue.
+         */
+        public FieldValue (Object value, Class<?> clazz)
+        {
+            this.value = value;
+            this.clazz = clazz;
+        }
     }
 
     /** The underlying output stream. */
@@ -543,14 +561,14 @@ public class BinaryExporter extends Exporter
     protected int _lastObjectId;
 
     /** Maps classes written to their integer ids. */
-    protected HashMap<Class<?>, Integer> _classIds = new HashMap<Class<?>, Integer>();
+    protected Map<Class<?>, Integer> _classIds = new HashMap<Class<?>, Integer>();
 
     /** The last class id assigned. */
     protected int _lastClassId;
 
     /** Field values associated with the current object. */
-    protected HashMap<String, Tuple<Object, Class<?>>> _fields;
+    protected Map<String, FieldValue> _fields;
 
     /** Class<?> data. */
-    protected HashMap<Class<?>, ClassData> _classData = new HashMap<Class<?>, ClassData>();
+    protected Map<Class<?>, ClassData> _classData = new HashMap<Class<?>, ClassData>();
 }
