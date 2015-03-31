@@ -41,12 +41,11 @@ import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Table;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -501,11 +500,12 @@ public class BinaryExporter extends Exporter
         protected void writeField (String name, Object value, Class<?> clazz)
             throws IOException
         {
-            Integer fieldId = _fieldIds.get(name, clazz);
+            FieldData field = new FieldData(name, clazz);
+            Integer fieldId = _fieldIds.get(field);
             if (fieldId == null) {
                 int newFieldId = _nextFieldId++;
                 Streams.writeVarInt(_out, newFieldId);
-                _fieldIds.put(name, clazz, newFieldId);
+                _fieldIds.put(field, newFieldId);
                 writeNoReplace(name, String.class);
                 writeClass(clazz);
             } else {
@@ -515,7 +515,7 @@ public class BinaryExporter extends Exporter
         }
 
         /** Maps field name/class pairs to field ids. */
-        protected Table<String, Class<?>, Integer> _fieldIds = HashBasedTable.create();
+        protected Map<FieldData, Integer> _fieldIds = Maps.newHashMap();
 
         /** The next field id to be used. */
         protected int _nextFieldId;
@@ -539,6 +539,43 @@ public class BinaryExporter extends Exporter
         {
             this.value = value;
             this.clazz = clazz;
+        }
+    }
+
+    /**
+     * Encapsulates the type of a field.
+     */
+    protected static class FieldData
+    {
+        /** The name. */
+        public final String name;
+
+        /** The type. */
+        public final Class<?> clazz;
+
+        /**
+         * Constructor.
+         */
+        public FieldData (String name, Class<?> clazz)
+        {
+            this.name = name;
+            this.clazz = clazz;
+        }
+
+        @Override
+        public boolean equals (Object o)
+        {
+            if (!(o instanceof FieldData)) {
+                return false;
+            }
+            FieldData that = (FieldData)o;
+            return this.name.equals(that.name) && this.clazz.equals(that.clazz);
+        }
+
+        @Override
+        public int hashCode ()
+        {
+            return name.hashCode() ^ clazz.hashCode();
         }
     }
 
