@@ -503,8 +503,9 @@ public class BinaryExporter extends Exporter
         {
             Integer fieldId = _fieldIds.get(name, clazz);
             if (fieldId == null) {
-                Streams.writeVarInt(_out, ++_lastFieldId);
-                _fieldIds.put(name, clazz, _lastFieldId);
+                int newFieldId = _nextFieldId++;
+                Streams.writeVarInt(_out, newFieldId);
+                _fieldIds.put(name, clazz, newFieldId);
                 writeNoReplace(name, String.class);
                 writeClass(clazz);
             } else {
@@ -516,8 +517,8 @@ public class BinaryExporter extends Exporter
         /** Maps field name/class pairs to field ids. */
         protected Table<String, Class<?>, Integer> _fieldIds = HashBasedTable.create();
 
-        /** The last field id assigned. */
-        protected int _lastFieldId;
+        /** The next field id to be used. */
+        protected int _nextFieldId;
     }
 
     /**
