@@ -747,26 +747,26 @@ public class BinaryImporter extends Importer
 
         /** Used to read field ids. */
         protected IdReader _fieldIdReader = _idReaderSupplier.get();
+    }
+
+    /**
+     * Holds data on incoming fields.
+     */
+    protected static class FieldData
+    {
+        /** The name of the field. */
+        public final String name;
+
+        /** The class wrapper for this field. */
+        public final ClassWrapper clazz;
 
         /**
-         * Holds data on incoming fields.
+         * Constructor.
          */
-        protected static class FieldData
+        public FieldData (String name, ClassWrapper clazz)
         {
-            /** The name of the field. */
-            public final String name;
-
-            /** The class wrapper for this field. */
-            public final ClassWrapper clazz;
-
-            /**
-             * Constructor.
-             */
-            public FieldData (String name, ClassWrapper clazz)
-            {
-                this.name = name;
-                this.clazz = clazz;
-            }
+            this.name = name;
+            this.clazz = clazz;
         }
     }
 
