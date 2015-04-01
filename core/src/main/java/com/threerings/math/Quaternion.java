@@ -236,6 +236,24 @@ public final class Quaternion
     }
 
     /**
+     * Sets this quaternion to one that first rotates about z by the specified number of radians,
+     * then rotates about x, then about y.
+     */
+    public Quaternion fromAnglesZXY (float x, float y, float z)
+    {
+        float hx = x * 0.5f, hy = y * 0.5f, hz = z * 0.5f;
+        float sz = FloatMath.sin(hz), cz = FloatMath.cos(hz);
+        float sy = FloatMath.sin(hy), cy = FloatMath.cos(hy);
+        float sx = FloatMath.sin(hx), cx = FloatMath.cos(hx);
+        float sysx = sy*sx, cysx = cy*sx, sycx = sy*cx, cycx = cy*cx;
+        return set(
+            sycx*sz + cysx*cz,
+            sycx*cz - cysx*sz,
+            cycx*sz - sysx*cz,
+            cycx*cz + sysx*sz);
+    }
+
+    /**
      * Computes the angles to pass to {@link #fromAngles} to reproduce this rotation, placing them
      * in the provided vector.  This uses the factorization method described in David Eberly's
      * <a href="http://www.geometrictools.com/Documentation/EulerAngles.pdf">Euler Angle
@@ -269,6 +287,37 @@ public final class Quaternion
     }
 
     /**
+     * Computes the angles to pass to {@link #fromAnglesZXY} to reproduce this rotation, placing
+     * them in the provided vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f toAnglesZXY (Vector3f result)
+    {
+        float sx = 2f*(x*w - y*z);
+        if (sx < 1f - FloatMath.EPSILON) {
+            if (sx > -1 + FloatMath.EPSILON) {
+                return result.set(
+                    FloatMath.asin(sx),
+                    FloatMath.atan2(x*z + y*w, 0.5f - (x*x + y*y)),
+                    FloatMath.atan2(x*y + z*w, 0.5f - (x*x + z*z)));
+            } else {
+                // not a unique solution; y - z = atan2(m02, m00)
+                return result.set(
+                    -FloatMath.HALF_PI,
+                    0f,
+                    FloatMath.atan2(y*w - x*z, 0.5f - (y*y + z*z)));
+            }
+        } else {
+            // not a unique solution; y + z = atan2(m02, m00)
+            return result.set(
+                FloatMath.HALF_PI,
+                0f,
+                -FloatMath.atan2(y*w - x*z, 0.5f - (y*y + z*z)));
+        }
+    }
+
+    /**
      * Computes and returns the angles to pass to {@link #fromAngles} to reproduce this rotation.
      *
      * @return a new vector containing the resulting angles.
@@ -276,6 +325,16 @@ public final class Quaternion
     public Vector3f toAngles ()
     {
         return toAngles(new Vector3f());
+    }
+
+    /**
+     * Computes and returns the angles to pass to {@link #fromAnglesZXY} to reproduce this rotation.
+     *
+     * @return a new vector containing the resulting angles.
+     */
+    public Vector3f toAnglesZXY ()
+    {
+        return toAnglesZXY(new Vector3f());
     }
 
     /**

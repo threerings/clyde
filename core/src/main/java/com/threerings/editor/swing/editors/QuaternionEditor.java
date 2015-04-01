@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Quaternion;
 
@@ -63,7 +64,12 @@ public class QuaternionEditor extends PropertyEditor
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setTitle(getPropertyLabel());
-        add(_panel = new QuaternionPanel(_msgs));
+        String mstr = getMode();
+        QuaternionPanel.Mode mode = QuaternionPanel.Mode.XYZ;
+        try {
+            mode = Enum.valueOf(QuaternionPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+        } catch (IllegalArgumentException e) { }
+        add(_panel = new QuaternionPanel(_msgs, mode));
         _panel.setBackground(getDarkerBackground(_lineage.length));
         _panel.addChangeListener(this);
     }

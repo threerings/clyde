@@ -76,7 +76,7 @@ public class Transform3DPanel extends BasePropertyEditor
         rcont.setBackground(null);
         rcont.setBorder(BorderFactory.createTitledBorder(getLabel("rotation")));
         trpanel.add(rcont);
-        rcont.add(_rpanel = new QuaternionPanel(msgs));
+        rcont.add(_rpanel = new QuaternionPanel(msgs, QuaternionPanel.Mode.XYZ));
         _rpanel.addChangeListener(this);
         if (_mode == Mode.RIGID) {
             return;

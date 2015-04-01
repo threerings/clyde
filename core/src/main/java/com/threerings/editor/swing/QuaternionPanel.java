@@ -46,17 +46,32 @@ import com.threerings.math.Vector3f;
 public class QuaternionPanel extends BasePropertyEditor
     implements ChangeListener
 {
-    public QuaternionPanel (MessageBundle msgs)
+    /** The available editing modes: right-handed, left-handed. */
+    public enum Mode { XYZ, ZXY };
+
+    public QuaternionPanel (MessageBundle msgs, Mode mode)
     {
         _msgs = msgs;
+        _mode = mode;
 
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBackground(null);
-        _spinners = new JSpinner[] {
-            addSpinnerPanel("x", -180f, +180f),
-            addSpinnerPanel("y", -90f, +90f),
-            addSpinnerPanel("z", -180f, +180f)
-        };
+        switch (_mode) {
+        case XYZ:
+            _spinners = new JSpinner[] {
+                addSpinnerPanel("x", -180f, 180f),
+                addSpinnerPanel("y", -90f, 90f),
+                addSpinnerPanel("z", -180f, +180f)
+            };
+            break;
+        case ZXY:
+            _spinners = new JSpinner[] {
+                addSpinnerPanel("x", -180f, 360f),
+                addSpinnerPanel("y", -90f, 360f),
+                addSpinnerPanel("z", -180f, 360f)
+            };
+            break;
+        }
     }
 
     /**
@@ -64,7 +79,7 @@ public class QuaternionPanel extends BasePropertyEditor
      */
     public void setValue (Quaternion value)
     {
-        Vector3f angles = value.toAngles();
+        Vector3f angles = _mode == Mode.XYZ ? value.toAngles() : value.toAnglesZXY();
         _spinners[0].setValue(FloatMath.toDegrees(angles.x));
         _spinners[1].setValue(FloatMath.toDegrees(angles.y));
         _spinners[2].setValue(FloatMath.toDegrees(angles.z));
@@ -75,10 +90,12 @@ public class QuaternionPanel extends BasePropertyEditor
      */
     public Quaternion getValue ()
     {
-        return new Quaternion().fromAngles(
-            FloatMath.toRadians(((Number)_spinners[0].getValue()).floatValue()),
-            FloatMath.toRadians(((Number)_spinners[1].getValue()).floatValue()),
-            FloatMath.toRadians(((Number)_spinners[2].getValue()).floatValue()));
+        float x = FloatMath.toRadians(((Number)_spinners[0].getValue()).floatValue());
+        float y = FloatMath.toRadians(((Number)_spinners[1].getValue()).floatValue());
+        float z = FloatMath.toRadians(((Number)_spinners[2].getValue()).floatValue());
+        return _mode == Mode.XYZ
+            ? new Quaternion().fromAngles(x, y, z)
+            : new Quaternion().fromAnglesZXY(x, y, z);
     }
 
     // documentation inherited from interface ChangeListener
@@ -105,4 +122,7 @@ public class QuaternionPanel extends BasePropertyEditor
 
     /** The angle spinners. */
     protected JSpinner[] _spinners;
+
+    /** The editing mode. */
+    protected Mode _mode;
 }
