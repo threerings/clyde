@@ -58,7 +58,7 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
-import com.threerings.export.util.LazyFileOutputStream;
+import com.threerings.export.util.LazyOutputStream;
 import com.threerings.util.Copyable;
 
 import static com.threerings.ClydeLog.log;
@@ -305,7 +305,7 @@ public class ConfigGroup<T extends ManagedConfig>
         try {
             Closer closer = Closer.create();
             try {
-                LazyFileOutputStream stream = closer.register(new LazyFileOutputStream(file));
+                LazyOutputStream stream = closer.register(new LazyOutputStream(file));
                 Exporter xport = closer.register(
                         xml ? new XMLExporter(stream) : new BinaryExporter(stream));
                 xport.writeObject(array);

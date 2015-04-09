@@ -26,23 +26,21 @@
 package com.threerings.export.util;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
 /**
- * Creates a {@link FileOutputStream} lazily, when data is actually written to the stream.  For XML
- * exports, this allows us to avoid overwriting any existing file when an exception is thrown in
- * the process of building the object model before writing it out to the stream.
+ * Creates a {@link FileOutputStream} lazily.
+ *
+ * This class is legacy and will be removed. See the new superclass LazyOutputStream.
  */
-public class LazyFileOutputStream extends OutputStream
+@Deprecated
+public class LazyFileOutputStream extends LazyOutputStream
 {
     /**
      * Creates a new lazy stream to write to the specified file.
      */
     public LazyFileOutputStream (File file)
     {
-        _file = file;
+        super(file);
     }
 
     /**
@@ -50,65 +48,6 @@ public class LazyFileOutputStream extends OutputStream
      */
     public LazyFileOutputStream (String file)
     {
-        _file = new File(file);
+        this(new File(file));
     }
-
-    @Override
-    public void write (int b)
-        throws IOException
-    {
-        ensureInitialized();
-        _out.write(b);
-    }
-
-    @Override
-    public void write (byte[] b)
-        throws IOException
-    {
-        ensureInitialized();
-        _out.write(b);
-    }
-
-    @Override
-    public void write (byte[] b, int off, int len)
-        throws IOException
-    {
-        ensureInitialized();
-        _out.write(b, off, len);
-    }
-
-    @Override
-    public void flush ()
-        throws IOException
-    {
-        if (_out != null) {
-            _out.flush();
-        }
-    }
-
-    @Override
-    public void close ()
-        throws IOException
-    {
-        if (_out != null) {
-            _out.close();
-        }
-    }
-
-    /**
-     * Creates the underlying output stream if necessary.
-     */
-    protected void ensureInitialized ()
-        throws IOException
-    {
-        if (_out == null) {
-            _out = new FileOutputStream(_file);
-        }
-    }
-
-    /** The file to which we will write. */
-    protected File _file;
-
-    /** The underlying file output stream, if created. */
-    protected FileOutputStream _out;
 }
