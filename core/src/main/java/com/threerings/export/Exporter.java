@@ -38,10 +38,20 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multiset;
 
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
@@ -729,7 +739,26 @@ public abstract class Exporter
      */
     protected static Class<?> getClass (Object value)
     {
-        if (value instanceof ByteBuffer) {
+        if (value instanceof Collection) {
+            if (value instanceof List) {
+                return (value instanceof ImmutableList)
+                        ? ImmutableList.class
+                        : ArrayList.class;
+            } else if (value instanceof Set) {
+                return (value instanceof ImmutableSet)
+                        ? ImmutableSet.class
+                        : HashSet.class;
+            } else if (value instanceof Multiset) {
+                return (value instanceof ImmutableMultiset)
+                        ? ImmutableMultiset.class
+                        : HashMultiset.class;
+            }
+            return value.getClass();
+        } else if (value instanceof Map) {
+            return (value instanceof ImmutableMap)
+                    ? ImmutableMap.class
+                    : HashMap.class;
+        } else if (value instanceof ByteBuffer) {
             return ByteBuffer.class;
         } else if (value instanceof CharBuffer) {
             return CharBuffer.class;
@@ -747,12 +776,6 @@ public abstract class Exporter
             return File.class;
         } else if (value instanceof Enum) {
             return ((Enum)value).getDeclaringClass();
-        } else if (value instanceof ImmutableList) {
-            return ImmutableList.class;
-        } else if (value instanceof ImmutableSet) {
-            return ImmutableSet.class;
-        } else if (value instanceof ImmutableMap) {
-            return ImmutableMap.class;
         } else {
             return value.getClass();
         }
