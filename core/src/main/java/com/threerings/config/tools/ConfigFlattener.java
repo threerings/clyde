@@ -13,7 +13,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +94,28 @@ import static com.threerings.ClydeLog.log;
 public class ConfigFlattener
 {
     /**
+     * Types of suppressable warnings.
+     */
+    public enum SuppressableWarning
+    {
+        /** No config was found for a ConfigReference. */
+        REFERENCE_NOT_SATISFIED("Reference not satisfied?"),
+
+        ;
+
+        /** The log message associated with this warning. */
+        public final String message;
+
+        /**
+         * Constructor.
+         */
+        SuppressableWarning (String msg)
+        {
+            this.message = msg;
+        }
+    }
+
+    /**
      * Command-line tool entry point.
      */
     @SuppressWarnings("fallthrough")
@@ -162,6 +186,15 @@ public class ConfigFlattener
                     PropertyUtil.strip(this, Lists.newArrayList(configs));
             return super.toSaveableArray(groupClass, stripList, arrayElementClass);
         }
+    }
+
+    /**
+     * Called to suppress certain warnings on this flattener.
+     */
+    public ConfigFlattener suppressWarnings (SuppressableWarning... warnings)
+    {
+        _suppressedWarnings.addAll(Arrays.asList(warnings));
+        return this;
     }
 
     /**
@@ -395,6 +428,16 @@ public class ConfigFlattener
     }
 
     /**
+     * Issue a suppressable warning, maybe.
+     */
+    protected void warn (SuppressableWarning type, Object... details)
+    {
+        if (!_suppressedWarnings.contains(type)) {
+            log.warning(type.message, details);
+        }
+    }
+
+    /**
      * Helper for configuring and validating the source and dest directories.
      */
     protected static class FlattenContext
@@ -437,7 +480,7 @@ public class ConfigFlattener
      * A gatherer that gathers dependencies between config references
      * as well as collects each ConfigReference uniquely for later rewriting.
      */
-    protected static class FlatDependencyGatherer extends DependencyGatherer.PreExamined
+    protected class FlatDependencyGatherer extends DependencyGatherer.PreExamined
     {
         public FlatDependencyGatherer (ConfigManager preFlattened)
         {
@@ -489,13 +532,6 @@ public class ConfigFlattener
             }
         }
 
-        // TEMP?
-        protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
-                "com.threerings.trinity.gui.config.ColorConfig",
-                "com.threerings.trinity.gui.config.FontConfig",
-                "com.threerings.trinity.gui.config.PositionConfig",
-                "");
-
         /**
          * Get a replacer for exporting the bare configs instead of their references!
          */
@@ -539,7 +575,7 @@ public class ConfigFlattener
                     Class<ManagedConfig> cclazz = (Class<ManagedConfig>)cfgClazz;
                     ManagedConfig cfg = cfgmgr.getConfig(cclazz, cref);
                     if (cfg == null) {
-                        log.warning("Reference not satisfied?", "cref", cref);
+                        warn(SuppressableWarning.REFERENCE_NOT_SATISFIED, "cref", cref);
                         return null;
                     }
                     return new Exporter.Replacement(cfg, (clazz == Object.class) ? clazz : cclazz);
@@ -642,4 +678,15 @@ public class ConfigFlattener
         /** Maps bare references to their class. */
         protected final Map<String, Class<?>> _bareToClass = Maps.newIdentityHashMap();
     }
+
+    /** The suppressable warnings that are currently suppressed. */
+    protected Set<SuppressableWarning> _suppressedWarnings =
+            EnumSet.noneOf(SuppressableWarning.class);
+
+    // TEMP?
+    protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
+            "com.threerings.trinity.gui.config.ColorConfig",
+            "com.threerings.trinity.gui.config.FontConfig",
+            "com.threerings.trinity.gui.config.PositionConfig",
+            "");
 }
