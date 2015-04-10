@@ -63,6 +63,8 @@ import com.threerings.math.Quaternion;
 
 import com.threerings.opengl.renderer.Color4f;
 
+import static com.threerings.export.Log.log;
+
 /**
  * Used to write {@link Exportable} objects.  Other common object types are supported as well:
  * <code>Boolean, Byte, Character, Short, Integer, Long, Float, Double, String, boolean[], byte[],
@@ -745,21 +747,24 @@ public abstract class Exporter
             if (value instanceof List) {
                 return (value instanceof ImmutableList)
                         ? ImmutableList.class
-                        : ArrayList.class;
+                        : checkClass(value, ArrayList.class);
             } else if (value instanceof Set) {
                 return (value instanceof ImmutableSet)
                         ? ImmutableSet.class
-                        : HashSet.class;
+                        : checkClass(value, HashSet.class);
             } else if (value instanceof Multiset) {
                 return (value instanceof ImmutableMultiset)
                         ? ImmutableMultiset.class
-                        : HashMultiset.class;
+                        : checkClass(value, HashMultiset.class);
             }
+            log.warning("Exporting unknown collection class: " + value.getClass());
             return value.getClass();
         } else if (value instanceof Map) {
             return (value instanceof ImmutableMap)
                     ? ImmutableMap.class
-                    : (value instanceof ArgumentMap) ? ArgumentMap.class : HashMap.class;
+                    : (value instanceof ArgumentMap)
+                            ? ArgumentMap.class
+                            : checkClass(value, HashMap.class);
         } else if (value instanceof ByteBuffer) {
             return ByteBuffer.class;
         } else if (value instanceof CharBuffer) {
@@ -781,6 +786,18 @@ public abstract class Exporter
         } else {
             return value.getClass();
         }
+    }
+
+    /**
+     * Temporary to log possible problems with forcing the type.
+     */
+    protected static Class<?> checkClass (Object value, Class<?> forcedType)
+    {
+        Class<?> valueClass = value.getClass();
+        if (valueClass != forcedType) {
+            log.warning("Exporting unknown collection class: " + valueClass);
+        }
+        return forcedType;
     }
 
     /** The object whose fields are being written. */
