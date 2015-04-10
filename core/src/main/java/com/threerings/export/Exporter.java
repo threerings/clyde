@@ -53,6 +53,8 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 
+import com.threerings.config.ArgumentMap;
+
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector2f;
@@ -757,7 +759,7 @@ public abstract class Exporter
         } else if (value instanceof Map) {
             return (value instanceof ImmutableMap)
                     ? ImmutableMap.class
-                    : HashMap.class;
+                    : (value instanceof ArgumentMap) ? ArgumentMap.class : HashMap.class;
         } else if (value instanceof ByteBuffer) {
             return ByteBuffer.class;
         } else if (value instanceof CharBuffer) {
