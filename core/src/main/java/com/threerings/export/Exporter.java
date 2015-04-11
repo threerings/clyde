@@ -29,6 +29,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
@@ -743,61 +744,60 @@ public abstract class Exporter
      */
     protected static Class<?> getClass (Object value)
     {
-        if (value instanceof Collection) {
+        if (value instanceof Enum) {
+            // check enum first- no getting around this with interfaces
+            return ((Enum)value).getDeclaringClass();
+
+        } else if (value instanceof Exportable) {
+            return value.getClass(); // you're the boss
+
+        } else if (value instanceof Collection) {
             if (value instanceof List) {
                 return (value instanceof ImmutableList)
                         ? ImmutableList.class
-                        : checkClass(value, ArrayList.class);
+                        : ArrayList.class;
             } else if (value instanceof Set) {
                 return (value instanceof ImmutableSet)
                         ? ImmutableSet.class
-                        : checkClass(value, HashSet.class);
+                        : HashSet.class;
             } else if (value instanceof Multiset) {
                 return (value instanceof ImmutableMultiset)
                         ? ImmutableMultiset.class
-                        : checkClass(value, HashMultiset.class);
+                        : HashMultiset.class;
             }
-            log.warning("Exporting unknown collection class: " + value.getClass());
-            return value.getClass();
+            // for now return ArrayList for unknown collections
+            return ArrayList.class;
+
         } else if (value instanceof Map) {
+            // we make a concession to ArgumentMap in here
             return (value instanceof ImmutableMap)
                     ? ImmutableMap.class
-                    : (value instanceof ArgumentMap)
-                            ? ArgumentMap.class
-                            : checkClass(value, HashMap.class);
-        } else if (value instanceof ByteBuffer) {
-            return ByteBuffer.class;
-        } else if (value instanceof CharBuffer) {
-            return CharBuffer.class;
-        } else if (value instanceof DoubleBuffer) {
-            return DoubleBuffer.class;
-        } else if (value instanceof FloatBuffer) {
-            return FloatBuffer.class;
-        } else if (value instanceof IntBuffer) {
-            return IntBuffer.class;
-        } else if (value instanceof LongBuffer) {
-            return LongBuffer.class;
-        } else if (value instanceof ShortBuffer) {
-            return ShortBuffer.class;
+                    : (value instanceof ArgumentMap) ? ArgumentMap.class : HashMap.class;
+
+        } else if (value instanceof Buffer) {
+            if (value instanceof ByteBuffer) {
+                return ByteBuffer.class;
+            } else if (value instanceof CharBuffer) {
+                return CharBuffer.class;
+            } else if (value instanceof DoubleBuffer) {
+                return DoubleBuffer.class;
+            } else if (value instanceof FloatBuffer) {
+                return FloatBuffer.class;
+            } else if (value instanceof IntBuffer) {
+                return IntBuffer.class;
+            } else if (value instanceof LongBuffer) {
+                return LongBuffer.class;
+            } else if (value instanceof ShortBuffer) {
+                return ShortBuffer.class;
+            }
+            // fall out to default
+
         } else if (value instanceof File) {
             return File.class;
-        } else if (value instanceof Enum) {
-            return ((Enum)value).getDeclaringClass();
-        } else {
-            return value.getClass();
         }
-    }
 
-    /**
-     * Temporary to log possible problems with forcing the type.
-     */
-    protected static Class<?> checkClass (Object value, Class<?> forcedType)
-    {
-        Class<?> valueClass = value.getClass();
-        if (valueClass != forcedType) {
-            log.warning("Exporting unknown collection class: " + valueClass);
-        }
-        return forcedType;
+        // default case
+        return value.getClass();
     }
 
     /** The object whose fields are being written. */
