@@ -74,6 +74,23 @@ public class DateRange extends DeepObject
         _stopTime = (time == null) ? Long.MAX_VALUE : time;
     }
 
+    /**
+     * Get the start time as a primitive long. If there's no start time, Long.MIN_VALUE is
+     * returned.
+     */
+    public long getStartStamp ()
+    {
+        return _startTime;
+    }
+
+    /**
+     * Get the stop time as a primitive long. If there's no stop time, Long.MAX_VALUE is returned.
+     */
+    public long getStopStamp ()
+    {
+        return _stopTime;
+    }
+
     @Override
     public String toString ()
     {
