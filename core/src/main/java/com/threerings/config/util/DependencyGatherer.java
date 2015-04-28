@@ -37,6 +37,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.NoDependency;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Reference;
@@ -286,6 +287,10 @@ public abstract class DependencyGatherer
         } else {
             // the reflective solution
             for (Field f : _fieldCache.getFields(c)) {
+                // Skip fields that are not dependencies
+                if (f.getAnnotation(NoDependency.class) != null) {
+                    continue;
+                }
                 Object o;
                 try {
                     o = f.get(val);

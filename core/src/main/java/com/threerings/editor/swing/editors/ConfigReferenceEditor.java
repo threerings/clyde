@@ -49,6 +49,7 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.NoDependency;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ReferenceConstraints;
@@ -237,7 +238,8 @@ public class ConfigReferenceEditor extends PropertyEditor
         @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
                 (Class<ManagedConfig>)getArgumentType();
         ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
-        if (!(config instanceof ParameterizedConfig)) {
+        if (!(config instanceof ParameterizedConfig) ||
+                getProperty().isAnnotationPresent(NoDependency.class)) {
             _arguments.removeAll();
             value.getArguments().clear();
             if (config == null) {
