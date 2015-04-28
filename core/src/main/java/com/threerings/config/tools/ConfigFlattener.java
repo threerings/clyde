@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.StringWriter;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -540,6 +541,9 @@ public class ConfigFlattener
             return new Exporter.Replacer() {
                 public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
                 {
+                    if (_writeNoReplace.contains(value)) {
+                        return null;
+                    }
                     Class<?> cfgClazz;
                     ConfigReference<?> ref;
 
@@ -601,11 +605,7 @@ public class ConfigFlattener
         public void add (Class<? extends ManagedConfig> clazz, ConfigReference<?> ref)
         {
             if (ref != null) {
-                Class<?> oldValue = _refToClass.put(ref, clazz);
-                if (oldValue != null && oldValue != clazz) {
-                    log.warning("Holy shnikes, the same config ref for two types?",
-                            "ref", ref, "clazz", clazz, "oldClass", oldValue);
-                }
+                mapRefToClass(ref, clazz);
             }
 
             // omit config refs with no args: we don't care
@@ -659,6 +659,36 @@ public class ConfigFlattener
             return cfgName;
         }
 
+        @Override
+        protected void noteNoDependency (ConfigReference<?> ref, Field f)
+        {
+            Class<? extends ManagedConfig> clazz = getConfigReferenceType(f.getGenericType());
+            if (clazz == null) {
+                log.warning("I can't figure out the type of a @NoDependency config",
+                       "field name", f.getName());
+                return;
+            }
+
+            // TODO
+//            // to have it write out as normal
+//            mapRefToClass(ref, clazz);
+
+            // to have it write as a config reference
+            _writeNoReplace.add(ref);
+        }
+
+        /**
+         * Map the specified reference as refering to configs of the specified class.
+         */
+        protected void mapRefToClass (ConfigReference<?> ref, Class<? extends ManagedConfig> clazz)
+        {
+            Class<?> oldValue = _refToClass.put(ref, clazz);
+            if (oldValue != null && oldValue != clazz) {
+                log.warning("Holy shnikes, the same config ref for two types?",
+                        "ref", ref, "clazz", clazz, "oldClass", oldValue);
+            }
+        }
+
         /** The config we're currently examining while adding dependencies. */
         protected ConfigId _current;
 
@@ -677,6 +707,10 @@ public class ConfigFlattener
 
         /** Maps bare references to their class. */
         protected final Map<String, Class<?>> _bareToClass = Maps.newIdentityHashMap();
+
+        /** Write the config reference as a config reference. */
+        // POSSIBLY TEMP: once superflattening is done right and Coaxing works on the client
+        protected final Set<Object> _writeNoReplace = Sets.newIdentityHashSet();
     }
 
     /** The suppressable warnings that are currently suppressed. */

@@ -287,16 +287,19 @@ public abstract class DependencyGatherer
         } else {
             // the reflective solution
             for (Field f : _fieldCache.getFields(c)) {
-                // Skip fields that are not dependencies
-                if (f.getAnnotation(NoDependency.class) != null) {
-                    continue;
-                }
                 Object o;
                 try {
                     o = f.get(val);
                 } catch (IllegalAccessException iae) {
                     continue; // don't worry about it
                 }
+
+                if ((o instanceof ConfigReference<?>) &&
+                        (f.getAnnotation(NoDependency.class) != null)) {
+                    noteNoDependency((ConfigReference<?>)o, f);
+                    continue;
+                }
+
                 if (o instanceof String) {
                     // this may be a reference! (otherwise: we don't care)
                     Reference refAnno = f.getAnnotation(Reference.class);
@@ -318,6 +321,14 @@ public abstract class DependencyGatherer
                 }
             }
         }
+    }
+
+    /**
+     * Note that we found a ConfigReference tagged with @NoDependency.
+     */
+    protected void noteNoDependency (ConfigReference<?> ref, Field f)
+    {
+        // nothing by default
     }
 
     /**
