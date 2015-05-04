@@ -121,12 +121,14 @@ public class LazyOutputStream extends OutputStream
                 throw ioe;
             } catch (Exception e) {
                 throw new IOException("Exception lazy-creating OutputStream: " + e.getMessage(), e);
+            } finally {
+                _creator = null;
             }
         }
     }
 
     /** Called to create the output stream. */
-    protected final Callable<? extends OutputStream> _creator;
+    protected Callable<? extends OutputStream> _creator;
 
     /** The underlying output stream, if created. */
     protected OutputStream _out;
