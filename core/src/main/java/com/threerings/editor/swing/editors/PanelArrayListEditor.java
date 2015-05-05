@@ -161,7 +161,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
      * Updates direct paths that reference this location in the array.
      *
      * @param idx The index being modified
-     * @param newIdx The index being moved to, of -1 if idx is being removed.
+     * @param newIdx The index being moved to, or -1 if idx is being removed.
      */
     protected void updatePaths (int idx, int newIdx)
     {
@@ -170,11 +170,10 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         if (pc == null) {
             return;
         }
-        Map<String, String> replace;
         ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
         if (newIdx == -1) {
             builder.put(pathIndex(path, idx), "");
-            newIdx = _panels.getComponentCount() - 1;
+            newIdx = _panels.getComponentCount();
         } else {
             builder.put(pathIndex(path, idx), pathIndex(path, newIdx));
         }
@@ -183,7 +182,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             // shift paths
             builder.put(pathIndex(path, ii), pathIndex(path, ii + dir));
         }
-        replace = builder.build();
+        Map<String, String> replace = builder.build();
 
         boolean updated = false;
         for (Parameter param : pc.parameters) {
