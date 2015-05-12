@@ -32,6 +32,8 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
 import com.google.common.primitives.Primitives;
 
+import com.samskivert.util.Logger;
+
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -197,7 +199,7 @@ public abstract class DependencyGatherer
                 } else {
                     refClazz = getConfigReferenceType(prop.getGenericType());
                     if (refClazz == null) {
-                        continue;
+                        refClazz = UnknownParameterTypeMarker.class;
                     }
                 }
                 _paramCfgTypes.put(id, param.name, refClazz);
@@ -207,12 +209,27 @@ public abstract class DependencyGatherer
         @Override
         protected Class<? extends ManagedConfig> getParameterConfigType (ConfigId id, String param)
         {
-            return _paramCfgTypes.get(id, param);
+            Class<? extends ManagedConfig> value = _paramCfgTypes.get(id, param);
+            if (value == null) {
+                throw new RuntimeException(Logger.format("Bogus config and/or parameter!",
+                        "config", id, "parameter", param));
+            }
+            return (value == UnknownParameterTypeMarker.class)
+                    ? null
+                    : value;
         }
 
         /** A mapping of config/parameter to the type of config that parameter expects, if any. */
         protected final Table<ConfigId, String, Class<? extends ManagedConfig>> _paramCfgTypes =
                     HashBasedTable.create();
+
+        /**
+         * A marker class so we can distinguish between a missing parameter and an unknown type.
+         */
+        protected static class UnknownParameterTypeMarker extends ManagedConfig
+        {
+            // nothing
+        }
     }
 
     /**
