@@ -276,6 +276,19 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
+     * Evaluates a power expression.
+     */
+    public static class Power extends BinaryOperation
+    {
+        @Override
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return Math.pow(coerceToDouble(_firstOperand.evaluate(activator, previous)),
+                coerceToDouble(_secondOperand.evaluate(activator, previous)));
+        }
+    }
+
+    /**
      * Evaluates an add expression.
      */
     public static class Add extends BinaryOperation
