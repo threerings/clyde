@@ -187,6 +187,42 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
+     * Evaluates a round expression.
+     */
+    public static class Round extends UnaryOperation
+    {
+        @Override
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return Math.round(coerceToDouble(_operand.evaluate(activator, previous)));
+        }
+    }
+
+    /**
+     * Evaluates a ciel expression.
+     */
+    public static class Ceil extends UnaryOperation
+    {
+        @Override
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return Math.ceil(coerceToDouble(_operand.evaluate(activator, previous)));
+        }
+    }
+
+    /**
+     * Evaluates a floor expression.
+     */
+    public static class Floor extends UnaryOperation
+    {
+        @Override
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return Math.floor(coerceToDouble(_operand.evaluate(activator, previous)));
+        }
+    }
+
+    /**
      * Evaluates an increment expression.
      */
     public static class Increment extends UnaryOperation
@@ -279,7 +315,7 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
-     * Evaluates an add expression.
+     * Evaluates an divide expression.
      */
     public static class Divide extends BinaryOperation
     {
