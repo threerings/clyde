@@ -9,6 +9,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import java.nio.Buffer;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -258,14 +260,11 @@ public abstract class DependencyGatherer
 
         Class<?> c = val.getClass();
         if ((c == String.class) || c.isPrimitive() || Primitives.isWrapperType(c) ||
+                (val instanceof ConfigManager) || (val instanceof Buffer) ||
                 !seen.add(val)) {
             return;
         }
-        if (val instanceof ConfigManager) {
-            // do not recurse inside other config managers...
-            // Shit
-
-        } else if (val instanceof ConfigReference<?>) {
+        if (val instanceof ConfigReference<?>) {
             ConfigReference<?> ref = (ConfigReference<?>)val;
             Class<? extends ManagedConfig> clazz = getConfigReferenceType(type);
             if (clazz == null) {
