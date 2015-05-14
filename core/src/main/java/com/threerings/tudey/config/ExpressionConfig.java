@@ -46,6 +46,8 @@ import com.threerings.probs.FloatVariable;
     ExpressionConfig.Parsed.class, ExpressionConfig.Constant.class,
     ExpressionConfig.Reference.class, ExpressionConfig.Previous.class,
     ExpressionConfig.Increment.class, ExpressionConfig.Decrement.class,
+    ExpressionConfig.Round.class, ExpressionConfig.Ceil.class,
+    ExpressionConfig.Floor.class, ExpressionConfig.Power.class,
     ExpressionConfig.Negate.class, ExpressionConfig.Add.class,
     ExpressionConfig.Subtract.class, ExpressionConfig.Multiply.class,
     ExpressionConfig.Divide.class, ExpressionConfig.Remainder.class,
@@ -227,6 +229,42 @@ public abstract class ExpressionConfig extends DeepObject
     }
 
     /**
+     * Rounds the value per standard rounding rules
+     */
+    public static class Round extends UnaryOperation
+    {
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Round";
+        }
+    }
+
+    /**
+     * Rounds the value down
+     */
+    public static class Floor extends UnaryOperation
+    {
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Floor";
+        }
+    }
+
+    /**
+     * Rounds the value up
+     */
+    public static class Ceil extends UnaryOperation
+    {
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Ceil";
+        }
+    }
+
+    /**
      * Adds one to the operand.
      */
     public static class Increment extends UnaryOperation
@@ -280,6 +318,18 @@ public abstract class ExpressionConfig extends DeepObject
         {
             firstOperand.invalidate();
             secondOperand.invalidate();
+        }
+    }
+
+    /**
+     * Takes the first operand to the power of the second operand.
+     */
+    public static class Power extends BinaryOperation
+    {
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Power";
         }
     }
 
