@@ -41,6 +41,7 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -759,7 +760,7 @@ public abstract class Exporter
             } else if (value instanceof Set) {
                 return (value instanceof ImmutableSet)
                         ? ImmutableSet.class
-                        : HashSet.class;
+                        : (value instanceof EnumSet) ? EnumSet.class : HashSet.class;
             } else if (value instanceof Multiset) {
                 return (value instanceof ImmutableMultiset)
                         ? ImmutableMultiset.class
