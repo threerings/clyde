@@ -238,20 +238,6 @@ public class ConfigFlattener
         // prior to losing parameter/derivation information, examine parameters
         FlatDependencyGatherer gatherer = new FlatDependencyGatherer(cfgmgr);
 
-        // turn all derived configs into their "original" form
-        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-            for (DerivedConfig der : Ordering.natural()
-                    .onResultOf(new Function<ManagedConfig, String>() {
-                        public String apply (ManagedConfig cfg) {
-                            return cfg.getName();
-                        }
-                    }).immutableSortedCopy(
-                        Iterables.filter(group.getRawConfigs(), DerivedConfig.class))) {
-                // get the non-raw version and re-store it, overwriting
-                group.addConfig(group.getConfig(der.getName()), false);
-            }
-        }
-
         // then gather references...
         gatherer.gather(cfgmgr);
 
@@ -261,14 +247,13 @@ public class ConfigFlattener
         ConfigId id;
         while (null != (id = gatherer.getNextAvailable())) {
             count++;
-            //log.info("Checking " + id);
             @SuppressWarnings("unchecked")
             ConfigGroup<ManagedConfig> group =
                     (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
-            ManagedConfig cfg = group.getConfig(id.name);
+            ManagedConfig cfg = group.getRawConfig(id.name);
             List<ConfigReference<?>> list = gatherer.getReferences(id);
+//            log.info("Checking " + id, "refCount", list.size());
             if (!list.isEmpty()) {
-                //log.info("References for that: " + list);
                 Set<String> paramNames;
                 Map<ArgumentMap, String> newNames;
                 if (cfg instanceof ParameterizedConfig) {
@@ -286,7 +271,7 @@ public class ConfigFlattener
                 // jog through our refs and twiddle them
                 for (ConfigReference<?> ref : list) {
                     ArgumentMap args = ref.getArguments();
-                    args.keySet().retainAll(paramNames);
+                    args.keySet().retainAll(paramNames); // this modifies a ref in-place!
                     if (args.isEmpty()) {
                         // we're done with this one!
                         continue;
@@ -304,19 +289,26 @@ public class ConfigFlattener
                         // create the new config
                         ManagedConfig newCfg = cfg.getInstance(key);
                         newCfg.setName(id.name + "~" + newName);
-                        group.addConfig(newCfg);
+                        clearParameters(newCfg);
+                        group.addConfig(newCfg, false);
+//                        log.info("Mapped new config/argged with name '" + newCfg.getName() + "'");
                         newNames.put(key, newName);
-                        gatherer.addNewConfig(id.clazz, newCfg);
+                        gatherer.addNewConfig(id.clazz, newCfg, true);
                     }
 
                     // now, copy a new config reference with the new name to the existing ref
                     new ConfigReference<ManagedConfig>(id.name + "~" + newName).copy(ref);
                 }
             }
-            if (cfg instanceof ParameterizedConfig) {
-                ((ParameterizedConfig)cfg).parameters = Parameter.EMPTY_ARRAY;
-            }
+
+            // also remake the config with no parameters
+            ManagedConfig newCfg = cfg.getInstance((ArgumentMap)null);
+            clearParameters(newCfg);
+            group.addConfig(newCfg, false);
+//            log.info("Mapped new config with name '" + newCfg.getName() + "'");
+            gatherer.addNewConfig(id.clazz, newCfg, false);
         }
+
 //        log.info("Flattened " + count);
         return gatherer.getReplacer(cfgmgr);
     }
@@ -395,6 +387,16 @@ public class ConfigFlattener
             if (changed) {
                 props.put(key, StringUtil.joinEscaped(Iterables.toArray(classes, String.class)));
             }
+        }
+    }
+
+    /**
+     * Clear any parameter information on the specified config.
+     */
+    protected void clearParameters (ManagedConfig cfg)
+    {
+        if (cfg instanceof ParameterizedConfig) {
+            ((ParameterizedConfig)cfg).parameters = Parameter.EMPTY_ARRAY;
         }
     }
 
@@ -509,7 +511,6 @@ public class ConfigFlattener
         @Override
         public void gather (ConfigManager cfgmgr)
         {
-            // configs have been actualized at this point
             for (ConfigGroup<?> group : cfgmgr.getGroups()) {
                 Class<? extends ManagedConfig> clazz = group.getConfigClass();
                 _cfgClasses.add(clazz);
@@ -590,14 +591,19 @@ public class ConfigFlattener
         /**
          * Add a newly-created config to the reference set.
          */
-        public void addNewConfig (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
+        public void addNewConfig (
+                Class<? extends ManagedConfig> clazz, ManagedConfig cfg, boolean trackDependencies)
         {
             _current = new ConfigId(clazz, cfg.getName());
+            _trackDependencies = trackDependencies;
             try {
-                _graph.add(_current);
+                if (trackDependencies) {
+                    _graph.add(_current);
+                }
                 super.findReferences(cfg);
             } finally {
                 _current = null;
+                _trackDependencies = true;
             }
         }
 
@@ -618,17 +624,19 @@ public class ConfigFlattener
             _refs.put(id, ref);
 
             // and add the dependency
-            try {
-                if (!_graph.dependsOn(id, _current)) {
-                    _graph.addDependency(id, _current);
+            if (_trackDependencies) {
+                try {
+                    if (!_graph.dependsOn(id, _current)) {
+                        _graph.addDependency(id, _current);
+                    }
+                } catch (Exception e) {
+                    log.warning("Oh fugging shit",
+                        "id", id,
+//                        "seen id?", _allSeen.contains(id),
+                        "current", _current,
+//                        "seen current?", _allSeen.contains(_current),
+                        e);
                 }
-            } catch (Exception e) {
-                log.warning("Oh fugging shit",
-                    "id", id,
-//                    "seen id?", _allSeen.contains(id),
-                    "current", _current,
-//                    "seen current?", _allSeen.contains(_current),
-                    e);
             }
         }
 
@@ -692,6 +700,9 @@ public class ConfigFlattener
         /** The config we're currently examining while adding dependencies. */
         protected ConfigId _current;
 
+        /** Are we tracking dependencies on this pass? */
+        protected boolean _trackDependencies = true;
+
         /** All valid config classes. */
         protected final Set<Class<?>> _cfgClasses = Sets.newHashSet();
 
@@ -717,10 +728,11 @@ public class ConfigFlattener
     protected Set<SuppressableWarning> _suppressedWarnings =
             EnumSet.noneOf(SuppressableWarning.class);
 
-    // TEMP?
+    /** Somewhat temporary until we have exporting 2.0, such that we can have non-manual coaxing
+      on the C# side, and we can remove these special-cases. */
+    // TODO: remove special cases when we can
     protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
             "com.threerings.trinity.gui.config.ColorConfig",
             "com.threerings.trinity.gui.config.FontConfig",
-            "com.threerings.trinity.gui.config.PositionConfig",
-            "");
+            "com.threerings.trinity.gui.config.PositionConfig");
 }
