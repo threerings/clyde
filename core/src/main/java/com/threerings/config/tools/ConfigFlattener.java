@@ -293,7 +293,7 @@ public class ConfigFlattener
                         group.addConfig(newCfg, false);
 //                        log.info("Mapped new config/argged with name '" + newCfg.getName() + "'");
                         newNames.put(key, newName);
-                        gatherer.addNewConfig(id.clazz, newCfg, true);
+                        gatherer.addNewConfig(id.clazz, newCfg, false);
                     }
 
                     // now, copy a new config reference with the new name to the existing ref
@@ -520,6 +520,9 @@ public class ConfigFlattener
             }
 
             super.gather(cfgmgr);
+
+            // after gathering
+            _trackRefs = true;
         }
 
         @Override
@@ -610,8 +613,10 @@ public class ConfigFlattener
         @Override
         public void add (Class<? extends ManagedConfig> clazz, ConfigReference<?> ref)
         {
-            if (ref != null) {
-                mapRefToClass(ref, clazz);
+            if (_trackRefs) {
+                if (ref != null) {
+                    mapRefToClass(ref, clazz);
+                }
             }
 
             // omit config refs with no args: we don't care
@@ -621,7 +626,9 @@ public class ConfigFlattener
 
             // track the ref...
             ConfigId id = new ConfigId(clazz, ref.getName());
-            _refs.put(id, ref);
+            if (_trackRefs) {
+                _refs.put(id, ref);
+            }
 
             // and add the dependency
             if (_trackDependencies) {
@@ -660,7 +667,9 @@ public class ConfigFlattener
             // make a new String that we can identify uniquely later
             cfgName = new String(cfgName);
             // map it
-            _bareToClass.put(cfgName, clazz);
+            if (_trackRefs) {
+                _bareToClass.put(cfgName, clazz);
+            }
             // tell super about it...
             super.addBareReference(clazz, cfgName);
             // return it so that it's re-set into the Field
@@ -702,6 +711,9 @@ public class ConfigFlattener
 
         /** Are we tracking dependencies on this pass? */
         protected boolean _trackDependencies = true;
+
+        /** Are we tracking references on this pass? */
+        protected boolean _trackRefs = false;
 
         /** All valid config classes. */
         protected final Set<Class<?>> _cfgClasses = Sets.newHashSet();
