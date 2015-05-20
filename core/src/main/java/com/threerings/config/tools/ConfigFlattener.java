@@ -237,9 +237,7 @@ public class ConfigFlattener
     {
         // prior to losing parameter/derivation information, examine parameters
         FlatDependencyGatherer gatherer = new FlatDependencyGatherer(cfgmgr);
-
-        // then gather references...
-        gatherer.gather(cfgmgr);
+        ReferenceMapper mapper = gatherer.getReferenceMapper();
 
         // now go through each ref in dependency ordering
 //        log.info("Flattening...");
@@ -251,7 +249,7 @@ public class ConfigFlattener
             ConfigGroup<ManagedConfig> group =
                     (ConfigGroup<ManagedConfig>)cfgmgr.getGroup(id.clazz);
             ManagedConfig cfg = group.getRawConfig(id.name);
-            List<ConfigReference<?>> list = gatherer.getReferences(id);
+            List<ConfigReference<?>> list = mapper.getReferences(id);
 //            log.info("Checking " + id, "refCount", list.size());
             if (!list.isEmpty()) {
                 Set<String> paramNames;
@@ -293,7 +291,7 @@ public class ConfigFlattener
                         group.addConfig(newCfg, false);
 //                        log.info("Mapped new config/argged with name '" + newCfg.getName() + "'");
                         newNames.put(key, newName);
-                        gatherer.addNewConfig(id.clazz, newCfg, false);
+                        mapper.noteFlattenedConfig(newCfg);
                     }
 
                     // now, copy a new config reference with the new name to the existing ref
@@ -306,11 +304,11 @@ public class ConfigFlattener
             clearParameters(newCfg);
             group.addConfig(newCfg, false);
 //            log.info("Mapped new config with name '" + newCfg.getName() + "'");
-            gatherer.addNewConfig(id.clazz, newCfg, false);
+            mapper.noteFlattenedConfig(newCfg);
         }
 
 //        log.info("Flattened " + count);
-        return gatherer.getReplacer(cfgmgr);
+        return mapper.getReplacer(cfgmgr);
     }
 
     /**
@@ -485,9 +483,25 @@ public class ConfigFlattener
      */
     protected class FlatDependencyGatherer extends DependencyGatherer.PreExamined
     {
-        public FlatDependencyGatherer (ConfigManager preFlattened)
+        public FlatDependencyGatherer (ConfigManager cfgmgr)
         {
-            super(preFlattened);
+            super(cfgmgr);
+            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+                Class<? extends ManagedConfig> clazz = group.getConfigClass();
+                _cfgClasses.add(clazz);
+                for (ManagedConfig cfg : group.getRawConfigs()) {
+                    _graph.add(new ConfigId(clazz, cfg.getName()));
+                }
+            }
+            gather(cfgmgr);
+        }
+
+        /**
+         * Get a reference mapper.
+         */
+        public ReferenceMapper getReferenceMapper ()
+        {
+            return new ReferenceMapper(this);
         }
 
         /**
@@ -500,31 +514,6 @@ public class ConfigFlattener
                     : _graph.removeAvailableElement();
         }
 
-        /**
-         * Get all the references that point at the specified id.
-         */
-        public List<ConfigReference<?>> getReferences (ConfigId id)
-        {
-            return Collections.unmodifiableList(_refs.get(id));
-        }
-
-        @Override
-        public void gather (ConfigManager cfgmgr)
-        {
-            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-                Class<? extends ManagedConfig> clazz = group.getConfigClass();
-                _cfgClasses.add(clazz);
-                for (ManagedConfig cfg : group.getRawConfigs()) {
-                    _graph.add(new ConfigId(clazz, cfg.getName()));
-                }
-            }
-
-            super.gather(cfgmgr);
-
-            // after gathering
-            _trackRefs = true;
-        }
-
         @Override
         protected void findReferences (ManagedConfig cfg)
         {
@@ -535,6 +524,88 @@ public class ConfigFlattener
             } finally {
                 _current = null;
             }
+        }
+
+        @Override
+        public void add (Class<? extends ManagedConfig> clazz, ConfigReference<?> ref)
+        {
+            // omit config refs with no args: we don't care
+            if (ref == null || ref.getArguments().isEmpty() || !_cfgClasses.contains(clazz)) {
+                return;
+            }
+
+            // add the dependency
+            ConfigId id = new ConfigId(clazz, ref.getName());
+            try {
+                if (!_graph.dependsOn(id, _current)) {
+                    _graph.addDependency(id, _current);
+                }
+            } catch (Exception e) {
+                log.warning("Oh fugging shit",
+                    "id", id,
+//                        "seen id?", _allSeen.contains(id),
+                    "current", _current,
+//                        "seen current?", _allSeen.contains(_current),
+                    e);
+            }
+        }
+
+        @Override
+        public Class<? extends ManagedConfig> getParameterConfigType (ConfigId id, String param)
+        {
+            // We are making this method public, nothing more.
+            return super.getParameterConfigType(id, param);
+        }
+
+        @Override
+        protected void findArgumentReferences (
+                ConfigReference<?> ref, Class<? extends ManagedConfig> clazz, Set<Object> seen)
+        {
+            ConfigId oldCurrent = _current;
+            _current = new ConfigId(clazz, ref.getName());
+            try {
+                super.findArgumentReferences(ref, clazz, seen);
+
+            } finally {
+                _current = oldCurrent;
+            }
+        }
+
+        /** The config we're currently examining while adding dependencies. */
+        protected ConfigId _current;
+
+        /** All valid config classes. */
+        protected final Set<Class<?>> _cfgClasses = Sets.newHashSet();
+
+        /** The dependency graph. */
+        protected final DependencyGraph<ConfigId> _graph = new DependencyGraph<ConfigId>();
+    }
+
+    /**
+     * A gatherer that gathers dependencies between config references
+     * as well as collects each ConfigReference uniquely for later rewriting.
+     */
+    protected class ReferenceMapper extends DependencyGatherer
+    {
+        public ReferenceMapper (FlatDependencyGatherer flatGatherer)
+        {
+            _flatGatherer = flatGatherer;
+        }
+
+        /**
+         * Note a newly-flattened config.
+         */
+        public void noteFlattenedConfig (ManagedConfig cfg)
+        {
+            findReferences(cfg);
+        }
+
+        /**
+         * Get all the references that point at the specified id.
+         */
+        public List<ConfigReference<?>> getReferences (ConfigId id)
+        {
+            return Collections.unmodifiableList(_refs.get(id));
         }
 
         /**
@@ -591,74 +662,28 @@ public class ConfigFlattener
             };
         }
 
-        /**
-         * Add a newly-created config to the reference set.
-         */
-        public void addNewConfig (
-                Class<? extends ManagedConfig> clazz, ManagedConfig cfg, boolean trackDependencies)
-        {
-            _current = new ConfigId(clazz, cfg.getName());
-            _trackDependencies = trackDependencies;
-            try {
-                if (trackDependencies) {
-                    _graph.add(_current);
-                }
-                super.findReferences(cfg);
-            } finally {
-                _current = null;
-                _trackDependencies = true;
-            }
-        }
-
         @Override
         public void add (Class<? extends ManagedConfig> clazz, ConfigReference<?> ref)
         {
-            if (_trackRefs) {
-                if (ref != null) {
-                    mapRefToClass(ref, clazz);
-                }
+            if (ref != null) {
+                mapRefToClass(ref, clazz);
             }
 
             // omit config refs with no args: we don't care
-            if (ref == null || ref.getArguments().isEmpty() || !_cfgClasses.contains(clazz)) {
+            if (ref == null || ref.getArguments().isEmpty() ||
+                    !_flatGatherer._cfgClasses.contains(clazz)) {
                 return;
             }
 
             // track the ref...
             ConfigId id = new ConfigId(clazz, ref.getName());
-            if (_trackRefs) {
-                _refs.put(id, ref);
-            }
-
-            // and add the dependency
-            if (_trackDependencies) {
-                try {
-                    if (!_graph.dependsOn(id, _current)) {
-                        _graph.addDependency(id, _current);
-                    }
-                } catch (Exception e) {
-                    log.warning("Oh fugging shit",
-                        "id", id,
-//                        "seen id?", _allSeen.contains(id),
-                        "current", _current,
-//                        "seen current?", _allSeen.contains(_current),
-                        e);
-                }
-            }
+            _refs.put(id, ref);
         }
 
         @Override
-        protected void findArgumentReferences (
-                ConfigReference<?> ref, Class<? extends ManagedConfig> clazz, Set<Object> seen)
+        protected Class<? extends ManagedConfig> getParameterConfigType (ConfigId id, String param)
         {
-            ConfigId oldCurrent = _current;
-            _current = new ConfigId(clazz, ref.getName());
-            try {
-                super.findArgumentReferences(ref, clazz, seen);
-
-            } finally {
-                _current = oldCurrent;
-            }
+            return _flatGatherer.getParameterConfigType(id, param);
         }
 
         @Override
@@ -666,10 +691,7 @@ public class ConfigFlattener
         {
             // make a new String that we can identify uniquely later
             cfgName = new String(cfgName);
-            // map it
-            if (_trackRefs) {
-                _bareToClass.put(cfgName, clazz);
-            }
+            _bareToClass.put(cfgName, clazz);
             // tell super about it...
             super.addBareReference(clazz, cfgName);
             // return it so that it's re-set into the Field
@@ -706,24 +728,12 @@ public class ConfigFlattener
             }
         }
 
-        /** The config we're currently examining while adding dependencies. */
-        protected ConfigId _current;
-
-        /** Are we tracking dependencies on this pass? */
-        protected boolean _trackDependencies = true;
-
-        /** Are we tracking references on this pass? */
-        protected boolean _trackRefs = false;
-
-        /** All valid config classes. */
-        protected final Set<Class<?>> _cfgClasses = Sets.newHashSet();
+        /** Our allied gatherer. */
+        protected final FlatDependencyGatherer _flatGatherer;
 
         /** The references that point to a particular config, indexed by config. */
         protected final ListMultimap<ConfigId, ConfigReference<?>> _refs =
                 ArrayListMultimap.create();
-
-        /** The dependency graph. */
-        protected final DependencyGraph<ConfigId> _graph = new DependencyGraph<ConfigId>();
 
         /** Maps all config references to their class. */
         protected final Map<ConfigReference<?>, Class<?>> _refToClass = Maps.newIdentityHashMap();
