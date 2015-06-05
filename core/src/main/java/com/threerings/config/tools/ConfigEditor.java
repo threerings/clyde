@@ -533,7 +533,13 @@ public class ConfigEditor extends BaseConfigEditor
     {
         PrintStreamDialog dialog = new PrintStreamDialog(
             this, _msgs.get("m.validate_refs"), _msgs.get("b.ok"));
-        validateReferences(createValidator(dialog.getPrintStream()));
+        PrintStream stream = dialog.getPrintStream();
+        try {
+            validateReferences(createValidator(stream));
+        } catch (Exception e) {
+            stream.println("Exception while validating!!");
+            e.printStackTrace(stream);
+        }
         dialog.maybeShow();
     }
 
