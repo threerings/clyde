@@ -213,8 +213,11 @@ public abstract class DependencyGatherer
         {
             Class<? extends ManagedConfig> value = _paramCfgTypes.get(id, param);
             if (value == null) {
-                throw new RuntimeException(Logger.format("Bogus config and/or parameter!",
-                        "config", id, "parameter", param));
+//                throw new RuntimeException(Logger.format("Bogus config and/or parameter!",
+//                        "config", id, "parameter", param));
+                log.warning("Bogus config and/or parameter! Ignoring.",
+                        "config", id, "parameter", param);
+                return null;
             }
             return (value == UnknownParameterTypeMarker.class)
                     ? null
