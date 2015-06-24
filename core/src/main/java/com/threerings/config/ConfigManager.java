@@ -69,6 +69,12 @@ import static com.threerings.ClydeLog.log;
 public class ConfigManager
     implements Copyable, Exportable
 {
+    // TODO: Replace with java.util.function.Consumer when we got to Java 8
+    public interface Consumer<T>
+    {
+        public void accept (T t);
+    }
+
     /**
      * Creates a new global configuration manager.
      *
@@ -102,10 +108,21 @@ public class ConfigManager
      */
     public void init ()
     {
+        init(new Consumer<Exception>() {
+                public void accept (Exception e) {} // do-nothing
+            });
+    }
+
+    /**
+     * Initialization method for the global configuration manager.
+     */
+    public void init (Consumer<Exception> exceptionConsumer)
+    {
         // load the manager properties
         try {
             loadManagerProperties();
         } catch (IOException e) {
+            exceptionConsumer.accept(e);
             log.warning("Failed to load manager properties.", e);
             return;
         }
@@ -121,7 +138,7 @@ public class ConfigManager
         for (Class<?> clazz : classes) {
             @SuppressWarnings("unchecked") Class<? extends ManagedConfig> cclass =
                     (Class<? extends ManagedConfig>)clazz;
-            registerGroup(cclass);
+            registerGroup(cclass, exceptionConsumer);
         }
     }
 
@@ -724,10 +741,11 @@ public class ConfigManager
     /**
      * Registers a new config group.
      */
-    protected <T extends ManagedConfig> void registerGroup (Class<T> clazz)
+    protected <T extends ManagedConfig> void registerGroup (
+            Class<T> clazz, Consumer<Exception> exceptionConsumer)
     {
         ConfigGroup<T> group = new ConfigGroup<T>(clazz);
-        group.init(this);
+        group.init(this, exceptionConsumer);
         _groups.put(clazz, group);
     }
 

@@ -100,10 +100,21 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void init (ConfigManager cfgmgr)
     {
+        init(cfgmgr, new ConfigManager.Consumer<Exception>() {
+                public void accept (Exception e) {} // do nothing
+            });
+    }
+
+    /**
+     * Initializes this group.
+     */
+    public void init (ConfigManager cfgmgr, ConfigManager.Consumer<Exception> exceptionConsumer)
+    {
         _cfgmgr = cfgmgr;
 
         // load the existing configurations (first checking for an xml file, then a binary file)
-        if (_cfgmgr.getConfigPath() != null && (readConfigs(true) || readConfigs(false))) {
+        if (_cfgmgr.getConfigPath() != null &&
+                (readConfigs(true, exceptionConsumer) || readConfigs(false, exceptionConsumer))) {
             log.debug("Read configurations for group " + _name + ".");
         }
 
@@ -450,7 +461,7 @@ public class ConfigGroup<T extends ManagedConfig>
      *
      * @return true if successful, false otherwise.
      */
-    protected boolean readConfigs (boolean xml)
+    protected boolean readConfigs (boolean xml, ConfigManager.Consumer<Exception> exceptionConsumer)
     {
         InputStream stream = getConfigStream(xml);
         if (stream == null) {
@@ -463,6 +474,7 @@ public class ConfigGroup<T extends ManagedConfig>
             in.close();
 
         } catch (Exception e) { // IOException, ClassCastException
+            exceptionConsumer.accept(e);
             log.warning("Error reading configurations.", "group", _name, e);
             return false;
         }
