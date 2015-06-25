@@ -37,8 +37,6 @@ import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ComparableTuple;
 import com.samskivert.util.QuickSort;
 
-import com.threerings.io.Streamable;
-
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -379,7 +377,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
      * Represents an attached model.
      */
     public class Attachment extends DeepObject
-        implements Exportable, Streamable
+        implements Exportable
     {
         /** The name of the node representing the attachment point. */
         @Editable(editor="choice")
