@@ -338,10 +338,13 @@ public class PropertyUtil
             return null;
 
         } else if (property.getType().equals(ConfigReference.class)) {
-            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
-                (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+            @SuppressWarnings("unchecked") Class<? extends ManagedConfig> cclass =
+                (Class<? extends ManagedConfig>)property.getArgumentType(ConfigReference.class);
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                 (ConfigReference<ManagedConfig>)value;
+            if (object instanceof DerivedConfig) {
+                cclass = ((DerivedConfig)object).cclass;
+            }
             ArgumentMap args = ref.getArguments();
             if (args.isEmpty()) {
                 return ref;
