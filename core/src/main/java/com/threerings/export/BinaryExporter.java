@@ -347,7 +347,7 @@ public class BinaryExporter extends Exporter
         _classIds.put(clazz, _lastClassId);
 
         // write the name
-        _out.writeUTF(clazz.getName());
+        Streamer.writeUTF(_out, clazz.getName());
 
         // write the flags (for arrays, the flags of the inmost component type)
         _out.writeByte(getFlags(getInmostComponentType(clazz)));

@@ -40,6 +40,8 @@ import java.nio.ShortBuffer;
 
 import java.util.HashMap;
 
+import com.google.common.base.Charsets;
+
 import org.lwjgl.BufferUtils;
 
 import static com.threerings.export.Log.log;
@@ -49,6 +51,29 @@ import static com.threerings.export.Log.log;
  */
 public abstract class Streamer<T>
 {
+    /**
+     * Write the specified String to the stream as <em>regular</em>, <em>unmodified</em> UTF-8.
+     * Previously, exporting would write modified UTF-8, because that's what's built-in to Java.
+     * But that's a pain in the ass when communicating with other languages.
+     *
+     * Code expecting to read "regular" will not properly decode "modified", but the other
+     * way around works. So, "regular" is the universal writer and "modified" is the universal
+     * reader. From now on, that's what exporting will do here on the Java side, but I'll
+     * soon drop support for reading "modified" in other languages.
+     */
+    public static void writeUTF (DataOutputStream out, String s)
+        throws IOException
+    {
+        byte[] bytes = s.getBytes(Charsets.UTF_8);
+        if (bytes.length > Short.MAX_VALUE) {
+            throw new IOException(
+                    "String too long to use with writeUTF [byteLength=" + bytes.length + "]");
+        }
+        out.writeShort(bytes.length);
+        out.write(bytes);
+        log.info("Wrote NEWSTYLE");
+    }
+
     /**
      * Returns the streamer, if any, for the specified class.
      */
@@ -62,7 +87,7 @@ public abstract class Streamer<T>
                 _streamers.put(clazz, streamer = new Streamer<Enum<?>>() {
                     public void write (Enum<?> value, DataOutputStream out)
                         throws IOException {
-                        out.writeUTF(value.name());
+                        writeUTF(out, value.name());
                     }
                     public Enum<?> read (DataInputStream in) throws IOException {
                         @SuppressWarnings("unchecked")
@@ -144,7 +169,7 @@ public abstract class Streamer<T>
 
         _streamers.put(Class.class, new Streamer<Class<?>>() {
             public void write (Class<?> value, DataOutputStream out) throws IOException {
-                out.writeUTF(value.getName());
+                writeUTF(out, value.getName());
             }
             public Class<?> read (DataInputStream in) throws IOException, ClassNotFoundException {
                 return Class.forName(in.readUTF());
@@ -208,7 +233,7 @@ public abstract class Streamer<T>
 
         _streamers.put(String.class, new Streamer<String>() {
             public void write (String value, DataOutputStream out) throws IOException {
-                out.writeUTF(value);
+                writeUTF(out, value);
             }
             public String read (DataInputStream in) throws IOException {
                 return in.readUTF();
@@ -338,7 +363,7 @@ public abstract class Streamer<T>
         // io types
         _streamers.put(File.class, new Streamer<File>() {
             public void write (File value, DataOutputStream out) throws IOException {
-                out.writeUTF(value.toString());
+                writeUTF(out, value.toString());
             }
             public File read (DataInputStream in) throws IOException {
                 return new File(in.readUTF());
