@@ -71,7 +71,6 @@ public abstract class Streamer<T>
         }
         out.writeShort(bytes.length);
         out.write(bytes);
-        log.info("Wrote NEWSTYLE");
     }
 
     /**
