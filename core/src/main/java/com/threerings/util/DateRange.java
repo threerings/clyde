@@ -9,32 +9,21 @@ import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
-import com.threerings.util.DeepObject;
 
 /**
  * An Editable date range.
  * Honors the 'mode' attribute and interprets it according to the DateTimeEditor.
  */
 public class DateRange extends DeepObject
-    implements Streamable, Exportable, Validatable
+    implements TimeActive, Streamable, Exportable, Validatable
 {
-    /**
-     * Is this date range active?
-     */
+    // from TimeActive
     public boolean isActive (long now)
     {
         return (now >= _startTime) && (now < _stopTime);
     }
 
-    // from Validatable
-    public boolean isValid ()
-    {
-        return (_startTime <= _stopTime);
-    }
-
-    /**
-     * Return the next start/stop time, or null for none ('now' is past 'stopTime').
-     */
+    // from TimeActive
     public Long getNextTime (long now)
     {
         // if we're misconfigured (start after stop) or we're already after the stop time
@@ -44,6 +33,12 @@ public class DateRange extends DeepObject
             : (now < _startTime)
                 ? _startTime
                 : _stopTime;
+    }
+
+    // from Validatable
+    public boolean isValid ()
+    {
+        return (_startTime <= _stopTime);
     }
 
     /** The start time. */
