@@ -209,7 +209,7 @@ public class Introspector
         // find the getters and setters
         HashMap<String, Method> unpaired = new HashMap<String, Method>();
         for (Method method : clazz.getDeclaredMethods()) {
-            if (method.isBridge() || !method.isAnnotationPresent(Editable.class)) {
+            if (method.isSynthetic() || !method.isAnnotationPresent(Editable.class)) {
                 continue;
             }
             String name = method.getName();
