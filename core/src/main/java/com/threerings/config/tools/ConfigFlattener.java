@@ -468,10 +468,9 @@ public class ConfigFlattener
             this.destDir = new File(outDir);
             Preconditions.checkArgument(destDir.isDirectory(), "%s isn't a directory", destDir);
 
-            MessageManager msgmgr = new MessageManager("rsrc.i18n");
             this.cfgmgr = stripOnSave
-                ? new StripOnSaveConfigManager(rsrcmgr, msgmgr, "config/")
-                : new ConfigManager(rsrcmgr, msgmgr, "config/");
+                ? new StripOnSaveConfigManager(rsrcmgr, null, "config/")
+                : new ConfigManager(rsrcmgr, null, "config/");
 //            log.info("Starting up...");
             cfgmgr.init();
         }
