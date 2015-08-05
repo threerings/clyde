@@ -2,7 +2,7 @@
 // $Id$
 //
 // Clyde library - tools for developing networked games
-// Copyright (C) 2005-2012 Three Rings Design, Inc.
+// Copyright (C) 2005-2015 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
 //
 // Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -23,19 +23,29 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.editor.util;
+package com.threerings.util;
 
-import com.threerings.util.ResourceContext;
-
-import com.threerings.media.image.ColorPository;
+import com.threerings.config.ConfigManager;
+import com.threerings.resource.ResourceManager;
+import com.threerings.util.MessageManager;
 
 /**
  * Provides access to the services required by the editor.
  */
-public interface EditorContext extends ResourceContext
+public interface ResourceContext
 {
     /**
-     * Returns a reference to the color pository.
+     * Returns a reference to the resource manager.
      */
-    public ColorPository getColorPository ();
+    public ResourceManager getResourceManager ();
+
+    /**
+     * Returns a reference to the message manager.
+     */
+    public MessageManager getMessageManager ();
+
+    /**
+     * Returns a reference to the configuration manager.
+     */
+    public ConfigManager getConfigManager ();
 }

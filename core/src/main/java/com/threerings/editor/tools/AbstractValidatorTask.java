@@ -32,6 +32,7 @@ import org.apache.tools.ant.BuildException;
 import com.threerings.tools.FileSetTask;
 
 import com.threerings.resource.ResourceManager;
+import com.threerings.util.ResourceContext;
 import com.threerings.util.MessageManager;
 
 import com.threerings.editor.util.Validator;
@@ -47,16 +48,12 @@ public abstract class AbstractValidatorTask extends FileSetTask
     public void execute ()
         throws BuildException
     {
-        ResourceManager rsrcmgr = new ResourceManager("rsrc/");
-        MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        rsrcmgr.initResourceDir("rsrc/");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
-        cfgmgr.init();
+        ValidatorContext context = createContext();
 
         Validator validator = createValidator();
         Iterable<File> files = getFiles();
 
-        if (!validate(cfgmgr, files, validator)) {
+        if (!validate(context.getConfigManager(), files, validator)) {
             throw new BuildException();
         }
     }
@@ -73,5 +70,81 @@ public abstract class AbstractValidatorTask extends FileSetTask
     protected Validator createValidator ()
     {
         return new Validator(System.err);
+    }
+
+    /**
+     * Create the context for this task.
+     */
+    protected ValidatorContext createContext ()
+    {
+        return new ValidatorContext();
+    }
+
+    /**
+     * The context for this validator.
+     */
+    protected static class ValidatorContext
+        implements ResourceContext
+    {
+        /** Default constructor. */
+        public ValidatorContext ()
+        {
+            _rsrcmgr = createResourceManager();
+            _rsrcmgr.initResourceDir("rsrc/");
+            _msgmgr = createMessageManager();
+            _cfgmgr = createConfigManager(_rsrcmgr, _msgmgr);
+            _cfgmgr.init();
+        }
+
+        // from ResourceContext
+        public ResourceManager getResourceManager ()
+        {
+            return _rsrcmgr;
+        }
+
+        // from ResourceContext
+        public MessageManager getMessageManager ()
+        {
+            return _msgmgr;
+        }
+
+        // from ResourceContext
+        public ConfigManager getConfigManager ()
+        {
+            return _cfgmgr;
+        }
+
+        /**
+         * Create and return a resource manager.
+         */
+        protected ResourceManager createResourceManager ()
+        {
+            return new ResourceManager("rsrc/");
+        }
+
+        /**
+         * Create and return a message manager.
+         */
+        public MessageManager createMessageManager ()
+        {
+            return new MessageManager("rsrc.i18n");
+        }
+
+        /**
+         * Create an return a config manager based on the passed in message and resource manager.
+         */
+        public ConfigManager createConfigManager (ResourceManager rsrcmgr, MessageManager msgmgr)
+        {
+            return new ConfigManager(rsrcmgr, msgmgr, "config/");
+        }
+
+        /** The resource manager. */
+        protected ResourceManager _rsrcmgr;
+
+        /** The message manager. */
+        protected MessageManager _msgmgr;
+
+        /** The config manager. */
+        protected ConfigManager _cfgmgr;
     }
 }
