@@ -13,6 +13,7 @@ import java.io.StreamCorruptedException;
 
 import java.util.Iterator;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.io.ByteStreams;
@@ -140,5 +141,28 @@ public class Streams
         throws IOException, IllegalArgumentException
     {
         return Ints.checkedCast(readVarLong(in));
+    }
+
+    /**
+     * Write a String to the specified stream, UTF-8 encoded and prefixed by a varint length.
+     */
+    public static void writeVarString (OutputStream out, String s)
+        throws IOException
+    {
+        byte[] bytes = s.getBytes(Charsets.UTF_8);
+        writeVarInt(out, bytes.length);
+        out.write(bytes);
+    }
+
+    /**
+     * Read a String from the specified stream, UTF-8 encoded and prefixed by a varint length.
+     */
+    public static String readVarString (InputStream in)
+        throws IOException
+    {
+        int length = readVarInt(in);
+        byte[] buf = new byte[length];
+        in.read(buf);
+        return new String(buf, Charsets.UTF_8);
     }
 }
