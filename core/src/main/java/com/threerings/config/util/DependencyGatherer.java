@@ -389,7 +389,9 @@ public abstract class DependencyGatherer
                     }
 
                 } else {
-                    log.warning("Expecting reference parameter: " + value);
+                    log.warning("Expected reference parameter but got something else.",
+                            "ref", ref, "clazz", clazz, "valueType", value.getClass(),
+                            "value", value);
                 }
 
             } else {
