@@ -162,7 +162,7 @@ public class Streams
     {
         int length = readVarInt(in);
         byte[] buf = new byte[length];
-        in.read(buf);
+        ByteStreams.readFully(in, buf);
         return new String(buf, Charsets.UTF_8);
     }
 }
