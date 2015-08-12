@@ -237,7 +237,7 @@ public class ConfigFlattener
     {
         // prior to losing parameter/derivation information, examine parameters
         FlatDependencyGatherer gatherer = new FlatDependencyGatherer(cfgmgr);
-        ReferenceMapper mapper = gatherer.getReferenceMapper();
+        ReferenceMapper mapper = createReferenceMapper(gatherer);
 
         // now go through each ref in dependency ordering
 //        log.info("Flattening...");
@@ -429,6 +429,14 @@ public class ConfigFlattener
     }
 
     /**
+     * Create the reference mapper to use.
+     */
+    protected ReferenceMapper createReferenceMapper (FlatDependencyGatherer gatherer)
+    {
+        return new ReferenceMapper(gatherer);
+    }
+
+    /**
      * Issue a suppressable warning, maybe.
      */
     protected void warn (SuppressableWarning type, Object... details)
@@ -493,14 +501,6 @@ public class ConfigFlattener
                 }
             }
             gather(cfgmgr);
-        }
-
-        /**
-         * Get a reference mapper.
-         */
-        public ReferenceMapper getReferenceMapper ()
-        {
-            return new ReferenceMapper(this);
         }
 
         /**
@@ -612,53 +612,7 @@ public class ConfigFlattener
          */
         public Exporter.Replacer getReplacer (final ConfigManager cfgmgr)
         {
-            return new Exporter.Replacer() {
-                public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
-                {
-                    if (_writeNoReplace.contains(value)) {
-                        return null;
-                    }
-                    Class<?> cfgClazz;
-                    ConfigReference<?> ref;
-
-                    if (value instanceof ConfigReference<?>) {
-                        cfgClazz = _refToClass.get(value);
-                        ref = (ConfigReference<?>)value;
-
-                    } else if (value instanceof String) {
-                        cfgClazz = _bareToClass.get((String)value);
-                        if (cfgClazz == null) {
-                            return null; // not a reference string
-                        }
-                        ref = new ConfigReference<ManagedConfig>((String)value);
-
-                    } else {
-                        return null;
-                    }
-
-                    if (cfgClazz == null) {
-                        log.warning("I found a ref we don't know about...", "ref", ref);
-                        return null;
-                    }
-
-                    // TEMP?
-                    // some classes we will never convert
-                    if (BLACKLIST.contains(cfgClazz.getName())) {
-                        return null;
-                    }
-
-                    @SuppressWarnings("unchecked")
-                    ConfigReference<ManagedConfig> cref = (ConfigReference<ManagedConfig>)ref;
-                    @SuppressWarnings("unchecked")
-                    Class<ManagedConfig> cclazz = (Class<ManagedConfig>)cfgClazz;
-                    ManagedConfig cfg = cfgmgr.getConfig(cclazz, cref);
-                    if (cfg == null) {
-                        warn(SuppressableWarning.REFERENCE_NOT_SATISFIED, "cref", cref);
-                        return null;
-                    }
-                    return new Exporter.Replacement(cfg, (clazz == Object.class) ? clazz : cclazz);
-                }
-            };
+            return null;
         }
 
         @Override
@@ -706,13 +660,9 @@ public class ConfigFlattener
                        "field name", f.getName());
                 return;
             }
-
-            // TODO
-//            // to have it write out as normal
-//            mapRefToClass(ref, clazz);
-
-            // to have it write as a config reference
-            _writeNoReplace.add(ref);
+//
+//            // to have it write as a config reference
+//            _writeNoReplace.add(ref);
         }
 
         /**
@@ -740,20 +690,12 @@ public class ConfigFlattener
         /** Maps bare references to their class. */
         protected final Map<String, Class<?>> _bareToClass = Maps.newIdentityHashMap();
 
-        /** Write the config reference as a config reference. */
-        // POSSIBLY TEMP: once superflattening is done right and Coaxing works on the client
-        protected final Set<Object> _writeNoReplace = Sets.newIdentityHashSet();
+//        /** Write the config reference as a config reference. */
+//        // POSSIBLY TEMP: once superflattening is done right and Coaxing works on the client
+//        protected final Set<Object> _writeNoReplace = Sets.newIdentityHashSet();
     }
 
     /** The suppressable warnings that are currently suppressed. */
     protected Set<SuppressableWarning> _suppressedWarnings =
             EnumSet.noneOf(SuppressableWarning.class);
-
-    /** Somewhat temporary until we have exporting 2.0, such that we can have non-manual coaxing
-      on the C# side, and we can remove these special-cases. */
-    // TODO: remove special cases when we can
-    protected static final ImmutableSet<String> BLACKLIST = ImmutableSet.of(
-            "com.threerings.trinity.gui.config.ColorConfig",
-            "com.threerings.trinity.gui.config.FontConfig",
-            "com.threerings.trinity.gui.config.PositionConfig");
 }
