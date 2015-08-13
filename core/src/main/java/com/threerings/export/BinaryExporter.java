@@ -41,6 +41,8 @@ import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
@@ -258,22 +260,51 @@ public class BinaryExporter extends Exporter
             writeValue(value, clazz);
             return;
         }
+        boolean track;
         // intern all strings before looking them up. Strings are immutable. We can share them.
         if (value instanceof String) {
             value = ((String)value).intern();
+            track = true;
+
+        } else {
+            track = shouldTrackInstance(value);
         }
-        // see if we've written it before
-        Integer objectId = _objectIds.get(value);
-        if (objectId != null) {
-            Streams.writeVarInt(_out, objectId);
-            return;
+        if (track) {
+            // see if we've written it before
+            Integer objectId = _objectIds.get(value);
+            if (objectId != null) {
+                Streams.writeVarInt(_out, objectId);
+                return;
+            }
         }
         // if not, assign and write a new id
         Streams.writeVarInt(_out, ++_lastObjectId);
-        _objectIds.put(value, _lastObjectId);
+        if (track) {
+            _objectIds.put(value, _lastObjectId);
+        }
 
         // and write the value
         writeValue(value, clazz);
+    }
+
+    /**
+     * Should we remember this value in case it's seen again?
+     */
+    protected boolean shouldTrackInstance (Object value)
+    {
+        // The guava ImmutableCollections *that are empty* are singleton instances.
+        // This only works with type erasure and so let's not track these so that we don't
+        // screw-up exporting to other runtimes.
+        if (value instanceof ImmutableCollection<?>) {
+            return !((ImmutableCollection<?>)value).isEmpty();
+        }
+        if (value instanceof ImmutableMap<?, ?>) {
+            return !((ImmutableMap<?, ?>)value).isEmpty();
+        }
+        return true;
+        // alternatively:
+//        return (value != ImmutableList.of()) && (value != ImmutableMap.of()) &&
+//            (value != ImmutableMultiset.of()) &&  ....
     }
 
     /**
