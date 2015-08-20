@@ -32,7 +32,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -42,10 +44,15 @@ import java.util.EnumSet;
 import java.util.zip.DeflaterOutputStream;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -292,19 +299,7 @@ public class BinaryExporter extends Exporter
      */
     protected boolean shouldTrackInstance (Object value)
     {
-        // The guava ImmutableCollections *that are empty* are singleton instances.
-        // This only works with type erasure and so let's not track these so that we don't
-        // screw-up exporting to other runtimes.
-        if (value instanceof ImmutableCollection<?>) {
-            return !((ImmutableCollection<?>)value).isEmpty();
-        }
-        if (value instanceof ImmutableMap<?, ?>) {
-            return !((ImmutableMap<?, ?>)value).isEmpty();
-        }
-        return true;
-        // alternatively:
-//        return (value != ImmutableList.of()) && (value != ImmutableMap.of()) &&
-//            (value != ImmutableMultiset.of()) &&  ....
+        return !TYPE_ERASED_SINGLETONS.contains(value);
     }
 
     /**
@@ -638,4 +633,20 @@ public class BinaryExporter extends Exporter
 
     /** Class<?> data. */
     protected Map<Class<?>, ClassData> _classData = new HashMap<Class<?>, ClassData>();
+
+    /** The singletons that are used in a type-erased manner, such that they're not really safe
+     * to share if seen more than once. */
+    protected static final Set<Object> TYPE_ERASED_SINGLETONS = Sets.newIdentityHashSet();
+    static {
+        TYPE_ERASED_SINGLETONS.addAll(Arrays.asList(
+                ImmutableList.<Object>of(),
+                ImmutableSet.<Object>of(),
+                ImmutableSortedSet.<Object>of(),
+                ImmutableMap.<Object, Object>of(),
+                ImmutableMultiset.<Object>of(),
+                Collections.<Object>emptyList(),
+                Collections.<Object>emptySet(),
+                Collections.<Object, Object>emptyMap()
+            ));
+    }
 }
