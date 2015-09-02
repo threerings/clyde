@@ -397,9 +397,21 @@ public class ConfigGroup<T extends ManagedConfig>
     public void writeFields (Exporter out)
         throws IOException
     {
+        ManagedConfig[] array;
+        if (_cfgmgr != null) {
+            array = _cfgmgr.toSaveableArray(_cclass, getRawConfigs(), ManagedConfig.class);
+
+        } else {
+            // This code path seems to be necessary for saving sub-groups in a UI for PX, when
+            // doing something like dat2xml...
+            // I'm not sure why, it's very possible that it just never needed the cfgmgr
+            // before and that particular thing never got tested when I made _cfgmgr
+            // responsible for saving the array?
+            array = Iterables.toArray(getRawConfigs(), ManagedConfig.class);
+        }
+
         // write the sorted configs out as a raw object
-        out.write("configs", _cfgmgr.toSaveableArray(_cclass, getRawConfigs(), ManagedConfig.class),
-                null, Object.class);
+        out.write("configs", array, null, Object.class);
         out.write("class", String.valueOf(_cclass.getName()));
     }
 
