@@ -119,9 +119,9 @@ public class ConfigTreeFilterPanel extends JPanel
         if (_predicates == null) {
             return _filter;
         }
-        Predicate<? super ManagedConfig> combined = Predicates.and(_predicates);
+        Predicate<? super ManagedConfig> combined = Predicates.<ManagedConfig>and(_predicates);
         if (_filter != null) {
-            combined = Predicates.and(_filter, combined);
+            combined = Predicates.<ManagedConfig>and(_filter, combined);
         }
         return combined;
     }

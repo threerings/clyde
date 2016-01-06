@@ -134,7 +134,7 @@ public class ConfigBox extends JComboBox
         if (_additionalFilter == null) {
             curFilter = _filter;
         } else {
-            curFilter = Predicates.and(_filter, _additionalFilter.get());
+            curFilter = Predicates.<ManagedConfig>and(_filter, _additionalFilter.get());
         }
         for (ConfigGroup<ManagedConfig> group : _groups) {
             for (ManagedConfig config : Iterables.filter(group.getRawConfigs(), curFilter)) {
