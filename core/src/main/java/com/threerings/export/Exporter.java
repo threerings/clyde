@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
@@ -773,7 +774,9 @@ public abstract class Exporter
             // we make a concession to ArgumentMap in here
             return (value instanceof ImmutableMap)
                     ? ImmutableMap.class
-                    : (value instanceof ArgumentMap) ? ArgumentMap.class : HashMap.class;
+                    : (value instanceof ArgumentMap)
+                            ? ArgumentMap.class
+                            : (value instanceof TreeMap) ? TreeMap.class : HashMap.class;
 
         } else if (value instanceof Buffer) {
             if (value instanceof ByteBuffer) {
