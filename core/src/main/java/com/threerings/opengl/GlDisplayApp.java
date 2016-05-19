@@ -78,6 +78,7 @@ public abstract class GlDisplayApp extends GlApp
     {
         try {
             Display.setDisplayModeAndFullscreen(mode);
+            updateRendererSize(mode);
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode/fullscreen.", "mode", mode, e);
         }
@@ -93,9 +94,7 @@ public abstract class GlDisplayApp extends GlApp
         }
         try {
             Display.setDisplayMode(mode);
-            if (Display.isCreated()) {
-                _renderer.setSize(mode.getWidth(), mode.getHeight());
-            }
+            updateRendererSize(mode);
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode.", "mode", mode, e);
         }
@@ -250,6 +249,16 @@ public abstract class GlDisplayApp extends GlApp
     {
         DisplayMode mode = Display.getDisplayMode();
         _renderer.init(Display.getDrawable(), mode.getWidth(), mode.getHeight());
+    }
+
+    /**
+     * Update the renderer size after a mode change.
+     */
+    protected void updateRendererSize (DisplayMode mode)
+    {
+        if (Display.isCreated()) {
+            _renderer.setSize(mode.getWidth(), mode.getHeight());
+        }
     }
 
     /**
