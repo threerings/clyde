@@ -367,16 +367,26 @@ public abstract class ManagedConfig extends DeepObject
      */
     protected void fireConfigUpdated ()
     {
-        if (_listeners != null) {
-            final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, this);
-            _listeners.apply(new ObserverList.ObserverOp<ConfigUpdateListener<ManagedConfig>>() {
-                public boolean apply (ConfigUpdateListener<ManagedConfig> listener) {
-                    listener.configUpdated(event);
-                    return true;
-                }
-            });
+        // TODO: Remove need for _firing kludge?!?!
+        if (_firing) {
+            return;
         }
-        maybeFireOnConfigManager();
+        _firing = true;
+        try {
+            if (_listeners != null) {
+                final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, this);
+                _listeners.apply(new ObserverList.ObserverOp<ConfigUpdateListener<ManagedConfig>>() {
+                    public boolean apply (ConfigUpdateListener<ManagedConfig> listener) {
+                        listener.configUpdated(event);
+                        return true;
+                    }
+                });
+            }
+            maybeFireOnConfigManager();
+
+        } finally {
+           _firing =false;
+        }
     }
 
     /**
@@ -450,6 +460,11 @@ public abstract class ManagedConfig extends DeepObject
     /** The list of listeners to notify on change or removal. */
     @DeepOmit
     protected transient WeakObserverList<ConfigUpdateListener<ManagedConfig>> _listeners;
+
+    /** Are we firing our event right now? */
+    // TODO: Remove! Kludge.
+    @DeepOmit
+    protected transient boolean _firing;
 
     /** The list of configs to which we are listening for updates.
      * This is usually null and is typically only used when the client creates a DConfigDirector,
