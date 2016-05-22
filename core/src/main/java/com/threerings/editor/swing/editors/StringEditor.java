@@ -34,6 +34,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
+import com.google.common.base.Objects;
+
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
 
@@ -62,7 +64,7 @@ public class StringEditor extends PropertyEditor
     public void changedUpdate (DocumentEvent event)
     {
         String text = StringUtil.trim(_field.getText());
-        if (!_property.get(_object).equals(text)) {
+        if (!Objects.equal(_property.get(_object), text)) {
             _property.set(_object, text);
             fireStateChanged();
         }
