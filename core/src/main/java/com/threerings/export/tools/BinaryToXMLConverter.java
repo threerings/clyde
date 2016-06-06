@@ -93,7 +93,8 @@ public class BinaryToXMLConverter
         throws IOException
     {
         BinaryImporter in = new BinaryImporter(new FileInputStream(source));
-        XMLExporter out = new XMLExporter(new FileOutputStream(dest));
+        XMLExporter out = new XMLExporter(
+                "-".equals(dest) ? System.out : new FileOutputStream(dest));
         try {
             while (true) {
                 out.writeObject(in.readObject());
