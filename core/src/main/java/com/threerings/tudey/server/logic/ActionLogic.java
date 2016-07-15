@@ -983,6 +983,10 @@ public abstract class ActionLogic extends Logic
         {
             super.didInit();
             _action = createAction(((ActionConfig.Delayed)_config).action, _source);
+            if (_intervals == null) {
+                log.warning("Reinitted?", new Exception());
+                _intervals = Sets.newIdentityHashSet();
+            }
         }
 
         @Override
