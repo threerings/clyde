@@ -43,7 +43,7 @@ import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.FocusEvent;
-import com.threerings.opengl.gui.event.IMEEvent;
+//import com.threerings.opengl.gui.event.IMEEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.TextEvent;
