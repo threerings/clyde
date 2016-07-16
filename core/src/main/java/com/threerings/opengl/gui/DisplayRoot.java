@@ -36,7 +36,7 @@ import java.util.Iterator;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
-import org.lwjgl.input.IME;
+//import org.lwjgl.input.IME;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -73,12 +73,12 @@ public class DisplayRoot extends Root
         boolean newActive = !_wasActive && isActive;
         _wasActive = isActive;
 
-        // process ime events
-        while (IME.next()) {
-            dispatchEvent(getFocus(),
-                    new IMEEvent(this, _tickStamp,
-                        IME.getState(), IME.getString(), IME.getCursorPosition()));
-        }
+//        // process ime events
+//        while (IME.next()) {
+//            dispatchEvent(getFocus(),
+//                    new IMEEvent(this, _tickStamp,
+//                        IME.getState(), IME.getString(), IME.getCursorPosition()));
+//        }
 
         // Work around a Mac issue: when focus is regained, the mouse coordinate is not
         // updated until an actual mouse moved event is generated...
@@ -198,13 +198,13 @@ public class DisplayRoot extends Root
      */
     public void setIMEComposingEnabled (boolean enabled)
     {
-        if (enabled == _imeComposingEnabled) {
-            return;
-        }
-        if (_focus instanceof IMEComponent) {
-            IME.setComposing(enabled);
-        }
-        _imeComposingEnabled = enabled;
+//        if (enabled == _imeComposingEnabled) {
+//            return;
+//        }
+//        if (_focus instanceof IMEComponent) {
+//            IME.setComposing(enabled);
+//        }
+//        _imeComposingEnabled = enabled;
     }
 
     @Override
@@ -362,17 +362,17 @@ public class DisplayRoot extends Root
         dispatchEvent(getFocus(), event);
     }
 
-    @Override
-    protected void setIMEFocus (boolean focused)
-    {
-        if (!focused) {
-            IME.setComposing(false);
-        }
-        super.setIMEFocus(focused);
-        if (focused) {
-            IME.setComposing(_imeComposingEnabled);
-        }
-    }
+//    @Override
+//    protected void setIMEFocus (boolean focused)
+//    {
+//        if (!focused) {
+//            IME.setComposing(false);
+//        }
+//        super.setIMEFocus(focused);
+//        if (focused) {
+//            IME.setComposing(_imeComposingEnabled);
+//        }
+//    }
 
     /** A forced mouse location, or null. Used on Mac OS X only, after regaining focus. */
     protected Point _forcedMouse;
@@ -381,8 +381,8 @@ public class DisplayRoot extends Root
      * the mouse click that may arrive with focus. */
     protected boolean _wasActive;
 
-    /** If ime composing is enabled. */
-    protected boolean _imeComposingEnabled;
+//    /** If ime composing is enabled. */
+//    protected boolean _imeComposingEnabled;
 
     /** The number of pixels used by the menubar on Mac OS X. For fudging mouse position. */
     protected static final int MAC_OS_MENUBAR_HEIGHT = 22;

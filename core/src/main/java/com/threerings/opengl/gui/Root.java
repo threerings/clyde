@@ -39,7 +39,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Iterables;
 
-import org.lwjgl.input.IME;
+//import org.lwjgl.input.IME;
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
@@ -1004,26 +1004,26 @@ public abstract class Root extends SimpleOverlay
             _focus = focus;
             if (oldFocus != null) {
                 oldFocus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_LOST));
-                if (oldFocus instanceof IMEComponent) {
-                    setIMEFocus(false);
-                }
+//                if (oldFocus instanceof IMEComponent) {
+//                    setIMEFocus(false);
+//                }
             }
             if (_focus != null) {
                 _focus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_GAINED));
-                if (_focus instanceof IMEComponent) {
-                    setIMEFocus(true);
-                }
+//                if (_focus instanceof IMEComponent) {
+//                    setIMEFocus(true);
+//                }
             }
         }
     }
 
-    /**
-     * Called when the focus of an IME enabled component changes.
-     */
-    protected void setIMEFocus (boolean focused)
-    {
-        IME.setEnabled(focused);
-    }
+//    /**
+//     * Called when the focus of an IME enabled component changes.
+//     */
+//    protected void setIMEFocus (boolean focused)
+//    {
+//        IME.setEnabled(focused);
+//    }
 
     /**
      * Called by a window when its position changes. This triggers a recomputation of the hover

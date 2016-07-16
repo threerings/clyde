@@ -29,7 +29,7 @@ import javax.swing.undo.UndoManager;
 
 import com.google.common.base.Strings;
 
-import org.lwjgl.input.IME.State;
+//import org.lwjgl.input.IME.State;
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.IntTuple;
@@ -300,16 +300,16 @@ public abstract class EditableTextComponent extends TextComponent
                 break;
             }
 
-        } else if (event instanceof IMEEvent) {
-            IMEEvent iev = (IMEEvent)event;
-            String text = iev.getString();
-            if (text != null) {
-                if (iev.isResult()) {
-                    clearPending();
-                }
-                replaceSelectedText(text, CompoundType.WORD_CHAR, !iev.isResult());
-            }
-            return true;
+//        } else if (event instanceof IMEEvent) {
+//            IMEEvent iev = (IMEEvent)event;
+//            String text = iev.getString();
+//            if (text != null) {
+//                if (iev.isResult()) {
+//                    clearPending();
+//                }
+//                replaceSelectedText(text, CompoundType.WORD_CHAR, !iev.isResult());
+//            }
+//            return true;
         }
 
         return super.dispatchEvent(event);
