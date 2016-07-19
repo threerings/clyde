@@ -329,6 +329,13 @@ public abstract class BehaviorLogic extends Logic
             _action = createAction(((BehaviorConfig.WanderCollision)_config).action, _agent);
         }
 
+        @Override
+        public void shutdown ()
+        {
+            super.shutdown();
+            _action.removed();
+        }
+
         protected ActionLogic _action;
     }
 
@@ -792,6 +799,17 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override
+        public void shutdown ()
+        {
+            super.shutdown();
+            for (int ii = 0; ii < _behaviors.length; ii++) {
+                if (_behaviors[ii] != null) {
+                    _behaviors[ii].shutdown();
+                }
+            }
+        }
+
+        @Override
         protected void didInit ()
         {
             super.didInit();
@@ -881,6 +899,7 @@ public abstract class BehaviorLogic extends Logic
         @Override
         public void shutdown ()
         {
+            super.shutdown();
             for (ScriptLogic logic : _steps) {
                 logic.shutdown();
             }
@@ -941,6 +960,7 @@ public abstract class BehaviorLogic extends Logic
         @Override
         public void shutdown ()
         {
+            super.shutdown();
             if (_first != null) {
                 _first.shutdown();
             }
