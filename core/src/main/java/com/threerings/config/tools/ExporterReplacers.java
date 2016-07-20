@@ -48,17 +48,13 @@ public enum ExporterReplacers
      */
     public static Exporter.Replacer getAll ()
     {
-        // WHAT IN THE FUCK
-        Object shitbox = EnumSet.allOf(ExporterReplacers.class);
-        @SuppressWarnings("unchecked")
-        Iterable<Exporter.Replacer> reps = (Iterable<Exporter.Replacer>) shitbox;
-        return compound(reps);
+        return compound(EnumSet.allOf(ExporterReplacers.class));
     }
 
     /**
      * Compound replacers.
      */
-    public static Exporter.Replacer compound (Iterable<Exporter.Replacer> itr)
+    public static Exporter.Replacer compound (Iterable<? extends Exporter.Replacer> itr)
     {
         final ImmutableList<Exporter.Replacer> replacers = ImmutableList.copyOf(itr);
         return new Exporter.Replacer() {
