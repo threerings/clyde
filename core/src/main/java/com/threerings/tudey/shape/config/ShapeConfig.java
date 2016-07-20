@@ -33,6 +33,7 @@ import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.export.Exporter;
 import com.threerings.export.Exportable;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -53,10 +54,13 @@ import com.threerings.tudey.shape.Shape;
 @EditorTypes({
     ShapeConfig.Point.class, ShapeConfig.Segment.class, ShapeConfig.Rectangle.class,
     ShapeConfig.Circle.class, ShapeConfig.Capsule.class, ShapeConfig.Polygon.class,
-    ShapeConfig.Compound.class, ShapeConfig.Global.class  })
+    ShapeConfig.Transformed.class, ShapeConfig.Compound.class, ShapeConfig.Global.class  })
 public abstract class ShapeConfig extends DeepObject
     implements Exportable, Streamable
 {
+//    /** Shareable, empty array of ShapeConfigs. */
+//    public static final ShapeConfig[] EMPTY_ARRAY = new ShapeConfig[0];
+
     /**
      * A point.
      */
@@ -257,10 +261,82 @@ public abstract class ShapeConfig extends DeepObject
     }
 
     /**
+     * A transformed shape.
+     */
+    public static class Transformed extends ShapeConfig
+    {
+        /** The base shape. */
+        @Editable
+        public ShapeConfig shape = new Point();
+
+        /** The shape's transform. */
+        @Editable(step=0.01)
+        public Transform2D transform = new Transform2D();
+
+        @Override
+        public void invalidate ()
+        {
+            super.invalidate();
+            shape.invalidate();
+        }
+
+        @Override
+        protected Shape createShape ()
+        {
+            return shape.getShape().transform(transform);
+        }
+
+        @Override
+        protected void draw (boolean outline)
+        {
+            transform.update(Transform2D.UNIFORM);
+            Vector2f translation = transform.getTranslation();
+            float rotation = transform.getRotation();
+            float scale = transform.getScale();
+            GL11.glPushMatrix();
+            try {
+                GL11.glTranslatef(translation.x, translation.y, 0f);
+                GL11.glRotatef(FloatMath.toDegrees(rotation), 0f, 0f, 1f);
+                GL11.glScalef(scale, scale, scale);
+                shape.draw(outline);
+            } finally {
+                GL11.glPopMatrix();
+            }
+        }
+    }
+
+    /**
      * A compound shape.
      */
     public static class Compound extends ShapeConfig
     {
+        public static enum Replacer
+            implements Exporter.Replacer
+        {
+            INSTANCE;
+
+            // from Replacer
+            public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
+            {
+                if ((clazz != Compound.class) && (value instanceof Compound)) {
+                    Compound cc = (Compound)value;
+                    if (cc.shapes.length == 1) {
+                        TransformedShape ts = cc.shapes[0];
+                        if (ts.transform.equals(new TransformedShape().transform)) {
+                            return new Exporter.Replacement(ts.shape, clazz);
+
+                        } else {
+                            Transformed repl = new Transformed();
+                            repl.shape = ts.shape;
+                            repl.transform = ts.transform;
+                            return new Exporter.Replacement(repl, clazz);
+                        }
+                    }
+                }
+                return null;
+            }
+        }
+
         /** The component shapes. */
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
