@@ -40,9 +40,6 @@ public enum ExporterReplacers
     },
     ;
 
-    // from Replacer
-    public abstract Exporter.Replacement getReplacement (Object value, Class<?> clazz);
-
     /**
      * Get all the standard replacers, combined.
      */
