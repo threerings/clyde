@@ -319,6 +319,7 @@ public class ConfigGroup<T extends ManagedConfig>
                 LazyOutputStream stream = closer.register(new LazyOutputStream(file));
                 Exporter xport = closer.register(
                         xml ? new XMLExporter(stream) : new BinaryExporter(stream));
+                xport.setReplacer(_cfgmgr.getSaveReplacer(this));
                 xport.writeObject(array);
 
             } finally {

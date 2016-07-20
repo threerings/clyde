@@ -804,6 +804,14 @@ public class ConfigManager
                 }.immutableSortedCopy(configs), clazz);
     }
 
+    /**
+     * Get the export replacer a group should use when saving configs, or null.
+     */
+    protected Exporter.Replacer getSaveReplacer (ConfigGroup<?> group)
+    {
+        return null;
+    }
+
     /** The type of this manager. */
     protected String _type;
 
