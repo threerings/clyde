@@ -286,12 +286,10 @@ public class Circle extends Shape
     {
         ShapeConfig.Circle circle = new ShapeConfig.Circle();
         circle.radius = radius;
-        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
-        transformed.shape = circle;
-        transformed.transform.set(_center, 0f);
-        ShapeConfig.Compound compound = new ShapeConfig.Compound();
-        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
-        return compound;
+        ShapeConfig.Transformed shape = new ShapeConfig.Transformed();
+        shape.shape = circle;
+        shape.transform.set(_center, 0f);
+        return shape;
     }
 
     @Override

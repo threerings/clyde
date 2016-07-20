@@ -314,12 +314,10 @@ public class Segment extends Shape
     {
         ShapeConfig.Segment segment = new ShapeConfig.Segment();
         segment.length = _start.distance(_end);
-        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
-        transformed.shape = segment;
-        transformed.transform.set(_start.add(_end).multLocal(0.5f), _start.direction(_end));
-        ShapeConfig.Compound compound = new ShapeConfig.Compound();
-        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
-        return compound;
+        ShapeConfig.Transformed shape = new ShapeConfig.Transformed();
+        shape.shape = segment;
+        shape.transform.set(_start.add(_end).multLocal(0.5f), _start.direction(_end));
+        return shape;
     }
 
     @Override

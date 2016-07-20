@@ -383,12 +383,10 @@ public class Capsule extends Shape
         ShapeConfig.Capsule capsule = new ShapeConfig.Capsule();
         capsule.radius = radius;
         capsule.length = _start.distance(_end);
-        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
-        transformed.shape = capsule;
-        transformed.transform.set(_start.add(_end).multLocal(0.5f), _start.direction(_end));
-        ShapeConfig.Compound compound = new ShapeConfig.Compound();
-        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
-        return compound;
+        ShapeConfig.Transformed shape = new ShapeConfig.Transformed();
+        shape.shape = capsule;
+        shape.transform.set(_start.add(_end).multLocal(0.5f), _start.direction(_end));
+        return shape;
     }
 
     @Override

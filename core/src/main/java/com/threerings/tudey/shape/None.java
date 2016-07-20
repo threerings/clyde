@@ -222,12 +222,10 @@ public class None extends Shape
     public ShapeConfig createConfig ()
     {
         ShapeConfig.None none = new ShapeConfig.None();
-        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
-        transformed.shape = none;
-        transformed.transform.set(_location, 0f);
-        ShapeConfig.Compound compound = new ShapeConfig.Compound();
-        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
-        return compound;
+        ShapeConfig.Transformed shape = new ShapeConfig.Transformed();
+        shape.shape = none;
+        shape.transform.set(_location, 0f);
+        return shape;
     }
 
     /** The location of the none. */
