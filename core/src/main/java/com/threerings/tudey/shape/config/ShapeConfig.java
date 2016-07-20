@@ -33,7 +33,6 @@ import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-import com.threerings.export.Exporter;
 import com.threerings.export.Exportable;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -310,33 +309,6 @@ public abstract class ShapeConfig extends DeepObject
      */
     public static class Compound extends ShapeConfig
     {
-        public static enum Replacer
-            implements Exporter.Replacer
-        {
-            INSTANCE;
-
-            // from Replacer
-            public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
-            {
-                if ((clazz != Compound.class) && (value instanceof Compound)) {
-                    Compound cc = (Compound)value;
-                    if (cc.shapes.length == 1) {
-                        TransformedShape ts = cc.shapes[0];
-                        if (ts.transform.equals(new TransformedShape().transform)) {
-                            return new Exporter.Replacement(ts.shape, clazz);
-
-                        } else {
-                            Transformed repl = new Transformed();
-                            repl.shape = ts.shape;
-                            repl.transform = ts.transform;
-                            return new Exporter.Replacement(repl, clazz);
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-
         /** The component shapes. */
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
