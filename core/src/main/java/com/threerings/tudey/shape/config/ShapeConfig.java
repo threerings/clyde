@@ -325,8 +325,12 @@ public abstract class ShapeConfig extends DeepObject
         @Override
         protected Shape createShape ()
         {
-            Shape[] tshapes = new Shape[shapes.length];
-            for (int ii = 0; ii < shapes.length; ii++) {
+            final int nn = shapes.length;
+            if (nn == 1) {
+                return shapes[0].getShape();
+            }
+            Shape[] tshapes = new Shape[nn];
+            for (int ii = 0; ii < nn; ii++) {
                 tshapes[ii] = shapes[ii].getShape();
             }
             return new com.threerings.tudey.shape.Compound(tshapes);
