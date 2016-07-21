@@ -1140,7 +1140,7 @@ public class TudeySceneModel extends SceneModel
         @Override
         public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tags.getTags();
+            return getConfig(cfgmgr).getTags().getTags();
         }
 
         @Override
