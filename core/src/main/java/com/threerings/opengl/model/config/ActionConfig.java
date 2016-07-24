@@ -365,6 +365,9 @@ public abstract class ActionConfig extends DeepObject
         @Override
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
+            if (actions.length == 1) {
+                return actions[0].createExecutor(ctx, scope);
+            }
             final Executor[] executors = new Executor[actions.length];
             for (int ii = 0; ii < actions.length; ii++) {
                 executors[ii] = actions[ii].createExecutor(ctx, scope);
