@@ -20,7 +20,7 @@ public enum ExporterReplacers
         @Override
         public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
         {
-            if ((clazz != ShapeConfig.Compound.class) && (value instanceof ShapeConfig.Compound)) {
+            if ((value instanceof ShapeConfig.Compound) && (clazz != ShapeConfig.Compound.class)) {
                 ShapeConfig.Compound cc = (ShapeConfig.Compound)value;
                 if (cc.shapes.length == 1) {
                     ShapeConfig.TransformedShape ts = cc.shapes[0];
