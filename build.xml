@@ -177,9 +177,6 @@
           description="Deploys our build artifacts to a Maven repository.">
     <jar basedir="${src.dir}" destfile="${deploy.dir}/${ant.project.name}-sources.jar"/>
     <jar basedir="${deploy.dir}/docs" destfile="${deploy.dir}/${ant.project.name}-javadoc.jar"/>
-    <jar basedir="lib/windows" destfile="${deploy.dir}/lwjgl-platform-natives-windows.jar"/>
-    <jar basedir="lib/macosx" destfile="${deploy.dir}/lwjgl-platform-natives-osx.jar"/>
-    <jar basedir="lib/linux" destfile="${deploy.dir}/lwjgl-platform-natives-linux.jar"/>
     <artifact:deploy file="pom.xml" uniqueVersion="false">
       <remoteRepository url="${maven.deploy.repo}"/>
       <pom refid="pom"/>
@@ -189,19 +186,6 @@
       <pom refid="core-pom"/>
       <attach file="${deploy.dir}/${ant.project.name}-sources.jar" classifier="sources"/>
       <attach file="${deploy.dir}/${ant.project.name}-javadoc.jar" classifier="javadoc"/>
-    </artifact:deploy>
-    <artifact:pom id="lwjgl-pom" file="lwjgl/pom.xml"/>
-    <artifact:deploy file="lib/lwjgl.jar" uniqueVersion="false">
-      <remoteRepository url="${maven.deploy.repo}"/>
-      <pom refid="lwjgl-pom"/>
-      <attach file="${deploy.dir}/lwjgl-platform-natives-windows.jar" classifier="natives-windows"/>
-      <attach file="${deploy.dir}/lwjgl-platform-natives-osx.jar" classifier="natives-osx"/>
-      <attach file="${deploy.dir}/lwjgl-platform-natives-linux.jar" classifier="natives-linux"/>
-    </artifact:deploy>
-    <artifact:pom id="lwjgl_util-pom" file="lwjgl_util/pom.xml"/>
-    <artifact:deploy file="lib/lwjgl_util.jar" uniqueVersion="false">
-      <remoteRepository url="${maven.deploy.repo}"/>
-      <pom refid="lwjgl_util-pom"/>
     </artifact:deploy>
   </target>
 </project>

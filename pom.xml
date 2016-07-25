@@ -42,8 +42,6 @@
 
   <modules>
     <module>core</module>
-    <module>lwjgl</module>
-    <module>lwjgl_util</module>
   </modules>
 
   <repositories>
