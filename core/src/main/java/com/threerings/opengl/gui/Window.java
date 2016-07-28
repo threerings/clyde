@@ -270,6 +270,22 @@ public class Window extends Container
         }
     }
 
+
+    /**
+     * Callback to allow a window to reposition or lay itself in response to being
+     * added or the renderer's size changing.
+     *
+     * @param rendererWidth the width of the renderer, not necessarily the same as the Display.
+     * @param rendererHeight the height of the renderer, not necessarily the same as the Display.
+     */
+    protected void layoutWindow (int rendererWidth, int rendererHeight)
+    {
+        // Nothing by default.
+        // You should consider overriding and calling pack() and center(). Maybe just center().
+        // Maybe your own thing or nothing.
+        // But if you override, please call super()!
+    }
+
     /**
      * Requests that the specified component be given the input focus.
      */

@@ -25,7 +25,6 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.layout.LayoutManager;
@@ -34,37 +33,34 @@ import com.threerings.opengl.gui.layout.LayoutManager;
  * A window that automatically stretches to cover the entire render surface.
  */
 public class StretchWindow extends Window
-    implements Renderer.Observer
 {
     public StretchWindow (GlContext ctx, LayoutManager layout)
     {
         super(ctx, layout);
     }
 
-    // documentation inherited from interface Renderer.Observer
+    /**
+     * @deprecated. Override layoutWindow instead, or maybe you meant to override setSize()???
+     */
+    @Deprecated
+    // TODO: Remove
     public void sizeChanged (int width, int height)
     {
-        setSize(width, height);
+        // nothing
     }
 
     @Override
-    protected void wasAdded ()
+    protected void layoutWindow (int width, int height)
     {
-        super.wasAdded();
-
-        // update size and register as observer
+        super.layoutWindow(width, height);
         if (isStretching()) {
-            Renderer renderer = _ctx.getRenderer();
-            setSize(renderer.getWidth(), renderer.getHeight());
-            renderer.addObserver(this);
+            setSize(width, height);
         }
-    }
-
-    @Override
-    protected void wasRemoved ()
-    {
-        super.wasRemoved();
-        _ctx.getRenderer().removeObserver(this); // safe to remove even if never added
+        // TEMP: provide callback for legacy losers
+        if (true) {
+            sizeChanged(width, height);
+        }
+        // END: TEMP
     }
 
     /**

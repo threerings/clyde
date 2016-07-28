@@ -80,6 +80,7 @@ public abstract class Root extends SimpleOverlay
     {
         super(ctx);
         _soundGroup = ctx.getSoundManager().createGroup(ctx.getClipProvider(), SOUND_SOURCES);
+        ctx.getRenderer().addObserver(_rendererObserver);
     }
 
     /**
@@ -88,6 +89,7 @@ public abstract class Root extends SimpleOverlay
     public void dispose ()
     {
         _soundGroup.dispose();
+        _ctx.getRenderer().removeObserver(_rendererObserver);
     }
 
     /**
@@ -215,6 +217,8 @@ public abstract class Root extends SimpleOverlay
 
         // add this window to the hierarchy (which may set a new focus)
         window.setRoot(this);
+        Renderer renderer = _ctx.getRenderer();
+        window.layoutWindow(renderer.getWidth(), renderer.getHeight());
 
         // if no new focus was set when we added the window, give the focus to the previously
         // pending focus component
@@ -703,6 +707,16 @@ public abstract class Root extends SimpleOverlay
         // we need to validate here because we're adding a window in the middle of our normal frame
         // processing
         _tipwin.validate();
+    }
+
+    /**
+     * Callback from our Renderer.Observer.
+     */
+    protected void rendererSizeChanged (int ww, int hh)
+    {
+        for (Window window : _windows) {
+            window.layoutWindow(ww, hh);
+        }
     }
 
     @Override
@@ -1302,6 +1316,13 @@ public abstract class Root extends SimpleOverlay
 
     /** When dragging, the visual representation of the dragged data. */
     protected Icon _dicon;
+
+    /** Our observer of renderer size. */
+    protected Renderer.Observer _rendererObserver = new Renderer.Observer() {
+        public void sizeChanged (int w, int h) {
+            rendererSizeChanged(w, h);
+        }
+    };
 
     protected static final float TIP_MODE_RESET = 0.6f;
 
