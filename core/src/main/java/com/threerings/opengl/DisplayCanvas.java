@@ -69,59 +69,6 @@ public class DisplayCanvas extends JPanel
     implements GlCanvas, KeyEventDispatcher
 {
     /**
-     * Use reflection to modify the underlying keyboard lookup table in LWJGL. This is
-     * because the lookup table is missing a mapping for ` (grave) for the Mac.
-     * NOTE: This change should go away in the future as the LWJGL moves to native code
-     * for Mac. Otherwise a future patch should hopefully address it. Either way, this
-     * WAR should die sometime soon!
-     */
-    public static void patchLwjglKeyboard ()
-    {
-        if (!RunAnywhere.isMacOS()) {
-            return;
-        }
-        if (!Keyboard.isCreated()) {
-            log.warning("Call to patch keyboard before keyboard was created!");
-            return;
-        }
-
-        // LWJGL now handles Mac keyboards in one of two ways: native and non.
-        // Assume native (since that's the default)
-        try {
-            // Get the display implementation.
-            Field field = Display.class.getDeclaredField("display_impl");
-            field.setAccessible(true);
-            Object di = field.get(null);
-
-            // Get the keyboard from the display implementation.
-            field = di.getClass().getDeclaredField("keyboard");
-            field.setAccessible(true);
-            Object keyb = field.get(di);
-            if (keyb != null) {
-                // "native" keyboard handling
-                field = keyb.getClass().getDeclaredField("nativeToLwjglMap");
-                field.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                Map<Short, Integer> map = (Map<Short, Integer>)field.get(keyb);
-                // In Mac OSX's <HIToolbox/Events.h>: kVK_ANSI_Grave = 0x32
-                // but lwjgl defaultly maps this to KEY_CIRCUMFLEX. Remap it.
-                map.put((Short)(short)0x32, Keyboard.KEY_GRAVE);
-
-            } else {
-                // fall-back to non-native handling
-                Class<?> clazz = Class.forName("org.lwjgl.opengl.KeyboardEventQueue");
-                Field mapField = clazz.getDeclaredField("KEY_MAP");
-                mapField.setAccessible(true);
-                int[] keyMap = (int[])mapField.get(null); // static field
-                keyMap[KeyEvent.VK_BACK_QUOTE] = Keyboard.KEY_GRAVE;
-            }
-
-        } catch (Exception e) {
-            log.info("Failed to patch LWJGL controls", e);
-        }
-    }
-
-    /**
      * Creates a new canvas.
      */
     public DisplayCanvas (final int antialiasingLevel)
@@ -313,7 +260,6 @@ public class DisplayCanvas extends JPanel
         // create the keyboard and mouse
         try {
             Keyboard.create();
-            patchLwjglKeyboard();
         } catch (LWJGLException e) {
             log.warning("Failed to create keyboard.", e);
         }
