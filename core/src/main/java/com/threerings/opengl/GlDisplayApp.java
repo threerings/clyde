@@ -25,6 +25,7 @@
 
 package com.threerings.opengl;
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.image.BufferedImage;
 
@@ -78,7 +79,7 @@ public abstract class GlDisplayApp extends GlApp
     {
         try {
             Display.setDisplayModeAndFullscreen(mode);
-            updateRendererSize(mode);
+            updateRendererSize();
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode/fullscreen.", "mode", mode, e);
         }
@@ -94,7 +95,7 @@ public abstract class GlDisplayApp extends GlApp
         }
         try {
             Display.setDisplayMode(mode);
-            updateRendererSize(mode);
+            updateRendererSize();
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode.", "mode", mode, e);
         }
@@ -246,18 +247,28 @@ public abstract class GlDisplayApp extends GlApp
     @Override
     protected void initRenderer ()
     {
-        DisplayMode mode = Display.getDisplayMode();
-        _renderer.init(Display.getDrawable(), mode.getWidth(), mode.getHeight());
+        Dimension dim = calcRendererSize();
+        _renderer.init(Display.getDrawable(), dim.width, dim.height);
     }
 
     /**
      * Update the renderer size after a mode change.
      */
-    protected void updateRendererSize (DisplayMode mode)
+    protected void updateRendererSize ()
     {
         if (Display.isCreated()) {
-            _renderer.setSize(mode.getWidth(), mode.getHeight());
+            Dimension dim = calcRendererSize();
+            _renderer.setSize(dim.width, dim.height);
         }
+    }
+
+    /**
+     * Return the size to use for rendering the specified display mode.
+     * Single place to perform overrides of rendering alterations.
+     */
+    protected Dimension calcRendererSize ()
+    {
+        return new Dimension(Display.getWidth(), Display.getHeight());
     }
 
     /**
