@@ -210,13 +210,13 @@ public class DisplayRoot extends Root
     @Override
     public int getDisplayWidth ()
     {
-        return Display.getDisplayMode().getWidth();
+        return _ctx.getRenderer().getWidth();
     }
 
     @Override
     public int getDisplayHeight ()
     {
-        return Display.getDisplayMode().getHeight();
+        return _ctx.getRenderer().getHeight();
     }
 
     @Override
