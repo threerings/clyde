@@ -76,6 +76,9 @@ import static com.threerings.opengl.Log.log;
 public class Model extends DynamicScope
     implements SceneElement, ConfigUpdateListener<ModelConfig>
 {
+    /** An empty (and thus immutable and sharable) Model array. */
+    public static final Model[] EMPTY_ARRAY = new Model[0];
+
     @Override
     public void addListener (ScopeUpdateListener listener)
     {

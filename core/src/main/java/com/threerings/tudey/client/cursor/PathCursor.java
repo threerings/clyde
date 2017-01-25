@@ -180,10 +180,10 @@ public class PathCursor extends EntryCursor
         protected TudeyContext _ctx;
 
         /** The models representing the vertices. */
-        protected Model[] _vertices = new Model[0];
+        protected Model[] _vertices = Model.EMPTY_ARRAY;
 
         /** The models representing the edges. */
-        protected Model[] _edges = new Model[0];
+        protected Model[] _edges = Model.EMPTY_ARRAY;
 
         /** The footprint. */
         protected ShapeSceneElement _footprint;

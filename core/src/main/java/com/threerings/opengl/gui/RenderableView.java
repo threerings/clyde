@@ -501,7 +501,7 @@ public class RenderableView extends Component
     protected String _viewNode;
 
     /** The models loaded from the configuration. */
-    protected Model[] _configModels = new Model[0];
+    protected Model[] _configModels = Model.EMPTY_ARRAY;
 
     /** The list of other compositables to include. */
     protected List<Compositable> _compositables = Lists.newArrayList();
