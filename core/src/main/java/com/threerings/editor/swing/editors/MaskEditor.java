@@ -71,6 +71,34 @@ public class MaskEditor extends PropertyEditor
         return (idx == -1) ? 0 : (1 << idx);
     }
 
+    /**
+     * Turn the bits into a string of arbitrary format, for debugging. Do not try to reparse this.
+     *
+     * @return "<none>", or the names of the flags that are on, separated by comma and space.
+     * Leftover bits are also reported.
+     */
+    public static String toString (String mode, int bits)
+    {
+        if (bits == 0) {
+            return "<none>";
+        }
+        String[] flags = _modes.get(mode);
+        StringBuilder buf = new StringBuilder();
+        for (int ii = 0, nn = flags.length; bits != 0 && ii < nn; ii++) {
+            if ((bits & 1) == 1) {
+                if (buf.length() > 0) {
+                    buf.append(", ");
+                }
+                buf.append(flags[ii]);
+            }
+            bits >>>= 1;
+        }
+        if (bits != 0) {
+            buf.append(" _leftover-bits-").append(bits << flags.length);
+        }
+        return buf.toString();
+    }
+
     // documentation inherited from interface DocumentListener
     public void insertUpdate (DocumentEvent event)
     {
