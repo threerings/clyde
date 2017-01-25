@@ -77,14 +77,21 @@ public class StripTask extends Task
     }
 
     @Override
-    public void execute ()
+    public void init ()
         throws BuildException
     {
+        super.init();
+
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         rsrcmgr.initResourceDir("rsrc/");
         _cfgmgr = new ConfigManager(rsrcmgr, null, "config/");
         _cfgmgr.init();
+    }
 
+    @Override
+    public void execute ()
+        throws BuildException
+    {
         for (FileSet fs : _filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             File fromDir = fs.getDir(getProject());
