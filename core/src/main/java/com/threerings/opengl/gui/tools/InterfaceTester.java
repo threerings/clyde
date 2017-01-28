@@ -200,11 +200,6 @@ public class InterfaceTester extends GlCanvasTool
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        // TEMP
-        if (_userInterface == null) {
-            return;
-        }
-        // END: TEMP
         if (event.getSource() == _epanel) {
             // let the config know that it was updated
             if (!_block.enter()) {

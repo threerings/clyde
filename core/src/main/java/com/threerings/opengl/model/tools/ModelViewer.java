@@ -190,11 +190,7 @@ public class ModelViewer extends ModelTool
                 return;
             }
             try {
-                // ah-ha, this possible NPE is caused by 5bbfa84ad96e6d155324025d6f0a27cf1ac823a0
-                // wherein I fire a property change in the property editor
-                if (_model != null) {
-                    _model.getConfig().wasUpdated();
-                }
+                _model.getConfig().wasUpdated();
             } finally {
                 _block.leave();
             }

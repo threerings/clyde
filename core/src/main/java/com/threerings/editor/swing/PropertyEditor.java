@@ -214,8 +214,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
         // give subclasses a chance to update
         update();
-
-        fireStateChanged();
     }
 
     /**
