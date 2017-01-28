@@ -666,6 +666,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             _action.removed();
             if (_elseAction != null) {
                 _elseAction.removed();
@@ -734,6 +735,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             for (ActionLogic action : _actions) {
                 action.removed();
             }
@@ -805,6 +807,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             for (ActionLogic action : _actions) {
                 action.removed();
             }
@@ -882,6 +885,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             for (ActionLogic action : _actions) {
                 action.removed();
             }
@@ -933,6 +937,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             for (ActionLogic action : _actions) {
                 action.removed();
             }
@@ -992,6 +997,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             _action.removed();
             for (ActionInterval ai : _intervals) {
                 ai.cancel();
@@ -1179,6 +1185,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             _action.removed();
         }
 
@@ -1251,6 +1258,7 @@ public abstract class ActionLogic extends Logic
         @Override
         protected void wasRemoved ()
         {
+            super.wasRemoved();
             if (_action != null) {
                 _action.removed();
             }
