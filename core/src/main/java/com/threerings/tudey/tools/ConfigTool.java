@@ -102,7 +102,9 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
      */
     public void addAsRecent (ConfigReference<?> ref)
     {
-        _recentConfigs.addRecent(ref);
+        if (ref != null) {
+            _recentConfigs.addRecent(ref);
+        }
     }
 
     /**
@@ -156,9 +158,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     protected void referenceChanged (ConfigReference<T> ref)
     {
         // add it as a recent reference
-        if (ref != null) {
-            addAsRecent(ref);
-        }
+        addAsRecent(ref);
     }
 
     /**
