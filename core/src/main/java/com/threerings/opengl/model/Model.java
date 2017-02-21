@@ -327,6 +327,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Set this model implementation as 'halted'. This is hackery for a feature.
+         */
+        protected void setHalted ()
+        {
+            // nothing by default
+        }
+
+        /**
          * Creates a set of surfaces.
          */
         protected static Surface[] createSurfaces (
@@ -920,6 +928,18 @@ public class Model extends DynamicScope
     public Scene getScene ()
     {
         return _scene;
+    }
+
+    /**
+     * Set the model to 'halted', to support a specific feature.
+     */
+    public void setHalted ()
+    {
+        stopAllAnimations();
+        _impl.setHalted();
+        for (Model m : getChildren()) {
+            m.setHalted();
+        }
     }
 
     /**

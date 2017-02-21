@@ -539,6 +539,13 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override
+    protected void setHalted ()
+    {
+        super.setHalted();
+        _halted = true;
+    }
+
+    @Override
     public void tick (float elapsed)
     {
         // if we're completed, there's nothing more to do
@@ -564,6 +571,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
                 remaining -= welapsed;
             }
             _warmed = true;
+
+        } else if (_halted) {
+            elapsed = 0;
         }
 
         // reset the bounds
@@ -734,6 +744,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
     /** If true, the particle system has completed. */
     protected boolean _completed;
+
+    /** If true, don't animate this particle system. */
+    protected boolean _halted;
 
     /** Working vector. */
     protected static Vector3f _vector = new Vector3f();
