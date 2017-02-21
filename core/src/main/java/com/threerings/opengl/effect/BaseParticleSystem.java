@@ -542,7 +542,10 @@ public abstract class BaseParticleSystem extends Model.Implementation
     protected void setHalted ()
     {
         super.setHalted();
-        _halted = true;
+        if (!_warmed) {
+            warmUp();
+        }
+        _completed = true;
     }
 
     @Override
@@ -562,18 +565,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
         // the first non-zero elapsed interval triggers the warmup
         if (!_warmed && elapsed > 0f) {
-            float remaining = _config.warmupTime;
-            while (remaining > 0f) {
-                float welapsed = Math.min(remaining, _config.warmupGranularity);
-                for (Layer layer : _layers) {
-                    layer.tick(welapsed);
-                }
-                remaining -= welapsed;
-            }
-            _warmed = true;
-
-        } else if (_halted) {
-            elapsed = 0;
+            warmUp();
         }
 
         // reset the bounds
@@ -682,6 +674,21 @@ public abstract class BaseParticleSystem extends Model.Implementation
     protected abstract Layer createLayer (BaseParticleSystemConfig.Layer config);
 
     /**
+     * Warm-up our layers.
+     */
+    protected void warmUp ()
+    {
+        for (float remaining = _config.warmupTime; remaining > 0f; ) {
+            float welapsed = Math.min(remaining, _config.warmupGranularity);
+            for (Layer layer : _layers) {
+                layer.tick(welapsed);
+            }
+            remaining -= welapsed;
+        }
+        _warmed = true;
+    }
+
+    /**
      * Resets the bounds before the tick.
      */
     protected void resetBounds ()
@@ -744,9 +751,6 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
     /** If true, the particle system has completed. */
     protected boolean _completed;
-
-    /** If true, don't animate this particle system. */
-    protected boolean _halted;
 
     /** Working vector. */
     protected static Vector3f _vector = new Vector3f();
