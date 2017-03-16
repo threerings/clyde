@@ -416,7 +416,7 @@ public class BinaryExporter extends Exporter
     protected void writeEntries (EnumSet<?> set)
         throws IOException
     {
-        EnumSet<?> typer = set.isEmpty() ? EnumSet.complementOf(set) : set;
+        EnumSet<? extends Enum<?>> typer = set.isEmpty() ? EnumSet.complementOf(set) : set;
         Class<?> ctype = typer.iterator().next().getDeclaringClass();
         writeClass(ctype);
         writeEntries((Collection<?>)set);

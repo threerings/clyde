@@ -121,7 +121,7 @@ public class ColorizationEditor extends PropertyEditor
 
         } else if (mode.length() > 0) {
             add(new JLabel(getPropertyLabel() + ":"));
-            add(_color = new JComboBox());
+            add(_color = new JComboBox<>());
             populateColor(_ctx.getColorPository().getClassRecord(mode));
             _color.addActionListener(this);
 
@@ -138,7 +138,7 @@ public class ColorizationEditor extends PropertyEditor
             p2.setBackground(null);
             add(p2);
             p2.add(new JLabel(_msgs.get("m.color") + ":"));
-            p2.add(_color = new JComboBox());
+            p2.add(_color = new JComboBox<>());
             _color.addActionListener(this);
         }
     }
@@ -146,14 +146,14 @@ public class ColorizationEditor extends PropertyEditor
     /**
      * Creates and returns the class combo box.
      */
-    protected JComboBox createClassBox ()
+    protected JComboBox<ClassItem> createClassBox()
     {
-        ArrayList<ClassItem> classes = new ArrayList<ClassItem>();
+        ArrayList<ClassItem> classes = new ArrayList<>();
         for (ClassRecord rec : _ctx.getColorPository().getClasses()) {
             classes.add(new ClassItem(rec));
         }
         QuickSort.sort(classes);
-        JComboBox box = new JComboBox(classes.toArray(new ClassItem[classes.size()]));
+        JComboBox<ClassItem> box = new JComboBox<>(classes.toArray(new ClassItem[classes.size()]));
         box.addActionListener(this);
         return box;
     }
@@ -163,12 +163,13 @@ public class ColorizationEditor extends PropertyEditor
      */
     protected void populateColor (ClassRecord crec)
     {
-        ArrayList<ColorItem> colors = new ArrayList<ColorItem>();
+        ArrayList<ColorItem> colors = new ArrayList<>();
         for (Object color : crec.colors.values()) {
             colors.add(new ColorItem((ColorRecord)color));
         }
         QuickSort.sort(colors);
-        _color.setModel(new DefaultComboBoxModel(colors.toArray(new ColorItem[colors.size()])));
+        ColorItem[] colorItems = colors.toArray(new ColorItem[colors.size()]);
+        _color.setModel(new DefaultComboBoxModel<>(colorItems));
     }
 
     /**
@@ -250,5 +251,6 @@ public class ColorizationEditor extends PropertyEditor
     }
 
     /** The combo boxes. */
-    protected JComboBox _class, _color;
+    protected JComboBox<ClassItem> _class;
+    protected JComboBox<ColorItem> _color;
 }

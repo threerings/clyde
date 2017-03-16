@@ -357,7 +357,7 @@ public class ModelViewer extends ModelTool
          */
         public TrackPanel ()
         {
-            add(_box = new JComboBox(_model.getAnimations()));
+            add(_box = new JComboBox<>(_model.getAnimations()));
             _box.addActionListener(this);
             add(new Spacer(1, 1));
             add(_start = new JButton(_msgs.get("m.start")));
@@ -374,7 +374,7 @@ public class ModelViewer extends ModelTool
          */
         public void updateAnimations ()
         {
-            _box.setModel(new DefaultComboBoxModel(_model.getAnimations()));
+            _box.setModel(new DefaultComboBoxModel<>(_model.getAnimations()));
             updateControls();
         }
 
@@ -402,7 +402,7 @@ public class ModelViewer extends ModelTool
         }
 
         /** The combo box containing the selectable animations. */
-        protected JComboBox _box;
+        protected JComboBox<Animation> _box;
 
         /** The start and stop buttons. */
         protected JButton _start, _stop;

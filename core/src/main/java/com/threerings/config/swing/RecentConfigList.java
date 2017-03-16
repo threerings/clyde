@@ -58,7 +58,7 @@ public class RecentConfigList extends JPanel
         }
 
         // create the list and add it to the hierarchy
-        _list = new JList(_listModel);
+        _list = new JList<>(_listModel);
         _list.setVisibleRowCount(4);
 
         JScrollPane pane = new JScrollPane(
@@ -82,7 +82,7 @@ public class RecentConfigList extends JPanel
         _list.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent (
-                JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+                JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
             {
                 // first, transform the ConfigReference into a nice String
                 String fullString = String.valueOf(value);
@@ -216,10 +216,10 @@ public class RecentConfigList extends JPanel
     }
 
     /** The actual list widget. */
-    protected JList _list;
+    protected JList<?> _list;
 
     /** Our list model. */
-    protected DefaultListModel _listModel = new DefaultListModel();
+    protected DefaultListModel<String> _listModel = new DefaultListModel<>();
 
     /** The observers of this recent list. */
     protected ObserverList<Observer> _observers = ObserverList.newFastUnsafe();

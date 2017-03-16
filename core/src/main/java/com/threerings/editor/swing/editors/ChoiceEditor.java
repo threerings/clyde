@@ -63,7 +63,7 @@ public class ChoiceEditor extends PropertyEditor
     public void update ()
     {
         Object[] options = getOptions();
-        _box.setModel(new DefaultComboBoxModel(options));
+        _box.setModel(new DefaultComboBoxModel<>(options));
         _box.setSelectedItem(_property.get(_object));
     }
 
@@ -71,7 +71,7 @@ public class ChoiceEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        add(_box = new JComboBox());
+        add(_box = new JComboBox<>());
         _box.addActionListener(this);
     }
 
@@ -99,5 +99,5 @@ public class ChoiceEditor extends PropertyEditor
     }
 
     /** The combo box. */
-    protected JComboBox _box;
+    protected JComboBox<Object> _box;
 }

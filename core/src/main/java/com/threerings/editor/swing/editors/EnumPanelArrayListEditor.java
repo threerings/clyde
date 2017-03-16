@@ -58,7 +58,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
     @Override
     protected void updatePanel (EntryPanel panel, Object value)
     {
-        JComboBox box = ((EnumEntryPanel)panel).getBox();
+        JComboBox<?> box = ((EnumEntryPanel)panel).getBox();
         box.setSelectedIndex(getValues().indexOf(value));
     }
 
@@ -88,7 +88,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
     /**
      * Called when a enum is updated.
      */
-    protected void boxUpdated (JComboBox box)
+    protected void boxUpdated (JComboBox<?> box)
     {
         int idx = ((EntryPanel)box.getParent().getParent()).getIndex();
         setValue(idx, getValues().get(box.getSelectedIndex()));
@@ -105,7 +105,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
             super(value);
         }
 
-        public JComboBox getBox ()
+        public JComboBox<?> getBox ()
         {
             return _box;
         }
@@ -129,7 +129,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
                     return getLabel(value, msgs);
                 }
             }).toArray();
-            panel.add(_box = new JComboBox(labels));
+            panel.add(_box = new JComboBox<>(labels));
             _box.setSelectedIndex(values.indexOf(value));
             _box.addActionListener(new ActionListener() {
                 public void actionPerformed (ActionEvent event) {
@@ -140,6 +140,6 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
             return panel;
         }
 
-        protected JComboBox _box;
+        protected JComboBox<?> _box;
     }
 }
