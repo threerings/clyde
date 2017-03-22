@@ -935,6 +935,14 @@ public class ActorSprite extends Sprite
             EntryState estate = (EntryState)((ActorSprite)_parentScope).getActor();
             EntrySprite esprite = _view.getEntrySprite(estate.getKey());
             _entryModel = (esprite == null) ? null : esprite.getModel();
+            if (_entryModel == null) {
+                // warning added RJG 2017-03-22
+                // This may need to be removed if there is something "normal" that has no entry
+                // model. But it seems like: if you're using this kind of sprite then you want
+                // the behavior that it enables and we shouldn't just silently fail to do that!
+                log.warning("Could not find originating 'Entry' sprite from a placeable," +
+                        " the StatefulModelEntry sprite for the actor cannot work without it.");
+            }
         }
 
         @Override
