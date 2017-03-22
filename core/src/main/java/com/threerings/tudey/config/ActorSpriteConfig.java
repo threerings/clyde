@@ -51,6 +51,7 @@ import com.threerings.tudey.util.TudeyContext;
  */
 @EditorTypes({
     ActorSpriteConfig.Default.class, ActorSpriteConfig.Moving.class,
+    ActorSpriteConfig.StatefulModel.class,
     ActorSpriteConfig.StatefulEntry.class, ActorSpriteConfig.StatefulModelEntry.class })
 public abstract class ActorSpriteConfig extends DeepObject
     implements Exportable
@@ -324,7 +325,7 @@ public abstract class ActorSpriteConfig extends DeepObject
     /**
      * Manipulates an entry sprite to reflect the state of the entry's corresponding actor.
      */
-    public static class StatefulModelEntry extends Default
+    public static class StatefulModel extends Default
     {
         /** The entry's states. */
         @Editable
@@ -339,6 +340,24 @@ public abstract class ActorSpriteConfig extends DeepObject
             }
         }
 
+        @Override
+        public ActorSprite.Implementation getImplementation (
+            TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
+        {
+            if (impl != null && impl.getClass() == ActorSprite.StatefulModel.class) {
+                ((ActorSprite.StatefulModel)impl).setConfig(this);
+            } else {
+                impl = new ActorSprite.StatefulModel(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Manipulates an entry sprite to reflect the state of the entry's corresponding actor.
+     */
+    public static class StatefulModelEntry extends StatefulModel
+    {
         @Override
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
