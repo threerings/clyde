@@ -339,6 +339,7 @@ public class UserInterface extends Container
     public UserInterface (GlContext ctx, String name)
     {
         this(ctx, ctx.getConfigManager().getConfig(UserInterfaceConfig.class, name));
+        noteMissingConfig(name);
     }
 
     /**
@@ -349,6 +350,7 @@ public class UserInterface extends Container
     {
         this(ctx, ctx.getConfigManager().getConfig(
             UserInterfaceConfig.class, name, firstKey, firstValue, otherArgs));
+        noteMissingConfig(name);
     }
 
     /**
@@ -357,6 +359,7 @@ public class UserInterface extends Container
     public UserInterface (GlContext ctx, ConfigReference<UserInterfaceConfig> ref)
     {
         this(ctx, ctx.getConfigManager().getConfig(UserInterfaceConfig.class, ref));
+        noteMissingConfig((ref != null) ? ref.getName() : null);
     }
 
     /**
@@ -790,6 +793,17 @@ public class UserInterface extends Container
     {
         return super.toStringHelper()
             .add("config", (_config == null) ? null : _config.getName());
+    }
+
+    /**
+     * Log a <em>fucking error</em> if we don't have any UI config after
+     * supposedly being constructed with one.
+     */
+    protected void noteMissingConfig (String name)
+    {
+        if (_config == null) {
+            log.warning("Unable to find UI!", "name", name);
+        }
     }
 
     @Override
