@@ -56,7 +56,7 @@ public class TranslatedPathProperty extends PathProperty
     protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
     {
         if (value instanceof String && _msgs.exists((String)value)) {
-            value = _msgs.get((String)value);
+            value = _msgs.xlate((String)value);
         }
         super.setProperty(obj, value, prop, coerce);
     }
