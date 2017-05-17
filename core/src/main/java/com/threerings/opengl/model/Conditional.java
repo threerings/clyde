@@ -267,9 +267,17 @@ public class Conditional extends Model.Implementation
     {
         // get the distance from the camera for lod conditions
         Transform3D cameraTransform = _ctx.getCompositor().getCamera().getWorldTransform();
-        _worldTransform.update(Transform3D.UNIFORM);
+        // Note: originally this promoted to UNIFORM and then calculated distance
+        // based on the translation. But, inside furni, the _worldTransform ends up being
+        // AFFINE or GENERAL, and cannot be downgraded to UNIFORM, and getTranslation() returns
+        // the origin. So instead we need to translate an origin point to see where it ends up.
+        // Original code is preserved here:
+        // _worldTransform.update(Transform3D.UNIFORM);
+        // _distance.value = cameraTransform.getTranslation().distance(
+        //     _worldTransform.getTranslation());
+        //
         _distance.value = cameraTransform.getTranslation().distance(
-            _worldTransform.getTranslation());
+            _worldTransform.transformPoint(Vector3f.ZERO, _scratch));
 
         // evaluate the cases to find the active index
         int idx = 0;
@@ -350,4 +358,7 @@ public class Conditional extends Model.Implementation
 
     /** If true, the model has completed. */
     protected boolean _completed;
+
+    /** A scratch vector for doing distance calcs. */
+    protected transient Vector3f _scratch = new Vector3f();
 }
