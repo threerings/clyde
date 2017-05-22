@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 
 import com.threerings.export.Exporter;
 
+import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.shape.config.ShapeConfig;
 
 /**
@@ -33,6 +34,23 @@ public enum ExporterReplacers
                         repl.transform = ts.transform;
                         return new Exporter.Replacement(repl, clazz);
                     }
+                }
+            }
+            return null;
+        }
+    },
+
+    COMPOUND_ACTION_CONFIG {
+        @Override
+        public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
+        {
+            if ((value instanceof ActionConfig.Compound) &&
+                    (clazz != ActionConfig.Compound.class)) {
+                ActionConfig.Compound ac = (ActionConfig.Compound)value;
+                switch (ac.actions.length) {
+                case 0: return new Exporter.Replacement(new ActionConfig.None(), clazz);
+                case 1: return new Exporter.Replacement(ac.actions[0], clazz);
+                default: break;
                 }
             }
             return null;
