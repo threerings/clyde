@@ -680,31 +680,20 @@ public class ActorLogic extends Logic
      */
     protected void updateSnapshot ()
     {
-        // TEMP: debug a mysterious NPE.
-        try {
-            int timestamp = _scenemgr.getTimestamp();
-            if (timestamp > _snaptime) {
-                _previousSnapshot = _snapshot;
-                _snapshotDelta = null;
-                if (_actor.isDirty()) {
-                    _snapshotDelta = new ActorDelta(_snapshot, _actor);
-                    if (_snapshotDelta.isEmpty()) {
-                        _snapshotDelta = null;
-                    } else {
-                        _snapshot = (Actor)_actor.clone();
-                    }
-                    _actor.setDirty(false);
+        int timestamp = _scenemgr.getTimestamp();
+        if (timestamp > _snaptime) {
+            _previousSnapshot = _snapshot;
+            _snapshotDelta = null;
+            if (_actor.isDirty()) {
+                _snapshotDelta = new ActorDelta(_snapshot, _actor);
+                if (_snapshotDelta.isEmpty()) {
+                    _snapshotDelta = null;
+                } else {
+                    _snapshot = (Actor)_actor.clone();
                 }
-                _snaptime = timestamp;
+                _actor.setDirty(false);
             }
-        } catch (NullPointerException npe) {
-            log.warning("NPE updating actor snapshot",
-                    "class", this.getClass(),
-                    "key", _entityKey,
-                    "config", _config,
-                    "collFlags", _collisionFlags,
-                    "source", _source);
-            throw npe; // rethrow
+            _snaptime = timestamp;
         }
     }
 
