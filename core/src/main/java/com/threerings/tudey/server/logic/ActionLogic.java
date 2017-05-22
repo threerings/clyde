@@ -958,6 +958,11 @@ public abstract class ActionLogic extends Logic
         @Override
         public boolean execute (int timestamp, Logic activator)
         {
+            if (_intervals == null) {
+                // we've already been removed
+                log.warning("Delayed action executed after being removed.");
+                return false;
+            }
             if (!_scenemgr.isRunning()) {
                 log.warning("Delayed action executing on shutdown SceneManager.", new Exception());
                 return false;
@@ -988,10 +993,6 @@ public abstract class ActionLogic extends Logic
         {
             super.didInit();
             _action = createAction(((ActionConfig.Delayed)_config).action, _source);
-            if (_intervals == null) {
-                log.warning("Reinitted?", new Exception());
-                _intervals = Sets.newIdentityHashSet();
-            }
         }
 
         @Override
