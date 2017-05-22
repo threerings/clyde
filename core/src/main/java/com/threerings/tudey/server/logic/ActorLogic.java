@@ -52,6 +52,8 @@ import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Controls the state of an actor on the server.
  */
@@ -678,20 +680,31 @@ public class ActorLogic extends Logic
      */
     protected void updateSnapshot ()
     {
-        int timestamp = _scenemgr.getTimestamp();
-        if (timestamp > _snaptime) {
-            _previousSnapshot = _snapshot;
-            _snapshotDelta = null;
-            if (_actor.isDirty()) {
-                _snapshotDelta = new ActorDelta(_snapshot, _actor);
-                if (_snapshotDelta.isEmpty()) {
-                    _snapshotDelta = null;
-                } else {
-                    _snapshot = (Actor)_actor.clone();
+        // TEMP: debug a mysterious NPE.
+        try {
+            int timestamp = _scenemgr.getTimestamp();
+            if (timestamp > _snaptime) {
+                _previousSnapshot = _snapshot;
+                _snapshotDelta = null;
+                if (_actor.isDirty()) {
+                    _snapshotDelta = new ActorDelta(_snapshot, _actor);
+                    if (_snapshotDelta.isEmpty()) {
+                        _snapshotDelta = null;
+                    } else {
+                        _snapshot = (Actor)_actor.clone();
+                    }
+                    _actor.setDirty(false);
                 }
-                _actor.setDirty(false);
+                _snaptime = timestamp;
             }
-            _snaptime = timestamp;
+        } catch (NullPointerException npe) {
+            log.warning("NPE updating actor snapshot",
+                    "class", this.getClass(),
+                    "key", _entityKey,
+                    "config", _config,
+                    "collFlags", _collisionFlags,
+                    "source", _source);
+            throw npe; // rethrow
         }
     }
 
