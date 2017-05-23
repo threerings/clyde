@@ -1093,9 +1093,17 @@ public class TudeySceneManager extends SceneManager
         ActorLogic target = _actors.get(pawnId);
         if (target instanceof PawnLogic) {
             client.setTarget((PawnLogic)target);
+
+        } else if (target == null) {
+            // TODO: downgrade this to DEBUG?
+            log.warning("User tried to target missing pawn?",
+                "who", caller,
+                "pawnId", pawnId);
+
         } else {
-            log.warning("User tried to target non-pawn.", "who",
-                caller, "actor", (target == null) ? null : target.getActor());
+            log.warning("User tried to target non-pawn.",
+                "who", caller,
+                "actor", target.getActor());
         }
     }
 
