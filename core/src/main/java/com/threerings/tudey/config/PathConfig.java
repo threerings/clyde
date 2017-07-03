@@ -123,7 +123,7 @@ public class PathConfig extends ParameterizedConfig
 
         /** The path's event handlers. */
         @Editable
-        public HandlerConfig[] handlers = new HandlerConfig[0];
+        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
 
         /**
          * Default constructor.

@@ -76,7 +76,7 @@ public class ParameterizedHandlerConfig extends ParameterizedConfig
     {
         /** The handlers. */
         @Editable
-        public HandlerConfig[] handlers = new HandlerConfig[0];
+        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
 
         /**
          * Adds the resources to preload for this attack into the provided set.

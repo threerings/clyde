@@ -117,7 +117,7 @@ public class ActorConfig extends ParameterizedConfig
 
         /** The actor's event handlers. */
         @Editable
-        public HandlerConfig[] handlers = new HandlerConfig[0];
+        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
 
         /** Whether or not the actor is "static" (always in clients' area of interest, notifies
          * the scene manager when its state changes). */

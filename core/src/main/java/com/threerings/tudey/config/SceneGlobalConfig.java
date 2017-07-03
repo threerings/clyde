@@ -102,7 +102,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
 
         /** The global's event handlers. */
         @Editable
-        public HandlerConfig[] handlers = new HandlerConfig[0];
+        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
 
         /**
          * Returns the name of the server-side logic class to use for the global, or

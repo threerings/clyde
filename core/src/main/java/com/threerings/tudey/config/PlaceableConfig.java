@@ -135,7 +135,7 @@ public class PlaceableConfig extends ParameterizedConfig
 
         /** The area's event handlers. */
         @Editable
-        public HandlerConfig[] handlers = new HandlerConfig[0];
+        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
 
         /** Treat this placeable as floor tile. */
         @Editable

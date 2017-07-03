@@ -57,6 +57,9 @@ import com.threerings.tudey.shape.config.ShapeConfig;
 public abstract class HandlerConfig extends DeepObject
     implements Exportable, Streamable
 {
+    /** An empty (and thus immutable and sharable) HandlerConfig array. */
+    public static final HandlerConfig[] EMPTY_ARRAY = new HandlerConfig[0];
+
     /**
      * The startup event handler.
      */
