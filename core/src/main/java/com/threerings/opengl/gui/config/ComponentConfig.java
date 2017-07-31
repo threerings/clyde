@@ -896,7 +896,7 @@ public abstract class ComponentConfig extends DeepObject
                 (com.threerings.opengl.gui.text.HTMLView)comp;
             view.setAntialiased(antialias);
             view.setStyleSheet(stylesheet);
-            view.setContents(contents);
+            view.setContents(getMessage(msgs, contents));
         }
     }
 
