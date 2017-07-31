@@ -359,7 +359,9 @@ public class UserInterface extends Container
     public UserInterface (GlContext ctx, ConfigReference<UserInterfaceConfig> ref)
     {
         this(ctx, ctx.getConfigManager().getConfig(UserInterfaceConfig.class, ref));
-        noteMissingConfig((ref != null) ? ref.getName() : null);
+        if (ref != null) {
+            noteMissingConfig(ref.getName());
+        }
     }
 
     /**
@@ -401,6 +403,7 @@ public class UserInterface extends Container
     public void setConfig (String name)
     {
         setConfig(_ctx.getConfigManager().getConfig(UserInterfaceConfig.class, name));
+        noteMissingConfig(name);
     }
 
     /**
@@ -409,6 +412,9 @@ public class UserInterface extends Container
     public void setConfig (ConfigReference<UserInterfaceConfig> ref)
     {
         setConfig(_ctx.getConfigManager().getConfig(UserInterfaceConfig.class, ref));
+        if (ref != null) {
+            noteMissingConfig(ref.getName());
+        }
     }
 
     /**
@@ -419,6 +425,7 @@ public class UserInterface extends Container
     {
         setConfig(_ctx.getConfigManager().getConfig(
             UserInterfaceConfig.class, name, firstKey, firstValue, otherArgs));
+        noteMissingConfig(name);
     }
 
     /**
