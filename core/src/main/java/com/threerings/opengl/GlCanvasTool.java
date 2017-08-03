@@ -38,6 +38,8 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import org.lwjgl.opengl.Display;
+
 import com.samskivert.util.Interval;
 import com.samskivert.util.RunQueue;
 
@@ -145,6 +147,18 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _bounds = createBounds();
         _compass = new Compass(this);
         _stats = new Stats(this);
+    }
+
+    @Override
+    protected void renderView ()
+    {
+        super.renderView();
+
+        if (_sync60) {
+            // we probably shouldn't reference Display here, but this static method merely
+            // does thread sleep/yielding.
+            Display.sync(60);
+        }
     }
 
     @Override
@@ -302,6 +316,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         {
             // initialize vertical synchronization
             ((GlCanvas)_canvas).setVSyncEnabled(getVSyncEnabled());
+            _sync60 = getSync60();
         }
 
         /**
@@ -444,6 +459,19 @@ public abstract class GlCanvasTool extends GlCanvasApp
             return _renderEffects;
         }
 
+        @Editable(weight=8)
+        public void setSync60 (boolean sync)
+        {
+            _prefs.putBoolean(SYNC_60FPS_PREF, sync);
+            _sync60 = sync;
+        }
+
+        @Editable
+        public boolean getSync60 ()
+        {
+            return _prefs.getBoolean(SYNC_60FPS_PREF, true);
+        }
+
         /**
          * Updates the schedule of the refresh interval.
          */
@@ -459,6 +487,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
 
         /** The interval we use to check for resource modifications. */
         protected Interval _refreshInterval;
+
+        /** The pref name for syncing the display to 60 fps. */
+        protected static final String SYNC_60FPS_PREF = "sync_60fps";
     }
 
     /** The tool message bundle. */
@@ -466,6 +497,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
 
     /** The editable preferences. */
     protected CanvasToolPrefs _eprefs;
+
+    /** Do we sync at 60 fps? */
+    protected boolean _sync60;
 
     /** Toggles for the various renderables. */
     protected JCheckBoxMenuItem _showBounds, _showCompass, _showGrid, _showStats;
