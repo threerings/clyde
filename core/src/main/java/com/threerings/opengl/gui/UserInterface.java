@@ -808,7 +808,7 @@ public class UserInterface extends Container
      */
     protected void noteMissingConfig (String name)
     {
-        if (_config == null) {
+        if (_config == null && name != null) {
             log.warning("Unable to find UI!", "name", name);
         }
     }
