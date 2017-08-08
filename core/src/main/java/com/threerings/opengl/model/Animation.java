@@ -351,9 +351,12 @@ public class Animation extends SimpleScope
             _accum -= frames;
             _fidx += frames;
             if (_fidx < 0) { // sanity check
-                log.warning("Frame index went negative!", "anim",
-                    ((Animation)_parentScope)._name, "fidx", _fidx, "accum", _accum,
-                    "elapsed", elapsed, "frames", frames);
+                // NOTE: this happens when elapsed is less than 0.
+                // Perhaps the proper thing to do is ignore these calls.
+                // Perhaps up at a higher level that should happen.
+//                log.warning("Frame index went negative!", "anim",
+//                    ((Animation)_parentScope)._name, "fidx", _fidx, "accum", _accum,
+//                    "elapsed", elapsed, "frames", frames);
                 _fidx = 0;
             }
             executeActions();
