@@ -25,9 +25,14 @@
 
 package com.threerings.tudey.config;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
@@ -250,50 +255,93 @@ public abstract class ConditionConfig extends DeepObject
     }
 
     /**
-     * Satisfied if all of the component conditions are satisfied.
+     * A ConditionConfig containing other ConditionConfigs.
      */
-    public static class All extends ConditionConfig
+    protected static abstract class SubConditionConfig extends ConditionConfig
+        implements Coercible
+    {
+        // from Coercible
+        public Object coerceTo (Class<?> exactType)
+        {
+            List<ConditionConfig> sub = getSubConditions();
+            if (sub.size() == 1) {
+                Object value = sub.get(0);
+                if (value != null && value.getClass() == exactType) {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void invalidate ()
+        {
+            for (ConditionConfig condition : getSubConditions()) {
+                condition.invalidate();
+            }
+        }
+
+        /**
+         * Get the sub conditions.
+         */
+        protected abstract List<ConditionConfig> getSubConditions ();
+    }
+
+    /**
+     * The base class of both Any and All.
+     */
+    protected static abstract class MultiSubConditionConfig extends SubConditionConfig
     {
         /** The component conditions. */
         @Editable
         public ConditionConfig[] conditions = new ConditionConfig[0];
+
+        @Override
+        protected List<ConditionConfig> getSubConditions ()
+        {
+            return Arrays.asList(conditions);
+        }
+    }
+
+    /**
+     * Satisfied if all of the component conditions are satisfied.
+     */
+    public static class All extends MultiSubConditionConfig
+    {
+        /** Default Constructor. */
+        public All () {}
+
+        /** Coercian Constructor. */
+        public All (ConditionConfig single)
+        {
+            conditions = new ConditionConfig[] { single };
+        }
 
         @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$All";
         }
-
-        @Override
-        public void invalidate ()
-        {
-            for (ConditionConfig condition : conditions) {
-                condition.invalidate();
-            }
-        }
     }
 
     /**
      * Satisfied if any of the component conditions are satisfied.
      */
-    public static class Any extends ConditionConfig
+    public static class Any extends MultiSubConditionConfig
     {
-        /** The component conditions. */
-        @Editable
-        public ConditionConfig[] conditions = new ConditionConfig[0];
+        /** Default Constructor. */
+        public Any () {}
+
+        /** Coercian Constructor. */
+        public Any (ConditionConfig single)
+        {
+            conditions = new ConditionConfig[] { single };
+        }
 
         @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Any";
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            for (ConditionConfig condition : conditions) {
-                condition.invalidate();
-            }
         }
     }
 
@@ -346,22 +394,30 @@ public abstract class ConditionConfig extends DeepObject
     /**
      * Satisfied if the component condition is not satisfied.
      */
-    public static class Not extends ConditionConfig
+    public static class Not extends SubConditionConfig
     {
         /** The component condition. */
         @Editable
         public ConditionConfig condition = new ConditionConfig.Tagged();
+
+        /** Default Constructor. */
+        public Not () {}
+
+        /** Coercian Constructor. */
+        public Not (ConditionConfig single)
+        {
+            condition = single;
+        }
 
         @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Not";
         }
-
         @Override
-        public void invalidate ()
+        protected List<ConditionConfig> getSubConditions ()
         {
-            condition.invalidate();
+            return Collections.singletonList(condition);
         }
     }
 
