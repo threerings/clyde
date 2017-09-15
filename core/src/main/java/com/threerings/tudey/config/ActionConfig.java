@@ -617,6 +617,16 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig defaultAction;
 
+        /** Default Constructor. */
+        public Switch () {}
+
+        /** Conversion constructor. */
+        public Switch (ActionConfig single)
+        {
+            this.cases = new Case[] { new Case() };
+            this.cases[0].action = single;
+        }
+
         @Override
         public String getLogicClassName ()
         {
@@ -692,6 +702,16 @@ public abstract class ActionConfig extends DeepObject
         /** The default action to take if no case is satisfied. */
         @Editable(nullable=true)
         public ActionConfig defaultAction;
+
+        /** Default Constructor. */
+        public ExpressionSwitch () {}
+
+        /** Conversion constructor. */
+        public ExpressionSwitch (ActionConfig single)
+        {
+            this.cases = new ExpressionCase[] { new ExpressionCase() };
+            this.cases[0].action = single;
+        }
 
         @Override
         public String getLogicClassName ()
