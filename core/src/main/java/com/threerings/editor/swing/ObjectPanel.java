@@ -184,14 +184,33 @@ public class ObjectPanel extends BasePropertyEditor
         Class<?> type = _types[idx];
         if (type != null) {
             value = _values[idx];
+            boolean coerced = false;
             if (value == null) {
                 try {
-                    _values[idx] = value = newInstance(type);
+                    // if the existing value is Coercible maybe it can coerced!
+                    for (Object vv = _lvalue; vv instanceof Coercible; ) {
+                        vv = ((Coercible)vv).coerceTo(type);
+                        // TODO: if we decide to modify the requirement that types must match exactly, we
+                        // now only need do it here. (enums?)
+                        if ((vv != null) && (vv.getClass() == type)) {
+                            _values[idx] = value = vv;
+                            coerced = true;
+                            break;
+                        }
+                    }
                 } catch (Exception e) {
-                    log.warning("Failed to create instance [type=" + type + "].", e);
+                    log.warning("Failed to coerce instance [type=" + type + "].", e);
+                }
+
+                if (!coerced) {
+                    try {
+                        _values[idx] = value = newInstance(type);
+                    } catch (Exception e) {
+                        log.warning("Failed to create instance [type=" + type + "].", e);
+                    }
                 }
             }
-            if (_lvalue != null && value != null) {
+            if (_lvalue != null && value != null && !coerced) {
                 // transfer state from shared ancestry
                 DeepUtil.transfer(_lvalue, value);
             }
@@ -256,16 +275,6 @@ public class ObjectPanel extends BasePropertyEditor
         throws Exception
     {
         if (_lvalue != null) {
-            // if the existing value is Coercible maybe it can coerced!
-            for (Object vv = _lvalue; vv instanceof Coercible; ) {
-                vv = ((Coercible)vv).coerceTo(type);
-                // TODO: if we decide to modify the requirement that types must match exactly, we
-                // now only need do it here. (enums?)
-                if ((vv != null) && (vv.getClass() == type)) {
-                    return vv;
-                }
-            }
-
             // find the most specific constructor that can take the last value
             boolean inner = ReflectionUtil.isInner(type);
             Constructor<?> cctor = null;
