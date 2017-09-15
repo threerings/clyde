@@ -29,7 +29,7 @@ import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.editor.Convertible;
+import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
@@ -67,7 +67,7 @@ import static com.threerings.tudey.Log.log;
     ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
     ActionConfig.ServerLog.class, ActionConfig.Fail.class })
 public abstract class ActionConfig extends DeepObject
-    implements Exportable, Streamable, Convertible
+    implements Exportable, Streamable, Coercible
 {
     /**
      * Interface for actions that require pre-execution on the owning client.
@@ -755,7 +755,7 @@ public abstract class ActionConfig extends DeepObject
      * Executes multiple actions simultaneously.
      */
     public static class Compound extends ActionConfig
-        implements PreExecutable, Convertible
+        implements PreExecutable
     {
         /** The actions to execute. */
         @Editable
@@ -1199,8 +1199,8 @@ public abstract class ActionConfig extends DeepObject
         return null;
     }
 
-    // from Convertible
-    public Object convertTo (Class<?> type)
+    // from Coercible
+    public Object coerceTo (Class<?> type)
     {
         ActionConfig[] sub = getSubActions();
         return ((sub != null) && (sub.length == 1) && (sub[0] != null) &&
