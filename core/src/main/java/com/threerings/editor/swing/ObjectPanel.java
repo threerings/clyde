@@ -257,7 +257,6 @@ public class ObjectPanel extends BasePropertyEditor
         // find the most specific constructor that can take the last value
         if (_lvalue != null) {
             boolean inner = ReflectionUtil.isInner(type);
-            _lvalue.getClass();
             Constructor<?> cctor = null;
             Class<?> cptype = null;
             for (Constructor<?> ctor : type.getConstructors()) {
