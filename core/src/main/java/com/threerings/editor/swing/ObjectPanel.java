@@ -257,14 +257,13 @@ public class ObjectPanel extends BasePropertyEditor
     {
         if (_lvalue != null) {
             // if the existing value is Coercible maybe it can coerced!
-            for (Object value = _lvalue; value instanceof Coercible; ) {
-                Object newValue = ((Coercible)value).coerceTo(type);
+            for (Object vv = _lvalue; vv instanceof Coercible; ) {
+                vv = ((Coercible)vv).coerceTo(type);
                 // TODO: if we decide to modify the requirement that types must match exactly, we
                 // now only need do it here. (enums?)
-                if ((newValue != null) && (newValue.getClass() == type)) {
-                    return newValue;
+                if ((vv != null) && (vv.getClass() == type)) {
+                    return vv;
                 }
-                value = newValue; // recursivly coerce if that makes sense
             }
 
             // find the most specific constructor that can take the last value
