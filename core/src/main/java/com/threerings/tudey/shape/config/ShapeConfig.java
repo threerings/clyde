@@ -31,6 +31,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.threerings.io.Streamable;
 
+import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -263,6 +264,7 @@ public abstract class ShapeConfig extends DeepObject
      * A transformed shape.
      */
     public static class Transformed extends ShapeConfig
+        implements Coercible
     {
         /** The base shape. */
         @Editable
@@ -272,11 +274,26 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(step=0.01)
         public Transform2D transform = new Transform2D();
 
+        /** Default Constructor. */
+        public Transformed () {}
+
+        /** Coercing Constructor. */
+        public Transformed (ShapeConfig single)
+        {
+            this.shape = single;
+        }
+
         @Override
         public void invalidate ()
         {
             super.invalidate();
             shape.invalidate();
+        }
+
+        // from Coercible
+        public Object coerceTo (Class<?> exactType)
+        {
+            return shape;
         }
 
         @Override
@@ -308,10 +325,21 @@ public abstract class ShapeConfig extends DeepObject
      * A compound shape.
      */
     public static class Compound extends ShapeConfig
+        implements Coercible
     {
         /** The component shapes. */
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
+
+        /** Default Constructor. */
+        public Compound () {}
+
+        /** Coercing Constructor. */
+        public Compound (ShapeConfig single)
+        {
+            shapes = new TransformedShape[] { new TransformedShape() };
+            shapes[0].shape = single;
+        }
 
         @Override
         public void invalidate ()
@@ -320,6 +348,14 @@ public abstract class ShapeConfig extends DeepObject
             for (TransformedShape tshape : shapes) {
                 tshape.invalidate();
             }
+        }
+
+        // from Coercible
+        public Object coerceTo (Class<?> exactType)
+        {
+            return (shapes.length == 1)
+                ? shapes[0].shape
+                : null;
         }
 
         @Override
