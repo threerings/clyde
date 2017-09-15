@@ -67,7 +67,7 @@ import static com.threerings.tudey.Log.log;
     ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
     ActionConfig.ServerLog.class, ActionConfig.Fail.class })
 public abstract class ActionConfig extends DeepObject
-    implements Exportable, Streamable
+    implements Exportable, Streamable, Convertible
 {
     /**
      * Interface for actions that require pre-execution on the owning client.
@@ -557,6 +557,15 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig elseAction;
 
+        /** Default Constructor. */
+        public Conditional () {}
+
+        /** Conversion constructor. */
+        public Conditional (ActionConfig single)
+        {
+            this.action = action;
+        }
+
         @Override
         public String getLogicClassName ()
         {
@@ -759,21 +768,10 @@ public abstract class ActionConfig extends DeepObject
         /** Default Constructor. */
         public Compound () {}
 
-        /**
-         * Constructor for editing.
-         */
+        /** Conversion Constructor. */
         public Compound (ActionConfig single)
         {
             this.actions = new ActionConfig[] { single };
-        }
-
-        // from Convertible
-        public Object convertTo (Class<?> type)
-        {
-            return ((actions.length == 1) && (actions[0] != null) &&
-                    (actions[0].getClass() == type))
-                ? actions[0]
-                : null;
         }
 
         // documentation inherited from interface PreExecutable
@@ -838,6 +836,16 @@ public abstract class ActionConfig extends DeepObject
         /** The contained actions. */
         @Editable
         public WeightedAction[] actions = new WeightedAction[0];
+
+        /** Default Constructor. */
+        public Random () {}
+
+        /** Conversion Constructor. */
+        public Random (ActionConfig single)
+        {
+            actions = new WeightedAction[] { new WeightedAction() };
+            actions[0].action = single;
+        }
 
         @Override
         public String getLogicClassName ()
@@ -906,6 +914,15 @@ public abstract class ActionConfig extends DeepObject
         /** The action to perform. */
         @Editable
         public ActionConfig action = new SpawnActor();
+
+        /** Default Constructor. */
+        public Delayed () {}
+
+        /** Conversion Constructor. */
+        public Delayed (ActionConfig single)
+        {
+            this.action = single;
+        }
 
         @Override
         public String getLogicClassName ()
@@ -1180,5 +1197,15 @@ public abstract class ActionConfig extends DeepObject
     public ActionConfig[] getSubActions ()
     {
         return null;
+    }
+
+    // from Convertible
+    public Object convertTo (Class<?> type)
+    {
+        ActionConfig[] sub = getSubActions();
+        return ((sub != null) && (sub.length == 1) && (sub[0] != null) &&
+                (sub[0].getClass() == type))
+            ? sub[0]
+            : null;
     }
 }
