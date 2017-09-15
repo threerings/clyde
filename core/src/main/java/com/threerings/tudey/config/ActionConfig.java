@@ -1223,8 +1223,7 @@ public abstract class ActionConfig extends DeepObject
     public Object coerceTo (Class<?> type)
     {
         ActionConfig[] sub = getSubActions();
-        return ((sub != null) && (sub.length == 1) && (sub[0] != null) &&
-                (sub[0].getClass() == type))
+        return ((sub != null) && (sub.length == 1))
             ? sub[0]
             : null;
     }

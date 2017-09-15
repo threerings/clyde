@@ -264,13 +264,9 @@ public abstract class ConditionConfig extends DeepObject
         public Object coerceTo (Class<?> exactType)
         {
             List<ConditionConfig> sub = getSubConditions();
-            if (sub.size() == 1) {
-                Object value = sub.get(0);
-                if (value != null && value.getClass() == exactType) {
-                    return value;
-                }
-            }
-            return null;
+            return (sub.size() == 1)
+                ? sub.get(0)
+                : null;
         }
 
         @Override
