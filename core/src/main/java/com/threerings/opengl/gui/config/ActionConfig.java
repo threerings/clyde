@@ -632,6 +632,7 @@ public abstract class ActionConfig extends DeepObject
                 caze.condition.invalidate();
                 caze.action.invalidate();
             }
+            defaultAction.invalidate();
         }
     }
 
