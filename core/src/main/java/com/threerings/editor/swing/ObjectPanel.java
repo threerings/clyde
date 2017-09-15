@@ -45,6 +45,7 @@ import com.threerings.util.DeepUtil;
 import com.threerings.util.ReflectionUtil;
 import com.threerings.util.Validatable;
 
+import com.threerings.editor.Convertible;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
@@ -254,8 +255,16 @@ public class ObjectPanel extends BasePropertyEditor
     protected Object newInstance (Class<?> type)
         throws Exception
     {
-        // find the most specific constructor that can take the last value
         if (_lvalue != null) {
+            // if the existing value is Convertible maybe it can convert-out
+            if (_lvalue instanceof Convertible) {
+                Object newValue = ((Convertible)_lvalue).convertTo(type);
+                if (newValue != null) {
+                    return newValue;
+                }
+            }
+
+            // find the most specific constructor that can take the last value
             boolean inner = ReflectionUtil.isInner(type);
             Constructor<?> cctor = null;
             Class<?> cptype = null;

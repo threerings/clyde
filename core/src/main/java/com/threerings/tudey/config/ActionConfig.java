@@ -29,6 +29,7 @@ import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.editor.Convertible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
@@ -44,6 +45,8 @@ import com.threerings.opengl.util.PreloadableSet;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.util.Coord;
+
+import static com.threerings.tudey.Log.log;
 
 /**
  * Configurations for server-side actions.
@@ -743,7 +746,7 @@ public abstract class ActionConfig extends DeepObject
      * Executes multiple actions simultaneously.
      */
     public static class Compound extends ActionConfig
-        implements PreExecutable
+        implements PreExecutable, Convertible
     {
         /** The actions to execute. */
         @Editable
@@ -752,6 +755,26 @@ public abstract class ActionConfig extends DeepObject
         /** If we should stop executing actions if one fails. */
         @Editable
         public boolean stopOnFailure = false;
+
+        /** Default Constructor. */
+        public Compound () {}
+
+        /**
+         * Constructor for editing.
+         */
+        public Compound (ActionConfig single)
+        {
+            this.actions = new ActionConfig[] { single };
+        }
+
+        // from Convertible
+        public Object convertTo (Class<?> type)
+        {
+            return ((actions.length == 1) && (actions[0] != null) &&
+                    (actions[0].getClass() == type))
+                ? actions[0]
+                : null;
+        }
 
         // documentation inherited from interface PreExecutable
         public boolean shouldPreExecute ()
