@@ -32,6 +32,7 @@ import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -55,6 +56,8 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
+
+import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Contains a component configuration.
@@ -100,6 +103,17 @@ public abstract class ComponentConfig extends DeepObject
 
         /** The corresponding UI constant. */
         protected final int _constant;
+    }
+
+    /**
+     * Base class for configuring sub-layout.
+     */
+    public static abstract class ChildComponent extends DeepObject
+        implements Exportable
+    {
+        /** The child component. */
+        @Editable(weight=1)
+        public ComponentConfig component = new ComponentConfig.Spacer();
     }
 
     /**
@@ -557,12 +571,12 @@ public abstract class ComponentConfig extends DeepObject
      * A tabbed pane.
      */
     public static class TabbedPane extends ComponentConfig
+        implements Coercible
     {
         /**
          * A single tab.
          */
-        public static class Tab extends DeepObject
-            implements Exportable
+        public static class Tab extends ChildComponent
         {
             /** The tab title. */
             @Editable(hgroup="t")
@@ -575,10 +589,6 @@ public abstract class ComponentConfig extends DeepObject
             /** An optional override style for the tab button. */
             @Editable(nullable=true)
             public ConfigReference<StyleConfig> styleOverride;
-
-            /** The tab component. */
-            @Editable
-            public ComponentConfig component = new ComponentConfig.Spacer();
         }
 
         /** The tab alignment. */
@@ -601,12 +611,30 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public Tab[] tabs = new Tab[0];
 
+        /** Default Constructor. */
+        public TabbedPane () {}
+
+        /** Coercing Constructor. */
+        public TabbedPane (ComponentConfig single)
+        {
+            tabs = new Tab[] { new Tab() };
+            tabs[0].component = single;
+        }
+
         @Override
         public void invalidate ()
         {
             for (Tab tab : tabs) {
                 tab.component.invalidate();
             }
+        }
+
+        // from Coercible
+        public Object coerceTo (Class<?> exactClass)
+        {
+            return (tabs.length == 1)
+                ? tabs[0].component
+                : null;
         }
 
         @Override
@@ -717,6 +745,7 @@ public abstract class ComponentConfig extends DeepObject
      * A scroll pane.
      */
     public static class ScrollPane extends ComponentConfig
+        implements Coercible
     {
         /** Whether or not to allow vertical scrolling. */
         @Editable(hgroup="v")
@@ -746,10 +775,25 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public ComponentConfig child = new Spacer();
 
+        /** Default Constructor. */
+        public ScrollPane () {}
+
+        /** Coercing Constructor. */
+        public ScrollPane (ComponentConfig single)
+        {
+            child = single;
+        }
+
         @Override
         public void invalidate ()
         {
             child.invalidate();
+        }
+
+        // from Coercible
+        public Object coerceTo (Class<?> exactType)
+        {
+            return child;
         }
 
         @Override
@@ -807,15 +851,33 @@ public abstract class ComponentConfig extends DeepObject
      * A container.
      */
     public static class Container extends ComponentConfig
+        implements Coercible
     {
         /** The layout of the container. */
         @Editable
         public LayoutConfig layout = new LayoutConfig.Absolute();
 
+        /** Default Constructor. */
+        public Container () {}
+
+        /** Coercing Constructor. */
+        public Container (ComponentConfig single)
+        {
+            LayoutConfig.Group group = new LayoutConfig.HorizontalGroup();
+            group.children = new LayoutConfig.Group.Child[] { new LayoutConfig.Group.Child() };
+            group.children[0].component = single;
+        }
+
         @Override
         public void invalidate ()
         {
             layout.invalidate();
+        }
+
+        // from Coercible
+        public Object coerceTo (Class<?> exactType)
+        {
+            return layout.coerceTo(exactType);
         }
 
         @Override
