@@ -1,11 +1,15 @@
 package com.threerings.tudey.tools;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,6 +35,13 @@ public class LayerChanger extends EditorTool
     {
         super(editor);
 
+        _moveMulti = new AbstractAction(_msgs.get("b.move_multi_layer")) {
+            public void actionPerformed (ActionEvent e) {
+                moveSelection();
+                setEnabled(false);
+            }
+        };
+
         layers.addChangeListener(_layerListener);
 
         JPanel vbox = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP);
@@ -38,7 +49,15 @@ public class LayerChanger extends EditorTool
         hbox.add(new JLabel(_msgs.get("l.target_layer")), GroupLayout.FIXED);
         hbox.add(_layerBox);
         vbox.add(hbox, GroupLayout.FIXED);
+        vbox.add(new JButton(_moveMulti), GroupLayout.FIXED);
         add(vbox);
+    }
+
+    @Override
+    public void addNotify ()
+    {
+        super.addNotify();
+        _moveMulti.setEnabled(_editor.getSelection().length > 1);
     }
 
     @Override
@@ -84,6 +103,7 @@ public class LayerChanger extends EditorTool
         } else {
             _editor.setSelection();
         }
+        _moveMulti.setEnabled(false);
     }
 
     /**
@@ -95,6 +115,7 @@ public class LayerChanger extends EditorTool
         for (TudeySceneModel.Entry entry : _editor.getSelection()) {
             _scene.setLayer(entry.getKey(), layer);
         }
+        _editor.setSelection();
     }
 
     /**
@@ -188,6 +209,9 @@ public class LayerChanger extends EditorTool
         }
     }
 
+    /** Allows the user to select the target layer. */
+    protected JComboBox _layerBox = new JComboBox();
+
     /** Listens to changes in layers. */
     protected ChangeListener _layerListener = new ChangeListener() {
         public void stateChanged (ChangeEvent event)
@@ -196,6 +220,6 @@ public class LayerChanger extends EditorTool
         }
     };
 
-    /** Allows the user to select the target layer. */
-    protected JComboBox _layerBox = new JComboBox();
+    /** The action for moving multiple items to the layer. */
+    protected Action _moveMulti;
 }
