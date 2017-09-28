@@ -2,7 +2,10 @@ package com.threerings.editor;
 
 /**
  * Implemented by editable object that be coerced to another type.
+ *
+ * @deprecated This will go away. I'm going to come up with something different and better.
  */
+@Deprecated
 public interface Coercible
 {
     /**
