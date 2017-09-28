@@ -278,11 +278,9 @@ public class Layers extends EditorTool
             if (_scene.isLayerEmpty(layer) ||
                     confirm("Layer is not empty!", "This layer has stuff on it.\n" +
                         "Continue anyway and move the stuff to the base layer?")) {
-                // if it's currently selected, select the layer below it (we can never remove 0)
-                if (getSelectedLayer() == layer) {
-                    setSelectedLayer(layer - 1);
-                }
                 _tableModel.removeLayer(layer);
+                // always select the one below it
+                setSelectedLayer(layer - 1);
             }
         }
         { // initializer
