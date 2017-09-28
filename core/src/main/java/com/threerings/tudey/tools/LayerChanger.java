@@ -7,9 +7,13 @@ import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import com.samskivert.swing.GroupLayout;
 
 import com.threerings.tudey.data.TudeySceneModel;
 
@@ -29,8 +33,12 @@ public class LayerChanger extends EditorTool
 
         layers.addChangeListener(_layerListener);
 
-        // TODO little label group
-        add(_selectedLayer);
+        JPanel vbox = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP);
+        JPanel hbox = GroupLayout.makeHStretchBox(5);
+        hbox.add(new JLabel(_msgs.get("l.target_layer")), GroupLayout.FIXED);
+        hbox.add(_layerBox);
+        vbox.add(hbox, GroupLayout.FIXED);
+        add(vbox);
     }
 
     @Override
@@ -83,7 +91,7 @@ public class LayerChanger extends EditorTool
      */
     protected void moveSelection ()
     {
-        int layer = _selectedLayer.getSelectedIndex();
+        int layer = _layerBox.getSelectedIndex();
         for (TudeySceneModel.Entry entry : _editor.getSelection()) {
             _scene.setLayer(entry.getKey(), layer);
         }
@@ -95,8 +103,8 @@ public class LayerChanger extends EditorTool
     protected void updateLayers ()
     {
         // see what used to be selected
-        int oldSize = _selectedLayer.getItemCount();
-        LayerInfo selected = (LayerInfo)_selectedLayer.getSelectedItem();
+        int oldSize = _layerBox.getItemCount();
+        LayerInfo selected = (LayerInfo)_layerBox.getSelectedItem();
 
         // build an array of the new layers
         List<String> layers = _scene.getLayers();
@@ -141,7 +149,7 @@ public class LayerChanger extends EditorTool
         }
 
         // set the model
-        _selectedLayer.setModel(model);
+        _layerBox.setModel(model);
     }
 
     /**
@@ -189,5 +197,5 @@ public class LayerChanger extends EditorTool
     };
 
     /** Allows the user to select the target layer. */
-    protected JComboBox _selectedLayer = new JComboBox();
+    protected JComboBox _layerBox = new JComboBox();
 }
