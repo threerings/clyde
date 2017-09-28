@@ -296,7 +296,7 @@ public class SceneEditor extends TudeyTool
         JPanel outer = new JPanel();
         _epanel.add(outer, GroupLayout.FIXED);
         ButtonGroup tgroup = new ButtonGroup();
-        JPanel tpanel = new JPanel(new GridLayout(0, 7, 5, 5));
+        JPanel tpanel = new JPanel(new GridLayout(0, 8, 5, 5));
         outer.add(tpanel);
         addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
         addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
@@ -305,6 +305,7 @@ public class SceneEditor extends TudeyTool
         addTool(tpanel, tgroup, "path_definer", _pathDefiner = new PathDefiner(this));
         addTool(tpanel, tgroup, "area_definer", _areaDefiner = new AreaDefiner(this));
         addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this, _layers));
+        addTool(tpanel, tgroup, "layer_changer", new LayerChanger(this, _layers));
         addTool(tpanel, tgroup, "tile_brush", _tileBrush = new TileBrush(this));
         addTool(tpanel, tgroup, "ground_brush", _groundBrush = new GroundBrush(this));
         addTool(tpanel, tgroup, "wall_brush", _wallBrush = new WallBrush(this));
@@ -345,7 +346,7 @@ public class SceneEditor extends TudeyTool
             return;
         }
 
-        // TODO: This was deprecated. I guess it doesn't really 
+        // TODO: This was deprecated. I guess it doesn't really
         // we do not handle the "About" menu item, so remove it.
 //        app.removeAboutMenuItem();
 
