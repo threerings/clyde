@@ -346,6 +346,14 @@ public class ToolUtil
     }
 
     /**
+     * Should tools be read-only? (Defined per JVM..)
+     */
+    public static boolean isReadOnly ()
+    {
+        return _readOnly; // cached System property at init, could be changed..
+    }
+
+    /**
      * Creates a menu with the specified name and mnemonic.
      */
     public static JMenu createMenu (MessageBundle msgs, String name, int mnemonic)
@@ -495,4 +503,7 @@ public class ToolUtil
 
     /** The number of open windows.  When this reaches zero, we can exit the app. */
     protected static int _windowCount;
+
+    /** A cached-at-init copy of the read only property. */
+    protected static final boolean _readOnly = Boolean.getBoolean("com.threerings.tool.read_only");
 }

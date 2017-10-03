@@ -72,6 +72,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
@@ -205,14 +206,22 @@ public class ConfigEditor extends BaseConfigEditor
         file.add(_save = createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
         file.add(_revert = createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
         file.addSeparator();
-        file.add(createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
+        JMenuItem importGroup, importConfigs;
+        file.add(importGroup = createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
         file.add(createMenuItem("export_group", KeyEvent.VK_E, KeyEvent.VK_E));
         file.addSeparator();
-        file.add(createMenuItem("import_configs", KeyEvent.VK_M, -1));
+        file.add(importConfigs = createMenuItem("import_configs", KeyEvent.VK_M, -1));
         file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
         file.addSeparator();
         file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+
+        if (ToolUtil.isReadOnly()) {
+            nconfig.setEnabled(false);
+            nfolder.setEnabled(false);
+            importGroup.setEnabled(false);
+            importConfigs.setEnabled(false);
+        }
 
         final JMenu edit = createMenu("edit", KeyEvent.VK_E);
         edit.addMenuListener(new MenuListener() {
@@ -300,6 +309,9 @@ public class ConfigEditor extends BaseConfigEditor
 
         // create the split pane
         add(_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true), BorderLayout.CENTER);
+        if (ToolUtil.isReadOnly()) {
+            _split.setBorder(new LineBorder(Color.RED));
+        }
 
         // create the tabbed pane
         _split.setLeftComponent(_tabs = new JTabbedPane());
@@ -429,7 +441,9 @@ public class ConfigEditor extends BaseConfigEditor
     public void addNotify ()
     {
         super.addNotify();
-        DirtyGroupManager.registerEditor(this);
+        if (!ToolUtil.isReadOnly()) {
+            DirtyGroupManager.registerEditor(this);
+        }
     }
 
     @Override
@@ -647,7 +661,7 @@ public class ConfigEditor extends BaseConfigEditor
                 }
                 _pane.setViewportView(_tree);
                 _filterPanel.setTree(_tree);
-                _paste.setEnabled(_clipclass == group.getConfigClass());
+                _paste.setEnabled(_clipclass == group.getConfigClass() && !ToolUtil.isReadOnly());
                 updateSelection();
             }
 
@@ -739,7 +753,7 @@ public class ConfigEditor extends BaseConfigEditor
                 Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
                 clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
                 _clipclass = group.getConfigClass();
-                _paste.setEnabled(true);
+                _paste.setEnabled(!ToolUtil.isReadOnly());
             }
 
             /**
@@ -847,10 +861,11 @@ public class ConfigEditor extends BaseConfigEditor
 
                 // enable or disable the menu items
                 boolean enable = (node != null);
+                boolean writeable = !ToolUtil.isReadOnly();
                 _exportConfigs.setEnabled(enable);
-                _cut.setEnabled(enable);
+                _cut.setEnabled(enable && writeable);
                 _copy.setEnabled(enable);
-                _delete.setEnabled(enable);
+                _delete.setEnabled(enable && writeable);
                 _findUses.setEnabled(enable);
             }
 
@@ -954,8 +969,9 @@ public class ConfigEditor extends BaseConfigEditor
                 group.activate();
             }
 
+            boolean writeable = !ToolUtil.isReadOnly();
             // can only save/revert configurations with a config path
-            boolean enable = (cfgmgr.getConfigPath() != null);
+            boolean enable = writeable && (cfgmgr.getConfigPath() != null);
             _save.setEnabled(enable);
             _revert.setEnabled(enable);
             _saveAll.setEnabled(enable);
@@ -1123,7 +1139,8 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected String getConfigKey ()
     {
-        return "ConfigEditor." + ResourceUtil.getPrefsPrefix();
+        return "ConfigEditor." + ResourceUtil.getPrefsPrefix() +
+            (ToolUtil.isReadOnly() ? ".readonly" : "");
     }
 
     /**
