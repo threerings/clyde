@@ -216,7 +216,7 @@ public class ConfigEditor extends BaseConfigEditor
         file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
-        if (ToolUtil.isReadOnly()) {
+        if (_readOnly) {
             nconfig.setEnabled(false);
             nfolder.setEnabled(false);
             importGroup.setEnabled(false);
@@ -309,7 +309,7 @@ public class ConfigEditor extends BaseConfigEditor
 
         // create the split pane
         add(_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true), BorderLayout.CENTER);
-        if (ToolUtil.isReadOnly()) {
+        if (_readOnly) {
             _split.setBorder(new LineBorder(Color.RED));
         }
 
@@ -441,7 +441,7 @@ public class ConfigEditor extends BaseConfigEditor
     public void addNotify ()
     {
         super.addNotify();
-        if (!ToolUtil.isReadOnly()) {
+        if (!_readOnly) {
             DirtyGroupManager.registerEditor(this);
         }
     }
@@ -661,7 +661,7 @@ public class ConfigEditor extends BaseConfigEditor
                 }
                 _pane.setViewportView(_tree);
                 _filterPanel.setTree(_tree);
-                _paste.setEnabled(_clipclass == group.getConfigClass() && !ToolUtil.isReadOnly());
+                _paste.setEnabled(_clipclass == group.getConfigClass() && !_readOnly);
                 updateSelection();
             }
 
@@ -753,7 +753,7 @@ public class ConfigEditor extends BaseConfigEditor
                 Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
                 clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
                 _clipclass = group.getConfigClass();
-                _paste.setEnabled(!ToolUtil.isReadOnly());
+                _paste.setEnabled(!_readOnly);
             }
 
             /**
@@ -861,7 +861,7 @@ public class ConfigEditor extends BaseConfigEditor
 
                 // enable or disable the menu items
                 boolean enable = (node != null);
-                boolean writeable = !ToolUtil.isReadOnly();
+                boolean writeable = !_readOnly;
                 _exportConfigs.setEnabled(enable);
                 _cut.setEnabled(enable && writeable);
                 _copy.setEnabled(enable);
@@ -969,7 +969,7 @@ public class ConfigEditor extends BaseConfigEditor
                 group.activate();
             }
 
-            boolean writeable = !ToolUtil.isReadOnly();
+            boolean writeable = !_readOnly;
             // can only save/revert configurations with a config path
             boolean enable = writeable && (cfgmgr.getConfigPath() != null);
             _save.setEnabled(enable);
@@ -1139,8 +1139,7 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected String getConfigKey ()
     {
-        return "ConfigEditor." + ResourceUtil.getPrefsPrefix() +
-            (ToolUtil.isReadOnly() ? ".readonly" : "");
+        return "ConfigEditor." + ResourceUtil.getPrefsPrefix() + (_readOnly ? ".readonly" : "");
     }
 
     /**
@@ -1163,7 +1162,8 @@ public class ConfigEditor extends BaseConfigEditor
         @Editable // see setter
         public Color4f getBackgroundColor ()
         {
-            return getPref(getConfigKey() + "background_color", Color4f.GRAY);
+            return getPref(getConfigKey() + "background_color",
+                    _readOnly ? Color4f.RED : Color4f.GRAY);
         }
     }
 
@@ -1266,6 +1266,9 @@ public class ConfigEditor extends BaseConfigEditor
         /** The editors currently registered to hear about dirty groups. */
         protected static ObserverList<ConfigEditor> _editors = ObserverList.newFastUnsafe();
     }
+
+    /** Are we operating in read-only mode? */
+    protected final boolean _readOnly = ToolUtil.isReadOnly();
 
     /** The config tree pop-up menu. */
     protected JPopupMenu _popup;
