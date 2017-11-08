@@ -31,22 +31,35 @@ import java.awt.event.ActionListener;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.util.ObjectUtil;
 import com.threerings.util.DeepUtil;
 import com.threerings.util.ReflectionUtil;
 import com.threerings.util.Validatable;
 
 import com.threerings.editor.Coercible;
 import com.threerings.editor.EditorMessageBundle;
+import com.threerings.editor.Groupable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
@@ -107,6 +120,7 @@ public class ObjectPanel extends BasePropertyEditor
             tpanel.add(_box = new JComboBox(labels));
             _box.addActionListener(this);
             _values = new Object[_types.length];
+            maybeConfigureGrouping(tpanel);
         }
         add(_panel = new EditorPanel(
             _ctx, EditorPanel.CategoryMode.PANELS, ancestors, omitColumns));
@@ -234,6 +248,57 @@ public class ObjectPanel extends BasePropertyEditor
         return _panel.getComponentPath(comp, mouse);
     }
 
+    /**
+     * Possibly configure this panel with the grouping controls.
+     */
+    protected void maybeConfigureGrouping (JPanel tpanel)
+    {
+        for (Class<?> clazz : _types) {
+            if ((clazz != null) && Groupable.class.isAssignableFrom(clazz)) {
+                configureGrouping(tpanel);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Configure this panel with the grouping controls.
+     */
+    protected void configureGrouping (JPanel tpanel)
+    {
+        _group = new AbstractAction(null, loadIcon("group", _ctx)) {
+            public void actionPerformed (ActionEvent event) {
+                groupGroupable(event);
+            }
+        };
+        _group.putValue(Action.SHORT_DESCRIPTION, "Group");
+        // group is always enabled
+
+        _ungroup = new AbstractAction(null, loadIcon("ungroup", _ctx)) {
+            public void actionPerformed (ActionEvent event) {
+                ungroupGroupable();
+            }
+        };
+        _ungroup.putValue(Action.SHORT_DESCRIPTION, "Ungroup");
+        _ungroup.setEnabled(false);
+
+        _regroup = new AbstractAction(null, loadIcon("regroup", _ctx)) {
+            public void actionPerformed (ActionEvent event) {
+                regroupGroupable(event);
+            }
+        };
+        _regroup.putValue(Action.SHORT_DESCRIPTION, "Regroup");
+        _regroup.setEnabled(false);
+
+        JButton jb;
+        tpanel.add(jb = new JButton(_group));
+        jb.setPreferredSize(PANEL_BUTTON_SIZE);
+        tpanel.add(jb = new JButton(_ungroup));
+        jb.setPreferredSize(PANEL_BUTTON_SIZE);
+        tpanel.add(jb = new JButton(_regroup));
+        jb.setPreferredSize(PANEL_BUTTON_SIZE);
+    }
+
     @Override
     protected void fireStateChanged ()
     {
@@ -265,6 +330,26 @@ public class ObjectPanel extends BasePropertyEditor
         if (invalid != _invalid) {
             _invalid = invalid;
             updateBorder();
+        }
+
+        if (_ungroup != null) {
+            boolean ungroup = false, regroup = false;
+            if (value instanceof Groupable) {
+                List<?> eValues = ((Groupable)value).getGrouped();
+                if (eValues != null && eValues.size() > 0) {
+                    boolean allValid = true;
+                    for (Object eValue : eValues) {
+                        if (getTypeIndex(eValue) == -1) {
+                            allValid = false;
+                            break;
+                        }
+                    }
+                    regroup = allValid;
+                    ungroup = allValid && (eValues.size() == 1);
+                }
+            }
+            _ungroup.setEnabled(ungroup);
+            _regroup.setEnabled(regroup);
         }
     }
 
@@ -300,6 +385,97 @@ public class ObjectPanel extends BasePropertyEditor
         return ReflectionUtil.newInstance(type, _outer);
     }
 
+    /**
+     * Group the groupable object that we're editing.
+     */
+    protected void groupGroupable (ActionEvent event)
+    {
+        tryGrouping(Collections.singletonList(getValue()), event);
+    }
+
+    /**
+     * Ungroup a single object from the current editable object.
+     */
+    protected void ungroupGroupable ()
+    {
+        // just force it: let's see if this ever fails
+        List<?> eValues = ((Groupable) getValue()).getGrouped();
+        setValue(eValues.get(0));
+        fireStateChanged();
+    }
+
+    /**
+     * Regroup the objects in a group.
+     */
+    protected void regroupGroupable (ActionEvent event)
+    {
+        tryGrouping(((Groupable) getValue()).getGrouped(), event);
+    }
+
+    /**
+     * Try creating a new Groupable object containing the specified values.
+     */
+    protected boolean tryGrouping (List<?> values, ActionEvent event)
+    {
+        if (values == null || values.isEmpty()) {
+            return false;
+        }
+
+        Map<String, Object> instances = Maps.newHashMap();
+        List<String> names = Lists.newArrayList();
+        for (Class<?> type : _types) {
+            Object instance;
+            try {
+                instance = newInstance(type);
+            } catch (Exception ee) {
+                continue;
+            }
+            if (instance instanceof Groupable) {
+                try {
+                    ((Groupable)instance).setGrouped(values);
+                } catch (UnsupportedOperationException uoe) {
+                    // this is expected: do not log or warn or anything
+                    continue;
+
+                } catch (Exception ue) {
+                    log.warning("Unexpected exception trying to group into Groupable", ue);
+                    continue;
+                }
+
+                // if no exception: this is a valid option
+                String name = getLabel(type);
+                while (instances.containsKey(name)) {
+                    name += "-2";
+                }
+                instances.put(name, instance);
+                names.add(name);
+            }
+        }
+
+        if (names.isEmpty()) {
+            log.warning("Unable to group."); // TODO?
+            return false;
+        }
+
+        Component parentComp = Objects.firstNonNull(
+                ObjectUtil.as(event.getSource(), Component.class),
+                this);
+        Object choice = JOptionPane.showInputDialog(
+                parentComp, "Choose group container type", "Group",
+                JOptionPane.PLAIN_MESSAGE, loadIcon("regroup", _ctx),
+                names.toArray(), names.get(0));
+        if (choice == null) {
+            return true; // User chose to cancel
+        }
+
+        // set the new value!
+//        log.info("Grouped! " + instances.get(choice));
+        setValue(instances.get(choice));
+        fireStateChanged();
+        return true;
+    }
+
+
     /** Provides access to common services. */
     protected EditorContext _ctx;
 
@@ -320,4 +496,7 @@ public class ObjectPanel extends BasePropertyEditor
 
     /** The last non-null value selected. */
     protected Object _lvalue;
+
+    /** The grouping actions. */
+    protected Action _group, _ungroup, _regroup;
 }
