@@ -18,7 +18,7 @@ public interface Groupable
 
     /**
      * Set the contained instances to the values specified, or throw if unable to do so for
-     * any reason.
+     * any reason. The supplied List will never be null and will always have at least 1 element.
      */
     public void setGrouped (List<?> values)
         throws UnsupportedOperationException;
