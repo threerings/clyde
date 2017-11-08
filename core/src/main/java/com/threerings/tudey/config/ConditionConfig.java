@@ -35,6 +35,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Groupable;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -258,7 +259,7 @@ public abstract class ConditionConfig extends DeepObject
      * A ConditionConfig containing other ConditionConfigs.
      */
     protected static abstract class SubConditionConfig extends ConditionConfig
-        implements Coercible
+        implements Groupable, Coercible
     {
         // from Coercible
         public Object coerceTo (Class<?> exactType)
@@ -267,6 +268,12 @@ public abstract class ConditionConfig extends DeepObject
             return (sub.size() == 1)
                 ? sub.get(0)
                 : null;
+        }
+
+        // from Groupable
+        public List<?> getGrouped ()
+        {
+            return getSubConditions();
         }
 
         @Override
@@ -292,6 +299,16 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ConditionConfig[] conditions = new ConditionConfig[0];
 
+        // from Groupable
+        public void setGrouped (List<?> values)
+        {
+            int nn = values.size();
+            conditions = new ConditionConfig[nn];
+            for (int ii = 0; ii < nn; ii++) {
+                conditions[ii] = (ConditionConfig)values.get(ii);
+            }
+        }
+
         @Override
         protected List<ConditionConfig> getSubConditions ()
         {
@@ -304,15 +321,6 @@ public abstract class ConditionConfig extends DeepObject
      */
     public static class All extends MultiSubConditionConfig
     {
-        /** Default Constructor. */
-        public All () {}
-
-        /** Coercian Constructor. */
-        public All (ConditionConfig single)
-        {
-            conditions = new ConditionConfig[] { single };
-        }
-
         @Override
         public String getLogicClassName ()
         {
@@ -325,15 +333,6 @@ public abstract class ConditionConfig extends DeepObject
      */
     public static class Any extends MultiSubConditionConfig
     {
-        /** Default Constructor. */
-        public Any () {}
-
-        /** Coercian Constructor. */
-        public Any (ConditionConfig single)
-        {
-            conditions = new ConditionConfig[] { single };
-        }
-
         @Override
         public String getLogicClassName ()
         {
@@ -396,20 +395,22 @@ public abstract class ConditionConfig extends DeepObject
         @Editable
         public ConditionConfig condition = new ConditionConfig.Tagged();
 
-        /** Default Constructor. */
-        public Not () {}
-
-        /** Coercian Constructor. */
-        public Not (ConditionConfig single)
-        {
-            condition = single;
-        }
-
         @Override
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Not";
         }
+
+        // from Groupable
+        public void setGrouped (List<?> values)
+        {
+            if (values.size() == 1) {
+                condition = (ConditionConfig)values.get(0);
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        }
+
         @Override
         protected List<ConditionConfig> getSubConditions ()
         {

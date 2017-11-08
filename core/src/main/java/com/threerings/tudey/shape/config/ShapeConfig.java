@@ -27,6 +27,13 @@ package com.threerings.tudey.shape.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.io.Streamable;
@@ -34,6 +41,7 @@ import com.threerings.io.Streamable;
 import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Groupable;
 import com.threerings.export.Exportable;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -264,7 +272,7 @@ public abstract class ShapeConfig extends DeepObject
      * A transformed shape.
      */
     public static class Transformed extends ShapeConfig
-        implements Coercible
+        implements Groupable, Coercible
     {
         /** The base shape. */
         @Editable
@@ -273,15 +281,6 @@ public abstract class ShapeConfig extends DeepObject
         /** The shape's transform. */
         @Editable(step=0.01)
         public Transform2D transform = new Transform2D();
-
-        /** Default Constructor. */
-        public Transformed () {}
-
-        /** Coercing Constructor. */
-        public Transformed (ShapeConfig single)
-        {
-            this.shape = single;
-        }
 
         @Override
         public void invalidate ()
@@ -294,6 +293,22 @@ public abstract class ShapeConfig extends DeepObject
         public Object coerceTo (Class<?> exactType)
         {
             return shape;
+        }
+
+        // from Groupable
+        public List<?> getGrouped ()
+        {
+            return Collections.singletonList(shape);
+        }
+
+        // from Groupable
+        public void setGrouped (List<?> values)
+        {
+            if (values.size() == 1) {
+                shape = (ShapeConfig)values.get(0);
+            } else {
+                throw new UnsupportedOperationException();
+            }
         }
 
         @Override
@@ -325,21 +340,11 @@ public abstract class ShapeConfig extends DeepObject
      * A compound shape.
      */
     public static class Compound extends ShapeConfig
-        implements Coercible
+        implements Groupable, Coercible
     {
         /** The component shapes. */
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
-
-        /** Default Constructor. */
-        public Compound () {}
-
-        /** Coercing Constructor. */
-        public Compound (ShapeConfig single)
-        {
-            shapes = new TransformedShape[] { new TransformedShape() };
-            shapes[0].shape = single;
-        }
 
         @Override
         public void invalidate ()
@@ -356,6 +361,29 @@ public abstract class ShapeConfig extends DeepObject
             return (shapes.length == 1)
                 ? shapes[0].shape
                 : null;
+        }
+
+        // from Groupable
+        public List<?> getGrouped ()
+        {
+            return Lists.transform(Arrays.asList(shapes),
+                    new Function<TransformedShape, ShapeConfig>() {
+                        public ShapeConfig apply (TransformedShape xform) {
+                            return xform.shape;
+                        }
+                    });
+        }
+
+        // from Groupable
+        public void setGrouped (List<?> values)
+        {
+            int nn = values.size();
+            shapes = new TransformedShape[nn];
+            for (int ii = 0; ii < nn; ii++) {
+                TransformedShape ts = new TransformedShape();
+                ts.shape = (ShapeConfig)values.get(ii);
+                shapes[ii] = ts;
+            }
         }
 
         @Override

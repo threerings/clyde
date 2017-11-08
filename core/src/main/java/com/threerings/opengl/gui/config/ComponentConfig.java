@@ -25,6 +25,11 @@
 
 package com.threerings.opengl.gui.config;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import com.google.common.base.Function;
+
 import com.google.common.collect.Lists;
 
 import com.samskivert.text.MessageUtil;
@@ -35,6 +40,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Groupable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
@@ -114,6 +120,18 @@ public abstract class ComponentConfig extends DeepObject
         /** The child component. */
         @Editable(weight=1)
         public ComponentConfig component = new ComponentConfig.Spacer();
+
+        /**
+         * Get a function for extracting components.
+         */
+        public static Function<ChildComponent, ComponentConfig> extractFunction ()
+        {
+            return new Function<ChildComponent, ComponentConfig>() {
+                public ComponentConfig apply (ChildComponent ccomp) {
+                    return ccomp.component;
+                }
+            };
+        }
     }
 
     /**
@@ -571,7 +589,7 @@ public abstract class ComponentConfig extends DeepObject
      * A tabbed pane.
      */
     public static class TabbedPane extends ComponentConfig
-        implements Coercible
+        implements Groupable, Coercible
     {
         /**
          * A single tab.
@@ -611,16 +629,6 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public Tab[] tabs = new Tab[0];
 
-        /** Default Constructor. */
-        public TabbedPane () {}
-
-        /** Coercing Constructor. */
-        public TabbedPane (ComponentConfig single)
-        {
-            tabs = new Tab[] { new Tab() };
-            tabs[0].component = single;
-        }
-
         @Override
         public void invalidate ()
         {
@@ -635,6 +643,24 @@ public abstract class ComponentConfig extends DeepObject
             return (tabs.length == 1)
                 ? tabs[0].component
                 : null;
+        }
+
+        // from Groupable
+        public java.util.List<?> getGrouped ()
+        {
+            return Lists.transform(Arrays.asList(tabs), ChildComponent.extractFunction());
+        }
+
+        // from Groupable
+        public void setGrouped (java.util.List<?> values)
+        {
+            int nn = values.size();
+            this.tabs = new Tab[nn];
+            for (int ii = 0; ii < nn; ii++) {
+                Tab t = new Tab();
+                t.component = (ComponentConfig)values.get(ii);
+                this.tabs[ii] = t;
+            }
         }
 
         @Override
@@ -745,7 +771,7 @@ public abstract class ComponentConfig extends DeepObject
      * A scroll pane.
      */
     public static class ScrollPane extends ComponentConfig
-        implements Coercible
+        implements Groupable, Coercible
     {
         /** Whether or not to allow vertical scrolling. */
         @Editable(hgroup="v")
@@ -775,15 +801,6 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public ComponentConfig child = new Spacer();
 
-        /** Default Constructor. */
-        public ScrollPane () {}
-
-        /** Coercing Constructor. */
-        public ScrollPane (ComponentConfig single)
-        {
-            child = single;
-        }
-
         @Override
         public void invalidate ()
         {
@@ -794,6 +811,22 @@ public abstract class ComponentConfig extends DeepObject
         public Object coerceTo (Class<?> exactType)
         {
             return child;
+        }
+
+        // from Groupable
+        public java.util.List<?> getGrouped ()
+        {
+            return Collections.singletonList(child);
+        }
+
+        // from Groupable
+        public void setGrouped (java.util.List<?> values)
+        {
+            if (values.size() == 1) {
+                child = (ComponentConfig)values.get(0);
+            } else {
+                throw new UnsupportedOperationException();
+            }
         }
 
         @Override
@@ -851,22 +884,11 @@ public abstract class ComponentConfig extends DeepObject
      * A container.
      */
     public static class Container extends ComponentConfig
-        implements Coercible
+        implements Groupable, Coercible
     {
         /** The layout of the container. */
         @Editable
         public LayoutConfig layout = new LayoutConfig.Absolute();
-
-        /** Default Constructor. */
-        public Container () {}
-
-        /** Coercing Constructor. */
-        public Container (ComponentConfig single)
-        {
-            LayoutConfig.Group group = new LayoutConfig.HorizontalGroup();
-            group.children = new LayoutConfig.Group.Child[] { new LayoutConfig.Group.Child() };
-            group.children[0].component = single;
-        }
 
         @Override
         public void invalidate ()
@@ -878,6 +900,26 @@ public abstract class ComponentConfig extends DeepObject
         public Object coerceTo (Class<?> exactType)
         {
             return layout.coerceTo(exactType);
+        }
+
+        // from Groupable
+        public java.util.List<?> getGrouped ()
+        {
+            return Lists.transform(layout.getChildComponents(), ChildComponent.extractFunction());
+        }
+
+        // from Groupable
+        public void setGrouped (java.util.List<?> values)
+        {
+            int nn = values.size();
+            LayoutConfig.Group group = new LayoutConfig.HorizontalGroup();
+            group.children = new LayoutConfig.Group.Child[nn];
+            for (int ii = 0; ii < nn; ii++) {
+                LayoutConfig.Group.Child child = new LayoutConfig.Group.Child();
+                child.component = (ComponentConfig)values.get(ii);
+                group.children[ii] = child;
+            }
+            this.layout = group;
         }
 
         @Override
