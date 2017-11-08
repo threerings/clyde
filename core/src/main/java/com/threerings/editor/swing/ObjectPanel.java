@@ -198,33 +198,14 @@ public class ObjectPanel extends BasePropertyEditor
         Class<?> type = _types[idx];
         if (type != null) {
             value = _values[idx];
-            boolean coerced = false;
             if (value == null) {
                 try {
-                    // if the existing value is Coercible maybe it can coerced!
-                    for (Object vv = _lvalue; vv instanceof Coercible; ) {
-                        vv = ((Coercible)vv).coerceTo(type);
-                        // TODO: if we decide to modify the requirement that types must match exactly, we
-                        // now only need do it here. (enums?)
-                        if ((vv != null) && (vv.getClass() == type)) {
-                            _values[idx] = value = vv;
-                            coerced = true;
-                            break;
-                        }
-                    }
+                    _values[idx] = value = newInstance(type);
                 } catch (Exception e) {
-                    log.warning("Failed to coerce instance [type=" + type + "].", e);
-                }
-
-                if (!coerced) {
-                    try {
-                        _values[idx] = value = newInstance(type);
-                    } catch (Exception e) {
-                        log.warning("Failed to create instance [type=" + type + "].", e);
-                    }
+                    log.warning("Failed to create instance [type=" + type + "].", e);
                 }
             }
-            if (_lvalue != null && value != null && !coerced) {
+            if (_lvalue != null && value != null) {
                 // transfer state from shared ancestry
                 DeepUtil.transfer(_lvalue, value);
             }
