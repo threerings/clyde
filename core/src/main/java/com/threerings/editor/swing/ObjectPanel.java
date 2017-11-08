@@ -57,7 +57,6 @@ import com.threerings.util.DeepUtil;
 import com.threerings.util.ReflectionUtil;
 import com.threerings.util.Validatable;
 
-import com.threerings.editor.Coercible;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Groupable;
 import com.threerings.editor.Property;
