@@ -561,15 +561,6 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig elseAction;
 
-        /** Default Constructor. */
-        public Conditional () {}
-
-        /** Conversion constructor. */
-        public Conditional (ActionConfig single)
-        {
-            this.action = action;
-        }
-
         @Override
         public String getLogicClassName ()
         {
@@ -634,16 +625,6 @@ public abstract class ActionConfig extends DeepObject
         @Editable(nullable=true)
         public ActionConfig defaultAction;
 
-        /** Default Constructor. */
-        public Switch () {}
-
-        /** Conversion constructor. */
-        public Switch (ActionConfig single)
-        {
-            this.cases = new Case[] { new Case() };
-            this.cases[0].action = single;
-        }
-
         @Override
         public String getLogicClassName ()
         {
@@ -691,13 +672,14 @@ public abstract class ActionConfig extends DeepObject
         public void setGrouped (List<?> values)
             //throws UnsupportedOperationException
         {
-            int nn = values.size();
+            int nn = values.size() - 1;
             this.cases = new Case[nn];
             for (int ii = 0; ii < nn; ii++) {
                 Case c = new Case();
                 c.action = (ActionConfig)values.get(ii);
                 this.cases[ii] = c;
             }
+            this.defaultAction = (ActionConfig)values.get(nn);
         }
     }
 
@@ -732,16 +714,6 @@ public abstract class ActionConfig extends DeepObject
         /** The default action to take if no case is satisfied. */
         @Editable(nullable=true)
         public ActionConfig defaultAction;
-
-        /** Default Constructor. */
-        public ExpressionSwitch () {}
-
-        /** Conversion constructor. */
-        public ExpressionSwitch (ActionConfig single)
-        {
-            this.cases = new ExpressionCase[] { new ExpressionCase() };
-            this.cases[0].action = single;
-        }
 
         @Override
         public String getLogicClassName ()
@@ -789,13 +761,14 @@ public abstract class ActionConfig extends DeepObject
         public void setGrouped (List<?> values)
             //throws UnsupportedOperationException
         {
-            int nn = values.size();
+            int nn = values.size() - 1; // always use the last one as the default
             this.cases = new ExpressionCase[nn];
             for (int ii = 0; ii < nn; ii++) {
                 ExpressionCase c = new ExpressionCase();
                 c.action = (ActionConfig)values.get(ii);
                 this.cases[ii] = c;
             }
+            defaultAction = (ActionConfig)values.get(nn);
         }
     }
 
@@ -827,15 +800,6 @@ public abstract class ActionConfig extends DeepObject
         /** If we should stop executing actions if one fails. */
         @Editable
         public boolean stopOnFailure = false;
-
-        /** Default Constructor. */
-        public Compound () {}
-
-        /** Conversion Constructor. */
-        public Compound (ActionConfig single)
-        {
-            this.actions = new ActionConfig[] { single };
-        }
 
         // documentation inherited from interface PreExecutable
         public boolean shouldPreExecute ()
@@ -910,16 +874,6 @@ public abstract class ActionConfig extends DeepObject
         /** The contained actions. */
         @Editable
         public WeightedAction[] actions = new WeightedAction[0];
-
-        /** Default Constructor. */
-        public Random () {}
-
-        /** Conversion Constructor. */
-        public Random (ActionConfig single)
-        {
-            actions = new WeightedAction[] { new WeightedAction() };
-            actions[0].action = single;
-        }
 
         @Override
         public String getLogicClassName ()
@@ -999,15 +953,6 @@ public abstract class ActionConfig extends DeepObject
         /** The action to perform. */
         @Editable
         public ActionConfig action = new SpawnActor();
-
-        /** Default Constructor. */
-        public Delayed () {}
-
-        /** Conversion Constructor. */
-        public Delayed (ActionConfig single)
-        {
-            this.action = single;
-        }
 
         @Override
         public String getLogicClassName ()
