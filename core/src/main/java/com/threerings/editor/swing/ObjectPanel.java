@@ -401,39 +401,36 @@ public class ObjectPanel extends BasePropertyEditor
             return false;
         }
 
+        @SuppressWarnings("unchecked") // casting ? to Object is safe!
+        List<Object> gvalues = (List<Object>)values;
         Map<String, Object> instances = Maps.newHashMap();
         List<String> names = Lists.newArrayList();
         for (Class<?> type : _types) {
+            if (!Groupable.class.isAssignableFrom(type)) {
+                continue;
+            }
             Object instance;
             try {
                 instance = newInstance(type);
-            } catch (Exception ee) {
+                @SuppressWarnings("unchecked")
+                Groupable<Object> groupable = (Groupable<Object>)instance;
+                groupable.setGrouped(gvalues);
+            } catch (UnsupportedOperationException uoe) {
+                // this is expected: do not log or warn or anything
+                continue;
+
+            } catch (Exception ue) {
+                log.warning("Unexpected exception trying to group into Groupable", ue);
                 continue;
             }
-            if (instance instanceof Groupable<?>) {
-                try {
-                    @SuppressWarnings("unchecked")
-                    Groupable<Object> groupable = (Groupable<Object>)instance;
-                    @SuppressWarnings("unchecked")
-                    List<Object> gvalues = (List<Object>)values;
-                    groupable.setGrouped(gvalues);
-                } catch (UnsupportedOperationException uoe) {
-                    // this is expected: do not log or warn or anything
-                    continue;
 
-                } catch (Exception ue) {
-                    log.warning("Unexpected exception trying to group into Groupable", ue);
-                    continue;
-                }
-
-                // if no exception: this is a valid option
-                String name = getLabel(type);
-                while (instances.containsKey(name)) {
-                    name += "-2";
-                }
-                instances.put(name, instance);
-                names.add(name);
+            // if no exception: this is a valid option
+            String name = getLabel(type);
+            while (instances.containsKey(name)) {
+                name += "-2";
             }
+            instances.put(name, instance);
+            names.add(name);
         }
 
         if (names.isEmpty()) {
