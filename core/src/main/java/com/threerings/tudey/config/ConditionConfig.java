@@ -259,7 +259,7 @@ public abstract class ConditionConfig extends DeepObject
      * A ConditionConfig containing other ConditionConfigs.
      */
     protected static abstract class SubConditionConfig extends ConditionConfig
-        implements Groupable, Coercible
+        implements Groupable<ConditionConfig>, Coercible
     {
         // from Coercible
         public Object coerceTo (Class<?> exactType)
@@ -271,7 +271,7 @@ public abstract class ConditionConfig extends DeepObject
         }
 
         // from Groupable
-        public List<?> getGrouped ()
+        public List<ConditionConfig> getGrouped ()
         {
             return getSubConditions();
         }
@@ -300,12 +300,12 @@ public abstract class ConditionConfig extends DeepObject
         public ConditionConfig[] conditions = new ConditionConfig[0];
 
         // from Groupable
-        public void setGrouped (List<?> values)
+        public void setGrouped (List<ConditionConfig> values)
         {
             int nn = values.size();
             conditions = new ConditionConfig[nn];
             for (int ii = 0; ii < nn; ii++) {
-                conditions[ii] = (ConditionConfig)values.get(ii);
+                conditions[ii] = values.get(ii);
             }
         }
 
@@ -402,10 +402,10 @@ public abstract class ConditionConfig extends DeepObject
         }
 
         // from Groupable
-        public void setGrouped (List<?> values)
+        public void setGrouped (List<ConditionConfig> values)
         {
             if (values.size() == 1) {
-                condition = (ConditionConfig)values.get(0);
+                condition = values.get(0);
             } else {
                 throw new UnsupportedOperationException();
             }

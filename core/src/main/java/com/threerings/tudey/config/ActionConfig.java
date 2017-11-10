@@ -71,7 +71,7 @@ import static com.threerings.tudey.Log.log;
     ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
     ActionConfig.ServerLog.class, ActionConfig.Fail.class })
 public abstract class ActionConfig extends DeepObject
-    implements Exportable, Streamable, Coercible, Groupable
+    implements Exportable, Streamable, Coercible, Groupable<ActionConfig>
 {
     /**
      * Interface for actions that require pre-execution on the owning client.
@@ -599,15 +599,14 @@ public abstract class ActionConfig extends DeepObject
         }
 
         @Override
-        public void setGrouped (List<?> values)
-            //throws UnsupportedOperationException
+        public void setGrouped (List<ActionConfig> values)
         {
             if (values.size() > 2) {
                 throw new UnsupportedOperationException();
             }
-            action = (ActionConfig)values.get(0);
+            action = values.get(0);
             if (values.size() > 1) {
-                elseAction = (ActionConfig)values.get(1);
+                elseAction = values.get(1);
             }
         }
     }
@@ -669,17 +668,14 @@ public abstract class ActionConfig extends DeepObject
         }
 
         @Override
-        public void setGrouped (List<?> values)
-            //throws UnsupportedOperationException
+        public void setGrouped (List<ActionConfig> values)
         {
-            int nn = values.size() - 1;
-            this.cases = new Case[nn];
-            for (int ii = 0; ii < nn; ii++) {
-                Case c = new Case();
-                c.action = (ActionConfig)values.get(ii);
-                this.cases[ii] = c;
+            int last = values.size() - 1; // last will be used for the default
+            this.cases = new Case[last];
+            for (int ii = 0; ii < last; ii++) {
+                (this.cases[ii] = new Case()).action = values.get(ii);
             }
-            this.defaultAction = (ActionConfig)values.get(nn);
+            this.defaultAction = values.get(last);
         }
     }
 
@@ -758,17 +754,14 @@ public abstract class ActionConfig extends DeepObject
         }
 
         @Override
-        public void setGrouped (List<?> values)
-            //throws UnsupportedOperationException
+        public void setGrouped (List<ActionConfig> values)
         {
-            int nn = values.size() - 1; // always use the last one as the default
-            this.cases = new ExpressionCase[nn];
-            for (int ii = 0; ii < nn; ii++) {
-                ExpressionCase c = new ExpressionCase();
-                c.action = (ActionConfig)values.get(ii);
-                this.cases[ii] = c;
+            int last = values.size() - 1; // always use the last one as the default
+            this.cases = new ExpressionCase[last];
+            for (int ii = 0; ii < last; ii++) {
+                (this.cases[ii] = new ExpressionCase()).action = values.get(ii);
             }
-            defaultAction = (ActionConfig)values.get(nn);
+            defaultAction = values.get(last);
         }
     }
 
@@ -855,13 +848,12 @@ public abstract class ActionConfig extends DeepObject
         }
 
         @Override
-        public void setGrouped (List<?> values)
-            //throws UnsupportedOperationException
+        public void setGrouped (List<ActionConfig> values)
         {
             int nn = values.size();
             this.actions = new ActionConfig[nn];
             for (int ii = 0; ii < nn; ii++) {
-                this.actions[ii] = (ActionConfig)values.get(ii);
+                this.actions[ii] = values.get(ii);
             }
         }
     }
@@ -908,13 +900,12 @@ public abstract class ActionConfig extends DeepObject
         }
 
         @Override
-        public void setGrouped (List<?> values)
+        public void setGrouped (List<ActionConfig> values)
         {
             int nn = values.size();
             actions = new WeightedAction[nn];
             for (int ii = 0; ii < nn; ii++) {
-                actions[ii] = new WeightedAction();
-                actions[ii].action = (ActionConfig)values.get(ii);
+                (this.actions[ii] = new WeightedAction()).action = values.get(ii);
             }
         }
     }
@@ -981,11 +972,10 @@ public abstract class ActionConfig extends DeepObject
         }
 
         @Override
-        public void setGrouped (List<?> values)
+        public void setGrouped (List<ActionConfig> values)
         {
             if (values.size() == 1) {
-                this.action = (ActionConfig)values.get(0);
-
+                this.action = values.get(0);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -1250,14 +1240,14 @@ public abstract class ActionConfig extends DeepObject
     }
 
     // from Groupable
-    public List<?> getGrouped ()
+    public List<ActionConfig> getGrouped ()
     {
         ActionConfig[] sub = getSubActions();
         return (sub == null) ? null : Arrays.asList(sub);
     }
 
     // from Groupable
-    public void setGrouped (List<?> values)
+    public void setGrouped (List<ActionConfig> values)
     {
         throw new UnsupportedOperationException();
     }

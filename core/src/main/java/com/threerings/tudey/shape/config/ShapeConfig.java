@@ -272,7 +272,7 @@ public abstract class ShapeConfig extends DeepObject
      * A transformed shape.
      */
     public static class Transformed extends ShapeConfig
-        implements Groupable, Coercible
+        implements Groupable<ShapeConfig>, Coercible
     {
         /** The base shape. */
         @Editable
@@ -296,16 +296,16 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         // from Groupable
-        public List<?> getGrouped ()
+        public List<ShapeConfig> getGrouped ()
         {
             return Collections.singletonList(shape);
         }
 
         // from Groupable
-        public void setGrouped (List<?> values)
+        public void setGrouped (List<ShapeConfig> values)
         {
             if (values.size() == 1) {
-                shape = (ShapeConfig)values.get(0);
+                shape = values.get(0);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -340,7 +340,7 @@ public abstract class ShapeConfig extends DeepObject
      * A compound shape.
      */
     public static class Compound extends ShapeConfig
-        implements Groupable, Coercible
+        implements Groupable<ShapeConfig>, Coercible
     {
         /** The component shapes. */
         @Editable
@@ -364,7 +364,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         // from Groupable
-        public List<?> getGrouped ()
+        public List<ShapeConfig> getGrouped ()
         {
             return Lists.transform(Arrays.asList(shapes),
                     new Function<TransformedShape, ShapeConfig>() {
@@ -375,14 +375,12 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         // from Groupable
-        public void setGrouped (List<?> values)
+        public void setGrouped (List<ShapeConfig> values)
         {
             int nn = values.size();
             shapes = new TransformedShape[nn];
             for (int ii = 0; ii < nn; ii++) {
-                TransformedShape ts = new TransformedShape();
-                ts.shape = (ShapeConfig)values.get(ii);
-                shapes[ii] = ts;
+                (shapes[ii] = new TransformedShape()).shape = values.get(ii);
             }
         }
 

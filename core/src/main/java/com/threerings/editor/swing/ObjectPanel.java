@@ -314,8 +314,8 @@ public class ObjectPanel extends BasePropertyEditor
 
         if (_ungroup != null) {
             boolean ungroup = false, regroup = false;
-            if (value instanceof Groupable) {
-                List<?> eValues = ((Groupable)value).getGrouped();
+            if (value instanceof Groupable<?>) {
+                List<?> eValues = ((Groupable<?>)value).getGrouped();
                 if (eValues != null && eValues.size() > 0) {
                     boolean allValid = true;
                     for (Object eValue : eValues) {
@@ -379,7 +379,7 @@ public class ObjectPanel extends BasePropertyEditor
     protected void ungroupGroupable ()
     {
         // just force it: let's see if this ever fails
-        List<?> eValues = ((Groupable) getValue()).getGrouped();
+        List<?> eValues = ((Groupable<?>) getValue()).getGrouped();
         setValue(eValues.get(0));
         fireStateChanged();
     }
@@ -389,7 +389,7 @@ public class ObjectPanel extends BasePropertyEditor
      */
     protected void regroupGroupable (ActionEvent event)
     {
-        tryGrouping(((Groupable) getValue()).getGrouped(), event);
+        tryGrouping(((Groupable<?>) getValue()).getGrouped(), event);
     }
 
     /**
@@ -410,9 +410,13 @@ public class ObjectPanel extends BasePropertyEditor
             } catch (Exception ee) {
                 continue;
             }
-            if (instance instanceof Groupable) {
+            if (instance instanceof Groupable<?>) {
                 try {
-                    ((Groupable)instance).setGrouped(values);
+                    @SuppressWarnings("unchecked")
+                    Groupable<Object> groupable = (Groupable<Object>)instance;
+                    @SuppressWarnings("unchecked")
+                    List<Object> gvalues = (List<Object>)values;
+                    groupable.setGrouped(gvalues);
                 } catch (UnsupportedOperationException uoe) {
                     // this is expected: do not log or warn or anything
                     continue;

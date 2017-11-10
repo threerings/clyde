@@ -589,7 +589,7 @@ public abstract class ComponentConfig extends DeepObject
      * A tabbed pane.
      */
     public static class TabbedPane extends ComponentConfig
-        implements Groupable, Coercible
+        implements Groupable<ComponentConfig>, Coercible
     {
         /**
          * A single tab.
@@ -646,20 +646,18 @@ public abstract class ComponentConfig extends DeepObject
         }
 
         // from Groupable
-        public java.util.List<?> getGrouped ()
+        public java.util.List<ComponentConfig> getGrouped ()
         {
             return Lists.transform(Arrays.asList(tabs), ChildComponent.extractFunction());
         }
 
         // from Groupable
-        public void setGrouped (java.util.List<?> values)
+        public void setGrouped (java.util.List<ComponentConfig> values)
         {
             int nn = values.size();
             this.tabs = new Tab[nn];
             for (int ii = 0; ii < nn; ii++) {
-                Tab t = new Tab();
-                t.component = (ComponentConfig)values.get(ii);
-                this.tabs[ii] = t;
+                (this.tabs[ii] = new Tab()).component = values.get(ii);
             }
         }
 
@@ -771,7 +769,7 @@ public abstract class ComponentConfig extends DeepObject
      * A scroll pane.
      */
     public static class ScrollPane extends ComponentConfig
-        implements Groupable, Coercible
+        implements Groupable<ComponentConfig>, Coercible
     {
         /** Whether or not to allow vertical scrolling. */
         @Editable(hgroup="v")
@@ -814,16 +812,16 @@ public abstract class ComponentConfig extends DeepObject
         }
 
         // from Groupable
-        public java.util.List<?> getGrouped ()
+        public java.util.List<ComponentConfig> getGrouped ()
         {
             return Collections.singletonList(child);
         }
 
         // from Groupable
-        public void setGrouped (java.util.List<?> values)
+        public void setGrouped (java.util.List<ComponentConfig> values)
         {
             if (values.size() == 1) {
-                child = (ComponentConfig)values.get(0);
+                child = values.get(0);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -884,7 +882,7 @@ public abstract class ComponentConfig extends DeepObject
      * A container.
      */
     public static class Container extends ComponentConfig
-        implements Groupable, Coercible
+        implements Groupable<ComponentConfig>, Coercible
     {
         /** The layout of the container. */
         @Editable
@@ -903,21 +901,19 @@ public abstract class ComponentConfig extends DeepObject
         }
 
         // from Groupable
-        public java.util.List<?> getGrouped ()
+        public java.util.List<ComponentConfig> getGrouped ()
         {
             return Lists.transform(layout.getChildComponents(), ChildComponent.extractFunction());
         }
 
         // from Groupable
-        public void setGrouped (java.util.List<?> values)
+        public void setGrouped (java.util.List<ComponentConfig> values)
         {
             int nn = values.size();
             LayoutConfig.Group group = new LayoutConfig.HorizontalGroup();
             group.children = new LayoutConfig.Group.Child[nn];
             for (int ii = 0; ii < nn; ii++) {
-                LayoutConfig.Group.Child child = new LayoutConfig.Group.Child();
-                child.component = (ComponentConfig)values.get(ii);
-                group.children[ii] = child;
+                (group.children[ii] = new LayoutConfig.Group.Child()).component = values.get(ii);
             }
             this.layout = group;
         }
