@@ -38,7 +38,6 @@ import org.lwjgl.opengl.GL11;
 
 import com.threerings.io.Streamable;
 
-import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Groupable;
@@ -272,7 +271,7 @@ public abstract class ShapeConfig extends DeepObject
      * A transformed shape.
      */
     public static class Transformed extends ShapeConfig
-        implements Groupable<ShapeConfig>, Coercible
+        implements Groupable<ShapeConfig>
     {
         /** The base shape. */
         @Editable
@@ -287,12 +286,6 @@ public abstract class ShapeConfig extends DeepObject
         {
             super.invalidate();
             shape.invalidate();
-        }
-
-        // from Coercible
-        public Object coerceTo (Class<?> exactType)
-        {
-            return shape;
         }
 
         // from Groupable
@@ -340,7 +333,7 @@ public abstract class ShapeConfig extends DeepObject
      * A compound shape.
      */
     public static class Compound extends ShapeConfig
-        implements Groupable<ShapeConfig>, Coercible
+        implements Groupable<ShapeConfig>
     {
         /** The component shapes. */
         @Editable
@@ -353,14 +346,6 @@ public abstract class ShapeConfig extends DeepObject
             for (TransformedShape tshape : shapes) {
                 tshape.invalidate();
             }
-        }
-
-        // from Coercible
-        public Object coerceTo (Class<?> exactType)
-        {
-            return (shapes.length == 1)
-                ? shapes[0].shape
-                : null;
         }
 
         // from Groupable

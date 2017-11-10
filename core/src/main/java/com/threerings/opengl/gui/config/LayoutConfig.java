@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -58,7 +57,7 @@ import static com.threerings.opengl.gui.Log.log;
     LayoutConfig.Border.class, LayoutConfig.HorizontalGroup.class,
     LayoutConfig.VerticalGroup.class, LayoutConfig.Table.class })
 public abstract class LayoutConfig extends DeepObject
-    implements Exportable, Coercible
+    implements Exportable
 {
     /**
      * Locations for border layouts.
@@ -614,15 +613,6 @@ public abstract class LayoutConfig extends DeepObject
         for (ChildComponent ccomp : getChildComponents()) {
             ccomp.component.invalidate();
         }
-    }
-
-    // from Coercible
-    public Object coerceTo (Class<?> exactType)
-    {
-        List<? extends ChildComponent> sub = getChildComponents();
-        return (sub.size() == 1)
-            ? sub.get(0).component
-            : null;
     }
 
     /**

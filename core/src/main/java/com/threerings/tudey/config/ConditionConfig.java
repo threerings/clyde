@@ -32,7 +32,6 @@ import java.util.List;
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Groupable;
@@ -259,17 +258,8 @@ public abstract class ConditionConfig extends DeepObject
      * A ConditionConfig containing other ConditionConfigs.
      */
     protected static abstract class SubConditionConfig extends ConditionConfig
-        implements Groupable<ConditionConfig>, Coercible
+        implements Groupable<ConditionConfig>
     {
-        // from Coercible
-        public Object coerceTo (Class<?> exactType)
-        {
-            List<ConditionConfig> sub = getSubConditions();
-            return (sub.size() == 1)
-                ? sub.get(0)
-                : null;
-        }
-
         // from Groupable
         public List<ConditionConfig> getGrouped ()
         {

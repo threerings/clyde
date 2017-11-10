@@ -37,7 +37,6 @@ import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.editor.Coercible;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Groupable;
@@ -589,7 +588,7 @@ public abstract class ComponentConfig extends DeepObject
      * A tabbed pane.
      */
     public static class TabbedPane extends ComponentConfig
-        implements Groupable<ComponentConfig>, Coercible
+        implements Groupable<ComponentConfig>
     {
         /**
          * A single tab.
@@ -635,14 +634,6 @@ public abstract class ComponentConfig extends DeepObject
             for (Tab tab : tabs) {
                 tab.component.invalidate();
             }
-        }
-
-        // from Coercible
-        public Object coerceTo (Class<?> exactClass)
-        {
-            return (tabs.length == 1)
-                ? tabs[0].component
-                : null;
         }
 
         // from Groupable
@@ -769,7 +760,7 @@ public abstract class ComponentConfig extends DeepObject
      * A scroll pane.
      */
     public static class ScrollPane extends ComponentConfig
-        implements Groupable<ComponentConfig>, Coercible
+        implements Groupable<ComponentConfig>
     {
         /** Whether or not to allow vertical scrolling. */
         @Editable(hgroup="v")
@@ -803,12 +794,6 @@ public abstract class ComponentConfig extends DeepObject
         public void invalidate ()
         {
             child.invalidate();
-        }
-
-        // from Coercible
-        public Object coerceTo (Class<?> exactType)
-        {
-            return child;
         }
 
         // from Groupable
@@ -882,7 +867,7 @@ public abstract class ComponentConfig extends DeepObject
      * A container.
      */
     public static class Container extends ComponentConfig
-        implements Groupable<ComponentConfig>, Coercible
+        implements Groupable<ComponentConfig>
     {
         /** The layout of the container. */
         @Editable
@@ -892,12 +877,6 @@ public abstract class ComponentConfig extends DeepObject
         public void invalidate ()
         {
             layout.invalidate();
-        }
-
-        // from Coercible
-        public Object coerceTo (Class<?> exactType)
-        {
-            return layout.coerceTo(exactType);
         }
 
         // from Groupable
