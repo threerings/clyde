@@ -94,19 +94,10 @@ public class ActorLogic extends Logic
         updateCollisionFlags();
 
         // if specified, attempt to find a non-colliding spawn point
-        log.info("Init actor!",
-                "ref", ref,
-                "x", _actor.getTranslation().x,
-                "y", _actor.getTranslation().y,
-                "spawnMask", config.spawnMask);
         if ((config.spawnMask != 0) && (actor == null)) {
             Predicate<? super Actor> collPred = getSpawnCollisionPredicate();
             if (scenemgr.collides(config.spawnMask, getShape(), timestamp, collPred)) {
-                log.info("Attempting adjust");
                 adjustSpawnPoint(collPred);
-                log.info("Adjustment ended.");
-            } else {
-                log.info("No need adjust...");
             }
         }
         _scenemgr.getActorSpace().add(_shape);
@@ -575,7 +566,6 @@ public class ActorLogic extends Logic
      */
     protected void adjustSpawnPoint (float tx, float ty, Predicate<? super Actor> collPred)
     {
-        Thread.dumpStack();
         // get the bounds with respect to the position
         Rect bounds = _shape.getBounds();
         float width = bounds.getWidth() + 0.01f, height = bounds.getHeight() + 0.01f;
@@ -588,37 +578,30 @@ public class ActorLogic extends Logic
             float bottom = oy - dist*height;
             for (int xx = -dist; xx <= +dist; xx++) {
                 if (testSpawnPoint(tx, ty, ox + xx*width, bottom, collPred)) {
-                    log.info("Adjusted!");
                     return;
                 }
             }
             float right = ox + dist*width;
             for (int yy = 1 - dist, yymax = -yy; yy <= yymax; yy++) {
                 if (testSpawnPoint(tx, ty, right, oy + yy*height, collPred)) {
-                    log.info("Adjusted!");
                     return;
                 }
             }
             float top = oy + dist*height;
             for (int xx = +dist; xx >= -dist; xx--) {
                 if (testSpawnPoint(tx, ty, ox + xx*width, top, collPred)) {
-                    log.info("Adjusted!");
                     return;
                 }
             }
             float left = ox - dist*width;
             for (int yy = dist - 1, yymin = -yy; yy >= yymin; yy--) {
                 if (testSpawnPoint(tx, ty, left, oy + yy*height, collPred)) {
-                    log.info("Adjusted!");
                     return;
                 }
             }
         }
 
         // if we exhaust our search, return to the original location
-        log.info("FAILED to adjust!",
-                "ox", ox,
-                "oy", oy);
         _actor.setTranslation(ox, oy);
         updateShape();
     }
@@ -632,32 +615,18 @@ public class ActorLogic extends Logic
     protected boolean testSpawnPoint (
             float ox, float oy, float nx, float ny, Predicate<? super Actor> collPred)
     {
-        String result = "works!";
-        try {
-            // update the shape
-            _actor.setTranslation(nx, ny);
-            updateShape();
+        // update the shape
+        _actor.setTranslation(nx, ny);
+        updateShape();
 
-            // check for collision
-            if (_scenemgr.collides(_config.spawnMask, getShape(), _actor.getCreated(), collPred)) {
-                result = "spawnMask collision";
-                return false;
-            }
-
-            // make sure we can reach the original translation, ignoring actors
-            boolean hasPath = _scenemgr.getPathfinder().getPath(
-                this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false, false) != null;
-            if (!hasPath) {
-                result = "path collision";
-            }
-            return hasPath;
-        } finally {
-            log.info("testSpawnPoint",
-                    "spawnMask", _config.spawnMask,
-                    "x", nx,
-                    "y", ny,
-                    "RESULT", result);
+        // check for collision
+        if (_scenemgr.collides(_config.spawnMask, getShape(), _actor.getCreated(), collPred)) {
+            return false;
         }
+
+        // make sure we can reach the original translation, ignoring actors
+        return _scenemgr.getPathfinder().getPath(
+            this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false, false) != null;
     }
 
     /**
