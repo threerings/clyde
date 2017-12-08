@@ -37,7 +37,13 @@ public class LayerChanger extends EditorTool
 
         _moveMulti = new AbstractAction(_msgs.get("b.move_multi_layer")) {
             public void actionPerformed (ActionEvent e) {
-                moveSelection();
+                processSelection(false);
+                setEnabled(false);
+            }
+        };
+        _copyMulti = new AbstractAction(_msgs.get("b.copy_multi_layer")) {
+            public void actionPerformed (ActionEvent e) {
+                processSelection(true);
                 setEnabled(false);
             }
         };
@@ -49,7 +55,11 @@ public class LayerChanger extends EditorTool
         hbox.add(new JLabel(_msgs.get("l.target_layer")), GroupLayout.FIXED);
         hbox.add(_layerBox);
         vbox.add(hbox, GroupLayout.FIXED);
-        vbox.add(new JButton(_moveMulti), GroupLayout.FIXED);
+
+        hbox = GroupLayout.makeHStretchBox(5);
+        hbox.add(new JButton(_moveMulti), GroupLayout.FIXED);
+        hbox.add(new JButton(_copyMulti), GroupLayout.FIXED);
+        vbox.add(hbox, GroupLayout.FIXED);
         add(vbox);
     }
 
@@ -57,7 +67,10 @@ public class LayerChanger extends EditorTool
     public void addNotify ()
     {
         super.addNotify();
-        _moveMulti.setEnabled(_editor.getSelection().length > 1);
+        int selectionCount = _editor.getSelection().length;
+        boolean multi = selectionCount > 1;
+        _moveMulti.setEnabled(multi);
+        _copyMulti.setEnabled(multi);
     }
 
     @Override
@@ -89,7 +102,7 @@ public class LayerChanger extends EditorTool
     public void mouseReleased (MouseEvent event)
     {
         super.mouseReleased(event);
-        moveSelection();
+        processSelection(false);
     }
 
     /**
@@ -104,16 +117,21 @@ public class LayerChanger extends EditorTool
             _editor.setSelection();
         }
         _moveMulti.setEnabled(false);
+        _copyMulti.setEnabled(false);
     }
 
     /**
      * Move the selected entries to the target layer.
      */
-    protected void moveSelection ()
+    protected void processSelection (boolean copy)
     {
         int layer = _layerBox.getSelectedIndex();
         for (TudeySceneModel.Entry entry : _editor.getSelection()) {
-            _scene.setLayer(entry.getKey(), layer);
+            if (copy) {
+                _scene.addEntry((TudeySceneModel.Entry)entry.clone(), layer);
+            } else {
+                _scene.setLayer(entry.getKey(), layer);
+            }
         }
         _editor.setSelection();
     }
@@ -221,5 +239,5 @@ public class LayerChanger extends EditorTool
     };
 
     /** The action for moving multiple items to the layer. */
-    protected Action _moveMulti;
+    protected Action _moveMulti, _copyMulti;
 }
