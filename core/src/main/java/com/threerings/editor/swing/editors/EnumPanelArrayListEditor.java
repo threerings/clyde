@@ -51,7 +51,7 @@ import com.threerings.editor.Introspector;
 import static com.threerings.editor.Log.log;
 
 /**
- * An editor for arrays of lists of enums.
+ * An editor for arrays or lists of enums.
  */
 public class EnumPanelArrayListEditor extends PanelArrayListEditor
 {
