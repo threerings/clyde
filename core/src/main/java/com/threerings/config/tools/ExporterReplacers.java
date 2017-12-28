@@ -2,7 +2,7 @@ package com.threerings.config.tools;
 
 import java.util.EnumSet;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import com.threerings.export.Exporter;
@@ -80,7 +80,7 @@ public enum ExporterReplacers
                         if (repl != null) {
                             // here's where it gets funky, we want the replacement to be replaceable
                             Exporter.Replacement replRepl = getReplacement(repl.value, repl.clazz);
-                            return Objects.firstNonNull(replRepl, repl);
+                            return MoreObjects.firstNonNull(replRepl, repl);
                         }
                     }
                     return null;

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -1051,9 +1051,9 @@ public class Component
     /**
      * Helper method for toStringing.
      */
-    protected Objects.ToStringHelper toStringHelper ()
+    protected MoreObjects.ToStringHelper toStringHelper ()
     {
-        return Objects.toStringHelper(this);
+        return MoreObjects.toStringHelper(this);
     }
 
     /**

@@ -38,7 +38,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import com.samskivert.util.ArrayUtil;
 
@@ -238,9 +238,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
     /**
      * Overrideable helper for toString().
      */
-    protected Objects.ToStringHelper toStringHelper ()
+    protected MoreObjects.ToStringHelper toStringHelper ()
     {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("property", _property.getName());
     }
 

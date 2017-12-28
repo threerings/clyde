@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
@@ -345,7 +345,7 @@ public class DeepUtil
         public String toString (Object object)
             throws IllegalAccessException
         {
-            Objects.ToStringHelper tsh = Objects.toStringHelper(object);
+            MoreObjects.ToStringHelper tsh = MoreObjects.toStringHelper(object);
             for (int ii = 0; ii < _fields.length; ii++) {
                 tsh.add(sanitizeName(_fields[ii].getName()),
                         _handlers[ii].toString(_fields[ii], object));

@@ -38,8 +38,8 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
@@ -232,7 +232,7 @@ public class ConfigSearcher extends JFrame
     /**
      * A search domain that searches all managed configs in the ConfigManger.
      */
-    public static class ConfigDomain 
+    public static class ConfigDomain
         implements Domain
     {
         /**
@@ -276,7 +276,7 @@ public class ConfigSearcher extends JFrame
                             };
                 }
                 protected Iterator<? extends ManagedConfig> _cfgIterator =
-                        Iterators.emptyIterator();
+                        ImmutableSet.<ManagedConfig>of().iterator();
                 protected Iterator<ConfigGroup<?>> _groupIterator =
                         _ctx.getConfigManager().getGroups().iterator();
                 protected ConfigGroup<?> _currentGroup;
@@ -513,7 +513,7 @@ public class ConfigSearcher extends JFrame
                 EventQueue.invokeLater(this);
             }
 
-            protected Iterator<Result> _resultIterator = Iterators.emptyIterator();
+            protected Iterator<Result> _resultIterator = ImmutableSet.<Result>of().iterator();
             protected Iterator<Domain> _domainIterator = domains.iterator();
         });
     }
