@@ -30,6 +30,7 @@ import java.awt.event.KeyEvent;
 
 import java.io.File;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -46,7 +47,6 @@ import javax.swing.event.ChangeListener;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import org.lwjgl.opengl.GL11;
 
@@ -315,7 +315,7 @@ public class InterfaceTester extends GlCanvasTool
     protected UserInterface _userInterface;
 
     /** Components that should be drawn highlighted. */
-    protected Set<Component> _highlights = Sets.newSetFromMap(
+    protected Set<Component> _highlights = Collections.newSetFromMap(
         new MapMaker().concurrencyLevel(1).weakKeys().<Component, Boolean>makeMap());
 
     /** The application preferences. */
