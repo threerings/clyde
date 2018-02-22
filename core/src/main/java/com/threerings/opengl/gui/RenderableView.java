@@ -38,9 +38,12 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.expr.DynamicScope;
+import com.threerings.expr.Function;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
+
+import com.threerings.config.ConfigReference;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.camera.CameraHandler;
@@ -53,6 +56,8 @@ import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.ModelAdapter;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.Texture2D;
@@ -60,6 +65,7 @@ import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.TransformState;
+import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlUtil;
 import com.threerings.opengl.util.Tickable;
@@ -77,6 +83,22 @@ public class RenderableView extends Component
     {
         super(ctx);
         _camhand = createCameraHandler();
+    }
+
+    @Scoped
+    public Scene.Transient spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
+    {
+        // set up the transient (no pool)
+        Scene.Transient model = new Scene.Transient(_ctx, ref);
+        model.setParentScope(_scope);
+        model.setUserObject(ref);
+        model.addObserver(_transientObserver);
+
+        // add it
+        model.setLocalTransform(transform);
+        add(model);
+
+        return model;
     }
 
     /**
@@ -525,4 +547,13 @@ public class RenderableView extends Component
 
     /** Used to save the scissor region. */
     protected Rectangle _oscissor = new Rectangle();
+
+    /** Removes transient models once they're done. */
+    protected ModelAdapter _transientObserver = new ModelAdapter() {
+        public boolean modelCompleted (Model model) {
+            ((Scene.Transient)model).setUpdater(null);
+            remove(model);
+            return true;
+        }
+    };
 }
