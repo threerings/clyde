@@ -185,6 +185,14 @@ public class Animation extends SimpleScope
         }
 
         /**
+         * Get the configured duration of this animation.
+         */
+        public float getConfigDuration ()
+        {
+            return Float.NaN;
+        }
+
+        /**
          * (Re)configures the implementation.
          */
         protected void setConfig (AnimationConfig.Original config)
@@ -233,6 +241,12 @@ public class Animation extends SimpleScope
         {
             super(ctx, parentScope);
             setConfig(config);
+        }
+
+        @Override
+        public float getConfigDuration ()
+        {
+            return _config.getDuration();
         }
 
         /**
@@ -530,6 +544,12 @@ public class Animation extends SimpleScope
         {
             super.setConfig(_config = config);
             updateFromConfig();
+        }
+
+        @Override
+        public float getConfigDuration ()
+        {
+            return _config.duration;
         }
 
         @Override
@@ -960,6 +980,15 @@ public class Animation extends SimpleScope
     public float getSpeedModifier ()
     {
         return _speedModifier;
+    }
+
+    /**
+     * Try to get the configured duration (prior to local speed changes) for this animation,
+     * or 0 for looping animations, or Float.NaN is unknown.
+     */
+    public float getConfigDuration ()
+    {
+        return _impl.getConfigDuration();
     }
 
     /**
