@@ -43,6 +43,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
+import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.util.GlContext;
@@ -1154,6 +1155,18 @@ public class Animation extends SimpleScope
     public String toString ()
     {
         return _name;
+    }
+
+    /**
+     * Are the two animations equivalent?
+     * They must essentially be the same animation on the same model, even if their
+     * names are different.
+     */
+    public boolean isEquivalent (Animation that)
+    {
+        return (that != null) &&
+            (_parentScope == that._parentScope) &&
+            DeepUtil.equals(_config, that._config);
     }
 
     /**
