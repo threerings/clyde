@@ -32,6 +32,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.PixelFormat;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -85,6 +86,10 @@ public class RenderableView extends Component
         _camhand = createCameraHandler();
     }
 
+    /**
+     * An implementation of the spawnTransient function, so that we may support
+     * com.threerings.opengl.model.config.ActionConfig.SpawnTransient.
+     */
     @Scoped
     public Scene.Transient spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
     {
@@ -208,6 +213,7 @@ public class RenderableView extends Component
     public void add (Compositable compositable)
     {
         _compositables.add(compositable);
+        maybeRemakeTickables(compositable);
     }
 
     /**
@@ -216,6 +222,19 @@ public class RenderableView extends Component
     public void remove (Compositable compositable)
     {
         _compositables.remove(compositable);
+        maybeRemakeTickables(compositable);
+    }
+
+    /**
+     * Remake the tickables array if it possibly changed.
+     */
+    protected void maybeRemakeTickables (Compositable compositable)
+    {
+        if (compositable instanceof Tickable) {
+            _tickables = Iterables.toArray(
+                    Iterables.filter(_compositables, Tickable.class),
+                    Tickable.class);
+        }
     }
 
     /**
@@ -224,6 +243,7 @@ public class RenderableView extends Component
     public void removeAll ()
     {
         _compositables.clear();
+        _tickables = EMPTY_TICKABLES;
     }
 
     /**
@@ -289,11 +309,9 @@ public class RenderableView extends Component
             }
 
             // tick the other compositables
-            for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
-                Compositable compositable = _compositables.get(ii);
-                if (compositable instanceof Tickable) {
-                    ((Tickable)compositable).tick(elapsed);
-                }
+            Tickable[] tickers = _tickables; // stable array ref in case a tickable removes itself
+            for (int ii = 0, nn = tickers.length; ii < nn; ii++) {
+                tickers[ii].tick(elapsed);
             }
         } finally {
             // restore the camera
@@ -528,6 +546,9 @@ public class RenderableView extends Component
     /** The list of other compositables to include. */
     protected List<Compositable> _compositables = Lists.newArrayList();
 
+    /** A working array of tickable compositables. */
+    protected transient Tickable[] _tickables = EMPTY_TICKABLES;
+
     /** For static views, the rendered image. */
     protected Image _image;
 
@@ -556,4 +577,8 @@ public class RenderableView extends Component
             return true;
         }
     };
+
+    /** An empty tickable array. */
+    protected static final Tickable[] EMPTY_TICKABLES = new Tickable[0];
+
 }
