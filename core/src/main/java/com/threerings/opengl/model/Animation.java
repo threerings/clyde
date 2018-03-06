@@ -1157,17 +1157,17 @@ public class Animation extends SimpleScope
         return _name;
     }
 
-    /**
-     * Are the two animations equivalent?
-     * They must essentially be the same animation on the same model, even if their
-     * names are different.
-     */
-    public boolean isEquivalent (Animation that)
-    {
-        return (that != null) &&
-            (_parentScope == that._parentScope) &&
-            DeepUtil.equals(_config, that._config);
-    }
+//    /**
+//     * Are the two animations equivalent?
+//     * They must essentially be the same animation on the same model, even if their
+//     * names are different.
+//     */
+//    public boolean isEquivalent (Animation that)
+//    {
+//        return (that != null) &&
+//            (_parentScope == that._parentScope) &&
+//            DeepUtil.equals(_config, that._config);
+//    }
 
     /**
      * Updates the animation to match its new or modified configuration.
