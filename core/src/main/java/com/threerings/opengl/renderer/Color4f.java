@@ -75,7 +75,7 @@ public final class Color4f
     /** An opaque magenta color object. */
     public static final Color4f MAGENTA = new Color4f(1f, 0f, 1f, 1f);
 
-    /** An opaque yellor color object. */
+    /** An opaque yellow color object. */
     public static final Color4f YELLOW = new Color4f(1f, 1f, 0f, 1f);
 
     /** The components of the color. */
