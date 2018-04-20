@@ -242,7 +242,7 @@ public class LabelRenderer
             break;
         }
 
-        useConfig(config);
+        _config = config;
     }
 
     /**
@@ -444,17 +444,6 @@ public class LabelRenderer
         }
 
         return config;
-    }
-
-    protected void useConfig (Config config)
-    {
-        // make sure it's not the one we're already using
-        if (_config == config) {
-            return;
-        }
-
-        // note our new config
-        _config = config;
     }
 
     /**
