@@ -79,9 +79,17 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
+import javax.swing.undo.UndoManager;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -187,6 +195,16 @@ public class ConfigEditor extends BaseConfigEditor
     {
         super(msgmgr, cfgmgr, colorpos, "editor.config");
 
+        // create the undo apparatus
+        _undoSupport = new UndoableEditSupport();
+        _undoSupport.addUndoableEditListener(_undomgr = new UndoManager());
+        _undomgr.setLimit(10000);
+        _undoSupport.addUndoableEditListener(new UndoableEditListener() {
+            public void undoableEditHappened (UndoableEditEvent event) {
+                updateUndoActions();
+            }
+        });
+
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
@@ -224,16 +242,37 @@ public class ConfigEditor extends BaseConfigEditor
         }
 
         final JMenu edit = createMenu("edit", KeyEvent.VK_E);
+        menubar.add(edit);
+	edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
+	_undo.setEnabled(false);
+	edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
+	_redo.setEnabled(false);
+	edit.addSeparator();
+        final int CUT_INDEX = edit.getItemCount();
+        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
+        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
+        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
+        edit.add(new JMenuItem(
+            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+        addFindMenu(edit);
+        edit.addSeparator();
+        edit.add(new JMenuItem(_findUses = createAction("find_uses", 0, -1)));
+        edit.addSeparator();
+        edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
+        addEditMenuItems(edit);
+        edit.addSeparator();
+        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
+        edit.add(createMenuItem("preferences", KeyEvent.VK_F, -1));
         edit.addMenuListener(new MenuListener() {
             public void menuSelected (MenuEvent event) {
                 // hackery to allow cut/copy/paste/delete to act on editor tree
                 TreeEditorPanel panel = (TreeEditorPanel)SwingUtilities.getAncestorOfClass(
                     TreeEditorPanel.class, getFocusOwner());
                 if (panel != null) {
-                    edit.getItem(0).setAction(panel.getCutAction());
-                    edit.getItem(1).setAction(panel.getCopyAction());
-                    edit.getItem(2).setAction(panel.getPasteAction());
-                    edit.getItem(3).setAction(panel.getDeleteAction());
+                    edit.getItem(CUT_INDEX).setAction(panel.getCutAction());
+                    edit.getItem(CUT_INDEX + 1).setAction(panel.getCopyAction());
+                    edit.getItem(CUT_INDEX + 2).setAction(panel.getPasteAction());
+                    edit.getItem(CUT_INDEX + 3).setAction(panel.getDeleteAction());
                 } else {
                     restoreActions();
                 }
@@ -250,27 +289,12 @@ public class ConfigEditor extends BaseConfigEditor
                 // no-op
             }
             protected void restoreActions () {
-                edit.getItem(0).setAction(_cut);
-                edit.getItem(1).setAction(_copy);
-                edit.getItem(2).setAction(_paste);
-                edit.getItem(3).setAction(_delete);
+                edit.getItem(CUT_INDEX).setAction(_cut);
+                edit.getItem(CUT_INDEX + 1).setAction(_copy);
+                edit.getItem(CUT_INDEX + 2).setAction(_paste);
+                edit.getItem(CUT_INDEX + 3).setAction(_delete);
             }
         });
-        menubar.add(edit);
-        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
-        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
-        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
-        edit.add(new JMenuItem(
-            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
-        addFindMenu(edit);
-        edit.addSeparator();
-        edit.add(new JMenuItem(_findUses = createAction("find_uses", 0, -1)));
-        edit.addSeparator();
-        edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
-        addEditMenuItems(edit);
-        edit.addSeparator();
-        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
-        edit.add(createMenuItem("preferences", KeyEvent.VK_F, -1));
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
@@ -383,6 +407,22 @@ public class ConfigEditor extends BaseConfigEditor
             item.importConfigs();
         } else if (action.equals("export_configs")) {
             item.exportConfigs();
+	} else if (action.equals("undo")) {
+            _undoing = true;
+            try {
+                _undomgr.undo();
+            } finally {
+                _undoing = false;
+            }
+	    updateUndoActions();
+	} else if (action.equals("redo")) {
+            _undoing = true;
+            try {
+                _undomgr.redo();
+            } finally {
+                _undoing = false;
+            }
+	    updateUndoActions();
         } else if (action.equals("cut")) {
             item.cutNode();
         } else if (action.equals("copy")) {
@@ -465,6 +505,20 @@ public class ConfigEditor extends BaseConfigEditor
         for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
             SwingUtil.refresh(((ManagerPanel)_tabs.getComponentAt(ii)).gbox);
         }
+    }
+
+    /**
+     * Updates the enabled states of the undo and redo actions.
+     */
+    protected void updateUndoActions ()
+    {
+        boolean canUndo = _undomgr.canUndo();
+        _undo.setEnabled(canUndo);
+        _undo.putValue(Action.SHORT_DESCRIPTION, canUndo ? _undomgr.getUndoPresentationName() : "");
+
+        boolean canRedo = _undomgr.canRedo();
+        _redo.setEnabled(canRedo);
+        _redo.putValue(Action.SHORT_DESCRIPTION, canRedo ? _undomgr.getRedoPresentationName() : "");
     }
 
     /**
@@ -791,6 +845,14 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public void configChanged ()
             {
+//                log.info("Config changed " + _tree.getSelectedNode().getConfig(),
+//                        "lastValue", _lastValue);
+                ManagedConfig oldLastValue = _lastValue;
+                _lastValue = (ManagedConfig)
+                    ((ManagedConfig)_tree.getSelectedNode().getConfig()).clone();
+                maybePostUndo(
+                        new ConfigEdit(ConfigEdit.Type.CHANGE, group, _lastValue, oldLastValue));
+
                 DirtyGroupManager.setDirty(group, true);
                 _tree.selectedConfigChanged();
             }
@@ -854,7 +916,9 @@ public class ConfigEditor extends BaseConfigEditor
                 // update the editor panel
                 _epanel.removeChangeListener(ManagerPanel.this);
                 try {
-                    _epanel.setObject(node == null ? null : node.getConfig());
+                    ManagedConfig cfg = (node == null) ? null : node.getConfig();
+                    _epanel.setObject(cfg);
+                    _lastValue = (cfg == null) ? null : (ManagedConfig)cfg.clone();
                 } finally {
                     _epanel.addChangeListener(ManagerPanel.this);
                 }
@@ -898,6 +962,8 @@ public class ConfigEditor extends BaseConfigEditor
 
             /** The configuration tree. */
             protected ConfigTree _tree;
+
+            protected ManagedConfig _lastValue;
         }
 
         /** The configuration manager. */
@@ -923,6 +989,7 @@ public class ConfigEditor extends BaseConfigEditor
             GroupItem[] items = new GroupItem[groups.size()];
             int idx = 0;
             for (ConfigGroup<?> group : groups) {
+                group.addListener(_editListener);
                 items[idx++] = new GroupItem(group);
             }
             QuickSort.sort(items, new Comparator<GroupItem>() {
@@ -1267,6 +1334,138 @@ public class ConfigEditor extends BaseConfigEditor
         protected static ObserverList<ConfigEditor> _editors = ObserverList.newFastUnsafe();
     }
 
+    protected static class ConfigEdit extends AbstractUndoableEdit
+    {
+	public enum Type
+	{
+	    CHANGE,
+	    ADD,
+	    REMOVE,
+	    ;
+	}
+
+	public ConfigEdit (
+            Type type, ConfigGroup<?> group,
+            ManagedConfig newValue, ManagedConfig oldValue)
+	{
+	    _type = type;
+            _group = group;
+	    _new = newValue;
+	    _old = oldValue;
+//            if (_type == Type.CHANGE) {
+//                _diffKey = com.threerings.util.DeepUtil.getFirstDiff(newValue, oldValue);
+//                if (_diffKey == null) {
+//                    log.info("EXPECTING THIS TAASDFSDFD?");
+//                }
+//                log.info("DIFFKEY: " + _diffKey);
+//            }
+	}
+
+        @Override
+        public boolean addEdit (UndoableEdit edit)
+        {
+            if (!(edit instanceof ConfigEdit)) {
+                return false;
+            }
+            ConfigEdit oedit = (ConfigEdit)edit;
+
+            // for now we can only merge changes to the same config
+            if (_type != Type.CHANGE || oedit._type != Type.CHANGE ||
+                    _group != oedit._group ||
+                    !_new.getName().equals(oedit._new.getName())/* ||
+                    _diffKey != oedit._diffKey*/) {
+                return false;
+            }
+
+            if (_new != oedit._old) {
+                log.info("AS FAR AS I KNOW, this should work!");
+            }
+            _new = oedit._new;
+            oedit.die();
+            return true;
+        }
+
+        @Override
+        public void undo ()
+            throws CannotUndoException
+        {
+            super.undo();
+            switch (_type) {
+                case CHANGE:
+                case REMOVE:
+                    _group.addConfig(_old);
+                    break;
+
+                case ADD:
+                    _group.removeConfig(_new);
+                    break;
+
+                default:
+                    unknownType();
+                    break;
+            }
+        }
+
+        @Override
+        public void redo ()
+            throws CannotRedoException
+        {
+            super.redo();
+            switch (_type) {
+                case CHANGE:
+                case ADD:
+                    _group.addConfig(_new);
+                    break;
+
+                case REMOVE:
+                    _group.removeConfig(_old);
+                    break;
+
+                default:
+                    unknownType();
+                    break;
+            }
+        }
+
+        @Override
+        public String getPresentationName ()
+        {
+            return _type + ":" + _group.getName() + "  " + getConfigName();
+        }
+
+        /**
+         */
+        protected String getConfigName ()
+        {
+            switch (_type) {
+                case CHANGE:
+                case ADD:
+                    return _new.getName();
+
+                case REMOVE:
+                    return _old.getName();
+
+                default:
+                    return unknownType();
+            }
+        }
+
+        protected <T> T unknownType ()
+            throws RuntimeException
+        {
+            throw new RuntimeException("Unhandled type: " + _type);
+        }
+
+        protected Type _type;
+
+        protected ConfigGroup<?> _group;
+
+        protected ManagedConfig _new, _old;
+
+//        /** A diffkey, used for CHANGE. */
+//        protected Object _diffKey;
+    }
+
     /** Are we operating in read-only mode? */
     protected final boolean _readOnly = ToolUtil.isReadOnly();
 
@@ -1280,7 +1479,7 @@ public class ConfigEditor extends BaseConfigEditor
     protected JMenuItem _exportConfigs;
 
     /** The edit menu actions. */
-    protected Action _cut, _copy, _paste, _delete, _findUses;
+    protected Action _undo, _redo, _cut, _copy, _paste, _delete, _findUses;
 
     /** The tree mode toggle. */
     protected JCheckBoxMenuItem _treeMode;
@@ -1296,6 +1495,44 @@ public class ConfigEditor extends BaseConfigEditor
 
     /** The class of the clipboard selection. */
     protected Class<?> _clipclass;
+
+    protected ConfigGroupListener _editListener = new ConfigGroupListener() {
+        public void configAdded (ConfigEvent<ManagedConfig> event) {
+//            log.info("Config added",
+//                    "source", event.getSource(),
+//                    "config", event.getConfig(),
+//                    "name", event.getConfig().getName(),
+//                    "classof", event.getConfig().getClass());
+            maybePostUndo(new ConfigEdit(ConfigEdit.Type.ADD,
+                        (ConfigGroup<?>)event.getSource(),
+                        event.getConfig(),
+                        null));
+        }
+        public void configRemoved (ConfigEvent<ManagedConfig> event) {
+//            log.info("Config removed",
+//                    "source", event.getSource(),
+//                    "config", event.getConfig());
+            maybePostUndo(new ConfigEdit(ConfigEdit.Type.REMOVE,
+                        (ConfigGroup<?>)event.getSource(),
+                        null,
+                        event.getConfig()));
+        }
+    };
+
+    protected void maybePostUndo (ConfigEdit edit)
+    {
+        if (!_undoing) {
+            _undoSupport.postEdit(edit);
+        }
+    }
+
+    /** The undo manager. */
+    protected UndoManager _undomgr;
+
+    /** The undoable edit support object. */
+    protected UndoableEditSupport _undoSupport;
+
+    protected boolean _undoing;
 
     /** A Function for creating new instances of the config editor via our public static method.
      * This function will be assigned by subclasses that wish to ensure that that subclass
