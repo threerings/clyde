@@ -1352,13 +1352,9 @@ public class ConfigEditor extends BaseConfigEditor
             _group = group;
 	    _new = newValue;
 	    _old = oldValue;
-//            if (_type == Type.CHANGE) {
-//                _diffKey = com.threerings.util.DeepUtil.getFirstDiff(newValue, oldValue);
-//                if (_diffKey == null) {
-//                    log.info("EXPECTING THIS TAASDFSDFD?");
-//                }
-//                log.info("DIFFKEY: " + _diffKey);
-//            }
+            if (_type == Type.CHANGE) {
+                _diffKey = com.threerings.util.DeepUtil.getDiffKey(newValue, oldValue);
+            }
 	}
 
         @Override
@@ -1372,16 +1368,18 @@ public class ConfigEditor extends BaseConfigEditor
             // for now we can only merge changes to the same config
             if (_type != Type.CHANGE || oedit._type != Type.CHANGE ||
                     _group != oedit._group ||
-                    !_new.getName().equals(oedit._new.getName())/* ||
-                    _diffKey != oedit._diffKey*/) {
+                    !_new.getName().equals(oedit._new.getName()) ||
+                    !_diffKey.equals(oedit._diffKey)) {
+//                log.info("--> New edit kept separate");
                 return false;
             }
 
-            if (_new != oedit._old) {
-                log.info("AS FAR AS I KNOW, this should work!");
-            }
+//            if (_new != oedit._old) {
+//                log.info("AS FAR AS I KNOW, this should work!");
+//            }
             _new = oedit._new;
             oedit.die();
+//            log.info("--> New edit combined");
             return true;
         }
 
@@ -1430,7 +1428,17 @@ public class ConfigEditor extends BaseConfigEditor
         @Override
         public String getPresentationName ()
         {
-            return _type + ":" + _group.getName() + "  " + getConfigName();
+            StringBuilder buf = new StringBuilder(_type.toString())
+                .append(':')
+                .append(_group.getName())
+                .append(" \"")
+                .append(getConfigName())
+                .append('"');
+            if (_diffKey != null) {
+                buf.append(' ')
+                   .append(_diffKey);
+            }
+            return buf.toString();
         }
 
         /**
@@ -1462,8 +1470,8 @@ public class ConfigEditor extends BaseConfigEditor
 
         protected ManagedConfig _new, _old;
 
-//        /** A diffkey, used for CHANGE. */
-//        protected Object _diffKey;
+        /** A diffkey, used for CHANGE. */
+        protected String _diffKey;
     }
 
     /** Are we operating in read-only mode? */

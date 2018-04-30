@@ -156,6 +156,32 @@ public class DeepUtil
     }
 
     /**
+     * Get a key describing the first difference between the two objects, or null.
+     * This key is not meant to be decoded from a String back into a property. Rather,
+     * the idea is to just get a unique key describing the first field that differs between
+     * the two objects.
+     */
+    public static <T> String getDiffKey (T o1, T o2)
+    {
+        if (o1 == o2) {
+            return null;
+        }
+        Class<?> c1 = (o1 == null) ? null : o1.getClass();
+        Class<?> c2 = (o2 == null) ? null : o2.getClass();
+        if (c1 != c2) {
+            return ".";
+        }
+        @SuppressWarnings("unchecked") ObjectHandler<T> handler =
+            (ObjectHandler<T>)getObjectHandler(c1);
+        try {
+            return handler.getDiffKey(o1, o2);
+        } catch (IllegalAccessException e) {
+            log.warning("Couldn't access fields for deep equals.", e);
+            return null;
+        }
+    }
+
+    /**
      * Computes the deep hash code of an object.
      */
     public static int hashCode (Object object)
@@ -239,6 +265,20 @@ public class DeepUtil
     }
 
     /**
+     * Combine the "property path" we're constructing for a diffkey.
+     */
+    protected static String combineDiffKey (String s1, String s2)
+    {
+        if (".".equals(s2)) {
+            return s1;
+        } else if (s2.startsWith("[")) {
+            return s1 + s2;
+        } else {
+            return s1 + "." + s2;
+        }
+    }
+
+    /**
      * Performs the actual object operations.
      */
     protected static abstract class ObjectHandler<T>
@@ -260,6 +300,12 @@ public class DeepUtil
          */
         public abstract int hashCode (T object)
             throws IllegalAccessException;
+
+        public String getDiffKey (T o1, T o2)
+            throws IllegalAccessException
+        {
+            return equals(o1, o2) ? null : ".";
+        }
 
         /**
          * Computes the object's String representation, which is for debugging and can change.
@@ -330,6 +376,19 @@ public class DeepUtil
         }
 
         @Override
+        public String getDiffKey (Object o1, Object o2)
+            throws IllegalAccessException
+        {
+            for (int ii = 0; ii < _fields.length; ii++) {
+                String key = _handlers[ii].getDiffKey(_fields[ii], o1, o2);
+                if (key != null) {
+                    return key;
+                }
+            }
+            return null;
+        }
+
+        @Override
         public int hashCode (Object object)
             throws IllegalAccessException
         {
@@ -384,6 +443,15 @@ public class DeepUtil
          */
         public abstract boolean equals (Field field, Object o1, Object o2)
             throws IllegalAccessException;
+
+        /**
+         * Default impl of getDiffKey.
+         */
+        public String getDiffKey (Field field, Object o1, Object o2)
+            throws IllegalAccessException
+        {
+            return equals(field, o1, o2) ? null : field.getName();
+        }
 
         /**
          * Computes the hash code of the given field value.
@@ -625,6 +693,19 @@ public class DeepUtil
             }
             return true;
         }
+        public String getDiffKey (Object[] o1, Object[] o2)
+            throws IllegalAccessException {
+            if (o1.length != o2.length) {
+                return "length";
+            }
+            for (int ii = 0; ii < o1.length; ii++) {
+                String key = DeepUtil.getDiffKey(o1[ii], o2[ii]);
+                if (key != null) {
+                    return combineDiffKey("[" + ii + "]", key);
+                }
+            }
+            return null;
+        }
         public int hashCode (Object[] object)
             throws IllegalAccessException {
             int hash = 1;
@@ -798,6 +879,11 @@ public class DeepUtil
                 return v1.equals(v2);
             }
         }
+        public String getDiffKey (Field field, Object o1, Object o2)
+            throws IllegalAccessException {
+            String key = DeepUtil.getDiffKey(field.get(o1), field.get(o2));
+            return (key == null) ? null : combineDiffKey(field.getName(), key);
+        }
         public int hashCode (Field field, Object object)
                 throws IllegalAccessException {
             Object value = field.get(object);
@@ -820,6 +906,11 @@ public class DeepUtil
         public boolean equals (Field field, Object o1, Object o2)
                 throws IllegalAccessException {
             return DeepUtil.equals(field.get(o1), field.get(o2));
+        }
+        public String getDiffKey (Field field, Object o1, Object o2)
+            throws IllegalAccessException {
+            String key = DeepUtil.getDiffKey(field.get(o1), field.get(o2));
+            return (key == null) ? null : combineDiffKey(field.getName(), key);
         }
         public int hashCode (Field field, Object object)
                 throws IllegalAccessException {
