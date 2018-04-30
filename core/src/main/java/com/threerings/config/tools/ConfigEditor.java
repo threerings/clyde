@@ -42,6 +42,7 @@ import java.awt.event.KeyEvent;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -109,11 +110,14 @@ import com.samskivert.util.QuickSort;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.swing.PrintStreamDialog;
+import com.threerings.util.DeepUtil;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ResourceUtil;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.Introspector;
+import com.threerings.editor.Property;
 import com.threerings.editor.util.Validator;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
@@ -1353,9 +1357,35 @@ public class ConfigEditor extends BaseConfigEditor
 	    _new = newValue;
 	    _old = oldValue;
             if (_type == Type.CHANGE) {
-                _diffKey = com.threerings.util.DeepUtil.getDiffKey(newValue, oldValue);
+                _diffKey = figureDiffKey(Class.class, _new, _old);
             }
 	}
+
+        protected Object figureDiffKey (Object diffKey, Object o1, Object o2)
+        {
+            if (o1 == o2) { // same obj or both null
+                return null;
+            }
+            if (o1 == null || o2 == null || o1.getClass() != o2.getClass()) {
+                return diffKey;
+            }
+            Property[] props = Introspector.getProperties(o1);
+            Property[] oProps = Introspector.getProperties(o2);
+            if (!Arrays.equals(props, oProps)) {
+                return diffKey;
+            }
+            if (props.length == 0) {
+                return DeepUtil.equals(o1, o2) ? null : diffKey;
+            } else {
+                for (Property p : props) {
+                    Object subKey = figureDiffKey(p, p.get(o1), p.get(o2));
+                    if (subKey != null) {
+                        return subKey;
+                    }
+                }
+                return null;
+            }
+        }
 
         @Override
         public boolean addEdit (UndoableEdit edit)
@@ -1369,14 +1399,11 @@ public class ConfigEditor extends BaseConfigEditor
             if (_type != Type.CHANGE || oedit._type != Type.CHANGE ||
                     _group != oedit._group ||
                     !_new.getName().equals(oedit._new.getName()) ||
-                    !_diffKey.equals(oedit._diffKey)) {
+                    !Objects.equal(_diffKey, oedit._diffKey)) {
 //                log.info("--> New edit kept separate");
                 return false;
             }
 
-//            if (_new != oedit._old) {
-//                log.info("AS FAR AS I KNOW, this should work!");
-//            }
             _new = oedit._new;
             oedit.die();
 //            log.info("--> New edit combined");
@@ -1471,7 +1498,7 @@ public class ConfigEditor extends BaseConfigEditor
         protected ManagedConfig _new, _old;
 
         /** A diffkey, used for CHANGE. */
-        protected String _diffKey;
+        protected Object _diffKey;
     }
 
     /** Are we operating in read-only mode? */
