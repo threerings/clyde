@@ -1354,6 +1354,12 @@ public class ConfigEditor extends BaseConfigEditor
 	    _old = oldValue;
             if (_type == Type.CHANGE) {
                 _diffKey = com.threerings.util.DeepUtil.getDiffKey(newValue, oldValue);
+                if (_diffKey == null) {
+                    log.info("Null diffkey... no-op change?",
+                            "newValue", newValue,
+                            "oldValue", oldValue,
+                            new Exception());
+                }
             }
 	}
 
