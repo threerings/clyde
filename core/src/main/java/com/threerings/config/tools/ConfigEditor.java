@@ -1369,7 +1369,7 @@ public class ConfigEditor extends BaseConfigEditor
             if (_type != Type.CHANGE || oedit._type != Type.CHANGE ||
                     _group != oedit._group ||
                     !_new.getName().equals(oedit._new.getName()) ||
-                    !_diffKey.equals(oedit._diffKey)) {
+                    !Objects.equal(_diffKey, oedit._diffKey)) {
 //                log.info("--> New edit kept separate");
                 return false;
             }
