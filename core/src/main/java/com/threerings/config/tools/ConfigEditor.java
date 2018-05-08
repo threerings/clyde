@@ -119,6 +119,7 @@ import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.editor.util.PropertyUtil;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
@@ -1353,7 +1354,7 @@ public class ConfigEditor extends BaseConfigEditor
 	    _new = newValue;
 	    _old = oldValue;
             if (_type == Type.CHANGE) {
-                _diffKey = com.threerings.util.DeepUtil.getDiffKey(newValue, oldValue);
+                _diffKey = PropertyUtil.findFirstDiffPath(newValue, oldValue);
                 if (_diffKey == null) {
                     log.info("Null diffkey... no-op change?",
                             "newValue", newValue,
