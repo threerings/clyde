@@ -28,7 +28,6 @@ package com.threerings.editor.util;
 import java.io.PrintStream;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -56,12 +55,10 @@ import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
-import com.threerings.editor.MethodProperty;
 import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.export.ObjectMarshaller;
-import com.threerings.util.DeepUtil;
 
 import static com.threerings.editor.Log.log;
 
@@ -282,72 +279,6 @@ public class PropertyUtil
             }
             // if property not found on dest: ignore
         }
-    }
-
-    /**
-     * Find a string "path" of the first diff between the two objects.
-     */
-    public static String findFirstDiffPath (Object one, Object two)
-    {
-        List<Property> props = findFirstDiffLineage(one, two);
-        if (props == null) {
-            return null;
-
-        } else if (props.size() == 0) {
-            return ".";
-        }
-
-        StringBuilder buf = new StringBuilder();
-        for (Property prop : props) {
-            if (buf.length() > 0) {
-                buf.append(".");
-            }
-            buf.append(prop.getName());
-        }
-        return buf.toString();
-    }
-
-    /**
-     * Find the lineage to the first property that's found to be different, or null if
-     * the two objects are the same.
-     * Note: an empty list will be returned if the two objects have no properties
-     * and are different.
-     * Note: this method returns a List instead of an array because this method is newer
-     * and better. They should all return Lists, really.
-     */
-    public static List<Property> findFirstDiffLineage (Object one, Object two)
-    {
-        if (one == two) {
-            return null;
-        }
-        Class<?> c1 = (one == null) ? null : one.getClass();
-        Class<?> c2 = (two == null) ? null : two.getClass();
-        if (c1 != c2) {
-            return Lists.newArrayList();
-        }
-        Property[] p1 = Introspector.getProperties(one);
-        Property[] p2 = Introspector.getProperties(two);
-        if (p1.length != p2.length) {
-            return Lists.newArrayList();
-        }
-        if (p1.length == 0) {
-            return DeepUtil.equals(one, two) ? null : Lists.<Property>newArrayList();
-        }
-        for (int ii = 0; ii < p1.length; ii++) {
-            if (p1[ii] != p2[ii]) {
-                // can this happen?
-                return Lists.newArrayList(p1);
-            } else {
-                Object po1 = p1[ii].get(one);
-                Object po2 = p2[ii].get(two);
-                List<Property> list = findFirstDiffLineage(po1, po2);
-                if (list != null) {
-                    list.add(0, p1[ii]);
-                    return list;
-                }
-            }
-        }
-        return null;
     }
 
     /**
