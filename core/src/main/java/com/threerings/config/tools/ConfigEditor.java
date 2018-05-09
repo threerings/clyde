@@ -42,6 +42,7 @@ import java.awt.event.KeyEvent;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -112,15 +113,18 @@ import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ResourceUtil;
 import com.threerings.util.ToolUtil;
+import com.threerings.util.DeepUtil;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.Introspector;
+import com.threerings.editor.Property;
 import com.threerings.editor.util.Validator;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
 import com.threerings.editor.util.EditorContext;
-import com.threerings.editor.util.PropertyUtil;
 
+import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigGroupListener;
@@ -1354,7 +1358,8 @@ public class ConfigEditor extends BaseConfigEditor
 	    _new = newValue;
 	    _old = oldValue;
             if (_type == Type.CHANGE) {
-                _diffKey = PropertyUtil.findFirstDiffPath(newValue, oldValue);
+                _diffKey = findFirstDiffLineage(newValue, oldValue);
+                log.info("DiffKey: " + _diffKey);
                 if (_diffKey == null) {
                     log.info("Null diffkey... no-op change?",
                             "newValue", newValue,
@@ -1469,6 +1474,73 @@ public class ConfigEditor extends BaseConfigEditor
             throws RuntimeException
         {
             throw new RuntimeException("Unhandled type: " + _type);
+        }
+
+        protected String findFirstDiffLineage (Object one, Object two)
+        {
+            if (one == two) {
+                return null;
+            }
+            Class<?> c1 = (one == null) ? null : one.getClass();
+            Class<?> c2 = (two == null) ? null : two.getClass();
+            if (c1 != c2) {
+                return "";
+            }
+            // what the fuck special config reference handling
+            if (c1 == ConfigReference.class) {
+                ConfigReference<?> r1 = (ConfigReference<?>)one;
+                ConfigReference<?> r2 = (ConfigReference<?>)two;
+                if (!r1.getName().equals(r2.getName())) {
+                    return "_name";
+                }
+                ArgumentMap am1 = r1.getArguments();
+                ArgumentMap am2 = r2.getArguments();
+                if (am1.size() != am2.size()) {
+                    return "_args";
+                }
+                for (Map.Entry<String, Object> entry : am1.entrySet()) {
+                    String s = findFirstDiffLineage(entry.getValue(), am2.get(entry.getKey()));
+                    if (s != null) {
+                        return entry.getKey() + "." + s;
+                    }
+                }
+                return null;
+            }
+            if (c1.isArray()) {
+                final int arrayLength = Array.getLength(one);
+                if (arrayLength != Array.getLength(two)) {
+                    return "_length";
+                }
+                for (int ii = 0; ii < arrayLength; ii++) {
+                    String s = findFirstDiffLineage(Array.get(one, ii), Array.get(two, ii));
+                    if (s != null) {
+                        return "[" + ii + "]" + "." + s;
+                    }
+                }
+                return null;
+            }
+	    Property[] p1 = Introspector.getProperties(one);
+	    Property[] p2 = Introspector.getProperties(two);
+	    if (p1.length != p2.length) {
+		return "";
+	    }
+	    if (p1.length == 0) {
+		return DeepUtil.equals(one, two) ? null : "";
+	    }
+	    for (int ii = 0; ii < p1.length; ii++) {
+		if (p1[ii] != p2[ii]) {
+		    // can this happen?
+		    return "";
+		} else {
+		    Object po1 = p1[ii].get(one);
+		    Object po2 = p2[ii].get(two);
+		    String path = findFirstDiffLineage(po1, po2);
+		    if (path != null) {
+			return p1[ii].getName() + "." + path;
+		    }
+		}
+	    }
+	    return null;
         }
 
         protected Type _type;
