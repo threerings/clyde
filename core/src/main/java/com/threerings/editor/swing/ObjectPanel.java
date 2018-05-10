@@ -406,7 +406,7 @@ public class ObjectPanel extends BasePropertyEditor
         Map<String, Object> instances = Maps.newHashMap();
         List<String> names = Lists.newArrayList();
         for (Class<?> type : _types) {
-            if (!Groupable.class.isAssignableFrom(type)) {
+            if (type == null || !Groupable.class.isAssignableFrom(type)) {
                 continue;
             }
             Object instance;
