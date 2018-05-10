@@ -1359,7 +1359,7 @@ public class ConfigEditor extends BaseConfigEditor
 	    _old = oldValue;
             if (_type == Type.CHANGE) {
                 _diffKey = findFirstDiffLineage(newValue, oldValue);
-                log.info("DiffKey: " + _diffKey);
+//                log.info("DiffKey: " + _diffKey);
                 if (_diffKey == null) {
                     log.info("Null diffkey... no-op change?",
                             "newValue", newValue,
@@ -1491,17 +1491,17 @@ public class ConfigEditor extends BaseConfigEditor
                 ConfigReference<?> r1 = (ConfigReference<?>)one;
                 ConfigReference<?> r2 = (ConfigReference<?>)two;
                 if (!r1.getName().equals(r2.getName())) {
-                    return "_name";
+                    return "._name";
                 }
                 ArgumentMap am1 = r1.getArguments();
                 ArgumentMap am2 = r2.getArguments();
                 if (am1.size() != am2.size()) {
-                    return "_args";
+                    return "._args";
                 }
                 for (Map.Entry<String, Object> entry : am1.entrySet()) {
                     String s = findFirstDiffLineage(entry.getValue(), am2.get(entry.getKey()));
                     if (s != null) {
-                        return entry.getKey() + "." + s;
+                        return "." + entry.getKey() + s;
                     }
                 }
                 return null;
@@ -1509,12 +1509,12 @@ public class ConfigEditor extends BaseConfigEditor
             if (c1.isArray()) {
                 final int arrayLength = Array.getLength(one);
                 if (arrayLength != Array.getLength(two)) {
-                    return "_length";
+                    return "._length";
                 }
                 for (int ii = 0; ii < arrayLength; ii++) {
                     String s = findFirstDiffLineage(Array.get(one, ii), Array.get(two, ii));
                     if (s != null) {
-                        return "[" + ii + "]" + "." + s;
+                        return ".[" + ii + "]" + s;
                     }
                 }
                 return null;
@@ -1536,7 +1536,7 @@ public class ConfigEditor extends BaseConfigEditor
 		    Object po2 = p2[ii].get(two);
 		    String path = findFirstDiffLineage(po1, po2);
 		    if (path != null) {
-			return p1[ii].getName() + "." + path;
+			return "." + p1[ii].getName() + path;
 		    }
 		}
 	    }
