@@ -130,7 +130,12 @@ public class Model extends DynamicScope
          */
         public void attach (String point, Model model, boolean replace)
         {
-            log.warning("Attachment not supported.", "point", point, "model", model);
+            ModelConfig cfg = model.getConfig();
+            log.warning("Attachment not supported.",
+                    "point", point,
+                    "model", model,
+                    "implClass", this.getClass(),
+                    "cfg", (cfg == null) ? null : cfg.getName());
         }
 
         /**
