@@ -248,9 +248,9 @@ public class PathProperty extends Property
     /**
      * Sets the property value.
      */
-    protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
+    protected void setProperty (Object obj, Object value, Property prop, boolean noCoerce)
     {
-        prop.set(obj, coerce ? value : coerce(value, prop.getType()));
+        prop.set(obj, noCoerce ? value : coerce(value, prop.getType()));
     }
 
     /**
