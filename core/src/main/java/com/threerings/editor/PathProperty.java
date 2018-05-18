@@ -442,6 +442,9 @@ public class PathProperty extends Property
         if (value == null || type.isInstance(value)) {
             return value;
 
+        } else if (type == String.class) {
+            return value.toString();
+
         } else if (value instanceof String) {
             if (type == Byte.class) {
                 try {
@@ -493,8 +496,6 @@ public class PathProperty extends Property
                 return ((Number)value).longValue();
             } else if (type == Short.class) {
                 return ((Number)value).shortValue();
-            } else if (type == String.class) {
-                return value.toString();
             }
         }
         throw new IllegalArgumentException("Can't coerce " + value + " to " + type);
