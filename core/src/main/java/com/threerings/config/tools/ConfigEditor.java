@@ -1359,13 +1359,12 @@ public class ConfigEditor extends BaseConfigEditor
 	    _old = oldValue;
             if (_type == Type.CHANGE) {
                 _diffKey = findFirstDiffLineage(newValue, oldValue);
-//                log.info("DiffKey: " + _diffKey);
-                if (_diffKey == null) {
-                    log.info("Null diffkey... no-op change?",
-                            "newValue", newValue,
-                            "oldValue", oldValue,
-                            new Exception());
-                }
+//                if (_diffKey == null) {
+//                    log.info("Null diffkey... no-op change?",
+//                            "newValue", newValue,
+//                            "oldValue", oldValue,
+//                            new Exception());
+//                }
             }
 	}
 
@@ -1375,13 +1374,15 @@ public class ConfigEditor extends BaseConfigEditor
             if (!(edit instanceof ConfigEdit)) {
                 return false;
             }
-            ConfigEdit oedit = (ConfigEdit)edit;
+            ConfigEdit that = (ConfigEdit)edit;
 
             // for now we can only merge changes to the same config
-            if (_type != Type.CHANGE || oedit._type != Type.CHANGE ||
-                    _group != oedit._group ||
-                    !_new.getName().equals(oedit._new.getName()) ||
-                    !Objects.equal(_diffKey, oedit._diffKey)) {
+            if (_type != Type.CHANGE || that._type != Type.CHANGE ||
+                    _group != that._group ||
+                    !_new.getName().equals(that._new.getName()) ||
+                    // we can always combine a null diffKey, and we can always combine if they
+                    // are equal. So if both aren't true, we can't combine.
+                    ((that._diffKey != null) && !that._diffKey.equals(_diffKey))) {
 //                log.info("--> New edit kept separate");
                 return false;
             }
@@ -1389,8 +1390,8 @@ public class ConfigEditor extends BaseConfigEditor
 //            if (_new != oedit._old) {
 //                log.info("AS FAR AS I KNOW, this should work!");
 //            }
-            _new = oedit._new;
-            oedit.die();
+            _new = that._new;
+            that.die();
 //            log.info("--> New edit combined");
             return true;
         }
