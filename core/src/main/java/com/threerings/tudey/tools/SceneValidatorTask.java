@@ -52,7 +52,12 @@ public class SceneValidatorTask extends AbstractValidatorTask
                 TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
                         new FileInputStream(source)).readObject();
                 model.getConfigManager().init("scene", cfgmgr);
-                valid &= model.validateReferences(validator);
+                validator.pushWhere("Scene: " + source);
+                try {
+                    valid &= model.validateReferences(validator);
+                } finally {
+                    validator.popWhere();
+                }
 
             } catch (Exception e) { // IOException, ClassCastException
                 log.warning("Failed to read scene.", "file", source, e);
