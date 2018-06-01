@@ -111,6 +111,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
+import com.threerings.editor.swing.editors.util.RecentDirectoryList;
 import com.threerings.editor.tools.BatchValidateDialog;
 import com.threerings.editor.util.Validator;
 import com.threerings.export.BinaryExporter;
@@ -232,6 +233,8 @@ public class SceneEditor extends TudeyTool
         menubar.add(_viewMenu = createViewMenu());
         menubar.add(_toolMenu = createToolMenu());
 
+        final String dirPrefKey = "files:scenes";
+
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("scene_dir", null));
         _chooser.setFileFilter(new FileFilter() {
@@ -242,6 +245,7 @@ public class SceneEditor extends TudeyTool
                 return _msgs.get("m.scene_files");
             }
         });
+        _chooser.setAccessory(new RecentDirectoryList(dirPrefKey));
 
         // and the export chooser
         _exportChooser = new JFileChooser(_prefs.get("scene_export_dir", null));
@@ -253,6 +257,7 @@ public class SceneEditor extends TudeyTool
                 return _msgs.get("m.xml_files");
             }
         });
+        _exportChooser.setAccessory(new RecentDirectoryList(dirPrefKey));
 
         // and the selection chooser
         _selectionChooser = new JFileChooser(_prefs.get("selection_dir", null));
@@ -264,6 +269,7 @@ public class SceneEditor extends TudeyTool
                 return _msgs.get("m.selection_files");
             }
         });
+        _selectionChooser.setAccessory(new RecentDirectoryList(dirPrefKey));
 
         // populate the tool bar
         _toolbar.setLayout(new HGroupLayout(GroupLayout.STRETCH));
