@@ -63,6 +63,7 @@ import com.threerings.util.MessageManager;
 
 import com.threerings.editor.Introspector;
 import com.threerings.editor.util.PropertyUtil;
+import com.threerings.editor.swing.editors.util.RecentDirectoryList;
 
 import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
@@ -170,7 +171,8 @@ public abstract class ConfigChooser extends JPanel
      */
     protected static class ResourceChooser extends ConfigChooser
     {
-        public ResourceChooser (final MessageManager msgmgr, ResourceManager rsrcmgr, Class<?> clazz)
+        public ResourceChooser (
+                final MessageManager msgmgr, ResourceManager rsrcmgr, Class<?> clazz)
         {
             _rsrcmgr = rsrcmgr;
             final MessageBundle msgs = msgmgr.getBundle("editor.config");
@@ -188,6 +190,7 @@ public abstract class ConfigChooser extends JPanel
                     return msgs.get("m.config_files", label);
                 }
             });
+            _chooser.setAccessory(new RecentDirectoryList("rsrc:" + clazz.getName()));
         }
 
         @Override

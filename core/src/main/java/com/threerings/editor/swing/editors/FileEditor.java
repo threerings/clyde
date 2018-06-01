@@ -42,6 +42,7 @@ import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.editor.swing.editors.util.RecentDirectoryList;
 
 /**
  * Edits file properties.
@@ -86,6 +87,7 @@ public class FileEditor extends PropertyEditor
                 }
             }
             _chooser.setSelectedFile(getPropertyFile());
+            _chooser.setAccessory(new RecentDirectoryList("files:" + getClass().getName()));
             int result = _chooser.showOpenDialog(this);
             if (key != null) {
                 _prefs.put(key, _chooser.getCurrentDirectory().toString());
