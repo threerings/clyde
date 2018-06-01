@@ -37,9 +37,7 @@ public abstract class AbstractRecentList extends JPanel
         super(new BorderLayout());
         _prefKey = prefKey;
         _prefs = prefs;
-        if (_prefKey != null) {
-            readPrefs();
-        }
+        readPrefs();
 
         // create the list and add it to the hierarchy
         _list = new JList(_listModel);
@@ -138,9 +136,7 @@ public abstract class AbstractRecentList extends JPanel
         }
 
         // and save out these values
-        if (_prefKey != null) {
-            writePrefs();
-        }
+        writePrefs();
     }
 
     /**
@@ -148,10 +144,18 @@ public abstract class AbstractRecentList extends JPanel
      */
     protected void readPrefs ()
     {
-        String encoded = _prefs.get(_prefKey, "");
-        _listModel.removeAllElements();
-        for (String piece : Splitter.on('|').omitEmptyStrings().split(encoded)) {
-            _listModel.addElement(piece.replace("%BAR%", "|"));
+        if (_prefKey == null) {
+            return;
+        }
+        _block = true;
+        try {
+            String encoded = _prefs.get(_prefKey, "");
+            _listModel.removeAllElements();
+            for (String piece : Splitter.on('|').omitEmptyStrings().split(encoded)) {
+                _listModel.addElement(piece.replace("%BAR%", "|"));
+            }
+        } finally {
+            _block = false;
         }
     }
 
@@ -160,6 +164,9 @@ public abstract class AbstractRecentList extends JPanel
      */
     protected void writePrefs ()
     {
+        if (_prefKey == null) {
+            return;
+        }
         StringBuilder builder = new StringBuilder();
         for (int ii = 0, nn = _listModel.getSize(); ii < nn; ii++) {
             String value = (String)_listModel.getElementAt(ii);
