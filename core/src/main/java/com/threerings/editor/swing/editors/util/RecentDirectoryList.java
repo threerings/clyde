@@ -44,7 +44,16 @@ public class RecentDirectoryList extends AbstractRecentList
             if (c instanceof JFileChooser) {
                 _chooser = (JFileChooser)c;
                 _chooser.addActionListener(_actionListener);
-                addRecent(_chooser.getCurrentDirectory());
+                readPrefs();
+
+                // add the current directory as a recent without saving it
+                String theKey = _prefKey;
+                _prefKey = null;
+                try {
+                    addRecent(_chooser.getCurrentDirectory());
+                } finally {
+                    _prefKey = theKey;
+                }
                 break;
             }
         }
