@@ -805,6 +805,20 @@ public class Animation extends SimpleScope
         }
 
         @Override
+        public float getConfigDuration ()
+        {
+            float duration = 0f; // if we have zero animations we are zero duration
+            for (Animation anim : _animations) {
+                float subdir = anim.getConfigDuration();
+                if (Float.isNaN(subdir)) {
+                    return Float.NaN; // but any unknown causes the whole thing to be unknown
+                }
+                duration += subdir;
+            }
+            return duration;
+        }
+
+        @Override
         public void setSpeedModifier (float speedModifier)
         {
             for (Animation anim : _animations) {
