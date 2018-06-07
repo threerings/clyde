@@ -81,6 +81,12 @@ public class RecentConfigList extends AbstractRecentList
     }
 
     @Override
+    protected int getMaximumChop (String value)
+    {
+        return value.lastIndexOf('/') + 1;
+    }
+
+    @Override
     protected void valueSelected (String value)
     {
         final ConfigReference<?> ref = new ConfigReference<ManagedConfig>(value);

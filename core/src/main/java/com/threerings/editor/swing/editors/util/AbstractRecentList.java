@@ -74,7 +74,7 @@ public abstract class AbstractRecentList extends JPanel
                 // then see if we should try to shrink the String to display ellipses
                 // at the beginning rather than the end
                 int maxWidth = list.getSize().width;
-                for (int chop = 1, maxChop = fullString.lastIndexOf('/') + 1;
+                for (int chop = 1, maxChop = getMaximumChop(fullString);
                         (chop <= maxChop) && (getPreferredSize().width > maxWidth);
                         chop++) {
                     setText("..." + fullString.substring(chop));
@@ -96,6 +96,16 @@ public abstract class AbstractRecentList extends JPanel
      * Called when a value is actually selected.
      */
     protected abstract void valueSelected (String value);
+
+    /**
+     * Get the position into the string that represents the maximum prefix that can be chopped,
+     * for display in the list.
+     */
+    protected int getMaximumChop (String value)
+    {
+        // just say we need to keep the last 10 characters
+        return Math.max(0, value.length() - 10);
+    }
 
     /**
      * Add a value that's been used recently.

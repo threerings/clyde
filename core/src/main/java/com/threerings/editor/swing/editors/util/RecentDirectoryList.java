@@ -61,6 +61,12 @@ public class RecentDirectoryList extends AbstractRecentList
         super.removeNotify();
     }
 
+    @Override
+    protected int getMaximumChop (String value)
+    {
+        return value.lastIndexOf(File.separatorChar) + 1;
+    }
+
     /**
      * Version of addRecent that takes a file.
      */
