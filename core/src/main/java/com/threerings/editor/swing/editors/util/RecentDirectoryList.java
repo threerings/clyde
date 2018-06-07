@@ -10,6 +10,7 @@ import java.io.File;
 
 import java.util.prefs.Preferences;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,11 +20,15 @@ import javax.swing.JPanel;
  */
 public class RecentDirectoryList extends AbstractRecentList
 {
+    /**
+     * Construct with the specified (non-null) prefsKey.
+     */
     public RecentDirectoryList (String prefsKey)
     {
         super(prefsKey, Preferences.userNodeForPackage(RecentDirectoryList.class)
                 .node("RecentDirectoryList"));
         add(new JLabel("Recent Dirs"), BorderLayout.NORTH);
+        setBorder(BorderFactory.createEmptyBorder(BORDER, BORDER, BORDER, BORDER));
         setPreferredSize(new Dimension(200, 200)); // why this isn't min size, I don't know
     }
 
@@ -43,6 +48,17 @@ public class RecentDirectoryList extends AbstractRecentList
         for (Component c = this; ((c = c.getParent()) != null); ) {
             if (c instanceof JFileChooser) {
                 _chooser = (JFileChooser)c;
+
+                // tweak the size of the chooser
+                _chooser.setPreferredSize(null); // reset preferred size
+                Dimension dialogSize = _chooser.getPreferredSize();
+                Dimension accessorySize = this.getPreferredSize();
+                // the L&Fs I've seen arrange the accessory on the left or right side.
+                // accommodate this space. (Why doesn't the layout manager of the chooser do this?)
+                dialogSize.width += accessorySize.width;
+                dialogSize.height = Math.max(dialogSize.height, accessorySize.height);
+                _chooser.setPreferredSize(dialogSize);
+
                 _chooser.addActionListener(_actionListener);
                 readPrefs();
 
@@ -94,4 +110,7 @@ public class RecentDirectoryList extends AbstractRecentList
             }
         }
     };
+
+    /** The number of pixels bordering our component. */
+    protected static final int BORDER = 8;
 }
