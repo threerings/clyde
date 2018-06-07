@@ -45,31 +45,10 @@ public class RecentDirectoryList extends AbstractRecentList
     {
         super.addNotify();
 
+        // find our chooser and configure it
         for (Component c = this; ((c = c.getParent()) != null); ) {
             if (c instanceof JFileChooser) {
-                _chooser = (JFileChooser)c;
-
-                // tweak the size of the chooser
-                _chooser.setPreferredSize(null); // reset preferred size
-                Dimension dialogSize = _chooser.getPreferredSize();
-                Dimension accessorySize = this.getPreferredSize();
-                // the L&Fs I've seen arrange the accessory on the left or right side.
-                // accommodate this space. (Why doesn't the layout manager of the chooser do this?)
-                dialogSize.width += accessorySize.width;
-                dialogSize.height = Math.max(dialogSize.height, accessorySize.height);
-                _chooser.setPreferredSize(dialogSize);
-
-                _chooser.addActionListener(_actionListener);
-                readPrefs();
-
-                // add the current directory as a recent without saving it
-                String theKey = _prefKey;
-                _prefKey = null;
-                try {
-                    addRecent(_chooser.getCurrentDirectory());
-                } finally {
-                    _prefKey = theKey;
-                }
+                configureChooser((JFileChooser)c);
                 break;
             }
         }
@@ -78,11 +57,7 @@ public class RecentDirectoryList extends AbstractRecentList
     @Override
     public void removeNotify ()
     {
-        if (_chooser != null) {
-            _chooser.removeActionListener(_actionListener);
-            _chooser = null;
-        }
-
+        unconfigureChooser();
         super.removeNotify();
     }
 
@@ -95,6 +70,47 @@ public class RecentDirectoryList extends AbstractRecentList
             file = file.getParentFile();
         }
         addRecent(file.getAbsolutePath());
+    }
+
+    /**
+     * Configure a JFileChooser that we've been added to.
+     */
+    protected void configureChooser (JFileChooser chooser)
+    {
+        _chooser = chooser;
+
+        // tweak the size of the chooser
+        _chooser.setPreferredSize(null); // reset preferred size
+        Dimension dialogSize = _chooser.getPreferredSize();
+        Dimension accessorySize = this.getPreferredSize();
+        // the L&Fs I've seen arrange the accessory on the left or right side.
+        // accommodate this space. (Why doesn't the layout manager of the chooser do this?)
+        dialogSize.width += accessorySize.width;
+        dialogSize.height = Math.max(dialogSize.height, accessorySize.height);
+        _chooser.setPreferredSize(dialogSize);
+
+        _chooser.addActionListener(_actionListener);
+        readPrefs();
+
+        // add the current directory as a recent without saving it
+        String theKey = _prefKey;
+        _prefKey = null;
+        try {
+            addRecent(_chooser.getCurrentDirectory());
+        } finally {
+            _prefKey = theKey;
+        }
+    }
+
+    /**
+     * Remove ourselves as a listener of our JFileChooser.
+     */
+    protected void unconfigureChooser ()
+    {
+        if (_chooser != null) {
+            _chooser.removeActionListener(_actionListener);
+            _chooser = null;
+        }
     }
 
     /** The chooser that we accessorize. */
