@@ -356,7 +356,6 @@ public abstract class BehaviorLogic extends Logic
         {
             super.startup();
             if (!((BehaviorConfig.GridWander)_config).evaluationRotate) {
-                postponeNextEvaluation(); // don't do it!
                 setDirectionChange(_rotation);
             }
         }
@@ -365,6 +364,16 @@ public abstract class BehaviorLogic extends Logic
         public void penetratedEnvironment (Vector2f penetration)
         {
             changeDirection();
+        }
+
+        @Override
+        protected void scheduleNextEvaluation ()
+        {
+            if (((BehaviorConfig.GridWander)_config).evaluationRotate) {
+                super.scheduleNextEvaluation();
+            } else {
+                postponeNextEvaluation(); // don't do it!
+            }
         }
 
         @Override
