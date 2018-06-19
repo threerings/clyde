@@ -431,6 +431,45 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * A variant of GridWander that locks alignment.
+     */
+    public static class GridAlignedWander extends GridWander
+    {
+        @Override
+        public void startup ()
+        {
+            super.startup();
+            alignGrid();
+        }
+
+        @Override
+        protected void changeDirection ()
+        {
+            alignGrid();
+            super.changeDirection();
+        }
+
+        /**
+         * Align our actor.
+         */
+        protected void alignGrid ()
+        {
+            Vector2f loc = _agent.getTranslation();
+            if (loc.x < 0) {
+                loc.x = ((int)loc.x) - .5f;
+            } else {
+                loc.x = ((int)loc.x) + .5f;
+            }
+            if (loc.y < 0) {
+                loc.y = ((int)loc.y) - .5f;
+            } else {
+                loc.y = ((int)loc.y) + .5f;
+            }
+            _agent.getActor().setDirty(true);
+        }
+    }
+
+    /**
      * Base class for behaviors that involve following paths.
      */
     public static abstract class Pathing extends Evaluating

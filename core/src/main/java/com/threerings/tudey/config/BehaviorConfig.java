@@ -194,10 +194,15 @@ public class BehaviorConfig extends ParameterizedConfig
         @Editable(hgroup="l")
         public boolean evaluationRotate;
 
+        /** Do we force alignment (opting in to an alternate behavior)? */
+        @Editable(hgroup="l")
+        public boolean align;
+
         @Override
         public String getLogicClassName ()
         {
-            return "com.threerings.tudey.server.logic.BehaviorLogic$GridWander";
+            return "com.threerings.tudey.server.logic.BehaviorLogic$" +
+                (align ? "GridAlignedWander" : "GridWander");
         }
     }
 
