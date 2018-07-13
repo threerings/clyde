@@ -1257,6 +1257,9 @@ public class SceneEditor extends TudeyTool
                     public void mouseWheelMoved (MouseWheelEvent event) {
                         if (mouseCameraEnabled()) {
                             super.mouseWheelMoved(event);
+
+                        } else if (isAltDown()) {
+                            _grid.setElevation(_grid.getElevation() + event.getWheelRotation());
                         }
                     }
                 }.addTo(_canvas);
