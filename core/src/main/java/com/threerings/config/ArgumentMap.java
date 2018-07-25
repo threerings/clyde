@@ -129,7 +129,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
     public boolean containsValue (Object value)
     {
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-            if (Objects.equal(_entries.get(ii).getValue(), value)) {
+            if (Objects.equal(value, _entries.get(ii).getValue())) {
                 return true;
             }
         }
@@ -140,6 +140,8 @@ public class ArgumentMap extends AbstractMap<String, Object>
     public boolean containsKey (Object key)
     {
         if (!(key instanceof String)) {
+            // TODO: technically a key Object could be provided, and we would want to test
+            // key.equals(entryKey) for all entries? YAGNI for now.
             return false;
         }
         return _entries.binarySearch(_key.as((String)key)) >= 0;
@@ -276,7 +278,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
     }
 
     /**
-     * Helper: create an Entry for the specified key/value, 
+     * Helper: create an Entry for the specified key/value,
      */
     protected static Map.Entry<String, Object> newEntry (String k, Object v)
     {
