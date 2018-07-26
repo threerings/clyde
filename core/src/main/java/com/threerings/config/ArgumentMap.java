@@ -129,6 +129,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
     public boolean containsValue (Object value)
     {
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+            // equals() must be called on the value provided to this method, per Java spec
             if (Objects.equal(value, _entries.get(ii).getValue())) {
                 return true;
             }
@@ -139,21 +140,13 @@ public class ArgumentMap extends AbstractMap<String, Object>
     @Override
     public boolean containsKey (Object key)
     {
-        if (!(key instanceof String)) {
-            // TODO: technically a key Object could be provided, and we would want to test
-            // key.equals(entryKey) for all entries? YAGNI for now.
-            return false;
-        }
-        return _entries.binarySearch(_key.as((String)key)) >= 0;
+        return findKeyIndex(key) >= 0;
     }
 
     @Override
     public Object get (Object key)
     {
-        if (!(key instanceof String)) {
-            return null;
-        }
-        int idx = _entries.binarySearch(_key.as((String)key));
+        int idx = findKeyIndex(key);
         return (idx >= 0) ? _entries.get(idx).getValue() : null;
     }
 
@@ -181,10 +174,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
     @Override
     public Object remove (Object key)
     {
-        if (!(key instanceof String)) {
-            return null;
-        }
-        int idx = _entries.binarySearch(_key.as((String)key));
+        int idx = findKeyIndex(key);
         return (idx >= 0) ? _entries.remove(idx).getValue() : null;
     }
 
@@ -202,23 +192,13 @@ public class ArgumentMap extends AbstractMap<String, Object>
                 return _entries.size();
             }
             @Override public boolean contains (Object o) {
-                if (!(o instanceof Map.Entry<?,?>)) {
-                    return false;
-                }
-                return containsKey(((Map.Entry<?,?>)o).getKey());
+                return findEntryIndex(o) >= 0;
             }
             @Override public Iterator<Map.Entry<String, Object>> iterator () {
                 return _entries.iterator();
             }
             @Override public boolean remove (Object o) {
-                if (!(o instanceof Map.Entry<?,?>)) {
-                    return false;
-                }
-                Object key = ((Map.Entry<?,?>)o).getKey();
-                if (!(key instanceof String)) {
-                    return false;
-                }
-                int idx = _entries.binarySearch(_key.as((String)key));
+                int idx = findEntryIndex(o);
                 if (idx < 0) {
                     return false;
                 }
@@ -227,6 +207,36 @@ public class ArgumentMap extends AbstractMap<String, Object>
             }
             @Override public void clear () {
                 _entries.clear();
+            }
+
+            /**
+             * Find the index of the Map.Entry that is equals() to the specified value, or
+             * return a negative value.
+             */
+            protected int findEntryIndex (Object value)
+            {
+                if (value instanceof Map.Entry<?,?>) {
+                    Map.Entry<?,?> entry = (Map.Entry<?,?>)value;
+                    int idx = findKeyIndex(entry.getKey());
+                    return ((idx >= 0) &&
+                            Objects.equal(entry.getValue(), _entries.get(idx).getValue()))
+                        ? idx
+                        : -1;
+                    // Note that we have "externalized" the call to this entry's equals().
+                    // It is technically possible that the passed-in value implements
+                    // Map.Entry but overrides equals() to act like a fishing-key
+                    // for removal. That is fucking weird, and to properly support that
+                    // we'd have to fall-back to checking every entry, which is a terrible
+                    // thing to do with normal Map.Entry objects that are simply not present here.
+                }
+                if (value != null) {
+                    for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+                        if (value.equals(_entries.get(ii))) {
+                            return ii;
+                        }
+                    }
+                }
+                return -1;
             }
         };
     }
@@ -275,6 +285,32 @@ public class ArgumentMap extends AbstractMap<String, Object>
     public ArgumentMap clone ()
     {
         return (ArgumentMap) copy(null);
+    }
+
+    /**
+     * Return the key index or a negative value to indicate not found.
+     * If the provided key is a String (the very common case) the return value is the result
+     * of a binary search for that key, otherwise we examine each key individually and return
+     * an arbitrary negative value.
+     * The reason we do this is that the Java Collection spec provides that an arbitrary
+     * Object of a different class can be passed-in as a key. Note also that we do not check
+     * the hashcode() of the key because we are not a hashing map.
+     * While this feature is generally useful, it seems less so for this map because
+     * the keys are Strings and that's a pretty lightweight object already...
+     */
+    protected int findKeyIndex (Object key)
+    {
+        if (key instanceof String) {
+            return _entries.binarySearch(_key.as((String)key));
+        }
+        if (key != null) {
+            for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+                if (key.equals(_entries.get(ii).getKey())) {
+                    return ii;
+                }
+            }
+        }
+        return -1;
     }
 
     /**
