@@ -37,6 +37,8 @@ import com.threerings.tudey.data.actor.Agent;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.util.ActiveAdvancer;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Controls an autonomous agent.
  */
@@ -63,7 +65,7 @@ public class AgentLogic extends ActiveLogic
      */
     public boolean canThink ()
     {
-        return _behavior != null;
+        return true;
     }
 
     /**
@@ -71,7 +73,7 @@ public class AgentLogic extends ActiveLogic
      */
     public Logic getBehaviorTarget ()
     {
-        return _behavior == null ? null : _behavior.getCurrentTarget();
+        return _behavior.getCurrentTarget();
     }
 
     /**
@@ -190,12 +192,9 @@ public class AgentLogic extends ActiveLogic
         if (original == null) {
             original = new BehaviorConfig.Original();
         }
-        BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(original.getLogicClassName());
-        if (logic == null) {
-            return null;
-        }
 
-        // initialize, return the logic
+        // Original will create an Idle, so we should never have a null behavior
+        BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(original.getLogicClassName());
         logic.init(_scenemgr, original, this);
         return logic;
     }
@@ -219,9 +218,7 @@ public class AgentLogic extends ActiveLogic
         super.tick(timestamp);
 
         // update the behavior
-        if (_behavior != null) {
-            _behavior.tick(timestamp);
-        }
+        _behavior.tick(timestamp);
 
         // compute the elapsed time since the last timestamp
         float elapsed = (timestamp - _timestamp) / 1000f;
