@@ -1130,6 +1130,22 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Notification from our AgentLogic that we've left stasis.
+     */
+    public void leftStasis ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Notification from our AgentLogic that we've entered stasis.
+     */
+    public void enteredStasis ()
+    {
+        // nothing by default
+    }
+
+    /**
      * Returns the currently targeted logic, if any.
      */
     public Logic getCurrentTarget ()

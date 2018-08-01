@@ -267,6 +267,20 @@ public class AgentLogic extends ActiveLogic
     }
 
     @Override
+    protected void leftStasis ()
+    {
+        super.leftStasis();
+        _behavior.leftStasis();
+    }
+
+    @Override
+    protected void enteredStasis ()
+    {
+        super.enteredStasis();
+        _behavior.enteredStasis();
+    }
+
+    @Override
     protected void penetratedEnvironment (Vector2f penetration)
     {
         // notify the behavior
