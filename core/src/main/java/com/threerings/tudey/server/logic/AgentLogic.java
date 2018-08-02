@@ -270,7 +270,11 @@ public class AgentLogic extends ActiveLogic
     protected void leftStasis ()
     {
         super.leftStasis();
-        _behavior.leftStasis();
+
+        // (Null check is required here because we may be called from our superclass' didInit().)
+        if (_behavior != null) {
+            _behavior.leftStasis();
+        }
     }
 
     @Override
