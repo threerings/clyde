@@ -95,6 +95,16 @@ public abstract class Stringifier<T>
     public abstract T fromString (String string)
         throws Exception;
 
+    /**
+     * A temporary fix to avoid diff annoyance with a certain old Java.
+     */
+    protected String tempFixFloat (String fs)
+    {
+        return (fs.endsWith("0") && fs.contains("."))
+            ? fs.substring(0, fs.length() - 1)
+            : fs;
+    }
+
     /** Registered stringifiers. */
     protected static HashMap<Class<?>, Stringifier<?>> _stringifiers =
         new HashMap<Class<?>, Stringifier<?>>();
@@ -134,7 +144,7 @@ public abstract class Stringifier<T>
         });
         _stringifiers.put(Double.class, new Stringifier<Double>() {
             public String toString (Double value) {
-                return value.toString();
+                return tempFixFloat(value.toString());
             }
             public Double fromString (String string) {
                 return Double.valueOf(string);
@@ -142,7 +152,7 @@ public abstract class Stringifier<T>
         });
         _stringifiers.put(Float.class, new Stringifier<Float>() {
             public String toString (Float value) {
-                return value.toString();
+                return tempFixFloat(value.toString());
             }
             public Float fromString (String string) {
                 return Float.valueOf(string);
