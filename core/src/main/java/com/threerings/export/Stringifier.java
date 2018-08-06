@@ -100,9 +100,15 @@ public abstract class Stringifier<T>
      */
     protected String tempFixFloat (String fs)
     {
-        return (fs.endsWith("0") && fs.contains("."))
-            ? fs.substring(0, fs.length() - 1)
-            : fs;
+        int last = fs.length() - 1;
+        if (fs.charAt(last) == '0') {
+            int bigE = fs.indexOf('E');
+            int dot = fs.indexOf('.');
+            if (bigE == -1 && dot >= 0 && dot != (last - 1)) {
+                return fs.substring(0, last);
+            }
+        }
+        return fs;
     }
 
     /** Registered stringifiers. */
