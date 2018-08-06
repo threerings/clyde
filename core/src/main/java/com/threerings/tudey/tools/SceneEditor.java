@@ -883,6 +883,7 @@ public class SceneEditor extends TudeyTool
     public void lostOwnership (Clipboard clipboard, Transferable contents)
     {
         _paste.setEnabled(false);
+        _pasteHeight.setEnabled(false);
     }
 
     @Override
@@ -986,9 +987,22 @@ public class SceneEditor extends TudeyTool
             deleteSelection();
         } else if (action.equals("copy")) {
             copySelection();
-        } else if (action.equals("paste")) {
+        } else if (action.equals("paste") || action.equals("paste_height")) {
             Transferable contents = _frame.getToolkit().getSystemClipboard().getContents(this);
             Entry[] selection = (Entry[])ToolUtil.getWrappedTransferData(contents);
+            if ("paste".equals(action)) {
+                for (Entry entry : selection) {
+                    if (entry instanceof TudeySceneModel.TileEntry) {
+                        ((TudeySceneModel.TileEntry)entry).elevation = _grid.getElevation();
+                    }
+                    if (entry instanceof TudeySceneModel.PlaceableEntry) {
+                        ((TudeySceneModel.PlaceableEntry)entry).transform
+                            .update(Transform3D.RIGID)
+                            .getTranslation().z = TudeySceneMetrics.getTileZ(_grid.getElevation());
+                    }
+                    // TODO: adjust paths/etc?
+                }
+            }
             if (selection != null) {
                 move(selection);
             }
@@ -1115,6 +1129,8 @@ public class SceneEditor extends TudeyTool
         _copy.setEnabled(false);
         edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
         _paste.setEnabled(false);
+        edit.add(new JMenuItem(_pasteHeight = createAction("paste_height", KeyEvent.VK_P, -1)));
+        _pasteHeight.setEnabled(false);
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
         _delete.setEnabled(false);
@@ -1784,6 +1800,7 @@ public class SceneEditor extends TudeyTool
         Clipboard clipboard = _frame.getToolkit().getSystemClipboard();
         clipboard.setContents(new ToolUtil.WrappedTransfer(selection), this);
         _paste.setEnabled(true);
+        _pasteHeight.setEnabled(true);
     }
 
     /**
@@ -1973,7 +1990,7 @@ public class SceneEditor extends TudeyTool
     protected Action _undo, _redo;
 
     /** The edit menu actions. */
-    protected Action _cut, _copy, _paste, _delete;
+    protected Action _cut, _copy, _paste, _pasteHeight, _delete;
 
     /** The file menu. */
     protected JMenu _fileMenu;
