@@ -98,13 +98,16 @@ public abstract class Stringifier<T>
     /**
      * A temporary fix to avoid diff annoyance with a certain old Java.
      */
-    protected String tempFixFloat (String fs)
+    protected static String tempFixFloat (String fs)
     {
+        // try to remove a trailing 0, but only if:
+        // - there's a . somewhere in the string
+        // - but the dot isn't just before the trailing zero ("1.0" is ok)
+        // - there's no E
         int last = fs.length() - 1;
         if (fs.charAt(last) == '0') {
-            int bigE = fs.indexOf('E');
             int dot = fs.indexOf('.');
-            if (bigE == -1 && dot >= 0 && dot != (last - 1)) {
+            if ((dot >= 0) && (dot < (last - 1)) && (fs.indexOf('E') == -1)) {
                 return fs.substring(0, last);
             }
         }
