@@ -366,7 +366,7 @@ public abstract class ConditionConfig extends DeepObject
     public static class Cooldown extends ConditionConfig
     {
         /** The amount of cooldown time. */
-        @Editable
+        @Editable(units="~milliseconds")
         public int time = 0;
 
         @Override
