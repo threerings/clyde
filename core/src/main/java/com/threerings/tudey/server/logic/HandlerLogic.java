@@ -54,6 +54,8 @@ import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Handles the server-side processing for an event handler type.
  */
@@ -111,6 +113,14 @@ public abstract class HandlerLogic extends Logic
         {
             for (HandlerLogic handler : _handlers) {
                 handler.variableChanged(timestamp, activator, name);
+            }
+        }
+
+        @Override
+        public void signal (int timestamp, Logic source, String name)
+        {
+            for (HandlerLogic handler : _handlers) {
+                handler.signal(timestamp, source, name);
             }
         }
 
