@@ -484,8 +484,6 @@ public class Animation extends SimpleScope
             for (; _eidx < _executors.length && _executors[_eidx].frame < frame; _eidx++) {
                 if (execute) {
                     _executors[_eidx].executor.execute();
-                } else {
-                    log.warning("Not executing hidden frameAction: " + _executors[_eidx].executor);
                 }
             }
         }
