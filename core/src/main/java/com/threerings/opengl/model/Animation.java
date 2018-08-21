@@ -478,15 +478,34 @@ public class Animation extends SimpleScope
          */
         protected void executeActions ()
         {
-            // TODO: rewrite
-            boolean execute = actionsVisible(); // AVOID unless executing
+            // this method is code-weirded to be fast in the common case
+            if (_eidx >= _executors.length) {
+                return;
+            }
             float frame = _fidx + _accum;
-            for (; _eidx < _executors.length && _executors[_eidx].frame < frame; _eidx++) {
-                if (execute) {
-                    _executors[_eidx].executor.execute();
-                }
+            if (_executors[_eidx].frame < frame) {
+                boolean execute = actionsVisible();
+                do {
+                    if (execute) {
+                        _executors[_eidx].executor.execute();
+                    }
+                    _eidx++;
+                } while (_eidx < _executors.length && _executors[_eidx].frame < frame);
             }
         }
+
+//        /**
+//         * Executes all actions scheduled before or at the current frame.
+//         */
+//        protected void executeActions ()
+//        {
+//            float frame = _fidx + _accum;
+//            for (; _eidx < _executors.length && _executors[_eidx].frame < frame; _eidx++) {
+//                if (actionsVisible()) {
+//                    _executors[_eidx].executor.execute();
+//                }
+//            }
+//        }
 
         /**
          * Should actions be visible?
