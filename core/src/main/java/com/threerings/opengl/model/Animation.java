@@ -478,10 +478,33 @@ public class Animation extends SimpleScope
          */
         protected void executeActions ()
         {
+            // TODO: rewrite
+            boolean execute = actionsVisible(); // AVOID unless executing
             float frame = _fidx + _accum;
             for (; _eidx < _executors.length && _executors[_eidx].frame < frame; _eidx++) {
-                _executors[_eidx].executor.execute();
+                if (execute) {
+                    _executors[_eidx].executor.execute();
+                } else {
+                    log.warning("Not executing hidden frameAction: " + _executors[_eidx].executor);
+                }
             }
+        }
+
+        /**
+         * Should actions be visible?
+         */
+        protected boolean actionsVisible ()
+        {
+            for (Scope scope = getParentScope(); scope != null; scope = scope.getParentScope()) {
+                if (scope instanceof Model) {
+                    // a visible model doesn't mean that the parents are also visible, so we
+                    // only know for sure if it's invisible.
+                    if (!((Model)scope).isVisible()) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         /** The implementation configuration. */
