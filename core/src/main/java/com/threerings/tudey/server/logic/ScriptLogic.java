@@ -37,6 +37,8 @@ import com.threerings.tudey.config.ScriptConfig;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.server.TudeySceneManager;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Performs script step logic for a scripted behavior.
  */
@@ -353,9 +355,6 @@ public abstract class ScriptLogic extends Logic
             _success = createScriptLogic(_scenemgr, config.success, _agent, _scripted);
             _failure = createScriptLogic(_scenemgr, config.failure, _agent, _scripted);
         }
-
-        /** The condition to evaluate. */
-        protected ConditionLogic _condition;
 
         /** The scriptlogic. */
         protected ScriptLogic _success;
