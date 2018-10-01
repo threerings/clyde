@@ -197,8 +197,8 @@ public class TableLayout extends LayoutManager
 
         int row = 0, col = 0, maxrh = 0, count = 0;
         for (Component child : visibleChildren(target)) {
-            Dimension psize = _pscache.get(child);
-            if (psize == null || !child.isValid()) {
+            Dimension psize;
+            if (!child.isValid() || (psize = _pscache.get(child)) == null) {
                 _pscache.put(child, psize = child.getPreferredSize(whint, -1));
             }
             if (psize.height > metrics.rowHeights[row]) {
