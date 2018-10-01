@@ -544,6 +544,10 @@ public abstract class LayoutConfig extends DeepObject
         @Editable(hgroup="c")
         public boolean equalRows;
 
+        /** Do we center children? */
+        @Editable(hgroup="c")
+        public boolean centerChildren;
+
         /** The gap between rows. */
         @Editable(hgroup="g")
         public int rowGap;
@@ -579,6 +583,7 @@ public abstract class LayoutConfig extends DeepObject
             layout.setHorizontalAlignment(horizontalAlignment.getAlignment());
             layout.setVerticalAlignment(verticalAlignment.getAlignment());
             layout.setEqualRows(equalRows);
+            layout.setCenterChildren(centerChildren);
             cont.setLayoutManager(layout);
 
             // add the children

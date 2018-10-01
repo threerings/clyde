@@ -133,6 +133,17 @@ public class TableLayout extends LayoutManager
         return this;
     }
 
+    /**
+     * Configures whether the table optionally sizes each child to its preferred size, centered
+     * in its cell, rather than stretching them to the size of the cell as is the default.
+     * This must be called before the container using this layout is validated.
+     */
+    public TableLayout setCenterChildren (boolean centerChildren)
+    {
+        _centerChildren = centerChildren;
+        return this;
+    }
+
     // documentation inherited
     public Dimension computePreferredSize (Container target, int whint, int hhint)
     {
@@ -169,13 +180,29 @@ public class TableLayout extends LayoutManager
         }
 
         int row = 0, col = 0, x = sx;
+        int height = metrics.rowHeights[0];
         for (Component child : visibleChildren(target)) {
             int width = Math.min(metrics.columnWidths[col], availwid);
-            child.setBounds(x, y - metrics.rowHeights[row], width, metrics.rowHeights[row]);
+            // by default we'll fill the cell unless _centerChildren
+            int xoffs = 0, yoffs = 0, cw = width, ch = height;
+            if (_centerChildren) {
+                // pscache is guaranteed fresh from computeMetrics()
+                Dimension d = _pscache.get(child);
+                if (d.width < width) {
+                    xoffs = (width - d.width) / 2;
+                    cw = d.width;
+                }
+                if (d.height < height) {
+                    yoffs = (height - d.height) / 2;
+                    ch = d.height;
+                }
+            }
+            child.setBounds(x + xoffs, y - height + yoffs, cw, ch);
             x += (metrics.columnWidths[col] + _colgap);
             if (++col == metrics.columnWidths.length) {
-                y -= (metrics.rowHeights[row] + _rowgap);
+                y -= (height + _rowgap);
                 row++;
+                height = metrics.rowHeights[row];
                 col = 0;
                 x = sx;
             }
@@ -305,6 +332,7 @@ public class TableLayout extends LayoutManager
     }
 
     protected Alignment _halign = LEFT, _valign = TOP;
+    protected boolean _centerChildren;
     protected boolean _equalRows;
     protected int _rowgap, _colgap;
     protected boolean[] _fixedColumns;
