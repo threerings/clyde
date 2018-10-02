@@ -180,9 +180,9 @@ public class TableLayout extends LayoutManager
         }
 
         int row = 0, col = 0, x = sx;
-        int height = metrics.rowHeights[0];
         for (Component child : visibleChildren(target)) {
             int width = Math.min(metrics.columnWidths[col], availwid);
+            int height = metrics.rowHeights[0];
             // by default we'll fill the cell unless _centerChildren
             int xoffs = 0, yoffs = 0, cw = width, ch = height;
             if (_centerChildren) {
@@ -202,7 +202,6 @@ public class TableLayout extends LayoutManager
             if (++col == metrics.columnWidths.length) {
                 y -= (height + _rowgap);
                 row++;
-                height = metrics.rowHeights[row];
                 col = 0;
                 x = sx;
             }
