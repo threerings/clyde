@@ -230,13 +230,10 @@ public abstract class ColorizationConfig extends DeepObject
         public FullyCustomColorization (ClassRecord target, Colorization source)
         {
             this(target.source, target.range, new float[3]); // create offsets, fill-in below
-                // TODO: ARGH
-            // float[] srcHsv = source._hsv;
-                // ... so we do this
+            // TODO: create accessors for hsv on Colorization class in nenya?
             float[] srcHsv = Color.RGBtoHSB(
                     source.rootColor.getRed(), source.rootColor.getGreen(),
                     source.rootColor.getBlue(), null);
-            // now fill-in the offsets array
             for (int ii = 0; ii < 3; ii++) {
                 this.offsets[ii] = source.offsets[ii] + (srcHsv[ii] - _hsv[ii]);
             }
