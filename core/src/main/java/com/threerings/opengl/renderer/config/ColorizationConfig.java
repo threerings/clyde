@@ -42,12 +42,14 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.log;
+
 /**
  * Describes a colorization.
  */
 @EditorTypes({
     ColorizationConfig.Normal.class, ColorizationConfig.CustomOffsets.class,
-    ColorizationConfig.FullyCustom.class })
+    ColorizationConfig.FullyCustom.class, ColorizationConfig.Translated.class })
 public abstract class ColorizationConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -135,6 +137,42 @@ public abstract class ColorizationConfig extends DeepObject
         {
             return new FullyCustomColorization(
                 source.getColor(), range.getValues(), offsets.getValues());
+        }
+    }
+
+    /**
+     * Translate a colorization to another.
+     */
+    public static class Translated extends ColorizationConfig
+    {
+        /** The colorization class. */
+        @Editable(editor="colorization", mode="class")
+        public int clazz;
+
+        /** The colorization to translate. */
+        @Editable
+        public ColorizationConfig source;
+
+        @Override
+        public Colorization getColorization (GlContext ctx)
+        {
+            ClassRecord crec = ctx.getColorPository().getClassRecord(clazz);
+            Colorization src = (source != null)
+                    ? source.getColorization(ctx)
+                    : null;
+            if (crec == null || src == null) return null;
+
+            float[] rootHsv = Color.RGBtoHSB(
+                    crec.source.getRed(), crec.source.getGreen(), crec.source.getBlue(), null);
+            float[] srcHsv = Color.RGBtoHSB(
+                    src.rootColor.getRed(), src.rootColor.getGreen(), src.rootColor.getBlue(),
+                    null);
+            float[] offsets = new float[3];
+            // not a loop because I think these'll change for sure!
+            offsets[0] = src.offsets[0] + (srcHsv[0] - rootHsv[0]);
+            offsets[1] = src.offsets[1] + (srcHsv[1] - rootHsv[1]);
+            offsets[2] = src.offsets[2] + (srcHsv[2] - rootHsv[2]);
+            return new FullyCustomColorization(crec.source, crec.range, offsets);
         }
     }
 
