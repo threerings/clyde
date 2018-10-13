@@ -141,7 +141,7 @@ public abstract class ColorizationConfig extends DeepObject
     }
 
     /**
-     * Translate a colorization to another.
+     * Translate a colorization to another target.
      */
     public static class Translated extends ColorizationConfig
     {
@@ -157,22 +157,12 @@ public abstract class ColorizationConfig extends DeepObject
         public Colorization getColorization (GlContext ctx)
         {
             ClassRecord crec = ctx.getColorPository().getClassRecord(clazz);
-            Colorization src = (source != null)
-                    ? source.getColorization(ctx)
-                    : null;
-            if (crec == null || src == null) return null;
-
-            float[] rootHsv = Color.RGBtoHSB(
-                    crec.source.getRed(), crec.source.getGreen(), crec.source.getBlue(), null);
-            float[] srcHsv = Color.RGBtoHSB(
-                    src.rootColor.getRed(), src.rootColor.getGreen(), src.rootColor.getBlue(),
-                    null);
-            float[] offsets = new float[3];
-            // not a loop because I think these'll change for sure!
-            offsets[0] = src.offsets[0] + (srcHsv[0] - rootHsv[0]);
-            offsets[1] = src.offsets[1] + (srcHsv[1] - rootHsv[1]);
-            offsets[2] = src.offsets[2] + (srcHsv[2] - rootHsv[2]);
-            return new FullyCustomColorization(crec.source, crec.range, offsets);
+            Colorization src = (source == null)
+                    ? null
+                    : source.getColorization(ctx);
+            return (src == null || crec == null)
+                    ? null
+                    : new FullyCustomColorization(crec, src);
         }
     }
 
@@ -232,6 +222,24 @@ public abstract class ColorizationConfig extends DeepObject
         public FullyCustomColorization (Color source, float[] range, float[] offsets)
         {
             super(0, source, range, offsets);
+        }
+
+        /**
+         * Create a fully custom colorization as translated from another colorization.
+         */
+        public FullyCustomColorization (ClassRecord target, Colorization source)
+        {
+            this(target.source, target.range, new float[3]); // create offsets, fill-in below
+                // TODO: ARGH
+            // float[] srcHsv = source._hsv;
+                // ... so we do this
+            float[] srcHsv = Color.RGBtoHSB(
+                    source.rootColor.getRed(), source.rootColor.getGreen(),
+                    source.rootColor.getBlue(), null);
+            // now fill-in the offsets array
+            for (int ii = 0; ii < 3; ii++) {
+                this.offsets[ii] = source.offsets[ii] + (srcHsv[ii] - _hsv[ii]);
+            }
         }
 
         @Override
