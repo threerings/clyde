@@ -31,6 +31,7 @@ import java.util.Arrays;
 
 import com.threerings.io.Streamable;
 
+import com.threerings.media.image.ColorPository;
 import com.threerings.media.image.ColorPository.ClassRecord;
 import com.threerings.media.image.Colorization;
 
@@ -87,9 +88,9 @@ public abstract class ColorizationConfig extends DeepObject
         public int colorization;
 
         @Override
-        public Colorization getColorization (GlContext ctx)
+        public Colorization getColorization (ColorPository colorpos)
         {
-            return ctx.getColorPository().getColorization(colorization);
+            return colorpos.getColorization(colorization);
         }
     }
 
@@ -107,11 +108,10 @@ public abstract class ColorizationConfig extends DeepObject
         public Triplet offsets = new Triplet();
 
         @Override
-        public Colorization getColorization (GlContext ctx)
+        public Colorization getColorization (ColorPository colorpos)
         {
-            ClassRecord crec = ctx.getColorPository().getClassRecord(clazz);
-            return (crec == null) ? null : new CustomOffsetsColorization(
-                clazz, crec.source, crec.range, offsets.getValues());
+            ClassRecord crec = colorpos.getClassRecord(clazz);
+            return (crec == null) ? null : new CustomOffsetsColorization(crec, offsets.getValues());
         }
     }
 
@@ -133,7 +133,7 @@ public abstract class ColorizationConfig extends DeepObject
         public Triplet offsets = new Triplet();
 
         @Override
-        public Colorization getColorization (GlContext ctx)
+        public Colorization getColorization (ColorPository colorpos)
         {
             return new FullyCustomColorization(
                 source.getColor(), range.getValues(), offsets.getValues());
@@ -154,15 +154,15 @@ public abstract class ColorizationConfig extends DeepObject
         public ColorizationConfig source;
 
         @Override
-        public Colorization getColorization (GlContext ctx)
+        public Colorization getColorization (ColorPository colorpos)
         {
-            ClassRecord crec = ctx.getColorPository().getClassRecord(clazz);
+            ClassRecord crec = colorpos.getClassRecord(clazz);
             Colorization src = (source == null)
                     ? null
-                    : source.getColorization(ctx);
+                    : source.getColorization(colorpos);
             return (src == null || crec == null)
                     ? null
-                    : new FullyCustomColorization(crec, src);
+                    : new CustomOffsetsColorization(crec, src);
         }
     }
 
@@ -193,9 +193,20 @@ public abstract class ColorizationConfig extends DeepObject
         /**
          * Creates a new custom offsets colorization.
          */
-        public CustomOffsetsColorization (int clazz, Color source, float[] range, float[] offsets)
+        public CustomOffsetsColorization (ClassRecord crec, float[] offsets)
         {
-            super(clazz << 8, source, range, offsets);
+            super(crec.classId << 8, crec, offsets);
+        }
+
+        /**
+         * Create a custom colorization as translated from another colorization.
+         */
+        public CustomOffsetsColorization (ClassRecord target, Colorization source)
+        {
+            this(target, new float[3]);
+            for (int ii = 0; ii < 3; ii++) {
+                this.offsets[ii] = source.offsets[ii] + (source.getRootHsv(ii) - _hsv[ii]);
+            }
         }
 
         @Override
@@ -224,21 +235,6 @@ public abstract class ColorizationConfig extends DeepObject
             super(0, source, range, offsets);
         }
 
-        /**
-         * Create a fully custom colorization as translated from another colorization.
-         */
-        public FullyCustomColorization (ClassRecord target, Colorization source)
-        {
-            this(target.source, target.range, new float[3]); // create offsets, fill-in below
-            // TODO: create accessors for hsv on Colorization class in nenya?
-            float[] srcHsv = Color.RGBtoHSB(
-                    source.rootColor.getRed(), source.rootColor.getGreen(),
-                    source.rootColor.getBlue(), null);
-            for (int ii = 0; ii < 3; ii++) {
-                this.offsets[ii] = source.offsets[ii] + (srcHsv[ii] - _hsv[ii]);
-            }
-        }
-
         @Override
         public int hashCode ()
         {
@@ -257,6 +253,16 @@ public abstract class ColorizationConfig extends DeepObject
 
     /**
      * Returns the colorization for this config.
+     * This method used to be abstract but now it's final to signal that it defers to the other.
+     * We could just remove it, TBH.
      */
-    public abstract Colorization getColorization (GlContext ctx);
+    public final Colorization getColorization (GlContext ctx)
+    {
+        return getColorization(ctx.getColorPository());
+    }
+
+    /**
+     * Returns the colorization for this config.
+     */
+    public abstract Colorization getColorization (ColorPository colorpos);
 }
