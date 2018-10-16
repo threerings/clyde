@@ -182,7 +182,7 @@ public class TableLayout extends LayoutManager
         int row = 0, col = 0, x = sx;
         for (Component child : visibleChildren(target)) {
             int width = Math.min(metrics.columnWidths[col], availwid);
-            int height = metrics.rowHeights[0];
+            int height = metrics.rowHeights[row];
             // by default we'll fill the cell unless _centerChildren
             int xoffs = 0, yoffs = 0, cw = width, ch = height;
             if (_centerChildren) {
@@ -229,8 +229,8 @@ public class TableLayout extends LayoutManager
             }
             if (psize.height > metrics.rowHeights[row]) {
                 metrics.rowHeights[row] = psize.height;
-                if (maxrh < metrics.rowHeights[row]) {
-                    maxrh = metrics.rowHeights[row];
+                if (maxrh < psize.height) {
+                    maxrh = psize.height;
                 }
             }
             if (psize.width > metrics.columnWidths[col]) {
