@@ -559,6 +559,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
     @Override
     public void preload (GlContext ctx)
     {
+        super.preload(ctx);
         for (AnimationMapping mapping : animationMappings) {
             new Preloadable.Animation(mapping.animation).preload(ctx);
         }
