@@ -30,6 +30,13 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
+import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
+import com.threerings.opengl.model.config.AnimationConfig;
+import com.threerings.opengl.model.config.ModelConfig;
+
+import static com.threerings.opengl.Log.log;
+
 /**
  * Contains a set of preloadables and provides a means for incrementalling preloading them.
  */
@@ -91,6 +98,40 @@ public class PreloadableSet extends HashSet<Preloadable>
             _preloaded++;
         }
         return true;
+    }
+
+    /**
+     * Convenience variant of #add, which is null tolerant.
+     */
+    public <T extends ManagedConfig> boolean addConfig (
+            Class<T> clazz, String name)
+    {
+        return (name != null) && add(new Preloadable.Config(clazz, name));
+    }
+
+    /**
+     * Convenience variant of #add, which is null tolerant.
+     */
+    public <T extends ManagedConfig> boolean addConfig (
+            Class<T> clazz, ConfigReference<T> ref)
+    {
+        return (ref != null) && add(new Preloadable.Config(clazz, ref));
+    }
+
+    /**
+     * Convenience variant of #add, which is null tolerant.
+     */
+    public boolean addModel (ConfigReference<ModelConfig> ref)
+    {
+        return (ref != null) && add(new Preloadable.Model(ref));
+    }
+
+    /**
+     * Convenience variant of #add, which is null tolerant.
+     */
+    public boolean addAnim (ConfigReference<AnimationConfig> ref)
+    {
+        return (ref != null) && add(new Preloadable.Animation(ref));
     }
 
     /** The application context. */
