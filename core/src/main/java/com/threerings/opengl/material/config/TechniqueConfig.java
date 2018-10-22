@@ -167,7 +167,7 @@ public class TechniqueConfig extends DeepObject
         @Override
         public void preload (GlContext ctx)
         {
-            new Preloadable.Config(RenderEffectConfig.class, renderEffect);
+            new Preloadable.Config(RenderEffectConfig.class, renderEffect).preload(ctx);
         }
 
         @Override

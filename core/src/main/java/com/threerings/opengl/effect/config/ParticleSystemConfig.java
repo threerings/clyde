@@ -138,7 +138,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         public void preload (GlContext ctx)
         {
             super.preload(ctx);
-            new Preloadable.Config(MaterialConfig.class, material);
+            new Preloadable.Config(MaterialConfig.class, material).preload(ctx);
         }
     }
 

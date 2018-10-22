@@ -67,7 +67,7 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
         public void preload (GlContext ctx)
         {
             super.preload(ctx);
-            new Preloadable.Config(ModelConfig.class, model);
+            new Preloadable.Config(ModelConfig.class, model).preload(ctx);
         }
     }
 
