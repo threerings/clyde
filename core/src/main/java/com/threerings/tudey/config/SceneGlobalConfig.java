@@ -156,7 +156,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             super.getPreloads(cfgmgr, preloads);
-            preloads.add(new Preloadable.Model(model));
+            preloads.addModel(model);
         }
 
         @Override

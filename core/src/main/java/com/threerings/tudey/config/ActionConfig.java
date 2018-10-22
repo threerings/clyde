@@ -122,7 +122,7 @@ public abstract class ActionConfig extends DeepObject
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(ActorConfig.class, actor))) {
+            if (preloads.addConfig(ActorConfig.class, actor)) {
                 ActorConfig.Original original = getOriginal(cfgmgr);
                 if (original != null) {
                     original.getPreloads(cfgmgr, preloads);

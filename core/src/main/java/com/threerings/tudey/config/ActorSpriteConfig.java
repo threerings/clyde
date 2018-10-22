@@ -112,7 +112,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         {
             super.getPreloads(cfgmgr, preloads);
             for (WeightedAnimation idle : idles) {
-                preloads.add(new Preloadable.Animation(idle.animation));
+                preloads.addAnim(idle.animation);
             }
             for (MovementSet movement : movements) {
                 movement.getPreloads(cfgmgr, preloads);
@@ -194,7 +194,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Animation(animation));
+            preloads.addAnim(animation);
         }
 
         @Override
@@ -229,10 +229,10 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Animation(forward));
-            preloads.add(new Preloadable.Animation(left));
-            preloads.add(new Preloadable.Animation(backward));
-            preloads.add(new Preloadable.Animation(right));
+            preloads.addAnim(forward);
+            preloads.addAnim(left);
+            preloads.addAnim(backward);
+            preloads.addAnim(right);
         }
 
         @Override
@@ -267,8 +267,8 @@ public abstract class ActorSpriteConfig extends DeepObject
          */
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Animation(left));
-            preloads.add(new Preloadable.Animation(right));
+            preloads.addAnim(left);
+            preloads.addAnim(right);
         }
 
         /**
@@ -294,7 +294,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         {
             super.getPreloads(cfgmgr, preloads);
             for (State state : states) {
-                preloads.add(new Preloadable.Animation(state.animation));
+                preloads.addAnim(state.animation);
             }
         }
 
@@ -336,7 +336,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         {
             super.getPreloads(cfgmgr, preloads);
             for (ModelState state : states) {
-                preloads.add(new Preloadable.Model(state.model));
+                preloads.addModel(state.model);
             }
         }
 
@@ -415,9 +415,9 @@ public abstract class ActorSpriteConfig extends DeepObject
      */
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
-        preloads.add(new Preloadable.Model(model));
-        preloads.add(new Preloadable.Model(creationTransient));
-        preloads.add(new Preloadable.Model(destructionTransient));
+        preloads.addModel(model);
+        preloads.addModel(creationTransient);
+        preloads.addModel(destructionTransient);
     }
 
     /**

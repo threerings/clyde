@@ -80,7 +80,7 @@ public class Effect extends SimpleStreamableObject
      */
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
-        if (preloads.add(new Preloadable.Config(EffectConfig.class, _config))) {
+        if (preloads.addConfig(EffectConfig.class, _config)) {
             _original.getPreloads(cfgmgr, preloads);
         }
     }

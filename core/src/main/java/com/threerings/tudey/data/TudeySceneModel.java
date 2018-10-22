@@ -569,7 +569,7 @@ public class TudeySceneModel extends SceneModel
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(TileConfig.class, tile))) {
+            if (preloads.addConfig(TileConfig.class, tile)) {
                 getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
             }
         }
@@ -695,7 +695,7 @@ public class TudeySceneModel extends SceneModel
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(SceneGlobalConfig.class, sceneGlobal))) {
+            if (preloads.addConfig(SceneGlobalConfig.class, sceneGlobal)) {
                 getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
             }
         }
@@ -877,7 +877,7 @@ public class TudeySceneModel extends SceneModel
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(PlaceableConfig.class, placeable))) {
+            if (preloads.addConfig(PlaceableConfig.class, placeable)) {
                 getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
             }
         }
@@ -1043,7 +1043,7 @@ public class TudeySceneModel extends SceneModel
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(PathConfig.class, path))) {
+            if (preloads.addConfig(PathConfig.class, path)) {
                 getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
             }
         }
@@ -1210,7 +1210,7 @@ public class TudeySceneModel extends SceneModel
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(AreaConfig.class, area))) {
+            if (preloads.addConfig(AreaConfig.class, area)) {
                 getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
             }
         }

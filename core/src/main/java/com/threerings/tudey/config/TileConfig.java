@@ -254,7 +254,7 @@ public class TileConfig extends ParameterizedConfig
          */
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Model(model));
+            preloads.addModel(model);
             for (HandlerConfig handler : handlers) {
                 handler.getPreloads(cfgmgr, preloads);
             }

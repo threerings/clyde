@@ -96,7 +96,7 @@ public abstract class HandlerConfig extends DeepObject
         @Override
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            if (preloads.add(new Preloadable.Config(ParameterizedHandlerConfig.class, handler))) {
+            if (preloads.addConfig(ParameterizedHandlerConfig.class, handler)) {
                 ParameterizedHandlerConfig config =
                     cfgmgr.getConfig(ParameterizedHandlerConfig.class, handler);
                 ParameterizedHandlerConfig.Original original =

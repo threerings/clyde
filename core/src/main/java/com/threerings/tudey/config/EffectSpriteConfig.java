@@ -100,7 +100,7 @@ public abstract class EffectSpriteConfig extends DeepObject
      */
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
-        preloads.add(new Preloadable.Model(model));
+        preloads.addModel(model);
     }
 
     /**
