@@ -35,7 +35,6 @@ import com.threerings.io.Streamable;
 import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.shape.Shape;

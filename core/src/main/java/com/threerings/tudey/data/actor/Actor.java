@@ -36,7 +36,6 @@ import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.TudeySceneView;

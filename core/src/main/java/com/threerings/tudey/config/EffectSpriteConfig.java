@@ -35,7 +35,6 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.sprite.EffectSprite;

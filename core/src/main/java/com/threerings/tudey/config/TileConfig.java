@@ -42,7 +42,6 @@ import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.StaticConfig;
 import com.threerings.opengl.model.config.StaticSetConfig;
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.cursor.TileCursor;

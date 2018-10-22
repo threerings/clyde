@@ -42,7 +42,6 @@ import com.threerings.math.Vector2f;
 import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.TudeySceneView;
