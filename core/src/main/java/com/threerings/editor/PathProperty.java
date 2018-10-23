@@ -443,7 +443,9 @@ public class PathProperty extends Property
             return value;
 
         } else if (type == String.class) {
-            return value.toString();
+            return (value instanceof Enum<?>)
+                ? ((Enum<?>)value).name()
+                : value.toString();
 
         } else if (value instanceof String) {
             if (type == Byte.class) {
