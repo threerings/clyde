@@ -1141,7 +1141,7 @@ public abstract class ActionConfig extends DeepObject
         public LogLevel level = LogLevel.INFO;
 
         /** The log message. */
-        @Editable
+        @Editable(width=25, units="i.serverlog")
         public String message = "";
 
         @Override

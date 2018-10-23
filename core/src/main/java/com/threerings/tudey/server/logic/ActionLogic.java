@@ -37,6 +37,7 @@ import com.google.common.collect.Sets;
 
 import com.google.inject.Inject;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.Interval;
 import com.samskivert.util.Randoms;
 import com.samskivert.util.RandomUtil;
@@ -1203,18 +1204,33 @@ public abstract class ActionLogic extends Logic
         public boolean execute (int timestamp, Logic activator)
         {
             ActionConfig.ServerLog config = (ActionConfig.ServerLog)_config;
+
+            String message = config.message
+                    .replace("%trace", "");
+            Object[] logArgs = (message != config.message) // did a replacement happen?
+                ? new Object[] { new Exception() }
+                : ArrayUtil.EMPTY_OBJECT;
+            // then do the rest of the replacements...
+            // TODO: optimize?
+            // TODO: if more are added, document in the config
+            message = message
+                    .replace("%source", String.valueOf(_source))
+                    .replace("%activator", String.valueOf(activator))
+                    .replace("%this", String.valueOf(this))
+                    .replace("%stamp", String.valueOf(timestamp));
+
             switch(config.level) {
             case DEBUG:
-                log.debug(config.message);
+                log.debug(message, logArgs);
                 break;
             case INFO:
-                log.info(config.message);
+                log.info(message, logArgs);
                 break;
             case WARN:
-                log.warning(config.message);
+                log.warning(message, logArgs);
                 break;
             case ERROR:
-                log.error(config.message);
+                log.error(message, logArgs);
                 break;
             }
             return true;
