@@ -39,16 +39,6 @@ public class StretchWindow extends Window
         super(ctx, layout);
     }
 
-    /**
-     * @deprecated. Override layoutWindow instead, or maybe you meant to override setSize()???
-     */
-    @Deprecated
-    // TODO: Remove
-    public void sizeChanged (int width, int height)
-    {
-        // nothing
-    }
-
     @Override
     protected void layoutWindow (int width, int height)
     {
@@ -56,11 +46,6 @@ public class StretchWindow extends Window
         if (isStretching()) {
             setSize(width, height);
         }
-        // TEMP: provide callback for legacy losers
-        if (true) {
-            sizeChanged(width, height);
-        }
-        // END: TEMP
     }
 
     /**
