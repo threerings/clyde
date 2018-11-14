@@ -43,6 +43,8 @@ import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.log;
+
 /**
  * Configurable texture state.
  */
@@ -113,7 +115,7 @@ public class TextureStateConfig extends DeepObject
             int esize = adders.size(), usize = updaters.size();
             instance = createInstance(ctx, scope, adders, updaters);
             if (adders.size() == esize && updaters.size() == usize) {
-                _instance = new SoftReference<TextureState>(instance);
+//                _instance = new SoftReference<TextureState>(instance);
             }
         }
         return instance;
