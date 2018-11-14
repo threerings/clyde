@@ -173,7 +173,7 @@ public abstract class ColorizationConfig extends DeepObject
         implements Exportable, Streamable
     {
         /** The hue, saturation, and value offsets. */
-        @Editable(min=-1.0, max=+1.0, step=0.001, hgroup="v")
+        @Editable(min=-1.0, max=+1.0, step=0.001, width=5, hgroup="v")
         public float hue, saturation, value;
 
         /**
