@@ -488,6 +488,7 @@ public class TextureConfig extends ParameterizedConfig
             if (texture == null) {
                 _texture = new SoftReference<Texture>(texture = createTexture(ctx));
                 configureTexture(texture);
+                _texture = null;
             }
             return texture;
         }
