@@ -691,10 +691,8 @@ public class Component
      */
     public void setBounds (int x, int y, int width, int height)
     {
-        if (_x != x || _y != y) {
-            _x = x;
-            _y = y;
-        }
+        _x = x;
+        _y = y;
         if (_width != width || _height != height) {
             _width = width;
             _height = height;
