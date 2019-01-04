@@ -147,17 +147,18 @@ public abstract class ActionConfig extends DeepObject
                 null;
             return new Executor() {
                 public void execute () {
+                    parent.compose(transform, _world);
+                    ArticulatedConfig.ensureRigidOrUniform(_world);
                     final Scene.Transient spawned = (Scene.Transient)spawnTransient.call(
-                        model, ArticulatedConfig.ensureRigidOrUniform(
-                            parent.compose(transform, _world)));
+                        model, _world);
                     if ((moveWithOrigin || getSpeedModifier != null) && spawned != null) {
                         // install an updater to update the transform
                         spawned.setUpdater(new Updater() {
                             public void update () {
                                 if (moveWithOrigin) {
-                                    spawned.setLocalTransform(
-                                            ArticulatedConfig.ensureRigidOrUniform(
-                                                parent.compose(transform, _world)));
+                                    parent.compose(transform, _world);
+                                    ArticulatedConfig.ensureRigidOrUniform(_world);
+                                    spawned.setLocalTransform(_world);
                                 }
                                 if (getSpeedModifier != null) {
                                     float mod = (Float)getSpeedModifier.call();

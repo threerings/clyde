@@ -615,9 +615,8 @@ public class ArticulatedConfig extends ModelConfig.Imported
 
     /**
      * Ensures that the specified transform is rigid or uniform.
-     * Return the same object for chaining.
      */
-    protected static Transform3D ensureRigidOrUniform (Transform3D transform)
+    protected static void ensureRigidOrUniform (Transform3D transform)
     {
         switch (transform.getType()) {
             case Transform3D.IDENTITY:
@@ -633,6 +632,5 @@ public class ArticulatedConfig extends ModelConfig.Imported
                     transform.approximateUniformScale());
                 break;
         }
-        return transform;
     }
 }
