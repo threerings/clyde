@@ -133,7 +133,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
             // start a new path
             _entry = new PathEntry();
             _idx = 1;
-            _entry.path = path;
+            _entry.path = path.clone();
             _entry.vertices = new Vertex[] { new Vertex(), new Vertex() };
             setMouseLocation(_entry.vertices[0]);
             _editor.addEntries(_entry);
