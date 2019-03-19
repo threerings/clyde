@@ -25,12 +25,14 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
 import java.util.ArrayList;
 
 import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -44,6 +46,8 @@ import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.shape.Shape;
+
+import static com.threerings.tudey.Log.log;
 
 /**
  * The placeable placer tool.
@@ -154,6 +158,35 @@ public class Placer extends ConfigTool<PlaceableConfig>
         PlaceableEntry entry = (PlaceableEntry)_entry.clone();
         PlaceableConfig.Original config = entry.getConfig(_editor.getConfigManager());
         entry.transform.getRotation().multLocal(config.rotationOffset.getValue(new Quaternion()));
+
+        // if META is not held down, block any placements that are the same config and close
+        // even if an alternate rotation.
+        if (!_editor.isMetaDown()) {
+            Vector3f trans = entry.transform.extractTranslation();
+            Shape shape = _cursor.getShape();
+            if (shape != null) {
+                try {
+                    _scene.getEntries(shape,
+                        Predicates.and(SceneEditor.PLACEABLE_ENTRY_FILTER,
+                            _editor.getLayerPredicate()),
+                        _entries);
+                    for (PlaceableEntry oldEntry :
+                            Iterables.filter(_entries, PlaceableEntry.class)) {
+                        if (oldEntry.placeable.equals(entry.placeable) &&
+                                trans.epsilonEquals(oldEntry.transform.extractTranslation(),
+                                    0.1f)) {
+                            //log.info("Existing matching entry not replaced!");
+                            Toolkit.getDefaultToolkit().beep();
+                            return;
+                        }
+                    }
+                } finally {
+                    _entries.clear();
+                }
+            }
+        }
+
+        // actually place the new entry
         _editor.addEntries(entry);
         _lastPlacement.set(entry.transform.getTranslation());
     }

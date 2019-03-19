@@ -414,6 +414,14 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
+     * Is the meta key being held down?
+     */
+    public boolean isMetaDown ()
+    {
+        return _metaDown;
+    }
+
+    /**
      * Checks whether the first mouse button is being held down on the canvas.
      */
     public boolean isFirstButtonDown ()
@@ -816,6 +824,9 @@ public class SceneEditor extends TudeyTool
                 break;
             case KeyEvent.VK_ALT:
                 _altDown = pressed;
+                break;
+            case KeyEvent.VK_META:
+                _metaDown = pressed;
                 break;
         }
         return false;
@@ -2139,7 +2150,7 @@ public class SceneEditor extends TudeyTool
     protected SimpleTransformable _origin;
 
     /** Whether or not the shift, control, and/or alt keys are being held down. */
-    protected boolean _shiftDown, _controlDown, _altDown;
+    protected boolean _shiftDown, _controlDown, _altDown, _metaDown;
 
     /** Whether or not each of the mouse buttons are being held down on the canvas. */
     protected boolean _firstButtonDown, _secondButtonDown, _thirdButtonDown;

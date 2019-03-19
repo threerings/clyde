@@ -545,6 +545,17 @@ public final class Vector3f
         return buf.put(x).put(y).put(z);
     }
 
+    /**
+     * Compares this vector to another with the provided epsilon.
+     */
+    public boolean epsilonEquals (Vector3f other, float epsilon)
+    {
+        return
+            Math.abs(x - other.x) < epsilon &&
+            Math.abs(y - other.y) < epsilon &&
+            Math.abs(z - other.z) < epsilon;
+    }
+
     // documentation inherited from interface Encodable
     public String encodeToString ()
     {
