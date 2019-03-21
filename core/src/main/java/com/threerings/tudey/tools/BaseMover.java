@@ -96,7 +96,7 @@ public abstract class BaseMover extends EditorTool
         }
         // find the center and elevation
         bounds.getCenter(_center);
-        _elevation = heightAdjust
+        _elevation = heightAdjust && (minElevation != Integer.MAX_VALUE)
                 ? minElevation
                 : _editor.getGrid().getElevation();
 
