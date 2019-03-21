@@ -669,16 +669,16 @@ public class SceneEditor extends TudeyTool
     {
         incrementEditId();
         removeEntries(Arrays.asList(entries));
-        move(entries);
+        move(false, entries);
     }
 
     /**
      * Activates the supplied entries in the mover tool.
      */
-    public void move (Entry... entries)
+    public void move (boolean adjustElevation, Entry... entries)
     {
         setActiveTool(_mover);
-        _mover.move(entries);
+        _mover.move(adjustElevation, entries);
     }
 
     /**
@@ -1001,21 +1001,8 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("paste") || action.equals("paste_height")) {
             Transferable contents = _frame.getToolkit().getSystemClipboard().getContents(this);
             Entry[] selection = (Entry[])ToolUtil.getWrappedTransferData(contents);
-            if ("paste".equals(action)) {
-                for (Entry entry : selection) {
-                    if (entry instanceof TudeySceneModel.TileEntry) {
-                        ((TudeySceneModel.TileEntry)entry).elevation = _grid.getElevation();
-                    }
-                    if (entry instanceof TudeySceneModel.PlaceableEntry) {
-                        ((TudeySceneModel.PlaceableEntry)entry).transform
-                            .update(Transform3D.RIGID)
-                            .getTranslation().z = TudeySceneMetrics.getTileZ(_grid.getElevation());
-                    }
-                    // TODO: adjust paths/etc?
-                }
-            }
             if (selection != null) {
-                move(selection);
+                move("paste".equals(action), selection);
             }
         } else if (action.equals("delete")) {
             deleteSelection();
@@ -1608,7 +1595,7 @@ public class SceneEditor extends TudeyTool
             File file = _selectionChooser.getSelectedFile();
             try {
                 BinaryImporter in = new BinaryImporter(new FileInputStream(file));
-                move((Entry[])in.readObject());
+                move(false, (Entry[])in.readObject());
                 in.close();
             } catch (IOException e) {
                 log.warning("Failed to import selection [file=" + file +"].", e);

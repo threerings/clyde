@@ -41,6 +41,8 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * The base class of {@link Mover} and {@link Palette}.
  */
@@ -62,10 +64,15 @@ public abstract class BaseMover extends EditorTool
         move();
     }
 
+    public void move (Entry... entries)
+    {
+        move(false, entries);
+    }
+
     /**
      * Requests to start moving the specified entries.
      */
-    public void move (Entry... entries)
+    public void move (boolean heightAdjust, Entry... entries)
     {
         // make sure some entries exist
         _entries = new Entry[entries.length];
@@ -75,7 +82,7 @@ public abstract class BaseMover extends EditorTool
 
         // clone the entries, find the bounds, and see if any are tiles
         Rect bounds = new Rect(), ebounds = new Rect();
-        int minElevation = Integer.MAX_VALUE, maxElevation = Integer.MIN_VALUE;
+        int minElevation = Integer.MAX_VALUE;
         _tiles = false;
         for (int ii = 0; ii < entries.length; ii++) {
             Entry entry = _entries[ii] = (Entry)entries[ii].clone();
@@ -85,12 +92,13 @@ public abstract class BaseMover extends EditorTool
             int elevation = entry.getElevation();
             if (elevation != Integer.MIN_VALUE) {
                 minElevation = Math.min(minElevation, elevation);
-                maxElevation = Math.max(maxElevation, elevation);
             }
         }
         // find the center and elevation
         bounds.getCenter(_center);
-        calculateElevation(minElevation, maxElevation);
+        _elevation = heightAdjust
+                ? minElevation
+                : _editor.getGrid().getElevation();
 
         // reset the angle
         _angle = 0f;
@@ -196,15 +204,6 @@ public abstract class BaseMover extends EditorTool
             tentry.transform(_editor.getConfigManager(), transform);
         }
         return tentries;
-    }
-
-    /**
-     * Calculates the elevation.
-     */
-    public void calculateElevation (int minElevation, int maxElevation)
-    {
-        _elevation = (minElevation < maxElevation) ? (minElevation + maxElevation)/2 : 0;
-        _elevation += _editor.getGrid().getElevation();
     }
 
     /** The cursor representing the selection that we're moving. */
