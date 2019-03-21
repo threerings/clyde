@@ -1127,7 +1127,8 @@ public class SceneEditor extends TudeyTool
         _copy.setEnabled(false);
         edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
         _paste.setEnabled(false);
-        edit.add(new JMenuItem(_pasteHeight = createAction("paste_height", KeyEvent.VK_P, -1)));
+        edit.add(new JMenuItem(_pasteHeight = createAction("paste_height",
+                KeyEvent.VK_P, KeyEvent.VK_V, KeyEvent.CTRL_MASK | KeyEvent.META_MASK)));
         _pasteHeight.setEnabled(false);
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
