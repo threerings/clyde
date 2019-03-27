@@ -225,6 +225,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
     }
 
     /**
+     * Get an absolute or relative file path applicable to the property being edited, or null.
+     */
+    public String getEditedFilePath ()
+    {
+        return null;
+    }
+
+    /**
      * Updates the state of the editor from the object.
      */
     public abstract void update ();

@@ -25,9 +25,11 @@
 
 package com.threerings.editor.swing;
 
-import java.awt.Toolkit;
+import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.datatransfer.StringSelection;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -72,6 +74,14 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
             getActionMap().put("direct_path", new AbstractAction() {
                 public void actionPerformed (ActionEvent event) {
                     createDirectPath(getMousePath());
+                }
+            });
+            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.META_MASK),
+                "copy_file_path");
+            getActionMap().put("copy_file_path", new AbstractAction() {
+                public void actionPerformed (ActionEvent event) {
+                    copyFilePathUnderMouse();
                 }
             });
 
@@ -135,7 +145,7 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
         }
         if (path.length() > 0 && _object instanceof ParameterizedConfig) {
             if (((ParameterizedConfig)_object).isInvalidParameterPath(path)) {
-                Toolkit.getDefaultToolkit().beep();
+                getToolkit().beep();
                 return;
             }
             String name = path.substring(path.lastIndexOf(".") + 1);
@@ -151,6 +161,33 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
             }
             _ddialog.show(this, name, path);
         }
+    }
+
+    /**
+     * Locate a PropertyEditor under the mouse that has a file, if found then copy the full
+     * file path to the clipboard and dump to stdout too.
+     */
+    protected void copyFilePathUnderMouse ()
+    {
+        Point pt = getMousePosition();
+        if (pt != null) {
+            for (Component comp = findComponentAt(pt); comp != null; comp = comp.getParent()) {
+                if (comp instanceof PropertyEditor) {
+                    String file = ((PropertyEditor)comp).getEditedFilePath();
+                    if (file == null) {
+                        break; // do the beep
+                    }
+                    StringSelection contents = new StringSelection(file);
+                    getToolkit().getSystemClipboard().setContents(contents, contents);
+                    // this is handy output, to be kept:
+                    System.out.println("Copied to clipboard: " + file);
+                    return; // do not beep
+                }
+            }
+        }
+
+        // did not find a file
+        getToolkit().beep();
     }
 
     /**

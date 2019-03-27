@@ -30,6 +30,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.io.File;
+
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -140,6 +142,21 @@ public class ConfigReferenceEditor extends PropertyEditor
     public void update ()
     {
         update((ConfigReference)_property.get(_object), false);
+    }
+
+    @Override
+    public String getEditedFilePath ()
+    {
+        if (_ctx.getConfigManager().isResourceClass(getArgumentType())) {
+            ConfigReference<?> ref = (ConfigReference<?>)_property.get(_object);
+            if (ref != null) {
+                File fullfile = _ctx.getResourceManager().getResourceFile(ref.getName());
+                if (fullfile != null) {
+                    return fullfile.getAbsolutePath();
+                }
+            }
+        }
+        return null;
     }
 
     @Override

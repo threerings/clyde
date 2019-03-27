@@ -125,6 +125,13 @@ public class FileEditor extends PropertyEditor
     }
 
     @Override
+    public String getEditedFilePath ()
+    {
+        File file = getPropertyFile();
+        return (file == null) ? null : file.getAbsolutePath();
+    }
+
+    @Override
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
