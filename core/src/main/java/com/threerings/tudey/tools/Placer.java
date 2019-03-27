@@ -176,7 +176,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
                                 trans.epsilonEquals(oldEntry.transform.extractTranslation(),
                                     0.1f)) {
                             //log.info("Existing matching entry not replaced!");
-                            Toolkit.getDefaultToolkit().beep();
+                            getToolkit().beep();
                             return;
                         }
                     }
