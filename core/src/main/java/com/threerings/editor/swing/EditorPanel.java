@@ -328,6 +328,19 @@ public class EditorPanel extends BaseEditorPanel
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
+        // Commented this out, it's so special case and marks ends up not marking
+        // the group as dirty. Really, I should just figure out the endless
+        // notifannoyance.
+//        // TODO: we could note fire an update if the config chnaged
+//        if (_object instanceof com.threerings.config.ManagedConfig) {
+//            Object source = event.getSource();
+//            if ((source instanceof PropertyEditor) &&
+//                    "comment".equals(((PropertyEditor)source).getProperty().getName())) {
+//                // suppress
+//                log.info("Suppressing");
+//                return;
+//            }
+//        }
         fireStateChanged();
     }
 
