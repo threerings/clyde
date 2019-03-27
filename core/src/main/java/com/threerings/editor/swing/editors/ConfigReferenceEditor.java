@@ -225,6 +225,7 @@ public class ConfigReferenceEditor extends PropertyEditor
             _clear.setEnabled(enable);
         }
         if (!enable) {
+            _config.setToolTipText(null);
             _config.setText(_msgs.get("m.null_value"));
             _arguments.removeAll();
             _config.setForeground(_property.nullable() ? _content.getForeground() : Color.red);
