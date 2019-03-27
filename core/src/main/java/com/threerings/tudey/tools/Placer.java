@@ -25,7 +25,6 @@
 
 package com.threerings.tudey.tools;
 
-import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
