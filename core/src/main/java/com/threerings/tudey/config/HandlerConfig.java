@@ -37,6 +37,8 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.util.PreloadableSet;
 
+import com.threerings.tudey.data.TudeyCodes;
+
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.config.ShapeConfig;
 
@@ -44,7 +46,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * Configurations for server-side event handlers.
  */
 @EditorTypes({
-    HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
+    HandlerConfig.None.class, HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
     HandlerConfig.Reference.class, HandlerConfig.Tick.class,
     HandlerConfig.Timer.class, HandlerConfig.WarnTimer.class, HandlerConfig.Signal.class,
     HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
@@ -58,6 +60,18 @@ public abstract class HandlerConfig extends DeepObject
 {
     /** An empty (and thus immutable and sharable) HandlerConfig array. */
     public static final HandlerConfig[] EMPTY_ARRAY = new HandlerConfig[0];
+
+    /**
+     * No-op. Sometimes you configure None and then parameterize it out. Lame.
+     */
+    public static class None extends HandlerConfig
+    {
+        @Override
+        public String getLogicClassName ()
+        {
+            return TudeyCodes.NO_LOGIC;
+        }
+    }
 
     /**
      * The startup event handler.

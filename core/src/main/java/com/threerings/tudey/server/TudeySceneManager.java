@@ -583,15 +583,18 @@ public class TudeySceneManager extends SceneManager
     /**
      * Creates an instance of the logic object with the specified class name using the injector,
      * logging a warning and returning <code>null</code> on error.
+     * Passing the TudeyCodes.NO_LOGIC instance will return null without logging.
      */
     public Logic createLogic (String cname)
     {
-        try {
-            return (Logic)_injector.getInstance(Class.forName(cname));
-        } catch (Exception e) {
-            log.warning("Failed to instantiate logic.", "class", cname, e);
-            return null;
+        if (cname != TudeyCodes.NO_LOGIC) { // Note: reference equality is used.
+            try {
+                return (Logic)_injector.getInstance(Class.forName(cname));
+            } catch (Exception e) {
+                log.warning("Failed to instantiate logic.", "class", cname, e);
+            }
         }
+        return null;
     }
 
     /**
