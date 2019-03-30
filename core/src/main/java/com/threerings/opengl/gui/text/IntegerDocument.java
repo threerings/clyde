@@ -68,6 +68,10 @@ public class IntegerDocument extends Document
     // documentation inherited
     protected boolean validateEdit (String oldText, String newText)
     {
+        if (!super.validateEdit(oldText, newText)) {
+            return false;
+        }
+
         // some special cases
         if (newText.isEmpty()) {
             return true;

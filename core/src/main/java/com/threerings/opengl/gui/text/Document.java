@@ -94,6 +94,16 @@ public class Document
         _undosup.removeUndoableEditListener(listener);
     }
 
+    public boolean isEditable ()
+    {
+        return _editable;
+    }
+
+    public void setEditable (boolean editable)
+    {
+        _editable = editable;
+    }
+
     /**
      * Returns the "value" of the document.
      *
@@ -316,7 +326,7 @@ public class Document
      */
     protected boolean validateEdit (String oldText, String newText)
     {
-        return true;
+        return _editable;
     }
 
     /**
@@ -349,4 +359,5 @@ public class Document
     protected UndoableEditSupport _undosup = new UndoableEditSupport(this);
     protected UndoableEdit _compoundEdit;
     protected int _lastUndoId;
+    protected boolean _editable = true;
 }

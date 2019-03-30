@@ -45,7 +45,7 @@ public class LengthLimitedDocument extends Document
     // documentation inherited
     protected boolean validateEdit (String oldText, String newText)
     {
-        return newText.length() <= _maxLength;
+        return super.validateEdit(oldText, newText) && (newText.length() <= _maxLength);
     }
 
     protected int _maxLength;

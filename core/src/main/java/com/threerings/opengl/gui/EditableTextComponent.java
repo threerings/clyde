@@ -84,6 +84,22 @@ public abstract class EditableTextComponent extends TextComponent
     }
 
     /**
+     * Are we editable?
+     */
+    public boolean isEditable ()
+    {
+        return _text.isEditable();
+    }
+
+    /**
+     * If the field is set to non-editable while still enabled, then text can be selected.
+     */
+    public void setEditable (boolean editable)
+    {
+        _text.setEditable(editable);
+    }
+
+    /**
      * Set the placeholder text; shown when the field is unfocused and empty.
      */
     public void setPlaceholder (String placeholder)
@@ -555,6 +571,9 @@ public abstract class EditableTextComponent extends TextComponent
      */
     protected void renderCursor (Renderer renderer, int x, int y, int height)
     {
+        if (!_text.isEditable()) {
+            return;
+        }
         renderer.setColorState(getColor());
         renderer.setTextureState(null);
         GL11.glBegin(GL11.GL_LINE_STRIP);
