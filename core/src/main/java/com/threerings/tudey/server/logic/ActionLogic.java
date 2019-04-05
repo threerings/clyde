@@ -1210,13 +1210,16 @@ public abstract class ActionLogic extends Logic
             Object[] logArgs = (message != config.message) // did a replacement happen?
                 ? new Object[] { new Exception() }
                 : ArrayUtil.EMPTY_OBJECT;
+            message = findVars(message, "%source:", _source);
+            message = findVars(message, "%activator:", activator);
+
             // then do the rest of the replacements...
             // TODO: optimize?
             // TODO: if more are added, document in the config
             message = message
                     .replace("%source", String.valueOf(_source))
                     .replace("%activator", String.valueOf(activator))
-                    .replace("%this", String.valueOf(this))
+                    //.replace("%this", String.valueOf(this))
                     .replace("%stamp", String.valueOf(timestamp));
 
             switch(config.level) {
@@ -1234,6 +1237,32 @@ public abstract class ActionLogic extends Logic
                 break;
             }
             return true;
+        }
+
+        /**
+         * Find tags of the form "<prefix><tag>[, ]" where they are prefixed by the
+         * specified prefix and terminated by space, comma, or end-of-string, and replace
+         * with the value of the variable with that tag name.
+         *
+         * So the prefix might be "%source:" and the full match is "%source:pressCount" which
+         * will be replaced by the string value of the variable "pressCount" on the source Logic.
+         */
+         *
+        protected String findVars (String message, String prefix, Logic source)
+        {
+            for (int index = -1; -1 != (index = message.indexOf(prefix)); ) {
+                int space = message.indexOf(' ', index);
+                int comma = message.indexOf(',', index);
+                int endybit = (space == -1)
+                    ? ((comma == -1) ? message.length() : comma)
+                    : ((comma == -1) ? space : Math.min(space, comma));
+                String varName = message.substring(index + prefix.length(), endybit);
+                Object value = source.getVariable(varName);
+                message = message.substring(0, index) +
+                    String.valueOf(value) +
+                    message.substring(endybit, message.length());
+            }
+            return message;
         }
     }
 
