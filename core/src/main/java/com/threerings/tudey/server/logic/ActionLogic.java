@@ -1247,7 +1247,6 @@ public abstract class ActionLogic extends Logic
          * So the prefix might be "%source:" and the full match is "%source:pressCount" which
          * will be replaced by the string value of the variable "pressCount" on the source Logic.
          */
-         *
         protected String findVars (String message, String prefix, Logic source)
         {
             for (int index = -1; -1 != (index = message.indexOf(prefix)); ) {
