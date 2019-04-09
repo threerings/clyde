@@ -82,7 +82,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         updateCursor();
         if (_cursorVisible) {
             _cursor.tick(elapsed);
-        } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
+        } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
             _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
         }
     }
@@ -119,13 +119,17 @@ public class Placer extends ConfigTool<PlaceableConfig>
     protected void updateCursor ()
     {
         if (!(_cursorVisible = (_entry.placeable != null) &&
-                getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+                getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             return;
         }
         // snap to tile grid if shift not held down
         if (!_editor.isShiftDown()) {
-            _isect.x = FloatMath.floor(_isect.x) + 0.5f;
-            _isect.y = FloatMath.floor(_isect.y) + 0.5f;
+            _isect.x = FloatMath.floor(_isect.x);
+            _isect.y = FloatMath.floor(_isect.y);
+            if (!_editor.isAltDown()) {
+                _isect.x += .5f;
+                _isect.y += .5f;
+            }
         }
         Transform3D transform = _entry.transform;
         transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
