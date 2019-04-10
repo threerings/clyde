@@ -28,6 +28,8 @@ package com.threerings.tudey.tools;
 import java.awt.Dimension;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -36,8 +38,13 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
+import com.google.common.base.CaseFormat;
+
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+
+import com.threerings.math.FloatMath;
+import com.threerings.math.Vector3f;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
@@ -57,6 +64,42 @@ import com.threerings.tudey.data.TudeySceneModel;
 public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     implements TreeSelectionListener, ChangeListener
 {
+    /**
+     * Snap styles.
+     */
+    enum SnapStyle
+    {
+        CENTER {
+            @Override public void applySnap (Vector3f isect) {
+                EDGE.applySnap(isect);
+                isect.x += 0.5f;
+                isect.y += 0.5f;
+            }
+        },
+        EDGE {
+            @Override public void applySnap (Vector3f isect) {
+                isect.x = FloatMath.floor(isect.x);
+                isect.y = FloatMath.floor(isect.y);
+            }
+        },
+	// TODO: EDGE_X and EDGE_Y ?
+        NONE;
+
+        /**
+         * Snap just the x/y values of the provided vector.
+         */
+        public void applySnap (Vector3f isect)
+        {
+            // the NONE implementation: do nothing!
+        }
+
+        @Override
+        public String toString ()
+        {
+            return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
+        }
+    }
+
     /**
      * Creates the config tool.
      */
@@ -153,6 +196,23 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     }
 
     /**
+     * Can be called by your constructor to add the snap style selector to your tool.
+     */
+    protected void addSnapStyleSelector ()
+    {
+        _snapStyle = new JComboBox(SnapStyle.values());
+        add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED, 0);
+    }
+
+    /**
+     * Get the currently-selected snap style.
+     */
+    protected SnapStyle getSnapStyle ()
+    {
+        return (SnapStyle)_snapStyle.getSelectedItem();
+    }
+
+    /**
      * Called when the reference changes.
      */
     protected void referenceChanged (ConfigReference<T> ref)
@@ -198,4 +258,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
 
     /** The editor panel that we use to adjust placeable arguments. */
     protected EditorPanel _epanel;
+
+    /** Optional: the snapping style in use by this tool. */
+    protected JComboBox _snapStyle;
 }

@@ -60,6 +60,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     {
         super(editor, PlaceableConfig.class, new PlaceableReference());
         _entry.transform.setType(Transform3D.UNIFORM);
+        addSnapStyleSelector();
     }
 
     /**
@@ -82,7 +83,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         updateCursor();
         if (_cursorVisible) {
             _cursor.tick(elapsed);
-        } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
+        } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
             _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
         }
     }
@@ -119,17 +120,12 @@ public class Placer extends ConfigTool<PlaceableConfig>
     protected void updateCursor ()
     {
         if (!(_cursorVisible = (_entry.placeable != null) &&
-                getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+                getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
             return;
         }
-        // snap to tile grid if shift not held down
+        // snap appropriately if shift is not held down
         if (!_editor.isShiftDown()) {
-            _isect.x = FloatMath.floor(_isect.x);
-            _isect.y = FloatMath.floor(_isect.y);
-            if (!_editor.isAltDown()) {
-                _isect.x += .5f;
-                _isect.y += .5f;
-            }
+            getSnapStyle().applySnap(_isect);
         }
         Transform3D transform = _entry.transform;
         transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
