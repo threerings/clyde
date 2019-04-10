@@ -82,7 +82,18 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
                 isect.y = FloatMath.floor(isect.y);
             }
         },
-	// TODO: EDGE_X and EDGE_Y ?
+	EDGE_X {
+            @Override public void applySnap (Vector3f isect) {
+                EDGE.applySnap(isect);
+                isect.y += 0.5f;
+            }
+        },
+	EDGE_Y {
+            @Override public void applySnap (Vector3f isect) {
+                EDGE.applySnap(isect);
+                isect.x += 0.5f;
+            }
+        },
         NONE;
 
         /**
