@@ -99,7 +99,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         super(editor, AreaConfig.class, new AreaReference());
 
         _snapStyle = new JComboBox(SnapStyle.values());
-        add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED);
+        add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED, 0);
     }
 
     @Override
