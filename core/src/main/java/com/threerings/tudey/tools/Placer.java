@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 
+import com.samskivert.util.LRUHashMap;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
@@ -69,6 +71,9 @@ public class Placer extends ConfigTool<PlaceableConfig>
     public void setAngle (float angle)
     {
         _angle = angle;
+        if (_entry.placeable != null) {
+            _refToAngle.put(_entry.placeable, angle);
+        }
     }
 
     @Override
@@ -110,7 +115,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         // adjust in terms of coarse (ninety degree) or fine increments
         if (_cursorVisible) {
             float increment = event.isShiftDown() ? FINE_ROTATION_INCREMENT : FloatMath.HALF_PI;
-            _angle = (Math.round(_angle / increment) + event.getWheelRotation()) * increment;
+            setAngle((Math.round(_angle / increment) + event.getWheelRotation()) * increment);
         }
     }
 
@@ -193,6 +198,8 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override
     protected void referenceChanged (ConfigReference<PlaceableConfig> ref)
     {
+        Float angle = _refToAngle.get(ref);
+        _angle = (angle == null) ? 0f : angle;
         super.referenceChanged(ref);
         _entry.placeable = ref;
     }
@@ -239,6 +246,10 @@ public class Placer extends ConfigTool<PlaceableConfig>
 
     /** Holds the entries intersecting the cursor. */
     protected ArrayList<Entry> _entries = new ArrayList<Entry>();
+
+    /** Remember the configured orientation of recently used placeables. */
+    protected LRUHashMap<ConfigReference<PlaceableConfig>, Float> _refToAngle =
+            new LRUHashMap<ConfigReference<PlaceableConfig>, Float>(50); // 50 max items
 
     /** The minimum spacing between placements when dragging. */
     protected static final float MIN_SPACING = 0.5f;
