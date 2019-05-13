@@ -55,6 +55,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.editor.EditorMessageBundle;
+import com.threerings.editor.PreparedEditable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.PropertyUtil;
@@ -422,7 +423,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else if (type.isArray()) {
             return Array.newInstance(type.getComponentType(), 0);
         } else {
-            return ReflectionUtil.newInstance(type, outer);
+            return PreparedEditable.PREPARER.apply(ReflectionUtil.newInstance(type, outer));
         }
     }
 

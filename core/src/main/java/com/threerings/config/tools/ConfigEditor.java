@@ -117,6 +117,7 @@ import com.threerings.util.DeepUtil;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
+import com.threerings.editor.PreparedEditable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.Validator;
 import com.threerings.editor.swing.BaseEditorPanel;
@@ -731,7 +732,8 @@ public class ConfigEditor extends BaseConfigEditor
             {
                 Class<?> clazz = group.getRawConfigClasses().get(0);
                 try {
-                    ManagedConfig cfg = (ManagedConfig)clazz.newInstance();
+                    ManagedConfig cfg = (ManagedConfig)PreparedEditable.PREPARER.apply(
+                            clazz.newInstance());
                     if (cfg instanceof DerivedConfig) {
                         ((DerivedConfig)cfg).cclass = group.getConfigClass();
                     }

@@ -21,6 +21,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.tools.ConfigEditor;
 
 import com.threerings.editor.MethodProperty;
+import com.threerings.editor.PreparedEditable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.PropertyUtil;
 
@@ -84,7 +85,7 @@ public class ConfigTypeEditor extends ChoiceEditor
         ManagedConfig dest = _cachedInstances.get(destClass);
         if (dest == null) {
             try {
-                dest = (ManagedConfig)destClass.newInstance();
+                dest = (ManagedConfig)PreparedEditable.PREPARER.apply(destClass.newInstance());
             } catch (Exception e) {
                 log.warning("Failed to change type", e);
                 return null;

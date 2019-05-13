@@ -59,6 +59,7 @@ import com.threerings.util.Validatable;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Groupable;
+import com.threerings.editor.PreparedEditable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
@@ -358,11 +359,12 @@ public class ObjectPanel extends BasePropertyEditor
                 }
             }
             if (cctor != null) {
-                return inner ? cctor.newInstance(_outer, _lvalue) : cctor.newInstance(_lvalue);
+                return PreparedEditable.PREPARER.apply(
+                    inner ? cctor.newInstance(_outer, _lvalue) : cctor.newInstance(_lvalue));
             }
         }
         // fall back on default constructor
-        return ReflectionUtil.newInstance(type, _outer);
+        return PreparedEditable.PREPARER.apply(ReflectionUtil.newInstance(type, _outer));
     }
 
     /**
@@ -455,7 +457,6 @@ public class ObjectPanel extends BasePropertyEditor
         fireStateChanged();
         return true;
     }
-
 
     /** Provides access to common services. */
     protected EditorContext _ctx;
