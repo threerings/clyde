@@ -37,6 +37,7 @@ import com.threerings.media.image.Colorization;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.PreparedEditable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -144,6 +145,7 @@ public abstract class ColorizationConfig extends DeepObject
      * Translate a colorization to another target.
      */
     public static class Translated extends ColorizationConfig
+        implements PreparedEditable
     {
         /** The colorization class. */
         @Editable(editor="colorization", mode="class")
@@ -163,6 +165,12 @@ public abstract class ColorizationConfig extends DeepObject
             return (src == null || crec == null)
                     ? null
                     : new CustomOffsetsColorization(crec, src);
+        }
+
+        // from PreparedEditable
+        public void prepareInstanceToEdit ()
+        {
+            source = new ColorizationConfig.Normal();
         }
     }
 
