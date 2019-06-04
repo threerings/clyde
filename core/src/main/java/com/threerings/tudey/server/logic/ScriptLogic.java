@@ -122,7 +122,7 @@ public abstract class ScriptLogic extends Logic
                         finishMove();
                         return true;
                     }
-                    createPath();
+                    createPath(); // re-check where the target is
                     completedPath = true;
                 }
                 if (_path == null) {
@@ -131,7 +131,7 @@ public abstract class ScriptLogic extends Logic
                 }
             }
 
-           // make sure we're facing the right direction
+            // make sure we're facing the right direction
             Vector2f node = _path[_pidx];
             float rot = FloatMath.atan2(node.y - trans.y, node.x - trans.x);
             if (FloatMath.getAngularDistance(_agent.getRotation(), rot) > 0.0001f) {
@@ -180,10 +180,25 @@ public abstract class ScriptLogic extends Logic
             _path = null;
             ArrayList<Logic> targets = Lists.newArrayList();
             _target.resolve(_agent, targets);
-            if (targets.isEmpty()) {
-                return;
+            switch (targets.size()) {
+                case 0:
+                    _finalTarget = null;
+                    return;
+                case 1:
+                    _finalTarget = targets.get(0);
+                    break;
+                default:
+                    // find the closest
+                    float best = Float.MAX_VALUE;
+                    for (Logic logic : targets) {
+                        float d = _agent.getTranslation().distanceSquared(logic.getTranslation());
+                        if (d < best) {
+                            _finalTarget = logic;
+                            best = d;
+                        }
+                    }
+                    break;
             }
-            _finalTarget = targets.get(0);
             if (finishedMove()) {
                 return;
             }
@@ -198,6 +213,7 @@ public abstract class ScriptLogic extends Logic
          */
         protected boolean finishedMove ()
         {
+            if (_finalTarget == null) return false;
             float dist2 = getReachRadiusSquared();
             return _finalTarget.getTranslation().distanceSquared(_agent.getTranslation()) <= dist2;
         }
@@ -409,6 +425,8 @@ public abstract class ScriptLogic extends Logic
         @Override
         protected void didInit ()
         {
+            super.didInit();
+
             _action = createAction(((ScriptConfig.Action)_config).action, _agent);
         }
 
