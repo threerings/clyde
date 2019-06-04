@@ -134,7 +134,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
             // start a new area
             _entry = new AreaEntry();
             _idx = 1;
-            _entry.area = area;
+            _entry.area = area.clone();
             _entry.vertices = new Vertex[] { new Vertex(), new Vertex() };
             setMouseLocation(_entry.vertices[0]);
             _editor.addEntries(_entry);
