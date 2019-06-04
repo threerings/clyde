@@ -873,6 +873,7 @@ public abstract class BehaviorLogic extends Logic
         {
             _currentStep = Math.min(_steps.length, step);
             _steps[_currentStep].start(timestamp);
+            _start = false;
         }
 
         @Override
