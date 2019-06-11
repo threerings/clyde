@@ -312,11 +312,49 @@ public class Sounder extends SimpleScope
             playSound(_config.gain);
         }
 
+        // NOTE: re-implemented for effeciency with the cutoff check
+        @Override
+        protected void playSound (float gain)
+        {
+            if (_sound == null) {
+                return;
+            }
+
+            // update the sound transform
+            _transform.extractTranslation(_vector);
+            if (_cutoff != 0) {
+                // see if our cutoff distance is too great
+                Listener listener = _ctx.getSoundManager().getListener();
+                float dx = listener.getPositionX() - _vector.x;
+                float dy = listener.getPositionY() - _vector.y;
+                float dz = listener.getPositionZ() - _vector.z;
+                float distSq = dx*dx + dy*dy + dz*dz;
+                if (distSq > _cutoff) {
+                    return; // DO NOT PLAY SOUND!
+                }
+            }
+            // keep updating the transform stuff
+            _sound.setPosition(_vector.x, _vector.y, _vector.z);
+            if (_config.directional) {
+                _transform.transformVector(Vector3f.UNIT_X, _vector).normalizeLocal();
+                _sound.setDirection(_vector.x, _vector.y, _vector.z);
+            }
+
+            SoundClipManager clipmgr = ScopeUtil.resolve(
+                _parentScope, "clipmgr", null, SoundClipManager.class);
+            if (clipmgr != null && !loops()) {
+                clipmgr.playSound(_sound, gain);
+            } else {
+                _sound.play(null, loops());
+            }
+        }
+
         @Override
         protected void updateFromConfig ()
         {
             boolean wasPlaying = isPlaying();
             _sound = getSound(_config.file, _sound);
+            _cutoff = _config.cutoffDistance * _config.cutoffDistance;
             if ((wasPlaying || _started.value && _config.loop) && !isPlaying()) {
                 start();
             }
@@ -324,6 +362,9 @@ public class Sounder extends SimpleScope
 
         /** The clip config. */
         protected SounderConfig.Clip _config;
+
+        /** The cutoff distance squared, or 0. */
+        protected float _cutoff;
     }
 
     /**

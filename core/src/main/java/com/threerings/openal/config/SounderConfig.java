@@ -226,6 +226,10 @@ public class SounderConfig extends ParameterizedConfig
             directory="sound_dir")
         public String file;
 
+        /** The cutoff distance, or 0 for no cutoff. */
+        @Editable(weight=-4)
+        public float cutoffDistance;
+
         @Override
         public void getUpdateResources (HashSet<String> paths)
         {
