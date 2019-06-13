@@ -189,7 +189,7 @@ public abstract class ScriptLogic extends Logic
                     break;
                 default:
                     // find the closest
-                    float best = Float.MAX_VALUE;
+                    float best = Float.POSITIVE_INFINITY;
                     for (Logic logic : targets) {
                         float d = _agent.getTranslation().distanceSquared(logic.getTranslation());
                         if (d < best) {
