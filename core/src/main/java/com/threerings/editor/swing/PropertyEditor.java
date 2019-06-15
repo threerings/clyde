@@ -74,6 +74,7 @@ import com.threerings.editor.swing.editors.EnumEditor;
 import com.threerings.editor.swing.editors.EnumPanelArrayListEditor;
 import com.threerings.editor.swing.editors.FileEditor;
 import com.threerings.editor.swing.editors.GetPathEditor;
+import com.threerings.editor.swing.editors.LongEditor;
 import com.threerings.editor.swing.editors.MaskEditor;
 import com.threerings.editor.swing.editors.NumberEditor;
 import com.threerings.editor.swing.editors.ObjectEditor;
@@ -474,8 +475,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass(Float.TYPE, NumberEditor.class);
         registerEditorClass(Integer.class, NumberEditor.class);
         registerEditorClass(Integer.TYPE, NumberEditor.class);
-        registerEditorClass(Long.class, NumberEditor.class);
-        registerEditorClass(Long.TYPE, NumberEditor.class);
+        registerEditorClass(Long.class, LongEditor.class);
+        registerEditorClass(Long.TYPE, LongEditor.class);
         registerEditorClass(Quaternion.class, QuaternionEditor.class);
         registerEditorClass(Short.class, NumberEditor.class);
         registerEditorClass(Short.TYPE, NumberEditor.class);
