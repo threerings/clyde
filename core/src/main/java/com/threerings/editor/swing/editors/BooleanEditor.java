@@ -67,6 +67,7 @@ public class BooleanEditor extends PropertyEditor
         } else {
             _box.addActionListener(this);
         }
+        addUnits(this);
     }
 
     /** The check box. */
