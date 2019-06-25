@@ -67,7 +67,7 @@ import static com.threerings.tudey.Log.log;
     ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
     ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
     ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
-    ActionConfig.ServerLog.class, ActionConfig.Fail.class })
+    ActionConfig.ServerLog.class, ActionConfig.Fail.class, ActionConfig.RemoveLogic.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable, Groupable<ActionConfig>
 {
@@ -115,6 +115,10 @@ public abstract class ActionConfig extends DeepObject
         @Override
         public String getLogicClassName ()
         {
+            if (actor == null) {
+                // A common thing that used to be done is to use SpawnActor w/null to mean "None".
+                return "com.threerings.tudey.server.logic.ActionLogic$None";
+            }
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnActor";
         }
 
@@ -274,6 +278,29 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$DestroyActor";
+        }
+
+        @Override
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
+    }
+
+    /**
+     * Destroys an entry logic.
+     */
+    @Strippable
+    public static class RemoveLogic extends ActionConfig
+    {
+        /** The actor to destroy. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$RemoveLogic";
         }
 
         @Override
