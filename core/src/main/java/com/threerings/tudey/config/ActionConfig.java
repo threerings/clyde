@@ -67,7 +67,7 @@ import static com.threerings.tudey.Log.log;
     ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
     ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
     ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
-    ActionConfig.ServerLog.class, ActionConfig.Fail.class, ActionConfig.RemoveLogic.class })
+    ActionConfig.ServerLog.class, ActionConfig.Fail.class/*, ActionConfig.RemoveLogic.class*/ })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable, Groupable<ActionConfig>
 {
@@ -287,28 +287,30 @@ public abstract class ActionConfig extends DeepObject
         }
     }
 
-    /**
-     * Destroys an entry logic.
-     */
-    @Strippable
-    public static class RemoveLogic extends ActionConfig
-    {
-        /** The actor to destroy. */
-        @Editable
-        public TargetConfig target = new TargetConfig.Source();
-
-        @Override
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.ActionLogic$RemoveLogic";
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            target.invalidate();
-        }
-    }
+//    /**
+//     * Destroys an entry logic.
+//     */
+      // NOTE: Dangerous. Can happen during startup and not everything can handle that. Not worth
+      // sorting out.
+//    @Strippable
+//    public static class RemoveLogic extends ActionConfig
+//    {
+//        /** The actor to destroy. */
+//        @Editable
+//        public TargetConfig target = new TargetConfig.Source();
+//
+//        @Override
+//        public String getLogicClassName ()
+//        {
+//            return "com.threerings.tudey.server.logic.ActionLogic$RemoveLogic";
+//        }
+//
+//        @Override
+//        public void invalidate ()
+//        {
+//            target.invalidate();
+//        }
+//    }
 
     /**
      * Rotates an actor.

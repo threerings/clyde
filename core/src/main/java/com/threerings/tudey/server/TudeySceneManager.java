@@ -1448,7 +1448,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Removes the logic object for the specified scene entry, if any.
      */
-    public void removeLogic (Object key)
+    protected void removeLogic (Object key)
     {
         EntryLogic logic = _entries.remove(key);
         if (logic != null) {

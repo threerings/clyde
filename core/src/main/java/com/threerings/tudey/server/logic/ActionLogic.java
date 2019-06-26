@@ -348,33 +348,33 @@ public abstract class ActionLogic extends Logic
         }
     }
 
-    /**
-     * Handles a remove logic action.
-     */
-    public static class RemoveLogic extends Targeted
-    {
-        @Override
-        public boolean execute (int timestamp, Logic activator)
-        {
-            boolean success = false;
-            _target.resolve(activator, _targets);
-            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-                Logic target = _targets.get(ii);
-                if (target instanceof EntryLogic) {
-                    _scenemgr.removeLogic(((EntryLogic)target).getEntry().getKey());
-                    success = true;
-                }
-            }
-            _targets.clear();
-            return success;
-        }
-
-        @Override
-        protected void didInit ()
-        {
-            _target = createTarget(((ActionConfig.RemoveLogic)_config).target, _source);
-        }
-    }
+//    /**
+//     * Handles a remove logic action.
+//     */
+//    public static class RemoveLogic extends Targeted
+//    {
+//        @Override
+//        public boolean execute (int timestamp, Logic activator)
+//        {
+//            boolean success = false;
+//            _target.resolve(activator, _targets);
+//            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+//                Logic target = _targets.get(ii);
+//                if (target instanceof EntryLogic) {
+//                    _scenemgr.removeLogic(((EntryLogic)target).getEntry().getKey());
+//                    success = true;
+//                }
+//            }
+//            _targets.clear();
+//            return success;
+//        }
+//
+//        @Override
+//        protected void didInit ()
+//        {
+//            _target = createTarget(((ActionConfig.RemoveLogic)_config).target, _source);
+//        }
+//    }
 
     /**
      * Handles a rotate actor action.
