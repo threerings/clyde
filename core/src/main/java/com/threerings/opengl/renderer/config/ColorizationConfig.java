@@ -170,7 +170,17 @@ public abstract class ColorizationConfig extends DeepObject
         // from PreparedEditable
         public void prepareInstanceToEdit ()
         {
-            source = new ColorizationConfig.Normal();
+            if (source == null) source = new ColorizationConfig.Normal();
+        }
+
+        /** Basic constructor needed explicitly when there are others, thanks JAva. */
+        public Translated () {}
+
+        /** Convenience for editor use: convert normal. */
+        public Translated (Normal normal)
+        {
+            this.clazz = normal.colorization >> 8;
+            this.source = normal;
         }
     }
 
