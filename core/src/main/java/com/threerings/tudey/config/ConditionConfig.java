@@ -94,7 +94,7 @@ public abstract class ConditionConfig extends DeepObject
     public static class InstanceOf extends ConditionConfig
     {
         /** The name of the class to check. */
-        @Editable(hgroup="c")
+        @Editable(hgroup="c", width=40)
         public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
 
         /** Whether or not all targets must match the condition (as opposed to any). */
