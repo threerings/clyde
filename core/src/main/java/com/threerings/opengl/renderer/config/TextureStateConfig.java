@@ -27,6 +27,7 @@ package com.threerings.opengl.renderer.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.Iterator;
 import java.util.List;
 
 import com.threerings.config.ConfigReferenceSet;
@@ -42,6 +43,8 @@ import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlContext;
+
+import com.google.common.collect.Lists;
 
 import static com.threerings.opengl.Log.log;
 
@@ -146,4 +149,23 @@ public class TextureStateConfig extends DeepObject
     /** Cached state instance. */
     @DeepOmit
     protected transient SoftReference<TextureState> _instance;
+
+    protected static List<SoftReference<TextureStateConfig>> _instances = Lists.newLinkedList();
+
+    { // instance initializer
+        _instances.add(new SoftReference<TextureStateConfig>(this));
+    }
+
+    public static void pruneCaches ()
+    {
+        for (Iterator<SoftReference<TextureStateConfig>> it = _instances.iterator();
+                it.hasNext(); ) {
+            TextureStateConfig tsc = it.next().get();
+            if (tsc != null) {
+                tsc.invalidate();
+            } else {
+                it.remove();
+            }
+        }
+    }
 }

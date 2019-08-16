@@ -4,7 +4,7 @@
   <groupId>com.threerings</groupId>
   <artifactId>clyde-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.104</version>
+  <version>1.1-SNAPSHOT</version>
   <name>Clyde Parent</name>
   <description>A collection of Java packages for making networked 3D games.</description>
   <url>http://github.com/threerings/clyde/</url>

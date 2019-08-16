@@ -374,6 +374,18 @@ public class ScrollPane extends Container
             return super.getAbsoluteY() + getYOffset();
         }
 
+        @Override
+        public int getAbsoluteX (int childX)
+        {
+            return super.getAbsoluteX(childX + getXOffset());
+        }
+
+        @Override
+        public int getAbsoluteY (int childY)
+        {
+            return super.getAbsoluteY(childY + getYOffset());
+        }
+
         // documentation inherited
         public Component getHitComponent (int mx, int my)
         {

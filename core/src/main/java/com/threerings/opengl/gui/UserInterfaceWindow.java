@@ -38,6 +38,8 @@ import com.threerings.opengl.gui.layout.BorderLayout;
  */
 public class UserInterfaceWindow extends StretchWindow
 {
+    public static final boolean ENABLE_SCALING = false;
+
     /**
      * Creates a new user interface window.
      *
@@ -85,7 +87,15 @@ public class UserInterfaceWindow extends StretchWindow
         _interface = createInterface();
         _interface.getScope().setParentScope(_scope);
         _interface.setConfig(ref);
-        add(_interface, BorderLayout.CENTER);
+
+        Component comp = _interface;
+        if (ENABLE_SCALING) {
+            ScaledContainer sc = new ScaledContainer(ctx);
+            sc.setChild(comp);
+            comp = sc;
+        }
+
+        add(comp, BorderLayout.CENTER);
     }
 
     /**

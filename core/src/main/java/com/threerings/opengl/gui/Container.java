@@ -297,6 +297,20 @@ public class Container extends Component
         return _hoverable ? this : null;
     }
 
+//    public int getAbsoluteX (int childX)
+//    {
+//        return (_parent == null)
+//            ? _x + childX
+//            : _parent.getAbsoluteX(_x + childX);
+//    }
+//
+//    public int getAbsoluteY (int childY)
+//    {
+//        return (_parent == null)
+//            ? _y + childY
+//            : _parent.getAbsoluteY(_y + childY);
+//    }
+
     // documentation inherited
     public void validate ()
     {

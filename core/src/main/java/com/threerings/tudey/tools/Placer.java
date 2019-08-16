@@ -65,9 +65,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         addSnapStyleSelector();
     }
 
-    /**
-     * Sets the placement angle.
-     */
+    @Override
     public void setAngle (float angle)
     {
         _angle = angle;
