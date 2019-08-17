@@ -42,8 +42,6 @@ import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.config.ShapeConfig;
 
-import static com.threerings.tudey.Log.log;
-
 /**
  * Configurations for server-side event handlers.
  */
@@ -83,13 +81,7 @@ public abstract class HandlerConfig extends DeepObject
         @Override
         public String getLogicClassName ()
         {
-            if (isBlank()) {
-                log.info("Hey look at that! I'm avoidiing creating a pointless fucking handler",
-                        "where", "Startup");
-            }
-            return isBlank()
-               ? TudeyCodes.NO_LOGIC
-               : "com.threerings.tudey.server.logic.HandlerLogic$Startup";
+            return "com.threerings.tudey.server.logic.HandlerLogic$Startup";
         }
     }
 
@@ -101,10 +93,6 @@ public abstract class HandlerConfig extends DeepObject
         @Override
         public String getLogicClassName ()
         {
-            if (isBlank()) {
-                log.info("Hey look at that! I'm avoidiing creating a pointless fucking handler",
-                        "where", "Shutdown-motherfucker");
-            }
             return "com.threerings.tudey.server.logic.HandlerLogic$Shutdown";
         }
     }
@@ -135,12 +123,7 @@ public abstract class HandlerConfig extends DeepObject
         @Override
         public String getLogicClassName ()
         {
-            if (handler == null) {
-                log.info("Sheeeit and a null reference handler!");
-            }
-            return (handler == null)
-                ? TudeyCodes.NO_LOGIC
-                : "com.threerings.tudey.server.logic.HandlerLogic$Reference";
+            return "com.threerings.tudey.server.logic.HandlerLogic$Reference";
         }
     }
 
@@ -178,13 +161,7 @@ public abstract class HandlerConfig extends DeepObject
         @Override
         public String getLogicClassName ()
         {
-            if (isBlank()) {
-                log.info("Hey look at that! I'm avoidiing creating a pointless fucking handler",
-                        "where", "Startup");
-            }
-            return isBlank()
-                ? TudeyCodes.NO_LOGIC
-                : "com.threerings.tudey.server.logic.HandlerLogic$Timer";
+            return "com.threerings.tudey.server.logic.HandlerLogic$Timer";
         }
     }
 
@@ -576,16 +553,6 @@ public abstract class HandlerConfig extends DeepObject
         public void invalidate ()
         {
             action.invalidate();
-        }
-
-        /**
-         * Assist in avoiding creating excess handlers.
-         */
-        public boolean isBlank ()
-        {
-            return ((action instanceof ActionConfig.SpawnActor) &&
-                    (((ActionConfig.SpawnActor)action).actor == null)) ||
-                (action instanceof ActionConfig.None);
         }
     }
 

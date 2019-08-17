@@ -498,7 +498,6 @@ public abstract class HandlerLogic extends Logic
                 _scenemgr.getSensorSpace().remove(_shape);
                 _source.removeShapeObserver(this);
             }
-            log.info("Removing intersection handler");
         }
 
         /** The shape element in the sensor space. */

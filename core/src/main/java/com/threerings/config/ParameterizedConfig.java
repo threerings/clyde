@@ -140,12 +140,6 @@ public class ParameterizedConfig extends ManagedConfig
         }
     }
 
-    // TEMP
-    public void clearCache ()
-    {
-        _derived = null;
-    }
-
     /**
      * Is the specified parameter path blacklisted for this config?
      * If this method returns false that is no guarantee that the path is valid.
@@ -252,23 +246,4 @@ public class ParameterizedConfig extends ManagedConfig
     /** Maps arguments to derived instances. */
     @DeepOmit
     protected transient Map<ArgumentMap, ParameterizedConfig> _derived;
-
-    protected static List<SoftReference<ParameterizedConfig>> _instances = Lists.newLinkedList();
-
-    { // instance initializer
-        _instances.add(new SoftReference<ParameterizedConfig>(this));
-    }
-
-    public static void pruneCaches ()
-    {
-        for (Iterator<SoftReference<ParameterizedConfig>> it = _instances.iterator();
-                it.hasNext(); ) {
-            ParameterizedConfig pcfg = it.next().get();
-            if (pcfg != null) {
-                pcfg.clearCache();
-            } else {
-                it.remove();
-            }
-        }
-    }
 }

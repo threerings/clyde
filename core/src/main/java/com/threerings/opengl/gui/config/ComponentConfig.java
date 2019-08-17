@@ -73,9 +73,9 @@ import static com.threerings.opengl.gui.Log.log;
     ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
     ComponentConfig.FadeLabel.class, ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
     ComponentConfig.List.class, ComponentConfig.PasswordField.class,
-    ComponentConfig.RenderableView.class, ComponentConfig.ScaledContainer.class,
-    ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
-    ComponentConfig.Slider.class, ComponentConfig.Spacer.class, ComponentConfig.Spinner.class,
+    ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
+    ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
+    ComponentConfig.Spacer.class, ComponentConfig.Spinner.class,
     ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
     ComponentConfig.TextArea.class, ComponentConfig.TextEditor.class,
     ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
@@ -910,36 +910,6 @@ public abstract class ComponentConfig extends DeepObject
         {
             super.configure(ctx, scope, msgs, comp);
             layout.configure(ctx, scope, msgs, (com.threerings.opengl.gui.Container)comp);
-        }
-    }
-
-    /**
-     * A scaled container, for making retina or "big picture" UIs.
-     * Typically these will be set-up with scale 1 and turned on at some point.
-     */
-    public static class ScaledContainer extends ComponentConfig
-    {
-        /** The single child we contain. */
-        @Editable
-        public ComponentConfig child = new ComponentConfig.Spacer();
-
-        @Override
-        protected Component maybeRecreate (
-            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
-        {
-            return (getClass(comp) == com.threerings.opengl.gui.ScaledContainer.class) ?
-                comp : new com.threerings.opengl.gui.ScaledContainer(ctx);
-        }
-
-        @Override
-        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
-        {
-            com.threerings.opengl.gui.ScaledContainer scaledCont =
-                    (com.threerings.opengl.gui.ScaledContainer)comp;
-            scaledCont.setScaler(com.threerings.opengl.gui.ScaledContainer.GLOBAL_SHARED_SCALER);
-            // TODO: fetch old child for getComponent?
-            scaledCont.setChild(child.getComponent(ctx, scope, msgs, null));
-            super.configure(ctx, scope, msgs, comp);
         }
     }
 

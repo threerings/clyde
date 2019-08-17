@@ -346,7 +346,6 @@ public class ComboBox<T> extends Label
             this.setText(selected.getText());
             selItem = selected.item;
         }
-        layout();
         emitEvent(new ActionEvent(this, when, modifiers, SELECT, selItem));
     }
 

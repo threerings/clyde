@@ -27,8 +27,6 @@ package com.threerings.opengl.gui;
 
 import org.lwjgl.opengl.GL11;
 
-import com.threerings.math.FloatMath;
-
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -38,8 +36,6 @@ import com.threerings.opengl.gui.text.TextFactory;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
-
-import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Handles the underlying layout and rendering for {@link Label} and {@link Button}.
@@ -301,15 +297,10 @@ public class LabelRenderer
             return;
         }
 
-        boolean track = "High".equals(_config.text);
-
         Insets insets = _container.getInsets();
         int width = contWidth - insets.getHorizontal();
         int height = contHeight - insets.getVertical();
         if (width <= 0 || height <= 0) {
-            if (track) {
-                log.warning("Bailing because w/h is <= 0");
-            }
             return;
         }
 
@@ -321,29 +312,11 @@ public class LabelRenderer
             return;
         }
 
-        float scale = _container.getUiScale();
         Rectangle oscissor = Component.intersectScissor(
             renderer, _srect,
-            _container.getAbsoluteX(insets.left),
-            _container.getAbsoluteY(insets.bottom),
-            FloatMath.round(scale * width),
-            FloatMath.round(scale * height));
-        if (track) {
-            log.warning("Setting up scissor",
-                    "Scissor", renderer.getScissor(),
-                    "srect", _srect,
-                    "oscissor", oscissor,
-                    "contWidth", contWidth,
-                    "contHeight", contHeight,
-                    "insets.horiz", insets.getHorizontal(),
-                    "insets.vert", insets.getVertical(),
-                    "width", width,
-                    "height", height,
-                    "absX", _container.getAbsoluteX(),
-                    "absY", _container.getAbsoluteY(),
-                    "insets.left", insets.left,
-                    "insets.bottom", insets.bottom);
-        }
+            _container.getAbsoluteX() + insets.left,
+            _container.getAbsoluteY() + insets.bottom,
+            width, height);
         try {
             _config.glyphs.render(
                 renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing);

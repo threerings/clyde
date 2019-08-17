@@ -154,12 +154,11 @@ public abstract class GlCanvasTool extends GlCanvasApp
     {
         super.renderView();
 
-//        if (_sync60) {
-//            // we probably shouldn't reference Display here, but this static method merely
-//            // does thread sleep/yielding.
-//            Display.sync(60);
-//        }
-        Display.sync(5);
+        if (_sync60) {
+            // we probably shouldn't reference Display here, but this static method merely
+            // does thread sleep/yielding.
+            Display.sync(60);
+        }
     }
 
     @Override

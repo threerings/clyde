@@ -129,14 +129,6 @@ public abstract class EditorTool extends JPanel
     }
 
     /**
-     * Set the rotation angle of the thing placed by the tool, if applicable.
-     */
-    public void setAngle (float angle)
-    {
-        // nothing by default
-    }
-
-    /**
      * Determines whether this tool (currently) allows the user to move the camera using the
      * mouse (without holding down the control key).
      */

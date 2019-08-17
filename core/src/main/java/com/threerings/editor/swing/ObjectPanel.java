@@ -373,7 +373,6 @@ public class ObjectPanel extends BasePropertyEditor
     protected void groupGroupable (ActionEvent event)
     {
         tryGrouping(Collections.singletonList(getValue()), event);
-        checkPaths();
     }
 
     /**
@@ -385,7 +384,6 @@ public class ObjectPanel extends BasePropertyEditor
         List<?> eValues = ((Groupable<?>) getValue()).getGrouped();
         setValue(eValues.get(0));
         fireStateChanged();
-        checkPaths();
     }
 
     /**
@@ -394,7 +392,6 @@ public class ObjectPanel extends BasePropertyEditor
     protected void regroupGroupable (ActionEvent event)
     {
         tryGrouping(((Groupable<?>) getValue()).getGrouped(), event);
-        checkPaths();
     }
 
     /**
@@ -459,28 +456,6 @@ public class ObjectPanel extends BasePropertyEditor
         setValue(instances.get(choice));
         fireStateChanged();
         return true;
-    }
-
-    protected void checkPaths ()
-    {
-        BaseEditorPanel bep = findBaseEditor();
-        if (bep == null) {
-            log.info("No paths to check");
-            return;
-        }
-
-        log.info("Path according is : " + bep.getComponentPath(this, false));
-    }
-
-    protected BaseEditorPanel findBaseEditor ()
-    {
-        BaseEditorPanel bep = null;
-        for (Component c = this; c != null; c = c.getParent()) {
-            if (c instanceof BaseEditorPanel) {
-                bep = (BaseEditorPanel)c;
-            }
-        }
-        return bep;
     }
 
     /** Provides access to common services. */

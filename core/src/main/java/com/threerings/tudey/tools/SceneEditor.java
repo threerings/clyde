@@ -1034,14 +1034,6 @@ public class SceneEditor extends TudeyTool
                     _grid.setElevation(elevation);
                 }
             }
-        } else if (action.equals("face_tool_north")) {
-            _activeTool.setAngle(0f);
-        } else if (action.equals("face_tool_east")) {
-            _activeTool.setAngle(FloatMath.HALF_PI);
-        } else if (action.equals("face_tool_south")) {
-            _activeTool.setAngle(FloatMath.PI);
-        } else if (action.equals("face_tool_west")) {
-            _activeTool.setAngle(FloatMath.PI + FloatMath.HALF_PI);
         } else if (action.equals("reorient")) {
             ((OrbitCameraHandler)_camhand).getCoords().set(
                 TudeySceneMetrics.getDefaultCameraConfig().coords);
@@ -1219,10 +1211,6 @@ public class SceneEditor extends TudeyTool
         bindAction(bcomp, KeyEvent.VK_DOWN, 0, "lower_grid");
         bindAction(bcomp, KeyEvent.VK_RIGHT, 0, "snap_grid");
         bindAction(bcomp, KeyEvent.VK_LEFT, 0, "center_selected");
-        bindAction(bcomp, KeyEvent.VK_W, 0, "face_tool_north");
-        bindAction(bcomp, KeyEvent.VK_A, 0, "face_tool_west");
-        bindAction(bcomp, KeyEvent.VK_S, 0, "face_tool_south");
-        bindAction(bcomp, KeyEvent.VK_D, 0, "face_tool_east");
         return _pane;
     }
 

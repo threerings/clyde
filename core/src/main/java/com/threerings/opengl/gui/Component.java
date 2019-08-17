@@ -395,52 +395,16 @@ public class Component
         return _height;
     }
 
-//    public int getAbsoluteX (int childX)
-//    {
-//    }
-//
-//    public int getAbsoluteY (int childY)
-//    {
-//    }
-
     /** Returns the x position of this component in absolute screen coordinates. */
     public int getAbsoluteX ()
     {
-        return getAbsoluteX(0);
-//        return (_parent == null)
-//            ? _x
-//            : _parent.getAbsoluteX(_x);
+        return _x + ((_parent == null) ? 0 : _parent.getAbsoluteX());
     }
 
     /** Returns the y position of this component in absolute screen coordinates. */
     public int getAbsoluteY ()
     {
-        return getAbsoluteY(0);
-//        return (_parent == null)
-//            ? _y
-//            : _parent.getAbsoluteY(_y);
-    }
-
-    public int getAbsoluteX (int xOffset)
-    {
-        // add our own x within our parent
-        xOffset += _x;
-        return (_parent == null)
-            ? xOffset
-            : _parent.getAbsoluteX(xOffset);
-    }
-
-    public int getAbsoluteY (int yOffset)
-    {
-        yOffset += _y;
-        return (_parent == null)
-            ? yOffset
-            : _parent.getAbsoluteY(yOffset);
-    }
-
-    public float getUiScale ()
-    {
-        return (_parent == null) ? 1f : _parent.getUiScale();
+        return _y + ((_parent == null) ? 0 : _parent.getAbsoluteY());
     }
 
     /** Returns the bounds of this component in a new rectangle. */
