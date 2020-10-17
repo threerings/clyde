@@ -291,7 +291,7 @@ public class Animation extends SimpleScope
                     action.frame, action.action.createExecutor(_ctx, this));
             }
 
-            if (_fidx > _transforms.length) {
+            if (_fidx >= _transforms.length) {
                 _fidx = 0;
                 _eidx = 0;
             }
