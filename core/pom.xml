@@ -86,12 +86,6 @@
 
     <!-- optional/provided dependencies -->
     <dependency>
-      <groupId>com.apple</groupId>
-      <artifactId>applejavaextensions</artifactId>
-      <version>1.5.4</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>commons-digester</groupId>
       <artifactId>commons-digester</artifactId>
       <version>1.8</version>
