@@ -583,6 +583,7 @@ public abstract class GlApp extends DynamicScope
 
     /** Our default supported pixel formats in order of preference. */
     protected static final PixelFormat[] DEFAULT_PIXEL_FORMATS = {
-        new PixelFormat(8, 16, 8), new PixelFormat(1, 16, 8),
-        new PixelFormat(0, 16, 8), new PixelFormat(0, 8, 0) };
+        // reordered to put first the one that works on my mac 20241213 RJG
+        new PixelFormat(0, 8, 0),
+        new PixelFormat(8, 16, 8), new PixelFormat(1, 16, 8), new PixelFormat(0, 16, 8) };
 }
