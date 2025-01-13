@@ -25,6 +25,7 @@
 
 package com.threerings.opengl.model.config;
 
+import java.io.InputStream;
 import java.io.PrintStream;
 
 import java.util.ArrayList;
@@ -69,6 +70,7 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
+import com.threerings.opengl.model.tools.fbx.ModelFbxParser;
 import com.threerings.opengl.model.tools.xml.ModelParser;
 import com.threerings.opengl.renderer.config.TextureConfig;
 import com.threerings.opengl.scene.config.ViewerAffecterConfig;
@@ -263,7 +265,7 @@ public class ModelConfig extends ParameterizedConfig
         @Editable(editor="resource", nullable=true)
         @FileConstraints(
             description="m.exported_models",
-            extensions={".mxml"},
+            extensions={".mxml", ".fbx"},
             directory="exported_model_dir")
         public void setSource (String source)
         {
@@ -291,12 +293,17 @@ public class ModelConfig extends ParameterizedConfig
                 updateFromSource(null);
                 return;
             }
-            if (_parser == null) {
-                _parser = new ModelParser();
-            }
+
             try {
-                updateFromSource(_parser.parseModel(
-                    ctx.getResourceManager().getResource(_source)));
+                InputStream in = ctx.getResourceManager().getResource(_source);
+                ModelDef model;
+                if (_source.endsWith(".fbx")) {
+                    model = new ModelFbxParser().parseModel(in);
+                } else {
+                    if (_parser == null) _parser = new ModelParser();
+                    model = _parser.parseModel(in);
+                }
+                updateFromSource(model);
                 createDefaultMaterialMappings();
             } catch (Exception e) {
                 log.warning("Error parsing model [source=" + _source + "].", e);
