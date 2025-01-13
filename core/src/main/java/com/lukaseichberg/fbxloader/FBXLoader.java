@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -15,11 +16,23 @@ public class FBXLoader {
 	private static final byte[] FBX_FILE_HEADER = { 0x4B, 0x61, 0x79, 0x64, 0x61, 0x72, 0x61, 0x20, 0x46, 0x42, 0x58, 0x20,
 			0x42, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20, 0x20, 0x00, 0x1A, 0x00 };
 
-	private static ByteBuffer buffer = null;
+	private final ByteBuffer buffer;
 
 	public static FBXFile loadFBXFile(String filePath) throws IOException {
 		File file = new File(filePath);
-		buffer = ByteBuffer.wrap(Files.readAllBytes(file.toPath()));
+		FBXLoader loader = new FBXLoader(ByteBuffer.wrap(Files.readAllBytes(file.toPath())));
+                return loader.load(file.getAbsolutePath(), file.getName());
+        }
+
+        public static FBXFile loadFBXFile (String name, InputStream in) throws IOException {
+            return new FBXLoader(ByteBuffer.wrap(in.readAllBytes())).load(null, name);
+        }
+
+        private FBXLoader (ByteBuffer buffer) {
+            this.buffer = buffer;
+        }
+
+        private FBXFile load(String path, String name) throws IOException {
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 
 		byte[] header = getBytes(FBX_FILE_HEADER.length);
@@ -28,16 +41,16 @@ public class FBXLoader {
 		}
 
 		long version = getUInt();
-		
-		FBXNode rootNode = new FBXNode(file.getName(), null);
+
+		FBXNode rootNode = new FBXNode(name, null);
 		FBXNode childNode;
 		while ((childNode = readNodeRecord(null)) != null) {
 			rootNode.add(childNode);
 		}
-		return new FBXFile(file.getAbsolutePath(), (int) version, rootNode);
+		return new FBXFile(path, (int) version, rootNode);
 	}
 
-	private static FBXNode readNodeRecord(FBXNode parent) throws IOException {
+	private FBXNode readNodeRecord(FBXNode parent) throws IOException {
 		long endOffset = getUInt();
 		if (endOffset == 0) return null;
 		long numProperties = getUInt();
@@ -75,7 +88,7 @@ public class FBXLoader {
 		return node;
 	}
 
-	private static Object getData(FBXDataType dataType) throws IOException {
+	private Object getData(FBXDataType dataType) throws IOException {
 		switch (dataType.category()) {
 			case BASIC:
 				return getDataBasic(dataType);
@@ -86,8 +99,8 @@ public class FBXLoader {
 		}
 		throw new IOException("Unknown data type '" + dataType + "'");
 	}
-	
-	private static Object getDataBasic(FBXDataType dataType) throws IOException {
+
+	private Object getDataBasic(FBXDataType dataType) throws IOException {
 		switch (dataType) {
 			case SHORT:
 				return buffer.getShort();
@@ -105,8 +118,8 @@ public class FBXLoader {
 				throw new IOException("Unknown basic data type '" + dataType + "'");
 		}
 	}
-	
-	private static Object getDataSpecial(FBXDataType dataType) throws IOException {
+
+	private Object getDataSpecial(FBXDataType dataType) throws IOException {
 		switch (dataType) {
 			case STRING:
 				return getString((int) getUInt());
@@ -117,7 +130,7 @@ public class FBXLoader {
 		}
 	}
 
-	private static Object getDataArray(FBXDataType dataType) throws IOException {
+	private Object getDataArray(FBXDataType dataType) throws IOException {
 		int arrayLength = (int) getUInt();
 		int encoding = (int) getUInt();
 		int compressedLength = (int) getUInt();
@@ -133,7 +146,7 @@ public class FBXLoader {
 		}
 
 		ByteBuffer dataBuffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
-		
+
 		switch (dataType) {
 			case FLOAT_ARRAY:
 				float[] floats = new float[arrayLength];
@@ -162,20 +175,20 @@ public class FBXLoader {
 					ints[i] = dataBuffer.getInt();
 				}
 				return ints;
-				
+
 			case BOOLEAN_ARRAY:
 				boolean[] bools = new boolean[arrayLength];
 				for (int i = 0; i < arrayLength; i++) {
 					bools[i] = dataBuffer.get() == 1;
 				}
 				return bools;
-				
+
 			default:
 				throw new IOException("Unknown array data type '" + dataType + "'");
 		}
 	}
 
-	private static byte[] inflate(byte[] data) throws IOException {
+	private byte[] inflate(byte[] data) throws IOException {
 		InflaterInputStream gzis = new InflaterInputStream(new ByteArrayInputStream(data));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		byte[] newBuffer = new byte[1024];
@@ -188,17 +201,17 @@ public class FBXLoader {
 		return out.toByteArray();
 	}
 
-	private static byte[] getBytes(int length) {
+	private byte[] getBytes(int length) {
 		byte[] data = new byte[length];
 		buffer.get(data);
 		return data;
 	}
 
-	private static String getString(int length) {
+	private String getString(int length) {
 		return new String(getBytes(length));
 	}
 
-	private static FBXDataType getDataType() throws IOException {
+	private FBXDataType getDataType() throws IOException {
 		char dataType = getChar();
 		switch (dataType) {
 			case 'Y':
@@ -232,15 +245,15 @@ public class FBXLoader {
 		}
 	}
 
-	private static char getChar() {
+	private char getChar() {
 		return (char) buffer.get();
 	}
 
-	private static int getByte() {
+	private int getByte() {
 		return buffer.get() & 0xFF;
 	}
 
-	private static long getUInt() {
+	private long getUInt() {
 		return buffer.getInt() & 0x00000000FFFFFFFFl;
 	}
 
