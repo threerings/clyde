@@ -41,20 +41,21 @@ public class FBXLoader {
 		}
 
 		long version = getUInt();
+                boolean readLong = version >= 7500;
 
 		FBXNode rootNode = new FBXNode(name, null);
 		FBXNode childNode;
-		while ((childNode = readNodeRecord(null)) != null) {
+		while ((childNode = readNodeRecord(null, readLong)) != null) {
 			rootNode.add(childNode);
 		}
 		return new FBXFile(path, (int) version, rootNode);
 	}
 
-	private FBXNode readNodeRecord(FBXNode parent) throws IOException {
-		long endOffset = getUInt();
+	private FBXNode readNodeRecord(FBXNode parent, boolean readLong) throws IOException {
+		long endOffset = readLong ? getULong() : getUInt();
 		if (endOffset == 0) return null;
-		long numProperties = getUInt();
-		/* long propertyListLen = */ getUInt();
+		long numProperties = readLong ? getULong() : getUInt();
+		long propertyListLen = readLong ? getULong() : getUInt();
 		String name = getString(getByte());
 
 		FBXNode node = new FBXNode(name, null);
@@ -67,14 +68,15 @@ public class FBXLoader {
 		}
 
 		if (buffer.position() < endOffset) {
-			while (buffer.position() < (endOffset - 13)) {
-				FBXNode child = readNodeRecord(node);
+                        int endBuffer = readLong ? 25 : 13;
+			while (buffer.position() < (endOffset - endBuffer)) {
+				FBXNode child = readNodeRecord(node, readLong);
 				if (child != null) {
 					node.add(child);
 				}
 			}
 
-			byte[] lastBytes = getBytes(13);
+			byte[] lastBytes = getBytes(endBuffer);
 			for (byte b : lastBytes) {
 				if (b != 0) {
 					throw new IOException("Null-Record error");
@@ -256,5 +258,10 @@ public class FBXLoader {
 	private long getUInt() {
 		return buffer.getInt() & 0x00000000FFFFFFFFl;
 	}
+
+        private long getULong () {
+            // TODO: technically this should be unsigned
+            return buffer.getLong();
+        }
 
 }
