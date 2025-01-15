@@ -1,3 +1,14 @@
+Ray Greenwell's modified Java FBX Loader
+========================================
+
+Forked from https://github.com/lukaseichberg/Java-FBX-Loader
+
+Changes:
+- Support FBX version 7.5 files.
+- Allow reading from an already-opened InputStream.
+- Don't leave garbage in a static variable after a load.
+
+
 Java FBX Loader
 =============
 
