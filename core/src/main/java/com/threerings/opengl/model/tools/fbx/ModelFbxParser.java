@@ -19,6 +19,7 @@ public class ModelFbxParser
         FBXFile fbx = FBXLoader.loadFBXFile("model", in);
         log.info("We do appear to have read an fbx file",
                 "version", fbx.getVersion());
+        FbxDumper.Dump(fbx);
         // TODO: stuff!
         return model;
     }
