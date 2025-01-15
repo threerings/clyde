@@ -18,6 +18,8 @@ public class FBXLoader {
 
 	private final ByteBuffer buffer;
 
+        private long version;
+
 	public static FBXFile loadFBXFile(String filePath) throws IOException {
 		File file = new File(filePath);
 		FBXLoader loader = new FBXLoader(ByteBuffer.wrap(Files.readAllBytes(file.toPath())));
@@ -40,22 +42,21 @@ public class FBXLoader {
 			throw new IOException("Invalid header");
 		}
 
-		long version = getUInt();
-                boolean readLong = version >= 7500;
+		version = getUInt();
 
 		FBXNode rootNode = new FBXNode(name, null);
 		FBXNode childNode;
-		while ((childNode = readNodeRecord(null, readLong)) != null) {
+		while ((childNode = readNodeRecord(null)) != null) {
 			rootNode.add(childNode);
 		}
 		return new FBXFile(path, (int) version, rootNode);
 	}
 
-	private FBXNode readNodeRecord(FBXNode parent, boolean readLong) throws IOException {
-		long endOffset = readLong ? getULong() : getUInt();
+	private FBXNode readNodeRecord(FBXNode parent) throws IOException {
+		long endOffset = getNodeLength();
 		if (endOffset == 0) return null;
-		long numProperties = readLong ? getULong() : getUInt();
-		long propertyListLen = readLong ? getULong() : getUInt();
+		long numProperties = getNodeLength();
+		/* long propertyListLen = */ getNodeLength();
 		String name = getString(getByte());
 
 		FBXNode node = new FBXNode(name, null);
@@ -68,15 +69,15 @@ public class FBXLoader {
 		}
 
 		if (buffer.position() < endOffset) {
-                        int endBuffer = readLong ? 25 : 13;
-			while (buffer.position() < (endOffset - endBuffer)) {
-				FBXNode child = readNodeRecord(node, readLong);
+                        int endSize = getRecordSize();
+			while (buffer.position() < (endOffset - endSize)) {
+				FBXNode child = readNodeRecord(node);
 				if (child != null) {
 					node.add(child);
 				}
 			}
 
-			byte[] lastBytes = getBytes(endBuffer);
+			byte[] lastBytes = getBytes(endSize);
 			for (byte b : lastBytes) {
 				if (b != 0) {
 					throw new IOException("Null-Record error");
@@ -259,9 +260,12 @@ public class FBXLoader {
 		return buffer.getInt() & 0x00000000FFFFFFFFl;
 	}
 
-        private long getULong () {
-            // TODO: technically this should be unsigned
-            return buffer.getLong();
+        private long getNodeLength () {
+            return version >= 7500 ? buffer.getLong() : getUInt();
+        }
+
+        private int getRecordSize () {
+            return version >= 7500 ? 25 : 13;
         }
 
 }
