@@ -25,6 +25,7 @@
 
 package com.threerings.opengl.model.config;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 
@@ -298,7 +299,8 @@ public class ModelConfig extends ParameterizedConfig
                 InputStream in = ctx.getResourceManager().getResource(_source);
                 ModelDef model;
                 if (_source.endsWith(".fbx")) {
-                    model = new ModelFbxParser().parseModel(in);
+                    File dir = ctx.getResourceManager().getResourceFile(_source).getParentFile();
+                    model = new ModelFbxParser().parseModel(in, dir);
                 } else {
                     if (_parser == null) _parser = new ModelParser();
                     model = _parser.parseModel(in);

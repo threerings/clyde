@@ -10,7 +10,11 @@ import static com.threerings.opengl.Log.log;
 public class FbxDumper {
 
     public static void Dump (FBXFile file) {
-        Dump(file.getRootNode(), "");
+        Dump(file.getRootNode());
+    }
+
+    public static void Dump (FBXNode node) {
+        Dump(node, "");
     }
 
     public static void Dump (FBXNode node, String indent) {
