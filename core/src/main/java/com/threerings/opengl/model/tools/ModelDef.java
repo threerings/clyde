@@ -1145,7 +1145,8 @@ public class ModelDef
      */
     public void addSpatial (SpatialDef spatial)
     {
-        spatials.put(spatial.name, spatial);
+        Object oval = spatials.put(spatial.name, spatial);
+        if (oval != null) log.warning("Two spatials with the same name defined.");
     }
 
     /**
