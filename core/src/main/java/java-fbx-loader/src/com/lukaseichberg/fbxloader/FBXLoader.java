@@ -1,13 +1,15 @@
 package com.lukaseichberg.fbxloader;
 
+import com.samskivert.io.StreamUtil;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.zip.InflaterInputStream;
 
@@ -22,12 +24,18 @@ public class FBXLoader {
 
 	public static FBXFile loadFBXFile(String filePath) throws IOException {
 		File file = new File(filePath);
-		FBXLoader loader = new FBXLoader(ByteBuffer.wrap(Files.readAllBytes(file.toPath())));
-                return loader.load(file.getAbsolutePath(), file.getName());
+                return loadFBXFile(
+                    file.getAbsolutePath(), file.getName(), new FileInputStream(file));
         }
 
         public static FBXFile loadFBXFile (String name, InputStream in) throws IOException {
-            return new FBXLoader(ByteBuffer.wrap(in.readAllBytes())).load(null, name);
+            return loadFBXFile(null, name, in);
+        }
+
+        public static FBXFile loadFBXFile (String path, String name, InputStream in)
+            throws IOException
+        {
+            return new FBXLoader(ByteBuffer.wrap(StreamUtil.toByteArray(in))).load(path, name);
         }
 
         private FBXLoader (ByteBuffer buffer) {
