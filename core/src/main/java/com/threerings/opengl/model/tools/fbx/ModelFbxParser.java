@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.io.Files;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
@@ -30,10 +32,76 @@ public class ModelFbxParser
         //FbxDumper.Dump(fbx);
 
         FBXNode root = fbx.getRootNode();
-
         List<String> textures = Lists.newArrayList();
+
+        // extract textures to the directory and add names to the list.
         extractTextures(root, dir, textures);
 
+        // parse the main trimesh
+        model.addSpatial(parseTriMesh(root, textures));
+
+        // parse any nodes found
+        for (ModelDef.NodeDef node : parseNodes(root)) model.addSpatial(node);
+
+        return model;
+    }
+
+    // TODO: more can be done here to parse nodes?
+    public Iterable<ModelDef.NodeDef> parseNodes (FBXNode root)
+    {
+        FBXNode objects = root.getChildByName("Objects");
+        Map<String, ModelDef.NodeDef> nodes = Maps.newHashMap();
+        float[] defaultTranslation = new float[3];
+        float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
+        float[] defaultScale = new float[] { 1f, 1f, 1f };
+        for (FBXNode child : objects.getChildrenByName("Model")) {
+            ModelDef.NodeDef node = new ModelDef.NodeDef();
+            node.translation = defaultTranslation;
+            node.rotation = defaultRotation;
+            node.scale = defaultScale;
+
+            if (3 != child.getNumProperties()) log.warning("Node with non-3 props?");
+            node.name = (String)child.getProperty(1).getData();
+            node.parent = (String)child.getProperty(1).getData();
+            Object oval = nodes.put(node.name, node);
+            if (oval != null) log.warning("Two objects of same name?", "name", node.name);
+
+            FBXNode props = child.getChildByName("Properties70");
+            if (props == null) {
+                log.warning("No props for node?", "name", node.name);
+                continue;
+            }
+            for (FBXNode prop : props.getChildrenByName("P")) {
+                String pname = (String)prop.getProperty(0).getData();
+                log.info("Found pname", "pname", pname, "node", node.name);
+                if ("Lcl Translation".equals(pname)) {
+                    node.translation = new float[] {
+                        (float)(double)prop.getProperty(4).getData(),
+                        (float)(double)prop.getProperty(5).getData(),
+                        (float)(double)prop.getProperty(6).getData()
+                    };
+                } else if ("Lcl Rotation".equals(pname)) {
+                    node.rotation = new float[] {
+                        (float)(double)prop.getProperty(4).getData(),
+                        (float)(double)prop.getProperty(5).getData(),
+                        (float)(double)prop.getProperty(6).getData(),
+                        1f
+                    };
+                } else if ("Lcl Scaling".equals(pname)) {
+                    node.scale = new float[] {
+                        (float)(double)prop.getProperty(4).getData(),
+                        (float)(double)prop.getProperty(5).getData(),
+                        (float)(double)prop.getProperty(6).getData()
+                    };
+                }
+            }
+        }
+
+        return nodes.values();
+    }
+
+    public ModelDef.TriMeshDef parseTriMesh (FBXNode root, List<String> textures)
+    {
         FBXNode geom = root.getNodeFromPath("Objects/Geometry");
         FBXNode norms = geom.getChildByName("LayerElementNormal");
         FBXNode uvs = geom.getChildByName("LayerElementUV");
@@ -41,27 +109,36 @@ public class ModelFbxParser
         double[] vertices = (double[])geom.getChildByName("Vertices").getProperty(0).getData();
         int[] pvi = (int[])geom.getChildByName("PolygonVertexIndex").getProperty(0).getData();
         double[] normals = (double[])norms.getChildByName("Normals").getProperty(0).getData();
-        double[] uvData = uvs != null ? (double[])uvs.getChildByName("UV").getProperty(0).getData() : null;
-        int[] uvIndex = uvs != null ? (int[])uvs.getChildByName("UVIndex").getProperty(0).getData() : null;
+        double[] uvData = (double[])uvs.getChildByName("UV").getProperty(0).getData();
+        int[] uvIndex = (int[])uvs.getChildByName("UVIndex").getProperty(0).getData();
 
         ModelDef.TriMeshDef trimesh = new ModelDef.TriMeshDef();
         trimesh.name = root.getName();
         trimesh.texture = textures.isEmpty() ? "REPLACE_ME" : textures.get(0);
-        //trimesh.translation = new float[] { 0f, -100f, 0f };
         trimesh.translation = new float[] { 0f, 0f, 0f };
-        trimesh.rotation = new float[] { .5f, 0f, 0f, 1f };
+        trimesh.rotation = new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack
+        // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
         trimesh.scale = new float[] { 1f, 1f, 1f };
         trimesh.offsetTranslation = new float[] { 0f, 0f, 0f };
         trimesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
         trimesh.offsetScale = new float[]{ 1f, 1f, 1f };
 
-        // Convert polygons to triangles
+        // TODO: Convert polygons to triangles
+        boolean warnedPolygons = false;
         int nidx = 0;
         int uidx = 0;
         float[] defaultTcoords = new float[2];
-        for (int idx : pvi) {
+        for (int ii = 0, nn = pvi.length; ii < nn; ++ii) {
             ModelDef.Vertex v = new ModelDef.Vertex();
             v.tcoords = defaultTcoords;
+            int idx = pvi[ii];
+
+
+            // TEMP?
+            if (!warnedPolygons && (idx < 0) != (ii % 3 == 2)) {
+                log.warning("We need to be importing triangles! This appears to be not!");
+                warnedPolygons = true;
+            }
             // Handle negative indices (they mark end of polygon, need to be made positive)
             if (idx < 0) idx = (-idx - 1);
 
@@ -77,23 +154,18 @@ public class ModelFbxParser
             };
             nidx += 3;
 
-            // Set UV coordinates if available
-            if (uvData != null) {
-                int uvIdx = uvIndex[uidx++];
-                if (uvIdx != -1) {
-                    uvIdx *= 2;
-                    v.tcoords = new float[] {
-                        (float)uvData[uvIdx], (float)uvData[uvIdx + 1]
-                    };
-                }
+            // Set UV coordinates
+            int uvIdx = uvIndex[uidx++];
+            if (uvIdx != -1) {
+                uvIdx *= 2;
+                v.tcoords = new float[] {
+                    (float)uvData[uvIdx], (float)uvData[uvIdx + 1]
+                };
             }
 
             trimesh.addVertex(v);
         }
-
-        model.addSpatial(trimesh);
-
-        return model;
+        return trimesh;
     }
 
     /**
