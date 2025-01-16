@@ -17,26 +17,26 @@ public enum FBXDataType {
 
 	private final int size;
 	private final FBXDataCategory category;
-	
+
 	private FBXDataType(int size, FBXDataCategory category) {
 		this.size = size;
 		this.category = category;
 	}
-	
+
 	int size() {
 		 return size;
 	}
-	
+
 	FBXDataCategory category() {
 		return category;
 	}
-	
+
 	public boolean isCategory(FBXDataCategory category) {
 		return this.category == category;
 	}
-	
+
 	public boolean isArray() {
 		return category == FBXDataCategory.ARRAY;
 	}
-	
+
 }

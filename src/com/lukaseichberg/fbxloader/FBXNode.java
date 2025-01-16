@@ -4,31 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FBXNode {
-	
+
 	private String name;
 	private FBXNode parent;
 	private List<FBXNode> children;
 	private List<FBXProperty> properties;
-	
+
 	FBXNode(String name, FBXNode parent) {
 		this.name = name;
 		this.parent = parent;
-		children = new ArrayList<>();
-		properties = new ArrayList<>();
+		children = new ArrayList<FBXNode>();
+		properties = new ArrayList<FBXProperty>();
 	}
-	
+
 	void add(FBXNode node) {
 		children.add(node);
 	}
-	
+
 	void add(FBXProperty property) {
 		properties.add(property);
 	}
-	
+
 	public FBXNode getParent() {
 		return parent;
 	}
-	
+
 	public FBXNode getChild(int index) {
 		return children.get(index);
 	}
@@ -37,7 +37,7 @@ public class FBXNode {
 		String[] name = path.split("/");
 		return getFromPath(name, 0);
 	}
-	
+
 	FBXNode getFromPath(String[] path, int level) {
 		FBXNode child = getChildByName(path[level]);
 		if (child != null) {
@@ -49,7 +49,7 @@ public class FBXNode {
 		}
 		return null;
 	}
-	
+
 	public FBXNode getChildByName(String name) {
 		for (FBXNode child:children) {
 			if (child.getName().equals(name)) {
@@ -58,7 +58,7 @@ public class FBXNode {
 		}
 		return null;
 	}
-	
+
 //	public List<FBXNode> getChildrenByProperty(FBXDataType dataType, Object value) {
 //		List<FBXNode> nodes = new ArrayList<>();
 //		for (FBXNode child:children) {
@@ -67,16 +67,16 @@ public class FBXNode {
 //				FBXProperty property = child.getProperty(i);
 //				if (property.getDataType() == dataType) {
 //					if (property.getData() == value) {
-//						
+//
 //					}
 //				}
 //			}
 //		}
 //		return nodes;
 //	}
-	
+
 	public List<FBXNode> getChildrenByName(String name) {
-		List<FBXNode> nodes = new ArrayList<>();
+		List<FBXNode> nodes = new ArrayList<FBXNode>();
 		for (FBXNode child:children) {
 			if (child.getName().equals(name)) {
 				nodes.add(child);
@@ -84,19 +84,19 @@ public class FBXNode {
 		}
 		return nodes;
 	}
-	
+
 	public int getNumChildren() {
 		return children.size();
 	}
-	
+
 	public FBXProperty getProperty(int index) {
 		return properties.get(index);
 	}
-	
+
 	public int getNumProperties() {
 		return properties.size();
 	}
-	
+
 	public String getName() {
 		return name;
 	}
