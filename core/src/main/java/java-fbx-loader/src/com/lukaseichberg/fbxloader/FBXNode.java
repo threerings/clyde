@@ -13,8 +13,8 @@ public class FBXNode {
 	FBXNode(String name, FBXNode parent) {
 		this.name = name;
 		this.parent = parent;
-		children = new ArrayList<FBXNode>();
-		properties = new ArrayList<FBXProperty>();
+		children = new ArrayList<>();
+		properties = new ArrayList<>();
 	}
 
 	void add(FBXNode node) {
@@ -76,7 +76,7 @@ public class FBXNode {
 //	}
 
 	public List<FBXNode> getChildrenByName(String name) {
-		List<FBXNode> nodes = new ArrayList<FBXNode>();
+		List<FBXNode> nodes = new ArrayList<>();
 		for (FBXNode child:children) {
 			if (child.getName().equals(name)) {
 				nodes.add(child);
