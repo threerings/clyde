@@ -58,8 +58,10 @@ public class ModelFbxParser
         // Convert polygons to triangles
         int nidx = 0;
         int uidx = 0;
+        float[] defaultTcoords = new float[2];
         for (int idx : pvi) {
             ModelDef.Vertex v = new ModelDef.Vertex();
+            v.tcoords = defaultTcoords;
             // Handle negative indices (they mark end of polygon, need to be made positive)
             if (idx < 0) idx = (-idx - 1);
 
@@ -78,16 +80,12 @@ public class ModelFbxParser
             // Set UV coordinates if available
             if (uvData != null) {
                 int uvIdx = uvIndex[uidx++];
-                if (uvIdx == -1) {
-                    v.tcoords = new float[2];
-                } else {
+                if (uvIdx != -1) {
                     uvIdx *= 2;
                     v.tcoords = new float[] {
                         (float)uvData[uvIdx], (float)uvData[uvIdx + 1]
                     };
                 }
-            } else {
-                v.tcoords = new float[2]; // Or leave null?
             }
 
             trimesh.addVertex(v);
