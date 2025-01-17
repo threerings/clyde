@@ -73,7 +73,7 @@ public class ModelFbxParser
             }
             for (FBXNode prop : props.getChildrenByName("P")) {
                 String pname = (String)prop.getProperty(0).getData();
-                log.info("Found pname", "pname", pname, "node", node.name);
+                //log.info("Found pname", "pname", pname, "node", node.name);
                 if ("Lcl Translation".equals(pname)) {
                     node.translation = new float[] {
                         (float)(double)prop.getProperty(4).getData(),
