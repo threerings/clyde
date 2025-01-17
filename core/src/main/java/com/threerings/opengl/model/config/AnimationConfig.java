@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.model.config;
 
+import java.io.InputStream;
+
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
@@ -45,6 +47,7 @@ import com.threerings.util.Shallow;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.tools.AnimationDef;
+import com.threerings.opengl.model.tools.fbx.AnimationFbxParser;
 import com.threerings.opengl.model.tools.xml.AnimationParser;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.GlContext;
@@ -181,7 +184,7 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable(editor="resource", weight=-1, nullable=true)
         @FileConstraints(
             description="m.exported_anims",
-            extensions={".mxml"},
+            extensions={".mxml", ".fbx"},
             directory="exported_anim_dir")
         public void setSource (String source)
         {
@@ -237,12 +240,16 @@ public class AnimationConfig extends ParameterizedConfig
                 updateFromSource(null);
                 return;
             }
-            if (_parser == null) {
-                _parser = new AnimationParser();
-            }
             try {
-                updateFromSource(_parser.parseAnimation(
-                    ctx.getResourceManager().getResource(_source)));
+                InputStream in = ctx.getResourceManager().getResource(_source);
+                AnimationDef anim;
+                if (_source.endsWith(".fbx")) {
+                    anim = new AnimationFbxParser().parseAnimation(in);
+                } else {
+                    if (_parser == null) _parser = new AnimationParser();
+                    anim = _parser.parseAnimation(in);
+                }
+                updateFromSource(anim);
             } catch (Exception e) {
                 log.warning("Error parsing animation [source=" + _source + "].", e);
                 return;
