@@ -77,21 +77,21 @@ public class ModelFbxParser
                 if ("Lcl Translation".equals(pname)) {
                     node.translation = new float[] {
                         ((Double)prop.getProperty(4).getData()).floatValue(),
-                        (float)(double)prop.getProperty(5).getData(),
-                        (float)(double)prop.getProperty(6).getData()
+                        ((Double)prop.getProperty(5).getData()).floatValue(),
+                        ((Double)prop.getProperty(6).getData()).floatValue()
                     };
                 } else if ("Lcl Rotation".equals(pname)) {
                     node.rotation = new float[] {
-                        (float)(double)prop.getProperty(4).getData(),
-                        (float)(double)prop.getProperty(5).getData(),
-                        (float)(double)prop.getProperty(6).getData(),
+                        ((Double)prop.getProperty(4).getData()).floatValue(),
+                        ((Double)prop.getProperty(5).getData()).floatValue(),
+                        ((Double)prop.getProperty(6).getData()).floatValue(),
                         1f
                     };
                 } else if ("Lcl Scaling".equals(pname)) {
                     node.scale = new float[] {
-                        (float)(double)prop.getProperty(4).getData(),
-                        (float)(double)prop.getProperty(5).getData(),
-                        (float)(double)prop.getProperty(6).getData()
+                        ((Double)prop.getProperty(4).getData()).floatValue(),
+                        ((Double)prop.getProperty(5).getData()).floatValue(),
+                        ((Double)prop.getProperty(6).getData()).floatValue()
                     };
                 }
             }
