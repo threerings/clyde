@@ -76,7 +76,7 @@ public class ModelFbxParser
                 //log.info("Found pname", "pname", pname, "node", node.name);
                 if ("Lcl Translation".equals(pname)) {
                     node.translation = new float[] {
-                        (float)((double)prop.getProperty(4).getData()),
+                        ((Double)prop.getProperty(4).getData()).floatValue(),
                         (float)(double)prop.getProperty(5).getData(),
                         (float)(double)prop.getProperty(6).getData()
                     };
