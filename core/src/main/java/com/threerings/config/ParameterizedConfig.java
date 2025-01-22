@@ -101,8 +101,7 @@ public class ParameterizedConfig extends ManagedConfig
         if (_derived == null) {
             _derived = CacheUtil.softValues(1);
         }
-        //ParameterizedConfig instance = _derived.get(filteredArgs);
-        ParameterizedConfig instance = null;
+        ParameterizedConfig instance = _derived.get(filteredArgs);
         if (instance == null) {
             if (derivedArgs == null) {
                 derivedArgs = filteredArgs.clone();
