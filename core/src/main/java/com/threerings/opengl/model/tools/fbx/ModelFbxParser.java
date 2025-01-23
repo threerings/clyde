@@ -37,13 +37,100 @@ public class ModelFbxParser
         // extract textures to the directory and add names to the list.
         extractTextures(root, dir, textures);
 
-        // parse the main trimesh
-        model.addSpatial(parseTriMesh(root, textures));
+        // TODO: parse skin mesh
+
+        // parse the meshes
+        for (ModelDef.TriMeshDef mesh : parseTriMeshes(root, textures)) model.addSpatial(mesh);
 
         // parse any nodes found
         for (ModelDef.NodeDef node : parseNodes(root)) model.addSpatial(node);
 
         return model;
+    }
+
+    public Iterable<ModelDef.TriMeshDef> parseTriMeshes (FBXNode root, List<String> textures)
+    {
+        FBXNode objects = root.getChildByName("Objects");
+        List<ModelDef.TriMeshDef> meshes = Lists.newArrayList();
+        for (FBXNode geom : objects.getChildrenByName("Geometry")) {
+            ModelDef.TriMeshDef meshdef = parseTriMesh(geom);
+            int idx = meshes.size();
+            meshdef.name = root.getName() + (idx == 0 ? "" : String.valueOf(idx));
+            meshdef.texture = idx < textures.size() ? textures.get(idx) : "REPLACE_ME";
+            meshes.add(meshdef);
+        }
+        return meshes;
+    }
+
+    /**
+     * Parse a mesh, which won't have a `name` or `texture` yet assigned.
+     */
+    protected ModelDef.TriMeshDef parseTriMesh (FBXNode geom)
+    {
+        FBXNode norms = geom.getChildByName("LayerElementNormal");
+        FBXNode uvs = geom.getChildByName("LayerElementUV");
+
+        double[] vertices = (double[])geom.getChildByName("Vertices").getProperty(0).getData();
+        int[] pvi = (int[])geom.getChildByName("PolygonVertexIndex").getProperty(0).getData();
+        double[] normals = (double[])norms.getChildByName("Normals").getProperty(0).getData();
+        double[] uvData = (double[])uvs.getChildByName("UV").getProperty(0).getData();
+        int[] uvIndex = (int[])uvs.getChildByName("UVIndex").getProperty(0).getData();
+
+        ModelDef.TriMeshDef trimesh = new ModelDef.TriMeshDef();
+
+        //trimesh.name = root.getName();
+        //trimesh.texture = textures.isEmpty() ? "REPLACE_ME" : textures.get(0);
+        trimesh.translation = new float[] { 0f, 0f, 0f };
+        trimesh.rotation = new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack
+        // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
+        trimesh.scale = new float[] { 1f, 1f, 1f };
+        trimesh.offsetTranslation = new float[] { 0f, 0f, 0f };
+        trimesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
+        trimesh.offsetScale = new float[]{ 1f, 1f, 1f };
+
+        // TODO: Convert polygons to triangles
+        boolean warnedPolygons = false;
+        int nidx = 0;
+        int uidx = 0;
+        float[] defaultTcoords = new float[2];
+        for (int ii = 0, nn = pvi.length; ii < nn; ++ii) {
+            ModelDef.Vertex v = new ModelDef.Vertex();
+            v.tcoords = defaultTcoords;
+            int idx = pvi[ii];
+
+
+            // TEMP?
+            if (!warnedPolygons && (idx < 0) != (ii % 3 == 2)) {
+                log.warning("We need to be importing triangles! This appears to be not!");
+                warnedPolygons = true;
+            }
+            // Handle negative indices (they mark end of polygon, need to be made positive)
+            if (idx < 0) idx = (-idx - 1);
+
+            // Set vertex position
+            int vi = idx * 3;
+            v.location = new float[] {
+                (float)vertices[vi], (float)vertices[vi + 1], (float)vertices[vi + 2]
+            };
+
+            // Set normal
+            v.normal = new float[] {
+                (float)normals[nidx], (float)normals[nidx + 1], (float)normals[nidx + 2]
+            };
+            nidx += 3;
+
+            // Set UV coordinates
+            int uvIdx = uvIndex[uidx++];
+            if (uvIdx != -1) {
+                uvIdx *= 2;
+                v.tcoords = new float[] {
+                    (float)uvData[uvIdx], (float)uvData[uvIdx + 1]
+                };
+            }
+
+            trimesh.addVertex(v);
+        }
+        return trimesh;
     }
 
     // TODO: more can be done here to parse nodes?
@@ -98,74 +185,6 @@ public class ModelFbxParser
         }
 
         return nodes.values();
-    }
-
-    public ModelDef.TriMeshDef parseTriMesh (FBXNode root, List<String> textures)
-    {
-        FBXNode geom = root.getNodeFromPath("Objects/Geometry");
-        FBXNode norms = geom.getChildByName("LayerElementNormal");
-        FBXNode uvs = geom.getChildByName("LayerElementUV");
-
-        double[] vertices = (double[])geom.getChildByName("Vertices").getProperty(0).getData();
-        int[] pvi = (int[])geom.getChildByName("PolygonVertexIndex").getProperty(0).getData();
-        double[] normals = (double[])norms.getChildByName("Normals").getProperty(0).getData();
-        double[] uvData = (double[])uvs.getChildByName("UV").getProperty(0).getData();
-        int[] uvIndex = (int[])uvs.getChildByName("UVIndex").getProperty(0).getData();
-
-        ModelDef.TriMeshDef trimesh = new ModelDef.TriMeshDef();
-        trimesh.name = root.getName();
-        trimesh.texture = textures.isEmpty() ? "REPLACE_ME" : textures.get(0);
-        trimesh.translation = new float[] { 0f, 0f, 0f };
-        trimesh.rotation = new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack
-        // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
-        trimesh.scale = new float[] { 1f, 1f, 1f };
-        trimesh.offsetTranslation = new float[] { 0f, 0f, 0f };
-        trimesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
-        trimesh.offsetScale = new float[]{ 1f, 1f, 1f };
-
-        // TODO: Convert polygons to triangles
-        boolean warnedPolygons = false;
-        int nidx = 0;
-        int uidx = 0;
-        float[] defaultTcoords = new float[2];
-        for (int ii = 0, nn = pvi.length; ii < nn; ++ii) {
-            ModelDef.Vertex v = new ModelDef.Vertex();
-            v.tcoords = defaultTcoords;
-            int idx = pvi[ii];
-
-
-            // TEMP?
-            if (!warnedPolygons && (idx < 0) != (ii % 3 == 2)) {
-                log.warning("We need to be importing triangles! This appears to be not!");
-                warnedPolygons = true;
-            }
-            // Handle negative indices (they mark end of polygon, need to be made positive)
-            if (idx < 0) idx = (-idx - 1);
-
-            // Set vertex position
-            int vi = idx * 3;
-            v.location = new float[] {
-                (float)vertices[vi], (float)vertices[vi + 1], (float)vertices[vi + 2]
-            };
-
-            // Set normal
-            v.normal = new float[] {
-                (float)normals[nidx], (float)normals[nidx + 1], (float)normals[nidx + 2]
-            };
-            nidx += 3;
-
-            // Set UV coordinates
-            int uvIdx = uvIndex[uidx++];
-            if (uvIdx != -1) {
-                uvIdx *= 2;
-                v.tcoords = new float[] {
-                    (float)uvData[uvIdx], (float)uvData[uvIdx + 1]
-                };
-            }
-
-            trimesh.addVertex(v);
-        }
-        return trimesh;
     }
 
     /**
