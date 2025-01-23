@@ -31,15 +31,18 @@ import java.io.PrintStream;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ComparableTuple;
 import com.samskivert.util.StringUtil;
 
@@ -236,6 +239,11 @@ public class ModelConfig extends ParameterizedConfig
             }
         }
 
+        /** Messages to display after import. Editor only! */
+        @Editable(constant=true, depends="source")
+        @DeepOmit
+        public transient String[] importMessages;
+
         /** The model scale. */
         @Editable(min=0, step=0.01, hgroup="s")
         public float scale = 0.01f;
@@ -292,6 +300,7 @@ public class ModelConfig extends ParameterizedConfig
             _reload = false;
             if (_source == null) {
                 updateFromSource(null);
+                importMessages = null;
                 return;
             }
 
@@ -300,10 +309,13 @@ public class ModelConfig extends ParameterizedConfig
                 ModelDef model;
                 if (_source.endsWith(".fbx")) {
                     File dir = ctx.getResourceManager().getResourceFile(_source).getParentFile();
-                    model = new ModelFbxParser().parseModel(in, dir);
+                    List<String> messages = Lists.newArrayList();
+                    model = new ModelFbxParser().parseModel(in, dir, messages);
+                    importMessages = messages.toArray(ArrayUtil.EMPTY_STRING);
                 } else {
                     if (_parser == null) _parser = new ModelParser();
                     model = _parser.parseModel(in);
+                    importMessages = null;
                 }
                 updateFromSource(model);
                 createDefaultMaterialMappings();

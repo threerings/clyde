@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import com.google.common.io.Files;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -23,8 +25,10 @@ public class ModelFbxParser
 {
     /**
      * Parse the model as well as extract any textures in the fbx into the specified directory.
+     *
+     * @param messages if provided, is populated with a list of import messages.
      */
-    public ModelDef parseModel (InputStream in, File dir)
+    public ModelDef parseModel (InputStream in, File dir, @Nullable List<String> messages)
         throws IOException
     {
         ModelDef model = new ModelDef();
@@ -36,6 +40,12 @@ public class ModelFbxParser
 
         // extract textures to the directory and add names to the list.
         extractTextures(root, dir, textures);
+
+        if (messages != null) {
+            for (String texture : textures) {
+                messages.add("Imported texture: " + texture);
+            }
+        }
 
         // TODO: parse skin mesh
 
