@@ -435,20 +435,22 @@ public class TableArrayListEditor extends ArrayListEditor
             }
         });
 
-        JPanel bpanel = new JPanel();
-        bpanel.setBackground(null);
-        _content.add(bpanel);
-        bpanel.add(_add = new JButton(is2DArray() ?
-            getActionLabel("new", "row") : _msgs.get("m.new")));
-        _add.addActionListener(this);
-        if (is2DArray() && !_fixed) {
-            bpanel.add(_addColumn = new JButton(getActionLabel("new", "column")));
-            _addColumn.addActionListener(this);
+        if (!_property.getAnnotation().constant()) {
+            JPanel bpanel = new JPanel();
+            bpanel.setBackground(null);
+            _content.add(bpanel);
+            bpanel.add(_add = new JButton(is2DArray() ?
+                getActionLabel("new", "row") : _msgs.get("m.new")));
+            _add.addActionListener(this);
+            if (is2DArray() && !_fixed) {
+                bpanel.add(_addColumn = new JButton(getActionLabel("new", "column")));
+                _addColumn.addActionListener(this);
+            }
+            bpanel.add(_copy = new JButton(_msgs.get("m.copy")));
+            _copy.addActionListener(this);
+            bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
+            _delete.addActionListener(this);
         }
-        bpanel.add(_copy = new JButton(_msgs.get("m.copy")));
-        _copy.addActionListener(this);
-        bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
-        _delete.addActionListener(this);
 
         if (_opanel != null) {
             _content.add(_opanel);
@@ -730,9 +732,11 @@ public class TableArrayListEditor extends ArrayListEditor
             row = (selection.right == -1);
             column = (selection.left == -1);
         }
-        _delete.setEnabled(!_fixed && (column || row && getLength() > _min));
-        _copy.setEnabled(!_fixed && (column || row && getLength() < _max));
-        _add.setEnabled(!_fixed && getLength() < _max);
+        if (_delete != null) {
+            _delete.setEnabled(!_fixed && (column || row && getLength() > _min));
+            _copy.setEnabled(!_fixed && (column || row && getLength() < _max));
+            _add.setEnabled(!_fixed && getLength() < _max);
+        }
         if (_opanel != null) {
             if (selection == null) {
                 _opanel.setVisible(false);
