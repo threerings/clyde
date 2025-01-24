@@ -60,13 +60,14 @@ public class ModelFbxParser
 
     public Iterable<ModelDef.TriMeshDef> parseTriMeshes (FBXNode root, List<String> textures)
     {
+        int numTextures = textures.size();
         FBXNode objects = root.getChildByName("Objects");
         List<ModelDef.TriMeshDef> meshes = Lists.newArrayList();
         for (FBXNode geom : objects.getChildrenByName("Geometry")) {
             ModelDef.TriMeshDef meshdef = parseTriMesh(geom);
             int idx = meshes.size();
             meshdef.name = root.getName() + (idx == 0 ? "" : String.valueOf(idx));
-            meshdef.texture = idx < textures.size() ? textures.get(idx) : "REPLACE_ME";
+            meshdef.texture = numTextures == 0 ? "unknown" : textures.get(idx % numTextures);
             meshes.add(meshdef);
         }
         return meshes;
@@ -89,7 +90,7 @@ public class ModelFbxParser
         ModelDef.TriMeshDef trimesh = new ModelDef.TriMeshDef();
 
         //trimesh.name = root.getName();
-        //trimesh.texture = textures.isEmpty() ? "REPLACE_ME" : textures.get(0);
+        //trimesh.texture = "unknown_texture";
         trimesh.translation = new float[] { 0f, 0f, 0f };
         trimesh.rotation = new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack
         // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
