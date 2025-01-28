@@ -81,18 +81,21 @@ public class ModelFbxParser
         FBXNode norms = geom.getChildByName("LayerElementNormal");
         FBXNode uvs = geom.getChildByName("LayerElementUV");
 
-        double[] vertices = (double[])geom.getChildByName("Vertices").getProperty(0).getData();
-        int[] pvi = (int[])geom.getChildByName("PolygonVertexIndex").getProperty(0).getData();
-        double[] normals = (double[])norms.getChildByName("Normals").getProperty(0).getData();
-        double[] uvData = (double[])uvs.getChildByName("UV").getProperty(0).getData();
-        int[] uvIndex = (int[])uvs.getChildByName("UVIndex").getProperty(0).getData();
+        double[] vertices = geom.getChildProperty("Vertices");
+        int[] pvi = geom.getChildProperty("PolygonVertexIndex");
+        double[] normals = norms.getChildProperty("Normals");
+        double[] uvData = uvs.getChildProperty("UV");
+        int[] uvIndex = uvs.getChildProperty("UVIndex");
+        String normalMappingType = norms.getChildProperty("MappingInformationType");
 
         ModelDef.TriMeshDef trimesh = new ModelDef.TriMeshDef();
 
         //trimesh.name = root.getName();
         //trimesh.texture = "unknown_texture";
         trimesh.translation = new float[] { 0f, 0f, 0f };
-        trimesh.rotation = new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack
+        trimesh.rotation = new float[] { 0f, 0f, 0f, 1f };
+        //    : new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack HACK HACK HACK
+
         // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
         trimesh.scale = new float[] { 1f, 1f, 1f };
         trimesh.offsetTranslation = new float[] { 0f, 0f, 0f };
@@ -116,7 +119,7 @@ public class ModelFbxParser
                 warnedPolygons = true;
             }
             // Handle negative indices (they mark end of polygon, need to be made positive)
-            if (idx < 0) idx = (-idx - 1);
+            if (idx < 0) idx = ~idx;
 
             // Set vertex position
             int vi = idx * 3;
@@ -125,10 +128,20 @@ public class ModelFbxParser
             };
 
             // Set normal
-            v.normal = new float[] {
-                (float)normals[nidx], (float)normals[nidx + 1], (float)normals[nidx + 2]
-            };
-            nidx += 3;
+            if ("ByPolygonVertex".equals(normalMappingType)) {
+                v.normal = new float[] {
+                    (float)normals[nidx], (float)normals[nidx + 1], (float)normals[nidx + 2]
+                };
+                nidx += 3;
+
+            } else if ("ByVertice".equals(normalMappingType)) {
+                v.normal = new float[] {
+                    (float)normals[vi], (float)normals[vi + 1], (float)normals[vi + 2]
+                };
+
+            } else {
+                log.warning("Unknown normalMappingType " + normalMappingType);
+            }
 
             // Set UV coordinates
             int uvIdx = uvIndex[uidx++];
