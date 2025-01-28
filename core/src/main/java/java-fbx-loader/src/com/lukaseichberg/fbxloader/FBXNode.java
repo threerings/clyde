@@ -101,4 +101,10 @@ public class FBXNode {
 		return name;
 	}
 
+
+        public <T> T getChildProperty (String name) {
+            @SuppressWarnings("unchecked")
+            T tt = (T)getChildByName(name).getProperty(0).getData();
+            return tt;
+        }
 }
