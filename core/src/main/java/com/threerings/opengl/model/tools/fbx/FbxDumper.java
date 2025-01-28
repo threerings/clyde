@@ -18,13 +18,32 @@ public class FbxDumper {
     }
 
     public static void Dump (FBXNode node, String indent) {
-        log.info(indent + node.getName() + ": " + node.getNumProperties());
-        indent += "  ";
-        for (int ii = 0, nn = node.getNumProperties(); ii < nn; ++ii) {
-            Dump(node.getProperty(ii), indent);
+        int children = node.getNumChildren();
+        int props = node.getNumProperties();
+        String name = node.getName();
+        String ourdent = indent.substring(0, Math.max(0, indent.length() - 2)) + "+-";
+        if (props == 1) {
+            Dump(node.getProperty(0), ourdent + name + " ");
+        } else {
+            log.info(ourdent + name + (props == 0 ? "" : (": " + props)));
+            String propdent = indent + "  ";
+            for (int ii = 0; ii < props; ++ii) {
+                Dump(node.getProperty(ii), propdent);
+            }
         }
-        for (int ii = 0, nn = node.getNumChildren(); ii < nn; ++ii) {
-            Dump(node.getChild(ii), indent);
+        if ("Properties70".equals(name)) {
+            indent += "  ";
+            for (int ii = 0; ii < children; ++ii) {
+                DumpProperty70(node.getChild(ii), indent);
+            }
+        } else {
+            indent += "| ";
+            for (int ii = 0; ii < children; ++ii) {
+                if (ii == children - 1) {
+                    indent = indent.substring(0, indent.length() - 2) + "  ";
+                }
+                Dump(node.getChild(ii), indent);
+            }
         }
     }
 
@@ -68,5 +87,24 @@ public class FbxDumper {
             log.info(indent + ":" + type + ": " + prop.getData());
             break;
         }
+    }
+
+    protected static void DumpProperty70 (FBXNode node, String indent) {
+        StringBuilder buf = new StringBuilder();
+        StringBuilder val = new StringBuilder();
+        for (int ii = 0, nn = node.getNumProperties(); ii < nn; ++ii) {
+            FBXProperty prop = node.getProperty(ii);
+            if (ii < 4 && prop.getDataType() == FBXDataType.STRING) {
+                String str = (String)prop.getData();
+                if (str != null && !"".equals(str)) {
+                    if (buf.length() > 0 ) buf.append(" : ");
+                    buf.append(str);
+                }
+            } else {
+                if (val.length() > 0) val.append(", ");
+                val.append(prop.getData());
+            }
+        }
+        log.info(indent + buf + "(" + val + ")");
     }
 }
