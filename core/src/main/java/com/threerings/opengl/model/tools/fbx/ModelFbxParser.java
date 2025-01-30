@@ -37,9 +37,10 @@ public class ModelFbxParser
 
         FBXNode root = fbx.getRootNode();
         List<String> textures = Lists.newArrayList();
+        Map<Long, Object> byId = Maps.newHashMap();
 
         // extract textures to the directory and add names to the list.
-        extractTextures(root, dir, textures);
+        extractTextures(root, dir, byId, textures);
 
         if (messages != null) {
             for (String texture : textures) {
@@ -50,16 +51,17 @@ public class ModelFbxParser
         // TODO: parse skin mesh
 
         // parse the meshes
-        for (ModelDef.TriMeshDef mesh : parseTriMeshes(root, textures)) model.addSpatial(mesh);
+        for (ModelDef.TriMeshDef mesh : parseTriMeshes(root, byId, textures)) model.addSpatial(mesh);
 
         // parse any nodes found
-        for (ModelDef.NodeDef node : parseNodes(root)) model.addSpatial(node);
+        for (ModelDef.NodeDef node : parseNodes(root, byId)) model.addSpatial(node);
 
         return model;
     }
 
-    public Iterable<ModelDef.TriMeshDef> parseTriMeshes (FBXNode root, List<String> textures)
-    {
+    public Iterable<ModelDef.TriMeshDef> parseTriMeshes (
+        FBXNode root, Map<Long, Object> byId, List<String> textures
+    ) {
         int numTextures = textures.size();
         FBXNode objects = root.getChildByName("Objects");
         List<ModelDef.TriMeshDef> meshes = Lists.newArrayList();
@@ -158,11 +160,10 @@ public class ModelFbxParser
     }
 
     // TODO: more can be done here to parse nodes?
-    public Iterable<ModelDef.NodeDef> parseNodes (FBXNode root)
+    public Iterable<ModelDef.NodeDef> parseNodes (FBXNode root, Map<Long, Object> byId)
     {
         FBXNode objects = root.getChildByName("Objects");
         Map<String, ModelDef.NodeDef> nodes = Maps.newHashMap();
-        Map<Long, ModelDef.NodeDef> nodesById = Maps.newHashMap();
         float[] defaultTranslation = new float[3];
         float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
         float[] defaultScale = new float[] { 1f, 1f, 1f };
@@ -184,7 +185,7 @@ public class ModelFbxParser
             Object oval = nodes.put(node.name, node);
             if (oval != null) log.warning("Two objects of same name?", "name", node.name);
 
-            oval = nodesById.put(longId, node);
+            oval = byId.put(longId, node);
             if (oval != null) log.warning("Two objects of same id?", "id", longId);
 
             FBXNode props = child.getChildByName("Properties70");
@@ -218,27 +219,44 @@ public class ModelFbxParser
             }
         }
 
+        // see if we have any attributes
+        for (FBXNode attr : objects.getChildrenByName("NodeAttribute")) {
+            Long longId = (Long)attr.getProperty(0).getData();
+            Object oval = byId.put(longId, attr);
+            if (oval != null) log.warning("Two objects of same id?", "id", longId);
+            else log.info("Stored attr..." + longId);
+        }
+
         // https://download.autodesk.com/us/fbx/20112/fbx_sdk_help/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
         FBXNode connections = root.getChildByName("Connections");
         for (FBXNode conn : connections.getChildrenByName("C")) {
             String type = (String)conn.getProperty(0).getData();
-            if ("OO".equals(type)) {
-                Long src = (Long)conn.getProperty(1).getData();
-                Long dest = (Long)conn.getProperty(2).getData();
+            if (true || "OO".equals(type)) {
+                Long srcId = (Long)conn.getProperty(1).getData();
+                Long destId = (Long)conn.getProperty(2).getData();
                 // child is "source", parent is "destination"
-                ModelDef.NodeDef child = nodesById.get(src);
-                ModelDef.NodeDef parent = nodesById.get(dest);
-                if (child != null && parent != null) {
-                    if (child.parent == null) {
-                        child.parent = parent.name;
-                        log.info("Added parent!", "child", child.name, "parent", parent.name);
-                    } else {
-                        log.warning("Oh noes! Child already has a parent defined?",
-                            "child", child.name, "parent", child.parent, "newparent", parent.name);
+                Object src = byId.get(srcId);
+                Object dest = byId.get(destId);
+                if (dest instanceof ModelDef.NodeDef) {
+                    ModelDef.NodeDef parent = (ModelDef.NodeDef)dest;
+                    if (src instanceof ModelDef.NodeDef) {
+                        ModelDef.NodeDef child = (ModelDef.NodeDef)src;
+                        if (child.parent == null) {
+                            child.parent = parent.name;
+                            log.info("Added parent!", "child", child.name, "parent", parent.name);
+                        } else {
+                            log.warning("Oh noes! Child already has a parent defined?",
+                                    "child", child.name,
+                                    "parent", child.parent,
+                                    "newparent", parent.name);
+                        }
+                    } else if (src instanceof FBXNode) {
+                        log.info("We found that some attributes apply to a node",
+                                "parent", parent.name);
+                        FbxDumper.Dump((FBXNode)src);
                     }
                 } else {
-                    log.info("Unfound conn",
-                        "have child?", child != null, "have parent?", parent != null);
+                    log.info("Unfound conn", "type", type, "src", src, "dest", dest);
                 }
             }
         }
@@ -249,18 +267,22 @@ public class ModelFbxParser
     /**
      * Extract into `dir` any textures found at <em>or below</em> the specified node.
      */
-    public void extractTextures (FBXNode node, File dir, List<String> filenames)
+    public void extractTextures (
+        FBXNode node, File dir, Map<Long, Object> byId, List<String> filenames
+    )
         throws IOException
     {
         // recurse on children
         for (int ii = 0, nn = node.getNumChildren(); ii < nn; ++ii) {
-            extractTextures(node.getChild(ii), dir, filenames);
+            extractTextures(node.getChild(ii), dir, byId, filenames);
         }
 
-        extractTexture(node, dir, filenames);
+        extractTexture(node, dir, byId, filenames);
     }
 
-    private boolean extractTexture (FBXNode node, File dir, List<String> filenames)
+    private boolean extractTexture (
+        FBXNode node, File dir, Map<Long, Object> byId, List<String> filenames
+    )
         throws IOException
     {
         // For now, we look for a node called "Video"
