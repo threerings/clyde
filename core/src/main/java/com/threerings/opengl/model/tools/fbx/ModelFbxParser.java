@@ -162,6 +162,7 @@ public class ModelFbxParser
     {
         FBXNode objects = root.getChildByName("Objects");
         Map<String, ModelDef.NodeDef> nodes = Maps.newHashMap();
+        Map<Long, ModelDef.NodeDef> nodesById = Maps.newHashMap();
         float[] defaultTranslation = new float[3];
         float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
         float[] defaultScale = new float[] { 1f, 1f, 1f };
@@ -172,10 +173,19 @@ public class ModelFbxParser
             node.scale = defaultScale;
 
             if (3 != child.getNumProperties()) log.warning("Node with non-3 props?");
+            Long longId = (Long)child.getProperty(0).getData();
             node.name = (String)child.getProperty(1).getData();
-            node.parent = (String)child.getProperty(1).getData();
+            String type = (String)child.getProperty(2).getData();
+            if (!"LimbNode".equals(type)) {
+                log.warning("Seen node type: " + type);
+                // "Mesh", "Root"... TODO
+            }
+
             Object oval = nodes.put(node.name, node);
             if (oval != null) log.warning("Two objects of same name?", "name", node.name);
+
+            oval = nodesById.put(longId, node);
+            if (oval != null) log.warning("Two objects of same id?", "id", longId);
 
             FBXNode props = child.getChildByName("Properties70");
             if (props == null) {
@@ -204,6 +214,31 @@ public class ModelFbxParser
                         ((Double)prop.getProperty(5).getData()).floatValue(),
                         ((Double)prop.getProperty(6).getData()).floatValue()
                     };
+                }
+            }
+        }
+
+        // https://download.autodesk.com/us/fbx/20112/fbx_sdk_help/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
+        FBXNode connections = root.getChildByName("Connections");
+        for (FBXNode conn : connections.getChildrenByName("C")) {
+            String type = (String)conn.getProperty(0).getData();
+            if ("OO".equals(type)) {
+                Long src = (Long)conn.getProperty(1).getData();
+                Long dest = (Long)conn.getProperty(2).getData();
+                // child is "source", parent is "destination"
+                ModelDef.NodeDef child = nodesById.get(src);
+                ModelDef.NodeDef parent = nodesById.get(dest);
+                if (child != null && parent != null) {
+                    if (child.parent == null) {
+                        child.parent = parent.name;
+                        log.info("Added parent!", "child", child.name, "parent", parent.name);
+                    } else {
+                        log.warning("Oh noes! Child already has a parent defined?",
+                            "child", child.name, "parent", child.parent, "newparent", parent.name);
+                    }
+                } else {
+                    log.info("Unfound conn",
+                        "have child?", child != null, "have parent?", parent != null);
                 }
             }
         }
