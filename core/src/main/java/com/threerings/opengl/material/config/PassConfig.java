@@ -140,7 +140,7 @@ public class PassConfig extends DeepObject
     public void preload (GlContext ctx)
     {
         // Do nothing for now. TODO: Figure out what needs to be brought in.
-        materialState.getState();
+        if (materialState != null) materialState.getState();
         for (ExpressionBinding binding : staticBindings) {
             binding.preload(ctx);
         }
