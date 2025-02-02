@@ -107,4 +107,8 @@ public class FBXNode {
             T tt = (T)getChildByName(name).getProperty(0).getData();
             return tt;
         }
+
+        public String getFullName () {
+            return (parent == null) ? name : parent.getFullName() + "/" + name;
+        }
 }
