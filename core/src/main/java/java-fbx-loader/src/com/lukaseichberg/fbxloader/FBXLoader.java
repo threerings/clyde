@@ -54,7 +54,7 @@ public class FBXLoader {
 
 		FBXNode rootNode = new FBXNode(name, null);
 		FBXNode childNode;
-		while ((childNode = readNodeRecord(null)) != null) {
+		while ((childNode = readNodeRecord(rootNode)) != null) {
 			rootNode.add(childNode);
 		}
 		return new FBXFile(path, (int) version, rootNode);
@@ -67,7 +67,7 @@ public class FBXLoader {
 		/* long propertyListLen = */ getNodeLength();
 		String name = getString(getByte());
 
-		FBXNode node = new FBXNode(name, null);
+		FBXNode node = new FBXNode(name, parent);
 
 		for (int i = 0; i < numProperties; i++) {
 			FBXDataType dataType = getDataType();
