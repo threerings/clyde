@@ -24,6 +24,12 @@ public class FbxDumper {
         String ourdent = indent.substring(0, Math.max(0, indent.length() - 2)) + "+-";
         if (props == 1) {
             Dump(node.getProperty(0), ourdent + name + " ");
+        } else if (props >= 3 && "C".equals(name)) {
+            StringBuilder cc = new StringBuilder(ourdent + name + ":" + node.getData(0));
+            for (int ii = 1; ii < props; ++ii) {
+                cc.append(' ').append(String.valueOf(node.getData(ii)));
+            }
+            log.info(cc.toString());
         } else {
             log.info(ourdent + name + (props == 0 ? "" : (": " + props)));
             String propdent = indent + "  ";
