@@ -101,11 +101,22 @@ public class FBXNode {
 		return name;
 	}
 
+        public <T> T getData () {
+            return getData(0);
+        }
+
+        public <T> T getData (int index) {
+            @SuppressWarnings("unchecked")
+            T tt = (T)getProperty(index).getData();
+            return tt;
+        }
 
         public <T> T getChildProperty (String name) {
-            @SuppressWarnings("unchecked")
-            T tt = (T)getChildByName(name).getProperty(0).getData();
-            return tt;
+            return getChildProperty(name, 0);
+        }
+
+        public <T> T getChildProperty (String name, int index) {
+            return getChildByName(name).getData(index);
         }
 
         public String getFullName () {
