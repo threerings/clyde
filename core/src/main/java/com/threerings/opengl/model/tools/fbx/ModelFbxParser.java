@@ -468,7 +468,7 @@ public class ModelFbxParser
 
         // find all the geoms
         for (FBXNode geom : objects.getChildrenByName("Geometry")) {
-            geoms.put(geom.getData(0), geom);
+            geoms.put(geom.<Long>getData(0), geom);
         }
 
         // find the deformers
@@ -611,7 +611,7 @@ public class ModelFbxParser
         public final Long destId;
 
         public Connection (FBXNode cNode) {
-            this(cNode.getData(0), cNode.getData(1), cNode.getData(2));
+            this(cNode.<String>getData(0), cNode.<Long>getData(1), cNode.<Long>getData(2));
         }
 
         public Connection (String type, Long srcId, Long destId) {
