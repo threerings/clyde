@@ -305,9 +305,11 @@ public class ModelFbxParser
                         prop.<Double>getData(4).floatValue() / 360f,
                         prop.<Double>getData(5).floatValue() / 360f,
                         prop.<Double>getData(6).floatValue() / 360f,
-                        prop.getNumProperties() > 7 ? (prop.<Double>getData(7).floatValue() / 360f)
-                            : 0f
+                        0f
                     };
+                    if (prop.getNumProperties() > 7) {
+                        node.rotation[3] = prop.<Double>getData(7).floatValue() / 360f;
+                    }
                 } else if ("Lcl Scaling".equals(pname)) {
                     pvalue = node.scale = new float[] {
                         prop.<Double>getData(4).floatValue(),
