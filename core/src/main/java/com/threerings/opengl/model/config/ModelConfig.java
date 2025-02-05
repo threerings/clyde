@@ -310,7 +310,7 @@ public class ModelConfig extends ParameterizedConfig
                 if (_source.endsWith(".fbx")) {
                     File dir = ctx.getResourceManager().getResourceFile(_source).getParentFile();
                     List<String> messages = Lists.newArrayList();
-                    model = new ModelFbxParser().parseModel(in, dir, messages);
+                    model = ModelFbxParser.parseModel(in, dir, messages);
                     importMessages = messages.toArray(ArrayUtil.EMPTY_STRING);
                 } else {
                     if (_parser == null) _parser = new ModelParser();

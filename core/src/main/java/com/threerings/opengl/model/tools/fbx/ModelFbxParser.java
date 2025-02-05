@@ -4,14 +4,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import com.samskivert.util.Logger;
+
 import com.google.common.io.Files;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
@@ -28,57 +34,146 @@ public class ModelFbxParser
      *
      * @param messages if provided, is populated with a list of import messages.
      */
-    public ModelDef parseModel (InputStream in, File dir, @Nullable List<String> messages)
+    public static ModelDef parseModel (InputStream in, File dir, @Nullable List<String> messages)
+        throws IOException
+    {
+        return new ModelFbxParser().parse(in, dir, messages);
+    }
+
+    /**
+     * I'm actually not a fan of having anything be static but until I see a need to subclass
+     * this I guess I'll do it to enforce in the API that the actual instance is not
+     * thread-safe and will contain much garbage after parsing the model. Therefore, the
+     * instance isn't directly instantiable and you access this via the public static method
+     * above.
+     */
+    protected ModelFbxParser () { /* do not instantiate directly */ }
+
+    protected final List<String> textures = Lists.newArrayList();
+
+    protected final Map<Long, Object> objectsById = Maps.newHashMap();
+
+    protected final ListMultimap<Long, Connection> connsBySrc = ArrayListMultimap.create();
+    protected final ListMultimap<Long, Connection> connsByDest = ArrayListMultimap.create();
+
+    protected FBXNode root, objects;
+
+    /**
+     * Map an object by fbx node.
+     * return false if there was some sort of error which will already be logged
+     */
+    protected boolean mapObject (FBXNode node, Object object)
+    {
+        Long id;
+        try {
+            id = node.getData();
+        } catch (Exception e) {
+            log.warning("Unable to extract id property!", "node", node.getFullName());
+            return false;
+        }
+        return mapObject(id, object);
+    }
+
+    protected boolean mapObject (Long id, Object object)
+    {
+        Object oval = objectsById.put(id, object);
+        if (oval == null) return true;
+        log.warning("Two objects of same id?", "id", id, "new", object, "old", oval);
+        return false;
+    }
+
+    protected ModelDef parse (InputStream in, File dir, @Nullable List<String> messages)
         throws IOException
     {
         ModelDef model = new ModelDef();
         FBXFile fbx = FBXLoader.loadFBXFile("model", in);
         //FbxDumper.Dump(fbx);
-
-        FBXNode root = fbx.getRootNode();
-        List<String> textures = Lists.newArrayList();
-        Map<Long, Object> byId = Maps.newHashMap();
+        root = fbx.getRootNode();
+        objects = root.getChildByName("Objects");
 
         // extract textures to the directory and add names to the list.
-        extractTextures(root, dir, byId, textures);
+        for (FBXNode vid : objects.getChildrenByName("Video")) {
+            extractTexture(vid, dir);
+        }
 
+        // read and populate the connections
+        populateConnections();
+
+        // parse nodes
+        Map<String, ModelDef.NodeDef> nodes = parseNodes();
+
+        // skin meshes?
+        parseMeshes(nodes, model);
+
+//        // parse the meshes
+//        for (ModelDef.TriMeshDef mesh : parseTriMeshes()) model.addSpatial(mesh);
+//
+        // parse / dump everything
+        // checkMore();
+
+        // add the nodes last? // does it matter?
+        for (ModelDef.NodeDef node : nodes.values()) model.addSpatial(node);
+
+        // go through the connections and wire-up any spatials?
+        for (Connection conn : connsByDest.values()) {
+            if (!"OO".equals(conn.type)) continue;
+            Object src = objectsById.get(conn.srcId);
+            Object dest = objectsById.get(conn.destId);
+            if (src instanceof ModelDef.SpatialDef && dest instanceof ModelDef.SpatialDef) {
+                ModelDef.SpatialDef child = (ModelDef.SpatialDef)src;
+                if (child.parent != null) {
+                    log.warning("Connection has parent assigned already!", "child", child.name);
+                } else {
+                    child.parent = ((ModelDef.SpatialDef)dest).name;
+//                    log.info("Wire up", "child", child.name, "parent", child.parent);
+//                    if (dest instanceof ModelDef.NodeDef &&
+//                            child instanceof ModelDef.TriMeshDef) {
+//                        ModelDef.NodeDef node = (ModelDef.NodeDef)dest;
+//                        child.rotation = node.rotation;
+//                        child.translation = node.translation;
+//                        child.scale = node.scale;
+//                        log.warning("==== COPYING attrs");
+////                        node.translation = new float[] { 0f, 0f, 0f };
+////                        node.rotation = new float[] { 0f, 0f, 0f, 1f };
+////                        node.scale = new float[] { 1f, 1f, 1f };
+//                    }
+                }
+
+//            } else {
+//                log.warning("unfound conn",
+//                    "src", formatObj(src, conn.srcId),
+//                    "dest", formatObj(dest, conn.destId));
+            }
+        }
+
+        // Add any messages
         if (messages != null) {
+            // if we imported textures, note it
             for (String texture : textures) {
                 messages.add("Imported texture: " + texture);
             }
         }
 
-        // TODO: parse skin mesh
-
-        // parse the meshes
-        for (ModelDef.TriMeshDef mesh : parseTriMeshes(root, byId, textures)) model.addSpatial(mesh);
-
-        // parse any nodes found
-        for (ModelDef.NodeDef node : parseNodes(root, byId)) model.addSpatial(node);
-
         return model;
     }
 
-    public Iterable<ModelDef.TriMeshDef> parseTriMeshes (
-        FBXNode root, Map<Long, Object> byId, List<String> textures
-    ) {
-        int numTextures = textures.size();
-        FBXNode objects = root.getChildByName("Objects");
-        List<ModelDef.TriMeshDef> meshes = Lists.newArrayList();
-        for (FBXNode geom : objects.getChildrenByName("Geometry")) {
-            ModelDef.TriMeshDef meshdef = parseTriMesh(geom);
-            int idx = meshes.size();
-            meshdef.name = root.getName() + (idx == 0 ? "" : String.valueOf(idx));
-            meshdef.texture = numTextures == 0 ? "unknown" : textures.get(idx % numTextures);
-            meshes.add(meshdef);
-        }
-        return meshes;
+    protected ModelDef.TriMeshDef parseTriMesh (FBXNode geom)
+    {
+        ModelDef.TriMeshDef mesh = new ModelDef.TriMeshDef();
+        addAll(mesh, parseMesh(geom, mesh, null));
+        return mesh;
+    }
+
+    protected void addAll (ModelDef.TriMeshDef mesh, List<? extends ModelDef.Vertex> vertices)
+    {
+        for (ModelDef.Vertex v : vertices) mesh.addVertex(v);
     }
 
     /**
      * Parse a mesh, which won't have a `name` or `texture` yet assigned.
      */
-    protected ModelDef.TriMeshDef parseTriMesh (FBXNode geom)
+    protected <V extends ModelDef.Vertex> List<V> parseMesh (
+        FBXNode geom, ModelDef.TriMeshDef mesh, ListMultimap<Integer, Integer> verticesLookup)
     {
         FBXNode norms = geom.getChildByName("LayerElementNormal");
         FBXNode uvs = geom.getChildByName("LayerElementUV");
@@ -90,30 +185,32 @@ public class ModelFbxParser
         int[] uvIndex = uvs.getChildProperty("UVIndex");
         String normalMappingType = norms.getChildProperty("MappingInformationType");
 
-        ModelDef.TriMeshDef trimesh = new ModelDef.TriMeshDef();
-
         //trimesh.name = root.getName();
         //trimesh.texture = "unknown_texture";
-        trimesh.translation = new float[] { 0f, 0f, 0f };
-        trimesh.rotation = new float[] { 0f, 0f, 0f, 1f };
-        //    : new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack HACK HACK HACK
+        mesh.translation = new float[] { 0f, 0f, 0f };
+        mesh.rotation = new float[] { 0f, 0f, 0f, 1f };
+             //new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack HACK HACK HACK
 
         // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
-        trimesh.scale = new float[] { 1f, 1f, 1f };
-        trimesh.offsetTranslation = new float[] { 0f, 0f, 0f };
-        trimesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
-        trimesh.offsetScale = new float[]{ 1f, 1f, 1f };
+        mesh.scale = new float[] { 1f, 1f, 1f };
+        mesh.offsetTranslation = new float[] { 0f, 0f, 0f };
+        mesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
+        mesh.offsetScale = new float[]{ 1f, 1f, 1f };
 
-        // TODO: Convert polygons to triangles
+        mapObject(geom, mesh);
+        List<V> meshVerts = Lists.newArrayList();
+
+        // TODO: Convert polygons to triangles ?
         boolean warnedPolygons = false;
         int nidx = 0;
         int uidx = 0;
         float[] defaultTcoords = new float[2];
         for (int ii = 0, nn = pvi.length; ii < nn; ++ii) {
-            ModelDef.Vertex v = new ModelDef.Vertex();
+            @SuppressWarnings("unchecked")
+            V v = mesh instanceof ModelDef.SkinMeshDef
+                ? (V)new ModelDef.SkinVertex() : (V)new ModelDef.Vertex();
             v.tcoords = defaultTcoords;
             int idx = pvi[ii];
-
 
             // TEMP?
             if (!warnedPolygons && (idx < 0) != (ii % 3 == 2)) {
@@ -154,15 +251,15 @@ public class ModelFbxParser
                 };
             }
 
-            trimesh.addVertex(v);
+            if (verticesLookup != null) verticesLookup.put(idx, meshVerts.size());
+            meshVerts.add(v);
         }
-        return trimesh;
+        return meshVerts;
     }
 
     // TODO: more can be done here to parse nodes?
-    public Iterable<ModelDef.NodeDef> parseNodes (FBXNode root, Map<Long, Object> byId)
+    protected Map<String, ModelDef.NodeDef> parseNodes ()
     {
-        FBXNode objects = root.getChildByName("Objects");
         Map<String, ModelDef.NodeDef> nodes = Maps.newHashMap();
         float[] defaultTranslation = new float[3];
         float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
@@ -174,122 +271,162 @@ public class ModelFbxParser
             node.scale = defaultScale;
 
             if (3 != child.getNumProperties()) log.warning("Node with non-3 props?");
-            Long longId = (Long)child.getProperty(0).getData();
-            node.name = (String)child.getProperty(1).getData();
-            String type = (String)child.getProperty(2).getData();
+            // prop 0 is id
+            Long id = child.getData(0);
+            mapObject(id, node);
+            node.name = child.getData(1);
+            Object oval = nodes.put(node.name, node);
+            if (oval != null) log.warning("Two nodes of same name?", "name", node.name);
+
+            String type = child.getData(2);
             if (!"LimbNode".equals(type)) {
-                log.warning("Seen node type: " + type);
+                //log.warning("Seen node type: " + type, "name", node.name);
+                //continue;
                 // "Mesh", "Root"... TODO
             }
-
-            Object oval = nodes.put(node.name, node);
-            if (oval != null) log.warning("Two objects of same name?", "name", node.name);
-
-            oval = byId.put(longId, node);
-            if (oval != null) log.warning("Two objects of same id?", "id", longId);
 
             FBXNode props = child.getChildByName("Properties70");
             if (props == null) {
                 log.warning("No props for node?", "name", node.name);
                 continue;
             }
+            //log.info("Defining node", "node", node.name, "id", id);
             for (FBXNode prop : props.getChildrenByName("P")) {
-                String pname = (String)prop.getProperty(0).getData();
-                //log.info("Found pname", "pname", pname, "node", node.name);
+                String pname = prop.getData(0);
+                Object pvalue;
                 if ("Lcl Translation".equals(pname)) {
-                    node.translation = new float[] {
-                        ((Double)prop.getProperty(4).getData()).floatValue(),
-                        ((Double)prop.getProperty(5).getData()).floatValue(),
-                        ((Double)prop.getProperty(6).getData()).floatValue()
+                    pvalue = node.translation = new float[] {
+                        prop.<Double>getData(4).floatValue(),
+                        prop.<Double>getData(5).floatValue(),
+                        prop.<Double>getData(6).floatValue()
                     };
                 } else if ("Lcl Rotation".equals(pname)) {
-                    node.rotation = new float[] {
-                        ((Double)prop.getProperty(4).getData()).floatValue(),
-                        ((Double)prop.getProperty(5).getData()).floatValue(),
-                        ((Double)prop.getProperty(6).getData()).floatValue(),
-                        1f
+                    pvalue = node.rotation = new float[] {
+                        prop.<Double>getData(4).floatValue() / 360f,
+                        prop.<Double>getData(5).floatValue() / 360f,
+                        prop.<Double>getData(6).floatValue() / 360f,
+                        prop.getNumProperties() > 7 ? (prop.<Double>getData(7).floatValue() / 360f)
+                            : 0f
                     };
                 } else if ("Lcl Scaling".equals(pname)) {
-                    node.scale = new float[] {
-                        ((Double)prop.getProperty(4).getData()).floatValue(),
-                        ((Double)prop.getProperty(5).getData()).floatValue(),
-                        ((Double)prop.getProperty(6).getData()).floatValue()
+                    pvalue = node.scale = new float[] {
+                        prop.<Double>getData(4).floatValue(),
+                        prop.<Double>getData(5).floatValue(),
+                        prop.<Double>getData(6).floatValue()
                     };
-                }
+                } else continue;
+                //} else pvalue = "{" + (prop.getNumProperties() - 4) + "}";
+                //log.info("  Found prop on node", "prop", pname, "node", node.name, "value", pvalue);
             }
         }
-
-        // see if we have any attributes
-        for (FBXNode attr : objects.getChildrenByName("NodeAttribute")) {
-            Long longId = (Long)attr.getProperty(0).getData();
-            Object oval = byId.put(longId, attr);
-            if (oval != null) log.warning("Two objects of same id?", "id", longId);
-            else log.info("Stored attr..." + longId);
-        }
-
-        // https://download.autodesk.com/us/fbx/20112/fbx_sdk_help/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
-        FBXNode connections = root.getChildByName("Connections");
-        for (FBXNode conn : connections.getChildrenByName("C")) {
-            String type = (String)conn.getProperty(0).getData();
-            if (true || "OO".equals(type)) {
-                Long srcId = (Long)conn.getProperty(1).getData();
-                Long destId = (Long)conn.getProperty(2).getData();
-                // child is "source", parent is "destination"
-                Object src = byId.get(srcId);
-                Object dest = byId.get(destId);
-                if (dest instanceof ModelDef.NodeDef) {
-                    ModelDef.NodeDef parent = (ModelDef.NodeDef)dest;
-                    if (src instanceof ModelDef.NodeDef) {
-                        ModelDef.NodeDef child = (ModelDef.NodeDef)src;
-                        if (child.parent == null) {
-                            child.parent = parent.name;
-                            log.info("Added parent!", "child", child.name, "parent", parent.name);
-                        } else {
-                            log.warning("Oh noes! Child already has a parent defined?",
-                                    "child", child.name,
-                                    "parent", child.parent,
-                                    "newparent", parent.name);
-                        }
-                    } else if (src instanceof FBXNode) {
-                        log.info("We found that some attributes apply to a node",
-                                "parent", parent.name);
-                        FbxDumper.Dump((FBXNode)src);
-                    }
-                } else {
-                    log.info("Unfound conn", "type", type, "src", src, "dest", dest);
-                }
-            }
-        }
-
-        return nodes.values();
+        return nodes;
     }
 
     /**
-     * Extract into `dir` any textures found at <em>or below</em> the specified node.
+     * Detached code that had been part of my explorations.
+     * I'll clean it up eventually.
      */
-    public void extractTextures (
-        FBXNode node, File dir, Map<Long, Object> byId, List<String> filenames
-    )
-        throws IOException
-    {
-        // recurse on children
-        for (int ii = 0, nn = node.getNumChildren(); ii < nn; ++ii) {
-            extractTextures(node.getChild(ii), dir, byId, filenames);
+    protected void checkMore () {
+        // see if we have any attributes
+        for (FBXNode attr : objects.getChildrenByName("NodeAttribute")) {
+            if (mapObject(attr, attr)) {
+                log.info("Stored attribute.. " + attr.getProperty(0).getData());
+            }
         }
 
-        extractTexture(node, dir, byId, filenames);
+        // Poses
+        for (FBXNode pose : objects.getChildrenByName("Pose")) {
+            if (mapObject(pose, pose)) {
+                for (FBXNode poseNode : pose.getChildrenByName("PostNode")) {
+                    mapObject(poseNode, poseNode);
+                }
+            }
+        }
+
+        // document root node
+        for (FBXNode doc : root.getChildByName("Documents").getChildrenByName("Document")) {
+            mapObject(doc, doc);
+            FBXNode rootNodeId = doc.getChildByName("RootNode");
+            if (rootNodeId != null) mapObject(rootNodeId, rootNodeId);
+        }
+
+        // more
+        for (String name : new String[] {
+            "Material", "Deformer", "AnimationStack", "AnimationCurveNode", "AnimationLayer",
+            "Texture",
+            "CollectionExclusive" }) {
+            for (FBXNode node : objects.getChildrenByName(name)) mapObject(node, node);
+        }
+
+        // https://download.autodesk.com/us/fbx/20112/fbx_sdk_help/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
+//        FBXNode connections = root.getChildByName("Connections");
+//        for (FBXNode conn : connections.getChildrenByName("C")) {
+//            String type = conn.getData(0);
+//            if (true || "OO".equals(type)) {
+//                Long srcId = conn.getData(1);
+//                Long destId = conn.getData(2);
+//                // child is "source", parent is "destination"
+//                Object src = objectsById.get(srcId);
+//                Object dest = objectsById.get(destId);
+//                if (dest instanceof ModelDef.NodeDef) {
+//                    ModelDef.NodeDef parent = (ModelDef.NodeDef)dest;
+//                    if (src instanceof ModelDef.NodeDef) {
+//                        ModelDef.NodeDef child = (ModelDef.NodeDef)src;
+//                        if (child.parent == null) {
+//                            child.parent = parent.name;
+//                            log.info("Added parent!", "child", child.name, "parent", parent.name);
+//                        } else {
+//                            log.warning("Oh noes! Child already has a parent defined?",
+//                                    "child", child.name,
+//                                    "parent", child.parent,
+//                                    "newparent", parent.name);
+//                        }
+//                    } else if (src instanceof FBXNode) {
+//                        FBXNode srcNode = (FBXNode)src;
+//                        log.info("Found conn", "type", type, "dest", dest,
+//                                "attrs", srcNode.getFullName());
+//                        FbxDumper.Dump(srcNode, "            ");
+//                    }
+//                } else {
+//                    log.info((dest == null && src == null) ? "Unfound XXXX" : "Unknown conn",
+//                        "type", type,
+//                        "src", formatObj(src, srcId),
+//                        "dest", formatObj(dest, destId));
+//                }
+//            }
+//        }
     }
 
-    private boolean extractTexture (
-        FBXNode node, File dir, Map<Long, Object> byId, List<String> filenames
-    )
+    /**
+     * For debug logging.
+     */
+    private Object formatObj (Object obj, Long id) {
+        if (obj == null) return "Unknown{" + id + "}";
+        if (obj instanceof ModelDef.SpatialDef) {
+            ModelDef.SpatialDef spat = (ModelDef.SpatialDef)obj;
+            return obj.getClass().getName() + "{" + spat.name + "}";
+        }
+        if (obj instanceof FBXNode) {
+            FBXNode node = (FBXNode)obj;
+            if ("Deformer".equals(node.getName())) {
+                List<Object> logArgs = Lists.newArrayList();
+                for (int ii = 0, nn = node.getNumChildren(); ii < nn; ++ii) {
+                    FBXNode child = node.getChild(ii);
+                    if (child.getNumProperties() == 1) {
+                        logArgs.add(child.getName());
+                        logArgs.add(child.getProperty(0).getData());
+                    }
+                }
+                return Logger.format("Deformer", logArgs.toArray());
+            }
+            return node.getFullName();
+        }
+        return obj;
+    }
+
+    protected boolean extractTexture (FBXNode node, File dir)
         throws IOException
     {
-        // For now, we look for a node called "Video"
-        // - that has a sub-node called "Type" with a "Clip" string property.
-        // - that has a "Filename" with a string property
-        // - and finally a "Content" with the file data
-        if (!"Video".equals(node.getName())) return false;
         FBXNode type = node.getChildByName("Type");
         FBXNode filename = node.getChildByName("Filename");
         FBXNode content = node.getChildByName("Content");
@@ -301,7 +438,10 @@ public class ModelFbxParser
         Object data = content.getProperty(0).getData();
         if (!(data instanceof byte[])) return false;
 
-        if (!"Clip".equals(type.getProperty(0).getData())) return false;
+        if (!"Clip".equals(type.getProperty(0).getData())) {
+            log.warning("Texture type is not clip?", "type", type.getProperty(0).getData());
+            return false;
+        }
 
         // TODO?
         String fullname = String.valueOf(filename.getProperty(0).getData());
@@ -310,7 +450,177 @@ public class ModelFbxParser
         String basename = fullname.substring(1 + Math.max(foreslash, backslash));
         Files.write((byte[])data, new File(dir, basename));
         //log.info("Wrote", "file", basename);
-        filenames.add(basename);
+        textures.add(basename);
+        mapObject(node, basename);
         return true;
+    }
+
+    protected void parseMeshes (Map<String, ModelDef.NodeDef> nodes, ModelDef model) {
+
+        // First pass: collect all deformers and their relationships
+        Map<Long, FBXNode> skinDeformers = Maps.newHashMap();
+        Map<Long, FBXNode> clusters = Maps.newHashMap();
+        Map<Long, FBXNode> geoms = Maps.newHashMap();
+        int numTextures = textures.size();
+        int textureIdx = 0; // TODO: this should be extracted from connections
+
+        // find all the geoms
+        for (FBXNode geom : objects.getChildrenByName("Geometry")) {
+            geoms.put(geom.getData(0), geom);
+        }
+
+        // find the deformers
+        for (FBXNode deformer : objects.getChildrenByName("Deformer")) {
+            Long id = deformer.getData(0);
+            String type = deformer.getData(2);
+
+            if ("Skin".equals(type)) {
+                skinDeformers.put(id, deformer);
+//                log.info("skin deformer...",
+//                        "indexes", deformer.getChildProperty("Indexes"),
+//                        "blendweights", deformer.getChildProperty("BlendWeights"));
+            } else if ("Cluster".equals(type)) {
+                clusters.put(id, deformer);
+            } else {
+                log.info("Another kind of deformer spotted: " + type);
+            }
+        }
+
+        // Process each skin deformer
+        for (Map.Entry<Long, FBXNode> entry : skinDeformers.entrySet()) {
+            FBXNode skinDeformer = entry.getValue();
+            ModelDef.SkinMeshDef skinMesh = new ModelDef.SkinMeshDef();
+            // find the geom that goes with it...
+            FBXNode geom = null;
+            Long geomId = null;
+            for (Connection conn : connsBySrc.get(entry.getKey())) {
+                if (geom != null) log.warning("uh oh?");
+                geomId = conn.destId;
+                // Remove it from our list of geometries, the leftovers will become skinmeshes
+                geom = geoms.remove(geomId);
+            }
+            if (geom == null) {
+                log.warning("Could not find geom for skin deformer... skipping? SHIT!");
+                continue;
+            }
+            ListMultimap<Integer, Integer> verticesLookup = ArrayListMultimap.create();
+            List<ModelDef.SkinVertex> vertices = parseMesh(geom, skinMesh, verticesLookup);
+
+            for (Connection conn : connsByDest.get(entry.getKey())) {
+                //log.info("Checking dests for the skin: " + conn);
+                FBXNode cluster = clusters.get(conn.srcId);
+                if (cluster == null) {
+                    log.warning("Couldn't find source cluster for conn?", "conn.srcId", conn.srcId);
+                    continue;
+                }
+                // Get indices and weights
+                FBXNode indexNode = cluster.getChildByName("Indexes");
+                if (indexNode == null) {
+//                    log.warning("Missing indexes for bone?", "cluster", cluster.getFullName(),
+//                            "id", cluster.getData(0));
+                    // TODO: A Cluster that uses only Transform / TransformLink. What do we do?
+                    continue;
+                }
+                int[] indices = indexNode.getData(0);
+                double[] weights = cluster.getChildProperty("Weights");
+
+                // Get the bone name from the connected Model node
+                String boneName = findConnectedBoneName(cluster);
+
+                if (boneName != null) {
+                    // Add bone influences
+                    for (int i = 0; i < indices.length; i++) {
+                        for (int vi : verticesLookup.get(indices[i])) {
+                            ModelDef.BoneWeight bw = new ModelDef.BoneWeight();
+                            bw.bone = boneName;
+                            bw.weight = (float)weights[i];
+                            vertices.get(vi).addBoneWeight(bw);
+                        }
+//                        log.info("Added bone weight: " +
+//                                indices[i] + "/" + vertices.size() + " " +
+//                                boneName + " " + weights[i],
+//                                "vertices", verticesLookup.get(indices[i]));
+                    }
+                } else log.warning("Couldn't find bone name", "bone", boneName);
+
+//                // Get transform matrices if present
+//                double[] transform = cluster.getChildProperty("Transform");
+//                if (transform != null) {
+//                    // Convert transform matrix to our format
+//                    // Note: You might need to adjust this based on your coordinate system
+//                    float[] matrix = new float[16];
+//                    for (int i = 0; i < 16; i++) {
+//                        matrix[i] = (float)transform[i];
+//                    }
+//                    log.info("We are trying to figure out the matrix transform for the bone or something",
+//                            "bone", boneName, "matrix", transform);
+//                }
+            }
+
+            addAll(skinMesh, vertices);
+            skinMesh.name = root.getName() + ((textureIdx == 0) ? "" : String.valueOf(textureIdx));
+            skinMesh.texture = numTextures == 0 ? "unknown" : textures.get(textureIdx++ % numTextures);
+
+            // Let's look up and down at the connections to the geometry
+            // connections: the mesh node is a child of the geometry mesh
+
+            // TODO : FIX THIS! Proper connections
+//            log.info("Removing node? " + skinMesh.name);
+//            nodes.remove(skinMesh.name);
+
+            model.addSpatial(skinMesh);
+        }
+
+        // any remaining geoms get parsed as plain trimeshes ?? ?? ?? ??
+        for (FBXNode geom : geoms.values()) {
+            //log.info("Parsing leftover trimesh? " + geom);
+            ModelDef.TriMeshDef mesh = parseTriMesh(geom);
+            mesh.name = root.getName() + ((textureIdx == 0) ? "" : String.valueOf(textureIdx));
+            mesh.texture = numTextures == 0 ? "unknown" : textures.get(textureIdx++ % numTextures);
+            model.addSpatial(mesh);
+        }
+    }
+
+    protected String findConnectedBoneName (FBXNode cluster) {
+        Long clusterId = cluster.getData(0);
+        for (Connection conn : connsByDest.get(clusterId)) {
+            Object obj = objectsById.get(conn.srcId);
+            if (obj instanceof ModelDef.NodeDef) {
+                return ((ModelDef.NodeDef)obj).name;
+            }
+        }
+        log.warning("Couldn't find bone name for cluster " + clusterId);
+        return null;
+    }
+
+    protected void populateConnections () {
+        FBXNode connections = root.getChildByName("Connections");
+        for (FBXNode cNode : connections.getChildrenByName("C")) {
+            Connection conn = new Connection(cNode);
+            connsBySrc.put(conn.srcId, conn);
+            connsByDest.put(conn.destId, conn);
+        }
+    }
+
+    protected static class Connection
+    {
+        public final String type;
+        public final Long srcId;
+        public final Long destId;
+
+        public Connection (FBXNode cNode) {
+            this(cNode.getData(0), cNode.getData(1), cNode.getData(2));
+        }
+
+        public Connection (String type, Long srcId, Long destId) {
+            this.type = type;
+            this.srcId = srcId;
+            this.destId = destId;
+        }
+
+        @Override
+        public String toString () {
+            return "C:" + type + " " + srcId + " " + destId;
+        }
     }
 }
