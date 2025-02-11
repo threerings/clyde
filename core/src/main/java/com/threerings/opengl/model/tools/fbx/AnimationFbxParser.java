@@ -6,10 +6,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.io.Files;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
 import com.lukaseichberg.fbxloader.FBXNode;
@@ -18,19 +14,31 @@ import com.threerings.opengl.model.tools.AnimationDef;
 
 import static com.threerings.opengl.Log.log;
 
-public class AnimationFbxParser
+public class AnimationFbxParser extends AbstractFbxParser
 {
     /**
      * Parse the animation.
      */
-    public AnimationDef parseAnimation (InputStream in)
+    public static AnimationDef parseAnimation (InputStream in)
+        throws IOException
+    {
+        return new AnimationFbxParser().parse(in);
+    }
+
+    /**
+     * Parse the animation.
+     */
+    protected AnimationDef parse (InputStream in)
         throws IOException
     {
         AnimationDef anim = new AnimationDef();
         FBXFile fbx = FBXLoader.loadFBXFile("anim", in);
         FbxDumper.Dump(fbx);
 
-        FBXNode root = fbx.getRootNode();
+        root = fbx.getRootNode();
+        objects = root.getChildByName("Objects");
+
+        // STUFF
 
         // TODO parse FrameDefs, call addFrame()
 
@@ -42,4 +50,6 @@ public class AnimationFbxParser
 
         return anim;
     }
+
+    protected AnimationFbxParser () { /* instantiate via the static method. Bleah. */ }
 }

@@ -244,7 +244,7 @@ public class AnimationConfig extends ParameterizedConfig
                 InputStream in = ctx.getResourceManager().getResource(_source);
                 AnimationDef anim;
                 if (_source.endsWith(".fbx")) {
-                    anim = new AnimationFbxParser().parseAnimation(in);
+                    anim = AnimationFbxParser.parseAnimation(in);
                 } else {
                     if (_parser == null) _parser = new AnimationParser();
                     anim = _parser.parseAnimation(in);
