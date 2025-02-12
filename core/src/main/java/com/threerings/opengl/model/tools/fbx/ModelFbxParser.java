@@ -264,28 +264,11 @@ public class ModelFbxParser extends AbstractFbxParser
                 String pname = prop.getData(0);
                 Object pvalue;
                 if ("Lcl Translation".equals(pname)) {
-                    pvalue = node.translation = new float[] {
-                        prop.<Double>getData(4).floatValue(),
-                        prop.<Double>getData(5).floatValue(),
-                        prop.<Double>getData(6).floatValue()
-                    };
+                    pvalue = node.translation = getFloatTriplet(prop);
                 } else if ("Lcl Rotation".equals(pname)) {
-                    final float DIV = 360f;
-                    pvalue = node.rotation = new float[] {
-                        prop.<Double>getData(4).floatValue() / DIV,
-                        prop.<Double>getData(5).floatValue() / DIV,
-                        prop.<Double>getData(6).floatValue() / DIV,
-                        0f
-                    };
-                    if (prop.getNumProperties() > 7) {
-                        node.rotation[3] = prop.<Double>getData(7).floatValue() / DIV;
-                    }
+                    pvalue = node.rotation = getRotation(prop);
                 } else if ("Lcl Scaling".equals(pname)) {
-                    pvalue = node.scale = new float[] {
-                        prop.<Double>getData(4).floatValue(),
-                        prop.<Double>getData(5).floatValue(),
-                        prop.<Double>getData(6).floatValue()
-                    };
+                    pvalue = node.scale = getFloatTriplet(prop);
                 } else continue;
                 //} else pvalue = "{" + (prop.getNumProperties() - 4) + "}";
                 //log.info("  Found prop on node", "prop", pname, "node", node.name, "value", pvalue);

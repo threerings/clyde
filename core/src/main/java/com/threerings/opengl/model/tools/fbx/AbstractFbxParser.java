@@ -21,6 +21,9 @@ import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
 import com.lukaseichberg.fbxloader.FBXNode;
 
+import com.threerings.math.FloatMath;
+import com.threerings.math.Quaternion;
+
 import com.threerings.opengl.model.tools.ModelDef;
 
 import static com.threerings.opengl.Log.log;
@@ -135,10 +138,44 @@ public class AbstractFbxParser
 //        }
     }
 
+    protected float[] getFloatTriplet (FBXNode propertyNode)
+    {
+        return new float[] {
+            propertyNode.<Double>getData(4).floatValue(),
+            propertyNode.<Double>getData(5).floatValue(),
+            propertyNode.<Double>getData(6).floatValue() };
+    }
+
+    /**
+     * Get the rotation out of a property node.
+     */
+    protected float[] getRotation (FBXNode propertyNode)
+    {
+        if (propertyNode.getNumProperties() > 7) {
+            throw new RuntimeException(Logger.format(
+                "TODO! We don't yet support a 4-element rotation in the FBX!",
+                "w?", propertyNode.getData(7)));
+        }
+        return getRotation(
+            FloatMath.HALF_PI + FloatMath.toRadians(propertyNode.<Double>getData(4).floatValue()),
+            FloatMath.toRadians(propertyNode.<Double>getData(5).floatValue()),
+            FloatMath.toRadians(propertyNode.<Double>getData(6).floatValue()));
+    }
+
+    /**
+     * Convert a 3-element rotation into the quaternion values needed.
+     */
+    protected float[] getRotation (float x, float y, float z)
+    {
+        float[] values = new float[4];
+        new Quaternion().fromAngles(x, y, z).get(values);
+        return values;
+    }
+
     /**
      * For debug logging.
      */
-    private Object formatObj (Object obj, Long id) {
+    protected Object formatObj (Object obj, Long id) {
         if (obj == null) return "Unknown{" + id + "}";
         if (obj instanceof ModelDef.SpatialDef) {
             ModelDef.SpatialDef spat = (ModelDef.SpatialDef)obj;
