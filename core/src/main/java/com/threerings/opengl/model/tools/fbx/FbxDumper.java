@@ -27,7 +27,7 @@ public class FbxDumper {
         } else if (props >= 3 && "C".equals(name)) {
             StringBuilder cc = new StringBuilder(ourdent + name + ":" + node.getData(0));
             for (int ii = 1; ii < props; ++ii) {
-                cc.append(' ').append(String.valueOf(node.getData(ii)));
+                cc.append(' ').append(String.valueOf(node.<Object>getData(ii)));
             }
             log.info(cc.toString());
         } else {
