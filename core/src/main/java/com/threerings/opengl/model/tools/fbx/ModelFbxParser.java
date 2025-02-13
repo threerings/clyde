@@ -297,6 +297,10 @@ public class ModelFbxParser extends AbstractFbxParser
             Long id = child.getData(0);
             mapObject(id, node);
             node.name = child.getData(1);
+            node.name = node.name.replace("\0", "");
+            if (node.name.endsWith("Model")) {
+                node.name = node.name.substring(0, node.name.length() - 5);
+            }
 
             Object oval = nodes.put(node.name, node);
             if (oval != null) log.warning("Two nodes of same name?", "name", node.name);
