@@ -11,13 +11,13 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import com.samskivert.util.Logger;
+import com.samskivert.util.StringUtil;
 
 import com.google.common.io.Files;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
@@ -51,12 +51,17 @@ public class ModelFbxParser extends AbstractFbxParser
 
     protected final List<String> textures = Lists.newArrayList();
 
+    protected final Map<String, ModelDef.NodeDef> nodes = Maps.newHashMap();
+
+    protected final ModelDef model = new ModelDef();
+
+    //protected String rootNode;
+
     protected ModelDef parse (InputStream in, File dir, @Nullable List<String> messages)
         throws IOException
     {
-        ModelDef model = new ModelDef();
         FBXFile fbx = FBXLoader.loadFBXFile("model", in);
-        //FbxDumper.Dump(fbx);
+        FbxDumper.Dump(fbx);
         root = fbx.getRootNode();
         objects = root.getChildByName("Objects");
 
@@ -69,19 +74,16 @@ public class ModelFbxParser extends AbstractFbxParser
         populateConnections();
 
         // parse nodes
-        Map<String, ModelDef.NodeDef> nodes = parseNodes();
+        parseNodes();
 
         // skin meshes?
-        parseMeshes(nodes, model);
+        parseMeshes();
 
 //        // parse the meshes
 //        for (ModelDef.TriMeshDef mesh : parseTriMeshes()) model.addSpatial(mesh);
 //
         // parse / dump everything
         // checkMore();
-
-        // add the nodes last? // does it matter?
-        for (ModelDef.NodeDef node : nodes.values()) model.addSpatial(node);
 
         // go through the connections and wire-up any spatials?
         for (Connection conn : connsByDest.values()) {
@@ -113,6 +115,35 @@ public class ModelFbxParser extends AbstractFbxParser
 //                    "src", formatObj(src, conn.srcId),
 //                    "dest", formatObj(dest, conn.destId));
             }
+        }
+
+        for (ModelDef.SpatialDef spat : model.spatials.values()) {
+            ModelDef.NodeDef node = nodes.remove(spat.name);
+            if (node != null) {
+//                if (spat.parent != null) {
+//                    log.warning("HOLY SHIT!",
+//                        "spatial", spat.name,
+//                        "spatial parent", spat.parent, "node.parent", node.parent);
+//                }
+                spat.parent = node.parent;
+                log.info("Subsumed mesh node into spatial parent... " + spat.name,
+                        "parent", spat.parent);
+//                if (spat.parent == null) {
+//                    spat.parent = rootNode;
+//                }
+            }
+            // TODO: more?
+        }
+
+        // add the nodes last? // does it matter?
+        for (ModelDef.NodeDef node : nodes.values()) {
+            model.addSpatial(node);
+        }
+
+        // Let's look at the spatials we've added
+        for (ModelDef.SpatialDef spat : model.spatials.values()) {
+            log.info("Found spatial",
+                "name", spat.name, "parent", spat.parent, "type", StringUtil.shortClassName(spat));
         }
 
         // Add any messages
@@ -158,7 +189,6 @@ public class ModelFbxParser extends AbstractFbxParser
         //trimesh.texture = "unknown_texture";
         mesh.translation = new float[] { 0f, 0f, 0f };
         mesh.rotation = new float[] { 0f, 0f, 0f, 1f };
-             //new float[] { .5f, 0f, 0f, 1f }; // TODO: unhack HACK HACK HACK
 
         // TODO: is the rotation of the mesh derived from the "PreRotation" in the model properties?
         mesh.scale = new float[] { 1f, 1f, 1f };
@@ -166,7 +196,31 @@ public class ModelFbxParser extends AbstractFbxParser
         mesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
         mesh.offsetScale = new float[]{ 1f, 1f, 1f };
 
-        mapObject(geom, mesh);
+        // look up any connection that's a parent of the geom
+        Long geomId = geom.<Long>getData();
+        log.info("Looking for connections to geometry... " + geomId);
+        boolean found = false;
+        for (Connection cc : connsBySrc.get(geom.<Long>getData())) {
+            Object other = objectsById.get(cc.destId);
+            if (other instanceof ModelDef.NodeDef) {
+                if (found) log.warning("Wait, we already found a node for this geom?");
+                found = true;
+                ModelDef.NodeDef node = (ModelDef.NodeDef)other;
+                mesh.name = node.name;
+                mesh.translation = node.translation;
+                mesh.rotation = node.rotation;
+                mesh.scale = node.scale;
+
+//                // now: remove the node from the nodes map
+//                nodes.remove(node.name);
+//                // remap that id to point to the mesh (what a mesh this is!)
+//                objectsById.remove(cc.destId);
+//                mapObject(cc.destId, mesh);
+            }
+        }
+        if (!found) log.warning("Ohhhh nooooooo couldn't find a node for the mesh?");
+
+        mapObject(geomId, mesh);
         List<V> meshVerts = Lists.newArrayList();
 
         // TODO: Convert polygons to triangles ?
@@ -227,9 +281,8 @@ public class ModelFbxParser extends AbstractFbxParser
     }
 
     // TODO: more can be done here to parse nodes?
-    protected Map<String, ModelDef.NodeDef> parseNodes ()
+    protected void parseNodes ()
     {
-        Map<String, ModelDef.NodeDef> nodes = Maps.newHashMap();
         float[] defaultTranslation = new float[3];
         float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
         float[] defaultScale = new float[] { 1f, 1f, 1f };
@@ -244,14 +297,17 @@ public class ModelFbxParser extends AbstractFbxParser
             Long id = child.getData(0);
             mapObject(id, node);
             node.name = child.getData(1);
+
             Object oval = nodes.put(node.name, node);
             if (oval != null) log.warning("Two nodes of same name?", "name", node.name);
 
             String type = child.getData(2);
-            if (!"LimbNode".equals(type)) {
-                //log.warning("Seen node type: " + type, "name", node.name);
-                //continue;
-                // "Mesh", "Root"... TODO
+            if ("Root".equals(type)) {
+//                rootNode = node.name;
+            } else if ("Mesh".equals(type)) {
+                // TODO?
+            } else if (!"LimbNode".equals(type)) {
+                log.warning("Unknown node type spotted", "type", type);
             }
 
             FBXNode props = child.getChildByName("Properties70");
@@ -274,7 +330,6 @@ public class ModelFbxParser extends AbstractFbxParser
                 //log.info("  Found prop on node", "prop", pname, "node", node.name, "value", pvalue);
             }
         }
-        return nodes;
     }
 
     protected boolean extractTexture (FBXNode node, File dir)
@@ -288,16 +343,15 @@ public class ModelFbxParser extends AbstractFbxParser
                 filename.getNumProperties() != 1 ||
                 content.getNumProperties() != 1) return false;
 
-        Object data = content.getProperty(0).getData();
+        Object data = content.getData();
         if (!(data instanceof byte[])) return false;
 
-        if (!"Clip".equals(type.getProperty(0).getData())) {
-            log.warning("Texture type is not clip?", "type", type.getProperty(0).getData());
+        if (!"Clip".equals(type.getData())) {
+            log.warning("Texture type is not clip?", "type", type.getData());
             return false;
         }
 
-        // TODO?
-        String fullname = String.valueOf(filename.getProperty(0).getData());
+        String fullname = filename.getData();
         int foreslash = fullname.lastIndexOf('/');
         int backslash = fullname.lastIndexOf('\\');
         String basename = fullname.substring(1 + Math.max(foreslash, backslash));
@@ -308,8 +362,7 @@ public class ModelFbxParser extends AbstractFbxParser
         return true;
     }
 
-    protected void parseMeshes (Map<String, ModelDef.NodeDef> nodes, ModelDef model) {
-
+    protected void parseMeshes () {
         // First pass: collect all deformers and their relationships
         Map<Long, FBXNode> skinDeformers = Maps.newHashMap();
         Map<Long, FBXNode> clusters = Maps.newHashMap();
@@ -411,7 +464,8 @@ public class ModelFbxParser extends AbstractFbxParser
             }
 
             addAll(skinMesh, vertices);
-            skinMesh.name = root.getName() + ((textureIdx == 0) ? "" : String.valueOf(textureIdx));
+
+            // TODO: assign the texture correctly!
             skinMesh.texture = numTextures == 0 ? "unknown" : textures.get(textureIdx++ % numTextures);
 
             // Let's look up and down at the connections to the geometry
@@ -428,7 +482,8 @@ public class ModelFbxParser extends AbstractFbxParser
         for (FBXNode geom : geoms.values()) {
             //log.info("Parsing leftover trimesh? " + geom);
             ModelDef.TriMeshDef mesh = parseTriMesh(geom);
-            mesh.name = root.getName() + ((textureIdx == 0) ? "" : String.valueOf(textureIdx));
+
+            // TODO: assigning the texture correctly!
             mesh.texture = numTextures == 0 ? "unknown" : textures.get(textureIdx++ % numTextures);
             model.addSpatial(mesh);
         }
