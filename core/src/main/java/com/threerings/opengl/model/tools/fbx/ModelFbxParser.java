@@ -55,7 +55,7 @@ public class ModelFbxParser extends AbstractFbxParser
 
     protected final ModelDef model = new ModelDef();
 
-    //protected String rootNode;
+//    protected String rootNode;
 
     protected ModelDef parse (InputStream in, File dir, @Nullable List<String> messages)
         throws IOException
@@ -297,10 +297,13 @@ public class ModelFbxParser extends AbstractFbxParser
             Long id = child.getData(0);
             mapObject(id, node);
             node.name = child.getData(1);
-            node.name = node.name.replace("\0", "");
+            // Jesus Horatio Christ, we have to strip out bullshit characters?
+            node.name = node.name.replace("\u0000", "").replace("\u0001", "");
+            // and the word model after them?
             if (node.name.endsWith("Model")) {
                 node.name = node.name.substring(0, node.name.length() - 5);
             }
+            node.name = node.name.replace("_", " ");
 
             Object oval = nodes.put(node.name, node);
             if (oval != null) log.warning("Two nodes of same name?", "name", node.name);
