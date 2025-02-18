@@ -39,6 +39,8 @@ public abstract class AbstractFbxParser
     protected final ListMultimap<Long, Connection> connsBySrc = ArrayListMultimap.create();
     protected final ListMultimap<Long, Connection> connsByDest = ArrayListMultimap.create();
 
+    protected Quaternion preRotation;
+
     /**
      * Map fbx nodes that are children of "Objects" by id.
      */
@@ -129,7 +131,7 @@ public abstract class AbstractFbxParser
                 "w?", propertyNode.getData(7)));
         }
         return getRotation(
-            FloatMath.HALF_PI + FloatMath.toRadians(propertyNode.<Double>getData(4).floatValue()),
+            FloatMath.toRadians(propertyNode.<Double>getData(4).floatValue()),
             FloatMath.toRadians(propertyNode.<Double>getData(5).floatValue()),
             FloatMath.toRadians(propertyNode.<Double>getData(6).floatValue()));
     }
@@ -139,8 +141,10 @@ public abstract class AbstractFbxParser
      */
     protected float[] getRotation (float x, float y, float z)
     {
+        Quaternion qq = new Quaternion().fromAngles(x, y, z);
+        if (preRotation != null) qq.multLocal(preRotation);
         float[] values = new float[4];
-        new Quaternion().fromAngles(x, y, z).get(values);
+        qq.get(values);
         return values;
     }
 

@@ -25,6 +25,8 @@ import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
 import com.lukaseichberg.fbxloader.FBXNode;
 
+import com.threerings.math.Quaternion;
+
 import com.threerings.opengl.model.tools.ModelDef;
 
 import static com.threerings.opengl.Log.log;
@@ -73,10 +75,10 @@ public class ModelFbxParser extends AbstractFbxParser
 
         // parse nodes
         Map<FBXNode, String> textures = Maps.newHashMap();
-        float[] rootPreRotation = null;
         float[] defaultTranslation = new float[3];
         float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
         float[] defaultScale = new float[] { 1f, 1f, 1f };
+        //float[] rootPreRotation = defaultRotation;
         for (FBXNode node : models) {
             // see what kind of model it is
             Long id = node.getData(0);
@@ -105,7 +107,7 @@ public class ModelFbxParser extends AbstractFbxParser
                 spat = mesh;
 
                 mesh.offsetTranslation = defaultTranslation;
-                mesh.offsetRotation = defaultRotation;
+                mesh.offsetRotation = defaultRotation; //rootPreRotation.clone();
                 mesh.offsetScale = defaultScale;
 
                 // then, after we've potentially set-up bone weights, assign the textures
@@ -154,9 +156,9 @@ public class ModelFbxParser extends AbstractFbxParser
                     spat.rotation = getRotation(prop);
                 } else if ("Lcl Scaling".equals(pname)) {
                     spat.scale = getFloatTriplet(prop);
-                } else if ("PreRotation".equals(pname) && isRoot) {
-                    rootPreRotation = getRotation(prop);
-                    //log.info("Oh hey look, pre-rotation", "name", name, "root", rootPreRotation);
+                } else if ("PreRotation".equals(pname)) {
+                    if (isRoot) preRotation = new Quaternion(getRotation(prop)).invert();
+                    else log.warning("PreRotation found for non-root node?", "name", name);
                 }
             }
             model.addSpatial(spat);
@@ -347,14 +349,15 @@ class ModelNodeComparator implements Comparator<FBXNode>
     // from Comparator
     public int compare (FBXNode a, FBXNode b)
     {
-        boolean aIsMesh = isMesh(a);
-        boolean bIsMesh = isMesh(b);
-        if (aIsMesh == bIsMesh) return 0;
-        return aIsMesh ? 1 : -1;
+        return Integer.compare(nodeOrder(a), nodeOrder(b));
     }
 
-    private boolean isMesh (FBXNode node)
+    private int nodeOrder (FBXNode node)
     {
-        return "Mesh".equals(node.<String>getData(2));
+        String type = node.<String>getData(2);
+        return "Root".equals(type) ? 0
+            : "LimbNode".equals(type) ? 1
+            : "Mesh".equals(type) ? 2
+            : 3; // unknowns last
     }
 }
