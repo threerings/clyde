@@ -7,12 +7,14 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import com.samskivert.util.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,10 +46,10 @@ public class AbstractFbxParser
      */
     protected void populateObjects (String... types)
     {
-        for (String type : types) {
-            for (FBXNode node : objects.getChildrenByName(type)) {
-                mapObject(node, node);
-            }
+        Set<String> allTypes = ImmutableSet.copyOf(types);
+        for (int ii = 0, nn = objects.getNumChildren(); ii < nn; ++ii) {
+            FBXNode node = objects.getChild(ii);
+            if (allTypes.contains(node.getName())) mapObject(node, node);
         }
     }
 
@@ -280,21 +282,24 @@ public class AbstractFbxParser
         public final String type;
         public final Long srcId;
         public final Long destId;
-        //public final String property;
+        public final String property;
 
         public Connection (FBXNode cNode) {
-            this(cNode.<String>getData(0), cNode.<Long>getData(1), cNode.<Long>getData(2));
+            this(cNode.<String>getData(0), cNode.<Long>getData(1), cNode.<Long>getData(2),
+                 cNode.getNumProperties() > 3 ? cNode.<String>getData(3) : null);
         }
 
-        public Connection (String type, Long srcId, Long destId) {
+        public Connection (String type, Long srcId, Long destId, String property) {
             this.type = type;
             this.srcId = srcId;
             this.destId = destId;
+            this.property = property;
         }
 
         @Override
         public String toString () {
-            return "C:" + type + " " + srcId + " " + destId;
+            return "C:" + type + " " + srcId + " " + destId +
+                (property == null ? "" : (" " + property));
         }
     }
 }
