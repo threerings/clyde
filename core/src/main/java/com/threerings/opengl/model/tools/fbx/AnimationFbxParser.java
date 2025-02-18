@@ -33,18 +33,16 @@ public class AnimationFbxParser extends AbstractFbxParser
     protected AnimationDef parse (InputStream in)
         throws IOException
     {
-        AnimationDef anim = new AnimationDef();
         FBXFile fbx = FBXLoader.loadFBXFile("anim", in);
         //FbxDumper.Dump(fbx);
 
-        root = fbx.getRootNode();
-        objects = root.getChildByName("Objects");
+        AnimationDef anim = new AnimationDef();
+        anim.frameRate = readFrameRate(fbx);
 
-        populateConnections();
+        populateConnections(fbx);
 
-        populateObjects("AnimationCurveNode", "AnimationLayer");
-
-        anim.frameRate = readFrameRate();
+        FBXNode objects = fbx.getRootNode().getChildByName("Objects");
+        populateObjects(objects, "AnimationCurveNode", "AnimationLayer");
 
         // read in our default prototype limb transforms
         Map<Long, AnimationDef.TransformDef> limbs = Maps.newHashMap();
@@ -148,9 +146,9 @@ public class AnimationFbxParser extends AbstractFbxParser
         return new float[3];
     }
 
-    protected float readFrameRate ()
+    protected float readFrameRate (FBXFile fbx)
     {
-        FBXNode settings = root.getChildByName("GlobalSettings");
+        FBXNode settings = fbx.getRootNode().getChildByName("GlobalSettings");
         if (settings != null) {
             FBXNode props = settings.getChildByName("Properties70");
             FBXNode timeMode = null;

@@ -30,7 +30,7 @@ import com.threerings.opengl.model.tools.ModelDef;
 
 import static com.threerings.opengl.Log.log;
 
-public class AbstractFbxParser
+public abstract class AbstractFbxParser
 {
     protected AbstractFbxParser () { /* do not instantiate directly */ }
 
@@ -39,12 +39,10 @@ public class AbstractFbxParser
     protected final ListMultimap<Long, Connection> connsBySrc = ArrayListMultimap.create();
     protected final ListMultimap<Long, Connection> connsByDest = ArrayListMultimap.create();
 
-    protected FBXNode root, objects;
-
     /**
      * Map fbx nodes that are children of "Objects" by id.
      */
-    protected void populateObjects (String... types)
+    protected void populateObjects (FBXNode objects, String... types)
     {
         Set<String> allTypes = ImmutableSet.copyOf(types);
         for (int ii = 0, nn = objects.getNumChildren(); ii < nn; ++ii) {
@@ -110,81 +108,6 @@ public class AbstractFbxParser
             if (node != null) return node;
         }
         return null;
-    }
-
-    /**
-     * Detached code that had been part of my explorations.
-     * I'll clean it up eventually.
-     */
-    protected void checkMore () {
-        // see if we have any attributes
-        for (FBXNode attr : objects.getChildrenByName("NodeAttribute")) {
-            if (mapObject(attr, attr)) {
-                log.info("Stored attribute.. " + attr.getProperty(0).getData());
-            }
-        }
-
-        // Poses
-        for (FBXNode pose : objects.getChildrenByName("Pose")) {
-            if (mapObject(pose, pose)) {
-                for (FBXNode poseNode : pose.getChildrenByName("PostNode")) {
-                    mapObject(poseNode, poseNode);
-                }
-            }
-        }
-
-        // document root node
-        for (FBXNode doc : root.getChildByName("Documents").getChildrenByName("Document")) {
-            mapObject(doc, doc);
-            FBXNode rootNodeId = doc.getChildByName("RootNode");
-            if (rootNodeId != null) mapObject(rootNodeId, rootNodeId);
-        }
-
-        // more
-        for (String name : new String[] {
-            "Material", "Deformer", "AnimationStack", "AnimationCurveNode", "AnimationLayer",
-            "Texture",
-            "CollectionExclusive" }) {
-            for (FBXNode node : objects.getChildrenByName(name)) mapObject(node, node);
-        }
-
-        // https://download.autodesk.com/us/fbx/20112/fbx_sdk_help/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
-//        FBXNode connections = root.getChildByName("Connections");
-//        for (FBXNode conn : connections.getChildrenByName("C")) {
-//            String type = conn.getData(0);
-//            if (true || "OO".equals(type)) {
-//                Long srcId = conn.getData(1);
-//                Long destId = conn.getData(2);
-//                // child is "source", parent is "destination"
-//                Object src = objectsById.get(srcId);
-//                Object dest = objectsById.get(destId);
-//                if (dest instanceof ModelDef.NodeDef) {
-//                    ModelDef.NodeDef parent = (ModelDef.NodeDef)dest;
-//                    if (src instanceof ModelDef.NodeDef) {
-//                        ModelDef.NodeDef child = (ModelDef.NodeDef)src;
-//                        if (child.parent == null) {
-//                            child.parent = parent.name;
-//                            log.info("Added parent!", "child", child.name, "parent", parent.name);
-//                        } else {
-//                            log.warning("Oh noes! Child already has a parent defined?",
-//                                    "child", child.name,
-//                                    "parent", child.parent,
-//                                    "newparent", parent.name);
-//                        }
-//                    } else if (src instanceof FBXNode) {
-//                        FBXNode srcNode = (FBXNode)src;
-//                        log.info("Found conn", "type", type, "dest", dest,
-//                                "attrs", srcNode.getFullName());
-//                        FbxDumper.Dump(srcNode, "            ");
-//                    }
-//                } else {
-//                    log.info((dest == null && src == null) ? "Unfound XXXX" : "Unknown conn",
-//                        "type", type,
-//                        "src", formatObj(src, srcId),
-//                        "dest", formatObj(dest, destId));
-//                }
-//            }
-//        }
     }
 
     protected float[] getFloatTriplet (FBXNode propertyNode)
@@ -268,8 +191,8 @@ public class AbstractFbxParser
     }
 
 
-    protected void populateConnections () {
-        FBXNode connections = root.getChildByName("Connections");
+    protected void populateConnections (FBXFile fbx) {
+        FBXNode connections = fbx.getRootNode().getChildByName("Connections");
         for (FBXNode cNode : connections.getChildrenByName("C")) {
             Connection conn = new Connection(cNode);
             connsBySrc.put(conn.srcId, conn);

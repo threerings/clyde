@@ -56,14 +56,14 @@ public class ModelFbxParser extends AbstractFbxParser
     {
         FBXFile fbx = FBXLoader.loadFBXFile("model", in);
         //FbxDumper.Dump(fbx);
-        root = fbx.getRootNode();
-        objects = root.getChildByName("Objects");
 
         // read and populate the connections
-        populateConnections();
+        populateConnections(fbx);
+
+        FBXNode objects = fbx.getRootNode().getChildByName("Objects");
 
         // pre-populate some objects by id
-        populateObjects("Deformer", "Geometry", "Material", "Texture", "Video");
+        populateObjects(objects, "Deformer", "Geometry", "Material", "Texture", "Video");
 
         ModelDef model = new ModelDef();
 
