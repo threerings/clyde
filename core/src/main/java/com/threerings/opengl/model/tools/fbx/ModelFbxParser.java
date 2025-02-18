@@ -202,8 +202,12 @@ public class ModelFbxParser extends AbstractFbxParser
         int[] uvIndex = uvs.getChildProperty("UVIndex");
         String normalMappingType = norms.getChildProperty("MappingInformationType");
 
-        ListMultimap<Integer, Integer> verticesLookup = isSkin ? ArrayListMultimap.create() : null;
-        List<ModelDef.SkinVertex> meshVerts = isSkin ? Lists.newArrayList() : null;
+        ListMultimap<Integer, Integer> verticesLookup = null;
+        List<ModelDef.SkinVertex> meshVerts = null;
+        if (isSkin) {
+            verticesLookup = ArrayListMultimap.create();
+            meshVerts = Lists.newArrayList();
+        }
 
         int nidx = 0;
         int uidx = 0;
