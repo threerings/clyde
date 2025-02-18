@@ -40,6 +40,18 @@ public class AbstractFbxParser
     protected FBXNode root, objects;
 
     /**
+     * Map fbx nodes that are children of "Objects" by id.
+     */
+    protected void populateObjects (String... types)
+    {
+        for (String type : types) {
+            for (FBXNode node : objects.getChildrenByName(type)) {
+                mapObject(node, node);
+            }
+        }
+    }
+
+    /**
      * Map an object by fbx node.
      * return false if there was some sort of error which will already be logged
      */
@@ -59,8 +71,43 @@ public class AbstractFbxParser
     {
         Object oval = objectsById.put(id, object);
         if (oval == null) return true;
-        log.warning("Two objects of same id?", "id", id, "new", object, "old", oval);
+        log.warning("Two objects of same id?", "id", id,
+                "new", formatObj(object, id), "old", formatObj(oval, id));
         return false;
+    }
+
+    protected FBXNode findNode (Long id)
+    {
+        return findNode(id, null);
+    }
+
+    protected FBXNode findNode (Long id, String name)
+    {
+        return findNode(id, name, null);
+    }
+
+    protected FBXNode findNode (Long id, String name, String type)
+    {
+        Object obj = objectsById.get(id);
+        if (!(obj instanceof FBXNode)) return null;
+        FBXNode node = (FBXNode)obj;
+        if (name != null && !name.equals(node.getName())) return null;
+        if (type != null && !type.equals(node.<String>getData(2))) return null;
+        return node;
+    }
+
+    protected FBXNode findNodeToDest (Long destId, String name)
+    {
+        return findNodeToDest(destId, name, null);
+    }
+
+    protected FBXNode findNodeToDest (Long destId, String name, String type)
+    {
+        for (Connection conn : connsByDest.get(destId)) {
+            FBXNode node = findNode(conn.srcId, name, type);
+            if (node != null) return node;
+        }
+        return null;
     }
 
     /**
@@ -173,6 +220,25 @@ public class AbstractFbxParser
     }
 
     /**
+     * Sanitize a name for our purposes.
+     * <ul>
+     *   <li> Strip leading nulls or other unprintables.
+     *   <li> Convert underscores to spaces.
+     *   <li> Stop when we find any kind of trailing null or unprintable.
+     * </ul>
+     */
+    protected String sanitizeName (String name)
+    {
+        StringBuilder buf = new StringBuilder();
+        for (int ii = 0, nn = name.length(); ii < nn; ++ii) {
+            char cc = name.charAt(ii);
+            if (cc >= ' ') buf.append(cc == '_' ? ' ' : cc);
+            else if (buf.length() > 0) break;
+        }
+        return buf.toString();
+    }
+
+    /**
      * For debug logging.
      */
     protected Object formatObj (Object obj, Long id) {
@@ -214,6 +280,7 @@ public class AbstractFbxParser
         public final String type;
         public final Long srcId;
         public final Long destId;
+        //public final String property;
 
         public Connection (FBXNode cNode) {
             this(cNode.<String>getData(0), cNode.<Long>getData(1), cNode.<Long>getData(2));
