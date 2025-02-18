@@ -80,7 +80,7 @@ public class ModelFbxParser extends AbstractFbxParser
         for (FBXNode node : models) {
             // see what kind of model it is
             Long id = node.getData(0);
-            String name = sanitizeName(node.getData(1));
+            String name = sanitizeName(node.<String>getData(1));
             String type = node.getData(2);
             ModelDef.SpatialDef spat;
             boolean isRoot = false;

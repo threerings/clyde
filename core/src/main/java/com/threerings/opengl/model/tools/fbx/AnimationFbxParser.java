@@ -54,7 +54,7 @@ public class AnimationFbxParser extends AbstractFbxParser
             if ("Mesh".equals(type)) continue;
 
             AnimationDef.TransformDef xform = new AnimationDef.TransformDef();
-            xform.name = sanitizeName(model.getData(1));
+            xform.name = sanitizeName(model.<String>getData(1));
             xform.translation = new float[3];
             xform.rotation = new float[] { 0f, 0f, 0f, 1f };
             xform.scale = new float[] { 1f, 1f, 1f };
@@ -81,7 +81,7 @@ public class AnimationFbxParser extends AbstractFbxParser
             // I think?
             AnimationDef.FrameDef frame = new AnimationDef.FrameDef();
             anim.addFrame(frame);
-            FBXNode layer = findNodeToDest(stack.getData(), "AnimationLayer");
+            FBXNode layer = findNodeToDest(stack.<Long>getData(), "AnimationLayer");
             if (layer == null) {
                 log.warning("Can't find layer?");
                 continue;
@@ -158,12 +158,12 @@ public class AnimationFbxParser extends AbstractFbxParser
                 String pname = prop.getData();
                 if ("TimeMode".equals(pname)) timeMode = prop;
                 else if ("CustomFrameRate".equals(pname)) {
-                    double rate = prop.getData(4);
+                    double rate = prop.<Double>getData(4);
                     if (rate > -1) return (float)rate;
                 }
             }
             if (timeMode != null) {
-                int enumVal = timeMode.getData(4);
+                int enumVal = timeMode.<Integer>getData(4);
                 final float[] standardValues = new float [] {
                     120f, //FbxTime.eFrames120
                     100f, //FbxTime.eFrames100
