@@ -166,26 +166,25 @@ public class AnimationFbxParser extends AbstractFbxParser
             if (timeMode != null) {
                 int enumVal = timeMode.<Integer>getData(4);
                 final float[] standardValues = new float [] {
-                    0f,   //FbxTime.eDefaultMode
-                    120f, //FbxTime.eFrames120
-                    100f, //FbxTime.eFrames100
-                     60f, //FbxTime.eFrames60
-                     50f, //FbxTime.eFrames50
-                     48f, //FbxTime.eFrames48
-                     30f, //FbxTime.eFrames30
-                     29.97f, //FbxTime.eFrames30Drop
-                     29.97f, //FbxTime.eNTSCDropFrame
-                     30f, //FbxTime.eNTSCFullFrame
-                     25f, //FbxTime.eFrames25
-                     25f, //FbxTime.ePAL
-                     24f, //FbxTime.eFrames24
-                   1000f, //FbxTime.eFrames1000
-                     24f, //FbxTime.eFilmFullFrame
-                     96f, //FbxTime.eFrames96
-                     72f, //FbxTime.eFrames72
-                     59.94f, //FbxTime.eFrames59dot94
-                    119.88f //FbxTime.eFrames119dot88
-                            //FbxTime.eCustom (read the custom frame rate)...
+                     14f, // eDefaultMode
+                    120f, // eFrames120
+                    100f, // eFrames100
+                     60f, // eFrames60
+                     50f, // eFrames50
+                     48f, // eFrames48
+                     30f, // eFrames30
+                     29.97f, // eFrames30Drop    // or: 30
+                     29.97f, // eNTSCDropFrame   // or: 29.9700262f
+                     30f, // eNTSCFullFrame      // or: 29.9700262f
+                     25f, // ePAL
+                     24f, // eFrames24
+                   1000f, // eFrames1000
+                     24f, // eFilmFullFrame      // or: 23.976f
+                      0f, // eCustom
+                     96f, // eFrames96
+                     72f, // eFrames72
+                     59.94f, // eFrames59dot94
+                    119.88f // eFrames119dot88
                 };
                 if (enumVal >= 0 && enumVal < standardValues.length) return standardValues[enumVal];
             }
