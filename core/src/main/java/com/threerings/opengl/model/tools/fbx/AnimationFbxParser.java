@@ -146,6 +146,9 @@ public class AnimationFbxParser extends AbstractFbxParser
         return new float[3];
     }
 
+    /**
+     * Read the frame rate or return 0f if it can't be determined.
+     */
     protected float readFrameRate (FBXFile fbx)
     {
         FBXNode settings = fbx.getRootNode().getChildByName("GlobalSettings");
@@ -163,6 +166,7 @@ public class AnimationFbxParser extends AbstractFbxParser
             if (timeMode != null) {
                 int enumVal = timeMode.<Integer>getData(4);
                 final float[] standardValues = new float [] {
+                    0f,   //FbxTime.eDefaultMode
                     120f, //FbxTime.eFrames120
                     100f, //FbxTime.eFrames100
                      60f, //FbxTime.eFrames60
