@@ -27,6 +27,7 @@ import com.lukaseichberg.fbxloader.FBXNode;
 
 import com.threerings.math.Quaternion;
 
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.tools.ModelDef;
 
 import static com.threerings.opengl.Log.log;
@@ -128,6 +129,9 @@ public class ModelFbxParser extends AbstractFbxParser
                         }
                         if (filename != null) mesh.texture = filename;
                     }
+                }
+                if (mesh.texture != null) {
+                    mesh.tag = skinId == null ? ModelConfig.DEFAULT_TAG : ModelConfig.SKINNED_TAG;
                 }
 
             } else {
