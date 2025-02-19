@@ -43,7 +43,15 @@ public class ModelFbxParser extends AbstractFbxParser
     public static ModelDef parseModel (InputStream in, File dir, @Nullable List<String> messages)
         throws IOException
     {
-        return new ModelFbxParser().parse(in, dir, messages);
+        try {
+            return new ModelFbxParser().parse(in, dir, messages);
+        } catch (IOException ioe) {
+            messages.add(ioe.getMessage());
+            throw ioe;
+        } catch (RuntimeException re) {
+            messages.add(re.getMessage());
+            throw re;
+        }
     }
 
     /**
@@ -77,10 +85,6 @@ public class ModelFbxParser extends AbstractFbxParser
 
         // parse nodes
         Map<FBXNode, String> textures = Maps.newHashMap();
-        float[] defaultTranslation = new float[3];
-        float[] defaultRotation = new float[] { 0f, 0f, 0f, 1f };
-        float[] defaultScale = new float[] { 1f, 1f, 1f };
-        //float[] rootPreRotation = defaultRotation;
         for (FBXNode node : models) {
             // see what kind of model it is
             Long id = node.getData(0);
@@ -88,7 +92,7 @@ public class ModelFbxParser extends AbstractFbxParser
             String type = node.getData(2);
             ModelDef.SpatialDef spat;
             boolean isRoot = false;
-            if ("LimbNode".equals(type)) {
+            if ("LimbNode".equals(type) || "Null".equals(type)) {
                 spat = new ModelDef.NodeDef();
 
             } else if ("Root".equals(type)) {
@@ -108,9 +112,9 @@ public class ModelFbxParser extends AbstractFbxParser
                 ModelDef.TriMeshDef mesh = parseMesh(geom, skinId);
                 spat = mesh;
 
-                mesh.offsetTranslation = defaultTranslation;
-                mesh.offsetRotation = defaultRotation; //rootPreRotation.clone();
-                mesh.offsetScale = defaultScale;
+                mesh.offsetTranslation = new float[] { 0f, 0f, 0f };
+                mesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
+                mesh.offsetScale = new float[] { 1f, 1f, 1f };
 
                 // then, after we've potentially set-up bone weights, assign the textures
                 FBXNode material = findNodeToDest(id, "Material");
@@ -144,15 +148,16 @@ public class ModelFbxParser extends AbstractFbxParser
             spat.name = name;
             mapObject(id, spat);
 
-            spat.translation = defaultTranslation;
-            spat.rotation = defaultRotation;
-            spat.scale = defaultScale;
+            spat.translation = new float[] { 0f, 0f, 0f };
+            spat.rotation = new float[] { 0f, 0f, 0f, 1f };
+            spat.scale = new float[] { 1f, 1f, 1f };
 
             FBXNode props = node.getChildByName("Properties70");
             if (props == null) {
                 log.warning("No props for node?", "name", name);
                 continue;
             }
+            float[] preRot = null;
             for (FBXNode prop : props.getChildrenByName("P")) {
                 String pname = prop.getData(0);
                 if ("Lcl Translation".equals(pname)) {
@@ -162,9 +167,16 @@ public class ModelFbxParser extends AbstractFbxParser
                 } else if ("Lcl Scaling".equals(pname)) {
                     spat.scale = getFloatTriplet(prop);
                 } else if ("PreRotation".equals(pname)) {
-                    if (isRoot) preRotation = new Quaternion(getRotation(prop)).invert();
-                    else log.warning("PreRotation found for non-root node?", "name", name);
+                    preRot = getRotation(prop);
+//                    if (isRoot) preRotation = new Quaternion(getRotation(prop)).invert();
+//                    else log.warning("PreRotation found for non-root node?", "name", name);
                 }
+            }
+            if (preRot != null) {
+                log.info("Found pre-rot for a node", "name", name, "prerot", preRot);
+                Quaternion result = new Quaternion(preRot).multLocal(new Quaternion(spat.rotation));
+                result.get(spat.rotation);
+                log.info("Calculated new total rotation", "rot", spat.rotation);
             }
             model.addSpatial(spat);
 

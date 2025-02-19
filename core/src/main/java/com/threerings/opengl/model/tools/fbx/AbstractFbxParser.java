@@ -39,7 +39,7 @@ public abstract class AbstractFbxParser
     protected final ListMultimap<Long, Connection> connsBySrc = ArrayListMultimap.create();
     protected final ListMultimap<Long, Connection> connsByDest = ArrayListMultimap.create();
 
-    protected Quaternion preRotation;
+    private final static float X_OFFSET = 90f;
 
     /**
      * Map fbx nodes that are children of "Objects" by id.
@@ -142,8 +142,7 @@ public abstract class AbstractFbxParser
     protected float[] fromEuler (float x, float y, float z)
     {
         Quaternion qq = new Quaternion().fromAngles(
-            FloatMath.toRadians(x), FloatMath.toRadians(y), FloatMath.toRadians(z));
-        if (preRotation != null) qq.multLocal(preRotation);
+            FloatMath.toRadians(X_OFFSET + x), FloatMath.toRadians(y), FloatMath.toRadians(z));
         float[] values = new float[4];
         qq.get(values);
         return values;
