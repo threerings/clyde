@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
 
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
@@ -353,7 +354,7 @@ class ModelNodeComparator implements Comparator<FBXNode>
     // from Comparator
     public int compare (FBXNode a, FBXNode b)
     {
-        return Integer.compare(nodeOrder(a), nodeOrder(b));
+        return Ints.compare(nodeOrder(a), nodeOrder(b));
     }
 
     private int nodeOrder (FBXNode node)
