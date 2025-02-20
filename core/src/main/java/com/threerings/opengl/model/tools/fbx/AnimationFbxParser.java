@@ -165,7 +165,8 @@ public class AnimationFbxParser extends AbstractFbxParser
             }
             if (timeMode != null) {
                 int enumVal = timeMode.<Integer>getData(4);
-                final float[] standardValues = new float [] {
+                // https://help.autodesk.com/cloudhelp/2020/ENU/FBX-API-Reference/cpp_ref/class_fbx_time.html#a837590fd5310ff5df56ffcf7c394787e
+                final float[] fbxTimeEMode = new float [] {
                      14f, // eDefaultMode
                     120f, // eFrames120
                     100f, // eFrames100
@@ -173,20 +174,20 @@ public class AnimationFbxParser extends AbstractFbxParser
                      50f, // eFrames50
                      48f, // eFrames48
                      30f, // eFrames30
-                     29.97f, // eFrames30Drop    // or: 30
-                     29.97f, // eNTSCDropFrame   // or: 29.9700262f
-                     30f, // eNTSCFullFrame      // or: 29.9700262f
+                     30f, // eFrames30Drop
+                     29.9700262f, // eNTSCDropFrame
+                     29.9700262f, // eNTSCFullFrame
                      25f, // ePAL
                      24f, // eFrames24
                    1000f, // eFrames1000
-                     24f, // eFilmFullFrame      // or: 23.976f
+                     23.976f, // eFilmFullFrame
                       0f, // eCustom
                      96f, // eFrames96
                      72f, // eFrames72
                      59.94f, // eFrames59dot94
-                    119.88f // eFrames119dot88
+                    119.88f  // eFrames119dot88
                 };
-                if (enumVal >= 0 && enumVal < standardValues.length) return standardValues[enumVal];
+                if (enumVal >= 0 && enumVal < fbxTimeEMode.length) return fbxTimeEMode[enumVal];
             }
         }
         return 0f;
