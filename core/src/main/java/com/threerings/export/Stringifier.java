@@ -95,25 +95,6 @@ public abstract class Stringifier<T>
     public abstract T fromString (String string)
         throws Exception;
 
-    /**
-     * A temporary fix to avoid diff annoyance with a certain old Java.
-     */
-    protected static String tempFixFloat (String fs)
-    {
-        // try to remove a trailing 0, but only if:
-        // - there's a . somewhere in the string
-        // - but the dot isn't just before the trailing zero ("1.0" is ok)
-        // - there's no E
-        int last = fs.length() - 1;
-        if (fs.charAt(last) == '0') {
-            int dot = fs.indexOf('.');
-            if ((dot >= 0) && (dot < (last - 1)) && (fs.indexOf('E') == -1)) {
-                return fs.substring(0, last);
-            }
-        }
-        return fs;
-    }
-
     /** Registered stringifiers. */
     protected static HashMap<Class<?>, Stringifier<?>> _stringifiers =
         new HashMap<Class<?>, Stringifier<?>>();
@@ -153,7 +134,7 @@ public abstract class Stringifier<T>
         });
         _stringifiers.put(Double.class, new Stringifier<Double>() {
             public String toString (Double value) {
-                return tempFixFloat(value.toString());
+                return value.toString();
             }
             public Double fromString (String string) {
                 return Double.valueOf(string);
@@ -161,7 +142,7 @@ public abstract class Stringifier<T>
         });
         _stringifiers.put(Float.class, new Stringifier<Float>() {
             public String toString (Float value) {
-                return tempFixFloat(value.toString());
+                return value.toString();
             }
             public Float fromString (String string) {
                 return Float.valueOf(string);

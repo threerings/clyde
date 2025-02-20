@@ -119,14 +119,14 @@ public class XMLExporter extends Exporter
     public void write (String name, double value)
         throws IOException
     {
-        setValue(name, Stringifier.tempFixFloat(Double.toString(value)));
+        setValue(name, Double.toString(value));
     }
 
     @Override
     public void write (String name, float value)
         throws IOException
     {
-        setValue(name, Stringifier.tempFixFloat(Float.toString(value)));
+        setValue(name, Float.toString(value));
     }
 
     @Override
