@@ -112,7 +112,7 @@ public class ModelConfig extends ParameterizedConfig
         MetaParticleSystemConfig.class, SceneInfluencerConfig.class, ViewerAffecterConfig.class,
         ComponentBillboardConfig.class, ConditionalConfig.class, CompoundConfig.class,
         ScriptedConfig.class, ActorModelConfig.Wrapper.class,
-        ShapeModelConfig.class, Derived.class, Schemed.class })
+        ShapeModelConfig.class, Derived.class, Schemed.class, CompletedConfig.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable, Preloadable.LoadableConfig
     {
