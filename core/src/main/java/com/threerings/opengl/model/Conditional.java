@@ -48,6 +48,8 @@ import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.log;
+
 /**
  * A conditional model implementation.
  */
@@ -68,6 +70,11 @@ public class Conditional extends Model.Implementation
      */
     public void setConfig (GlContext ctx, ConditionalConfig config)
     {
+        if (_parentScope instanceof Scene.Transient &&
+                (config.tickPolicy == TickPolicy.WHEN_VISIBLE || config.defaultModel == null)) {
+            log.warning("Conditional possibly dangerously configured inside a SpawnTransient",
+                    "config", config);
+        }
         _ctx = ctx;
         _config = config;
         updateFromConfig();
