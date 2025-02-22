@@ -12,6 +12,8 @@ import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
 import com.lukaseichberg.fbxloader.FBXNode;
 
+import com.threerings.util.DeepUtil;
+
 import com.threerings.opengl.model.tools.AnimationDef;
 
 import static com.threerings.opengl.Log.log;
@@ -42,19 +44,24 @@ public class AnimationFbxParser extends AbstractFbxParser
         populateConnections(fbx);
 
         FBXNode objects = fbx.getRootNode().getChildByName("Objects");
-        populateObjects(objects, "AnimationCurveNode", "AnimationLayer");
+        populateObjects(objects, "AnimationCurve", "AnimationCurveNode", "AnimationLayer");
 
         // read in our default prototype limb transforms
+        // NOTE ======> Unlike in the model parser, we read rotations as **Euler Angles** and
+        // keep them as a 3-element array in the `rotation` property. Only at the end of
+        // each frame do we process all the transforms and convert each to a quaternion
+        // representation!
+        // ===============
         Map<Long, AnimationDef.TransformDef> limbs = Maps.newHashMap();
 
         for (FBXNode model : objects.getChildrenByName("Model")) {
             String type = model.getData(2);
-            if ("Mesh".equals(type)) continue;
+            //if ("Mesh".equals(type)) continue;
 
             AnimationDef.TransformDef xform = new AnimationDef.TransformDef();
             xform.name = sanitizeName(model.<String>getData(1));
             xform.translation = new float[3];
-            xform.rotation = new float[] { 0f, 0f, 0f, 1f };
+            xform.rotation = new float[] { 0f, 0f, 0f }; // EULER ANGLES. See note above!
             xform.scale = new float[] { 1f, 1f, 1f };
 
             FBXNode props = model.getChildByName("Properties70");
@@ -67,7 +74,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                 if ("Lcl Translation".equals(pname)) {
                     xform.translation = getFloatTriplet(prop);
                 } else if ("Lcl Rotation".equals(pname)) {
-                    xform.rotation = getRotation(prop);
+                    xform.rotation = getFloatTriplet(prop); // EULER ANGLES
                 } else if ("Lcl Scaling".equals(pname)) {
                     xform.scale = getFloatTriplet(prop);
                 }
@@ -76,60 +83,110 @@ public class AnimationFbxParser extends AbstractFbxParser
         }
 
         for (FBXNode stack : objects.getChildrenByName("AnimationStack")) {
-            // I think?
-            AnimationDef.FrameDef frame = new AnimationDef.FrameDef();
-            anim.addFrame(frame);
+            if (anim.frames.size() > 0) log.warning("Reading multiple animations? TODO");
+
+            // create a place to stash all the frames in a sorted way
+            Map<Long, AnimationDef.FrameDef> frames = Maps.newTreeMap();
+
             FBXNode layer = findNodeToDest(stack.<Long>getData(), "AnimationLayer");
             if (layer == null) {
                 log.warning("Can't find layer?");
                 continue;
             }
             for (Connection cc : connsByDest.get(layer.<Long>getData())) {
-                Object src = objectsById.get(cc.srcId);
-                if (!(src instanceof FBXNode)) {
-                    log.info("layer connects to what: " + formatObj(src, cc.srcId));
+                Long curveNodeId = cc.srcId;
+                FBXNode srcNode = findNode(curveNodeId, "AnimationCurveNode");
+                if (srcNode == null) {
+                    log.info("layer connects to whaaaat? " + formatObj(cc.srcId));
                     continue;
                 }
-                FBXNode srcNode = (FBXNode)src;
-                if (!"AnimationCurveNode".equals(srcNode.getName())) {
-                    log.info("layer connects to whaaaat? " + formatObj(srcNode, null));
-                    continue;
-                }
-                for (Connection curveCon : connsBySrc.get(cc.srcId)) {
-                    if (!curveCon.type.equals("OP")) continue;
-                    AnimationDef.TransformDef limbProto = limbs.get(curveCon.destId);
+                for (Connection nodeCon : connsBySrc.get(curveNodeId)) {
+                    if (!nodeCon.type.equals("OP")) continue;
+                    AnimationDef.TransformDef limbProto = limbs.get(nodeCon.destId);
                     if (limbProto == null) {
                         // TODO: MaxHandle?
                         log.warning("Unable to find limb prototype for curve node?",
-                                "src", cc.srcId, "prop", curveCon.property);
+                                "src", cc.srcId, "prop", nodeCon.property);
                         continue;
                     }
-                    AnimationDef.TransformDef limb = frame.transforms.get(limbProto.name);
-                    if (limb == null) {
-                        limb = new AnimationDef.TransformDef();
-                        limb.name = limbProto.name;
-                        limb.translation = limbProto.translation.clone();
-                        limb.rotation = limbProto.rotation.clone();
-                        limb.scale = limbProto.scale.clone();
-                        frame.addTransform(limb);
-                    }
-                    if ("Lcl Translation".equals(curveCon.property)) {
+
+                    // clone the limbProto so that we have a limb to work with...
+                    AnimationDef.TransformDef limb = DeepUtil.copy(limbProto);
+                    boolean trans, scale, rot;
+                    if (trans = "Lcl Translation".equals(nodeCon.property)) {
                         limb.translation = parseCurveTriplet(srcNode);
-//                        log.info("Updated nodes translation",
-//                                "node", limb.name, "trans", limb.translation);
+                        scale = rot = false;
 
-                    } else if ("Lcl Scaling".equals(curveCon.property)) {
+                    } else if (scale = "Lcl Scaling".equals(nodeCon.property)) {
                         limb.scale = parseCurveTriplet(srcNode);
-//                        log.info("Updated nodes scale", "node", limb.name, "scale", limb.scale);
+                        rot = false;
 
-                    } else if ("Lcl Rotation".equals(curveCon.property)) {
-                        float[] trip = parseCurveTriplet(srcNode);
-                        limb.rotation = getRotation(trip[0], trip[1], trip[2]);
-//                        log.info("Updated nodes rot", "node", limb.name, "rot", limb.rotation);
+                    } else if (rot = "Lcl Rotation".equals(nodeCon.property)) {
+                        limb.rotation = parseCurveTriplet(srcNode); // EULER ANGLES
+                    } else {
+                        log.info("Unknown curve type?", "prop", nodeCon.property);
+                        continue;
+                    }
+                    // Now find the curves that have this curvenode as their dest
+                    for (Connection curveCon : connsByDest.get(curveNodeId)) {
+                        FBXNode curve = findNode(curveCon.srcId, "AnimationCurve");
+                        if (curve == null) {
+                            log.warning("Can't find curve for node?",
+                                "node", formatObj(srcNode, curveNodeId),
+                                "curve", formatObj(curveCon.srcId));
+                            continue;
+                        }
+                        int idx = "d|X".equals(curveCon.property) ? 0
+                            : "d|Y".equals(curveCon.property) ? 1
+                            : "d|Z".equals(curveCon.property) ? 2
+                            : -1;
+                        if (idx == -1) {
+                            log.warning("Unknown curve property?", "prop", curveCon.property);
+                            continue;
+                        }
+
+                        long[] times = curve.getChildProperty("KeyTime");
+                        float[] values = curve.getChildProperty("KeyValueFloat");
+                        //float defVal = curve.<Double>getChildProperty("Default").floatValue();
+
+                        for (int ii = 0, nn = times.length; ii < nn; ++ii) {
+                            AnimationDef.FrameDef frame = frames.get(times[ii]);
+                            if (frame == null) {
+                                frames.put(times[ii], frame = new AnimationDef.FrameDef());
+                            }
+                            AnimationDef.TransformDef xform = frame.transforms.get(limb.name);
+                            if (xform == null) {
+                                frame.addTransform(xform = DeepUtil.copy(limb));
+                            }
+                            // now read the one value
+                            if (trans) xform.translation[idx] = values[ii];
+                            else if (scale) xform.scale[idx] = values[ii];
+                            else if (rot) xform.rotation[idx] = values[ii];
+                            else throw new RuntimeException("Unhandled curve read");
+                        }
                     }
                 }
             }
+
+            // now copy all the frames into the animation
+            for (AnimationDef.FrameDef frame : frames.values()) { // this is sorted by timestamp
+                // fix all the rotations to be quaternion based
+                for (AnimationDef.TransformDef td : frame.transforms.values()) {
+                    td.rotation = fromEuler(td.rotation[0], td.rotation[1], td.rotation[2]);
+                }
+                anim.addFrame(frame);
+            }
         }
+
+        // Debug
+//        log.info("Parsed animation", "frameRate", anim.frameRate, "frames", anim.frames.size());
+//        for (AnimationDef.FrameDef frame : anim.frames) {
+//            log.info("Frame: " + frame.transforms.size() + " transforms.");
+//            for (AnimationDef.TransformDef xform : frame.transforms.values()) {
+//                log.info("  Node: " + xform.name, "trans", xform.translation, "rot", xform.rotation,
+//                        "scale", xform.scale);
+//            }
+//        }
 
         return anim;
     }

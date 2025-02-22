@@ -130,18 +130,19 @@ public abstract class AbstractFbxParser
                 "TODO! We don't yet support a 4-element rotation in the FBX!",
                 "w?", propertyNode.getData(7)));
         }
-        return getRotation(
-            FloatMath.toRadians(propertyNode.<Double>getData(4).floatValue()),
-            FloatMath.toRadians(propertyNode.<Double>getData(5).floatValue()),
-            FloatMath.toRadians(propertyNode.<Double>getData(6).floatValue()));
+        return fromEuler(
+            propertyNode.<Double>getData(4).floatValue(),
+            propertyNode.<Double>getData(5).floatValue(),
+            propertyNode.<Double>getData(6).floatValue());
     }
 
     /**
-     * Convert a 3-element rotation into the quaternion values needed.
+     * Convert a 3-element euler angles (degrees) rotation into the quaternion values needed.
      */
-    protected float[] getRotation (float x, float y, float z)
+    protected float[] fromEuler (float x, float y, float z)
     {
-        Quaternion qq = new Quaternion().fromAngles(x, y, z);
+        Quaternion qq = new Quaternion().fromAngles(
+            FloatMath.toRadians(x), FloatMath.toRadians(y), FloatMath.toRadians(z));
         if (preRotation != null) qq.multLocal(preRotation);
         float[] values = new float[4];
         qq.get(values);
@@ -194,6 +195,9 @@ public abstract class AbstractFbxParser
         return obj;
     }
 
+    protected Object formatObj (Long id) {
+        return formatObj(objectsById.get(id), id);
+    }
 
     protected void populateConnections (FBXFile fbx) {
         FBXNode connections = fbx.getRootNode().getChildByName("Connections");
