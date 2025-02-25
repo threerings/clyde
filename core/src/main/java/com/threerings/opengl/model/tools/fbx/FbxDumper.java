@@ -1,9 +1,13 @@
 package com.threerings.opengl.model.tools.fbx;
 
+import java.lang.reflect.Array;
+
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXDataType;
 import com.lukaseichberg.fbxloader.FBXNode;
 import com.lukaseichberg.fbxloader.FBXProperty;
+
+import com.samskivert.util.StringUtil;
 
 import static com.threerings.opengl.Log.log;
 
@@ -57,23 +61,23 @@ public class FbxDumper {
         FBXDataType type = prop.getDataType();
         switch (type) {
         case DOUBLE_ARRAY:
-            log.info(indent + ":double array: " + ((double[])prop.getData()).length);
+            log.info(indent + ":double array: " + DumpArray(prop));
             break;
 
         case FLOAT_ARRAY:
-            log.info(indent + ":float array: " + ((float[])prop.getData()).length);
+            log.info(indent + ":float array: " + DumpArray(prop));
             break;
 
         case LONG_ARRAY:
-            log.info(indent + ":long array: " + ((long[])prop.getData()).length);
+            log.info(indent + ":long array: " + DumpArray(prop));
             break;
 
         case INT_ARRAY:
-            log.info(indent + ":int array: " + ((int[])prop.getData()).length);
+            log.info(indent + ":int array: " + DumpArray(prop));
             break;
 
         case BOOLEAN_ARRAY:
-            log.info(indent + ":boolean array: " + ((boolean[])prop.getData()).length);
+            log.info(indent + ":boolean array: " + DumpArray(prop));
             break;
 
         case STRING:
@@ -93,6 +97,17 @@ public class FbxDumper {
             log.info(indent + ":" + type + ": " + prop.getData());
             break;
         }
+    }
+
+    protected static String DumpArray (FBXProperty prop)
+    {
+        return DumpArray(prop.getData());
+    }
+    protected static String DumpArray (Object array)
+    {
+        int len = Array.getLength(array);
+        if (len > 4) return String.valueOf(len);
+        return StringUtil.toString(array, "[", "]");
     }
 
     protected static void DumpProperty70 (FBXNode node, String indent) {
