@@ -148,6 +148,26 @@ public abstract class AbstractFbxParser
         return values;
     }
 
+    protected float[] newRotation ()
+    {
+        return new float[] { 0f, 0f, 0f, 1f };
+    }
+
+    protected float[] newTranslation ()
+    {
+        return new float[] { 0f, 0f, 0f };
+    }
+
+    protected float[] newScale ()
+    {
+        return new float[] { 1f, 1f, 1f };
+    }
+
+    protected float[] newRotationEuler ()
+    {
+        return new float[] { 0f, 0f, 0f };
+    }
+
     /**
      * Sanitize a name for our purposes.
      * <ul>

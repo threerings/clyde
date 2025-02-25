@@ -60,9 +60,9 @@ public class AnimationFbxParser extends AbstractFbxParser
 
             AnimationDef.TransformDef xform = new AnimationDef.TransformDef();
             xform.name = sanitizeName(model.<String>getData(1));
-            xform.translation = new float[3];
-            xform.rotation = new float[] { 0f, 0f, 0f }; // EULER ANGLES. See note above!
-            xform.scale = new float[] { 1f, 1f, 1f };
+            xform.translation = newTranslation();
+            xform.rotation = newRotationEuler();
+            xform.scale = newScale();
 
             FBXNode props = model.getChildByName("Properties70");
             if (props == null) {

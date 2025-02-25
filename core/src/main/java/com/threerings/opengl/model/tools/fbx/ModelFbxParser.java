@@ -112,9 +112,9 @@ public class ModelFbxParser extends AbstractFbxParser
                 ModelDef.TriMeshDef mesh = parseMesh(geom, skinId);
                 spat = mesh;
 
-                mesh.offsetTranslation = new float[] { 0f, 0f, 0f };
-                mesh.offsetRotation = new float[] { 0f, 0f, 0f, 1f };
-                mesh.offsetScale = new float[] { 1f, 1f, 1f };
+                mesh.offsetTranslation = newTranslation();
+                mesh.offsetRotation = newRotation();
+                mesh.offsetScale = newScale();
 
                 // then, after we've potentially set-up bone weights, assign the textures
                 FBXNode material = findNodeToDest(id, "Material");
@@ -148,9 +148,9 @@ public class ModelFbxParser extends AbstractFbxParser
             spat.name = name;
             mapObject(id, spat);
 
-            spat.translation = new float[] { 0f, 0f, 0f };
-            spat.rotation = new float[] { 0f, 0f, 0f, 1f };
-            spat.scale = new float[] { 1f, 1f, 1f };
+            spat.translation = newTranslation();
+            spat.rotation = newRotation();
+            spat.scale = newScale();
 
             FBXNode props = node.getChildByName("Properties70");
             if (props == null) {
@@ -173,10 +173,11 @@ public class ModelFbxParser extends AbstractFbxParser
                 }
             }
             if (preRot != null) {
-                log.info("Found pre-rot for a node", "name", name, "prerot", preRot);
+                //log.info("Found pre-rot for a node",
+                //"name", name, "rot", spat.rotation, "prerot", preRot);
                 Quaternion result = new Quaternion(preRot).multLocal(new Quaternion(spat.rotation));
                 result.get(spat.rotation);
-                log.info("Calculated new total rotation", "rot", spat.rotation);
+                //log.info("Calculated new total rotation", "rot", spat.rotation);
             }
             model.addSpatial(spat);
 
@@ -199,6 +200,11 @@ public class ModelFbxParser extends AbstractFbxParser
             }
         }
 
+//        // dump spatials and their relationships
+//        for (ModelDef.SpatialDef spat : model.spatials.values()) {
+//            log.info("Node", "name", spat.name, "parent", spat.parent, "type", spat.getClass());
+//        }
+
         return model;
     }
 
@@ -217,15 +223,31 @@ public class ModelFbxParser extends AbstractFbxParser
         double[] vertices = geom.getChildProperty("Vertices");
         int[] pvi = geom.getChildProperty("PolygonVertexIndex");
         double[] normals = norms.getChildProperty("Normals");
+        double[] normalsW = norms.getChildProperty("NormalsW");
         double[] uvData = uvs.getChildProperty("UV");
         int[] uvIndex = uvs.getChildProperty("UVIndex");
-        String normalMappingType = norms.getChildProperty("MappingInformationType");
+        String mappingType = norms.getChildProperty("MappingInformationType");
+        NormalMapping normalMapping;
+        if ("ByPolygonVertex".equals(mappingType)) normalMapping = NormalMapping.BY_POLYGON_VERTEX;
+        else if ("ByVertice".equals(mappingType)) normalMapping = NormalMapping.BY_VERTICE;
+        else throw new RuntimeException("Unknown normal mapping: " + mappingType);
 
         ListMultimap<Integer, Integer> verticesLookup = null;
         List<ModelDef.SkinVertex> meshVerts = null;
         if (isSkin) {
             verticesLookup = ArrayListMultimap.create();
             meshVerts = Lists.newArrayList();
+        }
+
+        // TODO: warn if we read normalsW that don't look handled?
+        if (normalsW != null) {
+            for (double dd : normalsW) {
+                if (dd != 1) {
+                    log.warning("NormalsW array contains elements that aren't 1. TODO?",
+                            "normalsW", normalsW);
+                    break;
+                }
+            }
         }
 
         int nidx = 0;
@@ -250,19 +272,19 @@ public class ModelFbxParser extends AbstractFbxParser
             };
 
             // Set normal
-            if ("ByPolygonVertex".equals(normalMappingType)) {
+            if (normalMapping == NormalMapping.BY_POLYGON_VERTEX) {
                 vv.normal = new float[] {
                     (float)normals[nidx], (float)normals[nidx + 1], (float)normals[nidx + 2]
                 };
                 nidx += 3;
 
-            } else if ("ByVertice".equals(normalMappingType)) {
+            } else if (normalMapping == NormalMapping.BY_VERTICE) {
                 vv.normal = new float[] {
                     (float)normals[vi], (float)normals[vi + 1], (float)normals[vi + 2]
                 };
 
             } else {
-                log.warning("Unknown normalMappingType " + normalMappingType);
+                log.warning("Unhandled normalMappingType " + normalMapping);
             }
 
             // Set UV coordinates
@@ -356,6 +378,11 @@ public class ModelFbxParser extends AbstractFbxParser
         Files.write((byte[])data, new File(dir, basename));
         return basename;
     }
+
+    enum NormalMapping {
+        BY_POLYGON_VERTEX,
+        BY_VERTICE,
+    };
 }
 
 /**
@@ -373,8 +400,9 @@ class ModelNodeComparator implements Comparator<FBXNode>
     {
         String type = node.<String>getData(2);
         return "Root".equals(type) ? 0
-            : "LimbNode".equals(type) ? 1
-            : "Mesh".equals(type) ? 2
-            : 3; // unknowns last
+            : "Null".equals(type) ? 1
+            : "LimbNode".equals(type) ? 2
+            : "Mesh".equals(type) ? 100
+            : 99; // unknowns still before meshes
     }
 }
