@@ -26,6 +26,7 @@ import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
 import com.lukaseichberg.fbxloader.FBXNode;
 
+import com.threerings.util.XmlFormatter;
 import com.threerings.math.Quaternion;
 
 import com.threerings.opengl.model.config.ModelConfig;
@@ -205,6 +206,7 @@ public class ModelFbxParser extends AbstractFbxParser
 //            log.info("Node", "name", spat.name, "parent", spat.parent, "type", spat.getClass());
 //        }
 
+        log.info("Look ma it's a dump:\n" + new ModelXmlFormatter().format(model));
         return model;
     }
 
@@ -404,5 +406,76 @@ class ModelNodeComparator implements Comparator<FBXNode>
             : "LimbNode".equals(type) ? 2
             : "Mesh".equals(type) ? 100
             : 99; // unknowns still before meshes
+    }
+}
+
+class ModelXmlFormatter extends XmlFormatter
+{
+    @Override
+    protected String getName (Object node)
+    {
+        if (node instanceof ModelDef) return "model";
+        if (node instanceof ModelDef.NodeDef) return "node";
+        if (node instanceof ModelDef.SkinMeshDef) return "skinMesh";
+        if (node instanceof ModelDef.TriMeshDef) return "triMesh";
+        if (node instanceof ModelDef.Vertex) return "vertex";
+        if (node instanceof ModelDef.Extra) return "extra";
+        if (node instanceof ModelDef.BoneWeight) return "boneWeight";
+        return super.getName(node);
+    }
+
+    @Override
+    protected Collection<Object> getNodes (Object node)
+    {
+        if (node instanceof ModelDef) return Lists.newArrayList(((ModelDef)node).spatials.values());
+        if (node instanceof ModelDef.Vertex) {
+            ModelDef.Vertex vv = (ModelDef.Vertex)node;
+            List<Object> nodes = Lists.newArrayList(vv.extras);
+            if (vv instanceof ModelDef.SkinVertex) {
+                nodes.addAll(((ModelDef.SkinVertex)vv).boneWeights.values());
+            }
+            return nodes;
+        }
+        if (node instanceof ModelDef.TriMeshDef) {
+            return Lists.newArrayList(((ModelDef.TriMeshDef)node).vertices);
+        }
+        return super.getNodes(node);
+    }
+
+    @Override
+    protected List<Object> getProperties (Object node)
+    {
+        List<Object> list = Lists.newArrayList();
+        if (node instanceof ModelDef.SpatialDef) {
+            ModelDef.SpatialDef spat = (ModelDef.SpatialDef)node;
+            list.add("name"); list.add(spat.name);
+            list.add("parent"); list.add(spat.parent);
+            list.add("translation"); list.add(spat.translation);
+            list.add("rotation"); list.add(spat.rotation);
+            list.add("scale"); list.add(spat.scale);
+            if (spat instanceof ModelDef.TriMeshDef) {
+                ModelDef.TriMeshDef triMesh = (ModelDef.TriMeshDef)spat;
+                list.add("offsetTranslation"); list.add(triMesh.offsetTranslation);
+                list.add("offsetRotation"); list.add(triMesh.offsetRotation);
+                list.add("offsetScale"); list.add(triMesh.offsetScale);
+                list.add("tag"); list.add(triMesh.tag);
+                list.add("texture"); list.add(triMesh.texture);
+            }
+        } else if (node instanceof ModelDef.Vertex) {
+            ModelDef.Vertex vv = (ModelDef.Vertex)node;
+            list.add("location"); list.add(vv.location);
+            list.add("normal"); list.add(vv.normal);
+            list.add("tcoords"); list.add(vv.tcoords);
+            list.add("color"); list.add(vv.color);
+        } else if (node instanceof ModelDef.Extra) {
+            ModelDef.Extra ee = (ModelDef.Extra)node;
+            list.add("tcoords"); list.add(ee.tcoords);
+        } else if (node instanceof ModelDef.BoneWeight) {
+            ModelDef.BoneWeight bw = (ModelDef.BoneWeight)node;
+            list.add("bone"); list.add(bw.bone);
+            list.add("weight"); list.add(bw.weight);
+        }
+
+        return list;
     }
 }
