@@ -111,7 +111,7 @@ public class FbxDumper {
     }
 
     protected static void DumpProperty70 (FBXNode node, String indent) {
-        StringBuilder buf = new StringBuilder();
+        StringBuilder buf = new StringBuilder(node.getName());
         StringBuilder val = new StringBuilder();
         for (int ii = 0, nn = node.getNumProperties(); ii < nn; ++ii) {
             FBXProperty prop = node.getProperty(ii);

@@ -41,7 +41,7 @@ public class AnimationFbxParser extends AbstractFbxParser
         AnimationDef anim = new AnimationDef();
         anim.frameRate = readFrameRate(fbx);
 
-        populateConnections(fbx);
+        init(fbx);
 
         FBXNode objects = fbx.getRootNode().getChildByName("Objects");
         populateObjects(objects, "AnimationCurve", "AnimationCurveNode", "AnimationLayer");
@@ -72,11 +72,11 @@ public class AnimationFbxParser extends AbstractFbxParser
             for (FBXNode prop : props.getChildrenByName("P")) {
                 String pname = prop.getData(0);
                 if ("Lcl Translation".equals(pname)) {
-                    xform.translation = getFloatTriplet(prop);
+                    xform.translation = getXYZ(prop);
                 } else if ("Lcl Rotation".equals(pname)) {
-                    xform.rotation = getFloatTriplet(prop); // EULER ANGLES
+                    xform.rotation = getXYZ(prop); // EULER ANGLES
                 } else if ("Lcl Scaling".equals(pname)) {
-                    xform.scale = getFloatTriplet(prop);
+                    xform.scale = getXYZUnsigned(prop);
                 }
             }
             limbs.put(model.<Long>getData(), xform);
@@ -136,11 +136,17 @@ public class AnimationFbxParser extends AbstractFbxParser
                                 "curve", formatObj(curveCon.srcId));
                             continue;
                         }
-                        int idx = "d|X".equals(curveCon.property) ? 0
-                            : "d|Y".equals(curveCon.property) ? 1
-                            : "d|Z".equals(curveCon.property) ? 2
-                            : -1;
-                        if (idx == -1) {
+                        int idx, sgn;
+                        if ("d|X".equals(curveCon.property)) {
+                            idx = xAxis;
+                            sgn = xAxisSign;
+                        } else if ("d|Y".equals(curveCon.property)) {
+                            idx = yAxis;
+                            sgn = yAxisSign;
+                        } else if ("d|Z".equals(curveCon.property)) {
+                            idx = zAxis;
+                            sgn = zAxisSign;
+                        } else {
                             log.warning("Unknown curve property?", "prop", curveCon.property);
                             continue;
                         }
@@ -159,9 +165,9 @@ public class AnimationFbxParser extends AbstractFbxParser
                                 frame.addTransform(xform = DeepUtil.copy(limb));
                             }
                             // now read the one value
-                            if (trans) xform.translation[idx] = values[ii];
+                            if (trans) xform.translation[idx] = values[ii] * sgn;
                             else if (scale) xform.scale[idx] = values[ii];
-                            else if (rot) xform.rotation[idx] = values[ii];
+                            else if (rot) xform.rotation[idx] = values[ii] * sgn;
                             else throw new RuntimeException("Unhandled curve read");
                         }
                     }

@@ -39,7 +39,52 @@ public abstract class AbstractFbxParser
     protected final ListMultimap<Long, Connection> connsBySrc = ArrayListMultimap.create();
     protected final ListMultimap<Long, Connection> connsByDest = ArrayListMultimap.create();
 
-    private final static float X_OFFSET = 90f;
+    protected int xAxis = 0;
+    protected int xAxisSign = 1;
+    protected int yAxis = 1;
+    protected int yAxisSign = 1;
+    protected int zAxis = 2;
+    protected int zAxisSign= 1;
+
+    protected void init (FBXFile fbx)
+    {
+        readSettings(fbx);
+        populateConnections(fbx);
+    }
+
+    protected void readSettings (FBXFile fbx)
+    {
+        FBXNode settings = fbx.getRootNode().getChildByName("GlobalSettings");
+        if (settings == null) return;
+        FBXNode props = settings.getChildByName("Properties70");
+        if (props == null) return;
+        for (FBXNode prop : props.getChildrenByName("P")) {
+            String pname = prop.getData();
+            if ("CoordAxis".equals(pname)) xAxis = prop.<Integer>getData(4);
+            else if ("CoordAxisSign".equals(pname)) xAxisSign = prop.<Integer>getData(4);
+            else if ("FrontAxis".equals(pname)) yAxis = prop.<Integer>getData(4);
+            else if ("FrontAxisSign".equals(pname)) yAxisSign = -1 * prop.<Integer>getData(4);
+            else if ("UpAxis".equals(pname)) zAxis = prop.<Integer>getData(4);
+            else if ("UpAxisSign".equals(pname)) zAxisSign = prop.<Integer>getData(4);
+        }
+//        log.info("Nothing is certain but depth and axes",
+//                "xAxis", axisStr(xAxis, xAxisSign),
+//                "yAxis", axisStr(yAxis, yAxisSign),
+//                "zAxis", axisStr(zAxis, zAxisSign));
+//    }
+//    private String axisStr (int axis, int sign)
+//    {
+//        return "(" + (sign > 0 ? "+" : "-") + ") " + axis;
+    }
+
+    protected void populateConnections (FBXFile fbx) {
+        FBXNode connections = fbx.getRootNode().getChildByName("Connections");
+        for (FBXNode cNode : connections.getChildrenByName("C")) {
+            Connection conn = new Connection(cNode);
+            connsBySrc.put(conn.srcId, conn);
+            connsByDest.put(conn.destId, conn);
+        }
+    }
 
     /**
      * Map fbx nodes that are children of "Objects" by id.
@@ -120,6 +165,22 @@ public abstract class AbstractFbxParser
             propertyNode.<Double>getData(6).floatValue() };
     }
 
+    protected float[] getXYZ (FBXNode propertyNode)
+    {
+        return new float[] {
+            propertyNode.<Double>getData(4 + xAxis).floatValue() * xAxisSign,
+            propertyNode.<Double>getData(4 + yAxis).floatValue() * yAxisSign,
+            propertyNode.<Double>getData(4 + zAxis).floatValue() * zAxisSign };
+    }
+
+    protected float[] getXYZUnsigned (FBXNode propertyNode)
+    {
+        return new float[] {
+            propertyNode.<Double>getData(4 + xAxis).floatValue(),
+            propertyNode.<Double>getData(4 + yAxis).floatValue(),
+            propertyNode.<Double>getData(4 + zAxis).floatValue()};
+    }
+
     /**
      * Get the rotation out of a property node.
      */
@@ -131,9 +192,9 @@ public abstract class AbstractFbxParser
                 "w?", propertyNode.getData(7)));
         }
         return fromEuler(
-            propertyNode.<Double>getData(4).floatValue(),
-            propertyNode.<Double>getData(5).floatValue(),
-            propertyNode.<Double>getData(6).floatValue());
+            propertyNode.<Double>getData(4 + xAxis).floatValue(),
+            propertyNode.<Double>getData(4 + yAxis).floatValue(),
+            propertyNode.<Double>getData(4 + zAxis).floatValue());
     }
 
     /**
@@ -142,7 +203,7 @@ public abstract class AbstractFbxParser
     protected float[] fromEuler (float x, float y, float z)
     {
         Quaternion qq = new Quaternion().fromAngles(
-            FloatMath.toRadians(X_OFFSET + x), FloatMath.toRadians(y), FloatMath.toRadians(z));
+            FloatMath.toRadians(x), FloatMath.toRadians(y), FloatMath.toRadians(z));
         float[] values = new float[4];
         qq.get(values);
         return values;
@@ -216,15 +277,6 @@ public abstract class AbstractFbxParser
 
     protected Object formatObj (Long id) {
         return formatObj(objectsById.get(id), id);
-    }
-
-    protected void populateConnections (FBXFile fbx) {
-        FBXNode connections = fbx.getRootNode().getChildByName("Connections");
-        for (FBXNode cNode : connections.getChildrenByName("C")) {
-            Connection conn = new Connection(cNode);
-            connsBySrc.put(conn.srcId, conn);
-            connsByDest.put(conn.destId, conn);
-        }
     }
 
     protected static class Connection

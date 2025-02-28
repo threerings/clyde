@@ -17,6 +17,7 @@ import com.samskivert.util.StringUtil;
 
 import com.google.common.io.Files;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -71,7 +72,7 @@ public class ModelFbxParser extends AbstractFbxParser
         //FbxDumper.Dump(fbx);
 
         // read and populate the connections
-        populateConnections(fbx);
+        init(fbx);
 
         FBXNode objects = fbx.getRootNode().getChildByName("Objects");
 
@@ -162,23 +163,18 @@ public class ModelFbxParser extends AbstractFbxParser
             for (FBXNode prop : props.getChildrenByName("P")) {
                 String pname = prop.getData(0);
                 if ("Lcl Translation".equals(pname)) {
-                    spat.translation = getFloatTriplet(prop);
+                    spat.translation = getXYZ(prop);
                 } else if ("Lcl Rotation".equals(pname)) {
                     spat.rotation = getRotation(prop);
                 } else if ("Lcl Scaling".equals(pname)) {
-                    spat.scale = getFloatTriplet(prop);
+                    spat.scale = getXYZUnsigned(prop);
                 } else if ("PreRotation".equals(pname)) {
                     preRot = getRotation(prop);
-//                    if (isRoot) preRotation = new Quaternion(getRotation(prop)).invert();
-//                    else log.warning("PreRotation found for non-root node?", "name", name);
                 }
             }
             if (preRot != null) {
-                //log.info("Found pre-rot for a node",
-                //"name", name, "rot", spat.rotation, "prerot", preRot);
                 Quaternion result = new Quaternion(preRot).multLocal(new Quaternion(spat.rotation));
                 result.get(spat.rotation);
-                //log.info("Calculated new total rotation", "rot", spat.rotation);
             }
             model.addSpatial(spat);
 
@@ -201,12 +197,7 @@ public class ModelFbxParser extends AbstractFbxParser
             }
         }
 
-//        // dump spatials and their relationships
-//        for (ModelDef.SpatialDef spat : model.spatials.values()) {
-//            log.info("Node", "name", spat.name, "parent", spat.parent, "type", spat.getClass());
-//        }
-
-        log.info("Look ma it's a dump:\n" + new ModelXmlFormatter().format(model));
+//        log.info("Look ma it's a dump:\n" + new ModelXmlFormatter().format(model));
         return model;
     }
 
@@ -270,19 +261,25 @@ public class ModelFbxParser extends AbstractFbxParser
             // Set vertex position
             int vi = idx * 3;
             vv.location = new float[] {
-                (float)vertices[vi], (float)vertices[vi + 1], (float)vertices[vi + 2]
+                (float)vertices[vi + xAxis] * xAxisSign,
+                (float)vertices[vi + yAxis] * yAxisSign,
+                (float)vertices[vi + zAxis] * zAxisSign
             };
 
             // Set normal
             if (normalMapping == NormalMapping.BY_POLYGON_VERTEX) {
                 vv.normal = new float[] {
-                    (float)normals[nidx], (float)normals[nidx + 1], (float)normals[nidx + 2]
+                    (float)normals[nidx + xAxis] * xAxisSign,
+                    (float)normals[nidx + yAxis] * yAxisSign,
+                    (float)normals[nidx + zAxis] * zAxisSign
                 };
                 nidx += 3;
 
             } else if (normalMapping == NormalMapping.BY_VERTICE) {
                 vv.normal = new float[] {
-                    (float)normals[vi], (float)normals[vi + 1], (float)normals[vi + 2]
+                    (float)normals[vi + xAxis] * xAxisSign,
+                    (float)normals[vi + yAxis] * yAxisSign,
+                    (float)normals[vi + zAxis] * zAxisSign
                 };
 
             } else {
@@ -409,6 +406,10 @@ class ModelNodeComparator implements Comparator<FBXNode>
     }
 }
 
+/**
+ * Outputs a ModelDef back as the .mxml file format.
+ * For debugging. Hm I probably reinvented a wheel here.
+ */
 class ModelXmlFormatter extends XmlFormatter
 {
     @Override
@@ -425,19 +426,21 @@ class ModelXmlFormatter extends XmlFormatter
     }
 
     @Override
-    protected Collection<Object> getNodes (Object node)
+    protected Collection<? extends Object> getNodes (Object node)
     {
-        if (node instanceof ModelDef) return Lists.newArrayList(((ModelDef)node).spatials.values());
+        if (node instanceof ModelDef) return ((ModelDef)node).spatials.values();
         if (node instanceof ModelDef.Vertex) {
             ModelDef.Vertex vv = (ModelDef.Vertex)node;
-            List<Object> nodes = Lists.newArrayList(vv.extras);
             if (vv instanceof ModelDef.SkinVertex) {
-                nodes.addAll(((ModelDef.SkinVertex)vv).boneWeights.values());
+                ModelDef.SkinVertex sv = (ModelDef.SkinVertex)vv;
+                if (sv.boneWeights.size() > 0) {
+                    return Lists.newArrayList(Iterables.concat(vv.extras, sv.boneWeights.values()));
+                }
             }
-            return nodes;
+            return vv.extras;
         }
         if (node instanceof ModelDef.TriMeshDef) {
-            return Lists.newArrayList(((ModelDef.TriMeshDef)node).vertices);
+            return ((ModelDef.TriMeshDef)node).vertices;
         }
         return super.getNodes(node);
     }

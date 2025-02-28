@@ -33,7 +33,7 @@ public abstract class XmlFormatter
                 builder.append('"');
             }
         }
-        Collection<Object> nodes = getNodes(obj);
+        Collection<? extends Object> nodes = getNodes(obj);
         if (nodes.isEmpty()) builder.append("/>\n");
         else {
             builder.append(">\n");
@@ -57,7 +57,7 @@ public abstract class XmlFormatter
     /**
      * Get any subnodes.
      */
-    protected Collection<Object> getNodes (Object node)
+    protected Collection<? extends Object> getNodes (Object node)
     {
         return Collections.emptyList();
     }
