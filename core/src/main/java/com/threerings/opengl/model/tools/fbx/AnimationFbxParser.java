@@ -36,7 +36,7 @@ public class AnimationFbxParser extends AbstractFbxParser
         throws IOException
     {
         FBXFile fbx = FBXLoader.loadFBXFile("anim", in);
-        //FbxDumper.Dump(fbx);
+        FbxDumper.Dump(fbx);
 
         AnimationDef anim = new AnimationDef();
         anim.frameRate = readFrameRate(fbx);
@@ -185,14 +185,14 @@ public class AnimationFbxParser extends AbstractFbxParser
         }
 
         // Debug
-//        log.info("Parsed animation", "frameRate", anim.frameRate, "frames", anim.frames.size());
-//        for (AnimationDef.FrameDef frame : anim.frames) {
-//            log.info("Frame: " + frame.transforms.size() + " transforms.");
-//            for (AnimationDef.TransformDef xform : frame.transforms.values()) {
-//                log.info("  Node: " + xform.name, "trans", xform.translation, "rot", xform.rotation,
-//                        "scale", xform.scale);
-//            }
-//        }
+        log.info("Parsed animation", "frameRate", anim.frameRate, "frames", anim.frames.size());
+        for (AnimationDef.FrameDef frame : anim.frames) {
+            log.info("Frame: " + frame.transforms.size() + " transforms.");
+            for (AnimationDef.TransformDef xform : frame.transforms.values()) {
+                log.info("  Node: " + xform.name, "trans", xform.translation, "rot", xform.rotation,
+                        "scale", xform.scale);
+            }
+        }
 
         return anim;
     }
