@@ -87,6 +87,7 @@ public class ModelFbxParser extends AbstractFbxParser
 
         // parse nodes
         Map<FBXNode, String> textures = Maps.newHashMap();
+        int meshes = 0;
         for (FBXNode node : models) {
             // see what kind of model it is
             Long id = node.getData(0);
@@ -137,8 +138,20 @@ public class ModelFbxParser extends AbstractFbxParser
                         if (filename != null) mesh.texture = filename;
                     }
                 }
-                if (mesh.texture != null) {
-                    mesh.tag = skinId == null ? ModelConfig.DEFAULT_TAG : ModelConfig.SKINNED_TAG;
+                if (meshes++ == 0) {
+                    mesh.tag = mesh.texture != null && skinId != null ? ModelConfig.SKINNED_TAG
+                        : ModelConfig.DEFAULT_TAG;
+                } else {
+                    mesh.tag = name;
+                    if (mesh.tag.endsWith(" mesh")) {
+                        mesh.tag = mesh.tag.substring(0, mesh.tag.length() - 5);
+                    }
+                    if (mesh.tag.startsWith("mesh ")) {
+                        mesh.tag = mesh.tag.substring(5, mesh.tag.length());
+                    }
+                }
+                if (messages != null) {
+                    messages.add(Logger.format("Added mesh", "name", name, "tag", mesh.tag));
                 }
 
             } else {
