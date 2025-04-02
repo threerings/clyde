@@ -244,7 +244,7 @@ public class ModelConfig extends ParameterizedConfig
         @DeepOmit
         public transient String[] importMessages;
 
-        /** The model scale. */
+        /** The model scale. Used only during import. */
         @Editable(min=0, step=0.01, hgroup="s")
         public float scale = 0.01f;
 
