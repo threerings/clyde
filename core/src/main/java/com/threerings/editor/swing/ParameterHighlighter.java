@@ -221,7 +221,6 @@ public class ParameterHighlighter
         /** The editor for the name. */
         protected final PropertyEditor _nameEditor;
 
-        /** The current set of property editors referenced by the paths, mapped to pathInfo. */
         /** The targets that were updated during the last update. */
         protected Set<BasePropertyEditor> _lastTargets = ImmutableSet.of();
 
