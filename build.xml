@@ -78,6 +78,9 @@
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
       <compilerarg value="-Xlint:-this-escape"/>
+      <!-- TODO: re-enable warnings of rawtypes and unchecked (after they're cleaned up!) -->
+      <compilerarg value="-Xlint:-rawtypes"/>
+      <compilerarg value="-Xlint:-unchecked"/>
     </javac>
 
     <mkdir dir="${tclasses.dir}"/>
