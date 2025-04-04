@@ -354,11 +354,17 @@ public class ModelFbxParser extends AbstractFbxParser
 
     protected String assignMeshTag (ModelDef.TriMeshDef mesh, String name)
     {
+        // if we have a texture, assign the default name to the first seen and any other
+        // meshes that match that, otherwise give it a name based on the texture or the name
         if (!StringUtil.isBlank(mesh.texture)) {
-            int lastDot = mesh.texture.lastIndexOf('.');
-            return lastDot == -1 ? mesh.texture : mesh.texture.substring(0, lastDot);
+            if (firstTexture == null) firstTexture = mesh.texture;
+            else if (!firstTexture.equals(mesh.texture)) {
+                int lastDot = mesh.texture.lastIndexOf('.');
+                return lastDot == -1 ? mesh.texture : mesh.texture.substring(0, lastDot);
+            }
+            return (mesh instanceof ModelDef.SkinMeshDef) ? ModelConfig.SKINNED_TAG
+                : ModelConfig.DEFAULT_TAG;
         }
-        if (StringUtil.isBlank(name)) return null; // mesh.getDefaultTag(); // ???
         String tag = name;
         if (tag.endsWith(" mesh")) {
             tag = tag.substring(0, tag.length() - 5);
@@ -368,6 +374,9 @@ public class ModelFbxParser extends AbstractFbxParser
         }
         return tag;
     }
+
+    // track the name of the first seen texture
+    protected String firstTexture;
 
     protected String extractTexture (FBXNode node, File dir)
         throws IOException
