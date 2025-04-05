@@ -78,6 +78,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                 } else if ("Lcl Scaling".equals(pname)) {
                     xform.scale = getXYZUnsigned(prop);
                 }
+                // TODO: "RotationPivot"? "ScalingPivot"?
             }
             limbs.put(model.<Long>getData(), xform);
         }
@@ -165,9 +166,9 @@ public class AnimationFbxParser extends AbstractFbxParser
                                 frame.addTransform(xform = DeepUtil.copy(limb));
                             }
                             // now read the one value
-                            if (trans) xform.translation[idx] = values[ii] * sgn;
-                            else if (scale) xform.scale[idx] = values[ii];
-                            else if (rot) xform.rotation[idx] = values[ii] * sgn;
+                            if (trans) xform.translation[idx] = values[ii] /** sgn*/;
+                            else if (scale) xform.scale[idx] = values[ii] /** sgn*/;
+                            else if (rot) xform.rotation[idx] = values[ii] /** sgn*/;
                             else throw new RuntimeException("Unhandled curve read");
                         }
                     }
