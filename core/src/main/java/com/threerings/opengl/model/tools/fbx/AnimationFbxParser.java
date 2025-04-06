@@ -74,7 +74,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                 if ("Lcl Translation".equals(pname)) {
                     xform.translation = getXYZ(prop);
                 } else if ("Lcl Rotation".equals(pname)) {
-                    xform.rotation = getXYZ(prop); // EULER ANGLES
+                    xform.rotation = getXYZUnsigned(prop); // EULER ANGLES
                 } else if ("Lcl Scaling".equals(pname)) {
                     xform.scale = getXYZUnsigned(prop);
                 }
@@ -166,9 +166,9 @@ public class AnimationFbxParser extends AbstractFbxParser
                                 frame.addTransform(xform = DeepUtil.copy(limb));
                             }
                             // now read the one value
-                            if (trans) xform.translation[idx] = values[ii] /** sgn*/;
-                            else if (scale) xform.scale[idx] = values[ii] /** sgn*/;
-                            else if (rot) xform.rotation[idx] = values[ii] /** sgn*/;
+                            if (trans) xform.translation[idx] = values[ii] * sgn;
+                            else if (scale) xform.scale[idx] = values[ii];
+                            else if (rot) xform.rotation[idx] = values[ii];
                             else throw new RuntimeException("Unhandled curve read");
                         }
                     }

@@ -157,14 +157,6 @@ public abstract class AbstractFbxParser
         return null;
     }
 
-    protected float[] getFloatTriplet (FBXNode propertyNode)
-    {
-        return new float[] {
-            propertyNode.<Double>getData(4).floatValue(),
-            propertyNode.<Double>getData(5).floatValue(),
-            propertyNode.<Double>getData(6).floatValue() };
-    }
-
     protected float[] getXYZ (FBXNode propertyNode)
     {
         return new float[] {
@@ -178,7 +170,7 @@ public abstract class AbstractFbxParser
         return new float[] {
             propertyNode.<Double>getData(4 + xAxis).floatValue(),
             propertyNode.<Double>getData(4 + yAxis).floatValue(),
-            propertyNode.<Double>getData(4 + zAxis).floatValue()};
+            propertyNode.<Double>getData(4 + zAxis).floatValue() };
     }
 
     /**
