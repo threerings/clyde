@@ -49,10 +49,12 @@ public class ModelFbxParser extends AbstractFbxParser
             return new ModelFbxParser().parse(in, dir, messages);
         } catch (IOException ioe) {
             messages.add(ioe.getMessage());
-            throw ioe;
+            return null;
+            //throw ioe;
         } catch (RuntimeException re) {
             messages.add(re.getMessage());
-            throw re;
+            return null;
+            //throw re;
         }
     }
 
