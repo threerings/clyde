@@ -217,9 +217,9 @@ public class ModelFbxParser extends AbstractFbxParser
         double[] vertices = geom.getChildProperty("Vertices");
         int[] pvi = geom.getChildProperty("PolygonVertexIndex");
         double[] normals = norms.getChildProperty("Normals");
-        double[] normalsW = norms.getChildProperty("NormalsW");
-        double[] uvData = uvs.getChildProperty("UV");
-        int[] uvIndex = uvs.getChildProperty("UVIndex");
+//        double[] normalsW = norms.getChildProperty("NormalsW");
+        double[] uvData = uvs != null ? uvs.getChildProperty("UV") : null;
+        int[] uvIndex = uvs != null ? uvs.getChildProperty("UVIndex") : null;
         String mappingType = norms.getChildProperty("MappingInformationType");
         NormalMapping normalMapping;
         if ("ByPolygonVertex".equals(mappingType)) normalMapping = NormalMapping.BY_POLYGON_VERTEX;
@@ -233,16 +233,16 @@ public class ModelFbxParser extends AbstractFbxParser
             meshVerts = Lists.newArrayList();
         }
 
-        // TODO: warn if we read normalsW that don't look handled?
-        if (normalsW != null) {
-            for (double dd : normalsW) {
-                if (dd != 1) {
-                    log.warning("NormalsW array contains elements that aren't 1. TODO?",
-                            "normalsW", normalsW);
-                    break;
-                }
-            }
-        }
+//        // TODO: warn if we read normalsW that don't look handled?
+//        if (normalsW != null) {
+//            for (double dd : normalsW) {
+//                if (dd != 1) {
+//                    log.warning("NormalsW array contains elements that aren't 1. TODO?",
+//                            "normalsW", normalsW);
+//                    break;
+//                }
+//            }
+//        }
 
         int nidx = 0;
         int uidx = 0;
@@ -288,10 +288,12 @@ public class ModelFbxParser extends AbstractFbxParser
             }
 
             // Set UV coordinates
-            int uvIdx = uvIndex[uidx++];
-            if (uvIdx != -1) {
-                uvIdx *= 2;
-                vv.tcoords = new float[] { (float)uvData[uvIdx], (float)uvData[uvIdx + 1] };
+            if (uvs != null) {
+                int uvIdx = uvIndex[uidx++];
+                if (uvIdx != -1) {
+                    uvIdx *= 2;
+                    vv.tcoords = new float[] { (float)uvData[uvIdx], (float)uvData[uvIdx + 1] };
+                }
             }
 
             if (isSkin) {
