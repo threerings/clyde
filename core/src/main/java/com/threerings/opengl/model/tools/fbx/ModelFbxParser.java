@@ -218,8 +218,8 @@ public class ModelFbxParser extends AbstractFbxParser
         int[] pvi = geom.getChildProperty("PolygonVertexIndex");
         double[] normals = norms.getChildProperty("Normals");
 //        double[] normalsW = norms.getChildProperty("NormalsW");
-        double[] uvData = uvs != null ? uvs.getChildProperty("UV") : null;
-        int[] uvIndex = uvs != null ? uvs.getChildProperty("UVIndex") : null;
+        double[] uvData = uvs != null ? uvs.<double[]>getChildProperty("UV") : null;
+        int[] uvIndex = uvs != null ? uvs.<int[]>getChildProperty("UVIndex") : null;
         String mappingType = norms.getChildProperty("MappingInformationType");
         NormalMapping normalMapping;
         if ("ByPolygonVertex".equals(mappingType)) normalMapping = NormalMapping.BY_POLYGON_VERTEX;
