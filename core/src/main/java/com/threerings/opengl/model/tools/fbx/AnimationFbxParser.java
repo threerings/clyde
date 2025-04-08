@@ -36,7 +36,7 @@ public class AnimationFbxParser extends AbstractFbxParser
         throws IOException
     {
         FBXFile fbx = FBXLoader.loadFBXFile("anim", in);
-        //FbxDumper.Dump(fbx);
+        //FbxDumper.DumpToOut(fbx);
 
         AnimationDef anim = new AnimationDef();
         anim.frameRate = readFrameRate(fbx);

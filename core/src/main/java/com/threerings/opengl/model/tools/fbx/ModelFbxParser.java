@@ -71,7 +71,7 @@ public class ModelFbxParser extends AbstractFbxParser
         throws IOException
     {
         FBXFile fbx = FBXLoader.loadFBXFile("model", in);
-        //FbxDumper.Dump(fbx);
+        //FbxDumper.DumpToOut(fbx);
 
         // read and populate the connections
         init(fbx);
