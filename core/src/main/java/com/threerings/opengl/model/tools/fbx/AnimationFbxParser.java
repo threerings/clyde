@@ -56,7 +56,8 @@ public class AnimationFbxParser extends AbstractFbxParser
         // representation!
         // ===============
         Map<Long, AnimationDef.TransformDef> limbs = Maps.newHashMap();
-        Map<String, Vector3f> pivots = Maps.newHashMap();
+        Map<String, Vector3f> rotPivots = Maps.newHashMap();
+        Map<String, Vector3f> scalePivots = Maps.newHashMap();
 
         for (FBXNode model : objects.getChildrenByName("Model")) {
             Long id = model.getData();
@@ -83,9 +84,10 @@ public class AnimationFbxParser extends AbstractFbxParser
                 } else if ("Lcl Scaling".equals(pname)) {
                     xform.scale = getXYZUnsigned(prop);
                 } else if ("RotationPivot".equals(pname)) {
-                    pivots.put(xform.name, new Vector3f(getXYZ(prop)));
+                    rotPivots.put(xform.name, new Vector3f(getXYZ(prop)));
+                } else if ("ScalingPivot".equals(pname)) {
+                    scalePivots.put(xform.name, new Vector3f(getXYZUnsigned(prop)));
                 }
-                // TODO: "ScalingPivot"?
             }
             limbs.put(id, xform);
         }
@@ -188,15 +190,23 @@ public class AnimationFbxParser extends AbstractFbxParser
                 // fix all the rotations to be quaternion based
                 for (AnimationDef.TransformDef td : frame.transforms.values()) {
                     td.rotation = fromEuler(td.rotation[0], td.rotation[1], td.rotation[2]);
-                    Vector3f pivot = pivots.get(td.name);
-                    if (pivot != null) {
-                        Transform3D xform = new Transform3D(pivot, Quaternion.IDENTITY);
-                        xform.composeLocal(
-                            new Transform3D(Vector3f.ZERO, new Quaternion(td.rotation)));
-                        xform.composeLocal(new Transform3D(pivot.negate(), Quaternion.IDENTITY));
+                    Vector3f rpivot = rotPivots.get(td.name);
+                    Vector3f spivot = scalePivots.get(td.name);
+                    if (rpivot != null || spivot != null) {
+                        Transform3D xform = new Transform3D(
+                            new Vector3f(td.translation), Quaternion.IDENTITY);
+                        if (rpivot == null) rpivot = Vector3f.ZERO;
+                        xform.composeLocal(new Transform3D(rpivot, new Quaternion(td.rotation)));
+                        xform.composeLocal(new Transform3D(rpivot.negate(), Quaternion.IDENTITY));
+                        if (spivot == null) spivot = Vector3f.ZERO;
+                        xform.composeLocal(new Transform3D(spivot, Quaternion.IDENTITY));
+                        xform.composeLocal(new Transform3D(
+                            Vector3f.ZERO, Quaternion.IDENTITY, new Vector3f(td.scale)));
+                        xform.composeLocal(new Transform3D(spivot.negate(), Quaternion.IDENTITY));
+                        // read values back out... whee!
                         xform.extractTranslation().get(td.translation);
                         xform.extractRotation().get(td.rotation);
-                        // TODO: scaling pivot too
+                        xform.extractScale().get(td.scale);
                     }
                 }
                 anim.addFrame(frame);
