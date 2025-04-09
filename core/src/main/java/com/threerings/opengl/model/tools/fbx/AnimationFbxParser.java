@@ -86,7 +86,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                 } else if ("RotationPivot".equals(pname)) {
                     rotPivots.put(xform.name, new Vector3f(getXYZ(prop)));
                 } else if ("ScalingPivot".equals(pname)) {
-                    scalePivots.put(xform.name, new Vector3f(getXYZUnsigned(prop)));
+                    scalePivots.put(xform.name, new Vector3f(getXYZ(prop)));
                 }
             }
             limbs.put(id, xform);
