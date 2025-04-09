@@ -12,6 +12,9 @@ import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
 import com.lukaseichberg.fbxloader.FBXNode;
 
+import com.threerings.math.Transform3D;
+import com.threerings.math.Quaternion;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.model.tools.AnimationDef;
@@ -53,8 +56,10 @@ public class AnimationFbxParser extends AbstractFbxParser
         // representation!
         // ===============
         Map<Long, AnimationDef.TransformDef> limbs = Maps.newHashMap();
+        Map<String, Vector3f> pivots = Maps.newHashMap();
 
         for (FBXNode model : objects.getChildrenByName("Model")) {
+            Long id = model.getData();
             String type = model.getData(2);
             //if ("Mesh".equals(type)) continue;
 
@@ -77,10 +82,12 @@ public class AnimationFbxParser extends AbstractFbxParser
                     xform.rotation = getXYZUnsigned(prop); // EULER ANGLES
                 } else if ("Lcl Scaling".equals(pname)) {
                     xform.scale = getXYZUnsigned(prop);
+                } else if ("RotationPivot".equals(pname)) {
+                    pivots.put(xform.name, new Vector3f(getXYZ(prop)));
                 }
-                // TODO: "RotationPivot"? "ScalingPivot"?
+                // TODO: "ScalingPivot"?
             }
-            limbs.put(model.<Long>getData(), xform);
+            limbs.put(id, xform);
         }
 
         for (FBXNode stack : objects.getChildrenByName("AnimationStack")) {
@@ -103,7 +110,8 @@ public class AnimationFbxParser extends AbstractFbxParser
                 }
                 for (Connection nodeCon : connsBySrc.get(curveNodeId)) {
                     if (!nodeCon.type.equals("OP")) continue;
-                    AnimationDef.TransformDef limbProto = limbs.get(nodeCon.destId);
+                    Long limbId = nodeCon.destId;
+                    AnimationDef.TransformDef limbProto = limbs.get(limbId);
                     if (limbProto == null) {
                         // TODO: MaxHandle?
                         log.warning("Unable to find limb prototype for curve node?",
@@ -119,11 +127,11 @@ public class AnimationFbxParser extends AbstractFbxParser
                         scale = rot = false;
 
                     } else if (scale = "Lcl Scaling".equals(nodeCon.property)) {
-                        limb.scale = parseCurveTriplet(srcNode);
+                        limb.scale = parseCurveTripletUnsigned(srcNode);
                         rot = false;
 
                     } else if (rot = "Lcl Rotation".equals(nodeCon.property)) {
-                        limb.rotation = parseCurveTriplet(srcNode); // EULER ANGLES
+                        limb.rotation = parseCurveTripletUnsigned(srcNode); // EULER ANGLES
                     } else {
                         log.info("Unknown curve type?", "prop", nodeCon.property);
                         continue;
@@ -180,6 +188,16 @@ public class AnimationFbxParser extends AbstractFbxParser
                 // fix all the rotations to be quaternion based
                 for (AnimationDef.TransformDef td : frame.transforms.values()) {
                     td.rotation = fromEuler(td.rotation[0], td.rotation[1], td.rotation[2]);
+                    Vector3f pivot = pivots.get(td.name);
+                    if (pivot != null) {
+                        Transform3D xform = new Transform3D(pivot, Quaternion.IDENTITY);
+                        xform.composeLocal(
+                            new Transform3D(Vector3f.ZERO, new Quaternion(td.rotation)));
+                        xform.composeLocal(new Transform3D(pivot.negate(), Quaternion.IDENTITY));
+                        xform.extractTranslation().get(td.translation);
+                        xform.extractRotation().get(td.rotation);
+                        // TODO: scaling pivot too
+                    }
                 }
                 anim.addFrame(frame);
             }
@@ -199,12 +217,20 @@ public class AnimationFbxParser extends AbstractFbxParser
     }
 
     protected float[] parseCurveTriplet (FBXNode curveNode) {
+        float[] triplet = parseCurveTripletUnsigned(curveNode);
+        triplet[0] *= xAxisSign;
+        triplet[1] *= yAxisSign;
+        triplet[2] *= zAxisSign;
+        return triplet;
+    }
+
+    protected float[] parseCurveTripletUnsigned (FBXNode curveNode) {
         FBXNode props = curveNode.getChildByName("Properties70");
         if (props != null && props.getNumChildren() > 2) {
             return new float[] {
-                props.getChild(0).<Double>getData(4).floatValue(),
-                props.getChild(1).<Double>getData(4).floatValue(),
-                props.getChild(2).<Double>getData(4).floatValue() };
+                props.getChild(xAxis).<Double>getData(4).floatValue(),
+                props.getChild(yAxis).<Double>getData(4).floatValue(),
+                props.getChild(zAxis).<Double>getData(4).floatValue() };
         }
         log.warning("Oh shit!", "curveNode", formatObj(curveNode, null));
         return new float[3];
