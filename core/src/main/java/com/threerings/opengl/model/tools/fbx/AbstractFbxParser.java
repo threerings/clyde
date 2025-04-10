@@ -159,10 +159,11 @@ public abstract class AbstractFbxParser
 
     protected float[] getXYZ (FBXNode propertyNode)
     {
-        return new float[] {
-            propertyNode.<Double>getData(4 + xAxis).floatValue() * xAxisSign,
-            propertyNode.<Double>getData(4 + yAxis).floatValue() * yAxisSign,
-            propertyNode.<Double>getData(4 + zAxis).floatValue() * zAxisSign };
+        float[] triplet = getXYZUnsigned(propertyNode);
+        triplet[0] *= xAxisSign;
+        triplet[1] *= yAxisSign;
+        triplet[2] *= zAxisSign;
+        return triplet;
     }
 
     protected float[] getXYZUnsigned (FBXNode propertyNode)
@@ -178,26 +179,20 @@ public abstract class AbstractFbxParser
      */
     protected float[] getRotation (FBXNode propertyNode)
     {
-        if (propertyNode.getNumProperties() > 7) {
-            throw new RuntimeException(Logger.format(
-                "TODO! We don't yet support a 4-element rotation in the FBX!",
-                "w?", propertyNode.getData(7)));
-        }
-        return fromEuler(
-            propertyNode.<Double>getData(4 + xAxis).floatValue(),
-            propertyNode.<Double>getData(4 + yAxis).floatValue(),
-            propertyNode.<Double>getData(4 + zAxis).floatValue());
+        return fromEuler(getXYZUnsigned(propertyNode));
     }
 
     /**
      * Convert a 3-element euler angles (degrees) rotation into the quaternion values needed.
      */
-    protected float[] fromEuler (float x, float y, float z)
+    protected float[] fromEuler (float[] rots)
     {
-        Quaternion qq = new Quaternion().fromAngles(
-            FloatMath.toRadians(x), FloatMath.toRadians(-y), FloatMath.toRadians(z));
         float[] values = new float[4];
-        qq.get(values);
+        new Quaternion().fromAngles(
+            FloatMath.toRadians(rots[0]),
+            FloatMath.toRadians(-rots[1]),
+            FloatMath.toRadians(rots[2]))
+            .get(values);
         return values;
     }
 

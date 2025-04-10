@@ -189,7 +189,7 @@ public class AnimationFbxParser extends AbstractFbxParser
             for (AnimationDef.FrameDef frame : frames.values()) { // this is sorted by timestamp
                 // fix all the rotations to be quaternion based
                 for (AnimationDef.TransformDef td : frame.transforms.values()) {
-                    td.rotation = fromEuler(td.rotation[0], td.rotation[1], td.rotation[2]);
+                    td.rotation = fromEuler(td.rotation);
                     Vector3f rpivot = rotPivots.get(td.name);
                     Vector3f spivot = scalePivots.get(td.name);
                     if (rpivot != null || spivot != null) {
