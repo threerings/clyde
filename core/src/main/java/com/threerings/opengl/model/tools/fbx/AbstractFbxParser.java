@@ -195,7 +195,7 @@ public abstract class AbstractFbxParser
     protected float[] fromEuler (float x, float y, float z)
     {
         Quaternion qq = new Quaternion().fromAngles(
-            FloatMath.toRadians(x), FloatMath.toRadians(y), FloatMath.toRadians(z));
+            FloatMath.toRadians(x), FloatMath.toRadians(-y), FloatMath.toRadians(z));
         float[] values = new float[4];
         qq.get(values);
         return values;
