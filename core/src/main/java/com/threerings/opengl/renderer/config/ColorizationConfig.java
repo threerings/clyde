@@ -51,7 +51,8 @@ import static com.threerings.opengl.Log.log;
  */
 @EditorTypes({
     ColorizationConfig.Normal.class, ColorizationConfig.CustomOffsets.class,
-    ColorizationConfig.FullyCustom.class, ColorizationConfig.Translated.class })
+    ColorizationConfig.FullyCustom.class, ColorizationConfig.Translated.class,
+    ColorizationConfig.TransNormal.class })
 public abstract class ColorizationConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -173,7 +174,7 @@ public abstract class ColorizationConfig extends DeepObject
             if (source == null) source = new ColorizationConfig.Normal();
         }
 
-        /** Basic constructor needed explicitly when there are others, thanks JAva. */
+        /** Basic constructor needed explicitly when there are others, thanks Java. */
         public Translated () {}
 
         /** Convenience for editor use: convert normal. */
@@ -181,6 +182,56 @@ public abstract class ColorizationConfig extends DeepObject
         {
             this.clazz = normal.colorization >> 8;
             this.source = normal;
+        }
+
+        public Translated (TransNormal tn)
+        {
+            Normal norm = new Normal();
+            norm.colorization = tn.colorization;
+            this.clazz = tn.clazz;
+            this.source = norm;
+        }
+    }
+
+    /**
+     * Translate a normal colorization to a different base clazz.
+     */
+    public static class TransNormal extends ColorizationConfig
+    {
+        /** The colorization class. */
+        @Editable(editor="colorization", mode="class", hgroup="c")
+        public int clazz;
+
+        /** The colorization reference. */
+        @Editable(editor="colorization", hgroup="c")
+        public int colorization;
+
+        @Override
+        public Colorization getColorization (ColorPository colorpos)
+        {
+            ClassRecord crec = colorpos.getClassRecord(clazz);
+            Colorization src = colorpos.getColorization(colorization);
+            return (src == null || crec == null)
+                    ? null
+                    : new CustomOffsetsColorization(crec, src);
+        }
+
+        /** Basic constructor needed explicitly when there are others, thanks Java. */
+        public TransNormal () {}
+
+        /** Convenience for editor use: convert normal. */
+        public TransNormal (Normal normal)
+        {
+            this.clazz = normal.colorization >> 8;
+            this.colorization = normal.colorization;
+        }
+
+        public TransNormal (Translated lated)
+        {
+            this.clazz = lated.clazz;
+            if (lated.source instanceof Normal) {
+                this.colorization = ((Normal)lated.source).colorization;
+            }
         }
     }
 
