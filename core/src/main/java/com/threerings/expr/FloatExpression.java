@@ -37,13 +37,15 @@ import com.threerings.util.NoiseUtil;
 
 import com.threerings.expr.util.ScopeUtil;
 
+import static com.threerings.ClydeLog.log;
+
 /**
  * A float-valued expression.
  */
 @EditorTypes({
     FloatExpression.Parsed.class, FloatExpression.Constant.class,
     FloatExpression.Reference.class, FloatExpression.Clock.class,
-    FloatExpression.Negate.class, FloatExpression.Add.class,
+    FloatExpression.Abs.class, FloatExpression.Negate.class, FloatExpression.Add.class,
     FloatExpression.Subtract.class, FloatExpression.Multiply.class,
     FloatExpression.Divide.class, FloatExpression.Remainder.class,
     FloatExpression.Pow.class, FloatExpression.Exp.class,
@@ -211,6 +213,22 @@ public abstract class FloatExpression extends DeepObject
          * Creates the evaluator for this expression, given the evaluator for its operand.
          */
         protected abstract Evaluator createEvaluator (Evaluator eval);
+    }
+
+    /**
+     * Absolute value of the operand.
+     */
+    public static class Abs extends UnaryOperation
+    {
+        @Override
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return Math.abs(eval.evaluate());
+                }
+            };
+        }
     }
 
     /**
