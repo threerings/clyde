@@ -50,9 +50,10 @@ import static com.threerings.opengl.Log.log;
  * Describes a colorization.
  */
 @EditorTypes({
-    ColorizationConfig.Normal.class, ColorizationConfig.CustomOffsets.class,
-    ColorizationConfig.FullyCustom.class, ColorizationConfig.Translated.class,
-    ColorizationConfig.TransNormal.class })
+    ColorizationConfig.Normal.class, ColorizationConfig.TransNormal.class,
+    ColorizationConfig.CustomOffsets.class, ColorizationConfig.FullyCustom.class,
+    ColorizationConfig.Translated.class
+})
 public abstract class ColorizationConfig extends DeepObject
     implements Exportable, Streamable
 {
