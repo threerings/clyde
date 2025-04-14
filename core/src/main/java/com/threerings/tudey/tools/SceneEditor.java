@@ -287,7 +287,7 @@ public class SceneEditor extends TudeyTool
 
         // configure the edit panel
         _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        _epanel.setPreferredSize(new Dimension(350, 1));
+        _epanel.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 1));
 
         // create the tool box
         JPanel outer = new JPanel();

@@ -61,10 +61,14 @@ import static com.threerings.opengl.Log.log;
  */
 public abstract class GlCanvasApp extends GlApp
 {
+    protected static final int WINDOW_WIDTH = 1536;
+    protected static final int WINDOW_HEIGHT = 1152;
+    protected static final int SIDEBAR_WIDTH = 700;
+
     public GlCanvasApp ()
     {
         _frame = new JFrame();
-        _frame.setSize(1024, 768);
+        _frame.setSize(1536, 1152);
         SwingUtil.centerWindow(_frame);
 
         // shutdown the application when the window is closed

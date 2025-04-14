@@ -136,7 +136,7 @@ public class ModelViewer extends ModelTool
 
         // configure the side panel
         _cpanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        _cpanel.setPreferredSize(new Dimension(350, 1));
+        _cpanel.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 1));
 
         // add the config editor
         _cpanel.add(_epanel = new EditorPanel(this));

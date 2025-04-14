@@ -171,7 +171,7 @@ public class ParticleEditor extends ModelTool
 
         // configure the edit panel
         _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        _epanel.setPreferredSize(new Dimension(350, 1));
+        _epanel.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 1));
 
         // create the layer table
         JPanel lpanel = GroupLayout.makeVStretchBox(5);
