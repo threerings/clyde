@@ -49,6 +49,7 @@ import static com.threerings.ClydeLog.log;
     FloatExpression.Subtract.class, FloatExpression.Multiply.class,
     FloatExpression.Divide.class, FloatExpression.Remainder.class,
     FloatExpression.Pow.class, FloatExpression.Exp.class,
+    FloatExpression.Min.class, FloatExpression.Max.class,
     FloatExpression.Sin.class, FloatExpression.Cos.class,
     FloatExpression.Tan.class, FloatExpression.Square.class,
     FloatExpression.Triangle.class, FloatExpression.Ramp.class,
@@ -519,6 +520,38 @@ public abstract class FloatExpression extends DeepObject
             return new Evaluator() {
                 public float evaluate () {
                     return FloatMath.pow(eval1.evaluate(), eval2.evaluate());
+                }
+            };
+        }
+    }
+
+    /**
+     * Compute the minimum value of two operands.
+     */
+    public static class Min extends BinaryOperation
+    {
+        @Override
+        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return Math.min(eval1.evaluate(), eval2.evaluate());
+                }
+            };
+        }
+    }
+
+    /**
+     * Compute the maximum value of two operands.
+     */
+    public static class Max extends BinaryOperation
+    {
+        @Override
+        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return Math.max(eval1.evaluate(), eval2.evaluate());
                 }
             };
         }
