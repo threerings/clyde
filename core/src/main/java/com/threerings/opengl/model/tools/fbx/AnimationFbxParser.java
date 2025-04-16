@@ -80,7 +80,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                 if ("Lcl Translation".equals(pname)) {
                     xform.translation = getXYZ(prop);
                 } else if ("Lcl Rotation".equals(pname)) {
-                    xform.rotation = getXYZUnsigned(prop); // EULER ANGLES
+                    xform.rotation = getXYZ(prop); // EULER ANGLES
                 } else if ("Lcl Scaling".equals(pname)) {
                     xform.scale = getXYZUnsigned(prop);
                 } else if ("RotationPivot".equals(pname)) {
@@ -133,7 +133,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                         rot = false;
 
                     } else if (rot = "Lcl Rotation".equals(nodeCon.property)) {
-                        limb.rotation = parseCurveTripletUnsigned(srcNode); // EULER ANGLES
+                        limb.rotation = parseCurveTriplet(srcNode); // EULER ANGLES
                     } else {
                         log.info("Unknown curve type?", "prop", nodeCon.property);
                         continue;
@@ -147,20 +147,16 @@ public class AnimationFbxParser extends AbstractFbxParser
                                 "curve", formatObj(curveCon.srcId));
                             continue;
                         }
-                        int idx, sgn;
-                        if ("d|X".equals(curveCon.property)) {
-                            idx = xAxis;
-                            sgn = xAxisSign;
-                        } else if ("d|Y".equals(curveCon.property)) {
-                            idx = yAxis;
-                            sgn = yAxisSign;
-                        } else if ("d|Z".equals(curveCon.property)) {
-                            idx = zAxis;
-                            sgn = zAxisSign;
-                        } else {
+                        int fileIdx;
+                        if ("d|X".equals(curveCon.property)) fileIdx = 0;
+                        else if ("d|Y".equals(curveCon.property)) fileIdx = 1;
+                        else if ("d|Z".equals(curveCon.property)) fileIdx = 2;
+                        else {
                             log.warning("Unknown curve property?", "prop", curveCon.property);
                             continue;
                         }
+                        int idx = reverseAxis[fileIdx];
+                        int sgn = reverseAxisSign[fileIdx];
 
                         long[] times = curve.getChildProperty("KeyTime");
                         float[] values = curve.getChildProperty("KeyValueFloat");
@@ -178,7 +174,7 @@ public class AnimationFbxParser extends AbstractFbxParser
                             // now read the one value
                             if (trans) xform.translation[idx] = values[ii] * sgn;
                             else if (scale) xform.scale[idx] = values[ii];
-                            else if (rot) xform.rotation[idx] = values[ii];
+                            else if (rot) xform.rotation[idx] = values[ii] * sgn;
                             else throw new RuntimeException("Unhandled curve read");
                         }
                     }

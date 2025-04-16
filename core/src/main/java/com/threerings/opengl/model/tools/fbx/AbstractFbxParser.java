@@ -46,6 +46,9 @@ public abstract class AbstractFbxParser
     protected int zAxis = 2;
     protected int zAxisSign= 1;
 
+    protected int[] reverseAxis = new int[3];
+    protected int[] reverseAxisSign = new int[3];
+
     protected void init (FBXFile fbx)
     {
         readSettings(fbx);
@@ -67,6 +70,13 @@ public abstract class AbstractFbxParser
             else if ("UpAxis".equals(pname)) zAxis = prop.<Integer>getData(4);
             else if ("UpAxisSign".equals(pname)) zAxisSign = prop.<Integer>getData(4);
         }
+        reverseAxis[xAxis] = 0;
+        reverseAxis[yAxis] = 1;
+        reverseAxis[zAxis] = 2;
+        // Wait, is this right? I always get confused with reversals
+        reverseAxisSign[xAxis] = xAxisSign;
+        reverseAxisSign[yAxis] = yAxisSign;
+        reverseAxisSign[zAxis] = zAxisSign;
 //        log.info("Nothing is certain but depth and axes",
 //                "xAxis", axisStr(xAxis, xAxisSign),
 //                "yAxis", axisStr(yAxis, yAxisSign),
@@ -179,7 +189,7 @@ public abstract class AbstractFbxParser
      */
     protected float[] getRotation (FBXNode propertyNode)
     {
-        return fromEuler(getXYZUnsigned(propertyNode));
+        return fromEuler(getXYZ(propertyNode));
     }
 
     /**
@@ -190,7 +200,7 @@ public abstract class AbstractFbxParser
         float[] values = new float[4];
         new Quaternion().fromAngles(
             FloatMath.toRadians(rots[0]),
-            FloatMath.toRadians(-rots[1]),
+            FloatMath.toRadians(rots[1]),
             FloatMath.toRadians(rots[2]))
             .get(values);
         return values;
