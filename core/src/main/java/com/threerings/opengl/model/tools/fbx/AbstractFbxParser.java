@@ -230,16 +230,16 @@ public abstract class AbstractFbxParser
      * Sanitize a name for our purposes.
      * <ul>
      *   <li> Strip leading nulls or other unprintables.
-     *   <li> Convert underscores to spaces.
      *   <li> Stop when we find any kind of trailing null or unprintable.
      * </ul>
      */
     protected String sanitizeName (String name)
     {
-        StringBuilder buf = new StringBuilder();
-        for (int ii = 0, nn = name.length(); ii < nn; ++ii) {
+        int len = name.length();
+        StringBuilder buf = new StringBuilder(len);
+        for (int ii = 0; ii < len; ++ii) {
             char cc = name.charAt(ii);
-            if (cc >= ' ') buf.append(cc == '_' ? ' ' : cc);
+            if (cc >= ' ') buf.append(cc);
             else if (buf.length() > 0) break;
         }
         return buf.toString();
