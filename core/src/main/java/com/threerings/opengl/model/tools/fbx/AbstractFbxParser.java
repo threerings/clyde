@@ -231,16 +231,26 @@ public abstract class AbstractFbxParser
      * <ul>
      *   <li> Strip leading nulls or other unprintables.
      *   <li> Stop when we find any kind of trailing null or unprintable.
+     *   <li> Convert underscores to spaces iff the first character is capital.
      * </ul>
      */
     protected String sanitizeName (String name)
     {
-        int len = name.length();
+        int ii = 0, len = name.length();
         StringBuilder buf = new StringBuilder(len);
-        for (int ii = 0; ii < len; ++ii) {
+        boolean convert_ = false;
+        while (ii < len) {
+            char cc = name.charAt(ii++);
+            if (cc >= ' ') {
+                buf.append(cc);
+                convert_ = Character.isUpperCase(cc);
+                break;
+            }
+        }
+        for (; ii < len; ++ii) {
             char cc = name.charAt(ii);
-            if (cc >= ' ') buf.append(cc);
-            else if (buf.length() > 0) break;
+            if (cc < ' ') break;
+            else buf.append(convert_ && cc == '_' ? ' ' : cc);
         }
         return buf.toString();
     }
