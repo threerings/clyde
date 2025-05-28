@@ -52,6 +52,7 @@ public abstract class AbstractFbxParser
     protected int[] reverseAxisSign = new int[3];
 
     protected final Set<String> convertedNames = Sets.newHashSet();
+    protected final Set<String> names = Sets.newHashSet();
 
     protected void init (FBXFile fbx)
     {
@@ -261,13 +262,16 @@ public abstract class AbstractFbxParser
         }
         String result = buf.toString();
         if (didConvert) convertedNames.add(result);
+        else names.add(result);
         return result;
     }
 
     protected void reportConvertedNames (@Nullable List<String> messages) {
-        if (messages == null || convertedNames.isEmpty()) return;
+        if (messages == null) return;
 
-        messages.add("Node names converted: " + Joiner.on(", ").join(convertedNames));
+        Joiner jj = Joiner.on(", ");
+        if (!convertedNames.isEmpty()) messages.add("Converted names: " + jj.join(convertedNames));
+        if (!names.isEmpty()) messages.add("Other names: " + jj.join(names));
     }
 
     /**
