@@ -13,11 +13,13 @@ import javax.annotation.Nullable;
 
 import com.samskivert.util.Logger;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXLoader;
@@ -48,6 +50,8 @@ public abstract class AbstractFbxParser
 
     protected int[] reverseAxis = new int[3];
     protected int[] reverseAxisSign = new int[3];
+
+    protected final Set<String> convertedNames = Sets.newHashSet();
 
     protected void init (FBXFile fbx)
     {
@@ -229,8 +233,7 @@ public abstract class AbstractFbxParser
     /**
      * Sanitize a name for our purposes.
      * <ul>
-     *   <li> Strip leading nulls or other unprintables.
-     *   <li> Stop when we find any kind of trailing null or unprintable.
+     *   <li> Strip leading/trailing unprintables.
      *   <li> Convert underscores to spaces iff the first character is capital.
      * </ul>
      */
@@ -238,21 +241,33 @@ public abstract class AbstractFbxParser
     {
         int ii = 0, len = name.length();
         StringBuilder buf = new StringBuilder(len);
-        boolean convert_ = false;
+        boolean noScores = false;
         while (ii < len) {
             char cc = name.charAt(ii++);
             if (cc >= ' ') {
                 buf.append(cc);
-                convert_ = Character.isUpperCase(cc);
+                noScores = Character.isUpperCase(cc);
                 break;
             }
         }
+        boolean didConvert = false;
         for (; ii < len; ++ii) {
             char cc = name.charAt(ii);
             if (cc < ' ') break;
-            else buf.append(convert_ && cc == '_' ? ' ' : cc);
+            else if (noScores && cc == '_') {
+                buf.append(' ');
+                didConvert = true;
+            } else buf.append(cc);
         }
-        return buf.toString();
+        String result = buf.toString();
+        if (didConvert) convertedNames.add(result);
+        return result;
+    }
+
+    protected void reportConvertedNames (@Nullable List<String> messages) {
+        if (messages == null || convertedNames.isEmpty()) return;
+
+        messages.add("Node names converted: " + Joiner.on(", ").join(convertedNames));
     }
 
     /**

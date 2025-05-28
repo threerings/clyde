@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Maps;
 
 import com.lukaseichberg.fbxloader.FBXFile;
@@ -26,16 +28,16 @@ public class AnimationFbxParser extends AbstractFbxParser
     /**
      * Parse the animation.
      */
-    public static AnimationDef parseAnimation (InputStream in)
+    public static AnimationDef parseAnimation (InputStream in, @Nullable List<String> messages)
         throws IOException
     {
-        return new AnimationFbxParser().parse(in);
+        return new AnimationFbxParser().parse(in, messages);
     }
 
     /**
      * Parse the animation.
      */
-    protected AnimationDef parse (InputStream in)
+    protected AnimationDef parse (InputStream in, @Nullable List<String> messages)
         throws IOException
     {
         FBXFile fbx = FBXLoader.loadFBXFile("anim", in);
@@ -208,6 +210,8 @@ public class AnimationFbxParser extends AbstractFbxParser
                 anim.addFrame(frame);
             }
         }
+
+        reportConvertedNames(messages);
 
         // Debug
 //        log.info("Parsed animation", "frameRate", anim.frameRate, "frames", anim.frames.size());

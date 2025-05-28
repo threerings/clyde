@@ -27,7 +27,11 @@ package com.threerings.opengl.model.config;
 
 import java.io.InputStream;
 
+import java.util.List;
+
 import com.samskivert.util.ArrayUtil;
+
+import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -134,6 +138,11 @@ public class AnimationConfig extends ParameterizedConfig
      */
     public static class Imported extends Original
     {
+        /** Messages to display after import. Editor only! */
+        @Editable(constant=true, depends="source")
+        @DeepOmit
+        public transient String[] importMessages;
+
         /** The interval over which to transition into the first frame. */
         @Editable(min=0, step=0.01, hgroup="t")
         public float transition;
@@ -238,16 +247,20 @@ public class AnimationConfig extends ParameterizedConfig
             _reload = false;
             if (_source == null) {
                 updateFromSource(null);
+                importMessages = null;
                 return;
             }
             try {
                 InputStream in = ctx.getResourceManager().getResource(_source);
                 AnimationDef anim;
                 if (_source.endsWith(".fbx")) {
-                    anim = AnimationFbxParser.parseAnimation(in);
+                    List<String> messages = Lists.newArrayList();
+                    anim = AnimationFbxParser.parseAnimation(in, messages);
+                    importMessages = messages.toArray(ArrayUtil.EMPTY_STRING);
                 } else {
                     if (_parser == null) _parser = new AnimationParser();
                     anim = _parser.parseAnimation(in);
+                    importMessages = null;
                 }
                 updateFromSource(anim);
             } catch (Exception e) {

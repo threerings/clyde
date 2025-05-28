@@ -200,6 +200,8 @@ public class ModelFbxParser extends AbstractFbxParser
             }
         }
 
+        reportConvertedNames(messages);
+
 //        log.info("Look ma it's a dump:\n" + new ModelXmlFormatter().format(model));
         return model;
     }
