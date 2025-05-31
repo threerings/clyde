@@ -28,6 +28,7 @@ package com.threerings.export;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.FilterOutputStream;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -184,7 +185,8 @@ public class XMLExporter extends Exporter
         // create the output object
         DOMImplementationLS impl = (DOMImplementationLS)_document.getImplementation();
         LSOutput lsout = impl.createLSOutput();
-        lsout.setByteStream(_out);
+        lsout.setByteStream(new NormalizingOutputStream(_out));
+        //lsout.setByteStream(_out);
 
         // write out the document
         LSSerializer serializer = impl.createLSSerializer();
@@ -433,4 +435,57 @@ public class XMLExporter extends Exporter
 
     /** The current depth of the element being written. */
     protected int _depth;
+}
+
+/**
+ * A crazy rabbit hole on a friday night, certain versions of Java seem to save xml differently,
+ * so let's try to normalize it so that we don't drive ourselves mad from the junk diffs.
+ */
+class NormalizingOutputStream extends FilterOutputStream
+{
+    public NormalizingOutputStream (OutputStream dest)
+    {
+        super(null);
+        final NormalizingOutputStream normDad = this;
+        // Set it up so that our we defer to an actually filtering stream that drops out when done!
+        out = new FilterOutputStream(dest) {
+            @Override public void write (byte[] b, int off, int len)
+                throws IOException
+            {
+                for (; len > 0 && check(b[off]); --len) out.write(b[off++]);
+                out.write(b, off, len);
+            }
+
+            @Override public void write (int b)
+                throws IOException
+            {
+                check(b);
+                out.write(b);
+            }
+
+            // return true if still checking
+            private boolean check (int b)
+                throws IOException
+            {
+                if (_found) {
+                    // if the next character isn't a newline then add one
+                    if (b != '\n') out.write('\n');
+                    // bypass this filter from now on! (but finish writing our batch)
+                    normDad.out = out;
+                    return false;
+                }
+                if (b == '>') _found = true;
+                return true;
+            }
+
+            protected boolean _found;
+        };
+    }
+
+    // Unbelieveable! If we don't implement this, then super will call byte-by-byte
+    @Override public void write (byte[] b, int off, int len)
+        throws IOException
+    {
+        out.write(b, off, len);
+    }
 }
