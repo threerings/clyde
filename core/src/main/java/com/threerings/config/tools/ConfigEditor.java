@@ -566,7 +566,7 @@ public class ConfigEditor extends BaseConfigEditor
             UIManager.getString("OptionPane.cancelButtonText")
         };
         return 0 == JOptionPane.showOptionDialog(
-                this, _msgs.get(msg), _msgs.get(title),
+                this, _msgs.xlate(msg), _msgs.xlate(title),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
                 options, options[1]); // default to cancel
     }
