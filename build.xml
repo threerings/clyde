@@ -72,7 +72,8 @@
       <fileset dir="core/rsrc" includes="**/*"/>
     </copy>
     <javac srcdir="${src.dir}" destdir="${classes.dir}" includeAntRuntime="false"
-           debug="on" optimize="${build.optimize}" deprecation="on" release="8">
+           debug="on" optimize="${build.optimize}" deprecation="on"
+           source="1.6" target="1.6">
       <classpath refid="classpath"/>
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
@@ -85,7 +86,7 @@
     <mkdir dir="${tclasses.dir}"/>
     <copy todir="${tclasses.dir}"><fileset dir="core/src/test/resources" includes="**"/></copy>
     <javac srcdir="${tsrc.dir}" destdir="${tclasses.dir}" includeAntRuntime="false"
-           debug="on" optimize="${build.optimize}" release="8"
+           debug="on" optimize="${build.optimize}" source="1.6" target="1.6"
            encoding="utf-8" classpathref="test.classpath">
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
@@ -149,7 +150,8 @@
           description="Generates additional methods for distributed object classes">
     <!-- make sure the dobject class files are all compiled -->
     <javac srcdir="${src.dir}" destdir="${classes.dir}" includeAntRuntime="false"
-           debug="on" optimize="${build.optimize}" deprecation="on" release="8">
+           debug="on" optimize="${build.optimize}" deprecation="on"
+           source="1.6" target="1.6">
       <classpath refid="classpath"/>
       <include name="**/*Object.java"/>
     </javac>
@@ -163,7 +165,8 @@
           description="Generates marshaller and dispatcher classes for all invocation services">
     <!-- make sure the service class files are all compiled -->
     <javac srcdir="${src.dir}" destdir="${classes.dir}" includeAntRuntime="false"
-           debug="on" optimize="${build.optimize}" deprecation="on" release="8">
+           debug="on" optimize="${build.optimize}" deprecation="on"
+           source="1.6" target="1.6">
       <classpath refid="classpath"/>
       <include name="**/*Service.java"/>
     </javac>
