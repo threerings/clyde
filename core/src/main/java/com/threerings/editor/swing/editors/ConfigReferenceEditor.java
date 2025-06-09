@@ -250,7 +250,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         }
         String name = value.getName();
         _config.setToolTipText(name);
-        _config.setText(name.substring(name.lastIndexOf('/') + 1));
+        _config.setText(getButtonName(value));
 
         // resolve the configuration reference
         @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
@@ -341,6 +341,16 @@ public class ConfigReferenceEditor extends PropertyEditor
 
         // listen for parameter changes
         (_listenee = pconfig).addListener(this);
+    }
+
+    protected String getButtonName (ConfigReference<?> ref)
+    {
+        String name = ref.getName();
+        int lastSlash = name.lastIndexOf('/');
+        if (lastSlash > 0) {
+            lastSlash = name.lastIndexOf('/', lastSlash - 1);
+        }
+        return name.substring(lastSlash + 1);
     }
 
     /** The config button. */
