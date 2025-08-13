@@ -520,7 +520,7 @@ public class ScrollPane extends Container
             int xoffset = getXOffset();
             GL11.glTranslatef(xoffset, yoffset, 0);
             Rectangle oscissor = intersectScissor(
-                renderer, _srect,
+                this, renderer, _srect,
                 (getAbsoluteX() + insets.left) - xoffset,
                 (getAbsoluteY() + insets.bottom) - yoffset,
                 _width - insets.getHorizontal(),

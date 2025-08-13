@@ -28,6 +28,8 @@ package com.threerings.opengl.gui;
 import java.awt.Component;
 import org.lwjgl.input.Keyboard;
 
+import com.threerings.math.FloatMath;
+
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.InputEvent;
@@ -57,13 +59,13 @@ public class CanvasRoot extends Root
     @Override
     public int getDisplayWidth ()
     {
-        return _canvas.getWidth();
+        return FloatMath.round(_canvas.getWidth() / scaler.getScale());
     }
 
     @Override
     public int getDisplayHeight ()
     {
-        return _canvas.getHeight();
+        return FloatMath.round(_canvas.getHeight() / scaler.getScale());
     }
 
     // documentation inherited from interface MouseListener

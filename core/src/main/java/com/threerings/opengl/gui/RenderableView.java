@@ -41,6 +41,7 @@ import com.samskivert.util.StringUtil;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Function;
 import com.threerings.expr.Scoped;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -397,10 +398,17 @@ public class RenderableView extends Component
 
         // update the camera viewport
         Insets insets = getInsets();
+        float scale = 1f;
+        Window w = getWindow();
+        if (w != null) {
+            Root r = w.getRoot();
+            if (r != null) scale = r.scaler.getScale();
+        }
         _camera.getViewport().set(
-            _static ? 0 : (getAbsoluteX() + insets.left),
-            _static ? 0 : (getAbsoluteY() + insets.bottom),
-            _width - insets.getHorizontal(), _height - insets.getVertical());
+            _static ? 0 : FloatMath.round(scale * (getAbsoluteX() + insets.left)),
+            _static ? 0 : FloatMath.round(scale * (getAbsoluteY() + insets.bottom)),
+            FloatMath.round(scale * (_width - insets.getHorizontal())),
+            FloatMath.round(scale * (_height - insets.getVertical())));
 
         // update the camera handler/camera position
         _camhand.updatePerspective();

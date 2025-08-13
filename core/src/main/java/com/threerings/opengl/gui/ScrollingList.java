@@ -397,7 +397,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             Insets insets = getInsets();
             GL11.glTranslatef(0, _offset, 0);
             Rectangle oscissor = intersectScissor(
-                renderer, _srect,
+                this, renderer, _srect,
                 getAbsoluteX() + insets.left,
                 getAbsoluteY() + insets.bottom - _offset,
                 _width - insets.getHorizontal(),

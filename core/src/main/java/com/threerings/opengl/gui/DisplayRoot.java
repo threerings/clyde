@@ -43,6 +43,8 @@ import org.lwjgl.opengl.Display;
 
 import com.samskivert.util.RunAnywhere;
 
+import com.threerings.math.FloatMath;
+
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ControllerEvent;
@@ -210,13 +212,13 @@ public class DisplayRoot extends Root
     @Override
     public int getDisplayWidth ()
     {
-        return _ctx.getRenderer().getWidth();
+        return FloatMath.round(_ctx.getRenderer().getWidth() / scaler.getScale());
     }
 
     @Override
     public int getDisplayHeight ()
     {
-        return _ctx.getRenderer().getHeight();
+        return FloatMath.round(_ctx.getRenderer().getHeight() / scaler.getScale());
     }
 
     @Override

@@ -112,7 +112,7 @@ public class TextField extends EditableTextComponent
         if (_glyphs != null) {
             // clip the text to our visible text region
             Rectangle oscissor = intersectScissor(
-                renderer, _srect,
+                this, renderer, _srect,
                 getAbsoluteX() + insets.left,
                 getAbsoluteY() + insets.bottom,
                 _width - insets.getHorizontal(),

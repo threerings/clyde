@@ -104,7 +104,7 @@ public class TextEditor extends EditableTextComponent
         // draw the glyphs
         if (_glyphs != null) {
             Rectangle oscissor = intersectScissor(
-                renderer, _srect,
+                this, renderer, _srect,
                 getAbsoluteX() + insets.left,
                 getAbsoluteY() + insets.bottom,
                 _width - insets.getHorizontal(),

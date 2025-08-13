@@ -313,7 +313,7 @@ public class LabelRenderer
         }
 
         Rectangle oscissor = Component.intersectScissor(
-            renderer, _srect,
+            _container, renderer, _srect,
             _container.getAbsoluteX() + insets.left,
             _container.getAbsoluteY() + insets.bottom,
             width, height);

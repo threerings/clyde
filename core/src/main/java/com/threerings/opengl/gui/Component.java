@@ -1356,8 +1356,15 @@ public class Component
      * <code>store</code> parameter.
      */
     protected static Rectangle intersectScissor (
-        Renderer renderer, Rectangle store, int x, int y, int width, int height)
+        Component comp, Renderer renderer, Rectangle store, int x, int y, int width, int height)
     {
+        float scale = comp.getWindow().getRoot().scaler.getScale();
+        if (scale != 1f) {
+            x = FloatMath.round(x * scale);
+            y = FloatMath.round(y * scale);
+            width = FloatMath.round(width * scale);
+            height = FloatMath.round(height * scale);
+        }
         Rectangle scissor = renderer.getScissor();
         _rect.set(x, y, width, height);
         if (scissor != null) {
