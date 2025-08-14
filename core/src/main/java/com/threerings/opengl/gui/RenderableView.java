@@ -402,7 +402,7 @@ public class RenderableView extends Component
         Window w = getWindow();
         if (w != null) {
             Root r = w.getRoot();
-            if (r != null) scale = r.scaler.getScale();
+            if (r != null) scale = r.getScale();
         }
         _camera.getViewport().set(
             _static ? 0 : FloatMath.round(scale * (getAbsoluteX() + insets.left)),

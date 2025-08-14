@@ -1358,7 +1358,7 @@ public class Component
     protected static Rectangle intersectScissor (
         Component comp, Renderer renderer, Rectangle store, int x, int y, int width, int height)
     {
-        float scale = comp.getWindow().getRoot().scaler.getScale();
+        float scale = comp.getWindow().getRoot().getScale();
         if (scale != 1f) {
             x = FloatMath.round(x * scale);
             y = FloatMath.round(y * scale);

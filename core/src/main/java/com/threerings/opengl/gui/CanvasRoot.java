@@ -59,13 +59,13 @@ public class CanvasRoot extends Root
     @Override
     public int getDisplayWidth ()
     {
-        return FloatMath.round(_canvas.getWidth() / scaler.getScale());
+        return FloatMath.round(_canvas.getWidth() / _scale);
     }
 
     @Override
     public int getDisplayHeight ()
     {
-        return FloatMath.round(_canvas.getHeight() / scaler.getScale());
+        return FloatMath.round(_canvas.getHeight() / _scale);
     }
 
     // documentation inherited from interface MouseListener

@@ -212,13 +212,13 @@ public class DisplayRoot extends Root
     @Override
     public int getDisplayWidth ()
     {
-        return FloatMath.round(_ctx.getRenderer().getWidth() / scaler.getScale());
+        return FloatMath.round(_ctx.getRenderer().getWidth() / _scale);
     }
 
     @Override
     public int getDisplayHeight ()
     {
-        return FloatMath.round(_ctx.getRenderer().getHeight() / scaler.getScale());
+        return FloatMath.round(_ctx.getRenderer().getHeight() / _scale);
     }
 
     @Override

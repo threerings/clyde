@@ -78,16 +78,11 @@ public abstract class Root extends SimpleOverlay
     /** The name of the default cursor config. */
     public static final String DEFAULT_CURSOR = "Default";
 
-    /** The scaler in effect for this root hierarchy. */
-    public final Scaler scaler;
-
     public Root (GlContext ctx)
     {
         super(ctx);
-        scaler = Scaler.GLOBAL_SHARED_SCALER;
         _soundGroup = ctx.getSoundManager().createGroup(ctx.getClipProvider(), SOUND_SOURCES);
         ctx.getRenderer().addObserver(_rendererObserver);
-        scaler.addObserver(_scaleObserver);
     }
 
     /**
@@ -97,7 +92,6 @@ public abstract class Root extends SimpleOverlay
     {
         _soundGroup.dispose();
         _ctx.getRenderer().removeObserver(_rendererObserver);
-        scaler.removeObserver(_scaleObserver);
     }
 
     /**
@@ -183,6 +177,23 @@ public abstract class Root extends SimpleOverlay
     }
 
     /**
+     * Get the current ui scale.
+     */
+    public float getScale () {
+        return _scale;
+    }
+
+    /**
+     * Set the ui scale.
+     */
+    public void setScale (float scale) {
+        if (scale != _scale) {
+            _scale = scale;
+            rescaleWindows();
+        }
+    }
+
+    /**
      * Registers a top-level window with the input system.
      */
     public void addWindow (Window window)
@@ -198,7 +209,6 @@ public abstract class Root extends SimpleOverlay
      */
     public void addWindow (Window window, boolean topLayer)
     {
-        float scale = scaler.getScale();
         // make a note of the current top window
         Window curtop = getTopWindow();
 
@@ -227,8 +237,8 @@ public abstract class Root extends SimpleOverlay
         // add this window to the hierarchy (which may set a new focus)
         window.setRoot(this);
         Renderer renderer = _ctx.getRenderer();
-        window.layoutWindow(FloatMath.round(renderer.getWidth() / scale),
-                            FloatMath.round(renderer.getHeight() / scale));
+        window.layoutWindow(FloatMath.round(renderer.getWidth() / _scale),
+                            FloatMath.round(renderer.getHeight() / _scale));
 
         // if no new focus was set when we added the window, give the focus to the previously
         // pending focus component
@@ -722,10 +732,9 @@ public abstract class Root extends SimpleOverlay
     /**
      * Callback from our Renderer.Observer.
      */
-    protected void rendererSizeChanged (int ww, int hh)
+    protected void rescaleWindows ()
     {
-        float scale = scaler.getScale();
-        int dw = FloatMath.round(ww / scale), dh = FloatMath.round(hh / scale);
+        int dw = getDisplayWidth(), dh = getDisplayHeight();
         for (Window window : _windows) {
             window.layoutWindow(dw, dh);
         }
@@ -752,8 +761,7 @@ public abstract class Root extends SimpleOverlay
         // render all of our windows
         GL11.glPushMatrix();
         try {
-            float scale = scaler.getScale();
-            GL11.glScalef(scale, scale, 1f);
+            GL11.glScalef(_scale, _scale, 1f);
 
             for (int ii = 0, ll = _windows.size(); ii < ll; ii++) {
                 Window win = _windows.get(ii);
@@ -798,9 +806,8 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mousePressed (long when, int button, int x, int y, boolean consume)
     {
-        float scale = scaler.getScale();
-        x = FloatMath.round(x / scale);
-        y = FloatMath.round(y / scale);
+        x = FloatMath.round(x / _scale);
+        y = FloatMath.round(y / _scale);
         checkMouseMoved(x, y);
 
         setFocus(_ccomponent = getTargetComponent());
@@ -821,9 +828,8 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mouseReleased (long when, int button, int x, int y, boolean consume)
     {
-        float scale = scaler.getScale();
-        x = FloatMath.round(x / scale);
-        y = FloatMath.round(y / scale);
+        x = FloatMath.round(x / _scale);
+        y = FloatMath.round(y / _scale);
         checkMouseMoved(x, y);
 
         if (button == MouseEvent.BUTTON1 && _dhandler != null) {
@@ -850,9 +856,8 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mouseMoved (long when, int x, int y, boolean consume)
     {
-        float scale = scaler.getScale();
-        x = FloatMath.round(x / scale);
-        y = FloatMath.round(y / scale);
+        x = FloatMath.round(x / _scale);
+        y = FloatMath.round(y / _scale);
         // if the mouse has moved, generate a moved or dragged event
         if (!checkMouseMoved(x, y)) {
             return;
@@ -884,9 +889,8 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mouseWheeled (long when, int x, int y, int delta, boolean consume)
     {
-        float scale = scaler.getScale();
-        x = FloatMath.round(x / scale);
-        y = FloatMath.round(y / scale);
+        x = FloatMath.round(x / _scale);
+        y = FloatMath.round(y / _scale);
         checkMouseMoved(x, y);
 
         MouseEvent event = new MouseEvent(
@@ -1352,17 +1356,12 @@ public abstract class Root extends SimpleOverlay
     /** Our observer of renderer size. */
     protected Renderer.Observer _rendererObserver = new Renderer.Observer() {
         public void sizeChanged (int w, int h) {
-            rendererSizeChanged(w, h);
+            rescaleWindows();
         }
     };
 
-    /** Observe scale changes. */
-    protected Scaler.Observer _scaleObserver = new Scaler.Observer() {
-        public void scaleUpdated (Scaler scaler) {
-            Renderer renderer = _ctx.getRenderer();
-            rendererSizeChanged(renderer.getWidth(), renderer.getHeight());
-        }
-    };
+    /** Our current ui scale. */
+    protected float _scale = 1f;
 
     protected static final float TIP_MODE_RESET = 0.6f;
 
