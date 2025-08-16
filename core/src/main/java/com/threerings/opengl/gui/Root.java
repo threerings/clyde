@@ -512,11 +512,11 @@ public abstract class Root extends SimpleOverlay
     }
 
     /**
-     * Sets the mouse position.
+     * Sets the mouse position, in scaled coordinates.
      */
     public void setMousePosition (int x, int y)
     {
-        mouseMoved(_tickStamp, x, y, false);
+        mouseMovedScaled(_tickStamp, x, y, false);
     }
 
     /**
@@ -525,7 +525,7 @@ public abstract class Root extends SimpleOverlay
     @Beta
     public void setMouseDown (int button)
     {
-        mousePressed(_tickStamp, button, _mouseX, _mouseY, false);
+        mousePressedScaled(_tickStamp, button, _mouseX, _mouseY, false);
     }
 
     /**
@@ -534,7 +534,7 @@ public abstract class Root extends SimpleOverlay
     @Beta
     public void setMouseUp (int button)
     {
-        mouseReleased(_tickStamp, button, _mouseX, _mouseY, false);
+        mouseReleasedScaled(_tickStamp, button, _mouseX, _mouseY, false);
     }
 
     /**
@@ -806,8 +806,15 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mousePressed (long when, int button, int x, int y, boolean consume)
     {
-        x = FloatMath.round(x / _scale);
-        y = FloatMath.round(y / _scale);
+        mousePressedScaled(when, button,
+            FloatMath.round(x / _scale), FloatMath.round(y / _scale), consume);
+    }
+
+    /**
+     * Handles a mouse pressed with a pre-scaled x/y.
+     */
+    protected void mousePressedScaled (long when, int button, int x, int y, boolean consume)
+    {
         checkMouseMoved(x, y);
 
         setFocus(_ccomponent = getTargetComponent());
@@ -828,8 +835,15 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mouseReleased (long when, int button, int x, int y, boolean consume)
     {
-        x = FloatMath.round(x / _scale);
-        y = FloatMath.round(y / _scale);
+        mouseReleasedScaled(when, button,
+            FloatMath.round(x / _scale), FloatMath.round(y / _scale), consume);
+    }
+
+    /**
+     * Handles a mouse released event with a pre-scaled x and y.
+     */
+    protected void mouseReleasedScaled (long when, int button, int x, int y, boolean consume)
+    {
         checkMouseMoved(x, y);
 
         if (button == MouseEvent.BUTTON1 && _dhandler != null) {
@@ -856,8 +870,14 @@ public abstract class Root extends SimpleOverlay
      */
     protected void mouseMoved (long when, int x, int y, boolean consume)
     {
-        x = FloatMath.round(x / _scale);
-        y = FloatMath.round(y / _scale);
+        mouseMovedScaled(when, FloatMath.round(x / _scale), FloatMath.round(y / _scale), consume);
+    }
+
+    /**
+     * mouseMoved with already scaled x and y coordinates.
+     */
+    protected void mouseMovedScaled (long when, int x, int y, boolean consume)
+    {
         // if the mouse has moved, generate a moved or dragged event
         if (!checkMouseMoved(x, y)) {
             return;

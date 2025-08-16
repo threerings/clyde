@@ -224,7 +224,7 @@ public class DisplayRoot extends Root
     @Override
     public void setMousePosition (int x, int y)
     {
-        Mouse.setCursorPosition(x, y);
+        Mouse.setCursorPosition(FloatMath.round(x * _scale), FloatMath.round(y * _scale));
         super.setMousePosition(x, y);
     }
 
