@@ -717,7 +717,8 @@ public class TudeySceneController extends SceneController
             // get the pick ray
             Root root = _tctx.getRoot();
             _tctx.getCompositor().getCamera().getPickRay(
-                root.getMouseX(), root.getMouseY(), _pick);
+                FloatMath.round(root.getScale() * root.getMouseX()),
+                FloatMath.round(root.getScale() * root.getMouseY()), _pick);
 
             // see if it intersects anything in the scene
             nhsprite = (_holdHover && (_hsprite == null || _hsprite.isClickable())) ?
