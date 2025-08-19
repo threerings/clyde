@@ -490,6 +490,7 @@ public class ConfigSearcher extends JFrame
         _eprefs.bindWindowBounds("ConfigSearcher." + ResourceUtil.getPrefsPrefix(), this);
         setVisible(true);
 
+        final long MaxNanos = 50 * 1000000L; // 50 milliseconds!
         EventQueue.invokeLater(new Runnable() {
             public void run () {
                 if (!ConfigSearcher.this.isShowing()) {
@@ -505,10 +506,11 @@ public class ConfigSearcher extends JFrame
                     addLabel(domain.getLabel());
                     _resultIterator = domain.getResults(detector);
                 }
-                Result result = _resultIterator.next();
-                if (result != null) {
-                    addResult(result);
-                }
+                long timeUp = System.nanoTime() + MaxNanos;
+                do {
+                    Result result = _resultIterator.next();
+                    if (result != null) addResult(result);
+                } while (_resultIterator.hasNext() && timeUp > System.nanoTime());
                 updateStatusLabel();
                 EventQueue.invokeLater(this);
             }
