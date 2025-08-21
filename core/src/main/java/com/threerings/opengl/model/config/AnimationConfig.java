@@ -152,7 +152,8 @@ public class AnimationConfig extends ParameterizedConfig
         public float speed = 1f;
 
         /** The global animation scale. */
-        @Editable(min=0, step=0.01, hgroup="t")
+        @Editable(min=0, step=0.01, hgroup="t",
+                  units="~(MXML import parameter)")
         public float scale = 0.01f;
 
         /** Whether or not the animation loops. */
@@ -161,7 +162,8 @@ public class AnimationConfig extends ParameterizedConfig
 
         /** Whether or not to skip the last frame when looping (because it's the same as the
          * first). */
-        @Editable(hgroup="l")
+        @Editable(hgroup="l",
+                  units="~(MXML import parameter)")
         public boolean skipLastFrame = true;
 
         /** A (possibly random) offset to apply when the animation starts. */
