@@ -30,7 +30,6 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -223,11 +222,6 @@ public class TechniqueConfig extends DeepObject
         public void preload (GlContext ctx)
         {
             // Do nothing
-        }
-
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
         }
 
         /**
@@ -668,11 +662,6 @@ public class TechniqueConfig extends DeepObject
             dependency.preload(ctx);
         }
         enqueuer.preload(ctx);
-    }
-
-    @Deprecated
-    public void getUpdateReferences (ConfigReferenceSet refs)
-    {
     }
 
     /**

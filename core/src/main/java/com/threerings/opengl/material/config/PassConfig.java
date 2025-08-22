@@ -29,7 +29,6 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
@@ -147,11 +146,6 @@ public class PassConfig extends DeepObject
         for (ExpressionBinding binding : dynamicBindings) {
             binding.preload(ctx);
         }
-    }
-
-    @Deprecated
-    public void getUpdateReferences (ConfigReferenceSet refs)
-    {
     }
 
     /**

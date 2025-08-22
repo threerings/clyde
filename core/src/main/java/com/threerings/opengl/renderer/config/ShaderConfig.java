@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -83,12 +82,6 @@ public class ShaderConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            // nothing by default
-        }
-
         /**
          * Adds the implementation's update resources to the provided set.
          */

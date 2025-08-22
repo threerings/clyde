@@ -31,7 +31,6 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -59,12 +58,6 @@ public class UserInterfaceConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            // nothing by default
-        }
-
         /**
          * Returns a reference to the config manager to use when resolving references.
          *

@@ -30,7 +30,6 @@ import java.lang.ref.SoftReference;
 import java.nio.ShortBuffer;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -148,12 +147,6 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
     @EditorTypes({ Points.class, Lines.class, Quads.class, Meshes.class })
     public static abstract class ParticleGeometryConfig extends GeometryConfig
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            // nothing by default
-        }
-
         /**
          * Returns the number of segments in each particle.
          */

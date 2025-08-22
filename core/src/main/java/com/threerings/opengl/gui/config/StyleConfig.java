@@ -28,7 +28,6 @@ package com.threerings.opengl.gui.config;
 import java.util.HashSet;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
@@ -130,11 +129,6 @@ public class StyleConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-        }
-
         /**
          * Adds the implementation's update resources to the provided set.
          */

@@ -34,7 +34,6 @@ import com.samskivert.util.ArrayUtil;
 import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -77,12 +76,6 @@ public class AnimationConfig extends ParameterizedConfig
          * @param force if true, reload the source data even if it has already been loaded.
          */
         public void updateFromSource (EditorContext ctx, boolean force)
-        {
-            // nothing by default
-        }
-
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
         }

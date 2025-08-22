@@ -29,7 +29,6 @@ import java.lang.ref.SoftReference;
 
 import java.util.List;
 
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
@@ -58,11 +57,6 @@ public class TextureStateConfig extends DeepObject
     /** The texture unit configurations. */
     @Editable
     public TextureUnitConfig[] units = new TextureUnitConfig[0];
-
-    @Deprecated
-    public void getUpdateReferences (ConfigReferenceSet refs)
-    {
-    }
 
     /**
      * Determines whether this state is supported by the hardware.

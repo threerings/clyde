@@ -29,7 +29,6 @@ import com.samskivert.util.IntTuple;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -49,12 +48,6 @@ public class WallConfig extends PaintableConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            // nothing by default
-        }
-
         /**
          * Returns a reference to the config's underlying original implementation.
          */

@@ -31,7 +31,6 @@ import com.google.common.base.Objects;
 
 import com.threerings.config.BoundConfig;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -53,12 +52,6 @@ public class RenderEffectConfig extends BoundConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            // nothing. Deprecated.
-        }
-
         /**
          * Gets the priority of the effect.
          */
@@ -205,11 +198,6 @@ public class RenderEffectConfig extends BoundConfig
         /** The final output target. */
         @Editable
         public TargetConfig.Output output = new TargetConfig.Output();
-
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-        }
 
         /**
          * Processes this technique to accommodate the features of the hardware.

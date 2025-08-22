@@ -34,10 +34,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
 /**
- * This class will be deprecated and removed. It's not deprecated now because that causes a lot
- * of annoying warnings merely when we import it.
- *
- * Old documentation follows:
+ * This class is deprecated and will be removed, but for now stands as a bit of a warning.
  *
  * A set of config references of different types.
  * <em>Old and outdated</em>.
@@ -54,7 +51,7 @@ import com.google.common.collect.SetMultimap;
  *        is done by the subclass in ConfigFlattener.</li>
  * </ul>
  */
-//@Deprecated // commented out because the warnings were too annoying
+@Deprecated
 public abstract class ConfigReferenceSet
 {
     /**

@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import com.google.common.base.Objects;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -55,11 +54,6 @@ public class MaterialConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable, Preloadable.LoadableConfig
     {
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-        }
-
         /**
          * Returns a technique to use to render this material.
          */

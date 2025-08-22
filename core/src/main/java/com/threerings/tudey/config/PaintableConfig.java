@@ -34,7 +34,6 @@ import com.samskivert.util.Randoms;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Strippable;
@@ -63,11 +62,6 @@ public abstract class PaintableConfig extends ParameterizedConfig
         /** The tiles for the case. */
         @Editable(weight=1)
         public Tile[] tiles = new Tile[0];
-
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-        }
 
         /**
          * Returns a bit set containing the rotations of this case that match the specified

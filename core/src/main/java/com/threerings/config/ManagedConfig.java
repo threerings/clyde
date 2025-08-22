@@ -341,19 +341,6 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
-     * Obsolete method that collected references configs within this config.
-     * It was a manual process, and couldn't handle config references that were arguments to
-     * other configs.
-     *
-     * @deprecated this is no longer necessary, it is handled reflectively.
-     */
-    @Deprecated
-    protected void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        // nothing
-    }
-
-    /**
      * Collects the paths of all resources referenced by this config that, when modified, should
      * trigger a call to {@link #fireConfigUpdated}.
      */

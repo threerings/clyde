@@ -48,7 +48,6 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Reference;
 import com.threerings.editor.Editable;
@@ -130,12 +129,6 @@ public class ModelConfig extends ParameterizedConfig
          * @param force if true, reload the source data even if it has already been loaded.
          */
         public void updateFromSource (EditorContext ctx, boolean force)
-        {
-            // nothing by default
-        }
-
-        @Deprecated
-        public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
         }

@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -168,12 +167,6 @@ public abstract class ShaderStateConfig extends DeepObject
             return (ref == null) ?
                 null : ctx.getConfigManager().getConfig(ShaderConfig.class, ref);
         }
-    }
-
-    @Deprecated
-    public void getUpdateReferences (ConfigReferenceSet refs)
-    {
-        // nothing by default
     }
 
     /**
