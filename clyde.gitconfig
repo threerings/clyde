@@ -1,0 +1,5 @@
+# Include this in your local git config by running:
+# % git config include.path ../clyde.gitconfig
+
+[blame]
+	ignoreRevsFile = .git-blame-ignore-revs

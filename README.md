@@ -72,3 +72,9 @@ Group for Three Rings libraries:
 [Nenya]: http://github.com/threerings/nenya/
 [Vilya]: http://github.com/threerings/vilya/
 [LWJGL]: http://www.lwjgl.org/
+
+Git Configuration
+-----------------
+
+Add the clyde.gitconfig file to your local .git/config:
+% git config include.path ../clyde.gitconfig
