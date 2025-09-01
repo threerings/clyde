@@ -60,7 +60,7 @@ the library is available here:
 Contributions and Contact Information
 -------------------------------------
 
-Clyde is actively developed by the scurvy dogs at Three Rings Design, Inc.
+Clyde is actively developed by the scurvy dogs at Grey Havens.
 Contributions (in the form of bug reports, pull requests, etc.) are welcome.
 
 Questions, comments, and other communications can be directed to the Google
