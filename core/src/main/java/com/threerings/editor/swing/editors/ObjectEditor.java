@@ -43,58 +43,58 @@ import com.threerings.opengl.gui.config.ComponentConfig;
  * An editor for objects with editable properties.
  */
 public class ObjectEditor extends PropertyEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        Object value = _panel.getValue();
-        if (value instanceof ComponentConfig) {
-            ((ComponentConfig)value).editorHighlight = _highlighted;
-        }
-
-        _property.set(_object, value);
-        fireStateChanged();
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    Object value = _panel.getValue();
+    if (value instanceof ComponentConfig) {
+      ((ComponentConfig)value).editorHighlight = _highlighted;
     }
 
-    @Override
-    public void update ()
-    {
-        _panel.setOuter(_object);
-        _panel.setValue(_property.get(_object));
-    }
+    _property.set(_object, value);
+    fireStateChanged();
+  }
 
-    @Override
-    public String getComponentPath (Component comp, boolean mouse)
-    {
-        return _panel.getComponentPath(comp, mouse);
-    }
+  @Override
+  public void update ()
+  {
+    _panel.setOuter(_object);
+    _panel.setValue(_property.get(_object));
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        makeCollapsible(_ctx, getPropertyLabel(), true);
-        _content.add(_panel = new ObjectPanel(
-            _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
-        addUnits(this);
-        _panel.addChangeListener(this);
-    }
+  @Override
+  public String getComponentPath (Component comp, boolean mouse)
+  {
+    return _panel.getComponentPath(comp, mouse);
+  }
 
-    @Override
-    protected void setTreeModeEnabled (boolean enabled)
-    {
-        _panel.setTreeModeEnabled(enabled);
-    }
+  @Override
+  protected void didInit ()
+  {
+    makeCollapsible(_ctx, getPropertyLabel(), true);
+    _content.add(_panel = new ObjectPanel(
+      _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
+    addUnits(this);
+    _panel.addChangeListener(this);
+  }
 
-    @Override
-    protected void toggleHighlight ()
-    {
-        super.toggleHighlight();
-        if (_panel.getValue() instanceof ComponentConfig) {
-            stateChanged(null);
-        }
-    }
+  @Override
+  protected void setTreeModeEnabled (boolean enabled)
+  {
+    _panel.setTreeModeEnabled(enabled);
+  }
 
-    /** The object panel. */
-    protected ObjectPanel _panel;
+  @Override
+  protected void toggleHighlight ()
+  {
+    super.toggleHighlight();
+    if (_panel.getValue() instanceof ComponentConfig) {
+      stateChanged(null);
+    }
+  }
+
+  /** The object panel. */
+  protected ObjectPanel _panel;
 }

@@ -45,61 +45,61 @@ import java.io.PrintStream;
  */
 public class PrintStreamDialog extends JDialog
 {
-    /**
-     * Creates a new dialog.
-     */
-    public PrintStreamDialog (Frame owner, String title, String close)
-    {
-        super(owner, title);
-        _close = close;
-        _printStream = new PrintStream(_out = new ByteArrayOutputStream());
+  /**
+   * Creates a new dialog.
+   */
+  public PrintStreamDialog (Frame owner, String title, String close)
+  {
+    super(owner, title);
+    _close = close;
+    _printStream = new PrintStream(_out = new ByteArrayOutputStream());
+  }
+
+  /**
+   * Returns a reference to the dialog's print stream.
+   */
+  public PrintStream getPrintStream ()
+  {
+    return _printStream;
+  }
+
+  /**
+   * Shows the dialog with the contents of its buffer if the buffer isn't empty.
+   */
+  public void maybeShow ()
+  {
+    _printStream.close();
+    String contents = _out.toString();
+    if (contents.isEmpty()) {
+      return;
     }
+    JTextArea text = new JTextArea(contents);
+    text.setTabSize(4);
+    text.setLineWrap(true);
+    JScrollPane pane = new JScrollPane(text, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    add(pane, BorderLayout.CENTER);
 
-    /**
-     * Returns a reference to the dialog's print stream.
-     */
-    public PrintStream getPrintStream ()
-    {
-        return _printStream;
-    }
+    JPanel bpanel = new JPanel();
+    add(bpanel, BorderLayout.SOUTH);
+    bpanel.add(new JButton(new AbstractAction(_close) {
+      public void actionPerformed (ActionEvent event) {
+        dispose();
+      }
+    }));
 
-    /**
-     * Shows the dialog with the contents of its buffer if the buffer isn't empty.
-     */
-    public void maybeShow ()
-    {
-        _printStream.close();
-        String contents = _out.toString();
-        if (contents.isEmpty()) {
-            return;
-        }
-        JTextArea text = new JTextArea(contents);
-        text.setTabSize(4);
-        text.setLineWrap(true);
-        JScrollPane pane = new JScrollPane(text, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        add(pane, BorderLayout.CENTER);
+    setSize(800, 500);
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    setLocationRelativeTo(getOwner());
+    setVisible(true);
+  }
 
-        JPanel bpanel = new JPanel();
-        add(bpanel, BorderLayout.SOUTH);
-        bpanel.add(new JButton(new AbstractAction(_close) {
-            public void actionPerformed (ActionEvent event) {
-                dispose();
-            }
-        }));
+  /** The buffer output stream. */
+  protected ByteArrayOutputStream _out;
 
-        setSize(800, 500);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(getOwner());
-        setVisible(true);
-    }
+  /** The print stream that writes to the buffer. */
+  protected PrintStream _printStream;
 
-    /** The buffer output stream. */
-    protected ByteArrayOutputStream _out;
-
-    /** The print stream that writes to the buffer. */
-    protected PrintStream _printStream;
-
-    /** The text for the close button. */
-    protected String _close;
+  /** The text for the close button. */
+  protected String _close;
 }

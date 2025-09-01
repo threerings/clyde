@@ -38,72 +38,72 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class Stats extends SimpleOverlay
 {
-    /**
-     * Creates a new stats display.
-     */
-    public Stats (GlContext ctx)
-    {
-        super(ctx);
+  /**
+   * Creates a new stats display.
+   */
+  public Stats (GlContext ctx)
+  {
+    super(ctx);
 
-        // create the label (empty for now)
-        _textFactory = CharacterTextFactory.getInstance(
-            new Font("Dialog", Font.PLAIN, 12), true, 0f);
-        _stats = _textFactory.createText("", Color4f.WHITE, 0, 0, Color4f.BLACK, true);
+    // create the label (empty for now)
+    _textFactory = CharacterTextFactory.getInstance(
+      new Font("Dialog", Font.PLAIN, 12), true, 0f);
+    _stats = _textFactory.createText("", Color4f.WHITE, 0, 0, Color4f.BLACK, true);
+  }
+
+  @Override
+  public void composite ()
+  {
+    Compositor compositor = _ctx.getCompositor();
+    if (compositor.getSubrenderDepth() > 0) {
+      return;
     }
+    compositor.addEnqueueable(this);
+    _frameCount++;
 
-    @Override
-    public void composite ()
-    {
-        Compositor compositor = _ctx.getCompositor();
-        if (compositor.getSubrenderDepth() > 0) {
-            return;
-        }
-        compositor.addEnqueueable(this);
-        _frameCount++;
-
-        // update the stats if the required interval has passed
-        long now = System.currentTimeMillis(), interval = now - _lastUpdate;
-        if (interval >= REPORT_INTERVAL) {
-            int fps = (int)((_frameCount * 1000) / interval);
-            Renderer renderer = _ctx.getRenderer();
-            _stats = _textFactory.createText(
-                fps + " fps (" + "b: " + renderer.getBatchCount() + "; " + "p: " +
-                renderer.getPrimitiveCount() + "; tc: " + renderer.getTextureChangeCount() +
-                ") [bo: " + renderer.getBufferObjectCount() + "/" +
-                renderer.getBufferObjectBytes()/1024 + "k, tx: " + renderer.getTextureCount() +
-                "/" + renderer.getTextureBytes()/1024 + "k]",
-                Color4f.WHITE, 0, 0, Color4f.BLACK, true);
-            _lastUpdate = now;
-            _frameCount = 0;
-        }
+    // update the stats if the required interval has passed
+    long now = System.currentTimeMillis(), interval = now - _lastUpdate;
+    if (interval >= REPORT_INTERVAL) {
+      int fps = (int)((_frameCount * 1000) / interval);
+      Renderer renderer = _ctx.getRenderer();
+      _stats = _textFactory.createText(
+        fps + " fps (" + "b: " + renderer.getBatchCount() + "; " + "p: " +
+        renderer.getPrimitiveCount() + "; tc: " + renderer.getTextureChangeCount() +
+        ") [bo: " + renderer.getBufferObjectCount() + "/" +
+        renderer.getBufferObjectBytes()/1024 + "k, tx: " + renderer.getTextureCount() +
+        "/" + renderer.getTextureBytes()/1024 + "k]",
+        Color4f.WHITE, 0, 0, Color4f.BLACK, true);
+      _lastUpdate = now;
+      _frameCount = 0;
     }
+  }
 
-    @Override
-    protected void draw ()
-    {
-        _stats.render(_ctx.getRenderer(), 16, getY(), 1f);
-    }
+  @Override
+  protected void draw ()
+  {
+    _stats.render(_ctx.getRenderer(), 16, getY(), 1f);
+  }
 
-    /**
-     * Returns the y coordinate at which to render the stats.
-     */
-    protected int getY ()
-    {
-        return 16;
-    }
+  /**
+   * Returns the y coordinate at which to render the stats.
+   */
+  protected int getY ()
+  {
+    return 16;
+  }
 
-    /** Used to create text objects. */
-    protected CharacterTextFactory _textFactory;
+  /** Used to create text objects. */
+  protected CharacterTextFactory _textFactory;
 
-    /** The stats display text. */
-    protected Text _stats;
+  /** The stats display text. */
+  protected Text _stats;
 
-    /** The time at which we last updated the stats. */
-    protected long _lastUpdate = System.currentTimeMillis();
+  /** The time at which we last updated the stats. */
+  protected long _lastUpdate = System.currentTimeMillis();
 
-    /** The number of frames rendered since the last update. */
-    protected int _frameCount;
+  /** The number of frames rendered since the last update. */
+  protected int _frameCount;
 
-    /** The interval at which we update the stats. */
-    protected static final long REPORT_INTERVAL = 1000L;
+  /** The interval at which we update the stats. */
+  protected static final long REPORT_INTERVAL = 1000L;
 }

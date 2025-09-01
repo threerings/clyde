@@ -40,83 +40,83 @@ import org.apache.tools.ant.types.FileSet;
  */
 public class XMLToBinaryTask extends Task
 {
-    /**
-     * Sets the destination directory to which generated files will be written.
-     */
-    public void setDest (File dest)
-    {
-        _dest = dest;
-    }
+  /**
+   * Sets the destination directory to which generated files will be written.
+   */
+  public void setDest (File dest)
+  {
+    _dest = dest;
+  }
 
-    /**
-     * Sets whether or not to compress the resulting files.
-     */
-    public void setCompress (boolean compress)
-    {
-        _compress = compress;
-    }
+  /**
+   * Sets whether or not to compress the resulting files.
+   */
+  public void setCompress (boolean compress)
+  {
+    _compress = compress;
+  }
 
-    /**
-     * Adds a fileset to the list of sets to process.
-     */
-    public void addFileset (FileSet set)
-    {
-        _filesets.add(set);
-    }
+  /**
+   * Adds a fileset to the list of sets to process.
+   */
+  public void addFileset (FileSet set)
+  {
+    _filesets.add(set);
+  }
 
-    @Override
-    public void execute ()
-        throws BuildException
-    {
-        for (FileSet fs : _filesets) {
-            DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-            File fromDir = fs.getDir(getProject());
-            for (String file : ds.getIncludedFiles()) {
-                try {
-                    convert(fromDir, file);
-                } catch (Exception e) {
-                    System.err.println("Error converting " + new File(fromDir, file) + ": " + e);
-                }
-            }
+  @Override
+  public void execute ()
+    throws BuildException
+  {
+    for (FileSet fs : _filesets) {
+      DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+      File fromDir = fs.getDir(getProject());
+      for (String file : ds.getIncludedFiles()) {
+        try {
+          convert(fromDir, file);
+        } catch (Exception e) {
+          System.err.println("Error converting " + new File(fromDir, file) + ": " + e);
         }
+      }
+    }
+  }
+
+  /**
+   * Converts a single file.
+   */
+  protected void convert (File sourceDir, String sourceName)
+    throws IOException
+  {
+    // find the path of the target file
+    int didx = sourceName.lastIndexOf('.');
+    String root = (didx == -1) ? sourceName : sourceName.substring(0, didx);
+    File target = new File(_dest == null ? sourceDir : _dest, root + ".dat");
+
+    // no need to compile if nothing has been modified
+    File source = new File(sourceDir, sourceName);
+    long lastmod = target.lastModified();
+    if (source.lastModified() < lastmod) {
+      return;
+    }
+    System.out.println("Converting " + source + " to " + target + "...");
+
+    // make sure the parent exists
+    File parent = target.getParentFile();
+    if (!parent.exists()) {
+      parent.mkdirs();
     }
 
-    /**
-     * Converts a single file.
-     */
-    protected void convert (File sourceDir, String sourceName)
-        throws IOException
-    {
-        // find the path of the target file
-        int didx = sourceName.lastIndexOf('.');
-        String root = (didx == -1) ? sourceName : sourceName.substring(0, didx);
-        File target = new File(_dest == null ? sourceDir : _dest, root + ".dat");
+    // perform the conversion
+    XMLToBinaryConverter.convert(source.getPath(), target.getPath(), _compress);
+  }
 
-        // no need to compile if nothing has been modified
-        File source = new File(sourceDir, sourceName);
-        long lastmod = target.lastModified();
-        if (source.lastModified() < lastmod) {
-            return;
-        }
-        System.out.println("Converting " + source + " to " + target + "...");
+  /** The directory in which we will generate our output (in a directory tree mirroring the
+   * source files. */
+  protected File _dest;
 
-        // make sure the parent exists
-        File parent = target.getParentFile();
-        if (!parent.exists()) {
-            parent.mkdirs();
-        }
+  /** Whether or not to compress the output files. */
+  protected boolean _compress = true;
 
-        // perform the conversion
-        XMLToBinaryConverter.convert(source.getPath(), target.getPath(), _compress);
-    }
-
-    /** The directory in which we will generate our output (in a directory tree mirroring the
-     * source files. */
-    protected File _dest;
-
-    /** Whether or not to compress the output files. */
-    protected boolean _compress = true;
-
-    /** A list of filesets that contain XML exports. */
-    protected ArrayList<FileSet> _filesets = new ArrayList<FileSet>();
+  /** A list of filesets that contain XML exports. */
+  protected ArrayList<FileSet> _filesets = new ArrayList<FileSet>();
 }

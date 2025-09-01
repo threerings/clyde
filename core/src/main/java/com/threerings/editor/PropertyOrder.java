@@ -40,6 +40,6 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE })
 public @interface PropertyOrder
 {
-    /** The names of the ordered properties, in the desired order. */
-    String[] value () default {};
+  /** The names of the ordered properties, in the desired order. */
+  String[] value () default {};
 }

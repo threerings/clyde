@@ -39,41 +39,41 @@ import com.threerings.tudey.data.InputFrame;
  * Defines the server-side of the {@link TudeySceneService}.
  */
 @Generated(value={"com.threerings.presents.tools.GenServiceTask"},
-           comments="Derived from TudeySceneService.java.")
+      comments="Derived from TudeySceneService.java.")
 public interface TudeySceneProvider extends InvocationProvider
 {
-    /**
-     * Handles a {@link TudeySceneService#enqueueInputReliable} request.
-     */
-    void enqueueInputReliable (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
+  /**
+   * Handles a {@link TudeySceneService#enqueueInputReliable} request.
+   */
+  void enqueueInputReliable (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
 
-    /**
-     * Handles a {@link TudeySceneService#enqueueInputUnreliable} request.
-     */
-    void enqueueInputUnreliable (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
+  /**
+   * Handles a {@link TudeySceneService#enqueueInputUnreliable} request.
+   */
+  void enqueueInputUnreliable (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
 
-    /**
-     * Handles a {@link TudeySceneService#enteredPlace} request.
-     */
-    void enteredPlace (ClientObject caller);
+  /**
+   * Handles a {@link TudeySceneService#enteredPlace} request.
+   */
+  void enteredPlace (ClientObject caller);
 
-    /**
-     * Handles a {@link TudeySceneService#setCameraParams} request.
-     */
-    void setCameraParams (ClientObject caller, CameraConfig arg1, float arg2);
+  /**
+   * Handles a {@link TudeySceneService#setCameraParams} request.
+   */
+  void setCameraParams (ClientObject caller, CameraConfig arg1, float arg2);
 
-    /**
-     * Handles a {@link TudeySceneService#setTarget} request.
-     */
-    void setTarget (ClientObject caller, int arg1);
+  /**
+   * Handles a {@link TudeySceneService#setTarget} request.
+   */
+  void setTarget (ClientObject caller, int arg1);
 
-    /**
-     * Handles a {@link TudeySceneService#submitActorRequest} request.
-     */
-    void submitActorRequest (ClientObject caller, int arg1, String arg2);
+  /**
+   * Handles a {@link TudeySceneService#submitActorRequest} request.
+   */
+  void submitActorRequest (ClientObject caller, int arg1, String arg2);
 
-    /**
-     * Handles a {@link TudeySceneService#submitEntryRequest} request.
-     */
-    void submitEntryRequest (ClientObject caller, Object arg1, String arg2);
+  /**
+   * Handles a {@link TudeySceneService#submitEntryRequest} request.
+   */
+  void submitEntryRequest (ClientObject caller, Object arg1, String arg2);
 }

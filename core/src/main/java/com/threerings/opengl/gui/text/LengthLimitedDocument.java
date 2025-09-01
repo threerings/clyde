@@ -33,20 +33,20 @@ import com.threerings.opengl.gui.TextField;
  */
 public class LengthLimitedDocument extends Document
 {
-    /**
-     * Creates a document that will limit its maximum length to the specified
-     * value.
-     */
-    public LengthLimitedDocument (int maxLength)
-    {
-        _maxLength = maxLength;
-    }
+  /**
+   * Creates a document that will limit its maximum length to the specified
+   * value.
+   */
+  public LengthLimitedDocument (int maxLength)
+  {
+    _maxLength = maxLength;
+  }
 
-    // documentation inherited
-    protected boolean validateEdit (String oldText, String newText)
-    {
-        return super.validateEdit(oldText, newText) && (newText.length() <= _maxLength);
-    }
+  // documentation inherited
+  protected boolean validateEdit (String oldText, String newText)
+  {
+    return super.validateEdit(oldText, newText) && (newText.length() <= _maxLength);
+  }
 
-    protected int _maxLength;
+  protected int _maxLength;
 }

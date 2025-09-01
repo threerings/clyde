@@ -30,39 +30,39 @@ package com.threerings.expr;
  */
 public class MutableInteger
 {
-    /** The value of this variable. */
-    public int value;
+  /** The value of this variable. */
+  public int value;
 
-    /**
-     * Creates a mutable integer with the supplied value.
-     */
-    public MutableInteger (int value)
-    {
-        this.value = value;
-    }
+  /**
+   * Creates a mutable integer with the supplied value.
+   */
+  public MutableInteger (int value)
+  {
+    this.value = value;
+  }
 
-    /**
-     * Creates a mutable integer with a value of zero.
-     */
-    public MutableInteger ()
-    {
-    }
+  /**
+   * Creates a mutable integer with a value of zero.
+   */
+  public MutableInteger ()
+  {
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return value;
-    }
+  @Override
+  public int hashCode ()
+  {
+    return value;
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof MutableInteger && ((MutableInteger)other).value == value;
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof MutableInteger && ((MutableInteger)other).value == value;
+  }
 
-    @Override
-    public String toString ()
-    {
-        return String.valueOf(value);
-    }
+  @Override
+  public String toString ()
+  {
+    return String.valueOf(value);
+  }
 }

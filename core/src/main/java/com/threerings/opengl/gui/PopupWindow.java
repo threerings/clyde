@@ -35,56 +35,56 @@ import com.threerings.opengl.gui.layout.LayoutManager;
  */
 public class PopupWindow extends Window
 {
-    public PopupWindow (GlContext ctx, Window parent, LayoutManager layout)
-    {
-        super(ctx, layout);
-        _parentWindow = parent;
+  public PopupWindow (GlContext ctx, Window parent, LayoutManager layout)
+  {
+    super(ctx, layout);
+    _parentWindow = parent;
+  }
+
+  @Override
+  public boolean shouldShadeBehind ()
+  {
+    return false;
+  }
+
+  /**
+   * Sizes the window to its preferred size and then displays it at the
+   * specified coordinates extending either above the location or below
+   * as specified. The window position may be adjusted if it does not
+   * fit on the screen at the specified coordinates.
+   */
+  public void popup (int x, int y, boolean above)
+  {
+    setLayer(_parentWindow.getLayer());
+    // add ourselves to the interface hierarchy if we're not already
+    if (_root == null) {
+      _parentWindow.getRoot().addWindow(this);
     }
 
-    @Override
-    public boolean shouldShadeBehind ()
-    {
-        return false;
-    }
+    // size and position ourselves appropriately
+    packAndFit(x, y, above);
+  }
 
-    /**
-     * Sizes the window to its preferred size and then displays it at the
-     * specified coordinates extending either above the location or below
-     * as specified. The window position may be adjusted if it does not
-     * fit on the screen at the specified coordinates.
-     */
-    public void popup (int x, int y, boolean above)
-    {
-        setLayer(_parentWindow.getLayer());
-        // add ourselves to the interface hierarchy if we're not already
-        if (_root == null) {
-            _parentWindow.getRoot().addWindow(this);
-        }
+  /**
+   * Called after we have been added to the display hierarchy to pack and
+   * position this popup window.
+   */
+  protected void packAndFit (int x, int y, boolean above)
+  {
+    pack();
 
-        // size and position ourselves appropriately
-        packAndFit(x, y, above);
-    }
+    // adjust x and y to ensure that we fit on the screen
+    int width = _root.getDisplayWidth();
+    int height = _root.getDisplayHeight();
+    x = Math.min(width - getWidth(), x);
+    y = above ?
+      Math.min(height - getHeight(), y) : Math.max(0, y - getHeight());
+    setLocation(x, y);
+  }
 
-    /**
-     * Called after we have been added to the display hierarchy to pack and
-     * position this popup window.
-     */
-    protected void packAndFit (int x, int y, boolean above)
-    {
-        pack();
-
-        // adjust x and y to ensure that we fit on the screen
-        int width = _root.getDisplayWidth();
-        int height = _root.getDisplayHeight();
-        x = Math.min(width - getWidth(), x);
-        y = above ?
-            Math.min(height - getHeight(), y) : Math.max(0, y - getHeight());
-        setLocation(x, y);
-    }
-
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/PopupWindow";
-    }
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/PopupWindow";
+  }
 }

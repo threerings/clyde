@@ -39,32 +39,32 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class Pawn extends Active
 {
-    /**
-     * Creates a new pawn.
-     */
-    public Pawn (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
-    {
-        super(config, id, created, translation, rotation);
-    }
+  /**
+   * Creates a new pawn.
+   */
+  public Pawn (
+    ConfigReference<ActorConfig> config, int id, int created,
+    Vector2f translation, float rotation)
+  {
+    super(config, id, created, translation, rotation);
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public Pawn ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public Pawn ()
+  {
+  }
 
-    @Override
-    public boolean isClientControlled (TudeyContext ctx, TudeySceneView view)
-    {
-        return super.isClientControlled(ctx, view) || view.getController().isControlledId(_id);
-    }
+  @Override
+  public boolean isClientControlled (TudeyContext ctx, TudeySceneView view)
+  {
+    return super.isClientControlled(ctx, view) || view.getController().isControlledId(_id);
+  }
 
-    @Override
-    public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
-    {
-        return new PawnAdvancer(environment, this, timestamp);
-    }
+  @Override
+  public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+  {
+    return new PawnAdvancer(environment, this, timestamp);
+  }
 }

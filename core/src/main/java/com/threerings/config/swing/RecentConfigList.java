@@ -32,72 +32,72 @@ import com.threerings.config.ManagedConfig;
  */
 public class RecentConfigList extends AbstractRecentList
 {
+  /**
+   * Observer class for RecentConfigList.
+   */
+  public static abstract class Observer
+  {
     /**
-     * Observer class for RecentConfigList.
+     * Called when a config is selected from the list.
      */
-    public static abstract class Observer
-    {
-        /**
-         * Called when a config is selected from the list.
-         */
-        public void configSelected (ConfigReference<?> ref) {}
-    }
+    public void configSelected (ConfigReference<?> ref) {}
+  }
 
-    /**
-     * Create a RecentConfigList.
-     *
-     * @param prefKey a unique String to identify the context in which this is being used,
-     * or null to not persist.
-     */
-    public RecentConfigList (String prefKey)
-    {
-        super(prefKey, (prefKey == null)
-                ? null
-                : Preferences.userNodeForPackage(RecentConfigList.class).node("RecentConfigList"));
-    }
+  /**
+   * Create a RecentConfigList.
+   *
+   * @param prefKey a unique String to identify the context in which this is being used,
+   * or null to not persist.
+   */
+  public RecentConfigList (String prefKey)
+  {
+    super(prefKey, (prefKey == null)
+        ? null
+        : Preferences.userNodeForPackage(RecentConfigList.class).node("RecentConfigList"));
+  }
 
-    /**
-     * Add an Observer of this RecentConfigList.
-     */
-    public void addObserver (Observer obs)
-    {
-        _observers.add(obs);
-    }
+  /**
+   * Add an Observer of this RecentConfigList.
+   */
+  public void addObserver (Observer obs)
+  {
+    _observers.add(obs);
+  }
 
-    /**
-     * Remove an Observer of this RecentConfigList.
-     */
-    public void removeObserver (Observer obs)
-    {
-        _observers.remove(obs);
-    }
+  /**
+   * Remove an Observer of this RecentConfigList.
+   */
+  public void removeObserver (Observer obs)
+  {
+    _observers.remove(obs);
+  }
 
-    /**
-     * Add a config reference that's been used recently.
-     */
-    public void addRecent (ConfigReference<?> ref)
-    {
-        addRecent(ref.getName());
-    }
+  /**
+   * Add a config reference that's been used recently.
+   */
+  public void addRecent (ConfigReference<?> ref)
+  {
+    addRecent(ref.getName());
+  }
 
-    @Override
-    protected int getMaximumChop (String value)
-    {
-        return value.lastIndexOf('/') + 1;
-    }
+  @Override
+  protected int getMaximumChop (String value)
+  {
+    return value.lastIndexOf('/') + 1;
+  }
 
-    @Override
-    protected void valueSelected (String value)
-    {
-        final ConfigReference<?> ref = new ConfigReference<ManagedConfig>(value);
-        _observers.apply(new ObserverList.ObserverOp<Observer>() {
-            public boolean apply (Observer obs) {
-                obs.configSelected(ref);
-                return true;
-            }
-        });
-    }
+  @Override
+  protected void valueSelected (String value)
+  {
+    final ConfigReference<?> ref = new ConfigReference<ManagedConfig>(value);
+    _observers.apply(new ObserverList.ObserverOp<Observer>() {
+      public boolean apply (Observer obs) {
+        obs.configSelected(ref);
+        return true;
+      }
+    });
+  }
 
-    /** The observers of this recent list. */
-    protected ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
+  /** The observers of this recent list. */
+  protected ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
 }

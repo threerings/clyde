@@ -49,147 +49,147 @@ import com.threerings.opengl.util.GlContext;
  * Contains an icon configuration.
  */
 @EditorTypes({
-    IconConfig.Image.class, IconConfig.ColorizedImage.class,
-    IconConfig.Rotated.class, IconConfig.Blank.class })
+  IconConfig.Image.class, IconConfig.ColorizedImage.class,
+  IconConfig.Rotated.class, IconConfig.Blank.class })
 public abstract class IconConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
+  /**
+   * An image icon.
+   */
+  public static class Image extends IconConfig
+  {
+    /** The background image. */
+    @Editable(editor="resource", nullable=true)
+    @FileConstraints(
+      description="m.image_files_desc",
+      extensions={".png", ".jpg", ".dds"},
+      directory="image_dir")
+    public String file;
+
     /**
-     * An image icon.
+     * Retrieves the image for the icon.
      */
-    public static class Image extends IconConfig
+    public com.threerings.opengl.gui.Image getImage (GlContext ctx)
     {
-        /** The background image. */
-        @Editable(editor="resource", nullable=true)
-        @FileConstraints(
-            description="m.image_files_desc",
-            extensions={".png", ".jpg", ".dds"},
-            directory="image_dir")
-        public String file;
-
-        /**
-         * Retrieves the image for the icon.
-         */
-        public com.threerings.opengl.gui.Image getImage (GlContext ctx)
-        {
-            return ctx.getImageCache().getImage(file);
-        }
-
-        @Override
-        public void getUpdateResources (HashSet<String> paths)
-        {
-            if (file != null) {
-                paths.add(file);
-            }
-        }
-
-        @Override
-        protected Icon createIcon (GlContext ctx)
-        {
-            return (file == null) ? new BlankIcon(1, 1) : new ImageIcon(getImage(ctx));
-        }
+      return ctx.getImageCache().getImage(file);
     }
 
-    /**
-     * A colorized image icon.
-     */
-    public static class ColorizedImage extends Image
-    {
-        /** The colorizations to apply to the image. */
-        @Editable
-        public ColorizationConfig[] colorizations = new ColorizationConfig[0];
-
-        @Override
-        public com.threerings.opengl.gui.Image getImage (GlContext ctx)
-        {
-            return getImage(ctx, file, colorizations);
-        }
-    }
-
-    /**
-     * A rotated icon.
-     */
-    public static class Rotated extends IconConfig
-    {
-        /** The amount of rotation. */
-        @Editable(min=-180, max=+180)
-        public float rotation;
-
-        /** The sub-icon to rotate. */
-        @Editable(nullable=true)
-        public IconConfig icon;
-
-        @Override
-        protected Icon createIcon (GlContext ctx)
-        {
-            return (icon == null) ? new BlankIcon(1, 1) :
-                new RotatedIcon(icon.createIcon(ctx), rotation);
-        }
-    }
-
-    /**
-     * A blank icon.
-     */
-    public static class Blank extends IconConfig
-    {
-        /** The dimensions of the icon. */
-        @Editable(hgroup="d")
-        public int width, height;
-
-        @Override
-        protected Icon createIcon (GlContext ctx)
-        {
-            return new BlankIcon(width, height);
-        }
-    }
-
-    /**
-     * Retrieves the specified image, applying the desired colorizations.
-     */
-    public static com.threerings.opengl.gui.Image getImage (
-        GlContext ctx, String file, ColorizationConfig[] colorizations)
-    {
-        Colorization[] zations = new Colorization[colorizations.length];
-        for (int ii = 0; ii < zations.length; ii++) {
-            zations[ii] = colorizations[ii].getColorization(ctx);
-        }
-        return ctx.getImageCache().getImage(file, zations);
-    }
-
-    /**
-     * Adds the icon's update resources to the provided set.
-     */
+    @Override
     public void getUpdateResources (HashSet<String> paths)
     {
-        // nothing by default
+      if (file != null) {
+        paths.add(file);
+      }
     }
 
-    /**
-     * Returns the icon corresponding to this config.
-     */
-    public Icon getIcon (GlContext ctx)
+    @Override
+    protected Icon createIcon (GlContext ctx)
     {
-        Icon icon = (_icon == null) ? null : _icon.get();
-        if (icon == null) {
-            _icon = new SoftReference<Icon>(icon = createIcon(ctx));
-        }
-        return icon;
+      return (file == null) ? new BlankIcon(1, 1) : new ImageIcon(getImage(ctx));
     }
+  }
 
-    /**
-     * Invalidates any cached data.
-     */
-    public void invalidate ()
+  /**
+   * A colorized image icon.
+   */
+  public static class ColorizedImage extends Image
+  {
+    /** The colorizations to apply to the image. */
+    @Editable
+    public ColorizationConfig[] colorizations = new ColorizationConfig[0];
+
+    @Override
+    public com.threerings.opengl.gui.Image getImage (GlContext ctx)
     {
-        _icon = null;
+      return getImage(ctx, file, colorizations);
     }
+  }
 
-    /**
-     * Creates the icon corresponding to this config.
-     */
-    protected abstract Icon createIcon (GlContext ctx);
+  /**
+   * A rotated icon.
+   */
+  public static class Rotated extends IconConfig
+  {
+    /** The amount of rotation. */
+    @Editable(min=-180, max=+180)
+    public float rotation;
 
-    /** The cached icon. */
-    @DeepOmit
-    protected transient SoftReference<Icon> _icon;
+    /** The sub-icon to rotate. */
+    @Editable(nullable=true)
+    public IconConfig icon;
+
+    @Override
+    protected Icon createIcon (GlContext ctx)
+    {
+      return (icon == null) ? new BlankIcon(1, 1) :
+        new RotatedIcon(icon.createIcon(ctx), rotation);
+    }
+  }
+
+  /**
+   * A blank icon.
+   */
+  public static class Blank extends IconConfig
+  {
+    /** The dimensions of the icon. */
+    @Editable(hgroup="d")
+    public int width, height;
+
+    @Override
+    protected Icon createIcon (GlContext ctx)
+    {
+      return new BlankIcon(width, height);
+    }
+  }
+
+  /**
+   * Retrieves the specified image, applying the desired colorizations.
+   */
+  public static com.threerings.opengl.gui.Image getImage (
+    GlContext ctx, String file, ColorizationConfig[] colorizations)
+  {
+    Colorization[] zations = new Colorization[colorizations.length];
+    for (int ii = 0; ii < zations.length; ii++) {
+      zations[ii] = colorizations[ii].getColorization(ctx);
+    }
+    return ctx.getImageCache().getImage(file, zations);
+  }
+
+  /**
+   * Adds the icon's update resources to the provided set.
+   */
+  public void getUpdateResources (HashSet<String> paths)
+  {
+    // nothing by default
+  }
+
+  /**
+   * Returns the icon corresponding to this config.
+   */
+  public Icon getIcon (GlContext ctx)
+  {
+    Icon icon = (_icon == null) ? null : _icon.get();
+    if (icon == null) {
+      _icon = new SoftReference<Icon>(icon = createIcon(ctx));
+    }
+    return icon;
+  }
+
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    _icon = null;
+  }
+
+  /**
+   * Creates the icon corresponding to this config.
+   */
+  protected abstract Icon createIcon (GlContext ctx);
+
+  /** The cached icon. */
+  @DeepOmit
+  protected transient SoftReference<Icon> _icon;
 }

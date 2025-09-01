@@ -59,147 +59,147 @@ import static com.threerings.tudey.Log.log;
  * The palette tool.
  */
 public class Palette extends BaseMover
-    implements TreeSelectionListener, ActionListener
+  implements TreeSelectionListener, ActionListener
 {
-    /**
-     * Creates the palette tool.
-     */
-    public Palette (SceneEditor editor)
-    {
-        super(editor);
+  /**
+   * Creates the palette tool.
+   */
+  public Palette (SceneEditor editor)
+  {
+    super(editor);
 
-        // create and add the tree
-        add(new JScrollPane(_tree = new PrefsTree(_prefs.node("palette"))));
-        _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        _tree.addTreeSelectionListener(this);
+    // create and add the tree
+    add(new JScrollPane(_tree = new PrefsTree(_prefs.node("palette"))));
+    _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    _tree.addTreeSelectionListener(this);
 
-        // and the button panel
-        JPanel bpanel = new JPanel();
-        add(bpanel, GroupLayout.FIXED);
-        bpanel.add(ToolUtil.createButton(this, _msgs, "new_folder"));
-        bpanel.add(_delete = ToolUtil.createButton(this, _msgs, "delete"));
-        _delete.setEnabled(false);
+    // and the button panel
+    JPanel bpanel = new JPanel();
+    add(bpanel, GroupLayout.FIXED);
+    bpanel.add(ToolUtil.createButton(this, _msgs, "new_folder"));
+    bpanel.add(_delete = ToolUtil.createButton(this, _msgs, "delete"));
+    _delete.setEnabled(false);
 
-        // and the export panel
-        JPanel epanel = new JPanel();
-        add(epanel, GroupLayout.FIXED);
-        epanel.add(ToolUtil.createButton(this, _msgs, "import_short"));
-        epanel.add(ToolUtil.createButton(this, _msgs, "export_short"));
+    // and the export panel
+    JPanel epanel = new JPanel();
+    add(epanel, GroupLayout.FIXED);
+    epanel.add(ToolUtil.createButton(this, _msgs, "import_short"));
+    epanel.add(ToolUtil.createButton(this, _msgs, "export_short"));
 
-        // create the file chooser
-        _chooser = new JFileChooser(_prefs.get("palette_export_dir", null));
-        _chooser.setFileFilter(new FileFilter() {
-            public boolean accept (File file) {
-                return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
-            }
-            public String getDescription () {
-                return _msgs.get("m.xml_files");
-            }
-        });
+    // create the file chooser
+    _chooser = new JFileChooser(_prefs.get("palette_export_dir", null));
+    _chooser.setFileFilter(new FileFilter() {
+      public boolean accept (File file) {
+        return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
+      }
+      public String getDescription () {
+        return _msgs.get("m.xml_files");
+      }
+    });
+  }
+
+  /**
+   * Adds a new entry to the palette.
+   */
+  public void add (Entry... entries)
+  {
+    _tree.insertNewNode(_msgs.get("m.new_entry"), DeepUtil.copy(entries));
+  }
+
+  // documentation inherited from interface TreeSelectionListener
+  public void valueChanged (TreeSelectionEvent event)
+  {
+    PrefsTreeNode node = _tree.getSelectedNode();
+    if (node != null && node.getValue() != null) {
+      move((Entry[])node.getValue());
+    } else {
+      clear();
     }
+    _delete.setEnabled(node != null);
+  }
 
-    /**
-     * Adds a new entry to the palette.
-     */
-    public void add (Entry... entries)
-    {
-        _tree.insertNewNode(_msgs.get("m.new_entry"), DeepUtil.copy(entries));
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    String action = event.getActionCommand();
+    if (action.equals("new_folder")) {
+      _tree.insertNewNode(_msgs.get("m.new_folder"), null);
+    } else if (action.equals("delete")) {
+      _tree.removeSelectedNode();
+    } else if (action.equals("import_short")) {
+      importPalette();
+    } else { // action.equals("export_short")
+      exportPalette();
     }
+  }
 
-    // documentation inherited from interface TreeSelectionListener
-    public void valueChanged (TreeSelectionEvent event)
-    {
-        PrefsTreeNode node = _tree.getSelectedNode();
-        if (node != null && node.getValue() != null) {
-            move((Entry[])node.getValue());
-        } else {
-            clear();
-        }
-        _delete.setEnabled(node != null);
+  /**
+   * Attempts to import a palette.
+   */
+  protected void importPalette ()
+  {
+    if (_chooser.showOpenDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
+      File file = _chooser.getSelectedFile();
+      try {
+        XMLImporter in = new XMLImporter(new FileInputStream(file));
+        merge(_tree.getRootNode(), (PrefsTreeNode)in.readObject());
+        in.close();
+      } catch (Exception e) { // IOException, ClassCastException
+        log.warning("Failed to import palette.", "file", file, e);
+      }
     }
+    _prefs.put("palette_export_dir", _chooser.getCurrentDirectory().toString());
+  }
 
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        String action = event.getActionCommand();
-        if (action.equals("new_folder")) {
-            _tree.insertNewNode(_msgs.get("m.new_folder"), null);
-        } else if (action.equals("delete")) {
-            _tree.removeSelectedNode();
-        } else if (action.equals("import_short")) {
-            importPalette();
-        } else { // action.equals("export_short")
-            exportPalette();
-        }
+  /**
+   * Attempts to export the palette.
+   */
+  protected void exportPalette ()
+  {
+    if (_chooser.showSaveDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
+      File file = _chooser.getSelectedFile();
+      try {
+        XMLExporter out = new XMLExporter(new FileOutputStream(file));
+        out.writeObject(_tree.getRootNode());
+        out.close();
+      } catch (IOException e) {
+        log.warning("Failed to export palette.", "file", file, e);
+      }
     }
+    _prefs.put("palette_export_dir", _chooser.getCurrentDirectory().toString());
+  }
 
-    /**
-     * Attempts to import a palette.
-     */
-    protected void importPalette ()
-    {
-        if (_chooser.showOpenDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
-            File file = _chooser.getSelectedFile();
-            try {
-                XMLImporter in = new XMLImporter(new FileInputStream(file));
-                merge(_tree.getRootNode(), (PrefsTreeNode)in.readObject());
-                in.close();
-            } catch (Exception e) { // IOException, ClassCastException
-                log.warning("Failed to import palette.", "file", file, e);
-            }
-        }
-        _prefs.put("palette_export_dir", _chooser.getCurrentDirectory().toString());
+  /**
+   * Merges in the contents of the supplied node.
+   */
+  protected void merge (PrefsTreeNode onode, PrefsTreeNode nnode)
+  {
+    PrefsTreeNode[] nchildren = new PrefsTreeNode[nnode.getChildCount()];
+    for (int ii = 0; ii < nchildren.length; ii++) {
+      nchildren[ii] = (PrefsTreeNode)nnode.getChildAt(ii);
     }
-
-    /**
-     * Attempts to export the palette.
-     */
-    protected void exportPalette ()
-    {
-        if (_chooser.showSaveDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
-            File file = _chooser.getSelectedFile();
-            try {
-                XMLExporter out = new XMLExporter(new FileOutputStream(file));
-                out.writeObject(_tree.getRootNode());
-                out.close();
-            } catch (IOException e) {
-                log.warning("Failed to export palette.", "file", file, e);
-            }
-        }
-        _prefs.put("palette_export_dir", _chooser.getCurrentDirectory().toString());
+    for (PrefsTreeNode nchild : nchildren) {
+      PrefsTreeNode ochild = onode.getChild((String)nchild.getUserObject());
+      if (ochild == null) {
+        _tree.insertNodeInto(nchild, onode);
+      } else if (!(ochild.getAllowsChildren() && nchild.getAllowsChildren())) {
+        _tree.removeNodeFromParent(ochild);
+        _tree.insertNodeInto(nchild, onode);
+      } else {
+        merge(ochild, nchild);
+      }
     }
+  }
 
-    /**
-     * Merges in the contents of the supplied node.
-     */
-    protected void merge (PrefsTreeNode onode, PrefsTreeNode nnode)
-    {
-        PrefsTreeNode[] nchildren = new PrefsTreeNode[nnode.getChildCount()];
-        for (int ii = 0; ii < nchildren.length; ii++) {
-            nchildren[ii] = (PrefsTreeNode)nnode.getChildAt(ii);
-        }
-        for (PrefsTreeNode nchild : nchildren) {
-            PrefsTreeNode ochild = onode.getChild((String)nchild.getUserObject());
-            if (ochild == null) {
-                _tree.insertNodeInto(nchild, onode);
-            } else if (!(ochild.getAllowsChildren() && nchild.getAllowsChildren())) {
-                _tree.removeNodeFromParent(ochild);
-                _tree.insertNodeInto(nchild, onode);
-            } else {
-                merge(ochild, nchild);
-            }
-        }
-    }
+  /** The palette tree. */
+  protected PrefsTree _tree;
 
-    /** The palette tree. */
-    protected PrefsTree _tree;
+  /** The delete button. */
+  protected JButton _delete;
 
-    /** The delete button. */
-    protected JButton _delete;
+  /** The file chooser for importing and exporting entry files. */
+  protected JFileChooser _chooser;
 
-    /** The file chooser for importing and exporting entry files. */
-    protected JFileChooser _chooser;
-
-    /** The package preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(Palette.class);
+  /** The package preferences. */
+  protected static Preferences _prefs = Preferences.userNodeForPackage(Palette.class);
 }

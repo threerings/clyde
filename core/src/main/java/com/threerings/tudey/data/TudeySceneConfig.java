@@ -38,68 +38,68 @@ import com.threerings.tudey.client.TudeySceneController;
  * Place configuration for Tudey scenes.
  */
 public class TudeySceneConfig extends PlaceConfig
-    implements Exportable, Cloneable, Copyable
+  implements Exportable, Cloneable, Copyable
 {
-    /**
-     * Returns the interval ahead of the smoothed server time (which estimates the server time
-     * minus one-way latency) at which clients schedule input events.  This should be at least the
-     * transmit interval (which represents the maximum amount of time that events may be delayed)
-     * plus the two-way latency.
-     *
-     * @param pingAverage the two-way latency estimate to use in the calculation.
-     */
-    public int getInputAdvance (int pingAverage)
-    {
-        return Math.round((getTransmitInterval() + pingAverage) * 1.25f);
-    }
+  /**
+   * Returns the interval ahead of the smoothed server time (which estimates the server time
+   * minus one-way latency) at which clients schedule input events.  This should be at least the
+   * transmit interval (which represents the maximum amount of time that events may be delayed)
+   * plus the two-way latency.
+   *
+   * @param pingAverage the two-way latency estimate to use in the calculation.
+   */
+  public int getInputAdvance (int pingAverage)
+  {
+    return Math.round((getTransmitInterval() + pingAverage) * 1.25f);
+  }
 
-    /**
-     * Returns the interval at which clients transmit their input frames.
-     */
-    public int getTransmitInterval ()
-    {
-        return 100;
-    }
+  /**
+   * Returns the interval at which clients transmit their input frames.
+   */
+  public int getTransmitInterval ()
+  {
+    return 100;
+  }
 
-    // documentation inherited from interface Copyable
-    public Object copy (Object dest)
-    {
-        return copy(dest, null);
-    }
+  // documentation inherited from interface Copyable
+  public Object copy (Object dest)
+  {
+    return copy(dest, null);
+  }
 
-    // documentation inherited from interface Copyable
-    public Object copy (Object dest, Object outer)
-    {
-        return DeepUtil.copy(this, dest, outer);
-    }
+  // documentation inherited from interface Copyable
+  public Object copy (Object dest, Object outer)
+  {
+    return DeepUtil.copy(this, dest, outer);
+  }
 
-    @Override
-    public PlaceController createController ()
-    {
-        return new TudeySceneController();
-    }
+  @Override
+  public PlaceController createController ()
+  {
+    return new TudeySceneController();
+  }
 
-    @Override
-    public String getManagerClassName ()
-    {
-        return "com.threerings.tudey.server.TudeySceneManager";
-    }
+  @Override
+  public String getManagerClassName ()
+  {
+    return "com.threerings.tudey.server.TudeySceneManager";
+  }
 
-    @Override
-    public TudeySceneConfig clone ()
-    {
-        return (TudeySceneConfig) copy(null, null);
-    }
+  @Override
+  public TudeySceneConfig clone ()
+  {
+    return (TudeySceneConfig) copy(null, null);
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return DeepUtil.equals(this, other);
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return DeepUtil.equals(this, other);
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return DeepUtil.hashCode(this);
-    }
+  @Override
+  public int hashCode ()
+  {
+    return DeepUtil.hashCode(this);
+  }
 }

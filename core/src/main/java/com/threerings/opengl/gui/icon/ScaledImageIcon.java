@@ -35,48 +35,48 @@ import com.threerings.opengl.gui.util.Rectangle;
  */
 public class ScaledImageIcon extends Icon
 {
-    /**
-     * Creates an icon that will display the specified image scaled to the supplied size.
-     */
-    public ScaledImageIcon (Image image, int twidth, int theight)
-    {
-        this(image, 0, 0, image.getWidth(), image.getHeight(), twidth, theight);
-    }
+  /**
+   * Creates an icon that will display the specified image scaled to the supplied size.
+   */
+  public ScaledImageIcon (Image image, int twidth, int theight)
+  {
+    this(image, 0, 0, image.getWidth(), image.getHeight(), twidth, theight);
+  }
 
-    /**
-     * Creates an icon that will display the specified region of the supplied image scaled to the
-     * supplied size.
-     */
-    public ScaledImageIcon (
-        Image image, int sx, int sy, int swidth, int sheight, int twidth, int theight)
-    {
-        _image = image;
-        _sregion = new Rectangle(sx, sy, swidth, sheight);
-        _twidth = twidth;
-        _theight = theight;
-    }
+  /**
+   * Creates an icon that will display the specified region of the supplied image scaled to the
+   * supplied size.
+   */
+  public ScaledImageIcon (
+    Image image, int sx, int sy, int swidth, int sheight, int twidth, int theight)
+  {
+    _image = image;
+    _sregion = new Rectangle(sx, sy, swidth, sheight);
+    _twidth = twidth;
+    _theight = theight;
+  }
 
-    // documentation inherited
-    public int getWidth ()
-    {
-        return _twidth;
-    }
+  // documentation inherited
+  public int getWidth ()
+  {
+    return _twidth;
+  }
 
-    // documentation inherited
-    public int getHeight ()
-    {
-        return _theight;
-    }
+  // documentation inherited
+  public int getHeight ()
+  {
+    return _theight;
+  }
 
-    // documentation inherited
-    public void render (Renderer renderer, int x, int y, float alpha)
-    {
-        super.render(renderer, x, y, alpha);
-        _image.render(renderer, _sregion.x, _sregion.y,
-                      _sregion.width, _sregion.height, x, y, _twidth, _theight, alpha);
-    }
+  // documentation inherited
+  public void render (Renderer renderer, int x, int y, float alpha)
+  {
+    super.render(renderer, x, y, alpha);
+    _image.render(renderer, _sregion.x, _sregion.y,
+           _sregion.width, _sregion.height, x, y, _twidth, _theight, alpha);
+  }
 
-    protected Image _image;
-    protected Rectangle _sregion;
-    protected int _twidth, _theight;
+  protected Image _image;
+  protected Rectangle _sregion;
+  protected int _twidth, _theight;
 }

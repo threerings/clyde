@@ -40,131 +40,131 @@ import com.threerings.tudey.config.EffectConfig;
  * Represents a stateless event occurring within the scene.
  */
 public class Effect extends SimpleStreamableObject
-    implements Prefireable
+  implements Prefireable
 {
-    /**
-     * Creates a new effect.
-     */
-    public Effect (
-        ConfigReference<EffectConfig> config, int timestamp,
-        EntityKey target, Vector2f translation, float rotation)
-    {
-        _config = config;
-        _timestamp = timestamp;
-        _target = target;
-        _translation.set(translation);
-        _rotation = rotation;
+  /**
+   * Creates a new effect.
+   */
+  public Effect (
+    ConfigReference<EffectConfig> config, int timestamp,
+    EntityKey target, Vector2f translation, float rotation)
+  {
+    _config = config;
+    _timestamp = timestamp;
+    _target = target;
+    _translation.set(translation);
+    _rotation = rotation;
+  }
+
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public Effect ()
+  {
+  }
+
+  /**
+   * Gives the effect a chance to resolve and cache configuration data after being created or
+   * deserialized.
+   */
+  public void init (ConfigManager cfgmgr)
+  {
+    EffectConfig config = cfgmgr.getConfig(EffectConfig.class, _config);
+    _original = (config == null) ? null : config.getOriginal(cfgmgr);
+    _original = (_original == null) ? NULL_ORIGINAL : _original;
+  }
+
+  /**
+   * Adds the resources to preload for this effect into the provided set.
+   */
+  public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+  {
+    if (preloads.addConfig(EffectConfig.class, _config)) {
+      _original.getPreloads(cfgmgr, preloads);
     }
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public Effect ()
-    {
-    }
+  /**
+   * Returns the effect's config reference.
+   */
+  public ConfigReference<EffectConfig> getConfig ()
+  {
+    return _config;
+  }
 
-    /**
-     * Gives the effect a chance to resolve and cache configuration data after being created or
-     * deserialized.
-     */
-    public void init (ConfigManager cfgmgr)
-    {
-        EffectConfig config = cfgmgr.getConfig(EffectConfig.class, _config);
-        _original = (config == null) ? null : config.getOriginal(cfgmgr);
-        _original = (_original == null) ? NULL_ORIGINAL : _original;
-    }
+  /**
+   * Returns the time at which the effect was fired.
+   */
+  public int getTimestamp ()
+  {
+    return _timestamp;
+  }
 
-    /**
-     * Adds the resources to preload for this effect into the provided set.
-     */
-    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
-    {
-        if (preloads.addConfig(EffectConfig.class, _config)) {
-            _original.getPreloads(cfgmgr, preloads);
-        }
-    }
+  /**
+   * Returns the target of the effect (if any).
+   */
+  public EntityKey getTarget ()
+  {
+    return _target;
+  }
 
-    /**
-     * Returns the effect's config reference.
-     */
-    public ConfigReference<EffectConfig> getConfig ()
-    {
-        return _config;
-    }
+  /**
+   * Returns a reference to the effect's translation vector.
+   */
+  public Vector2f getTranslation ()
+  {
+    return _translation;
+  }
 
-    /**
-     * Returns the time at which the effect was fired.
-     */
-    public int getTimestamp ()
-    {
-        return _timestamp;
-    }
+  /**
+   * Returns the effect's rotation angle.
+   */
+  public float getRotation ()
+  {
+    return _rotation;
+  }
 
-    /**
-     * Returns the target of the effect (if any).
-     */
-    public EntityKey getTarget ()
-    {
-        return _target;
-    }
+  /**
+   * Returns the time at which this effect expires.
+   */
+  public int getExpiry ()
+  {
+    return _timestamp + _original.lifespan;
+  }
 
-    /**
-     * Returns a reference to the effect's translation vector.
-     */
-    public Vector2f getTranslation ()
-    {
-        return _translation;
-    }
+  // documentation inherited from interface Prefireable
+  public void setClientOid (int clientOid)
+  {
+    _clientOid = clientOid;
+  }
 
-    /**
-     * Returns the effect's rotation angle.
-     */
-    public float getRotation ()
-    {
-        return _rotation;
-    }
+  // documentation inherited from interface Prefireable
+  public int getClientOid ()
+  {
+    return _clientOid;
+  }
 
-    /**
-     * Returns the time at which this effect expires.
-     */
-    public int getExpiry ()
-    {
-        return _timestamp + _original.lifespan;
-    }
+  /** The effect configuration. */
+  protected ConfigReference<EffectConfig> _config;
 
-    // documentation inherited from interface Prefireable
-    public void setClientOid (int clientOid)
-    {
-        _clientOid = clientOid;
-    }
+  /** The time at which the effect was fired. */
+  protected int _timestamp;
 
-    // documentation inherited from interface Prefireable
-    public int getClientOid ()
-    {
-        return _clientOid;
-    }
+  /** The entity upon which to fire the effect, if any. */
+  protected EntityKey _target;
 
-    /** The effect configuration. */
-    protected ConfigReference<EffectConfig> _config;
+  /** The effect's translation. */
+  protected Vector2f _translation = new Vector2f();
 
-    /** The time at which the effect was fired. */
-    protected int _timestamp;
+  /** The effect's rotation angle. */
+  protected float _rotation;
 
-    /** The entity upon which to fire the effect, if any. */
-    protected EntityKey _target;
+  /** The oid of the client on which the effect was prefired, if any. */
+  protected int _clientOid;
 
-    /** The effect's translation. */
-    protected Vector2f _translation = new Vector2f();
+  /** The cached config implementation. */
+  protected transient EffectConfig.Original _original;
 
-    /** The effect's rotation angle. */
-    protected float _rotation;
-
-    /** The oid of the client on which the effect was prefired, if any. */
-    protected int _clientOid;
-
-    /** The cached config implementation. */
-    protected transient EffectConfig.Original _original;
-
-    /** Used when we can't resolve the effect config. */
-    protected static final EffectConfig.Original NULL_ORIGINAL = new EffectConfig.Original();
+  /** Used when we can't resolve the effect config. */
+  protected static final EffectConfig.Original NULL_ORIGINAL = new EffectConfig.Original();
 }

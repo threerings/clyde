@@ -57,117 +57,117 @@ import static com.threerings.editor.Log.log;
  */
 public class ConfigResourcesTask extends Task
 {
-    /**
-     * Sets the pattern set id.
-     */
-    public void setId (String id)
-    {
-        _id = id;
-    }
+  /**
+   * Sets the pattern set id.
+   */
+  public void setId (String id)
+  {
+    _id = id;
+  }
 
-    /**
-     * Sets the file from which to read the config names.
-     */
-    public void setConfigfile (File file)
-    {
-        _configfile = file;
-    }
+  /**
+   * Sets the file from which to read the config names.
+   */
+  public void setConfigfile (File file)
+  {
+    _configfile = file;
+  }
 
-    /**
-     * Sets the file from which to read the resource names.
-     */
-    public void setResourcefile (File file)
-    {
-        _resourcefile = file;
-    }
+  /**
+   * Sets the file from which to read the resource names.
+   */
+  public void setResourcefile (File file)
+  {
+    _resourcefile = file;
+  }
 
-    @Override
-    public void execute ()
-        throws BuildException
-    {
-        ResourceManager rsrcmgr = new ResourceManager("rsrc/");
-        MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        rsrcmgr.initResourceDir("rsrc/");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
-        cfgmgr.init();
+  @Override
+  public void execute ()
+    throws BuildException
+  {
+    ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+    MessageManager msgmgr = new MessageManager("rsrc.i18n");
+    rsrcmgr.initResourceDir("rsrc/");
+    ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
+    cfgmgr.init();
 
-        // read the file containing the config names
-        Set<String> resources = Sets.newHashSet();
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(_configfile));
-            String line;
-            ConfigGroup<?> group = null;
-            while ((line = in.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) { // ignore blank lines
-                    continue;
-                }
-                if (line.startsWith("[") && line.endsWith("]")) { // group header
-                    String name = line.substring(1, line.length() - 1);
-                    if ((group = cfgmgr.getGroup(name)) == null) {
-                        log.warning("Invalid config group name.", "name", name);
-                    }
-                    continue;
-                }
-                if (group != null) {
-                    getResources(cfgmgr, group, line, resources);
-                }
-            }
-        } catch (IOException e) {
-            log.warning("Error reading config list.", "file", _configfile, e);
+    // read the file containing the config names
+    Set<String> resources = Sets.newHashSet();
+    try {
+      BufferedReader in = new BufferedReader(new FileReader(_configfile));
+      String line;
+      ConfigGroup<?> group = null;
+      while ((line = in.readLine()) != null) {
+        line = line.trim();
+        if (line.isEmpty()) { // ignore blank lines
+          continue;
         }
-
-        // read the file containing the resource names
-        List<String> includes = Lists.newArrayList();
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(_resourcefile));
-            String line;
-            while ((line = in.readLine()) != null) {
-                if (!(line = line.trim()).isEmpty()) {
-                    includes.add(line);
-                }
-            }
-        } catch (IOException e) {
-            log.warning("Failed to read resource list.", "file", _resourcefile, e);
+        if (line.startsWith("[") && line.endsWith("]")) { // group header
+          String name = line.substring(1, line.length() - 1);
+          if ((group = cfgmgr.getGroup(name)) == null) {
+            log.warning("Invalid config group name.", "name", name);
+          }
+          continue;
         }
-
-        // scan the identified resources
-        DirectoryScanner scanner = new DirectoryScanner();
-        scanner.setBasedir("rsrc");
-        scanner.setIncludes(includes.toArray(new String[includes.size()]));
-        scanner.scan();
-        for (String file : scanner.getIncludedFiles()) {
-            if (!file.endsWith(".dat")) {
-                continue;
-            }
-            ManagedConfig config = cfgmgr.getResourceConfig(file);
-            PropertyUtil.getResources(config.getConfigManager(), config, resources);
+        if (group != null) {
+          getResources(cfgmgr, group, line, resources);
         }
-
-        // create a pattern set with the resources and assign it to the specified id
-        PatternSet set = (PatternSet)getProject().createDataType("patternset");
-        for (String resource : resources) {
-            set.createInclude().setName(resource);
-        }
-        getProject().addReference(_id, set);
+      }
+    } catch (IOException e) {
+      log.warning("Error reading config list.", "file", _configfile, e);
     }
 
-    /**
-     * Attempts to resolve the given config line and add the referenced resources to the set.
-     */
-    protected void getResources (
-        ConfigManager cfgmgr, ConfigGroup<?> group, String line, Set<String> paths)
-    {
-        // TODO: handle wildcards?
-        PropertyUtil.getResources(cfgmgr, group.getConfig(line), paths);
+    // read the file containing the resource names
+    List<String> includes = Lists.newArrayList();
+    try {
+      BufferedReader in = new BufferedReader(new FileReader(_resourcefile));
+      String line;
+      while ((line = in.readLine()) != null) {
+        if (!(line = line.trim()).isEmpty()) {
+          includes.add(line);
+        }
+      }
+    } catch (IOException e) {
+      log.warning("Failed to read resource list.", "file", _resourcefile, e);
     }
 
-    /** The id under which we'll store the resource pattern set. */
-    protected String _id;
+    // scan the identified resources
+    DirectoryScanner scanner = new DirectoryScanner();
+    scanner.setBasedir("rsrc");
+    scanner.setIncludes(includes.toArray(new String[includes.size()]));
+    scanner.scan();
+    for (String file : scanner.getIncludedFiles()) {
+      if (!file.endsWith(".dat")) {
+        continue;
+      }
+      ManagedConfig config = cfgmgr.getResourceConfig(file);
+      PropertyUtil.getResources(config.getConfigManager(), config, resources);
+    }
 
-    /** The file from which we read the configs. */
-    protected File _configfile;
+    // create a pattern set with the resources and assign it to the specified id
+    PatternSet set = (PatternSet)getProject().createDataType("patternset");
+    for (String resource : resources) {
+      set.createInclude().setName(resource);
+    }
+    getProject().addReference(_id, set);
+  }
 
-    /** The file from which we read the resources. */
-    protected File _resourcefile;
+  /**
+   * Attempts to resolve the given config line and add the referenced resources to the set.
+   */
+  protected void getResources (
+    ConfigManager cfgmgr, ConfigGroup<?> group, String line, Set<String> paths)
+  {
+    // TODO: handle wildcards?
+    PropertyUtil.getResources(cfgmgr, group.getConfig(line), paths);
+  }
+
+  /** The id under which we'll store the resource pattern set. */
+  protected String _id;
+
+  /** The file from which we read the configs. */
+  protected File _configfile;
+
+  /** The file from which we read the resources. */
+  protected File _resourcefile;
 }

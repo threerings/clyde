@@ -41,83 +41,83 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Editable
 {
-    /** Indicates that the (double) attribute should be inherited from the parent property. */
-    public static final double INHERIT_DOUBLE = Double.NEGATIVE_INFINITY;
+  /** Indicates that the (double) attribute should be inherited from the parent property. */
+  public static final double INHERIT_DOUBLE = Double.NEGATIVE_INFINITY;
 
-    /** Indicates that the (integer) attribute should be inherited from the parent property. */
-    public static final int INHERIT_INTEGER = Integer.MIN_VALUE;
+  /** Indicates that the (integer) attribute should be inherited from the parent property. */
+  public static final int INHERIT_INTEGER = Integer.MIN_VALUE;
 
-    /** Indicates that the (string) attribute should be inherited from the parent property. */
-    public static final String INHERIT_STRING = "%INHERIT%";
+  /** Indicates that the (string) attribute should be inherited from the parent property. */
+  public static final String INHERIT_STRING = "%INHERIT%";
 
-    /** The category under which property falls (empty string for the default category). */
-    String category () default "";
+  /** The category under which property falls (empty string for the default category). */
+  String category () default "";
 
-    /** The weight used to determine the display order. */
-    double weight () default 0.0;
+  /** The weight used to determine the display order. */
+  double weight () default 0.0;
 
-    /** Neighboring properties with the same hgroup will be grouped into horizontal sublayouts. */
-    String hgroup () default "";
+  /** Neighboring properties with the same hgroup will be grouped into horizontal sublayouts. */
+  String hgroup () default "";
 
-    /** The names of any properties upon whose values this property depends.
-     * Note that because these are "property names" they don't match up to the variable names,
-     * so the variable called "bigText" would be called "big_text" here in the depends section. */
-    // TODO: fix, maybe add Property.getPlainName();
-    String[] depends () default {};
+  /** The names of any properties upon whose values this property depends.
+   * Note that because these are "property names" they don't match up to the variable names,
+   * so the variable called "bigText" would be called "big_text" here in the depends section. */
+  // TODO: fix, maybe add Property.getPlainName();
+  String[] depends () default {};
 
-    /** The custom editor to use (empty string for the default editor for the type). */
-    String editor () default "";
+  /** The custom editor to use (empty string for the default editor for the type). */
+  String editor () default "";
 
-    /** Generic editing "mode" whose interpretation depends on the editor. */
-    String mode () default "";
+  /** Generic editing "mode" whose interpretation depends on the editor. */
+  String mode () default "";
 
-    /** Whether or not this property should be displayed as a column when editing in table mode. */
-    boolean column () default false;
+  /** Whether or not this property should be displayed as a column when editing in table mode. */
+  boolean column () default false;
 
-    /** A translatable string describing the units of the property, if any. */
-    String units () default "";
+  /** A translatable string describing the units of the property, if any. */
+  String units () default "";
 
-    /** A width hint for the editor of this property.
-     * Typically this is the width (in text columns) of the editor for this property, although
-     * the editors are free to interpret this in a way that makes sense for them, or disregard it.
-     * The default value of 0 means that each editor can use a sensible width of its choosing.
-     */
-    int width () default 0;
+  /** A width hint for the editor of this property.
+   * Typically this is the width (in text columns) of the editor for this property, although
+   * the editors are free to interpret this in a way that makes sense for them, or disregard it.
+   * The default value of 0 means that each editor can use a sensible width of its choosing.
+   */
+  int width () default 0;
 
-    /** A height hint for the editor of this property.
-     * Typically this is the height (in text rows) of the editor for this property, although
-     * the editors are free to interpret this in a way that makes sense for them, or disregard it.
-     * The default value of 0 means that each editor can use a sensible height of its choosing.
-     */
-    int height () default 0;
+  /** A height hint for the editor of this property.
+   * Typically this is the height (in text rows) of the editor for this property, although
+   * the editors are free to interpret this in a way that makes sense for them, or disregard it.
+   * The default value of 0 means that each editor can use a sensible height of its choosing.
+   */
+  int height () default 0;
 
-    /** For numeric properties, the minimum value. */
-    double min () default -Double.MAX_VALUE;
+  /** For numeric properties, the minimum value. */
+  double min () default -Double.MAX_VALUE;
 
-    /** For numeric properties, the maximum value. */
-    double max () default +Double.MAX_VALUE;
+  /** For numeric properties, the maximum value. */
+  double max () default +Double.MAX_VALUE;
 
-    /** For numeric properties, the step size. */
-    double step () default 1.0;
+  /** For numeric properties, the step size. */
+  double step () default 1.0;
 
-    /** For numeric properties, the value scale. */
-    double scale () default 1.0;
+  /** For numeric properties, the value scale. */
+  double scale () default 1.0;
 
-    /** For list and array properties, the minimum size. */
-    int minsize () default 0;
+  /** For list and array properties, the minimum size. */
+  int minsize () default 0;
 
-    /** For String, or list and array properties, the maximum size. */
-    int maxsize () default +Integer.MAX_VALUE;
+  /** For String, or list and array properties, the maximum size. */
+  int maxsize () default +Integer.MAX_VALUE;
 
-    /** For list and array properties, fix the size of the array/list. */
-    boolean fixedsize () default false;
+  /** For list and array properties, fix the size of the array/list. */
+  boolean fixedsize () default false;
 
-    /** For object properties, whether or not the property can be null. */
-    boolean nullable () default false;
+  /** For object properties, whether or not the property can be null. */
+  boolean nullable () default false;
 
-    /** Specify if the property should be collapsible (for those that aren't automatically). */
-    boolean collapsible () default false;
+  /** Specify if the property should be collapsible (for those that aren't automatically). */
+  boolean collapsible () default false;
 
-    /** Specify if the property should not actually be editable. */
-    boolean constant () default false;
+  /** Specify if the property should not actually be editable. */
+  boolean constant () default false;
 }

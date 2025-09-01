@@ -30,39 +30,39 @@ package com.threerings.expr;
  */
 public class MutableBoolean
 {
-    /** The value of this variable. */
-    public boolean value;
+  /** The value of this variable. */
+  public boolean value;
 
-    /**
-     * Creates a mutable boolean with the supplied value.
-     */
-    public MutableBoolean (boolean value)
-    {
-        this.value = value;
-    }
+  /**
+   * Creates a mutable boolean with the supplied value.
+   */
+  public MutableBoolean (boolean value)
+  {
+    this.value = value;
+  }
 
-    /**
-     * Creates a mutable boolean with a value of false.
-     */
-    public MutableBoolean ()
-    {
-    }
+  /**
+   * Creates a mutable boolean with a value of false.
+   */
+  public MutableBoolean ()
+  {
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return value ? 1231 : 1237;
-    }
+  @Override
+  public int hashCode ()
+  {
+    return value ? 1231 : 1237;
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof MutableBoolean && ((MutableBoolean)other).value == value;
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof MutableBoolean && ((MutableBoolean)other).value == value;
+  }
 
-    @Override
-    public String toString ()
-    {
-        return String.valueOf(value);
-    }
+  @Override
+  public String toString ()
+  {
+    return String.valueOf(value);
+  }
 }

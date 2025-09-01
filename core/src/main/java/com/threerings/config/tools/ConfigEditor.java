@@ -147,1485 +147,1485 @@ import static com.threerings.ClydeLog.log;
  * another application.
  */
 public class ConfigEditor extends BaseConfigEditor
-    implements ClipboardOwner
+  implements ClipboardOwner
 {
-    /**
-     * Create a ConfigEditor.
-     */
-    public static ConfigEditor create (EditorContext ctx)
-    {
-        return create(ctx, null, null);
+  /**
+   * Create a ConfigEditor.
+   */
+  public static ConfigEditor create (EditorContext ctx)
+  {
+    return create(ctx, null, null);
+  }
+
+  /**
+   * Create a ConfigEditor and edit the specified config.
+   */
+  public static ConfigEditor create (EditorContext ctx, Class<?> clazz, String name)
+  {
+    ConfigEditor editor = (_editorCreator != null)
+      ? _editorCreator.apply(ctx)
+      : new ConfigEditor(
+          ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
+    if (clazz != null) {
+      editor.select(clazz, name);
+    }
+    return editor;
+  }
+
+  /**
+   * The program entry point.
+   */
+  public static void main (String[] args)
+  {
+    ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+    MessageManager msgmgr = new MessageManager("rsrc.i18n");
+    ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
+    ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
+    new ConfigEditor(msgmgr, cfgmgr, colorpos).setVisible(true);
+  }
+
+  /**
+   * Creates a new config editor.
+   */
+  public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
+  {
+    this(msgmgr, cfgmgr, colorpos, null, null);
+  }
+
+  /**
+   * Creates a new config editor.
+   */
+  public ConfigEditor (
+    MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
+    Class<?> clazz, String name)
+  {
+    super(msgmgr, cfgmgr, colorpos, "editor.config");
+
+    // create the undo apparatus
+    _undoSupport = new UndoableEditSupport();
+    _undoSupport.addUndoableEditListener(_undomgr = new UndoManager());
+    _undomgr.setLimit(10000);
+    _undoSupport.addUndoableEditListener(new UndoableEditListener() {
+      public void undoableEditHappened (UndoableEditEvent event) {
+        updateUndoActions();
+      }
+    });
+
+    // populate the menu bar
+    JMenuBar menubar = new JMenuBar();
+    setJMenuBar(menubar);
+
+    JMenu file = createMenu("file", KeyEvent.VK_F);
+    menubar.add(file);
+
+    JMenu nmenu = createMenu("new", KeyEvent.VK_N);
+    file.add(nmenu);
+    nmenu.add(createMenuItem("window", KeyEvent.VK_W, KeyEvent.VK_N));
+    nmenu.addSeparator();
+    Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_O);
+    nmenu.add(new JMenuItem(nconfig));
+    Action nfolder = createAction("folder", KeyEvent.VK_F, KeyEvent.VK_D);
+    nmenu.add(new JMenuItem(nfolder));
+    file.addSeparator();
+    file.add(_save = createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
+    file.add(_revert = createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
+    file.addSeparator();
+    JMenuItem importGroup, importConfigs;
+    file.add(importGroup = createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
+    file.add(createMenuItem("export_group", KeyEvent.VK_E, KeyEvent.VK_E));
+    file.addSeparator();
+    file.add(importConfigs = createMenuItem("import_configs", KeyEvent.VK_M, -1));
+    file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
+    file.addSeparator();
+    file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
+    file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+
+    if (_readOnly) {
+      nconfig.setEnabled(false);
+      nfolder.setEnabled(false);
+      importGroup.setEnabled(false);
+      importConfigs.setEnabled(false);
     }
 
-    /**
-     * Create a ConfigEditor and edit the specified config.
-     */
-    public static ConfigEditor create (EditorContext ctx, Class<?> clazz, String name)
-    {
-        ConfigEditor editor = (_editorCreator != null)
-            ? _editorCreator.apply(ctx)
-            : new ConfigEditor(
-                    ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
-        if (clazz != null) {
-            editor.select(clazz, name);
-        }
-        return editor;
-    }
-
-    /**
-     * The program entry point.
-     */
-    public static void main (String[] args)
-    {
-        ResourceManager rsrcmgr = new ResourceManager("rsrc/");
-        MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
-        ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
-        new ConfigEditor(msgmgr, cfgmgr, colorpos).setVisible(true);
-    }
-
-    /**
-     * Creates a new config editor.
-     */
-    public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
-    {
-        this(msgmgr, cfgmgr, colorpos, null, null);
-    }
-
-    /**
-     * Creates a new config editor.
-     */
-    public ConfigEditor (
-        MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
-        Class<?> clazz, String name)
-    {
-        super(msgmgr, cfgmgr, colorpos, "editor.config");
-
-        // create the undo apparatus
-        _undoSupport = new UndoableEditSupport();
-        _undoSupport.addUndoableEditListener(_undomgr = new UndoManager());
-        _undomgr.setLimit(10000);
-        _undoSupport.addUndoableEditListener(new UndoableEditListener() {
-            public void undoableEditHappened (UndoableEditEvent event) {
-                updateUndoActions();
-            }
-        });
-
-        // populate the menu bar
-        JMenuBar menubar = new JMenuBar();
-        setJMenuBar(menubar);
-
-        JMenu file = createMenu("file", KeyEvent.VK_F);
-        menubar.add(file);
-
-        JMenu nmenu = createMenu("new", KeyEvent.VK_N);
-        file.add(nmenu);
-        nmenu.add(createMenuItem("window", KeyEvent.VK_W, KeyEvent.VK_N));
-        nmenu.addSeparator();
-        Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_O);
-        nmenu.add(new JMenuItem(nconfig));
-        Action nfolder = createAction("folder", KeyEvent.VK_F, KeyEvent.VK_D);
-        nmenu.add(new JMenuItem(nfolder));
-        file.addSeparator();
-        file.add(_save = createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
-        file.add(_revert = createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
-        file.addSeparator();
-        JMenuItem importGroup, importConfigs;
-        file.add(importGroup = createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
-        file.add(createMenuItem("export_group", KeyEvent.VK_E, KeyEvent.VK_E));
-        file.addSeparator();
-        file.add(importConfigs = createMenuItem("import_configs", KeyEvent.VK_M, -1));
-        file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
-        file.addSeparator();
-        file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
-        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
-
-        if (_readOnly) {
-            nconfig.setEnabled(false);
-            nfolder.setEnabled(false);
-            importGroup.setEnabled(false);
-            importConfigs.setEnabled(false);
-        }
-
-        final JMenu edit = createMenu("edit", KeyEvent.VK_E);
-        menubar.add(edit);
+    final JMenu edit = createMenu("edit", KeyEvent.VK_E);
+    menubar.add(edit);
 	edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
 	_undo.setEnabled(false);
 	edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
 	_redo.setEnabled(false);
 	edit.addSeparator();
-        final int CUT_INDEX = edit.getItemCount();
-        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
-        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
-        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
-        edit.add(new JMenuItem(
-            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
-        addFindMenu(edit);
-        edit.addSeparator();
-        edit.add(new JMenuItem(_findUses = createAction("find_uses", 0, -1)));
-        edit.addSeparator();
-        edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
-        addEditMenuItems(edit);
-        edit.addSeparator();
-        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
-        edit.add(createMenuItem("preferences", KeyEvent.VK_F, -1));
-        edit.addMenuListener(new MenuListener() {
-            public void menuSelected (MenuEvent event) {
-                // hackery to allow cut/copy/paste/delete to act on editor tree
-                TreeEditorPanel panel = (TreeEditorPanel)SwingUtilities.getAncestorOfClass(
-                    TreeEditorPanel.class, getFocusOwner());
-                if (panel != null) {
-                    edit.getItem(CUT_INDEX).setAction(panel.getCutAction());
-                    edit.getItem(CUT_INDEX + 1).setAction(panel.getCopyAction());
-                    edit.getItem(CUT_INDEX + 2).setAction(panel.getPasteAction());
-                    edit.getItem(CUT_INDEX + 3).setAction(panel.getDeleteAction());
-                } else {
-                    restoreActions();
-                }
-            }
-            public void menuDeselected (MenuEvent event) {
-                // restore after a delay so as not to interfere with selected item
-                EventQueue.invokeLater(new Runnable() {
-                    public void run () {
-                        restoreActions();
-                    }
-                });
-            }
-            public void menuCanceled (MenuEvent event) {
-                // no-op
-            }
-            protected void restoreActions () {
-                edit.getItem(CUT_INDEX).setAction(_cut);
-                edit.getItem(CUT_INDEX + 1).setAction(_copy);
-                edit.getItem(CUT_INDEX + 2).setAction(_paste);
-                edit.getItem(CUT_INDEX + 3).setAction(_delete);
-            }
-        });
-
-        JMenu view = createMenu("view", KeyEvent.VK_V);
-        menubar.add(view);
-        view.add(_treeMode = ToolUtil.createCheckBoxMenuItem(
-            this, _msgs, "tree_mode", KeyEvent.VK_T, -1));
-
-        JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
-        menubar.add(gmenu);
-        gmenu.add(_saveAll = createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
-        gmenu.add(_revertAll = createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
-
-        // create the pop-up menu
-        _popup = new JPopupMenu();
-        nmenu = createMenu("new", KeyEvent.VK_N);
-        _popup.add(nmenu);
-        nmenu.add(new JMenuItem(nconfig));
-        nmenu.add(new JMenuItem(nfolder));
-        _popup.addSeparator();
-        _popup.add(new JMenuItem(_findUses));
-        _popup.addSeparator();
-        _popup.add(new JMenuItem(_cut));
-        _popup.add(new JMenuItem(_copy));
-        _popup.add(new JMenuItem(_paste));
-        _popup.add(new JMenuItem(_delete));
-
-        // create the file chooser
-        _chooser = new JFileChooser(_prefs.get("config_dir", null));
-        _chooser.setFileFilter(new FileFilter() {
-            public boolean accept (File file) {
-                return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
-            }
-            public String getDescription () {
-                return _msgs.get("m.xml_files");
-            }
-        });
-
-        // create the split pane
-        add(_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true), BorderLayout.CENTER);
-        if (_readOnly) {
-            _split.setBorder(new LineBorder(Color.RED));
-        }
-
-        // create the tabbed pane
-        _split.setLeftComponent(_tabs = new JTabbedPane());
-        _tabs.setPreferredSize(new Dimension(250, 1));
-        _tabs.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
-
-        // create the tabs for each configuration manager
-        for (; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
-            _tabs.add(new ManagerPanel(cfgmgr), getLabel(cfgmgr.getType()), 0);
-        }
-
-        // activate the first tab
-        ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(0);
-        _tabs.setSelectedComponent(panel);
-        panel.activate();
-
-        // add a listener for tab change
-        _tabs.addChangeListener(new ChangeListener() {
-            public void stateChanged (ChangeEvent event) {
-                ((ManagerPanel)_tabs.getSelectedComponent()).activate();
-            }
-        });
-
-        // set sensible default bounds
-        setSize(850, 600);
-        SwingUtil.centerWindow(this);
-
-        // restore our prefs (may override bounds)
-        restorePrefs();
-
-        // open the initial config, if one was specified
-        if (clazz != null) {
-            select(clazz, name);
-        }
-    }
-
-    // documentation inherited from interface ClipboardOwner
-    public void lostOwnership (Clipboard clipboard, Transferable contents)
-    {
-        _paste.setEnabled(false);
-        _clipclass = null;
-    }
-
-    @Override
-    public void actionPerformed (ActionEvent event)
-    {
-        String action = event.getActionCommand();
-        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
-        ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
-        if (action.equals("window")) {
-            showFrame(ConfigEditor.create(this));
-        } else if (action.equals("config")) {
-            item.newConfig();
-        } else if (action.equals("folder")) {
-            item.newFolder();
-        } else if (action.equals("save_group")) {
-            item.group.save();
-            DirtyGroupManager.setDirty(item.group, false);
-        } else if (action.equals("revert_group")) {
-            if (!DirtyGroupManager.isDirty(item.group) || showCantUndo()) {
-                item.group.revert();
-                DirtyGroupManager.setDirty(item.group, false);
-            }
-        } else if (action.equals("import_group")) {
-            item.importGroup();
-        } else if (action.equals("export_group")) {
-            item.exportGroup();
-        } else if (action.equals("import_configs")) {
-            item.importConfigs();
-        } else if (action.equals("export_configs")) {
-            item.exportConfigs();
-	} else if (action.equals("undo")) {
-            _undoing = true;
-            try {
-                _undomgr.undo();
-            } finally {
-                _undoing = false;
-            }
-	    updateUndoActions();
-	} else if (action.equals("redo")) {
-            _undoing = true;
-            try {
-                _undomgr.redo();
-            } finally {
-                _undoing = false;
-            }
-	    updateUndoActions();
-        } else if (action.equals("cut")) {
-            item.cutNode();
-        } else if (action.equals("copy")) {
-            item.copyNode();
-        } else if (action.equals("paste")) {
-            item.pasteNode();
-        } else if (action.equals("delete")) {
-            item.deleteNode();
-        } else if (action.equals("find_uses")) {
-            findUses(panel.getSelected(), item.group.getConfigClass(),
-                    (null != panel.getEditorPanel().getObject())); // on folders, do a prefix match
-        } else if (action.equals("validate_refs")) {
-            validateReferences();
-        } else if (action.equals("resources")) {
-            showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
-        } else if (action.equals("tree_mode")) {
-            boolean enabled = _treeMode.isSelected();
-            for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
-                ((ManagerPanel)_tabs.getComponentAt(ii)).setTreeModeEnabled(enabled);
-            }
-        } else if (action.equals("save_all")) {
-            panel.cfgmgr.saveAll();
-            DirtyGroupManager.setDirty(panel.cfgmgr, false);
-        } else if (action.equals("revert_all")) {
-            if (!DirtyGroupManager.isDirty(panel.cfgmgr) || showCantUndo()) {
-                panel.cfgmgr.revertAll();
-                DirtyGroupManager.setDirty(panel.cfgmgr, false);
-            }
-        } else if (action.equals("quit")) {
-            if (!DirtyGroupManager.anyDirty() || showUnsavedChanges()) {
-                super.actionPerformed(event);
-            }
-
+    final int CUT_INDEX = edit.getItemCount();
+    edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
+    edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
+    edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
+    edit.add(new JMenuItem(
+      _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+    addFindMenu(edit);
+    edit.addSeparator();
+    edit.add(new JMenuItem(_findUses = createAction("find_uses", 0, -1)));
+    edit.addSeparator();
+    edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
+    addEditMenuItems(edit);
+    edit.addSeparator();
+    edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
+    edit.add(createMenuItem("preferences", KeyEvent.VK_F, -1));
+    edit.addMenuListener(new MenuListener() {
+      public void menuSelected (MenuEvent event) {
+        // hackery to allow cut/copy/paste/delete to act on editor tree
+        TreeEditorPanel panel = (TreeEditorPanel)SwingUtilities.getAncestorOfClass(
+          TreeEditorPanel.class, getFocusOwner());
+        if (panel != null) {
+          edit.getItem(CUT_INDEX).setAction(panel.getCutAction());
+          edit.getItem(CUT_INDEX + 1).setAction(panel.getCopyAction());
+          edit.getItem(CUT_INDEX + 2).setAction(panel.getPasteAction());
+          edit.getItem(CUT_INDEX + 3).setAction(panel.getDeleteAction());
         } else {
-            super.actionPerformed(event);
+          restoreActions();
         }
+      }
+      public void menuDeselected (MenuEvent event) {
+        // restore after a delay so as not to interfere with selected item
+        EventQueue.invokeLater(new Runnable() {
+          public void run () {
+            restoreActions();
+          }
+        });
+      }
+      public void menuCanceled (MenuEvent event) {
+        // no-op
+      }
+      protected void restoreActions () {
+        edit.getItem(CUT_INDEX).setAction(_cut);
+        edit.getItem(CUT_INDEX + 1).setAction(_copy);
+        edit.getItem(CUT_INDEX + 2).setAction(_paste);
+        edit.getItem(CUT_INDEX + 3).setAction(_delete);
+      }
+    });
+
+    JMenu view = createMenu("view", KeyEvent.VK_V);
+    menubar.add(view);
+    view.add(_treeMode = ToolUtil.createCheckBoxMenuItem(
+      this, _msgs, "tree_mode", KeyEvent.VK_T, -1));
+
+    JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
+    menubar.add(gmenu);
+    gmenu.add(_saveAll = createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
+    gmenu.add(_revertAll = createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
+
+    // create the pop-up menu
+    _popup = new JPopupMenu();
+    nmenu = createMenu("new", KeyEvent.VK_N);
+    _popup.add(nmenu);
+    nmenu.add(new JMenuItem(nconfig));
+    nmenu.add(new JMenuItem(nfolder));
+    _popup.addSeparator();
+    _popup.add(new JMenuItem(_findUses));
+    _popup.addSeparator();
+    _popup.add(new JMenuItem(_cut));
+    _popup.add(new JMenuItem(_copy));
+    _popup.add(new JMenuItem(_paste));
+    _popup.add(new JMenuItem(_delete));
+
+    // create the file chooser
+    _chooser = new JFileChooser(_prefs.get("config_dir", null));
+    _chooser.setFileFilter(new FileFilter() {
+      public boolean accept (File file) {
+        return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
+      }
+      public String getDescription () {
+        return _msgs.get("m.xml_files");
+      }
+    });
+
+    // create the split pane
+    add(_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true), BorderLayout.CENTER);
+    if (_readOnly) {
+      _split.setBorder(new LineBorder(Color.RED));
     }
 
-    @Override
-    public void dispose ()
+    // create the tabbed pane
+    _split.setLeftComponent(_tabs = new JTabbedPane());
+    _tabs.setPreferredSize(new Dimension(250, 1));
+    _tabs.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
+
+    // create the tabs for each configuration manager
+    for (; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
+      _tabs.add(new ManagerPanel(cfgmgr), getLabel(cfgmgr.getType()), 0);
+    }
+
+    // activate the first tab
+    ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(0);
+    _tabs.setSelectedComponent(panel);
+    panel.activate();
+
+    // add a listener for tab change
+    _tabs.addChangeListener(new ChangeListener() {
+      public void stateChanged (ChangeEvent event) {
+        ((ManagerPanel)_tabs.getSelectedComponent()).activate();
+      }
+    });
+
+    // set sensible default bounds
+    setSize(850, 600);
+    SwingUtil.centerWindow(this);
+
+    // restore our prefs (may override bounds)
+    restorePrefs();
+
+    // open the initial config, if one was specified
+    if (clazz != null) {
+      select(clazz, name);
+    }
+  }
+
+  // documentation inherited from interface ClipboardOwner
+  public void lostOwnership (Clipboard clipboard, Transferable contents)
+  {
+    _paste.setEnabled(false);
+    _clipclass = null;
+  }
+
+  @Override
+  public void actionPerformed (ActionEvent event)
+  {
+    String action = event.getActionCommand();
+    ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+    ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
+    if (action.equals("window")) {
+      showFrame(ConfigEditor.create(this));
+    } else if (action.equals("config")) {
+      item.newConfig();
+    } else if (action.equals("folder")) {
+      item.newFolder();
+    } else if (action.equals("save_group")) {
+      item.group.save();
+      DirtyGroupManager.setDirty(item.group, false);
+    } else if (action.equals("revert_group")) {
+      if (!DirtyGroupManager.isDirty(item.group) || showCantUndo()) {
+        item.group.revert();
+        DirtyGroupManager.setDirty(item.group, false);
+      }
+    } else if (action.equals("import_group")) {
+      item.importGroup();
+    } else if (action.equals("export_group")) {
+      item.exportGroup();
+    } else if (action.equals("import_configs")) {
+      item.importConfigs();
+    } else if (action.equals("export_configs")) {
+      item.exportConfigs();
+	} else if (action.equals("undo")) {
+      _undoing = true;
+      try {
+        _undomgr.undo();
+      } finally {
+        _undoing = false;
+      }
+	  updateUndoActions();
+	} else if (action.equals("redo")) {
+      _undoing = true;
+      try {
+        _undomgr.redo();
+      } finally {
+        _undoing = false;
+      }
+	  updateUndoActions();
+    } else if (action.equals("cut")) {
+      item.cutNode();
+    } else if (action.equals("copy")) {
+      item.copyNode();
+    } else if (action.equals("paste")) {
+      item.pasteNode();
+    } else if (action.equals("delete")) {
+      item.deleteNode();
+    } else if (action.equals("find_uses")) {
+      findUses(panel.getSelected(), item.group.getConfigClass(),
+          (null != panel.getEditorPanel().getObject())); // on folders, do a prefix match
+    } else if (action.equals("validate_refs")) {
+      validateReferences();
+    } else if (action.equals("resources")) {
+      showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
+    } else if (action.equals("tree_mode")) {
+      boolean enabled = _treeMode.isSelected();
+      for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
+        ((ManagerPanel)_tabs.getComponentAt(ii)).setTreeModeEnabled(enabled);
+      }
+    } else if (action.equals("save_all")) {
+      panel.cfgmgr.saveAll();
+      DirtyGroupManager.setDirty(panel.cfgmgr, false);
+    } else if (action.equals("revert_all")) {
+      if (!DirtyGroupManager.isDirty(panel.cfgmgr) || showCantUndo()) {
+        panel.cfgmgr.revertAll();
+        DirtyGroupManager.setDirty(panel.cfgmgr, false);
+      }
+    } else if (action.equals("quit")) {
+      if (!DirtyGroupManager.anyDirty() || showUnsavedChanges()) {
+        super.actionPerformed(event);
+      }
+
+    } else {
+      super.actionPerformed(event);
+    }
+  }
+
+  @Override
+  public void dispose ()
+  {
+    if (DirtyGroupManager.getRegisteredEditorCount() == 1) {
+      // if we're the last editor...
+      boolean dirty = false;
+      for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+        dirty |= DirtyGroupManager.isDirty(((ManagerPanel)_tabs.getComponentAt(ii)).cfgmgr);
+      }
+      if (dirty && !showUnsavedChanges()) {
+        return;
+      }
+    }
+    super.dispose();
+  }
+
+  @Override
+  public void addNotify ()
+  {
+    super.addNotify();
+    if (!_readOnly) {
+      DirtyGroupManager.registerEditor(this);
+    }
+  }
+
+  @Override
+  public void removeNotify ()
+  {
+    DirtyGroupManager.unregisterEditor(this);
+    super.removeNotify();
+    for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+      ((ManagerPanel)_tabs.getComponentAt(ii)).dispose();
+    }
+  }
+
+  /**
+   * Check to see if any of our groups are now dirty.
+   */
+  protected void recheckDirty ()
+  {
+    // refresh the 'gbox' in each manager, the GroupItem will toString() differently if dirty
+    for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+      SwingUtil.refresh(((ManagerPanel)_tabs.getComponentAt(ii)).gbox);
+    }
+  }
+
+  /**
+   * Updates the enabled states of the undo and redo actions.
+   */
+  protected void updateUndoActions ()
+  {
+    boolean canUndo = _undomgr.canUndo();
+    _undo.setEnabled(canUndo);
+    _undo.putValue(Action.SHORT_DESCRIPTION, canUndo ? _undomgr.getUndoPresentationName() : "");
+
+    boolean canRedo = _undomgr.canRedo();
+    _redo.setEnabled(canRedo);
+    _redo.putValue(Action.SHORT_DESCRIPTION, canRedo ? _undomgr.getRedoPresentationName() : "");
+  }
+
+  /**
+   * Selects a configuration.
+   */
+  protected void select (Class<?> clazz, String name)
+  {
+    for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
+      ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(ii);
+      if (panel.select(clazz, name)) {
+        return;
+      }
+    }
+  }
+
+  /**
+   * Shows a confirm dialog.
+   */
+  protected boolean showCantUndo ()
+  {
+    return showConfirm("m.cant_undo", "t.cant_undo");
+  }
+
+  /**
+   * Shows a confirm dialog.
+   */
+  protected boolean showUnsavedChanges ()
+  {
+    return showConfirm("m.unsaved_changes", "t.unsaved_changes");
+  }
+
+  /**
+   * Shows a confirm dialog.
+   */
+  protected boolean showConfirm (String msg, String title)
+  {
+    String[] options = {
+      UIManager.getString("OptionPane.okButtonText"),
+      UIManager.getString("OptionPane.cancelButtonText")
+    };
+    return 0 == JOptionPane.showOptionDialog(
+        this, _msgs.xlate(msg), _msgs.xlate(title),
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
+        options, options[1]); // default to cancel
+  }
+
+  /**
+   * Finds the uses of the specified config.
+   */
+  protected void findUses (
+      final String cfgNameOrPrefix, Class<? extends ManagedConfig> clazz,
+      final boolean exact)
+  {
+    if (cfgNameOrPrefix == null) {
+      return;
+    }
+    new ConfigSearcher(this, cfgNameOrPrefix,
+        ConfigSearcher.Presence.getReporter(clazz, new Predicate<ConfigReference<?>>() {
+          public boolean apply (ConfigReference<?> ref) {
+            return exact
+              ? ref.getName().equals(cfgNameOrPrefix)
+              : ref.getName().startsWith(cfgNameOrPrefix);
+          }
+        }),
+        getSearcherDomains());
+  }
+
+  /**
+   * Return the domains over which we'll search for config uses.
+   */
+  protected Iterable<ConfigSearcher.Domain> getSearcherDomains ()
+  {
+    return ImmutableList.<ConfigSearcher.Domain>of(new ConfigSearcher.ConfigDomain(this));
+  }
+
+  /**
+   * Validates the references.
+   */
+  protected void validateReferences ()
+  {
+    PrintStreamDialog dialog = new PrintStreamDialog(
+      this, _msgs.get("m.validate_refs"), _msgs.get("b.ok"));
+    PrintStream stream = dialog.getPrintStream();
+    try {
+      validateReferences(createValidator(stream));
+    } catch (Exception e) {
+      stream.println("Exception while validating!!");
+      e.printStackTrace(stream);
+    }
+    dialog.maybeShow();
+  }
+
+  /**
+   * Break out the validation separately from the creation of the validator so that it
+   * can be overridden.
+   */
+  protected void validateReferences (Validator validator)
+  {
+    _cfgmgr.validateReferences(validator);
+  }
+
+  /**
+   * Create a validator for validating config references.
+   */
+  protected Validator createValidator (PrintStream out)
+  {
+    return new Validator(out);
+  }
+
+  /**
+   * Create a paste helper for copy/paste or move operations.
+   */
+  protected PasteHelper createPasteHelper (ConfigGroup<?> group)
+  {
+    // return the default do-nothing paste helper
+    return new PasteHelper();
+  }
+
+  /**
+   * Used to add addition items to the edit menu.
+   */
+  protected void addEditMenuItems (JMenu edit)
+  {
+  }
+
+  @Override
+  protected BaseEditorPanel getFindEditorPanel ()
+  {
+    return ((ManagerPanel)_tabs.getSelectedComponent()).getEditorPanel();
+  }
+
+  @Override
+  protected ConfigEditorPrefs createEditablePrefs (Preferences prefs)
+  {
+    return new ConfigEditorPrefs(_prefs);
+  }
+
+  /**
+   * The panel for a single manager.
+   */
+  protected class ManagerPanel extends JPanel
+    implements EditorContext, ItemListener, ChangeListener
+  {
+    /**
+     * Contains the state of a single group.
+     */
+    public class GroupItem
+      implements TreeSelectionListener
     {
-        if (DirtyGroupManager.getRegisteredEditorCount() == 1) {
-            // if we're the last editor...
-            boolean dirty = false;
-            for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
-                dirty |= DirtyGroupManager.isDirty(((ManagerPanel)_tabs.getComponentAt(ii)).cfgmgr);
+      /** The actual group reference. */
+      public ConfigGroup<ManagedConfig> group;
+
+      public GroupItem (ConfigGroup<?> group)
+      {
+        @SuppressWarnings("unchecked")
+        ConfigGroup<ManagedConfig> mgroup = (ConfigGroup<ManagedConfig>)group;
+        this.group = mgroup;
+        this.group.addListener(new ConfigGroupListener() {
+            public void configAdded (ConfigEvent<ManagedConfig> evt) {
+              DirtyGroupManager.setDirty(GroupItem.this.group, true);
             }
-            if (dirty && !showUnsavedChanges()) {
-                return;
+            public void configRemoved (ConfigEvent<ManagedConfig> evt) {
+              DirtyGroupManager.setDirty(GroupItem.this.group, true);
             }
-        }
-        super.dispose();
-    }
+          });
+        _label = getLabel(group.getConfigClass(), group.getName());
+      }
 
-    @Override
-    public void addNotify ()
-    {
-        super.addNotify();
-        if (!_readOnly) {
-            DirtyGroupManager.registerEditor(this);
-        }
-    }
-
-    @Override
-    public void removeNotify ()
-    {
-        DirtyGroupManager.unregisterEditor(this);
-        super.removeNotify();
-        for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
-            ((ManagerPanel)_tabs.getComponentAt(ii)).dispose();
-        }
-    }
-
-    /**
-     * Check to see if any of our groups are now dirty.
-     */
-    protected void recheckDirty ()
-    {
-        // refresh the 'gbox' in each manager, the GroupItem will toString() differently if dirty
-        for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
-            SwingUtil.refresh(((ManagerPanel)_tabs.getComponentAt(ii)).gbox);
-        }
-    }
-
-    /**
-     * Updates the enabled states of the undo and redo actions.
-     */
-    protected void updateUndoActions ()
-    {
-        boolean canUndo = _undomgr.canUndo();
-        _undo.setEnabled(canUndo);
-        _undo.putValue(Action.SHORT_DESCRIPTION, canUndo ? _undomgr.getUndoPresentationName() : "");
-
-        boolean canRedo = _undomgr.canRedo();
-        _redo.setEnabled(canRedo);
-        _redo.putValue(Action.SHORT_DESCRIPTION, canRedo ? _undomgr.getRedoPresentationName() : "");
-    }
-
-    /**
-     * Selects a configuration.
-     */
-    protected void select (Class<?> clazz, String name)
-    {
-        for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
-            ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(ii);
-            if (panel.select(clazz, name)) {
-                return;
+      /**
+       * Activates this group.
+       */
+      public void activate ()
+      {
+        if (_tree == null) {
+          _tree = new ConfigTree(group, true) {
+            @Override public void selectedConfigUpdated () {
+              super.selectedConfigUpdated();
+              _epanel.update();
             }
+            @Override protected PasteHelper createPasteHelper (ConfigGroup<?> group)
+            {
+              return ConfigEditor.this.createPasteHelper(group);
+            }
+          };
+          _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+          _tree.addTreeSelectionListener(this);
+          _tree.setComponentPopupMenu(_popup);
+
+          // remove the mappings for cut/copy/paste since we handle those ourself
+          InputMap imap = _tree.getInputMap();
+          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK), "noop");
+          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK), "noop");
+          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
         }
-    }
+        _pane.setViewportView(_tree);
+        _filterPanel.setTree(_tree);
+        _paste.setEnabled(_clipclass == group.getConfigClass() && !_readOnly);
+        updateSelection();
+      }
 
-    /**
-     * Shows a confirm dialog.
-     */
-    protected boolean showCantUndo ()
-    {
-        return showConfirm("m.cant_undo", "t.cant_undo");
-    }
-
-    /**
-     * Shows a confirm dialog.
-     */
-    protected boolean showUnsavedChanges ()
-    {
-        return showConfirm("m.unsaved_changes", "t.unsaved_changes");
-    }
-
-    /**
-     * Shows a confirm dialog.
-     */
-    protected boolean showConfirm (String msg, String title)
-    {
-        String[] options = {
-            UIManager.getString("OptionPane.okButtonText"),
-            UIManager.getString("OptionPane.cancelButtonText")
-        };
-        return 0 == JOptionPane.showOptionDialog(
-                this, _msgs.xlate(msg), _msgs.xlate(title),
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
-                options, options[1]); // default to cancel
-    }
-
-    /**
-     * Finds the uses of the specified config.
-     */
-    protected void findUses (
-            final String cfgNameOrPrefix, Class<? extends ManagedConfig> clazz,
-            final boolean exact)
-    {
-        if (cfgNameOrPrefix == null) {
-            return;
-        }
-        new ConfigSearcher(this, cfgNameOrPrefix,
-                ConfigSearcher.Presence.getReporter(clazz, new Predicate<ConfigReference<?>>() {
-                    public boolean apply (ConfigReference<?> ref) {
-                        return exact
-                            ? ref.getName().equals(cfgNameOrPrefix)
-                            : ref.getName().startsWith(cfgNameOrPrefix);
-                    }
-                }),
-                getSearcherDomains());
-    }
-
-    /**
-     * Return the domains over which we'll search for config uses.
-     */
-    protected Iterable<ConfigSearcher.Domain> getSearcherDomains ()
-    {
-        return ImmutableList.<ConfigSearcher.Domain>of(new ConfigSearcher.ConfigDomain(this));
-    }
-
-    /**
-     * Validates the references.
-     */
-    protected void validateReferences ()
-    {
-        PrintStreamDialog dialog = new PrintStreamDialog(
-            this, _msgs.get("m.validate_refs"), _msgs.get("b.ok"));
-        PrintStream stream = dialog.getPrintStream();
+      /**
+       * Creates a new configuration and prepares it for editing.
+       */
+      public void newConfig ()
+      {
+        Class<?> clazz = group.getRawConfigClasses().get(0);
         try {
-            validateReferences(createValidator(stream));
+          ManagedConfig cfg = (ManagedConfig)PreparedEditable.PREPARER.apply(
+              clazz.newInstance());
+          if (cfg instanceof DerivedConfig) {
+            ((DerivedConfig)cfg).cclass = group.getConfigClass();
+          }
+          newNode(cfg);
         } catch (Exception e) {
-            stream.println("Exception while validating!!");
-            e.printStackTrace(stream);
+          log.warning("Failed to instantiate config [class=" + clazz + "].", e);
         }
-        dialog.maybeShow();
-    }
+      }
 
-    /**
-     * Break out the validation separately from the creation of the validator so that it
-     * can be overridden.
-     */
-    protected void validateReferences (Validator validator)
-    {
-        _cfgmgr.validateReferences(validator);
-    }
+      /**
+       * Creates a new folder and prepares it for editing.
+       */
+      public void newFolder ()
+      {
+        newNode(null);
+      }
 
-    /**
-     * Create a validator for validating config references.
-     */
-    protected Validator createValidator (PrintStream out)
-    {
-        return new Validator(out);
-    }
+      /**
+       * Brings up the import group dialog.
+       */
+      public void importGroup ()
+      {
+        if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
+          group.load(_chooser.getSelectedFile());
+        }
+        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+      }
 
-    /**
-     * Create a paste helper for copy/paste or move operations.
-     */
-    protected PasteHelper createPasteHelper (ConfigGroup<?> group)
-    {
-        // return the default do-nothing paste helper
-        return new PasteHelper();
-    }
+      /**
+       * Brings up the export group dialog.
+       */
+      public void exportGroup ()
+      {
+        if (_chooser.showSaveDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
+          group.save(_chooser.getSelectedFile());
+        }
+        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+      }
 
-    /**
-     * Used to add addition items to the edit menu.
-     */
-    protected void addEditMenuItems (JMenu edit)
-    {
-    }
+      /**
+       * Brings up the import config dialog.
+       */
+      public void importConfigs ()
+      {
+        if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
+          group.load(_chooser.getSelectedFile(), true);
+        }
+        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+      }
 
-    @Override
-    protected BaseEditorPanel getFindEditorPanel ()
-    {
-        return ((ManagerPanel)_tabs.getSelectedComponent()).getEditorPanel();
-    }
+      /**
+       * Brings up the export config dialog.
+       */
+      public void exportConfigs ()
+      {
+        if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
+          ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
+          _tree.getSelectedNode().getConfigs(configs);
+          group.save(configs, _chooser.getSelectedFile());
+        }
+        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+      }
 
-    @Override
-    protected ConfigEditorPrefs createEditablePrefs (Preferences prefs)
-    {
-        return new ConfigEditorPrefs(_prefs);
-    }
+      /**
+       * Cuts the currently selected node.
+       */
+      public void cutNode ()
+      {
+        copyNode();
+        deleteNode();
+      }
 
-    /**
-     * The panel for a single manager.
-     */
-    protected class ManagerPanel extends JPanel
-        implements EditorContext, ItemListener, ChangeListener
-    {
-        /**
-         * Contains the state of a single group.
-         */
-        public class GroupItem
-            implements TreeSelectionListener
-        {
-            /** The actual group reference. */
-            public ConfigGroup<ManagedConfig> group;
+      /**
+       * Copies the currently selected node.
+       */
+      public void copyNode ()
+      {
+        Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+        clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
+        _clipclass = group.getConfigClass();
+        _paste.setEnabled(!_readOnly);
+      }
 
-            public GroupItem (ConfigGroup<?> group)
-            {
-                @SuppressWarnings("unchecked")
-                ConfigGroup<ManagedConfig> mgroup = (ConfigGroup<ManagedConfig>)group;
-                this.group = mgroup;
-                this.group.addListener(new ConfigGroupListener() {
-                        public void configAdded (ConfigEvent<ManagedConfig> evt) {
-                            DirtyGroupManager.setDirty(GroupItem.this.group, true);
-                        }
-                        public void configRemoved (ConfigEvent<ManagedConfig> evt) {
-                            DirtyGroupManager.setDirty(GroupItem.this.group, true);
-                        }
-                    });
-                _label = getLabel(group.getConfigClass(), group.getName());
-            }
+      /**
+       * Pastes the node in the clipboard.
+       */
+      public void pasteNode ()
+      {
+        PasteHelper paster = createPasteHelper(group);
+        Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+        if (_tree.getTransferHandler().importData(_tree, clipboard.getContents(this))) {
+          paster.didPaste();
+        }
+      }
 
-            /**
-             * Activates this group.
-             */
-            public void activate ()
-            {
-                if (_tree == null) {
-                    _tree = new ConfigTree(group, true) {
-                        @Override public void selectedConfigUpdated () {
-                            super.selectedConfigUpdated();
-                            _epanel.update();
-                        }
-                        @Override protected PasteHelper createPasteHelper (ConfigGroup<?> group)
-                        {
-                            return ConfigEditor.this.createPasteHelper(group);
-                        }
-                    };
-                    _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                    _tree.addTreeSelectionListener(this);
-                    _tree.setComponentPopupMenu(_popup);
+      /**
+       * Deletes the currently selected node.
+       */
+      public void deleteNode ()
+      {
+        ConfigTreeNode node = _tree.getSelectedNode();
+        ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
+        int index = parent.getIndex(node);
+        ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
+        int ccount = parent.getChildCount();
+        node = (ccount > 0) ?
+          (ConfigTreeNode)parent.getChildAt(Math.min(index, ccount - 1)) : parent;
+        if (node != _tree.getModel().getRoot()) {
+          _tree.setSelectionPath(new TreePath(node.getPath()));
+        }
+        DirtyGroupManager.setDirty(group, true);
+      }
 
-                    // remove the mappings for cut/copy/paste since we handle those ourself
-                    InputMap imap = _tree.getInputMap();
-                    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK), "noop");
-                    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK), "noop");
-                    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
-                }
-                _pane.setViewportView(_tree);
-                _filterPanel.setTree(_tree);
-                _paste.setEnabled(_clipclass == group.getConfigClass() && !_readOnly);
-                updateSelection();
-            }
-
-            /**
-             * Creates a new configuration and prepares it for editing.
-             */
-            public void newConfig ()
-            {
-                Class<?> clazz = group.getRawConfigClasses().get(0);
-                try {
-                    ManagedConfig cfg = (ManagedConfig)PreparedEditable.PREPARER.apply(
-                            clazz.newInstance());
-                    if (cfg instanceof DerivedConfig) {
-                        ((DerivedConfig)cfg).cclass = group.getConfigClass();
-                    }
-                    newNode(cfg);
-                } catch (Exception e) {
-                    log.warning("Failed to instantiate config [class=" + clazz + "].", e);
-                }
-            }
-
-            /**
-             * Creates a new folder and prepares it for editing.
-             */
-            public void newFolder ()
-            {
-                newNode(null);
-            }
-
-            /**
-             * Brings up the import group dialog.
-             */
-            public void importGroup ()
-            {
-                if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
-                    group.load(_chooser.getSelectedFile());
-                }
-                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-            }
-
-            /**
-             * Brings up the export group dialog.
-             */
-            public void exportGroup ()
-            {
-                if (_chooser.showSaveDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
-                    group.save(_chooser.getSelectedFile());
-                }
-                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-            }
-
-            /**
-             * Brings up the import config dialog.
-             */
-            public void importConfigs ()
-            {
-                if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
-                    group.load(_chooser.getSelectedFile(), true);
-                }
-                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-            }
-
-            /**
-             * Brings up the export config dialog.
-             */
-            public void exportConfigs ()
-            {
-                if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
-                    ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
-                    _tree.getSelectedNode().getConfigs(configs);
-                    group.save(configs, _chooser.getSelectedFile());
-                }
-                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-            }
-
-            /**
-             * Cuts the currently selected node.
-             */
-            public void cutNode ()
-            {
-                copyNode();
-                deleteNode();
-            }
-
-            /**
-             * Copies the currently selected node.
-             */
-            public void copyNode ()
-            {
-                Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
-                clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
-                _clipclass = group.getConfigClass();
-                _paste.setEnabled(!_readOnly);
-            }
-
-            /**
-             * Pastes the node in the clipboard.
-             */
-            public void pasteNode ()
-            {
-                PasteHelper paster = createPasteHelper(group);
-                Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
-                if (_tree.getTransferHandler().importData(_tree, clipboard.getContents(this))) {
-                    paster.didPaste();
-                }
-            }
-
-            /**
-             * Deletes the currently selected node.
-             */
-            public void deleteNode ()
-            {
-                ConfigTreeNode node = _tree.getSelectedNode();
-                ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
-                int index = parent.getIndex(node);
-                ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
-                int ccount = parent.getChildCount();
-                node = (ccount > 0) ?
-                    (ConfigTreeNode)parent.getChildAt(Math.min(index, ccount - 1)) : parent;
-                if (node != _tree.getModel().getRoot()) {
-                    _tree.setSelectionPath(new TreePath(node.getPath()));
-                }
-                DirtyGroupManager.setDirty(group, true);
-            }
-
-            /**
-             * Notes that the state of the currently selected configuration has changed.
-             */
-            public void configChanged ()
-            {
+      /**
+       * Notes that the state of the currently selected configuration has changed.
+       */
+      public void configChanged ()
+      {
 //                log.info("Config changed " + _tree.getSelectedNode().getConfig(),
 //                        "lastValue", _lastValue);
-                ManagedConfig oldLastValue = _lastValue;
-                _lastValue = (ManagedConfig)
-                    ((ManagedConfig)_tree.getSelectedNode().getConfig()).clone();
-                maybePostUndo(
-                        new ConfigEdit(ConfigEdit.Type.CHANGE, group, _lastValue, oldLastValue));
+        ManagedConfig oldLastValue = _lastValue;
+        _lastValue = (ManagedConfig)
+          ((ManagedConfig)_tree.getSelectedNode().getConfig()).clone();
+        maybePostUndo(
+            new ConfigEdit(ConfigEdit.Type.CHANGE, group, _lastValue, oldLastValue));
 
-                DirtyGroupManager.setDirty(group, true);
-                _tree.selectedConfigChanged();
-            }
+        DirtyGroupManager.setDirty(group, true);
+        _tree.selectedConfigChanged();
+      }
 
-            /**
-             * Attempts to select the specified config within this group.
-             */
-            public boolean select (String name)
-            {
-                if (group.getRawConfig(name) == null) {
-                    return false;
-                }
-                _tabs.setSelectedComponent(ManagerPanel.this);
-                gbox.setSelectedItem(this);
-                _tree.setSelectedNode(name);
-                return true;
-            }
+      /**
+       * Attempts to select the specified config within this group.
+       */
+      public boolean select (String name)
+      {
+        if (group.getRawConfig(name) == null) {
+          return false;
+        }
+        _tabs.setSelectedComponent(ManagerPanel.this);
+        gbox.setSelectedItem(this);
+        _tree.setSelectedNode(name);
+        return true;
+      }
 
-            /**
-             * Get the selected node, which may be a "folder" name: a partial config name.
-             */
-            public String getSelected ()
-            {
-                ConfigTreeNode node = _tree.getSelectedNode();
-                return (node == null)
-                    ? null
-                    : node.getName();
-            }
+      /**
+       * Get the selected node, which may be a "folder" name: a partial config name.
+       */
+      public String getSelected ()
+      {
+        ConfigTreeNode node = _tree.getSelectedNode();
+        return (node == null)
+          ? null
+          : node.getName();
+      }
 
-            /**
-             * Disposes of the resources held by this item.
-             */
-            public void dispose ()
-            {
-                if (_tree != null) {
-                    _tree.dispose();
-                    _tree = null;
-                }
-            }
+      /**
+       * Disposes of the resources held by this item.
+       */
+      public void dispose ()
+      {
+        if (_tree != null) {
+          _tree.dispose();
+          _tree = null;
+        }
+      }
 
-            // documentation inherited from interface TreeSelectionListener
-            public void valueChanged (TreeSelectionEvent event)
-            {
-                updateSelection();
-            }
+      // documentation inherited from interface TreeSelectionListener
+      public void valueChanged (TreeSelectionEvent event)
+      {
+        updateSelection();
+      }
 
-            @Override
-            public String toString ()
-            {
-                return _label + (DirtyGroupManager.isDirty(group) ? " *" : "");
-            }
+      @Override
+      public String toString ()
+      {
+        return _label + (DirtyGroupManager.isDirty(group) ? " *" : "");
+      }
 
-            /**
-             * Updates the state of the UI based on the selection.
-             */
-            protected void updateSelection ()
-            {
-                // find the selected node
-                ConfigTreeNode node = _tree.getSelectedNode();
+      /**
+       * Updates the state of the UI based on the selection.
+       */
+      protected void updateSelection ()
+      {
+        // find the selected node
+        ConfigTreeNode node = _tree.getSelectedNode();
 
-                // update the editor panel
-                _epanel.removeChangeListener(ManagerPanel.this);
-                try {
-                    ManagedConfig cfg = (node == null) ? null : node.getConfig();
-                    _epanel.setObject(cfg);
-                    _lastValue = (cfg == null) ? null : (ManagedConfig)cfg.clone();
-                } finally {
-                    _epanel.addChangeListener(ManagerPanel.this);
-                }
-
-                // enable or disable the menu items
-                boolean enable = (node != null);
-                boolean writeable = !_readOnly;
-                _exportConfigs.setEnabled(enable);
-                _cut.setEnabled(enable && writeable);
-                _copy.setEnabled(enable);
-                _delete.setEnabled(enable && writeable);
-                _findUses.setEnabled(enable);
-            }
-
-            /**
-             * Creates a new node for the supplied configuration (or a folder node, if the
-             * configuration is <code>null</code>).
-             */
-            protected void newNode (ManagedConfig config)
-            {
-                // presently we must clear the filter
-                _filterPanel.clearFilter();
-
-                // find the parent under which we want to add the node
-                ConfigTreeNode snode = _tree.getSelectedNode();
-                ConfigTreeNode parent = (ConfigTreeNode)(snode == null ?
-                    _tree.getModel().getRoot() : snode.getParent());
-
-                // create a node with a unique name and start editing it
-                String name = parent.findNameForChild(
-                    _msgs.get(config == null ? "m.new_folder" : "m.new_config"));
-                ConfigTreeNode child = new ConfigTreeNode(name, config);
-                ((DefaultTreeModel)_tree.getModel()).insertNodeInto(
-                    child, parent, parent.getInsertionIndex(child));
-                _tree.startEditingAtPath(new TreePath(child.getPath()));
-                DirtyGroupManager.setDirty(group, true);
-            }
-
-            /** The (possibly translated) group label. */
-            protected String _label;
-
-            /** The configuration tree. */
-            protected ConfigTree _tree;
-
-            protected ManagedConfig _lastValue;
+        // update the editor panel
+        _epanel.removeChangeListener(ManagerPanel.this);
+        try {
+          ManagedConfig cfg = (node == null) ? null : node.getConfig();
+          _epanel.setObject(cfg);
+          _lastValue = (cfg == null) ? null : (ManagedConfig)cfg.clone();
+        } finally {
+          _epanel.addChangeListener(ManagerPanel.this);
         }
 
-        /** The configuration manager. */
-        public ConfigManager cfgmgr;
+        // enable or disable the menu items
+        boolean enable = (node != null);
+        boolean writeable = !_readOnly;
+        _exportConfigs.setEnabled(enable);
+        _cut.setEnabled(enable && writeable);
+        _copy.setEnabled(enable);
+        _delete.setEnabled(enable && writeable);
+        _findUses.setEnabled(enable);
+      }
 
-        /** Determines the selected group. */
-        public JComboBox gbox;
+      /**
+       * Creates a new node for the supplied configuration (or a folder node, if the
+       * configuration is <code>null</code>).
+       */
+      protected void newNode (ManagedConfig config)
+      {
+        // presently we must clear the filter
+        _filterPanel.clearFilter();
 
-        public ManagerPanel (ConfigManager cfgmgr)
-        {
-            super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-            this.cfgmgr = cfgmgr;
+        // find the parent under which we want to add the node
+        ConfigTreeNode snode = _tree.getSelectedNode();
+        ConfigTreeNode parent = (ConfigTreeNode)(snode == null ?
+          _tree.getModel().getRoot() : snode.getParent());
 
-            setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        // create a node with a unique name and start editing it
+        String name = parent.findNameForChild(
+          _msgs.get(config == null ? "m.new_folder" : "m.new_config"));
+        ConfigTreeNode child = new ConfigTreeNode(name, config);
+        ((DefaultTreeModel)_tree.getModel()).insertNodeInto(
+          child, parent, parent.getInsertionIndex(child));
+        _tree.startEditingAtPath(new TreePath(child.getPath()));
+        DirtyGroupManager.setDirty(group, true);
+      }
 
-            // create the group panel
-            JPanel gpanel = GroupLayout.makeHStretchBox(5);
-            add(gpanel, GroupLayout.FIXED);
-            gpanel.add(new JLabel(_msgs.get("m.group")), GroupLayout.FIXED);
+      /** The (possibly translated) group label. */
+      protected String _label;
 
-            // initialize the list of groups
-            Collection<ConfigGroup<?>> groups = cfgmgr.getGroups();
-            GroupItem[] items = new GroupItem[groups.size()];
-            int idx = 0;
-            for (ConfigGroup<?> group : groups) {
-                group.addListener(_editListener);
-                items[idx++] = new GroupItem(group);
-            }
-            QuickSort.sort(items, new Comparator<GroupItem>() {
-                public int compare (GroupItem g1, GroupItem g2) {
-                    return String.CASE_INSENSITIVE_ORDER.compare(g1.toString(), g2.toString());
-                }
-            });
-            gpanel.add(gbox = new JComboBox(items));
-            gbox.addItemListener(this);
+      /** The configuration tree. */
+      protected ConfigTree _tree;
 
-            // add the filtering panel
-            add(_filterPanel = new ConfigTreeFilterPanel(_msgmgr), VGroupLayout.FIXED);
+      protected ManagedConfig _lastValue;
+    }
 
-            // add the pane that will contain the group tree
-            add(_pane = new JScrollPane());
+    /** The configuration manager. */
+    public ConfigManager cfgmgr;
 
-            // create the editor panel
-            _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
-            _epanel.addChangeListener(this);
+    /** Determines the selected group. */
+    public JComboBox gbox;
+
+    public ManagerPanel (ConfigManager cfgmgr)
+    {
+      super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+      this.cfgmgr = cfgmgr;
+
+      setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+      // create the group panel
+      JPanel gpanel = GroupLayout.makeHStretchBox(5);
+      add(gpanel, GroupLayout.FIXED);
+      gpanel.add(new JLabel(_msgs.get("m.group")), GroupLayout.FIXED);
+
+      // initialize the list of groups
+      Collection<ConfigGroup<?>> groups = cfgmgr.getGroups();
+      GroupItem[] items = new GroupItem[groups.size()];
+      int idx = 0;
+      for (ConfigGroup<?> group : groups) {
+        group.addListener(_editListener);
+        items[idx++] = new GroupItem(group);
+      }
+      QuickSort.sort(items, new Comparator<GroupItem>() {
+        public int compare (GroupItem g1, GroupItem g2) {
+          return String.CASE_INSENSITIVE_ORDER.compare(g1.toString(), g2.toString());
         }
+      });
+      gpanel.add(gbox = new JComboBox(items));
+      gbox.addItemListener(this);
 
-        @Override
-        public void setBackground (Color c)
-        {
-            super.setBackground(c);
-            if (_pane != null) {
-                _pane.setBackground(c);
-                _epanel.setBackground(c);
-            }
-        }
+      // add the filtering panel
+      add(_filterPanel = new ConfigTreeFilterPanel(_msgmgr), VGroupLayout.FIXED);
 
-        /**
-         * Called when the panel is shown.
-         */
-        public void activate ()
-        {
-            // add the editor panel
-            _split.setRightComponent(_epanel);
-            SwingUtil.refresh(_epanel);
+      // add the pane that will contain the group tree
+      add(_pane = new JScrollPane());
 
-            // activate the selected item
-            GroupItem group = (GroupItem)gbox.getSelectedItem();
-            if (group != null) {
-                group.activate();
-            }
+      // create the editor panel
+      _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
+      _epanel.addChangeListener(this);
+    }
 
-            boolean writeable = !_readOnly;
-            // can only save/revert configurations with a config path
-            boolean enable = writeable && (cfgmgr.getConfigPath() != null);
-            _save.setEnabled(enable);
-            _revert.setEnabled(enable);
-            _saveAll.setEnabled(enable);
-            _revertAll.setEnabled(enable);
-        }
-
-        /**
-         * Attempts to select the specified config.
-         */
-        public boolean select (Class<?> clazz, String name)
-        {
-            for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
-                GroupItem item = (GroupItem)gbox.getItemAt(ii);
-                if (item.group.getConfigClass() == clazz) {
-                    return item.select(name);
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Get the selected node, which may be a "folder" name: a partial config name.
-         */
-        public String getSelected ()
-        {
-            return ((GroupItem)gbox.getSelectedItem()).getSelected();
-        }
-
-        /**
-         * Enables or disables tree view mode.
-         */
-        public void setTreeModeEnabled (boolean enabled)
-        {
-            BaseEditorPanel opanel = _epanel;
-            _epanel = enabled ? new TreeEditorPanel(this) :
-                new EditorPanel(this, EditorPanel.CategoryMode.TABS);
-            _epanel.addChangeListener(this);
-            _epanel.setObject(opanel.getObject());
-            if (_split.getRightComponent() == opanel) {
-                _split.setRightComponent(_epanel);
-                SwingUtil.refresh(_epanel);
-            }
-        }
-
-        /**
-         * Disposes of the resources held by this manager.
-         */
-        public void dispose ()
-        {
-            for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
-                ((GroupItem)gbox.getItemAt(ii)).dispose();
-            }
-        }
-
-        /**
-         * Returns the editor panel.
-         */
-        public BaseEditorPanel getEditorPanel ()
-        {
-            return _epanel;
-        }
-
-        // documentation inherited from interface EditorContext
-        public ResourceManager getResourceManager ()
-        {
-            return _rsrcmgr;
-        }
-
-        // documentation inherited from interface EditorContext
-        public MessageManager getMessageManager ()
-        {
-            return _msgmgr;
-        }
-
-        // documentation inherited from interface EditorContext
-        public ConfigManager getConfigManager ()
-        {
-            return cfgmgr;
-        }
-
-        // documentation inherited from interface EditorContext
-        public ColorPository getColorPository ()
-        {
-            return _colorpos;
-        }
-
-        // documentation inherited from interface ItemListener
-        public void itemStateChanged (ItemEvent event)
-        {
-            ((GroupItem)gbox.getSelectedItem()).activate();
-        }
-
-        // documentation inherited from interface ChangeListener
-        public void stateChanged (ChangeEvent event)
-        {
-            ((GroupItem)gbox.getSelectedItem()).configChanged();
-        }
-
-        /** Holds a configuration filtering panel. */
-        protected ConfigTreeFilterPanel _filterPanel;
-
-        /** The scroll pane that holds the group trees. */
-        protected JScrollPane _pane;
-
-        /** The object editor panel. */
-        protected BaseEditorPanel _epanel;
+    @Override
+    public void setBackground (Color c)
+    {
+      super.setBackground(c);
+      if (_pane != null) {
+        _pane.setBackground(c);
+        _epanel.setBackground(c);
+      }
     }
 
     /**
-     * Restore and bind prefs.
+     * Called when the panel is shown.
      */
-    protected void restorePrefs ()
+    public void activate ()
     {
-        final String p = getConfigKey();
+      // add the editor panel
+      _split.setRightComponent(_epanel);
+      SwingUtil.refresh(_epanel);
 
-        // restore/bind window bounds
-        _eprefs.bindWindowBounds(p, this);
+      // activate the selected item
+      GroupItem group = (GroupItem)gbox.getSelectedItem();
+      if (group != null) {
+        group.activate();
+      }
 
-        // restore/bind the location of the divider
-        _eprefs.bindDividerLocation(p + "div", _split);
-
-        // restore/bind the selected group
-        String cat = _prefs.get(p + "group", null);
-        for (int tab = _tabs.getComponentCount() - 1; tab >= 0; tab--) {
-            final JComboBox gbox = ((ManagerPanel)_tabs.getComponentAt(tab)).gbox;
-            if (cat != null) {
-                for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
-                    if (cat.equals(String.valueOf(gbox.getItemAt(ii)))) {
-                        gbox.setSelectedIndex(ii);
-                        break;
-                    }
-                }
-            }
-            gbox.addActionListener(new ActionListener() {
-                public void actionPerformed (ActionEvent event) {
-                    _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
-                }
-            });
-        }
-
-        // restore color
-        setBackground(((ConfigEditorPrefs)_eprefs).getBackgroundColor());
+      boolean writeable = !_readOnly;
+      // can only save/revert configurations with a config path
+      boolean enable = writeable && (cfgmgr.getConfigPath() != null);
+      _save.setEnabled(enable);
+      _revert.setEnabled(enable);
+      _saveAll.setEnabled(enable);
+      _revertAll.setEnabled(enable);
     }
 
     /**
-     * Set the background color for this editor.
+     * Attempts to select the specified config.
      */
-    protected void setBackground (Color4f color)
+    public boolean select (Class<?> clazz, String name)
     {
-        final Color c = color.getColor();
-        setBackground(c);
-        getContentPane().setBackground(c);
-        for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
-            ((ManagerPanel)_tabs.getComponentAt(ii)).setBackground(c);
+      for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+        GroupItem item = (GroupItem)gbox.getItemAt(ii);
+        if (item.group.getConfigClass() == clazz) {
+          return item.select(name);
         }
+      }
+      return false;
+    }
+
+    /**
+     * Get the selected node, which may be a "folder" name: a partial config name.
+     */
+    public String getSelected ()
+    {
+      return ((GroupItem)gbox.getSelectedItem()).getSelected();
+    }
+
+    /**
+     * Enables or disables tree view mode.
+     */
+    public void setTreeModeEnabled (boolean enabled)
+    {
+      BaseEditorPanel opanel = _epanel;
+      _epanel = enabled ? new TreeEditorPanel(this) :
+        new EditorPanel(this, EditorPanel.CategoryMode.TABS);
+      _epanel.addChangeListener(this);
+      _epanel.setObject(opanel.getObject());
+      if (_split.getRightComponent() == opanel) {
+        _split.setRightComponent(_epanel);
+        SwingUtil.refresh(_epanel);
+      }
+    }
+
+    /**
+     * Disposes of the resources held by this manager.
+     */
+    public void dispose ()
+    {
+      for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+        ((GroupItem)gbox.getItemAt(ii)).dispose();
+      }
+    }
+
+    /**
+     * Returns the editor panel.
+     */
+    public BaseEditorPanel getEditorPanel ()
+    {
+      return _epanel;
+    }
+
+    // documentation inherited from interface EditorContext
+    public ResourceManager getResourceManager ()
+    {
+      return _rsrcmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public MessageManager getMessageManager ()
+    {
+      return _msgmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public ConfigManager getConfigManager ()
+    {
+      return cfgmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public ColorPository getColorPository ()
+    {
+      return _colorpos;
+    }
+
+    // documentation inherited from interface ItemListener
+    public void itemStateChanged (ItemEvent event)
+    {
+      ((GroupItem)gbox.getSelectedItem()).activate();
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+      ((GroupItem)gbox.getSelectedItem()).configChanged();
+    }
+
+    /** Holds a configuration filtering panel. */
+    protected ConfigTreeFilterPanel _filterPanel;
+
+    /** The scroll pane that holds the group trees. */
+    protected JScrollPane _pane;
+
+    /** The object editor panel. */
+    protected BaseEditorPanel _epanel;
+  }
+
+  /**
+   * Restore and bind prefs.
+   */
+  protected void restorePrefs ()
+  {
+    final String p = getConfigKey();
+
+    // restore/bind window bounds
+    _eprefs.bindWindowBounds(p, this);
+
+    // restore/bind the location of the divider
+    _eprefs.bindDividerLocation(p + "div", _split);
+
+    // restore/bind the selected group
+    String cat = _prefs.get(p + "group", null);
+    for (int tab = _tabs.getComponentCount() - 1; tab >= 0; tab--) {
+      final JComboBox gbox = ((ManagerPanel)_tabs.getComponentAt(tab)).gbox;
+      if (cat != null) {
+        for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+          if (cat.equals(String.valueOf(gbox.getItemAt(ii)))) {
+            gbox.setSelectedIndex(ii);
+            break;
+          }
+        }
+      }
+      gbox.addActionListener(new ActionListener() {
+        public void actionPerformed (ActionEvent event) {
+          _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
+        }
+      });
+    }
+
+    // restore color
+    setBackground(((ConfigEditorPrefs)_eprefs).getBackgroundColor());
+  }
+
+  /**
+   * Set the background color for this editor.
+   */
+  protected void setBackground (Color4f color)
+  {
+    final Color c = color.getColor();
+    setBackground(c);
+    getContentPane().setBackground(c);
+    for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+      ((ManagerPanel)_tabs.getComponentAt(ii)).setBackground(c);
+    }
 //        SwingUtil.applyToHierarchy(this, new SwingUtil.ComponentOp() {
 //                public void apply (Component comp) {
 //                    comp.setBackground(c);
 //                }
 //            });
+  }
+
+  /**
+   * Get our prefs key prefix.
+   */
+  protected String getConfigKey ()
+  {
+    return "ConfigEditor." + ResourceUtil.getPrefsPrefix() + (_readOnly ? ".readonly" : "");
+  }
+
+  /**
+   * Our prefs.
+   */
+  protected class ConfigEditorPrefs extends ToolUtil.EditablePrefs
+  {
+    public ConfigEditorPrefs (Preferences prefs)
+    {
+      super(prefs);
+    }
+
+    @Editable(weight=3)
+    public void setBackgroundColor (Color4f color)
+    {
+      putPref(getConfigKey() + "background_color", color);
+      ConfigEditor.this.setBackground(color);
+    }
+
+    @Editable // see setter
+    public Color4f getBackgroundColor ()
+    {
+      return getPref(getConfigKey() + "background_color",
+          _readOnly ? Color4f.RED : Color4f.GRAY);
+    }
+  }
+
+  /**
+   * Tracks which config groups have unsaved changes within them.
+   */
+  protected static class DirtyGroupManager
+  {
+    /**
+     * Add an editor to be notified of dirty groups.
+     */
+    public static void registerEditor (ConfigEditor editor)
+    {
+      _editors.add(editor);
     }
 
     /**
-     * Get our prefs key prefix.
+     * Remove a editor.
      */
-    protected String getConfigKey ()
+    public static void unregisterEditor (ConfigEditor editor)
     {
-        return "ConfigEditor." + ResourceUtil.getPrefsPrefix() + (_readOnly ? ".readonly" : "");
+      _editors.remove(editor);
     }
 
     /**
-     * Our prefs.
+     * How may editors are registered?
      */
-    protected class ConfigEditorPrefs extends ToolUtil.EditablePrefs
+    public static int getRegisteredEditorCount ()
     {
-        public ConfigEditorPrefs (Preferences prefs)
-        {
-            super(prefs);
-        }
-
-        @Editable(weight=3)
-        public void setBackgroundColor (Color4f color)
-        {
-            putPref(getConfigKey() + "background_color", color);
-            ConfigEditor.this.setBackground(color);
-        }
-
-        @Editable // see setter
-        public Color4f getBackgroundColor ()
-        {
-            return getPref(getConfigKey() + "background_color",
-                    _readOnly ? Color4f.RED : Color4f.GRAY);
-        }
+      return _editors.size();
     }
 
     /**
-     * Tracks which config groups have unsaved changes within them.
+     * Set all groups within the specified manager as dirty.
      */
-    protected static class DirtyGroupManager
+    public static void setDirty (ConfigManager cfgmgr, boolean dirty)
     {
-        /**
-         * Add an editor to be notified of dirty groups.
-         */
-        public static void registerEditor (ConfigEditor editor)
-        {
-            _editors.add(editor);
-        }
-
-        /**
-         * Remove a editor.
-         */
-        public static void unregisterEditor (ConfigEditor editor)
-        {
-            _editors.remove(editor);
-        }
-
-        /**
-         * How may editors are registered?
-         */
-        public static int getRegisteredEditorCount ()
-        {
-            return _editors.size();
-        }
-
-        /**
-         * Set all groups within the specified manager as dirty.
-         */
-        public static void setDirty (ConfigManager cfgmgr, boolean dirty)
-        {
-            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-                setDirty(group, dirty);
-            }
-        }
-
-        /**
-         * Set the specified group as dirty.
-         */
-        public static void setDirty (ConfigGroup<?> group, boolean dirty)
-        {
-            Boolean oldVal = _dirty.put(group, dirty);
-            boolean oldDirty = Boolean.TRUE.equals(oldVal);
-            if (dirty != oldDirty) {
-                _editors.apply(new ObserverList.ObserverOp<ConfigEditor>() {
-                        public boolean apply (ConfigEditor editor) {
-                            editor.recheckDirty();
-                            return true;
-                        }
-                    });
-            }
-        }
-
-        /**
-         * Is any group within the specified configmanager dirty?
-         */
-        public static boolean isDirty (ConfigManager cfgmgr)
-        {
-            for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-                if (isDirty(group)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Is the specified group dirty?
-         */
-        public static boolean isDirty (ConfigGroup<?> group)
-        {
-            return Boolean.TRUE.equals(_dirty.get(group));
-        }
-
-        /**
-         * Are any of the values dirty?
-         */
-        public static boolean anyDirty ()
-        {
-            for (Boolean b : _dirty.values()) {
-                if (Boolean.TRUE.equals(b)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /** A weak mapping of group to dirtyness. */
-        protected static Map<ConfigGroup<?>, Boolean> _dirty = CacheBuilder.newBuilder()
-                .concurrencyLevel(1)
-                .weakKeys()
-                .<ConfigGroup<?>, Boolean>build().asMap();
-
-        /** The editors currently registered to hear about dirty groups. */
-        protected static ObserverList<ConfigEditor> _editors = ObserverList.newFastUnsafe();
+      for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+        setDirty(group, dirty);
+      }
     }
 
-    protected static class ConfigEdit extends AbstractUndoableEdit
+    /**
+     * Set the specified group as dirty.
+     */
+    public static void setDirty (ConfigGroup<?> group, boolean dirty)
     {
+      Boolean oldVal = _dirty.put(group, dirty);
+      boolean oldDirty = Boolean.TRUE.equals(oldVal);
+      if (dirty != oldDirty) {
+        _editors.apply(new ObserverList.ObserverOp<ConfigEditor>() {
+            public boolean apply (ConfigEditor editor) {
+              editor.recheckDirty();
+              return true;
+            }
+          });
+      }
+    }
+
+    /**
+     * Is any group within the specified configmanager dirty?
+     */
+    public static boolean isDirty (ConfigManager cfgmgr)
+    {
+      for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+        if (isDirty(group)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Is the specified group dirty?
+     */
+    public static boolean isDirty (ConfigGroup<?> group)
+    {
+      return Boolean.TRUE.equals(_dirty.get(group));
+    }
+
+    /**
+     * Are any of the values dirty?
+     */
+    public static boolean anyDirty ()
+    {
+      for (Boolean b : _dirty.values()) {
+        if (Boolean.TRUE.equals(b)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /** A weak mapping of group to dirtyness. */
+    protected static Map<ConfigGroup<?>, Boolean> _dirty = CacheBuilder.newBuilder()
+        .concurrencyLevel(1)
+        .weakKeys()
+        .<ConfigGroup<?>, Boolean>build().asMap();
+
+    /** The editors currently registered to hear about dirty groups. */
+    protected static ObserverList<ConfigEditor> _editors = ObserverList.newFastUnsafe();
+  }
+
+  protected static class ConfigEdit extends AbstractUndoableEdit
+  {
 	public enum Type
 	{
-	    CHANGE,
-	    ADD,
-	    REMOVE,
-	    ;
+	  CHANGE,
+	  ADD,
+	  REMOVE,
+	  ;
 	}
 
 	public ConfigEdit (
-            Type type, ConfigGroup<?> group,
-            ManagedConfig newValue, ManagedConfig oldValue)
+      Type type, ConfigGroup<?> group,
+      ManagedConfig newValue, ManagedConfig oldValue)
 	{
-	    _type = type;
-            _group = group;
-	    _new = newValue;
-	    _old = oldValue;
-            if (_type == Type.CHANGE) {
-                _diffKey = findFirstDiffLineage(newValue, oldValue);
+	  _type = type;
+      _group = group;
+	  _new = newValue;
+	  _old = oldValue;
+      if (_type == Type.CHANGE) {
+        _diffKey = findFirstDiffLineage(newValue, oldValue);
 //                if (_diffKey == null) {
 //                    log.info("Null diffkey... no-op change?",
 //                            "newValue", newValue,
 //                            "oldValue", oldValue,
 //                            new Exception());
 //                }
-            }
+      }
 	}
 
-        @Override
-        public boolean addEdit (UndoableEdit edit)
-        {
-            if (!(edit instanceof ConfigEdit)) {
-                return false;
-            }
-            ConfigEdit that = (ConfigEdit)edit;
+    @Override
+    public boolean addEdit (UndoableEdit edit)
+    {
+      if (!(edit instanceof ConfigEdit)) {
+        return false;
+      }
+      ConfigEdit that = (ConfigEdit)edit;
 
-            // for now we can only merge changes to the same config
-            if (_type != Type.CHANGE || that._type != Type.CHANGE ||
-                    _group != that._group ||
-                    !_new.getName().equals(that._new.getName()) ||
-                    // we can always combine a null diffKey, and we can always combine if they
-                    // are equal. So if both aren't true, we can't combine.
-                    ((that._diffKey != null) && !that._diffKey.equals(_diffKey))) {
+      // for now we can only merge changes to the same config
+      if (_type != Type.CHANGE || that._type != Type.CHANGE ||
+          _group != that._group ||
+          !_new.getName().equals(that._new.getName()) ||
+          // we can always combine a null diffKey, and we can always combine if they
+          // are equal. So if both aren't true, we can't combine.
+          ((that._diffKey != null) && !that._diffKey.equals(_diffKey))) {
 //                log.info("--> New edit kept separate");
-                return false;
-            }
+        return false;
+      }
 
 //            if (_new != oedit._old) {
 //                log.info("AS FAR AS I KNOW, this should work!");
 //            }
-            _new = that._new;
-            that.die();
+      _new = that._new;
+      that.die();
 //            log.info("--> New edit combined");
-            return true;
-        }
-
-        @Override
-        public void undo ()
-            throws CannotUndoException
-        {
-            super.undo();
-            switch (_type) {
-                case CHANGE:
-                case REMOVE:
-                    _group.addConfig(_old);
-                    break;
-
-                case ADD:
-                    _group.removeConfig(_new);
-                    break;
-
-                default:
-                    unknownType();
-                    break;
-            }
-        }
-
-        @Override
-        public void redo ()
-            throws CannotRedoException
-        {
-            super.redo();
-            switch (_type) {
-                case CHANGE:
-                case ADD:
-                    _group.addConfig(_new);
-                    break;
-
-                case REMOVE:
-                    _group.removeConfig(_old);
-                    break;
-
-                default:
-                    unknownType();
-                    break;
-            }
-        }
-
-        @Override
-        public String getPresentationName ()
-        {
-            StringBuilder buf = new StringBuilder(_type.toString())
-                .append(':')
-                .append(_group.getName())
-                .append(" \"")
-                .append(getConfigName())
-                .append('"');
-            if (_diffKey != null) {
-                buf.append(' ')
-                   .append(_diffKey);
-            }
-            return buf.toString();
-        }
-
-        /**
-         */
-        protected String getConfigName ()
-        {
-            switch (_type) {
-                case CHANGE:
-                case ADD:
-                    return _new.getName();
-
-                case REMOVE:
-                    return _old.getName();
-
-                default:
-                    return unknownType();
-            }
-        }
-
-        protected <T> T unknownType ()
-            throws RuntimeException
-        {
-            throw new RuntimeException("Unhandled type: " + _type);
-        }
-
-        protected String findFirstDiffLineage (Object one, Object two)
-        {
-            if (one == two) {
-                return null;
-            }
-            Class<?> c1 = (one == null) ? null : one.getClass();
-            Class<?> c2 = (two == null) ? null : two.getClass();
-            if (c1 != c2) {
-                return "";
-            }
-            // what the fuck special config reference handling
-            if (c1 == ConfigReference.class) {
-                ConfigReference<?> r1 = (ConfigReference<?>)one;
-                ConfigReference<?> r2 = (ConfigReference<?>)two;
-                if (!r1.getName().equals(r2.getName())) {
-                    return "._name";
-                }
-                ArgumentMap am1 = r1.getArguments();
-                ArgumentMap am2 = r2.getArguments();
-                if (am1.size() != am2.size()) {
-                    return "._args";
-                }
-                for (Map.Entry<String, Object> entry : am1.entrySet()) {
-                    String s = findFirstDiffLineage(entry.getValue(), am2.get(entry.getKey()));
-                    if (s != null) {
-                        return "." + entry.getKey() + s;
-                    }
-                }
-                return null;
-            }
-            if (c1.isArray()) {
-                final int arrayLength = Array.getLength(one);
-                if (arrayLength != Array.getLength(two)) {
-                    return "._length";
-                }
-                for (int ii = 0; ii < arrayLength; ii++) {
-                    String s = findFirstDiffLineage(Array.get(one, ii), Array.get(two, ii));
-                    if (s != null) {
-                        return ".[" + ii + "]" + s;
-                    }
-                }
-                return null;
-            }
-	    Property[] p1 = Introspector.getProperties(one);
-	    Property[] p2 = Introspector.getProperties(two);
-	    if (p1.length != p2.length) {
-		return "";
-	    }
-	    if (p1.length == 0) {
-		return DeepUtil.equals(one, two) ? null : "";
-	    }
-	    for (int ii = 0; ii < p1.length; ii++) {
-		if (p1[ii] != p2[ii]) {
-		    // can this happen?
-		    return "";
-		} else {
-		    Object po1 = p1[ii].get(one);
-		    Object po2 = p2[ii].get(two);
-		    String path = findFirstDiffLineage(po1, po2);
-		    if (path != null) {
-			return "." + p1[ii].getName() + path;
-		    }
-		}
-	    }
-	    return null;
-        }
-
-        protected Type _type;
-
-        protected ConfigGroup<?> _group;
-
-        protected ManagedConfig _new, _old;
-
-        /** A diffkey, used for CHANGE. */
-        protected String _diffKey;
+      return true;
     }
 
-    /** Are we operating in read-only mode? */
-    protected final boolean _readOnly = ToolUtil.isReadOnly();
+    @Override
+    public void undo ()
+      throws CannotUndoException
+    {
+      super.undo();
+      switch (_type) {
+        case CHANGE:
+        case REMOVE:
+          _group.addConfig(_old);
+          break;
 
-    /** The config tree pop-up menu. */
-    protected JPopupMenu _popup;
+        case ADD:
+          _group.removeConfig(_new);
+          break;
 
-    /** The save and revert menu items. */
-    protected JMenuItem _save, _revert, _saveAll, _revertAll;
+        default:
+          unknownType();
+          break;
+      }
+    }
 
-    /** The configuration export menu item. */
-    protected JMenuItem _exportConfigs;
+    @Override
+    public void redo ()
+      throws CannotRedoException
+    {
+      super.redo();
+      switch (_type) {
+        case CHANGE:
+        case ADD:
+          _group.addConfig(_new);
+          break;
 
-    /** The edit menu actions. */
-    protected Action _undo, _redo, _cut, _copy, _paste, _delete, _findUses;
+        case REMOVE:
+          _group.removeConfig(_old);
+          break;
 
-    /** The tree mode toggle. */
-    protected JCheckBoxMenuItem _treeMode;
+        default:
+          unknownType();
+          break;
+      }
+    }
 
-    /** The file chooser for opening and saving config files. */
-    protected JFileChooser _chooser;
+    @Override
+    public String getPresentationName ()
+    {
+      StringBuilder buf = new StringBuilder(_type.toString())
+        .append(':')
+        .append(_group.getName())
+        .append(" \"")
+        .append(getConfigName())
+        .append('"');
+      if (_diffKey != null) {
+        buf.append(' ')
+          .append(_diffKey);
+      }
+      return buf.toString();
+    }
 
-    /** The split pane containing the tabs and the editor panel. */
-    protected JSplitPane _split;
+    /**
+     */
+    protected String getConfigName ()
+    {
+      switch (_type) {
+        case CHANGE:
+        case ADD:
+          return _new.getName();
 
-    /** The tabs for each manager. */
-    protected JTabbedPane _tabs;
+        case REMOVE:
+          return _old.getName();
 
-    /** The class of the clipboard selection. */
-    protected Class<?> _clipclass;
+        default:
+          return unknownType();
+      }
+    }
 
-    protected ConfigGroupListener _editListener = new ConfigGroupListener() {
-        public void configAdded (ConfigEvent<ManagedConfig> event) {
+    protected <T> T unknownType ()
+      throws RuntimeException
+    {
+      throw new RuntimeException("Unhandled type: " + _type);
+    }
+
+    protected String findFirstDiffLineage (Object one, Object two)
+    {
+      if (one == two) {
+        return null;
+      }
+      Class<?> c1 = (one == null) ? null : one.getClass();
+      Class<?> c2 = (two == null) ? null : two.getClass();
+      if (c1 != c2) {
+        return "";
+      }
+      // what the fuck special config reference handling
+      if (c1 == ConfigReference.class) {
+        ConfigReference<?> r1 = (ConfigReference<?>)one;
+        ConfigReference<?> r2 = (ConfigReference<?>)two;
+        if (!r1.getName().equals(r2.getName())) {
+          return "._name";
+        }
+        ArgumentMap am1 = r1.getArguments();
+        ArgumentMap am2 = r2.getArguments();
+        if (am1.size() != am2.size()) {
+          return "._args";
+        }
+        for (Map.Entry<String, Object> entry : am1.entrySet()) {
+          String s = findFirstDiffLineage(entry.getValue(), am2.get(entry.getKey()));
+          if (s != null) {
+            return "." + entry.getKey() + s;
+          }
+        }
+        return null;
+      }
+      if (c1.isArray()) {
+        final int arrayLength = Array.getLength(one);
+        if (arrayLength != Array.getLength(two)) {
+          return "._length";
+        }
+        for (int ii = 0; ii < arrayLength; ii++) {
+          String s = findFirstDiffLineage(Array.get(one, ii), Array.get(two, ii));
+          if (s != null) {
+            return ".[" + ii + "]" + s;
+          }
+        }
+        return null;
+      }
+	  Property[] p1 = Introspector.getProperties(one);
+	  Property[] p2 = Introspector.getProperties(two);
+	  if (p1.length != p2.length) {
+	return "";
+	  }
+	  if (p1.length == 0) {
+	return DeepUtil.equals(one, two) ? null : "";
+	  }
+	  for (int ii = 0; ii < p1.length; ii++) {
+	if (p1[ii] != p2[ii]) {
+		 // can this happen?
+		 return "";
+	} else {
+		 Object po1 = p1[ii].get(one);
+		 Object po2 = p2[ii].get(two);
+		 String path = findFirstDiffLineage(po1, po2);
+		 if (path != null) {
+		return "." + p1[ii].getName() + path;
+		 }
+	}
+	  }
+	  return null;
+    }
+
+    protected Type _type;
+
+    protected ConfigGroup<?> _group;
+
+    protected ManagedConfig _new, _old;
+
+    /** A diffkey, used for CHANGE. */
+    protected String _diffKey;
+  }
+
+  /** Are we operating in read-only mode? */
+  protected final boolean _readOnly = ToolUtil.isReadOnly();
+
+  /** The config tree pop-up menu. */
+  protected JPopupMenu _popup;
+
+  /** The save and revert menu items. */
+  protected JMenuItem _save, _revert, _saveAll, _revertAll;
+
+  /** The configuration export menu item. */
+  protected JMenuItem _exportConfigs;
+
+  /** The edit menu actions. */
+  protected Action _undo, _redo, _cut, _copy, _paste, _delete, _findUses;
+
+  /** The tree mode toggle. */
+  protected JCheckBoxMenuItem _treeMode;
+
+  /** The file chooser for opening and saving config files. */
+  protected JFileChooser _chooser;
+
+  /** The split pane containing the tabs and the editor panel. */
+  protected JSplitPane _split;
+
+  /** The tabs for each manager. */
+  protected JTabbedPane _tabs;
+
+  /** The class of the clipboard selection. */
+  protected Class<?> _clipclass;
+
+  protected ConfigGroupListener _editListener = new ConfigGroupListener() {
+    public void configAdded (ConfigEvent<ManagedConfig> event) {
 //            log.info("Config added",
 //                    "source", event.getSource(),
 //                    "config", event.getConfig(),
 //                    "name", event.getConfig().getName(),
 //                    "classof", event.getConfig().getClass());
-            maybePostUndo(new ConfigEdit(ConfigEdit.Type.ADD,
-                        (ConfigGroup<?>)event.getSource(),
-                        event.getConfig(),
-                        null));
-        }
-        public void configRemoved (ConfigEvent<ManagedConfig> event) {
+      maybePostUndo(new ConfigEdit(ConfigEdit.Type.ADD,
+            (ConfigGroup<?>)event.getSource(),
+            event.getConfig(),
+            null));
+    }
+    public void configRemoved (ConfigEvent<ManagedConfig> event) {
 //            log.info("Config removed",
 //                    "source", event.getSource(),
 //                    "config", event.getConfig());
-            maybePostUndo(new ConfigEdit(ConfigEdit.Type.REMOVE,
-                        (ConfigGroup<?>)event.getSource(),
-                        null,
-                        event.getConfig()));
-        }
-    };
-
-    protected void maybePostUndo (ConfigEdit edit)
-    {
-        if (!_undoing) {
-            _undoSupport.postEdit(edit);
-        }
+      maybePostUndo(new ConfigEdit(ConfigEdit.Type.REMOVE,
+            (ConfigGroup<?>)event.getSource(),
+            null,
+            event.getConfig()));
     }
+  };
 
-    /** The undo manager. */
-    protected UndoManager _undomgr;
+  protected void maybePostUndo (ConfigEdit edit)
+  {
+    if (!_undoing) {
+      _undoSupport.postEdit(edit);
+    }
+  }
 
-    /** The undoable edit support object. */
-    protected UndoableEditSupport _undoSupport;
+  /** The undo manager. */
+  protected UndoManager _undomgr;
 
-    protected boolean _undoing;
+  /** The undoable edit support object. */
+  protected UndoableEditSupport _undoSupport;
 
-    /** A Function for creating new instances of the config editor via our public static method.
-     * This function will be assigned by subclasses that wish to ensure that that subclass
-     * is always used. */
-    protected static Function<? super EditorContext, ? extends ConfigEditor> _editorCreator;
+  protected boolean _undoing;
+
+  /** A Function for creating new instances of the config editor via our public static method.
+   * This function will be assigned by subclasses that wish to ensure that that subclass
+   * is always used. */
+  protected static Function<? super EditorContext, ? extends ConfigEditor> _editorCreator;
 }

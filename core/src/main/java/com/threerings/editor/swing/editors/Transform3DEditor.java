@@ -44,42 +44,42 @@ import com.threerings.editor.swing.Transform3DPanel;
  * Editor for transform properties.
  */
 public class Transform3DEditor extends PropertyEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        Transform3D value = _panel.getValue();
-        if (!_property.get(_object).equals(value)) {
-            _property.set(_object, value);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    Transform3D value = _panel.getValue();
+    if (!_property.get(_object).equals(value)) {
+      _property.set(_object, value);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _panel.setValue((Transform3D)_property.get(_object));
-    }
+  @Override
+  public void update ()
+  {
+    _panel.setValue((Transform3D)_property.get(_object));
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setTitle(getPropertyLabel());
-        String mstr = getMode();
-        Transform3DPanel.Mode mode = Transform3DPanel.Mode.UNIFORM;
-        try {
-            mode = Enum.valueOf(Transform3DPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
-        } catch (IllegalArgumentException e) { }
-        add(_panel = new Transform3DPanel(_msgs, mode, (float)getStep(), (float)getScale()));
-        _panel.setBackground(getDarkerBackground(_lineage.length));
-        Color ddarker = getDarkerBackground(_lineage.length + 1);
-        _panel.getTranslationPanel().setBackground(ddarker);
-        _panel.getRotationPanel().setBackground(ddarker);
-        _panel.addChangeListener(this);
-    }
+  @Override
+  protected void didInit ()
+  {
+    setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+    setTitle(getPropertyLabel());
+    String mstr = getMode();
+    Transform3DPanel.Mode mode = Transform3DPanel.Mode.UNIFORM;
+    try {
+      mode = Enum.valueOf(Transform3DPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+    } catch (IllegalArgumentException e) { }
+    add(_panel = new Transform3DPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+    _panel.setBackground(getDarkerBackground(_lineage.length));
+    Color ddarker = getDarkerBackground(_lineage.length + 1);
+    _panel.getTranslationPanel().setBackground(ddarker);
+    _panel.getRotationPanel().setBackground(ddarker);
+    _panel.addChangeListener(this);
+  }
 
-    /** The transform panel. */
-    protected Transform3DPanel _panel;
+  /** The transform panel. */
+  protected Transform3DPanel _panel;
 }

@@ -41,180 +41,180 @@ import com.threerings.opengl.model.config.ActionConfig;
  */
 public abstract class Preloadable extends DeepObject
 {
-    public interface LoadableConfig
+  public interface LoadableConfig
+  {
+    /**
+     * Preload items in the config.
+     */
+    public void preload (GlContext ctx);
+  }
+
+  /**
+   * A generic config resource.
+   */
+  public static class Config extends Preloadable
+  {
+    /**
+     * Creates a new config resource.
+     */
+    public <T extends ManagedConfig> Config (Class<T> clazz, String name)
     {
-        /**
-         * Preload items in the config.
-         */
-        public void preload (GlContext ctx);
+      this(clazz, new ConfigReference<T>(name));
     }
 
     /**
-     * A generic config resource.
+     * Creates a new config resource.
      */
-    public static class Config extends Preloadable
+    public <T extends ManagedConfig> Config (Class<T> clazz, ConfigReference<T> ref)
     {
-        /**
-         * Creates a new config resource.
-         */
-        public <T extends ManagedConfig> Config (Class<T> clazz, String name)
-        {
-            this(clazz, new ConfigReference<T>(name));
-        }
-
-        /**
-         * Creates a new config resource.
-         */
-        public <T extends ManagedConfig> Config (Class<T> clazz, ConfigReference<T> ref)
-        {
-            @SuppressWarnings("unchecked") Class<ManagedConfig> mclazz =
-                (Class<ManagedConfig>)clazz;
-            _clazz = mclazz;
-            @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =
-                (ConfigReference<ManagedConfig>)ref;
-            _ref = mref;
-        }
-
-        /**
-         * Returns a reference to the config class.
-         */
-        public Class<ManagedConfig> getConfigClass ()
-        {
-            return _clazz;
-        }
-
-        /**
-         * Returns a reference to the config reference.
-         */
-        public ConfigReference<ManagedConfig> getReference ()
-        {
-            return _ref;
-        }
-
-        @Override
-        public void preload (GlContext ctx)
-        {
-            _config = ctx.getConfigManager().getConfig(_clazz, _ref);
-            if (_config instanceof LoadableConfig) {
-                ((LoadableConfig)_config).preload(ctx);
-            }
-        }
-
-        @Override
-        public String toString ()
-        {
-            return "[" + ConfigGroup.getName(_clazz) + "=" + _ref + "]";
-        }
-
-        /** The configuration class. */
-        protected Class<ManagedConfig> _clazz;
-
-        /** The configuration reference. */
-        protected ConfigReference<ManagedConfig> _ref;
-
-        /** The reference to the resolved configuration. */
-        @DeepOmit
-        protected ManagedConfig _config;
+      @SuppressWarnings("unchecked") Class<ManagedConfig> mclazz =
+        (Class<ManagedConfig>)clazz;
+      _clazz = mclazz;
+      @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =
+        (ConfigReference<ManagedConfig>)ref;
+      _ref = mref;
     }
 
     /**
-     * A model resource.
+     * Returns a reference to the config class.
      */
-    public static class Model extends Preloadable
+    public Class<ManagedConfig> getConfigClass ()
     {
-        /**
-         * Creates a new model resource.
-         */
-        public Model (ConfigReference<ModelConfig> ref)
-        {
-            _ref = ref;
-        }
-
-        /**
-         * Returns a reference to the model config reference.
-         */
-        public ConfigReference<ModelConfig> getReference ()
-        {
-            return _ref;
-        }
-
-        @Override
-        public void preload (GlContext ctx)
-        {
-            _model = new com.threerings.opengl.model.Model(ctx);
-            _model.setParentScope(ctx.getScope());
-            _model.setConfig(_ref);
-
-            ModelConfig conf = ctx.getConfigManager().getConfig(ModelConfig.class, _ref);
-            if (conf != null) {
-                conf.preload(ctx);
-            }
-        }
-
-        @Override
-        public String toString ()
-        {
-            return "[model=" + _ref + "]";
-        }
-
-        /** The model config reference. */
-        protected ConfigReference<ModelConfig> _ref;
-
-        /** The model prototype. */
-        @DeepOmit
-        protected com.threerings.opengl.model.Model _model;
+      return _clazz;
     }
 
     /**
-     * An animation resource.
+     * Returns a reference to the config reference.
      */
-    public static class Animation extends Preloadable
+    public ConfigReference<ManagedConfig> getReference ()
     {
-        /**
-         * Creates a new model resource.
-         */
-        public Animation (ConfigReference<AnimationConfig> ref)
-        {
-            _ref = ref;
-        }
+      return _ref;
+    }
 
-        /**
-         * Returns a reference to the animation config reference.
-         */
-        public ConfigReference<AnimationConfig> getReference ()
-        {
-            return _ref;
-        }
+    @Override
+    public void preload (GlContext ctx)
+    {
+      _config = ctx.getConfigManager().getConfig(_clazz, _ref);
+      if (_config instanceof LoadableConfig) {
+        ((LoadableConfig)_config).preload(ctx);
+      }
+    }
 
-        @Override
-        public void preload (GlContext ctx)
-        {
-            _anim = new com.threerings.opengl.model.Animation(ctx, ctx.getScope());
-            _anim.setConfig(null, _ref);
+    @Override
+    public String toString ()
+    {
+      return "[" + ConfigGroup.getName(_clazz) + "=" + _ref + "]";
+    }
 
-            AnimationConfig ani = ctx.getConfigManager().getConfig(AnimationConfig.class, _ref);
-            if (ani != null) {
-                ani.preload(ctx);
-            }
-        }
+    /** The configuration class. */
+    protected Class<ManagedConfig> _clazz;
 
-        @Override
-        public String toString ()
-        {
-            return "[anim=" + _ref + "]";
-        }
+    /** The configuration reference. */
+    protected ConfigReference<ManagedConfig> _ref;
 
-        /** The animation config reference. */
-        protected ConfigReference<AnimationConfig> _ref;
+    /** The reference to the resolved configuration. */
+    @DeepOmit
+    protected ManagedConfig _config;
+  }
 
-        /** The animation prototype. */
-        @DeepOmit
-        protected com.threerings.opengl.model.Animation _anim;
+  /**
+   * A model resource.
+   */
+  public static class Model extends Preloadable
+  {
+    /**
+     * Creates a new model resource.
+     */
+    public Model (ConfigReference<ModelConfig> ref)
+    {
+      _ref = ref;
     }
 
     /**
-     * Preloads this resource and creates a reference to it, preventing it from being
-     * garbage-collected.
+     * Returns a reference to the model config reference.
      */
-    public abstract void preload (GlContext ctx);
+    public ConfigReference<ModelConfig> getReference ()
+    {
+      return _ref;
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+      _model = new com.threerings.opengl.model.Model(ctx);
+      _model.setParentScope(ctx.getScope());
+      _model.setConfig(_ref);
+
+      ModelConfig conf = ctx.getConfigManager().getConfig(ModelConfig.class, _ref);
+      if (conf != null) {
+        conf.preload(ctx);
+      }
+    }
+
+    @Override
+    public String toString ()
+    {
+      return "[model=" + _ref + "]";
+    }
+
+    /** The model config reference. */
+    protected ConfigReference<ModelConfig> _ref;
+
+    /** The model prototype. */
+    @DeepOmit
+    protected com.threerings.opengl.model.Model _model;
+  }
+
+  /**
+   * An animation resource.
+   */
+  public static class Animation extends Preloadable
+  {
+    /**
+     * Creates a new model resource.
+     */
+    public Animation (ConfigReference<AnimationConfig> ref)
+    {
+      _ref = ref;
+    }
+
+    /**
+     * Returns a reference to the animation config reference.
+     */
+    public ConfigReference<AnimationConfig> getReference ()
+    {
+      return _ref;
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+      _anim = new com.threerings.opengl.model.Animation(ctx, ctx.getScope());
+      _anim.setConfig(null, _ref);
+
+      AnimationConfig ani = ctx.getConfigManager().getConfig(AnimationConfig.class, _ref);
+      if (ani != null) {
+        ani.preload(ctx);
+      }
+    }
+
+    @Override
+    public String toString ()
+    {
+      return "[anim=" + _ref + "]";
+    }
+
+    /** The animation config reference. */
+    protected ConfigReference<AnimationConfig> _ref;
+
+    /** The animation prototype. */
+    @DeepOmit
+    protected com.threerings.opengl.model.Animation _anim;
+  }
+
+  /**
+   * Preloads this resource and creates a reference to it, preventing it from being
+   * garbage-collected.
+   */
+  public abstract void preload (GlContext ctx);
 }

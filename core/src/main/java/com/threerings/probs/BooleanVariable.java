@@ -37,17 +37,17 @@ import com.threerings.math.FloatMath;
  * A boolean random variable.
  */
 public class BooleanVariable extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /** The probability that this variable is true. */
-    @Editable(min=0.0, max=1.0, step=0.01)
-    public float probability;
+  /** The probability that this variable is true. */
+  @Editable(min=0.0, max=1.0, step=0.01)
+  public float probability;
 
-    /**
-     * Returns a sample value from this variable.
-     */
-    public boolean getValue ()
-    {
-        return FloatMath.random() < probability;
-    }
+  /**
+   * Returns a sample value from this variable.
+   */
+  public boolean getValue ()
+  {
+    return FloatMath.random() < probability;
+  }
 }

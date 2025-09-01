@@ -38,107 +38,107 @@ import com.threerings.tudey.shape.Shape;
  */
 public abstract class ActivityLogic extends Logic
 {
-    /**
-     * Initializes the logic.
-     */
-    public void init (TudeySceneManager scenemgr, ActiveLogic source)
-    {
-        super.init(scenemgr);
-        _source = source;
-    }
+  /**
+   * Initializes the logic.
+   */
+  public void init (TudeySceneManager scenemgr, ActiveLogic source)
+  {
+    super.init(scenemgr);
+    _source = source;
+  }
 
-    /**
-     * Starts the activity.
-     */
-    public void start (int timestamp)
-    {
-        _started = timestamp - (shouldAdvance() ? _source.getActivityAdvance() : 0);
-    }
+  /**
+   * Starts the activity.
+   */
+  public void start (int timestamp)
+  {
+    _started = timestamp - (shouldAdvance() ? _source.getActivityAdvance() : 0);
+  }
 
-    /**
-     * Stops the activity.
-     */
-    public void stop (int timestamp)
-    {
-    }
+  /**
+   * Stops the activity.
+   */
+  public void stop (int timestamp)
+  {
+  }
 
-    /**
-     * Updates the activity.
-     */
-    public void tick (int timestamp)
-    {
-        // nothing by default
-    }
+  /**
+   * Updates the activity.
+   */
+  public void tick (int timestamp)
+  {
+    // nothing by default
+  }
 
-    @Override
-    public boolean isActive ()
-    {
-        return _source.isActive();
-    }
+  @Override
+  public boolean isActive ()
+  {
+    return _source.isActive();
+  }
 
-    @Override
-    public EntityKey getEntityKey ()
-    {
-        return _source.getEntityKey();
-    }
+  @Override
+  public EntityKey getEntityKey ()
+  {
+    return _source.getEntityKey();
+  }
 
-    @Override
-    public Vector2f getTranslation ()
-    {
-        return _source.getTranslation();
-    }
+  @Override
+  public Vector2f getTranslation ()
+  {
+    return _source.getTranslation();
+  }
 
-    @Override
-    public float getRotation ()
-    {
-        return _source.getRotation();
-    }
+  @Override
+  public float getRotation ()
+  {
+    return _source.getRotation();
+  }
 
-    @Override
-    public Shape getShape ()
-    {
-        return _source.getShape();
-    }
+  @Override
+  public Shape getShape ()
+  {
+    return _source.getShape();
+  }
 
-    @Override
-    public void addShapeObserver (ShapeObserver observer)
-    {
-        _source.addShapeObserver(observer);
-    }
+  @Override
+  public void addShapeObserver (ShapeObserver observer)
+  {
+    _source.addShapeObserver(observer);
+  }
 
-    @Override
-    public void removeShapeObserver (ShapeObserver observer)
-    {
-        _source.removeShapeObserver(observer);
-    }
+  @Override
+  public void removeShapeObserver (ShapeObserver observer)
+  {
+    _source.removeShapeObserver(observer);
+  }
 
-    @Override
-    public void transfer (Logic source, Map<Object, Object> refs)
-    {
-        super.transfer(source, refs);
-        _started = ((ActivityLogic)source)._started;
-    }
+  @Override
+  public void transfer (Logic source, Map<Object, Object> refs)
+  {
+    super.transfer(source, refs);
+    _started = ((ActivityLogic)source)._started;
+  }
 
-    /**
-     * Override to perform custom initialization.
-     */
-    protected void didInit ()
-    {
-        // nothing by default
-    }
+  /**
+   * Override to perform custom initialization.
+   */
+  protected void didInit ()
+  {
+    // nothing by default
+  }
 
-    /**
-     * Checks whether we should advance the activity to compensate for control latency, if
-     * relevant.
-     */
-    protected boolean shouldAdvance ()
-    {
-        return true;
-    }
+  /**
+   * Checks whether we should advance the activity to compensate for control latency, if
+   * relevant.
+   */
+  protected boolean shouldAdvance ()
+  {
+    return true;
+  }
 
-    /** The activity source. */
-    protected ActiveLogic _source;
+  /** The activity source. */
+  protected ActiveLogic _source;
 
-    /** The time at which the activity started. */
-    protected int _started;
+  /** The time at which the activity started. */
+  protected int _started;
 }

@@ -42,104 +42,104 @@ import static com.threerings.opengl.Log.log;
  */
 public class PreloadableSet extends HashSet<Preloadable>
 {
-    /**
-     * Creates a new preloadable set.
-     */
-    public PreloadableSet (GlContext ctx)
-    {
-        _ctx = ctx;
+  /**
+   * Creates a new preloadable set.
+   */
+  public PreloadableSet (GlContext ctx)
+  {
+    _ctx = ctx;
+  }
+
+  /**
+   * Preloads a batch of the default duration.
+   *
+   * @return the percentage of the total resources loaded, from zero to one.
+   */
+  public float preloadBatch ()
+  {
+    return preloadBatch(100L);
+  }
+
+  /**
+   * Preloads a batch of resources in the set.  Any preloadables added to the set after this
+   * method is called for the first time will be preloaded immediately.
+   *
+   * @param duration the maximum amount of time to spend on the batch.
+   * @return the percentage of the total resources loaded, from zero to one.
+   */
+  public float preloadBatch (long duration)
+  {
+    if (_remaining != null && _remaining.isEmpty()) {
+      return 1f;
     }
-
-    /**
-     * Preloads a batch of the default duration.
-     *
-     * @return the percentage of the total resources loaded, from zero to one.
-     */
-    public float preloadBatch ()
-    {
-        return preloadBatch(100L);
+    if (_remaining == null) {
+      _remaining = Lists.newArrayList(this);
     }
-
-    /**
-     * Preloads a batch of resources in the set.  Any preloadables added to the set after this
-     * method is called for the first time will be preloaded immediately.
-     *
-     * @param duration the maximum amount of time to spend on the batch.
-     * @return the percentage of the total resources loaded, from zero to one.
-     */
-    public float preloadBatch (long duration)
-    {
-        if (_remaining != null && _remaining.isEmpty()) {
-            return 1f;
-        }
-        if (_remaining == null) {
-            _remaining = Lists.newArrayList(this);
-        }
-        long end = System.currentTimeMillis() + duration;
-        for (int ii = _remaining.size() - 1; ii >= 0 && System.currentTimeMillis() < end; ii--) {
-            _remaining.remove(ii).preload(_ctx);
-            _preloaded++;
-        }
-        if (_remaining.isEmpty()) {
-            return 1f;
-        }
-        return (float)_preloaded / size();
+    long end = System.currentTimeMillis() + duration;
+    for (int ii = _remaining.size() - 1; ii >= 0 && System.currentTimeMillis() < end; ii--) {
+      _remaining.remove(ii).preload(_ctx);
+      _preloaded++;
     }
-
-    @Override
-    public boolean add (Preloadable preloadable)
-    {
-        if (!super.add(preloadable)) {
-            return false;
-        }
-        // if already processing batches, just preload this immediately
-        if (_remaining != null) {
-            preloadable.preload(_ctx);
-            _preloaded++;
-        }
-        return true;
+    if (_remaining.isEmpty()) {
+      return 1f;
     }
+    return (float)_preloaded / size();
+  }
 
-    /**
-     * Convenience variant of #add, which is null tolerant.
-     */
-    public <T extends ManagedConfig> boolean addConfig (
-            Class<T> clazz, String name)
-    {
-        return (name != null) && add(new Preloadable.Config(clazz, name));
+  @Override
+  public boolean add (Preloadable preloadable)
+  {
+    if (!super.add(preloadable)) {
+      return false;
     }
-
-    /**
-     * Convenience variant of #add, which is null tolerant.
-     */
-    public <T extends ManagedConfig> boolean addConfig (
-            Class<T> clazz, ConfigReference<T> ref)
-    {
-        return (ref != null) && add(new Preloadable.Config(clazz, ref));
+    // if already processing batches, just preload this immediately
+    if (_remaining != null) {
+      preloadable.preload(_ctx);
+      _preloaded++;
     }
+    return true;
+  }
 
-    /**
-     * Convenience variant of #add, which is null tolerant.
-     */
-    public boolean addModel (ConfigReference<ModelConfig> ref)
-    {
-        return (ref != null) && add(new Preloadable.Model(ref));
-    }
+  /**
+   * Convenience variant of #add, which is null tolerant.
+   */
+  public <T extends ManagedConfig> boolean addConfig (
+      Class<T> clazz, String name)
+  {
+    return (name != null) && add(new Preloadable.Config(clazz, name));
+  }
 
-    /**
-     * Convenience variant of #add, which is null tolerant.
-     */
-    public boolean addAnim (ConfigReference<AnimationConfig> ref)
-    {
-        return (ref != null) && add(new Preloadable.Animation(ref));
-    }
+  /**
+   * Convenience variant of #add, which is null tolerant.
+   */
+  public <T extends ManagedConfig> boolean addConfig (
+      Class<T> clazz, ConfigReference<T> ref)
+  {
+    return (ref != null) && add(new Preloadable.Config(clazz, ref));
+  }
 
-    /** The application context. */
-    protected GlContext _ctx;
+  /**
+   * Convenience variant of #add, which is null tolerant.
+   */
+  public boolean addModel (ConfigReference<ModelConfig> ref)
+  {
+    return (ref != null) && add(new Preloadable.Model(ref));
+  }
 
-    /** The list of resources remaining to be preloaded. */
-    protected List<Preloadable> _remaining;
+  /**
+   * Convenience variant of #add, which is null tolerant.
+   */
+  public boolean addAnim (ConfigReference<AnimationConfig> ref)
+  {
+    return (ref != null) && add(new Preloadable.Animation(ref));
+  }
 
-    /** The number of resources preloaded so far. */
-    protected int _preloaded;
+  /** The application context. */
+  protected GlContext _ctx;
+
+  /** The list of resources remaining to be preloaded. */
+  protected List<Preloadable> _remaining;
+
+  /** The number of resources preloaded so far. */
+  protected int _preloaded;
 }

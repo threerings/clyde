@@ -62,214 +62,214 @@ import com.threerings.tudey.data.TudeySceneModel;
  * Base class for tools using config libraries.
  */
 public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
-    implements TreeSelectionListener, ChangeListener
+  implements TreeSelectionListener, ChangeListener
 {
-    /**
-     * Snap styles.
-     */
-    enum SnapStyle
-    {
-        CENTER {
-            @Override public void applySnap (Vector3f isect) {
-                EDGE.applySnap(isect);
-                isect.x += 0.5f;
-                isect.y += 0.5f;
-            }
-        },
-        EDGE {
-            @Override public void applySnap (Vector3f isect) {
-                isect.x = FloatMath.floor(isect.x);
-                isect.y = FloatMath.floor(isect.y);
-            }
-        },
+  /**
+   * Snap styles.
+   */
+  enum SnapStyle
+  {
+    CENTER {
+      @Override public void applySnap (Vector3f isect) {
+        EDGE.applySnap(isect);
+        isect.x += 0.5f;
+        isect.y += 0.5f;
+      }
+    },
+    EDGE {
+      @Override public void applySnap (Vector3f isect) {
+        isect.x = FloatMath.floor(isect.x);
+        isect.y = FloatMath.floor(isect.y);
+      }
+    },
 	EDGE_X {
-            @Override public void applySnap (Vector3f isect) {
-                EDGE.applySnap(isect);
-                isect.y += 0.5f;
-            }
-        },
+      @Override public void applySnap (Vector3f isect) {
+        EDGE.applySnap(isect);
+        isect.y += 0.5f;
+      }
+    },
 	EDGE_Y {
-            @Override public void applySnap (Vector3f isect) {
-                EDGE.applySnap(isect);
-                isect.x += 0.5f;
-            }
-        },
-        NONE;
-
-        /**
-         * Snap just the x/y values of the provided vector.
-         */
-        public void applySnap (Vector3f isect)
-        {
-            // the NONE implementation: do nothing!
-        }
-
-        @Override
-        public String toString ()
-        {
-            return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
-        }
-    }
+      @Override public void applySnap (Vector3f isect) {
+        EDGE.applySnap(isect);
+        isect.x += 0.5f;
+      }
+    },
+    NONE;
 
     /**
-     * Creates the config tool.
+     * Snap just the x/y values of the provided vector.
      */
-    public ConfigTool (SceneEditor editor, Class<T> clazz, EditableReference<T> eref)
+    public void applySnap (Vector3f isect)
     {
-        super(editor);
-        _clazz = clazz;
-        _eref = eref;
-
-        _recentConfigs = new RecentConfigList(getClass().getSimpleName());
-        _recentConfigs.addObserver(new RecentConfigList.Observer() {
-            @Override
-            public void configSelected (ConfigReference<?> ref) {
-                @SuppressWarnings("unchecked") // we only add the right type
-                ConfigReference<T> casted = (ConfigReference<T>)ref;
-                setReference(casted);
-            }
-        });
-
-        JPanel panel = new JPanel(
-            new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        JSplitPane recentSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
-            _recentConfigs, panel);
-        add(recentSplit);
-
-        // add the filter panel for configs
-        _filterPanel = new ConfigTreeFilterPanel(editor.getMessageManager());
-        panel.add(_filterPanel, GroupLayout.FIXED);
-
-        // create and add the split pane
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
-            _pane = new JScrollPane(), _epanel = new EditorPanel(editor));
-        split.setResizeWeight(1.0);
-        panel.add(split);
-        _epanel.setMinimumSize(new Dimension(120, 120));
-        _epanel.setObject(eref);
-        _epanel.addChangeListener(this);
-    }
-
-    /**
-     * Add the specified reference as a "recent" one, even if it was not directly selected
-     * by this tool.
-     */
-    public void addAsRecent (ConfigReference<?> ref)
-    {
-        if (ref != null) {
-            _recentConfigs.addRecent(ref);
-        }
-    }
-
-    /**
-     * Sets the reference.
-     */
-    public void setReference (ConfigReference<T> ref)
-    {
-        _tree.setSelectedNode(ref == null ? null : ref.getName());
-        _eref.setReference(ref);
-        _epanel.update();
-        referenceChanged(ref);
-    }
-
-    // documentation inherited from interface TreeSelectionListener
-    public void valueChanged (TreeSelectionEvent event)
-    {
-        ConfigTreeNode node = _tree.getSelectedNode();
-        String name = (node == null || node.getConfig() == null) ? null : node.getName();
-        ConfigReference<T> ref = (name == null) ? null : new ConfigReference<T>(name);
-        _eref.setReference(ref);
-        _epanel.update();
-        referenceChanged(ref);
-    }
-
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        ConfigReference<T> ref = _eref.getReference();
-        _tree.setSelectedNode(ref == null ? null : ref.getName());
-        referenceChanged(ref);
+      // the NONE implementation: do nothing!
     }
 
     @Override
-    public void sceneChanged (TudeySceneModel scene)
+    public String toString ()
     {
-        super.sceneChanged(scene);
-
-        // (re)create the config tree
-        if (_tree != null) {
-            _tree.dispose();
-        }
-        _pane.setViewportView(_tree = new ConfigTree(scene.getConfigManager().getGroups(_clazz)));
-        _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        _tree.addTreeSelectionListener(this);
-        _filterPanel.setTree(_tree);
+      return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, name());
     }
+  }
+
+  /**
+   * Creates the config tool.
+   */
+  public ConfigTool (SceneEditor editor, Class<T> clazz, EditableReference<T> eref)
+  {
+    super(editor);
+    _clazz = clazz;
+    _eref = eref;
+
+    _recentConfigs = new RecentConfigList(getClass().getSimpleName());
+    _recentConfigs.addObserver(new RecentConfigList.Observer() {
+      @Override
+      public void configSelected (ConfigReference<?> ref) {
+        @SuppressWarnings("unchecked") // we only add the right type
+        ConfigReference<T> casted = (ConfigReference<T>)ref;
+        setReference(casted);
+      }
+    });
+
+    JPanel panel = new JPanel(
+      new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+    JSplitPane recentSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
+      _recentConfigs, panel);
+    add(recentSplit);
+
+    // add the filter panel for configs
+    _filterPanel = new ConfigTreeFilterPanel(editor.getMessageManager());
+    panel.add(_filterPanel, GroupLayout.FIXED);
+
+    // create and add the split pane
+    JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
+      _pane = new JScrollPane(), _epanel = new EditorPanel(editor));
+    split.setResizeWeight(1.0);
+    panel.add(split);
+    _epanel.setMinimumSize(new Dimension(120, 120));
+    _epanel.setObject(eref);
+    _epanel.addChangeListener(this);
+  }
+
+  /**
+   * Add the specified reference as a "recent" one, even if it was not directly selected
+   * by this tool.
+   */
+  public void addAsRecent (ConfigReference<?> ref)
+  {
+    if (ref != null) {
+      _recentConfigs.addRecent(ref);
+    }
+  }
+
+  /**
+   * Sets the reference.
+   */
+  public void setReference (ConfigReference<T> ref)
+  {
+    _tree.setSelectedNode(ref == null ? null : ref.getName());
+    _eref.setReference(ref);
+    _epanel.update();
+    referenceChanged(ref);
+  }
+
+  // documentation inherited from interface TreeSelectionListener
+  public void valueChanged (TreeSelectionEvent event)
+  {
+    ConfigTreeNode node = _tree.getSelectedNode();
+    String name = (node == null || node.getConfig() == null) ? null : node.getName();
+    ConfigReference<T> ref = (name == null) ? null : new ConfigReference<T>(name);
+    _eref.setReference(ref);
+    _epanel.update();
+    referenceChanged(ref);
+  }
+
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    ConfigReference<T> ref = _eref.getReference();
+    _tree.setSelectedNode(ref == null ? null : ref.getName());
+    referenceChanged(ref);
+  }
+
+  @Override
+  public void sceneChanged (TudeySceneModel scene)
+  {
+    super.sceneChanged(scene);
+
+    // (re)create the config tree
+    if (_tree != null) {
+      _tree.dispose();
+    }
+    _pane.setViewportView(_tree = new ConfigTree(scene.getConfigManager().getGroups(_clazz)));
+    _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    _tree.addTreeSelectionListener(this);
+    _filterPanel.setTree(_tree);
+  }
+
+  /**
+   * Can be called by your constructor to add the snap style selector to your tool.
+   */
+  protected void addSnapStyleSelector ()
+  {
+    _snapStyle = new JComboBox(SnapStyle.values());
+    add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED, 0);
+  }
+
+  /**
+   * Get the currently-selected snap style.
+   */
+  protected SnapStyle getSnapStyle ()
+  {
+    return (SnapStyle)_snapStyle.getSelectedItem();
+  }
+
+  /**
+   * Called when the reference changes.
+   */
+  protected void referenceChanged (ConfigReference<T> ref)
+  {
+    // add it as a recent reference
+    addAsRecent(ref);
+  }
+
+  /**
+   * Allows us to edit the placeable reference.
+   */
+  protected static abstract class EditableReference<T extends ManagedConfig> extends DeepObject
+    implements Exportable
+  {
+    /**
+     * Returns a reference to the config reference.
+     */
+    public abstract ConfigReference<T> getReference ();
 
     /**
-     * Can be called by your constructor to add the snap style selector to your tool.
+     * Sets the config reference.
      */
-    protected void addSnapStyleSelector ()
-    {
-        _snapStyle = new JComboBox(SnapStyle.values());
-        add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED, 0);
-    }
+    public abstract void setReference (ConfigReference<T> ref);
+  }
 
-    /**
-     * Get the currently-selected snap style.
-     */
-    protected SnapStyle getSnapStyle ()
-    {
-        return (SnapStyle)_snapStyle.getSelectedItem();
-    }
+  /** The config class for the brush. */
+  protected Class<T> _clazz;
 
-    /**
-     * Called when the reference changes.
-     */
-    protected void referenceChanged (ConfigReference<T> ref)
-    {
-        // add it as a recent reference
-        addAsRecent(ref);
-    }
+  /** Our recent configs. */
+  protected RecentConfigList _recentConfigs;
 
-    /**
-     * Allows us to edit the placeable reference.
-     */
-    protected static abstract class EditableReference<T extends ManagedConfig> extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config reference.
-         */
-        public abstract ConfigReference<T> getReference ();
+  /** The editable reference. */
+  protected EditableReference<T> _eref;
 
-        /**
-         * Sets the config reference.
-         */
-        public abstract void setReference (ConfigReference<T> ref);
-    }
+  /** The scroll pane containing the tree. */
+  protected JScrollPane _pane;
 
-    /** The config class for the brush. */
-    protected Class<T> _clazz;
+  /** The tree of configs. */
+  protected ConfigTree _tree;
 
-    /** Our recent configs. */
-    protected RecentConfigList _recentConfigs;
+  /** The filter panel for the config tree. */
+  protected ConfigTreeFilterPanel _filterPanel;
 
-    /** The editable reference. */
-    protected EditableReference<T> _eref;
+  /** The editor panel that we use to adjust placeable arguments. */
+  protected EditorPanel _epanel;
 
-    /** The scroll pane containing the tree. */
-    protected JScrollPane _pane;
-
-    /** The tree of configs. */
-    protected ConfigTree _tree;
-
-    /** The filter panel for the config tree. */
-    protected ConfigTreeFilterPanel _filterPanel;
-
-    /** The editor panel that we use to adjust placeable arguments. */
-    protected EditorPanel _epanel;
-
-    /** Optional: the snapping style in use by this tool. */
-    protected JComboBox _snapStyle;
+  /** Optional: the snapping style in use by this tool. */
+  protected JComboBox _snapStyle;
 }

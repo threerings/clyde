@@ -41,59 +41,59 @@ import com.threerings.tudey.data.actor.Actor;
  */
 public final class ActorDelta extends ReflectiveDelta
 {
-    /**
-     * Creates a new actor delta.
-     */
-    public ActorDelta (Actor original, Actor revised)
-    {
-        super(original, revised);
-        _id = original.getId();
-    }
+  /**
+   * Creates a new actor delta.
+   */
+  public ActorDelta (Actor original, Actor revised)
+  {
+    super(original, revised);
+    _id = original.getId();
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public ActorDelta ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public ActorDelta ()
+  {
+  }
 
-    /**
-     * Returns the id of the affected actor.
-     */
-    public int getId ()
-    {
-        return _id;
-    }
+  /**
+   * Returns the id of the affected actor.
+   */
+  public int getId ()
+  {
+    return _id;
+  }
 
-    @Override
-    public Delta merge (Delta other)
-    {
-        ActorDelta odelta;
-        if (!(other instanceof ActorDelta && (odelta = (ActorDelta)other).getId() == _id)) {
-            throw new IllegalArgumentException("Cannot merge delta " + other);
-        }
-        ActorDelta merged = new ActorDelta();
-        merged._id = _id;
-        populateMerged(odelta, merged);
-        return merged;
+  @Override
+  public Delta merge (Delta other)
+  {
+    ActorDelta odelta;
+    if (!(other instanceof ActorDelta && (odelta = (ActorDelta)other).getId() == _id)) {
+      throw new IllegalArgumentException("Cannot merge delta " + other);
     }
+    ActorDelta merged = new ActorDelta();
+    merged._id = _id;
+    populateMerged(odelta, merged);
+    return merged;
+  }
 
-    @Override
-    public void writeObject (ObjectOutputStream out)
-        throws IOException
-    {
-        out.writeInt(_id);
-        super.writeObject(out);
-    }
+  @Override
+  public void writeObject (ObjectOutputStream out)
+    throws IOException
+  {
+    out.writeInt(_id);
+    super.writeObject(out);
+  }
 
-    @Override
-    public void readObject (ObjectInputStream in)
-        throws IOException, ClassNotFoundException
-    {
-        _id = in.readInt();
-        super.readObject(in);
-    }
+  @Override
+  public void readObject (ObjectInputStream in)
+    throws IOException, ClassNotFoundException
+  {
+    _id = in.readInt();
+    super.readObject(in);
+  }
 
-    /** The id of the affected actor. */
-    protected int _id;
+  /** The id of the affected actor. */
+  protected int _id;
 }

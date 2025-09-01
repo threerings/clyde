@@ -50,289 +50,289 @@ import static com.threerings.opengl.Log.log;
  * Describes a colorization.
  */
 @EditorTypes({
-    ColorizationConfig.Normal.class, ColorizationConfig.TransNormal.class,
-    ColorizationConfig.CustomOffsets.class, ColorizationConfig.FullyCustom.class,
-    ColorizationConfig.Translated.class
+  ColorizationConfig.Normal.class, ColorizationConfig.TransNormal.class,
+  ColorizationConfig.CustomOffsets.class, ColorizationConfig.FullyCustom.class,
+  ColorizationConfig.Translated.class
 })
 public abstract class ColorizationConfig extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /**
-     * Creates a colorization config
-     */
-    public static ColorizationConfig.CustomOffsets createConfig (
-            int clazz, float hue, float saturation, float value)
+  /**
+   * Creates a colorization config
+   */
+  public static ColorizationConfig.CustomOffsets createConfig (
+      int clazz, float hue, float saturation, float value)
+  {
+    ColorizationConfig.CustomOffsets config = new ColorizationConfig.CustomOffsets();
+    config.clazz = clazz;
+    config.offsets.hue = hue;
+    config.offsets.saturation = saturation;
+    config.offsets.value = value;
+    return config;
+  }
+
+  /**
+   * Creates a normal colorization config.
+   */
+  public static ColorizationConfig.Normal createConfig (int colorization)
+  {
+    ColorizationConfig.Normal config = new ColorizationConfig.Normal();
+    config.colorization = colorization;
+    return config;
+  }
+
+  /**
+   * A reference to a pository colorization.
+   */
+  public static class Normal extends ColorizationConfig
+  {
+    /** The colorization reference. */
+    @Editable(editor="colorization")
+    public int colorization;
+
+    @Override
+    public Colorization getColorization (ColorPository colorpos)
     {
-        ColorizationConfig.CustomOffsets config = new ColorizationConfig.CustomOffsets();
-        config.clazz = clazz;
-        config.offsets.hue = hue;
-        config.offsets.saturation = saturation;
-        config.offsets.value = value;
-        return config;
+      return colorpos.getColorization(colorization);
+    }
+  }
+
+  /**
+   * Uses a pository class and a custom color.
+   */
+  public static class CustomOffsets extends ColorizationConfig
+  {
+    /** The colorization class. */
+    @Editable(editor="colorization", mode="class")
+    public int clazz;
+
+    /** The color offsets. */
+    @Editable
+    public Triplet offsets = new Triplet();
+
+    @Override
+    public Colorization getColorization (ColorPository colorpos)
+    {
+      ClassRecord crec = colorpos.getClassRecord(clazz);
+      return (crec == null) ? null : new CustomOffsetsColorization(crec, offsets.getValues());
+    }
+  }
+
+  /**
+   * A fully custom colorization.
+   */
+  public static class FullyCustom extends ColorizationConfig
+  {
+    /** The source color. */
+    @Editable
+    public Color4f source = new Color4f();
+
+    /** The range to recolor. */
+    @Editable
+    public Triplet range = new Triplet();
+
+    /** The color offsets. */
+    @Editable
+    public Triplet offsets = new Triplet();
+
+    @Override
+    public Colorization getColorization (ColorPository colorpos)
+    {
+      return new FullyCustomColorization(
+        source.getColor(), range.getValues(), offsets.getValues());
+    }
+  }
+
+  /**
+   * Translate a colorization to another target.
+   */
+  public static class Translated extends ColorizationConfig
+    implements PreparedEditable
+  {
+    /** The colorization class. */
+    @Editable(editor="colorization", mode="class")
+    public int clazz;
+
+    /** The colorization to translate. */
+    @Editable
+    public ColorizationConfig source;
+
+    @Override
+    public Colorization getColorization (ColorPository colorpos)
+    {
+      ClassRecord crec = colorpos.getClassRecord(clazz);
+      Colorization src = (source == null)
+          ? null
+          : source.getColorization(colorpos);
+      return (src == null || crec == null)
+          ? null
+          : new CustomOffsetsColorization(crec, src);
+    }
+
+    // from PreparedEditable
+    public void prepareInstanceToEdit ()
+    {
+      if (source == null) source = new ColorizationConfig.Normal();
+    }
+
+    /** Basic constructor needed explicitly when there are others, thanks Java. */
+    public Translated () {}
+
+    /** Convenience for editor use: convert normal. */
+    public Translated (Normal normal)
+    {
+      this.clazz = normal.colorization >> 8;
+      this.source = normal;
+    }
+
+    public Translated (TransNormal tn)
+    {
+      Normal norm = new Normal();
+      norm.colorization = tn.colorization;
+      this.clazz = tn.clazz;
+      this.source = norm;
+    }
+  }
+
+  /**
+   * Translate a normal colorization to a different base clazz.
+   */
+  public static class TransNormal extends ColorizationConfig
+  {
+    /** The colorization class. */
+    @Editable(editor="colorization", mode="class", hgroup="c")
+    public int clazz;
+
+    /** The colorization reference. */
+    @Editable(editor="colorization", hgroup="c")
+    public int colorization;
+
+    @Override
+    public Colorization getColorization (ColorPository colorpos)
+    {
+      ClassRecord crec = colorpos.getClassRecord(clazz);
+      Colorization src = colorpos.getColorization(colorization);
+      return (src == null || crec == null)
+          ? null
+          : new CustomOffsetsColorization(crec, src);
+    }
+
+    /** Basic constructor needed explicitly when there are others, thanks Java. */
+    public TransNormal () {}
+
+    /** Convenience for editor use: convert normal. */
+    public TransNormal (Normal normal)
+    {
+      this.clazz = normal.colorization >> 8;
+      this.colorization = normal.colorization;
+    }
+
+    public TransNormal (Translated lated)
+    {
+      this.clazz = lated.clazz;
+      if (lated.source instanceof Normal) {
+        this.colorization = ((Normal)lated.source).colorization;
+      }
+    }
+  }
+
+  /**
+   * Represents a set of hue, saturation, and value values.
+   */
+  public static class Triplet extends DeepObject
+    implements Exportable, Streamable
+  {
+    /** The hue, saturation, and value offsets. */
+    @Editable(min=-1.0, max=+1.0, step=0.001, width=5, hgroup="v")
+    public float hue, saturation, value;
+
+    /**
+     * Returns a float array containing the triplet values.
+     */
+    public float[] getValues ()
+    {
+      return new float[] { hue, saturation, value };
+    }
+  }
+
+  /**
+   * A colorization that uses a pository class and custom offsets.
+   */
+  public static class CustomOffsetsColorization extends Colorization
+  {
+    /**
+     * Creates a new custom offsets colorization.
+     */
+    public CustomOffsetsColorization (ClassRecord crec, float[] offsets)
+    {
+      super(crec.classId << 8, crec, offsets);
     }
 
     /**
-     * Creates a normal colorization config.
+     * Create a custom colorization as translated from another colorization.
      */
-    public static ColorizationConfig.Normal createConfig (int colorization)
+    public CustomOffsetsColorization (ClassRecord target, Colorization source)
     {
-        ColorizationConfig.Normal config = new ColorizationConfig.Normal();
-        config.colorization = colorization;
-        return config;
+      this(target, new float[3]);
+      for (int ii = 0; ii < 3; ii++) {
+        this.offsets[ii] = source.offsets[ii] + (source.getRootHsv(ii) - _hsv[ii]);
+      }
     }
 
-    /**
-     * A reference to a pository colorization.
-     */
-    public static class Normal extends ColorizationConfig
+    @Override
+    public int hashCode ()
     {
-        /** The colorization reference. */
-        @Editable(editor="colorization")
-        public int colorization;
-
-        @Override
-        public Colorization getColorization (ColorPository colorpos)
-        {
-            return colorpos.getColorization(colorization);
-        }
+      return super.hashCode() ^ Arrays.hashCode(offsets);
     }
 
-    /**
-     * Uses a pository class and a custom color.
-     */
-    public static class CustomOffsets extends ColorizationConfig
+    @Override
+    public boolean equals (Object other)
     {
-        /** The colorization class. */
-        @Editable(editor="colorization", mode="class")
-        public int clazz;
+      return super.equals(other) && Arrays.equals(offsets, ((Colorization)other).offsets);
+    }
+  }
 
-        /** The color offsets. */
-        @Editable
-        public Triplet offsets = new Triplet();
-
-        @Override
-        public Colorization getColorization (ColorPository colorpos)
-        {
-            ClassRecord crec = colorpos.getClassRecord(clazz);
-            return (crec == null) ? null : new CustomOffsetsColorization(crec, offsets.getValues());
-        }
+  /**
+   * A fully custom colorization.
+   */
+  public static class FullyCustomColorization extends Colorization
+  {
+    /**
+     * Creates a new fully custom colorization.
+     */
+    public FullyCustomColorization (Color source, float[] range, float[] offsets)
+    {
+      super(0, source, range, offsets);
     }
 
-    /**
-     * A fully custom colorization.
-     */
-    public static class FullyCustom extends ColorizationConfig
+    @Override
+    public int hashCode ()
     {
-        /** The source color. */
-        @Editable
-        public Color4f source = new Color4f();
-
-        /** The range to recolor. */
-        @Editable
-        public Triplet range = new Triplet();
-
-        /** The color offsets. */
-        @Editable
-        public Triplet offsets = new Triplet();
-
-        @Override
-        public Colorization getColorization (ColorPository colorpos)
-        {
-            return new FullyCustomColorization(
-                source.getColor(), range.getValues(), offsets.getValues());
-        }
+      return super.hashCode() ^ Arrays.hashCode(offsets);
     }
 
-    /**
-     * Translate a colorization to another target.
-     */
-    public static class Translated extends ColorizationConfig
-        implements PreparedEditable
+    @Override
+    public boolean equals (Object other)
     {
-        /** The colorization class. */
-        @Editable(editor="colorization", mode="class")
-        public int clazz;
-
-        /** The colorization to translate. */
-        @Editable
-        public ColorizationConfig source;
-
-        @Override
-        public Colorization getColorization (ColorPository colorpos)
-        {
-            ClassRecord crec = colorpos.getClassRecord(clazz);
-            Colorization src = (source == null)
-                    ? null
-                    : source.getColorization(colorpos);
-            return (src == null || crec == null)
-                    ? null
-                    : new CustomOffsetsColorization(crec, src);
-        }
-
-        // from PreparedEditable
-        public void prepareInstanceToEdit ()
-        {
-            if (source == null) source = new ColorizationConfig.Normal();
-        }
-
-        /** Basic constructor needed explicitly when there are others, thanks Java. */
-        public Translated () {}
-
-        /** Convenience for editor use: convert normal. */
-        public Translated (Normal normal)
-        {
-            this.clazz = normal.colorization >> 8;
-            this.source = normal;
-        }
-
-        public Translated (TransNormal tn)
-        {
-            Normal norm = new Normal();
-            norm.colorization = tn.colorization;
-            this.clazz = tn.clazz;
-            this.source = norm;
-        }
+      Colorization ozation;
+      return super.equals(other) &&
+        (ozation = (Colorization)other).rootColor.equals(rootColor) &&
+        Arrays.equals(ozation.range, range) && Arrays.equals(ozation.offsets, offsets);
     }
+  }
 
-    /**
-     * Translate a normal colorization to a different base clazz.
-     */
-    public static class TransNormal extends ColorizationConfig
-    {
-        /** The colorization class. */
-        @Editable(editor="colorization", mode="class", hgroup="c")
-        public int clazz;
+  /**
+   * Returns the colorization for this config.
+   * This method used to be abstract but now it's final to signal that it defers to the other.
+   * We could just remove it, TBH.
+   */
+  public final Colorization getColorization (GlContext ctx)
+  {
+    return getColorization(ctx.getColorPository());
+  }
 
-        /** The colorization reference. */
-        @Editable(editor="colorization", hgroup="c")
-        public int colorization;
-
-        @Override
-        public Colorization getColorization (ColorPository colorpos)
-        {
-            ClassRecord crec = colorpos.getClassRecord(clazz);
-            Colorization src = colorpos.getColorization(colorization);
-            return (src == null || crec == null)
-                    ? null
-                    : new CustomOffsetsColorization(crec, src);
-        }
-
-        /** Basic constructor needed explicitly when there are others, thanks Java. */
-        public TransNormal () {}
-
-        /** Convenience for editor use: convert normal. */
-        public TransNormal (Normal normal)
-        {
-            this.clazz = normal.colorization >> 8;
-            this.colorization = normal.colorization;
-        }
-
-        public TransNormal (Translated lated)
-        {
-            this.clazz = lated.clazz;
-            if (lated.source instanceof Normal) {
-                this.colorization = ((Normal)lated.source).colorization;
-            }
-        }
-    }
-
-    /**
-     * Represents a set of hue, saturation, and value values.
-     */
-    public static class Triplet extends DeepObject
-        implements Exportable, Streamable
-    {
-        /** The hue, saturation, and value offsets. */
-        @Editable(min=-1.0, max=+1.0, step=0.001, width=5, hgroup="v")
-        public float hue, saturation, value;
-
-        /**
-         * Returns a float array containing the triplet values.
-         */
-        public float[] getValues ()
-        {
-            return new float[] { hue, saturation, value };
-        }
-    }
-
-    /**
-     * A colorization that uses a pository class and custom offsets.
-     */
-    public static class CustomOffsetsColorization extends Colorization
-    {
-        /**
-         * Creates a new custom offsets colorization.
-         */
-        public CustomOffsetsColorization (ClassRecord crec, float[] offsets)
-        {
-            super(crec.classId << 8, crec, offsets);
-        }
-
-        /**
-         * Create a custom colorization as translated from another colorization.
-         */
-        public CustomOffsetsColorization (ClassRecord target, Colorization source)
-        {
-            this(target, new float[3]);
-            for (int ii = 0; ii < 3; ii++) {
-                this.offsets[ii] = source.offsets[ii] + (source.getRootHsv(ii) - _hsv[ii]);
-            }
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return super.hashCode() ^ Arrays.hashCode(offsets);
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            return super.equals(other) && Arrays.equals(offsets, ((Colorization)other).offsets);
-        }
-    }
-
-    /**
-     * A fully custom colorization.
-     */
-    public static class FullyCustomColorization extends Colorization
-    {
-        /**
-         * Creates a new fully custom colorization.
-         */
-        public FullyCustomColorization (Color source, float[] range, float[] offsets)
-        {
-            super(0, source, range, offsets);
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return super.hashCode() ^ Arrays.hashCode(offsets);
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            Colorization ozation;
-            return super.equals(other) &&
-                (ozation = (Colorization)other).rootColor.equals(rootColor) &&
-                Arrays.equals(ozation.range, range) && Arrays.equals(ozation.offsets, offsets);
-        }
-    }
-
-    /**
-     * Returns the colorization for this config.
-     * This method used to be abstract but now it's final to signal that it defers to the other.
-     * We could just remove it, TBH.
-     */
-    public final Colorization getColorization (GlContext ctx)
-    {
-        return getColorization(ctx.getColorPository());
-    }
-
-    /**
-     * Returns the colorization for this config.
-     */
-    public abstract Colorization getColorization (ColorPository colorpos);
+  /**
+   * Returns the colorization for this config.
+   */
+  public abstract Colorization getColorization (ColorPository colorpos);
 }

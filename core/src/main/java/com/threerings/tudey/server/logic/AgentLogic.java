@@ -44,274 +44,274 @@ import static com.threerings.tudey.Log.log;
  */
 public class AgentLogic extends ActiveLogic
 {
-    /**
-     * Checks whether we can move.
-     */
-    public boolean canMove ()
-    {
-        return ((ActiveAdvancer)_advancer).canMove();
+  /**
+   * Checks whether we can move.
+   */
+  public boolean canMove ()
+  {
+    return ((ActiveAdvancer)_advancer).canMove();
+  }
+
+  /**
+   * Checks whether we can rotate.
+   */
+  public boolean canRotate ()
+  {
+    return ((ActiveAdvancer)_advancer).canRotate();
+  }
+
+  /**
+   * Checks whether we can evaluate our behavior.
+   */
+  public boolean canThink ()
+  {
+    return true;
+  }
+
+  /**
+   * Returns the logic currently being targeted by our behavior, if any.
+   */
+  public Logic getBehaviorTarget ()
+  {
+    return _behavior.getCurrentTarget();
+  }
+
+  /**
+   * Sets the target rotation to face another entity.
+   */
+  public void face (Logic logic)
+  {
+    face(logic, false);
+  }
+
+  /**
+   * Sets the target rotation to face another entity.
+   */
+  public void face (Logic logic, boolean force)
+  {
+    float rotation = _actor.getTranslation().direction(logic.getTranslation());
+    if (force && canRotate()) {
+      _actor.setRotation(rotation);
+      clearTargetRotation();
+    } else {
+      setTargetRotation(rotation);
+    }
+  }
+
+  /**
+   * Sets the target rotation for the agent to turn towards.
+   */
+  public void setTargetRotation (float rotation)
+  {
+    if ((_targetRotation = rotation) == _actor.getRotation()) {
+      reachedTargetRotation();
+    }
+  }
+
+  /**
+   * Returns the target rotation.
+   */
+  public float getTargetRotation ()
+  {
+    return _targetRotation;
+  }
+
+  /**
+   * Clears the agent's target rotation.
+   */
+  public void clearTargetRotation ()
+  {
+    _targetRotation = _actor.getRotation();
+    ((Agent)_actor).setTurnDirection(0);
+  }
+
+  /**
+   * Sets the turn rate.
+   */
+  public void setTurnRate (float rate)
+  {
+    if (rate > 0) {
+      _turnRate = rate;
+    } else {
+      clearTurnRate();
+    }
+  }
+
+  /**
+   * Clears the turn rate.
+   */
+  public void clearTurnRate ()
+  {
+    _turnRate = ((ActorConfig.Agent)_config).turnRate;
+  }
+
+  /**
+   * Sets the speed.
+   */
+  public void setSpeed (float speed)
+  {
+    ((Agent)_actor).setSpeed(speed);
+  }
+
+  /**
+   * Clears a modified speed.
+   */
+  public void clearSpeed ()
+  {
+    ((Agent)_actor).setSpeed(((ActorConfig.Agent)_config).speed);
+  }
+
+  /**
+   * Sets the agent in motion.
+   */
+  public void startMoving ()
+  {
+    if (canMove()) {
+      ((Mobile)_actor).setDirection(_actor.getRotation());
+      _actor.set(Mobile.MOVING);
+    }
+  }
+
+  /**
+   * Stops the agent.
+   */
+  public void stopMoving ()
+  {
+    _actor.clear(Mobile.MOVING);
+  }
+
+  /**
+   * Creates a behavior for this agent.
+   */
+  public BehaviorLogic createBehavior (ConfigReference<BehaviorConfig> ref)
+  {
+    // create the logic instance
+    BehaviorConfig config = _scenemgr.getConfigManager().getConfig(BehaviorConfig.class, ref);
+    BehaviorConfig.Original original = config == null ? null :
+      config.getOriginal(_scenemgr.getConfigManager());
+    if (original == null) {
+      original = new BehaviorConfig.Original();
     }
 
-    /**
-     * Checks whether we can rotate.
-     */
-    public boolean canRotate ()
-    {
-        return ((ActiveAdvancer)_advancer).canRotate();
+    // Original will create an Idle, so we should never have a null behavior
+    BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(original.getLogicClassName());
+    logic.init(_scenemgr, original, this);
+    return logic;
+  }
+
+  @Override
+  public void transfer (Logic source, Map<Object, Object> refs)
+  {
+    super.transfer(source, refs);
+
+    AgentLogic asource = (AgentLogic)source;
+    _targetRotation = asource._targetRotation;
+    _turnRate = asource._turnRate;
+    _timestamp = asource._timestamp;
+    _behavior.transfer(asource._behavior, refs);
+  }
+
+  @Override
+  public boolean tick (int timestamp)
+  {
+    // advance to current time
+    super.tick(timestamp);
+
+    // update the behavior
+    _behavior.tick(timestamp);
+
+    // compute the elapsed time since the last timestamp
+    float elapsed = (timestamp - _timestamp) / 1000f;
+    _timestamp = timestamp;
+
+    // turn towards target rotation
+    float rotation = _actor.getRotation();
+    if (rotation != _targetRotation && canRotate()) {
+      float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
+      float angle = elapsed * _turnRate;
+      if (Math.abs(diff) - angle < FloatMath.EPSILON) {
+        _actor.setRotation(_targetRotation);
+        reachedTargetRotation();
+      } else {
+        float dir = Math.signum(diff);
+        ((Agent)_actor).setTurnDirection((int)dir);
+        _actor.setRotation(FloatMath.normalizeAngle(rotation + angle * dir));
+      }
     }
 
-    /**
-     * Checks whether we can evaluate our behavior.
-     */
-    public boolean canThink ()
-    {
-        return true;
+    return true;
+  }
+
+  @Override
+  protected void wasDestroyed ()
+  {
+    super.wasDestroyed();
+    _behavior.shutdown();
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    super.didInit();
+
+    // initialize the target
+    _targetRotation = _actor.getRotation();
+    _timestamp = _actor.getCreated();
+
+    // initialize the behavior logic
+    _behavior = createBehavior(((ActorConfig.Agent)_config).behavior);
+    _behavior.startup();
+
+    clearTurnRate();
+    clearSpeed();
+  }
+
+  @Override
+  protected void leftStasis ()
+  {
+    super.leftStasis();
+
+    // (Null check is required here because we may be called from our superclass' didInit().)
+    if (_behavior != null) {
+      _behavior.leftStasis();
     }
+  }
 
-    /**
-     * Returns the logic currently being targeted by our behavior, if any.
-     */
-    public Logic getBehaviorTarget ()
-    {
-        return _behavior.getCurrentTarget();
-    }
+  @Override
+  protected void enteredStasis ()
+  {
+    super.enteredStasis();
+    _behavior.enteredStasis();
+  }
 
-    /**
-     * Sets the target rotation to face another entity.
-     */
-    public void face (Logic logic)
-    {
-        face(logic, false);
-    }
+  @Override
+  protected void penetratedEnvironment (Vector2f penetration)
+  {
+    // notify the behavior
+    _behavior.penetratedEnvironment(penetration);
+  }
 
-    /**
-     * Sets the target rotation to face another entity.
-     */
-    public void face (Logic logic, boolean force)
-    {
-        float rotation = _actor.getTranslation().direction(logic.getTranslation());
-        if (force && canRotate()) {
-            _actor.setRotation(rotation);
-            clearTargetRotation();
-        } else {
-            setTargetRotation(rotation);
-        }
-    }
+  /**
+   * Called when we reach our target rotation.
+   */
+  protected void reachedTargetRotation ()
+  {
+    // clear turn direction
+    ((Agent)_actor).setTurnDirection(0);
 
-    /**
-     * Sets the target rotation for the agent to turn towards.
-     */
-    public void setTargetRotation (float rotation)
-    {
-        if ((_targetRotation = rotation) == _actor.getRotation()) {
-            reachedTargetRotation();
-        }
-    }
+    // notify the behavior
+    _behavior.reachedTargetRotation();
+  }
 
-    /**
-     * Returns the target rotation.
-     */
-    public float getTargetRotation ()
-    {
-        return _targetRotation;
-    }
+  /** The agent's behavior logic. */
+  protected BehaviorLogic _behavior;
 
-    /**
-     * Clears the agent's target rotation.
-     */
-    public void clearTargetRotation ()
-    {
-        _targetRotation = _actor.getRotation();
-        ((Agent)_actor).setTurnDirection(0);
-    }
+  /** The agent's target rotation. */
+  protected float _targetRotation;
 
-    /**
-     * Sets the turn rate.
-     */
-    public void setTurnRate (float rate)
-    {
-        if (rate > 0) {
-            _turnRate = rate;
-        } else {
-            clearTurnRate();
-        }
-    }
+  /** The agent's turn rate. */
+  protected float _turnRate;
 
-    /**
-     * Clears the turn rate.
-     */
-    public void clearTurnRate ()
-    {
-        _turnRate = ((ActorConfig.Agent)_config).turnRate;
-    }
-
-    /**
-     * Sets the speed.
-     */
-    public void setSpeed (float speed)
-    {
-        ((Agent)_actor).setSpeed(speed);
-    }
-
-    /**
-     * Clears a modified speed.
-     */
-    public void clearSpeed ()
-    {
-        ((Agent)_actor).setSpeed(((ActorConfig.Agent)_config).speed);
-    }
-
-    /**
-     * Sets the agent in motion.
-     */
-    public void startMoving ()
-    {
-        if (canMove()) {
-            ((Mobile)_actor).setDirection(_actor.getRotation());
-            _actor.set(Mobile.MOVING);
-        }
-    }
-
-    /**
-     * Stops the agent.
-     */
-    public void stopMoving ()
-    {
-        _actor.clear(Mobile.MOVING);
-    }
-
-    /**
-     * Creates a behavior for this agent.
-     */
-    public BehaviorLogic createBehavior (ConfigReference<BehaviorConfig> ref)
-    {
-        // create the logic instance
-        BehaviorConfig config = _scenemgr.getConfigManager().getConfig(BehaviorConfig.class, ref);
-        BehaviorConfig.Original original = config == null ? null :
-            config.getOriginal(_scenemgr.getConfigManager());
-        if (original == null) {
-            original = new BehaviorConfig.Original();
-        }
-
-        // Original will create an Idle, so we should never have a null behavior
-        BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(original.getLogicClassName());
-        logic.init(_scenemgr, original, this);
-        return logic;
-    }
-
-    @Override
-    public void transfer (Logic source, Map<Object, Object> refs)
-    {
-        super.transfer(source, refs);
-
-        AgentLogic asource = (AgentLogic)source;
-        _targetRotation = asource._targetRotation;
-        _turnRate = asource._turnRate;
-        _timestamp = asource._timestamp;
-        _behavior.transfer(asource._behavior, refs);
-    }
-
-    @Override
-    public boolean tick (int timestamp)
-    {
-        // advance to current time
-        super.tick(timestamp);
-
-        // update the behavior
-        _behavior.tick(timestamp);
-
-        // compute the elapsed time since the last timestamp
-        float elapsed = (timestamp - _timestamp) / 1000f;
-        _timestamp = timestamp;
-
-        // turn towards target rotation
-        float rotation = _actor.getRotation();
-        if (rotation != _targetRotation && canRotate()) {
-            float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
-            float angle = elapsed * _turnRate;
-            if (Math.abs(diff) - angle < FloatMath.EPSILON) {
-                _actor.setRotation(_targetRotation);
-                reachedTargetRotation();
-            } else {
-                float dir = Math.signum(diff);
-                ((Agent)_actor).setTurnDirection((int)dir);
-                _actor.setRotation(FloatMath.normalizeAngle(rotation + angle * dir));
-            }
-        }
-
-        return true;
-    }
-
-    @Override
-    protected void wasDestroyed ()
-    {
-        super.wasDestroyed();
-        _behavior.shutdown();
-    }
-
-    @Override
-    protected void didInit ()
-    {
-        super.didInit();
-
-        // initialize the target
-        _targetRotation = _actor.getRotation();
-        _timestamp = _actor.getCreated();
-
-        // initialize the behavior logic
-        _behavior = createBehavior(((ActorConfig.Agent)_config).behavior);
-        _behavior.startup();
-
-        clearTurnRate();
-        clearSpeed();
-    }
-
-    @Override
-    protected void leftStasis ()
-    {
-        super.leftStasis();
-
-        // (Null check is required here because we may be called from our superclass' didInit().)
-        if (_behavior != null) {
-            _behavior.leftStasis();
-        }
-    }
-
-    @Override
-    protected void enteredStasis ()
-    {
-        super.enteredStasis();
-        _behavior.enteredStasis();
-    }
-
-    @Override
-    protected void penetratedEnvironment (Vector2f penetration)
-    {
-        // notify the behavior
-        _behavior.penetratedEnvironment(penetration);
-    }
-
-    /**
-     * Called when we reach our target rotation.
-     */
-    protected void reachedTargetRotation ()
-    {
-        // clear turn direction
-        ((Agent)_actor).setTurnDirection(0);
-
-        // notify the behavior
-        _behavior.reachedTargetRotation();
-    }
-
-    /** The agent's behavior logic. */
-    protected BehaviorLogic _behavior;
-
-    /** The agent's target rotation. */
-    protected float _targetRotation;
-
-    /** The agent's turn rate. */
-    protected float _turnRate;
-
-    /** The timestamp of the last tick. */
-    protected int _timestamp;
+  /** The timestamp of the last tick. */
+  protected int _timestamp;
 }

@@ -35,108 +35,108 @@ import com.threerings.expr.util.ScopeUtil;
  * A 3D vector-valued expression.
  */
 @EditorTypes({
-    Vector3fExpression.Constant.class,
-    Vector3fExpression.Reference.class,
-    Vector3fExpression.Cartesian.class })
+  Vector3fExpression.Constant.class,
+  Vector3fExpression.Reference.class,
+  Vector3fExpression.Cartesian.class })
 public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
 {
+  /**
+   * A constant expression.
+   */
+  public static class Constant extends Vector3fExpression
+  {
+    /** The value of the constant. */
+    @Editable(step=0.01)
+    public Vector3f value = new Vector3f();
+
     /**
-     * A constant expression.
+     * Creates a new constant expression with the specified value.
      */
-    public static class Constant extends Vector3fExpression
+    public Constant (Vector3f value)
     {
-        /** The value of the constant. */
-        @Editable(step=0.01)
-        public Vector3f value = new Vector3f();
-
-        /**
-         * Creates a new constant expression with the specified value.
-         */
-        public Constant (Vector3f value)
-        {
-            this.value.set(value);
-        }
-
-        /**
-         * Creates a new constant expression with a value of zero.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
-        {
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
-                    return value;
-                }
-            };
-        }
+      this.value.set(value);
     }
 
     /**
-     * A reference expression.
+     * Creates a new constant expression with a value of zero.
      */
-    public static class Reference extends Vector3fExpression
+    public Constant ()
     {
-        /** The name of the variable. */
-        @Editable
-        public String name = "";
-
-        /** The default value of the variable. */
-        @Editable(step=0.01)
-        public Vector3f defvalue = new Vector3f();
-
-        @Override
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
-        {
-            final Vector3f value = ScopeUtil.resolve(scope, name, defvalue);
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
-                    return value;
-                }
-            };
-        }
     }
 
-    /**
-     * An expression consisting of separate expressions for each component.
-     */
-    public static class Cartesian extends Vector3fExpression
+    @Override
+    public Evaluator<Vector3f> createEvaluator (Scope scope)
     {
-        /** The x component. */
-        @Editable
-        public FloatExpression x = new FloatExpression.Constant();
-
-        /** The y component. */
-        @Editable
-        public FloatExpression y = new FloatExpression.Constant();
-
-        /** The z component. */
-        @Editable
-        public FloatExpression z = new FloatExpression.Constant();
-
-        @Override
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
-        {
-            final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
-            final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
-            final FloatExpression.Evaluator zeval = z.createEvaluator(scope);
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
-                    return _result.set(xeval.evaluate(), yeval.evaluate(), zeval.evaluate());
-                }
-                protected Vector3f _result = new Vector3f();
-            };
+      return new Evaluator<Vector3f>() {
+        public Vector3f evaluate () {
+          return value;
         }
-
-        @Override
-        public void invalidate ()
-        {
-            x.invalidate();
-            y.invalidate();
-            z.invalidate();
-        }
+      };
     }
+  }
+
+  /**
+   * A reference expression.
+   */
+  public static class Reference extends Vector3fExpression
+  {
+    /** The name of the variable. */
+    @Editable
+    public String name = "";
+
+    /** The default value of the variable. */
+    @Editable(step=0.01)
+    public Vector3f defvalue = new Vector3f();
+
+    @Override
+    public Evaluator<Vector3f> createEvaluator (Scope scope)
+    {
+      final Vector3f value = ScopeUtil.resolve(scope, name, defvalue);
+      return new Evaluator<Vector3f>() {
+        public Vector3f evaluate () {
+          return value;
+        }
+      };
+    }
+  }
+
+  /**
+   * An expression consisting of separate expressions for each component.
+   */
+  public static class Cartesian extends Vector3fExpression
+  {
+    /** The x component. */
+    @Editable
+    public FloatExpression x = new FloatExpression.Constant();
+
+    /** The y component. */
+    @Editable
+    public FloatExpression y = new FloatExpression.Constant();
+
+    /** The z component. */
+    @Editable
+    public FloatExpression z = new FloatExpression.Constant();
+
+    @Override
+    public Evaluator<Vector3f> createEvaluator (Scope scope)
+    {
+      final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
+      final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
+      final FloatExpression.Evaluator zeval = z.createEvaluator(scope);
+      return new Evaluator<Vector3f>() {
+        public Vector3f evaluate () {
+          return _result.set(xeval.evaluate(), yeval.evaluate(), zeval.evaluate());
+        }
+        protected Vector3f _result = new Vector3f();
+      };
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      x.invalidate();
+      y.invalidate();
+      z.invalidate();
+    }
+  }
 }

@@ -32,20 +32,20 @@ import com.threerings.opengl.renderer.Color4f;
  */
 public class AmbientLightInfluence extends SceneInfluence
 {
-    /**
-     * Creates a new ambient light influence with the specified color.
-     */
-    public AmbientLightInfluence (Color4f color)
-    {
-        _ambientLight.set(color);
-    }
+  /**
+   * Creates a new ambient light influence with the specified color.
+   */
+  public AmbientLightInfluence (Color4f color)
+  {
+    _ambientLight.set(color);
+  }
 
-    @Override
-    public Color4f getAmbientLight ()
-    {
-        return _ambientLight;
-    }
+  @Override
+  public Color4f getAmbientLight ()
+  {
+    return _ambientLight;
+  }
 
-    /** The ambient light color. */
-    protected Color4f _ambientLight = new Color4f();
+  /** The ambient light color. */
+  protected Color4f _ambientLight = new Color4f();
 }

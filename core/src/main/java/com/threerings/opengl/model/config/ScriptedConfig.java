@@ -41,62 +41,62 @@ import com.threerings.opengl.util.GlContext;
  */
 public class ScriptedConfig extends ModelConfig.Implementation
 {
-    /**
-     * An action to perform after a specific time interval.
-     */
-    public static class TimeAction extends DeepObject
-        implements Exportable
-    {
-        /** The time at which to perform the action. */
-        @Editable(min=0, step=0.01)
-        public float time;
+  /**
+   * An action to perform after a specific time interval.
+   */
+  public static class TimeAction extends DeepObject
+    implements Exportable
+  {
+    /** The time at which to perform the action. */
+    @Editable(min=0, step=0.01)
+    public float time;
 
-        /** The expected duration of the action (or 0 for 'unknown'). */
-        @Editable(min=0, step=0.01)
-        public float duration;
+    /** The expected duration of the action (or 0 for 'unknown'). */
+    @Editable(min=0, step=0.01)
+    public float duration;
 
-        /** The action to perform. */
-        @Editable
-        public ActionConfig action = new ActionConfig.CallFunction();
-    }
-
-    /** The loop duration, or zero for unlooped. */
-    @Editable(min=0.0, step=0.01, hgroup="l")
-    public float loopDuration;
-
-    /** A fixed amount by which to expand the bounds. */
-    @Editable(min=0.0, step=0.01, hgroup="l")
-    public float boundsExpansion;
-
-    /** The model's tick policy. */
+    /** The action to perform. */
     @Editable
-    public TickPolicy tickPolicy = TickPolicy.DEFAULT;
+    public ActionConfig action = new ActionConfig.CallFunction();
+  }
 
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
+  /** The loop duration, or zero for unlooped. */
+  @Editable(min=0.0, step=0.01, hgroup="l")
+  public float loopDuration;
 
-    /** The actions to perform. */
-    @Editable
-    public TimeAction[] actions = new TimeAction[0];
+  /** A fixed amount by which to expand the bounds. */
+  @Editable(min=0.0, step=0.01, hgroup="l")
+  public float boundsExpansion;
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        for (TimeAction action : actions) {
-            action.action.preload(ctx);
-        }
+  /** The model's tick policy. */
+  @Editable
+  public TickPolicy tickPolicy = TickPolicy.DEFAULT;
+
+  /** The influences allowed to affect this model. */
+  @Editable
+  public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
+
+  /** The actions to perform. */
+  @Editable
+  public TimeAction[] actions = new TimeAction[0];
+
+  @Override
+  public void preload (GlContext ctx)
+  {
+    for (TimeAction action : actions) {
+      action.action.preload(ctx);
     }
+  }
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof Scripted) {
-            ((Scripted)impl).setConfig(ctx, this);
-        } else {
-            impl = new Scripted(ctx, scope, this);
-        }
-        return impl;
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof Scripted) {
+      ((Scripted)impl).setConfig(ctx, this);
+    } else {
+      impl = new Scripted(ctx, scope, this);
     }
+    return impl;
+  }
 }

@@ -41,28 +41,28 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class ToolSceneController extends TudeySceneController
 {
-    @Override
-    protected PlaceView createPlaceView (CrowdContext ctx)
-    {
-        return (_tsview = new ToolSceneView((TudeyContext)ctx, this));
-    }
+  @Override
+  protected PlaceView createPlaceView (CrowdContext ctx)
+  {
+    return (_tsview = new ToolSceneView((TudeyContext)ctx, this));
+  }
 
-    @Override
-    protected void bindKeys ()
-    {
-        super.bindKeys();
+  @Override
+  protected void bindKeys ()
+  {
+    super.bindKeys();
 
-        // go back to editor mode if escape is pressed
-        addKeyObserver(Keyboard.KEY_ESCAPE, new PseudoKeys.Adapter() {
-            public void keyPressed (long when, int key, float amount) {
-                _ctx.getLocationDirector().leavePlace();
-            }
-        });
-    }
+    // go back to editor mode if escape is pressed
+    addKeyObserver(Keyboard.KEY_ESCAPE, new PseudoKeys.Adapter() {
+      public void keyPressed (long when, int key, float amount) {
+        _ctx.getLocationDirector().leavePlace();
+      }
+    });
+  }
 
-    @Override
-    protected int getMouseCameraModifiers ()
-    {
-        return KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK;
-    }
+  @Override
+  protected int getMouseCameraModifiers ()
+  {
+    return KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK;
+  }
 }

@@ -34,64 +34,64 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class ShaderState extends RenderState
 {
-    /** A state that disables shading. */
-    public static final ShaderState DISABLED = new ShaderState(null, null, false);
+  /** A state that disables shading. */
+  public static final ShaderState DISABLED = new ShaderState(null, null, false);
 
-    /**
-     * Creates a new shader state.
-     */
-    public ShaderState (Program program, Uniform[] uniforms, boolean vertexProgramTwoSide)
-    {
-        _program = program;
-        _uniforms = uniforms;
-        _vertexProgramTwoSide = vertexProgramTwoSide;
+  /**
+   * Creates a new shader state.
+   */
+  public ShaderState (Program program, Uniform[] uniforms, boolean vertexProgramTwoSide)
+  {
+    _program = program;
+    _uniforms = uniforms;
+    _vertexProgramTwoSide = vertexProgramTwoSide;
+  }
+
+  /**
+   * Returns a reference to the shader program.
+   */
+  public Program getProgram ()
+  {
+    return _program;
+  }
+
+  /**
+   * Returns a reference to the array of shader uniform values.
+   */
+  public Uniform[] getUniforms ()
+  {
+    return _uniforms;
+  }
+
+  /**
+   * Checks whether the state enables two-sided vertex program mode.
+   */
+  public boolean isVertexProgramTwoSide ()
+  {
+    return _vertexProgramTwoSide;
+  }
+
+  @Override
+  public int getType ()
+  {
+    return SHADER_STATE;
+  }
+
+  @Override
+  public void apply (Renderer renderer)
+  {
+    renderer.setShaderState(_program, _vertexProgramTwoSide);
+    if (_program != null && _uniforms != null) {
+      _program.setUniforms(_uniforms);
     }
+  }
 
-    /**
-     * Returns a reference to the shader program.
-     */
-    public Program getProgram ()
-    {
-        return _program;
-    }
+  /** The shader program. */
+  protected Program _program;
 
-    /**
-     * Returns a reference to the array of shader uniform values.
-     */
-    public Uniform[] getUniforms ()
-    {
-        return _uniforms;
-    }
+  /** The shader uniforms. */
+  protected Uniform[] _uniforms;
 
-    /**
-     * Checks whether the state enables two-sided vertex program mode.
-     */
-    public boolean isVertexProgramTwoSide ()
-    {
-        return _vertexProgramTwoSide;
-    }
-
-    @Override
-    public int getType ()
-    {
-        return SHADER_STATE;
-    }
-
-    @Override
-    public void apply (Renderer renderer)
-    {
-        renderer.setShaderState(_program, _vertexProgramTwoSide);
-        if (_program != null && _uniforms != null) {
-            _program.setUniforms(_uniforms);
-        }
-    }
-
-    /** The shader program. */
-    protected Program _program;
-
-    /** The shader uniforms. */
-    protected Uniform[] _uniforms;
-
-    /** Whether or not to enable two-sided vertex program mode. */
-    protected boolean _vertexProgramTwoSide;
+  /** Whether or not to enable two-sided vertex program mode. */
+  protected boolean _vertexProgramTwoSide;
 }

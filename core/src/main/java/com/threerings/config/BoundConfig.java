@@ -42,90 +42,90 @@ import com.threerings.util.DeepOmit;
  * the configuration is instantiated.
  */
 public class BoundConfig extends ParameterizedConfig
-    implements ScopeUpdateListener
+  implements ScopeUpdateListener
 {
-    /** The config bindings. */
-    @Editable(weight=1)
-    public ExpressionBinding[] bindings = ExpressionBinding.EMPTY_ARRAY;
+  /** The config bindings. */
+  @Editable(weight=1)
+  public ExpressionBinding[] bindings = ExpressionBinding.EMPTY_ARRAY;
 
-    // documentation inherited from interface ScopeUpdateListener
-    public void scopeUpdated (ScopeEvent event)
-    {
-        wasUpdated();
+  // documentation inherited from interface ScopeUpdateListener
+  public void scopeUpdated (ScopeEvent event)
+  {
+    wasUpdated();
+  }
+
+  @Override
+  protected BoundConfig getBound (Scope scope)
+  {
+    if (scope == null || bindings.length == 0) {
+      return this;
+    }
+    if (_bound == null) {
+      _bound = CacheBuilder.newBuilder()
+        .concurrencyLevel(1)
+        .softValues()
+        .weakKeys()
+        .initialCapacity(1)
+        .<Scope, BoundConfig>build().asMap();
+    }
+    BoundConfig bound = _bound.get(scope);
+    if (bound == null) {
+      _bound.put(scope, bound = (BoundConfig)clone());
+      bound.init(_cfgmgr);
+      bound._base = this;
+      bound.bind(scope);
+    }
+    return bound;
+  }
+
+  @Override
+  public void wasUpdated ()
+  {
+    // invalidate the bindings
+    for (ExpressionBinding binding : bindings) {
+      binding.invalidate();
     }
 
-    @Override
-    protected BoundConfig getBound (Scope scope)
-    {
-        if (scope == null || bindings.length == 0) {
-            return this;
-        }
-        if (_bound == null) {
-            _bound = CacheBuilder.newBuilder()
-                .concurrencyLevel(1)
-                .softValues()
-                .weakKeys()
-                .initialCapacity(1)
-                .<Scope, BoundConfig>build().asMap();
-        }
-        BoundConfig bound = _bound.get(scope);
-        if (bound == null) {
-            _bound.put(scope, bound = (BoundConfig)clone());
-            bound.init(_cfgmgr);
-            bound._base = this;
-            bound.bind(scope);
-        }
-        return bound;
+    // update the bindings (if bound)
+    if (_updaters != null) {
+      for (Updater updater : _updaters) {
+        updater.update();
+      }
     }
 
-    @Override
-    public void wasUpdated ()
-    {
-        // invalidate the bindings
-        for (ExpressionBinding binding : bindings) {
-            binding.invalidate();
-        }
+    // fire the event
+    super.wasUpdated();
 
-        // update the bindings (if bound)
-        if (_updaters != null) {
-            for (Updater updater : _updaters) {
-                updater.update();
-            }
-        }
-
-        // fire the event
-        super.wasUpdated();
-
-        // update the bound instances
-        if (_bound != null) {
-            for (BoundConfig bound : _bound.values()) {
-                copy(bound);
-                bound.wasUpdated();
-            }
-            if (_bound.isEmpty()) {
-                _bound = null;
-            }
-        }
+    // update the bound instances
+    if (_bound != null) {
+      for (BoundConfig bound : _bound.values()) {
+        copy(bound);
+        bound.wasUpdated();
+      }
+      if (_bound.isEmpty()) {
+        _bound = null;
+      }
     }
+  }
 
-    /**
-     * Binds this config to the specified scope.
-     */
-    protected void bind (Scope scope)
-    {
-        _updaters = new Updater[bindings.length];
-        for (int ii = 0; ii < bindings.length; ii++) {
-            _updaters[ii] = bindings[ii].createUpdater(_cfgmgr, scope, this);
-            _updaters[ii].update();
-        }
-        scope.addListener(this);
+  /**
+   * Binds this config to the specified scope.
+   */
+  protected void bind (Scope scope)
+  {
+    _updaters = new Updater[bindings.length];
+    for (int ii = 0; ii < bindings.length; ii++) {
+      _updaters[ii] = bindings[ii].createUpdater(_cfgmgr, scope, this);
+      _updaters[ii].update();
     }
+    scope.addListener(this);
+  }
 
-    /** Updaters for our bindings. */
-    @DeepOmit
-    protected transient Updater[] _updaters;
+  /** Updaters for our bindings. */
+  @DeepOmit
+  protected transient Updater[] _updaters;
 
-    /** Maps scopes to bound instances. */
-    @DeepOmit
-    protected transient Map<Scope, BoundConfig> _bound;
+  /** Maps scopes to bound instances. */
+  @DeepOmit
+  protected transient Map<Scope, BoundConfig> _bound;
 }

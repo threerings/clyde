@@ -41,61 +41,61 @@ import com.threerings.util.DeepObject;
  * Tag configuration
  */
 public class TagConfig extends DeepObject
-    implements Exportable, Streamable, Iterable<String>
+  implements Exportable, Streamable, Iterable<String>
 {
-    /** The base tag array. */
-    @Editable
-    public String[] tags = ArrayUtil.EMPTY_STRING;
+  /** The base tag array. */
+  @Editable
+  public String[] tags = ArrayUtil.EMPTY_STRING;
 
-    /** The derived tag config. */
-    @Editable(editor="getPath", nullable=true)
-    public TagConfig derived;
+  /** The derived tag config. */
+  @Editable(editor="getPath", nullable=true)
+  public TagConfig derived;
 
-    /**
-     * Returns the complete array.
-     */
-    public String[] getTags ()
-    {
-        if (derived == null) {
-            return tags;
-        }
-        String[] concat = new String[getLength()];
-        int idx = 0;
-        for (TagConfig tc = this; tc != null; tc = tc.derived) {
-            System.arraycopy(tc.tags, 0, concat, idx, tc.tags.length);
-            idx += tc.tags.length;
-        }
-        return concat;
+  /**
+   * Returns the complete array.
+   */
+  public String[] getTags ()
+  {
+    if (derived == null) {
+      return tags;
     }
-
-    /**
-     * Calculates the total number of tags.
-     */
-    public int getLength ()
-    {
-        int length = tags.length;
-        if (derived != null) {
-            length += derived.getLength();
-        }
-        return length;
+    String[] concat = new String[getLength()];
+    int idx = 0;
+    for (TagConfig tc = this; tc != null; tc = tc.derived) {
+      System.arraycopy(tc.tags, 0, concat, idx, tc.tags.length);
+      idx += tc.tags.length;
     }
+    return concat;
+  }
 
-    // from Iterable
-    public Iterator<String> iterator ()
-    {
-        return new AbstractIterator<String>() {
-            protected String computeNext () {
-                do {
-                    if (idx < tc.tags.length) {
-                        return tc.tags[idx++];
-                    }
-                    tc = tc.derived;
-                    idx = 0;
-                } while (tc != null);
-                return endOfData();
-            }
-            protected TagConfig tc = TagConfig.this;
-            protected int idx = 0;
-        };
+  /**
+   * Calculates the total number of tags.
+   */
+  public int getLength ()
+  {
+    int length = tags.length;
+    if (derived != null) {
+      length += derived.getLength();
     }
+    return length;
+  }
+
+  // from Iterable
+  public Iterator<String> iterator ()
+  {
+    return new AbstractIterator<String>() {
+      protected String computeNext () {
+        do {
+          if (idx < tc.tags.length) {
+            return tc.tags[idx++];
+          }
+          tc = tc.derived;
+          idx = 0;
+        } while (tc != null);
+        return endOfData();
+      }
+      protected TagConfig tc = TagConfig.this;
+      protected int idx = 0;
+    };
+  }
 }

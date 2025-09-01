@@ -40,169 +40,169 @@ import com.threerings.export.Encodable;
  * A set of spherical coordinates.
  */
 public class SphereCoords
-    implements Encodable, Streamable
+  implements Encodable, Streamable
 {
-    /** The azimuth about the Z axis (in radians CCW from Y+). */
-    @Editable(min=-180.0, max=180.0, scale=Math.PI/180.0, hgroup="c")
-    public float azimuth;
+  /** The azimuth about the Z axis (in radians CCW from Y+). */
+  @Editable(min=-180.0, max=180.0, scale=Math.PI/180.0, hgroup="c")
+  public float azimuth;
 
-    /** The elevation above the XY plane, in radians. */
-    @Editable(min=-90.0, max=90.0, scale=Math.PI/180.0, hgroup="c")
-    public float elevation;
+  /** The elevation above the XY plane, in radians. */
+  @Editable(min=-90.0, max=90.0, scale=Math.PI/180.0, hgroup="c")
+  public float elevation;
 
-    /** The distance from the origin. */
-    @Editable(min=0.0, step=0.01, hgroup="c")
-    public float distance;
+  /** The distance from the origin. */
+  @Editable(min=0.0, step=0.01, hgroup="c")
+  public float distance;
 
-    /**
-     * Creates a set of coordinates from three components.
-     */
-    public SphereCoords (float azimuth, float elevation, float distance)
-    {
-        set(azimuth, elevation, distance);
+  /**
+   * Creates a set of coordinates from three components.
+   */
+  public SphereCoords (float azimuth, float elevation, float distance)
+  {
+    set(azimuth, elevation, distance);
+  }
+
+  /**
+   * Creates a set of coordinates from three components.
+   */
+  public SphereCoords (float[] values)
+  {
+    set(values);
+  }
+
+  /**
+   * Copy constructor.
+   */
+  public SphereCoords (SphereCoords other)
+  {
+    set(other);
+  }
+
+  /**
+   * Creates a set of zero coordinates.
+   */
+  public SphereCoords ()
+  {
+  }
+
+  /**
+   * Interpolates between this and the specified other set of coordinates, storing the
+   * result in this object.
+   *
+   * @return a reference to these coords, for chaining.
+   */
+  public SphereCoords lerpLocal (SphereCoords other, float t)
+  {
+    return lerp(other, t, this);
+  }
+
+  /**
+   * Interpolates between this and the specified other set of coordinates.
+   *
+   * @return a new set of coordinates containing the result.
+   */
+  public SphereCoords lerp (SphereCoords other, float t)
+  {
+    return lerp(other, t, new SphereCoords());
+  }
+
+  /**
+   * Interpolates between this and the specified other set of coordinates, storing the result in
+   * the object provided.
+   *
+   * @return a reference to the result coords, for chaining.
+   */
+  public SphereCoords lerp (SphereCoords other, float t, SphereCoords result)
+  {
+    return result.set(
+      FloatMath.lerpa(azimuth, other.azimuth, t),
+      elevation + t*(other.elevation - elevation),
+      distance + t*(other.distance - distance));
+  }
+
+  /**
+   * Copies the elements of another set of coordinates.
+   *
+   * @return a reference to these coordinates, for chaining.
+   */
+  public SphereCoords set (SphereCoords other)
+  {
+    return set(other.azimuth, other.elevation, other.distance);
+  }
+
+  /**
+   * Sets all of the elements of the coordinates.
+   *
+   * @return a reference to these coordinates, for chaining.
+   */
+  public SphereCoords set (float[] values)
+  {
+    return set(values[0], values[1], values[2]);
+  }
+
+  /**
+   * Sets all of the elements of the coordinates.
+   *
+   * @return a reference to these coordinates, for chaining.
+   */
+  public SphereCoords set (float azimuth, float elevation, float distance)
+  {
+    this.azimuth = azimuth;
+    this.elevation = elevation;
+    this.distance = distance;
+    return this;
+  }
+
+  // documentation inherited from interface Encodable
+  public String encodeToString ()
+  {
+    return azimuth + ", " + elevation + ", " + distance;
+  }
+
+  // documentation inherited from interface Encodable
+  public void decodeFromString (String string)
+    throws Exception
+  {
+    set(StringUtil.parseFloatArray(string));
+  }
+
+  // documentation inherited from interface Encodable
+  public void encodeToStream (DataOutputStream out)
+    throws IOException
+  {
+    out.writeFloat(azimuth);
+    out.writeFloat(elevation);
+    out.writeFloat(distance);
+  }
+
+  // documentation inherited from interface Encodable
+  public void decodeFromStream (DataInputStream in)
+    throws IOException
+  {
+    set(in.readFloat(), in.readFloat(), in.readFloat());
+  }
+
+  @Override
+  public String toString ()
+  {
+    return "[" + azimuth + ", " + elevation + ", " + distance + "]";
+  }
+
+  @Override
+  public int hashCode ()
+  {
+    return Float.floatToIntBits(azimuth) ^ Float.floatToIntBits(elevation) ^
+      Float.floatToIntBits(distance);
+  }
+
+  @Override
+  public boolean equals (Object other)
+  {
+    if (!(other instanceof SphereCoords)) {
+      return false;
     }
-
-    /**
-     * Creates a set of coordinates from three components.
-     */
-    public SphereCoords (float[] values)
-    {
-        set(values);
-    }
-
-    /**
-     * Copy constructor.
-     */
-    public SphereCoords (SphereCoords other)
-    {
-        set(other);
-    }
-
-    /**
-     * Creates a set of zero coordinates.
-     */
-    public SphereCoords ()
-    {
-    }
-
-    /**
-     * Interpolates between this and the specified other set of coordinates, storing the
-     * result in this object.
-     *
-     * @return a reference to these coords, for chaining.
-     */
-    public SphereCoords lerpLocal (SphereCoords other, float t)
-    {
-        return lerp(other, t, this);
-    }
-
-    /**
-     * Interpolates between this and the specified other set of coordinates.
-     *
-     * @return a new set of coordinates containing the result.
-     */
-    public SphereCoords lerp (SphereCoords other, float t)
-    {
-        return lerp(other, t, new SphereCoords());
-    }
-
-    /**
-     * Interpolates between this and the specified other set of coordinates, storing the result in
-     * the object provided.
-     *
-     * @return a reference to the result coords, for chaining.
-     */
-    public SphereCoords lerp (SphereCoords other, float t, SphereCoords result)
-    {
-        return result.set(
-            FloatMath.lerpa(azimuth, other.azimuth, t),
-            elevation + t*(other.elevation - elevation),
-            distance + t*(other.distance - distance));
-    }
-
-    /**
-     * Copies the elements of another set of coordinates.
-     *
-     * @return a reference to these coordinates, for chaining.
-     */
-    public SphereCoords set (SphereCoords other)
-    {
-        return set(other.azimuth, other.elevation, other.distance);
-    }
-
-    /**
-     * Sets all of the elements of the coordinates.
-     *
-     * @return a reference to these coordinates, for chaining.
-     */
-    public SphereCoords set (float[] values)
-    {
-        return set(values[0], values[1], values[2]);
-    }
-
-    /**
-     * Sets all of the elements of the coordinates.
-     *
-     * @return a reference to these coordinates, for chaining.
-     */
-    public SphereCoords set (float azimuth, float elevation, float distance)
-    {
-        this.azimuth = azimuth;
-        this.elevation = elevation;
-        this.distance = distance;
-        return this;
-    }
-
-    // documentation inherited from interface Encodable
-    public String encodeToString ()
-    {
-        return azimuth + ", " + elevation + ", " + distance;
-    }
-
-    // documentation inherited from interface Encodable
-    public void decodeFromString (String string)
-        throws Exception
-    {
-        set(StringUtil.parseFloatArray(string));
-    }
-
-    // documentation inherited from interface Encodable
-    public void encodeToStream (DataOutputStream out)
-        throws IOException
-    {
-        out.writeFloat(azimuth);
-        out.writeFloat(elevation);
-        out.writeFloat(distance);
-    }
-
-    // documentation inherited from interface Encodable
-    public void decodeFromStream (DataInputStream in)
-        throws IOException
-    {
-        set(in.readFloat(), in.readFloat(), in.readFloat());
-    }
-
-    @Override
-    public String toString ()
-    {
-        return "[" + azimuth + ", " + elevation + ", " + distance + "]";
-    }
-
-    @Override
-    public int hashCode ()
-    {
-        return Float.floatToIntBits(azimuth) ^ Float.floatToIntBits(elevation) ^
-            Float.floatToIntBits(distance);
-    }
-
-    @Override
-    public boolean equals (Object other)
-    {
-        if (!(other instanceof SphereCoords)) {
-            return false;
-        }
-        SphereCoords ocoords = (SphereCoords)other;
-        return (azimuth == ocoords.azimuth && elevation == ocoords.elevation &&
-            distance == ocoords.distance);
-    }
+    SphereCoords ocoords = (SphereCoords)other;
+    return (azimuth == ocoords.azimuth && elevation == ocoords.elevation &&
+      distance == ocoords.distance);
+  }
 }

@@ -34,25 +34,25 @@ import com.threerings.opengl.gui.layout.LayoutManager;
  */
 public class StretchWindow extends Window
 {
-    public StretchWindow (GlContext ctx, LayoutManager layout)
-    {
-        super(ctx, layout);
-    }
+  public StretchWindow (GlContext ctx, LayoutManager layout)
+  {
+    super(ctx, layout);
+  }
 
-    @Override
-    protected void layoutWindow (int width, int height)
-    {
-        super.layoutWindow(width, height);
-        if (isStretching()) {
-            setSize(width, height);
-        }
+  @Override
+  protected void layoutWindow (int width, int height)
+  {
+    super.layoutWindow(width, height);
+    if (isStretching()) {
+      setSize(width, height);
     }
+  }
 
-    /**
-     * Are we actually using the stretching capability?
-     */
-    protected boolean isStretching ()
-    {
-        return true;
-    }
+  /**
+   * Are we actually using the stretching capability?
+   */
+  protected boolean isStretching ()
+  {
+    return true;
+  }
 }

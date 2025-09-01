@@ -37,49 +37,49 @@ import javax.imageio.ImageIO;
  */
 public class NormalMapCreator
 {
-    /**
-     * Program entry point.
-     */
-    public static void main (String[] args)
-        throws Exception
-    {
-        if (args.length < 4) {
-            System.err.println("Usage: NormalMapCreator <input bump map> <output normal map> " +
-                "<scale> <include depth>");
-            return;
-        }
-        BufferedImage in = ImageIO.read(new File(args[0]));
-        int width = in.getWidth(), height = in.getHeight();
-        float scale = Float.parseFloat(args[2]);
-        boolean depth = Boolean.parseBoolean(args[3]);
-
-        int[] inRGB = in.getRGB(0, 0, width, height, null, 0, width);
-        int[] outRGB = new int[width * height];
-        for (int yy = 0; yy < height; yy++) {
-            for (int xx = 0; xx < width; xx++) {
-                // we determine the normal by taking the cross product of the vector from left to
-                // right and the vector from bottom to top
-                int top = inRGB[Math.max(0, yy-1)*width + xx];
-                int bottom = inRGB[Math.min(height-1, yy+1)*width + xx];
-                int left = inRGB[yy*width + Math.max(0, xx-1)];
-                int right = inRGB[yy*width + Math.min(width-1, xx+1)];
-
-                // extract, compute normal, repack
-                double nx = ((left & 0xFF) - (right & 0xFF)) * scale / 255.0;
-                double ny = ((bottom & 0xFF) - (top & 0xFF)) * scale / 255.0;
-                double nz = 1.0;
-                double rlen = 1.0 / Math.sqrt(nx*nx + ny*ny + nz*nz);
-                int r = (int)((nx*rlen + 1.0) * 255.0 / 2.0);
-                int g = (int)((ny*rlen + 1.0) * 255.0 / 2.0);
-                int b = (int)((nz*rlen + 1.0) * 255.0 / 2.0);
-                int a = inRGB[yy*width + xx] & 0xFF;
-                outRGB[yy*width + xx] = (a << 24) | (r << 16) | (g << 8) | b;
-            }
-        }
-
-        BufferedImage out = new BufferedImage(width, height, depth ?
-            BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
-        out.setRGB(0, 0, width, height, outRGB, 0, width);
-        ImageIO.write(out, "png", new File(args[1]));
+  /**
+   * Program entry point.
+   */
+  public static void main (String[] args)
+    throws Exception
+  {
+    if (args.length < 4) {
+      System.err.println("Usage: NormalMapCreator <input bump map> <output normal map> " +
+        "<scale> <include depth>");
+      return;
     }
+    BufferedImage in = ImageIO.read(new File(args[0]));
+    int width = in.getWidth(), height = in.getHeight();
+    float scale = Float.parseFloat(args[2]);
+    boolean depth = Boolean.parseBoolean(args[3]);
+
+    int[] inRGB = in.getRGB(0, 0, width, height, null, 0, width);
+    int[] outRGB = new int[width * height];
+    for (int yy = 0; yy < height; yy++) {
+      for (int xx = 0; xx < width; xx++) {
+        // we determine the normal by taking the cross product of the vector from left to
+        // right and the vector from bottom to top
+        int top = inRGB[Math.max(0, yy-1)*width + xx];
+        int bottom = inRGB[Math.min(height-1, yy+1)*width + xx];
+        int left = inRGB[yy*width + Math.max(0, xx-1)];
+        int right = inRGB[yy*width + Math.min(width-1, xx+1)];
+
+        // extract, compute normal, repack
+        double nx = ((left & 0xFF) - (right & 0xFF)) * scale / 255.0;
+        double ny = ((bottom & 0xFF) - (top & 0xFF)) * scale / 255.0;
+        double nz = 1.0;
+        double rlen = 1.0 / Math.sqrt(nx*nx + ny*ny + nz*nz);
+        int r = (int)((nx*rlen + 1.0) * 255.0 / 2.0);
+        int g = (int)((ny*rlen + 1.0) * 255.0 / 2.0);
+        int b = (int)((nz*rlen + 1.0) * 255.0 / 2.0);
+        int a = inRGB[yy*width + xx] & 0xFF;
+        outRGB[yy*width + xx] = (a << 24) | (r << 16) | (g << 8) | b;
+      }
+    }
+
+    BufferedImage out = new BufferedImage(width, height, depth ?
+      BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
+    out.setRGB(0, 0, width, height, outRGB, 0, width);
+    ImageIO.write(out, "png", new File(args[1]));
+  }
 }

@@ -38,179 +38,179 @@ import com.threerings.tudey.space.SpaceElement;
  */
 public class Global extends Shape
 {
-    /** Get the global shape. */
-    public static Global getShape ()
-    {
-        if (_global == null) {
-            _global = new Global();
-        }
-        return _global;
+  /** Get the global shape. */
+  public static Global getShape ()
+  {
+    if (_global == null) {
+      _global = new Global();
     }
+    return _global;
+  }
 
-    @Override
-    public void updateBounds ()
-    {
-        // do nothing
-    }
+  @Override
+  public void updateBounds ()
+  {
+    // do nothing
+  }
 
-    @Override
-    public Vector2f getCenter (Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getCenter (Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Shape transform (Transform2D transform, Shape result)
-    {
-        return this;
-    }
+  @Override
+  public Shape transform (Transform2D transform, Shape result)
+  {
+    return this;
+  }
 
-    @Override
-    public Shape expand (float amount, Shape result)
-    {
-        return this;
-    }
+  @Override
+  public Shape expand (float amount, Shape result)
+  {
+    return this;
+  }
 
-    @Override
-    public Shape sweep (Vector2f translation, Shape result)
-    {
-        return this;
-    }
+  @Override
+  public Shape sweep (Vector2f translation, Shape result)
+  {
+    return this;
+  }
 
-    @Override
-    public Vector2f[] getPerimeterPath ()
-    {
-        return new Vector2f[] { new Vector2f(Vector2f.ZERO) };
-    }
+  @Override
+  public Vector2f[] getPerimeterPath ()
+  {
+    return new Vector2f[] { new Vector2f(Vector2f.ZERO) };
+  }
 
-    @Override
-    public boolean getIntersection (Ray2D ray, Vector2f result)
-    {
-        return false;
-    }
+  @Override
+  public boolean getIntersection (Ray2D ray, Vector2f result)
+  {
+    return false;
+  }
 
-    @Override
-    public void getNearestPoint (Vector2f point, Vector2f result)
-    {
-        result.set(point);
-    }
+  @Override
+  public void getNearestPoint (Vector2f point, Vector2f result)
+  {
+    result.set(point);
+  }
 
-    @Override
-    public IntersectionType getIntersectionType (Rect rect)
-    {
-        return IntersectionType.NONE;
-    }
+  @Override
+  public IntersectionType getIntersectionType (Rect rect)
+  {
+    return IntersectionType.NONE;
+  }
 
-    @Override
-    public boolean intersects (SpaceElement element)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (SpaceElement element)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Shape shape)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Shape shape)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Point point)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Point point)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Segment segment)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Segment segment)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Circle circle)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Circle circle)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Capsule capsule)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Capsule capsule)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Polygon polygon)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Polygon polygon)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Compound compound)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Compound compound)
+  {
+    return false;
+  }
 
-    @Override
-    public Vector2f getPenetration (Shape shape, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Shape shape, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Point point, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Point point, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Segment segment, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Segment segment, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Circle circle, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Circle circle, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Capsule capsule, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Capsule capsule, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Polygon polygon, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Polygon polygon, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Compound compound, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Compound compound, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public void draw (boolean outline)
-    {
-        // do nothing
-    }
+  @Override
+  public void draw (boolean outline)
+  {
+    // do nothing
+  }
 
-    @Override
-    public ShapeConfig createConfig ()
-    {
-        return new ShapeConfig.Global();
-    }
+  @Override
+  public ShapeConfig createConfig ()
+  {
+    return new ShapeConfig.Global();
+  }
 
-    /**
-     * Creates a global shape.
-     */
-    protected Global ()
-    {
-        _bounds.set(Rect.MAX_VALUE);
-    }
+  /**
+   * Creates a global shape.
+   */
+  protected Global ()
+  {
+    _bounds.set(Rect.MAX_VALUE);
+  }
 
-    /** The global instance. */
-    protected static Global _global;
+  /** The global instance. */
+  protected static Global _global;
 }

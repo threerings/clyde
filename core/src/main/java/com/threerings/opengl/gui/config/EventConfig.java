@@ -48,99 +48,99 @@ import com.threerings.opengl.gui.event.ComponentListener;
  */
 @EditorTypes({ EventConfig.Action.class, EventConfig.Any.class })
 public abstract class EventConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * Superclass of the targeted events.
-     */
-    public static abstract class Targeted extends EventConfig
+  /**
+   * Superclass of the targeted events.
+   */
+  public static abstract class Targeted extends EventConfig
+  {
+    /** The tag of the target component. */
+    @Editable(hgroup="t")
+    public String target = "";
+
+    @Override
+    public Script addHandler (UserInterface iface, Runnable runnable)
     {
-        /** The tag of the target component. */
-        @Editable(hgroup="t")
-        public String target = "";
-
-        @Override
-        public Script addHandler (UserInterface iface, Runnable runnable)
-        {
-            final ComponentListener listener = createListener(runnable);
-            final List<Component> comps = Lists.newArrayList(iface.getComponents(target));
-            return iface.new Script() {
-                @Override public void init () {
-                    for (Component comp : comps) {
-                        comp.addListener(listener);
-                    }
-                }
-                @Override public void cleanup () {
-                    for (Component comp : comps) {
-                        comp.removeListener(listener);
-                    }
-                }
-            };
+      final ComponentListener listener = createListener(runnable);
+      final List<Component> comps = Lists.newArrayList(iface.getComponents(target));
+      return iface.new Script() {
+        @Override public void init () {
+          for (Component comp : comps) {
+            comp.addListener(listener);
+          }
         }
-
-        /**
-         * Creates the listener that will execute the runnable when the event fires.
-         */
-        protected abstract ComponentListener createListener (Runnable runnable);
+        @Override public void cleanup () {
+          for (Component comp : comps) {
+            comp.removeListener(listener);
+          }
+        }
+      };
     }
 
     /**
-     * Waits for an action to fire on the targeted components.
+     * Creates the listener that will execute the runnable when the event fires.
      */
-    public static class Action extends Targeted
+    protected abstract ComponentListener createListener (Runnable runnable);
+  }
+
+  /**
+   * Waits for an action to fire on the targeted components.
+   */
+  public static class Action extends Targeted
+  {
+    /** The name of the action, or blank for any. */
+    @Editable(hgroup="t")
+    public String action = "";
+
+    @Override
+    protected ComponentListener createListener (final Runnable runnable)
     {
-        /** The name of the action, or blank for any. */
-        @Editable(hgroup="t")
-        public String action = "";
-
-        @Override
-        protected ComponentListener createListener (final Runnable runnable)
-        {
-            return new ActionListener() {
-                public void actionPerformed (ActionEvent event) {
-                    if (StringUtil.isBlank(action) || action.equals(event.getAction())) {
-                        runnable.run();
-                    }
-                }
-            };
+      return new ActionListener() {
+        public void actionPerformed (ActionEvent event) {
+          if (StringUtil.isBlank(action) || action.equals(event.getAction())) {
+            runnable.run();
+          }
         }
+      };
     }
+  }
 
-    /**
-     * Waits for any of the contained sub-events to fire.
-     */
-    public static class Any extends EventConfig
+  /**
+   * Waits for any of the contained sub-events to fire.
+   */
+  public static class Any extends EventConfig
+  {
+    /** The contained sub-events. */
+    @Editable
+    public EventConfig[] events = new EventConfig[0];
+
+    @Override
+    public Script addHandler (UserInterface iface, Runnable runnable)
     {
-        /** The contained sub-events. */
-        @Editable
-        public EventConfig[] events = new EventConfig[0];
-
-        @Override
-        public Script addHandler (UserInterface iface, Runnable runnable)
-        {
-            final Script[] scripts = new Script[events.length];
-            for (int ii = 0; ii < events.length; ii++) {
-                scripts[ii] = events[ii].addHandler(iface, runnable);
-            }
-            return iface.new Script() {
-                @Override public void init () {
-                    for (Script script : scripts) {
-                        script.init();
-                    }
-                }
-                @Override public void cleanup () {
-                    for (Script script : scripts) {
-                        script.cleanup();
-                    }
-                }
-            };
+      final Script[] scripts = new Script[events.length];
+      for (int ii = 0; ii < events.length; ii++) {
+        scripts[ii] = events[ii].addHandler(iface, runnable);
+      }
+      return iface.new Script() {
+        @Override public void init () {
+          for (Script script : scripts) {
+            script.init();
+          }
         }
+        @Override public void cleanup () {
+          for (Script script : scripts) {
+            script.cleanup();
+          }
+        }
+      };
     }
+  }
 
-    /**
-     * Adds a handler that will execute the supplied runnable when the event fires.
-     *
-     * @return a script handle that can be used to remove the handler.
-     */
-    public abstract Script addHandler (UserInterface iface, Runnable runnable);
+  /**
+   * Adds a handler that will execute the supplied runnable when the event fires.
+   *
+   * @return a script handle that can be used to remove the handler.
+   */
+  public abstract Script addHandler (UserInterface iface, Runnable runnable);
 }

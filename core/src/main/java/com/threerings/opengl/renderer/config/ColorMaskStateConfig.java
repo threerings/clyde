@@ -35,35 +35,35 @@ import com.threerings.opengl.renderer.state.ColorMaskState;
  * Configurable color mask state.
  */
 public class ColorMaskStateConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /** Whether to write to the red channel. */
-    @Editable(hgroup="m")
-    public boolean red = true;
+  /** Whether to write to the red channel. */
+  @Editable(hgroup="m")
+  public boolean red = true;
 
-    /** Whether to write to the green channel. */
-    @Editable(hgroup="m")
-    public boolean green = true;
+  /** Whether to write to the green channel. */
+  @Editable(hgroup="m")
+  public boolean green = true;
 
-    /** Whether to write to the blue channel. */
-    @Editable(hgroup="m")
-    public boolean blue = true;
+  /** Whether to write to the blue channel. */
+  @Editable(hgroup="m")
+  public boolean blue = true;
 
-    /** Whether to write to the alpha channel. */
-    @Editable(hgroup="m")
-    public boolean alpha = true;
+  /** Whether to write to the alpha channel. */
+  @Editable(hgroup="m")
+  public boolean alpha = true;
 
-    /** If true, do not use a shared instance. */
-    @Editable
-    public boolean uniqueInstance;
+  /** If true, do not use a shared instance. */
+  @Editable
+  public boolean uniqueInstance;
 
-    /**
-     * Returns the corresponding color mask state.
-     */
-    public ColorMaskState getState ()
-    {
-        return uniqueInstance ?
-            new ColorMaskState(red, green, blue, alpha) :
-            ColorMaskState.getInstance(red, green, blue, alpha);
-    }
+  /**
+   * Returns the corresponding color mask state.
+   */
+  public ColorMaskState getState ()
+  {
+    return uniqueInstance ?
+      new ColorMaskState(red, green, blue, alpha) :
+      ColorMaskState.getInstance(red, green, blue, alpha);
+  }
 }

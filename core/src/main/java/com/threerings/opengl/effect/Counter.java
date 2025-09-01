@@ -30,13 +30,13 @@ package com.threerings.opengl.effect;
  */
 public interface Counter
 {
-    /**
-     * Returns the number of particles to release at this frame.
-     */
-    public int count (float elapsed, int maximum);
+  /**
+   * Returns the number of particles to release at this frame.
+   */
+  public int count (float elapsed, int maximum);
 
-    /**
-     * Resets the counter to its initial state.
-     */
-    public void reset ();
+  /**
+   * Resets the counter to its initial state.
+   */
+  public void reset ();
 }

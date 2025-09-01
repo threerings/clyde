@@ -54,165 +54,165 @@ import com.threerings.editor.util.PropertyUtil;
  * Allows the user to select a config from a drop-down.
  */
 public class ConfigBox extends JComboBox
-    implements ConfigGroupListener
+  implements ConfigGroupListener
 {
-    /**
-     * Creates a new config box.
-     */
-    public ConfigBox (
-            MessageBundle msgs, ConfigGroup<?>[] groups, boolean nullable,
-            ReferenceConstraints constraints,
-            @Nullable Supplier<Predicate<? super ManagedConfig>> additionalFilterSupplier)
-    {
-        _msgs = msgs;
-        @SuppressWarnings("unchecked")
-        ConfigGroup<ManagedConfig>[] mgroups = (ConfigGroup<ManagedConfig>[])groups;
-        _groups = mgroups;
-        _nullable = nullable;
-        _filter = PropertyUtil.getRawConfigPredicate(constraints);
-        _additionalFilter = additionalFilterSupplier;
+  /**
+   * Creates a new config box.
+   */
+  public ConfigBox (
+      MessageBundle msgs, ConfigGroup<?>[] groups, boolean nullable,
+      ReferenceConstraints constraints,
+      @Nullable Supplier<Predicate<? super ManagedConfig>> additionalFilterSupplier)
+  {
+    _msgs = msgs;
+    @SuppressWarnings("unchecked")
+    ConfigGroup<ManagedConfig>[] mgroups = (ConfigGroup<ManagedConfig>[])groups;
+    _groups = mgroups;
+    _nullable = nullable;
+    _filter = PropertyUtil.getRawConfigPredicate(constraints);
+    _additionalFilter = additionalFilterSupplier;
 
-        updateModel();
+    updateModel();
+  }
+
+  /**
+   * Sets the path of the selected config.
+   */
+  public void setSelectedConfig (String config)
+  {
+    setSelectedItem(new ConfigItem(config));
+  }
+
+  /**
+   * Returns the path of the selected config.
+   */
+  public String getSelectedConfig ()
+  {
+    ConfigItem item = (ConfigItem)getSelectedItem();
+    return (item == null) ? null : item.name;
+  }
+
+  // documentation inherited from interface ConfigGroupListener
+  public void configAdded (ConfigEvent<ManagedConfig> event)
+  {
+    updateModel();
+  }
+
+  // documentation inherited from interface ConfigGroupListener
+  public void configRemoved (ConfigEvent<ManagedConfig> event)
+  {
+    updateModel();
+  }
+
+  @Override
+  public void addNotify ()
+  {
+    super.addNotify();
+    updateModel();
+    for (ConfigGroup<ManagedConfig> group : _groups) {
+      group.addListener(this);
+    }
+  }
+
+  @Override
+  public void removeNotify ()
+  {
+    super.removeNotify();
+    for (ConfigGroup<ManagedConfig> group : _groups) {
+      group.removeListener(this);
+    }
+  }
+
+  /**
+   * Updates the combo box model and current selection.
+   */
+  protected void updateModel ()
+  {
+    // gather all config names into a set
+    HashSet<String> names = new HashSet<String>();
+    Predicate<? super ManagedConfig> curFilter; // cannot convert to ternary: compiler bug.
+    if (_additionalFilter == null) {
+      curFilter = _filter;
+    } else {
+      curFilter = Predicates.<ManagedConfig>and(_filter, _additionalFilter.get());
+    }
+    for (ConfigGroup<ManagedConfig> group : _groups) {
+      for (ManagedConfig config : Iterables.filter(group.getRawConfigs(), curFilter)) {
+        names.add(config.getName());
+      }
     }
 
-    /**
-     * Sets the path of the selected config.
-     */
-    public void setSelectedConfig (String config)
-    {
-        setSelectedItem(new ConfigItem(config));
+    // create an array containing the items
+    int offset = _nullable ? 1 : 0;
+    ConfigItem[] items = new ConfigItem[offset + names.size()];
+    int idx = 0;
+    if (_nullable) {
+      items[idx++] = new ConfigItem(null);
+    }
+    for (String name : names) {
+      items[idx++] = new ConfigItem(name);
     }
 
-    /**
-     * Returns the path of the selected config.
-     */
-    public String getSelectedConfig ()
+    // sort the non-null items
+    QuickSort.sort(items, offset, items.length - 1);
+
+    // update the model, preserving the selected config
+    String config = getSelectedConfig();
+    setModel(new DefaultComboBoxModel(items));
+    setSelectedConfig(config);
+  }
+
+  /**
+   * An item in the configuration list.
+   */
+  protected class ConfigItem
+    implements Comparable<ConfigItem>
+  {
+    /** The name of the config. */
+    public String name;
+
+    public ConfigItem (String name)
     {
-        ConfigItem item = (ConfigItem)getSelectedItem();
-        return (item == null) ? null : item.name;
+      this.name = name;
     }
 
-    // documentation inherited from interface ConfigGroupListener
-    public void configAdded (ConfigEvent<ManagedConfig> event)
+    // documentation inherited from interface Comparable
+    public int compareTo (ConfigItem other)
     {
-        updateModel();
-    }
-
-    // documentation inherited from interface ConfigGroupListener
-    public void configRemoved (ConfigEvent<ManagedConfig> event)
-    {
-        updateModel();
+      return name.compareTo(other.name);
     }
 
     @Override
-    public void addNotify ()
+    public String toString ()
     {
-        super.addNotify();
-        updateModel();
-        for (ConfigGroup<ManagedConfig> group : _groups) {
-            group.addListener(this);
-        }
+      return (name == null) ? _msgs.get("m.null_value") : name;
     }
 
     @Override
-    public void removeNotify ()
+    public boolean equals (Object other)
     {
-        super.removeNotify();
-        for (ConfigGroup<ManagedConfig> group : _groups) {
-            group.removeListener(this);
-        }
+      return Objects.equal(name, ((ConfigItem)other).name);
     }
 
-    /**
-     * Updates the combo box model and current selection.
-     */
-    protected void updateModel ()
+    @Override
+    public int hashCode ()
     {
-        // gather all config names into a set
-        HashSet<String> names = new HashSet<String>();
-        Predicate<? super ManagedConfig> curFilter; // cannot convert to ternary: compiler bug.
-        if (_additionalFilter == null) {
-            curFilter = _filter;
-        } else {
-            curFilter = Predicates.<ManagedConfig>and(_filter, _additionalFilter.get());
-        }
-        for (ConfigGroup<ManagedConfig> group : _groups) {
-            for (ManagedConfig config : Iterables.filter(group.getRawConfigs(), curFilter)) {
-                names.add(config.getName());
-            }
-        }
-
-        // create an array containing the items
-        int offset = _nullable ? 1 : 0;
-        ConfigItem[] items = new ConfigItem[offset + names.size()];
-        int idx = 0;
-        if (_nullable) {
-            items[idx++] = new ConfigItem(null);
-        }
-        for (String name : names) {
-            items[idx++] = new ConfigItem(name);
-        }
-
-        // sort the non-null items
-        QuickSort.sort(items, offset, items.length - 1);
-
-        // update the model, preserving the selected config
-        String config = getSelectedConfig();
-        setModel(new DefaultComboBoxModel(items));
-        setSelectedConfig(config);
+      return name != null ? name.hashCode() : 0;
     }
+  }
 
-    /**
-     * An item in the configuration list.
-     */
-    protected class ConfigItem
-        implements Comparable<ConfigItem>
-    {
-        /** The name of the config. */
-        public String name;
+  /** The message bundle to use for translation. */
+  protected MessageBundle _msgs;
 
-        public ConfigItem (String name)
-        {
-            this.name = name;
-        }
+  /** Whether or not the null value is selectable. */
+  protected boolean _nullable;
 
-        // documentation inherited from interface Comparable
-        public int compareTo (ConfigItem other)
-        {
-            return name.compareTo(other.name);
-        }
+  /** The configuration groups. */
+  protected ConfigGroup<ManagedConfig>[] _groups;
 
-        @Override
-        public String toString ()
-        {
-            return (name == null) ? _msgs.get("m.null_value") : name;
-        }
+  /** The filter used for configs. */
+  protected Predicate<ManagedConfig> _filter;
 
-        @Override
-        public boolean equals (Object other)
-        {
-            return Objects.equal(name, ((ConfigItem)other).name);
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return name != null ? name.hashCode() : 0;
-        }
-    }
-
-    /** The message bundle to use for translation. */
-    protected MessageBundle _msgs;
-
-    /** Whether or not the null value is selectable. */
-    protected boolean _nullable;
-
-    /** The configuration groups. */
-    protected ConfigGroup<ManagedConfig>[] _groups;
-
-    /** The filter used for configs. */
-    protected Predicate<ManagedConfig> _filter;
-
-    /** A supplier of additional filters. */
-    protected Supplier<Predicate<? super ManagedConfig>> _additionalFilter;
+  /** A supplier of additional filters. */
+  protected Supplier<Predicate<? super ManagedConfig>> _additionalFilter;
 }

@@ -42,97 +42,97 @@ import static com.threerings.ClydeLog.log;
  */
 public class ResourceUtil
 {
-    /**
-     * Returns the resource directory stored in the preferences, which (if present) overrides the
-     * default resource directory.
-     *
-     * @return the stored resource directory, or <code>null</code> to use the default.
-     */
-    public static String getPreferredResourceDir ()
-    {
-        return _prefs.get(_prefPrefix + "resource_dir", null);
-    }
+  /**
+   * Returns the resource directory stored in the preferences, which (if present) overrides the
+   * default resource directory.
+   *
+   * @return the stored resource directory, or <code>null</code> to use the default.
+   */
+  public static String getPreferredResourceDir ()
+  {
+    return _prefs.get(_prefPrefix + "resource_dir", null);
+  }
 
-    /**
-     * Sets the preferred resource directory.
-     *
-     * @param dir the resource directory to store, or <code>null</code> to use to the default.
-     */
-    public static void setPreferredResourceDir (String dir)
-    {
-        if (dir == null) {
-            _prefs.remove(_prefPrefix + "resource_dir");
-        } else {
-            _prefs.put(_prefPrefix + "resource_dir", dir);
+  /**
+   * Sets the preferred resource directory.
+   *
+   * @param dir the resource directory to store, or <code>null</code> to use to the default.
+   */
+  public static void setPreferredResourceDir (String dir)
+  {
+    if (dir == null) {
+      _prefs.remove(_prefPrefix + "resource_dir");
+    } else {
+      _prefs.put(_prefPrefix + "resource_dir", dir);
+    }
+  }
+
+  /**
+   * Get the prefix to use for project-wide preferences.
+   */
+  public static String getPrefsPrefix ()
+  {
+    return _prefPrefix;
+  }
+
+  /**
+   * Reads a list of newline-delimited strings from a resource.
+   */
+  public static String[] loadStrings (String path)
+  {
+    ArrayList<String> strings = new ArrayList<String>();
+    InputStream stream = getResourceAsStream(path);
+    if (stream != null) {
+      try {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        String line;
+        while ((line = reader.readLine()) != null) {
+          strings.add(line);
         }
+      } catch (IOException e) {
+        log.warning("Failed to read strings from resource [path=" +
+          path + ", error=" + e + "].");
+      }
     }
+    return strings.toArray(new String[strings.size()]);
+  }
 
-    /**
-     * Get the prefix to use for project-wide preferences.
-     */
-    public static String getPrefsPrefix ()
-    {
-        return _prefPrefix;
+  /**
+   * Reads a set of properties from a resource.
+   */
+  public static Properties loadProperties (String path)
+  {
+    Properties props = new Properties();
+    InputStream stream = getResourceAsStream(path);
+    if (stream != null) {
+      try {
+        props.load(stream);
+      } catch (IOException e) {
+        log.warning("Failed to read properties from resource [path=" +
+          path + ", error=" + e + "].");
+      }
     }
+    return props;
+  }
 
-    /**
-     * Reads a list of newline-delimited strings from a resource.
-     */
-    public static String[] loadStrings (String path)
-    {
-        ArrayList<String> strings = new ArrayList<String>();
-        InputStream stream = getResourceAsStream(path);
-        if (stream != null) {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    strings.add(line);
-                }
-            } catch (IOException e) {
-                log.warning("Failed to read strings from resource [path=" +
-                    path + ", error=" + e + "].");
-            }
-        }
-        return strings.toArray(new String[strings.size()]);
+  /**
+   * Gets the identified resource as a stream, logging an error and returning an empty stream if
+   * it doesn't exist.
+   */
+  public static InputStream getResourceAsStream (String path)
+  {
+    InputStream stream = ResourceUtil.class.getResourceAsStream("/" + path);
+    if (stream == null) {
+      log.warning("Missing resource.", "path", path);
+      stream = new ByteArrayInputStream(new byte[0]);
     }
+    return stream;
+  }
 
-    /**
-     * Reads a set of properties from a resource.
-     */
-    public static Properties loadProperties (String path)
-    {
-        Properties props = new Properties();
-        InputStream stream = getResourceAsStream(path);
-        if (stream != null) {
-            try {
-                props.load(stream);
-            } catch (IOException e) {
-                log.warning("Failed to read properties from resource [path=" +
-                    path + ", error=" + e + "].");
-            }
-        }
-        return props;
-    }
+  /** The package preferences. */
+  protected static Preferences _prefs = Preferences.userNodeForPackage(ResourceUtil.class);
 
-    /**
-     * Gets the identified resource as a stream, logging an error and returning an empty stream if
-     * it doesn't exist.
-     */
-    public static InputStream getResourceAsStream (String path)
-    {
-        InputStream stream = ResourceUtil.class.getResourceAsStream("/" + path);
-        if (stream == null) {
-            log.warning("Missing resource.", "path", path);
-            stream = new ByteArrayInputStream(new byte[0]);
-        }
-        return stream;
-    }
-
-    /** The package preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(ResourceUtil.class);
-
-    /** The pref prefix. */
-    protected static String _prefPrefix =
-            System.getProperty("com.threerings.resource.pref_prefix", "");
+  /** The pref prefix. */
+  protected static String _prefPrefix =
+      System.getProperty("com.threerings.resource.pref_prefix", "");
 }

@@ -48,151 +48,17 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class EffectConfig extends ParameterizedConfig
 {
-    /**
-     * Contains the actual implementation of the effect.
-     */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config's underlying original implementation.
-         */
-        public abstract Original getOriginal (ConfigManager cfgmgr);
-
-        /**
-         * Creates a sprite implementation for this configuration.
-         *
-         * @param scope the effect's expression scope.
-         * @return the created implementation, or <code>null</code> if no implementation could be
-         * created.
-         */
-        public abstract EffectSprite.Implementation createSpriteImplementation (
-            TudeyContext ctx, Scope scope, Effect effect);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
-
-    /**
-     * Superclass of the original implementations.
-     */
-    public static class Original extends Implementation
-    {
-        /** The type of sprite to use for the effect. */
-        @Editable
-        public EffectSpriteConfig sprite = new EffectSpriteConfig.Default();
-
-        /** The shape of the effect. */
-        @Editable
-        public ShapeConfig shape = new ShapeConfig.Point();
-
-        /** The action associated with the effect, if any. */
-        @Editable(nullable=true)
-        public ActionConfig action;
-
-        /** The lifespan of the effect. */
-        @Editable(min=0, hgroup="l")
-        public int lifespan = 1000;
-
-        /** If true, only show the effect to its target. */
-        @Editable(hgroup="l")
-        public boolean targetOnly;
-
-        /**
-         * Returns the name of the server-side logic class to use for the effect.
-         */
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.EffectLogic";
-        }
-
-        /**
-         * Creates a new effect of the type associated with this config.
-         */
-        public Effect createEffect (
-            ConfigReference<EffectConfig> config, int timestamp, EntityKey target,
-            Vector2f translation, float rotation)
-        {
-            return new Effect(config, timestamp, target, translation, rotation);
-        }
-
-        /**
-         * Adds the resources to preload for this effect into the provided set.
-         */
-        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
-        {
-            sprite.getPreloads(cfgmgr, preloads);
-            if (action != null) {
-                action.getPreloads(cfgmgr, preloads);
-            }
-        }
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            return this;
-        }
-
-        @Override
-        public EffectSprite.Implementation createSpriteImplementation (
-            TudeyContext ctx, Scope scope, Effect effect)
-        {
-            return sprite.createImplementation(ctx, scope, effect);
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            shape.invalidate();
-            if (action != null) {
-                action.invalidate();
-            }
-        }
-    }
-
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The effect reference. */
-        @Editable(nullable=true)
-        public ConfigReference<EffectConfig> effect;
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            EffectConfig config = cfgmgr.getConfig(EffectConfig.class, effect);
-            return (config == null) ? null : config.getOriginal(cfgmgr);
-        }
-
-        @Override
-        public EffectSprite.Implementation createSpriteImplementation (
-            TudeyContext ctx, Scope scope, Effect effect)
-        {
-            EffectConfig config = ctx.getConfigManager().getConfig(
-                EffectConfig.class, this.effect);
-            return (config == null) ? null : config.createSpriteImplementation(ctx, scope, effect);
-        }
-    }
-
-    /** The actual effect implementation. */
-    @Editable
-    public Implementation implementation = new Original();
-
+  /**
+   * Contains the actual implementation of the effect.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
      * Returns a reference to the config's underlying original implementation.
      */
-    public Original getOriginal (ConfigManager cfgmgr)
-    {
-        return implementation.getOriginal(cfgmgr);
-    }
+    public abstract Original getOriginal (ConfigManager cfgmgr);
 
     /**
      * Creates a sprite implementation for this configuration.
@@ -201,17 +67,151 @@ public class EffectConfig extends ParameterizedConfig
      * @return the created implementation, or <code>null</code> if no implementation could be
      * created.
      */
-    public EffectSprite.Implementation createSpriteImplementation (
-        TudeyContext ctx, Scope scope, Effect effect)
+    public abstract EffectSprite.Implementation createSpriteImplementation (
+      TudeyContext ctx, Scope scope, Effect effect);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
-        return implementation.createSpriteImplementation(ctx, scope, effect);
+      // nothing by default
+    }
+  }
+
+  /**
+   * Superclass of the original implementations.
+   */
+  public static class Original extends Implementation
+  {
+    /** The type of sprite to use for the effect. */
+    @Editable
+    public EffectSpriteConfig sprite = new EffectSpriteConfig.Default();
+
+    /** The shape of the effect. */
+    @Editable
+    public ShapeConfig shape = new ShapeConfig.Point();
+
+    /** The action associated with the effect, if any. */
+    @Editable(nullable=true)
+    public ActionConfig action;
+
+    /** The lifespan of the effect. */
+    @Editable(min=0, hgroup="l")
+    public int lifespan = 1000;
+
+    /** If true, only show the effect to its target. */
+    @Editable(hgroup="l")
+    public boolean targetOnly;
+
+    /**
+     * Returns the name of the server-side logic class to use for the effect.
+     */
+    public String getLogicClassName ()
+    {
+      return "com.threerings.tudey.server.logic.EffectLogic";
+    }
+
+    /**
+     * Creates a new effect of the type associated with this config.
+     */
+    public Effect createEffect (
+      ConfigReference<EffectConfig> config, int timestamp, EntityKey target,
+      Vector2f translation, float rotation)
+    {
+      return new Effect(config, timestamp, target, translation, rotation);
+    }
+
+    /**
+     * Adds the resources to preload for this effect into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+      sprite.getPreloads(cfgmgr, preloads);
+      if (action != null) {
+        action.getPreloads(cfgmgr, preloads);
+      }
     }
 
     @Override
-    protected void fireConfigUpdated ()
+    public Original getOriginal (ConfigManager cfgmgr)
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.fireConfigUpdated();
+      return this;
     }
+
+    @Override
+    public EffectSprite.Implementation createSpriteImplementation (
+      TudeyContext ctx, Scope scope, Effect effect)
+    {
+      return sprite.createImplementation(ctx, scope, effect);
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      shape.invalidate();
+      if (action != null) {
+        action.invalidate();
+      }
+    }
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The effect reference. */
+    @Editable(nullable=true)
+    public ConfigReference<EffectConfig> effect;
+
+    @Override
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+      EffectConfig config = cfgmgr.getConfig(EffectConfig.class, effect);
+      return (config == null) ? null : config.getOriginal(cfgmgr);
+    }
+
+    @Override
+    public EffectSprite.Implementation createSpriteImplementation (
+      TudeyContext ctx, Scope scope, Effect effect)
+    {
+      EffectConfig config = ctx.getConfigManager().getConfig(
+        EffectConfig.class, this.effect);
+      return (config == null) ? null : config.createSpriteImplementation(ctx, scope, effect);
+    }
+  }
+
+  /** The actual effect implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Returns a reference to the config's underlying original implementation.
+   */
+  public Original getOriginal (ConfigManager cfgmgr)
+  {
+    return implementation.getOriginal(cfgmgr);
+  }
+
+  /**
+   * Creates a sprite implementation for this configuration.
+   *
+   * @param scope the effect's expression scope.
+   * @return the created implementation, or <code>null</code> if no implementation could be
+   * created.
+   */
+  public EffectSprite.Implementation createSpriteImplementation (
+    TudeyContext ctx, Scope scope, Effect effect)
+  {
+    return implementation.createSpriteImplementation(ctx, scope, effect);
+  }
+
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.fireConfigUpdated();
+  }
 }

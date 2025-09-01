@@ -30,39 +30,39 @@ package com.threerings.expr;
  */
 public class MutableLong
 {
-    /** The value of this variable. */
-    public long value;
+  /** The value of this variable. */
+  public long value;
 
-    /**
-     * Creates a mutable long with the supplied value.
-     */
-    public MutableLong (long value)
-    {
-        this.value = value;
-    }
+  /**
+   * Creates a mutable long with the supplied value.
+   */
+  public MutableLong (long value)
+  {
+    this.value = value;
+  }
 
-    /**
-     * Creates a mutable long with a value of zero.
-     */
-    public MutableLong ()
-    {
-    }
+  /**
+   * Creates a mutable long with a value of zero.
+   */
+  public MutableLong ()
+  {
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return (int)(value ^ (value >>> 32));
-    }
+  @Override
+  public int hashCode ()
+  {
+    return (int)(value ^ (value >>> 32));
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof MutableLong && ((MutableLong)other).value == value;
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof MutableLong && ((MutableLong)other).value == value;
+  }
 
-    @Override
-    public String toString ()
-    {
-        return String.valueOf(value);
-    }
+  @Override
+  public String toString ()
+  {
+    return String.valueOf(value);
+  }
 }

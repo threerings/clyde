@@ -38,161 +38,161 @@ import static com.threerings.ClydeLog.log;
  */
 public class WeakObserverSet<T>
 {
+  /**
+   * Instances of this interface are used to apply methods to all observers in a set.
+   */
+  public static interface ObserverOp<T>
+  {
     /**
-     * Instances of this interface are used to apply methods to all observers in a set.
+     * Called once for each observer in the set.
+     *
+     * @return true if the observer should remain in the set, false if it should be removed in
+     * response to this application.
      */
-    public static interface ObserverOp<T>
+    public boolean apply (T observer);
+  }
+
+  /**
+   * A convenience method for creating an observer set that avoids duplicating the type
+   * parameter on the right hand side.
+   */
+  public static <T> WeakObserverSet<T> newSet ()
+  {
+    return new WeakObserverSet<T>();
+  }
+
+  /**
+   * Adds an observer to the set.
+   */
+  public boolean add (T observer)
+  {
+    if (_set.add(new ObserverRef<T>(observer))) {
+      _dirty = true;
+      return true;
+    }
+    log.warning("Observer attempted to observe set it's already observing!",
+      "observer", observer, new Exception());
+    return false;
+  }
+
+  /**
+   * Removes an observer from the set.
+   */
+  public boolean remove (T observer)
+  {
+    boolean removed = _set.remove(new ObserverRef<T>(observer));
+    if (removed) {
+      _dirty = true;
+    }
+    return removed;
+  }
+
+  /**
+   * Checks whether the set is empty.
+   */
+  public boolean isEmpty ()
+  {
+    return _set.isEmpty();
+  }
+
+  /**
+   * Applies the specified operation to all observers in the set.
+   */
+  public void apply (ObserverOp<T> obop)
+  {
+    int ocount = _set.size();
+    if (ocount == 0) {
+      return;
+    }
+    if (_dirty) {
+      if (_snap == null || _snap.length < ocount || _snap.length > (ocount << 3)) {
+        @SuppressWarnings("unchecked") ObserverRef<T>[] snap =
+          (ObserverRef<T>[])new ObserverRef<?>[ocount];
+        _snap = snap;
+      }
+      int idx = 0;
+      for (Iterator<ObserverRef<T>> it = _set.iterator(); it.hasNext(); ) {
+        ObserverRef<T> ref = it.next();
+        if (ref.get() != null) {
+          _snap[idx++] = ref;
+        } else {
+          it.remove();
+        }
+      }
+      ocount = idx;
+      _dirty = false;
+    }
+    for (int ii = 0; ii < ocount; ii++) {
+      T observer = _snap[ii].get();
+      if (observer != null) {
+        if (!checkedApply(obop, observer)) {
+          remove(observer);
+        }
+      } else {
+        _dirty = true; // remove on next application
+      }
+    }
+  }
+
+  @Override
+  public String toString ()
+  {
+    return _set.toString();
+  }
+
+  /**
+   * Applies the operation to the observer, catching and logging any exceptions thrown in the
+   * process.
+   */
+  protected static <T> boolean checkedApply (ObserverOp<T> obop, T obs)
+  {
+    try {
+      return obop.apply(obs);
+    } catch (Throwable thrown) {
+      log.warning("ObserverOp choked during notification", "op", obop, "obs", obs, thrown);
+      // if they booched it, definitely don't remove them
+      return true;
+    }
+  }
+
+  /**
+   * Represents a reference to an observer.
+   */
+  protected static class ObserverRef<T> extends WeakReference<T>
+  {
+    /**
+     * Creates a new reference.
+     */
+    public ObserverRef (T referent)
     {
-        /**
-         * Called once for each observer in the set.
-         *
-         * @return true if the observer should remain in the set, false if it should be removed in
-         * response to this application.
-         */
-        public boolean apply (T observer);
+      super(referent);
     }
 
-    /**
-     * A convenience method for creating an observer set that avoids duplicating the type
-     * parameter on the right hand side.
-     */
-    public static <T> WeakObserverSet<T> newSet ()
+    @Override
+    public int hashCode ()
     {
-        return new WeakObserverSet<T>();
+      return System.identityHashCode(get());
     }
 
-    /**
-     * Adds an observer to the set.
-     */
-    public boolean add (T observer)
+    @Override
+    public boolean equals (Object other)
     {
-        if (_set.add(new ObserverRef<T>(observer))) {
-            _dirty = true;
-            return true;
-        }
-        log.warning("Observer attempted to observe set it's already observing!",
-            "observer", observer, new Exception());
-        return false;
-    }
-
-    /**
-     * Removes an observer from the set.
-     */
-    public boolean remove (T observer)
-    {
-        boolean removed = _set.remove(new ObserverRef<T>(observer));
-        if (removed) {
-            _dirty = true;
-        }
-        return removed;
-    }
-
-    /**
-     * Checks whether the set is empty.
-     */
-    public boolean isEmpty ()
-    {
-        return _set.isEmpty();
-    }
-
-    /**
-     * Applies the specified operation to all observers in the set.
-     */
-    public void apply (ObserverOp<T> obop)
-    {
-        int ocount = _set.size();
-        if (ocount == 0) {
-            return;
-        }
-        if (_dirty) {
-            if (_snap == null || _snap.length < ocount || _snap.length > (ocount << 3)) {
-                @SuppressWarnings("unchecked") ObserverRef<T>[] snap =
-                    (ObserverRef<T>[])new ObserverRef<?>[ocount];
-                _snap = snap;
-            }
-            int idx = 0;
-            for (Iterator<ObserverRef<T>> it = _set.iterator(); it.hasNext(); ) {
-                ObserverRef<T> ref = it.next();
-                if (ref.get() != null) {
-                    _snap[idx++] = ref;
-                } else {
-                    it.remove();
-                }
-            }
-            ocount = idx;
-            _dirty = false;
-        }
-        for (int ii = 0; ii < ocount; ii++) {
-            T observer = _snap[ii].get();
-            if (observer != null) {
-                if (!checkedApply(obop, observer)) {
-                    remove(observer);
-                }
-            } else {
-                _dirty = true; // remove on next application
-            }
-        }
+      return get() == ((ObserverRef<?>)other).get();
     }
 
     @Override
     public String toString ()
     {
-        return _set.toString();
+      return String.valueOf(get());
     }
+  }
 
-    /**
-     * Applies the operation to the observer, catching and logging any exceptions thrown in the
-     * process.
-     */
-    protected static <T> boolean checkedApply (ObserverOp<T> obop, T obs)
-    {
-        try {
-            return obop.apply(obs);
-        } catch (Throwable thrown) {
-            log.warning("ObserverOp choked during notification", "op", obop, "obs", obs, thrown);
-            // if they booched it, definitely don't remove them
-            return true;
-        }
-    }
+  /** The contained set. */
+  protected LinkedHashSet<ObserverRef<T>> _set = new LinkedHashSet<ObserverRef<T>>();
 
-    /**
-     * Represents a reference to an observer.
-     */
-    protected static class ObserverRef<T> extends WeakReference<T>
-    {
-        /**
-         * Creates a new reference.
-         */
-        public ObserverRef (T referent)
-        {
-            super(referent);
-        }
+  /** A snapshot of the set. */
+  protected ObserverRef<T>[] _snap;
 
-        @Override
-        public int hashCode ()
-        {
-            return System.identityHashCode(get());
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            return get() == ((ObserverRef<?>)other).get();
-        }
-
-        @Override
-        public String toString ()
-        {
-            return String.valueOf(get());
-        }
-    }
-
-    /** The contained set. */
-    protected LinkedHashSet<ObserverRef<T>> _set = new LinkedHashSet<ObserverRef<T>>();
-
-    /** A snapshot of the set. */
-    protected ObserverRef<T>[] _snap;
-
-    /** Set when we need to update the snapshot. */
-    protected boolean _dirty = true;
+  /** Set when we need to update the snapshot. */
+  protected boolean _dirty = true;
 }

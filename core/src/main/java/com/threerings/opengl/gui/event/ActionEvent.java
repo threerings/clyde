@@ -31,56 +31,56 @@ package com.threerings.opengl.gui.event;
  */
 public class ActionEvent extends InputEvent
 {
-    public ActionEvent (Object source, long when, int modifiers, String action)
-    {
-        this(source, when, modifiers, action, null);
-    }
+  public ActionEvent (Object source, long when, int modifiers, String action)
+  {
+    this(source, when, modifiers, action, null);
+  }
 
-    public ActionEvent (Object source, long when, int modifiers, String action, Object argument)
-    {
-        super(source, when, modifiers);
-        _action = action;
-        _argument = argument;
-    }
+  public ActionEvent (Object source, long when, int modifiers, String action, Object argument)
+  {
+    super(source, when, modifiers);
+    _action = action;
+    _argument = argument;
+  }
 
-    /**
-     * Returns the action associated with this event.
-     */
-    public String getAction ()
-    {
-        return _action;
-    }
+  /**
+   * Returns the action associated with this event.
+   */
+  public String getAction ()
+  {
+    return _action;
+  }
 
-    /**
-     * Returns the argument associated with this event.
-     */
-    public Object getArgument ()
-    {
-        return _argument;
-    }
+  /**
+   * Returns the argument associated with this event.
+   */
+  public Object getArgument ()
+  {
+    return _argument;
+  }
 
-    // documentation inherited
-    public void dispatch (ComponentListener listener)
-    {
-        super.dispatch(listener);
-        if (listener instanceof ActionListener) {
-            ((ActionListener)listener).actionPerformed(this);
-        }
+  // documentation inherited
+  public void dispatch (ComponentListener listener)
+  {
+    super.dispatch(listener);
+    if (listener instanceof ActionListener) {
+      ((ActionListener)listener).actionPerformed(this);
     }
+  }
 
-    // documentation inherited
-    public boolean propagateUpHierarchy ()
-    {
-        return false;
-    }
+  // documentation inherited
+  public boolean propagateUpHierarchy ()
+  {
+    return false;
+  }
 
-    protected void toString (StringBuilder buf)
-    {
-        super.toString(buf);
-        buf.append(", action=").append(_action);
-        buf.append(", argument=").append(_argument);
-    }
+  protected void toString (StringBuilder buf)
+  {
+    super.toString(buf);
+    buf.append(", action=").append(_action);
+    buf.append(", argument=").append(_argument);
+  }
 
-    protected String _action;
-    protected Object _argument;
+  protected String _action;
+  protected Object _argument;
 }

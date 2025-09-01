@@ -39,76 +39,76 @@ import com.threerings.opengl.renderer.state.FogState;
  * Base class for things that influence scene elements.
  */
 public abstract class SceneInfluence extends ShallowObject
-    implements SceneObject
+  implements SceneObject
 {
-    /**
-     * Returns the ambient light color associated with this influence, or <code>null</code> for
-     * none.
-     */
-    public Color4f getAmbientLight ()
-    {
-        return null;
+  /**
+   * Returns the ambient light color associated with this influence, or <code>null</code> for
+   * none.
+   */
+  public Color4f getAmbientLight ()
+  {
+    return null;
+  }
+
+  /**
+   * Returns the fog state associated with this influence, or <code>null</code> for none.
+   */
+  public FogState getFogState ()
+  {
+    return null;
+  }
+
+  /**
+   * Returns the light associated with this influence, or <code>null</code> for none.
+   */
+  public Light getLight ()
+  {
+    return null;
+  }
+
+  /**
+   * Returns the projection associated with this influence, or <code>null</code> for none.
+   */
+  public Projection getProjection ()
+  {
+    return null;
+  }
+
+  /**
+   * Returns the definitions associated with this influence, or <code>null</code> for none.
+   */
+  public Tuple<String, Object>[] getDefinitions ()
+  {
+    return null;
+  }
+
+  /**
+   * Resets the influence.
+   */
+  public void reset ()
+  {
+    // nothing by default
+  }
+
+  // documentation inherited from interface SceneObject
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  // documentation inherited from interface SceneObject
+  public boolean updateLastVisit (int visit)
+  {
+    if (_lastVisit == visit) {
+      return false;
     }
+    _lastVisit = visit;
+    return true;
+  }
 
-    /**
-     * Returns the fog state associated with this influence, or <code>null</code> for none.
-     */
-    public FogState getFogState ()
-    {
-        return null;
-    }
+  /** The bounds of the influence. */
+  protected Box _bounds = new Box();
 
-    /**
-     * Returns the light associated with this influence, or <code>null</code> for none.
-     */
-    public Light getLight ()
-    {
-        return null;
-    }
-
-    /**
-     * Returns the projection associated with this influence, or <code>null</code> for none.
-     */
-    public Projection getProjection ()
-    {
-        return null;
-    }
-
-    /**
-     * Returns the definitions associated with this influence, or <code>null</code> for none.
-     */
-    public Tuple<String, Object>[] getDefinitions ()
-    {
-        return null;
-    }
-
-    /**
-     * Resets the influence.
-     */
-    public void reset ()
-    {
-        // nothing by default
-    }
-
-    // documentation inherited from interface SceneObject
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
-
-    // documentation inherited from interface SceneObject
-    public boolean updateLastVisit (int visit)
-    {
-        if (_lastVisit == visit) {
-            return false;
-        }
-        _lastVisit = visit;
-        return true;
-    }
-
-    /** The bounds of the influence. */
-    protected Box _bounds = new Box();
-
-    /** The visitation id of the last visit. */
-    protected int _lastVisit;
+  /** The visitation id of the last visit. */
+  protected int _lastVisit;
 }

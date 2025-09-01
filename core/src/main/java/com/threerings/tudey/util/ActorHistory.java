@@ -36,185 +36,185 @@ import com.threerings.tudey.data.actor.Actor;
  */
 public class ActorHistory
 {
+  /**
+   * Creates a new history with the provided initial time and state.
+   */
+  public ActorHistory (int timestamp, Actor actor, int duration)
+  {
+    _duration = duration;
+    init(timestamp, actor);
+  }
+
+  /**
+   * (Re)initializes the history.
+   */
+  public void init (int timestamp, Actor actor)
+  {
+    _entries.clear();
+    record(timestamp, actor, true);
+  }
+
+  /**
+   * Records a state in the stream.
+   */
+  public void record (int timestamp, Actor actor, boolean updated)
+  {
+    // add the new entry
+    _entries.add(new Entry(timestamp, actor));
+    if (updated) {
+      _lastUpdate = timestamp;
+      _seenLast = false;
+    }
+
+    // remove any out-of-date entries
+    int oldest = timestamp - _duration;
+    while (_entries.get(0).getTimestamp() < oldest) {
+      _entries.remove(0);
+    }
+  }
+
+  /**
+   * Determines whether the actor has yet been created at the specified timestamp.
+   */
+  public boolean isCreated (int timestamp)
+  {
+    return timestamp >= _entries.get(0).getActor().getCreated();
+  }
+
+  /**
+   * Determines whether the actor has been destroyed at the specified timestamp.
+   */
+  public boolean isDestroyed (int timestamp)
+  {
+    return timestamp >= _entries.get(_entries.size() - 1).getActor().getDestroyed();
+  }
+
+  /**
+   * Returns the actor state from the last recieved entry.
+   */
+  public Actor getLastKnownActor ()
+  {
+    return _entries.get(_entries.size() - 1).getActor();
+  }
+
+  /**
+   * Finds the state at the specified timestamp and places it into the result object.
+   */
+  public boolean get (int timestamp, Actor result, boolean isStatic)
+  {
+    if (_seenLast && isStatic) {
+      return false;
+    }
+    _seenLast = timestamp >= _lastUpdate;
+    // extrapolate if before start or after end
+    Entry start = _entries.get(0);
+    if (timestamp <= start.getTimestamp()) {
+      start.extrapolate(timestamp, result);
+      return true;
+    }
+    int eidx = _entries.size() - 1;
+    Entry end = _entries.get(eidx);
+    if (timestamp >= end.getTimestamp()) {
+      end.extrapolate(timestamp, result);
+      return true;
+    }
+
+    // otherwise, use an interpolation search to find the closest two historical positions
+    int sidx = 0, dist;
+    while ((dist = eidx - sidx) != 1) {
+      int midx;
+      if (dist == 2) {
+        midx = sidx + 1;
+      } else {
+        midx = sidx +
+          Math.min(Math.max(
+            FloatMath.round(dist * start.getPortion(end, timestamp)),
+          1), dist - 1);
+      }
+      Entry middle = _entries.get(midx);
+      if (timestamp < middle.getTimestamp()) {
+        eidx = midx;
+        end = middle;
+      } else { // time >= middle.getTimestamp()
+        sidx = midx;
+        start = middle;
+      }
+    }
+    start.interpolate(end, timestamp, result);
+    return true;
+  }
+
+  /**
+   * A single historical entry.
+   */
+  protected static class Entry
+  {
     /**
-     * Creates a new history with the provided initial time and state.
+     * Creates a new entry.
      */
-    public ActorHistory (int timestamp, Actor actor, int duration)
+    public Entry (int timestamp, Actor actor)
     {
-        _duration = duration;
-        init(timestamp, actor);
+      _timestamp = timestamp;
+      _actor = actor;
     }
 
     /**
-     * (Re)initializes the history.
+     * Returns the timestamp of the entry.
      */
-    public void init (int timestamp, Actor actor)
+    public int getTimestamp ()
     {
-        _entries.clear();
-        record(timestamp, actor, true);
+      return _timestamp;
     }
 
     /**
-     * Records a state in the stream.
+     * Returns a reference to the actor state.
      */
-    public void record (int timestamp, Actor actor, boolean updated)
+    public Actor getActor ()
     {
-        // add the new entry
-        _entries.add(new Entry(timestamp, actor));
-        if (updated) {
-            _lastUpdate = timestamp;
-            _seenLast = false;
-        }
-
-        // remove any out-of-date entries
-        int oldest = timestamp - _duration;
-        while (_entries.get(0).getTimestamp() < oldest) {
-            _entries.remove(0);
-        }
+      return _actor;
     }
 
     /**
-     * Determines whether the actor has yet been created at the specified timestamp.
+     * Extrapolates from this entry to the specified timestamp.
      */
-    public boolean isCreated (int timestamp)
+    public Actor extrapolate (int timestamp, Actor result)
     {
-        return timestamp >= _entries.get(0).getActor().getCreated();
+      return _actor.extrapolate((timestamp - _timestamp) / 1000f, timestamp, result);
     }
 
     /**
-     * Determines whether the actor has been destroyed at the specified timestamp.
+     * Interpolates between this entry and another.
      */
-    public boolean isDestroyed (int timestamp)
+    public Actor interpolate (Entry other, int timestamp, Actor result)
     {
-        return timestamp >= _entries.get(_entries.size() - 1).getActor().getDestroyed();
+      return _actor.interpolate(
+        other.getActor(), _timestamp, other.getTimestamp(), timestamp, result);
     }
 
     /**
-     * Returns the actor state from the last recieved entry.
+     * Returns the portion of time elapsed between this and the specified other entry.
      */
-    public Actor getLastKnownActor ()
+    public float getPortion (Entry other, int timestamp)
     {
-        return _entries.get(_entries.size() - 1).getActor();
+      return (float)(timestamp - _timestamp) / (other.getTimestamp() - _timestamp);
     }
 
-    /**
-     * Finds the state at the specified timestamp and places it into the result object.
-     */
-    public boolean get (int timestamp, Actor result, boolean isStatic)
-    {
-        if (_seenLast && isStatic) {
-            return false;
-        }
-        _seenLast = timestamp >= _lastUpdate;
-        // extrapolate if before start or after end
-        Entry start = _entries.get(0);
-        if (timestamp <= start.getTimestamp()) {
-            start.extrapolate(timestamp, result);
-            return true;
-        }
-        int eidx = _entries.size() - 1;
-        Entry end = _entries.get(eidx);
-        if (timestamp >= end.getTimestamp()) {
-            end.extrapolate(timestamp, result);
-            return true;
-        }
+    /** The timestamp of this entry. */
+    protected int _timestamp;
 
-        // otherwise, use an interpolation search to find the closest two historical positions
-        int sidx = 0, dist;
-        while ((dist = eidx - sidx) != 1) {
-            int midx;
-            if (dist == 2) {
-                midx = sidx + 1;
-            } else {
-                midx = sidx +
-                    Math.min(Math.max(
-                        FloatMath.round(dist * start.getPortion(end, timestamp)),
-                    1), dist - 1);
-            }
-            Entry middle = _entries.get(midx);
-            if (timestamp < middle.getTimestamp()) {
-                eidx = midx;
-                end = middle;
-            } else { // time >= middle.getTimestamp()
-                sidx = midx;
-                start = middle;
-            }
-        }
-        start.interpolate(end, timestamp, result);
-        return true;
-    }
+    /** The actor state. */
+    protected Actor _actor;
+  }
 
-    /**
-     * A single historical entry.
-     */
-    protected static class Entry
-    {
-        /**
-         * Creates a new entry.
-         */
-        public Entry (int timestamp, Actor actor)
-        {
-            _timestamp = timestamp;
-            _actor = actor;
-        }
+  /** The amount of time to retain entries. */
+  protected int _duration;
 
-        /**
-         * Returns the timestamp of the entry.
-         */
-        public int getTimestamp ()
-        {
-            return _timestamp;
-        }
+  /** The stored list of entries. */
+  protected ArrayList<Entry> _entries = new ArrayList<Entry>();
 
-        /**
-         * Returns a reference to the actor state.
-         */
-        public Actor getActor ()
-        {
-            return _actor;
-        }
+  /** If the last entry has been seen by the actor sprite. */
+  protected boolean _seenLast;
 
-        /**
-         * Extrapolates from this entry to the specified timestamp.
-         */
-        public Actor extrapolate (int timestamp, Actor result)
-        {
-            return _actor.extrapolate((timestamp - _timestamp) / 1000f, timestamp, result);
-        }
-
-        /**
-         * Interpolates between this entry and another.
-         */
-        public Actor interpolate (Entry other, int timestamp, Actor result)
-        {
-            return _actor.interpolate(
-                other.getActor(), _timestamp, other.getTimestamp(), timestamp, result);
-        }
-
-        /**
-         * Returns the portion of time elapsed between this and the specified other entry.
-         */
-        public float getPortion (Entry other, int timestamp)
-        {
-            return (float)(timestamp - _timestamp) / (other.getTimestamp() - _timestamp);
-        }
-
-        /** The timestamp of this entry. */
-        protected int _timestamp;
-
-        /** The actor state. */
-        protected Actor _actor;
-    }
-
-    /** The amount of time to retain entries. */
-    protected int _duration;
-
-    /** The stored list of entries. */
-    protected ArrayList<Entry> _entries = new ArrayList<Entry>();
-
-    /** If the last entry has been seen by the actor sprite. */
-    protected boolean _seenLast;
-
-    /** The timestamp of the last update. */
-    protected int _lastUpdate;
+  /** The timestamp of the last update. */
+  protected int _lastUpdate;
 }

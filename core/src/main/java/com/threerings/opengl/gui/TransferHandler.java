@@ -37,86 +37,86 @@ import com.threerings.opengl.gui.icon.Icon;
  */
 public class TransferHandler
 {
-    /** Indicates that no source actions are supported. */
-    public static final int NONE = 0;
+  /** Indicates that no source actions are supported. */
+  public static final int NONE = 0;
 
-    /** Indicates that only the copy action is supported. */
-    public static final int COPY = (1 << 0);
+  /** Indicates that only the copy action is supported. */
+  public static final int COPY = (1 << 0);
 
-    /** Indicates that the move action is supported. */
-    public static final int MOVE = (1 << 1);
+  /** Indicates that the move action is supported. */
+  public static final int MOVE = (1 << 1);
 
-    /** Indicates that the copy and move actions are supported. */
-    public static final int COPY_OR_MOVE = (COPY | MOVE);
+  /** Indicates that the copy and move actions are supported. */
+  public static final int COPY_OR_MOVE = (COPY | MOVE);
 
-    /**
-     * Returns the source actions supported by the specified component.
-     *
-     * @return a bitwise OR of the action flags, COPY or MOVE.
-     */
-    public int getSourceActions (Component comp)
-    {
-        return NONE;
-    }
+  /**
+   * Returns the source actions supported by the specified component.
+   *
+   * @return a bitwise OR of the action flags, COPY or MOVE.
+   */
+  public int getSourceActions (Component comp)
+  {
+    return NONE;
+  }
 
-    /**
-     * Initiates a drag operation.
-     */
-    public void exportAsDrag (Component comp, InputEvent event, int action)
-    {
-        comp.getWindow().getRoot().startDrag(this, comp, action);
-    }
+  /**
+   * Initiates a drag operation.
+   */
+  public void exportAsDrag (Component comp, InputEvent event, int action)
+  {
+    comp.getWindow().getRoot().startDrag(this, comp, action);
+  }
 
-    /**
-     * Exports from the specified component to the given clipboard.
-     */
-    public void exportToClipboard (Component comp, Clipboard clipboard, int action)
-    {
-        Transferable data = createTransferable(comp);
-        clipboard.setContents(data, null);
-        exportDone(comp, data, action);
-    }
+  /**
+   * Exports from the specified component to the given clipboard.
+   */
+  public void exportToClipboard (Component comp, Clipboard clipboard, int action)
+  {
+    Transferable data = createTransferable(comp);
+    clipboard.setContents(data, null);
+    exportDone(comp, data, action);
+  }
 
-    /**
-     * Returns the visual representation for the specified transferable, or null to use the
-     * default.
-     */
-    public Icon getVisualRepresentation (Transferable data)
-    {
-        return null;
-    }
+  /**
+   * Returns the visual representation for the specified transferable, or null to use the
+   * default.
+   */
+  public Icon getVisualRepresentation (Transferable data)
+  {
+    return null;
+  }
 
-    /**
-     * Determines whether the specified component can accept an import prior to attempting one.
-     */
-    public boolean canImport (Component comp, DataFlavor[] transferFlavors)
-    {
-        return false;
-    }
+  /**
+   * Determines whether the specified component can accept an import prior to attempting one.
+   */
+  public boolean canImport (Component comp, DataFlavor[] transferFlavors)
+  {
+    return false;
+  }
 
-    /**
-     * Attempts to import data from the specified component.
-     *
-     * @return true if the data was successfully imported, false if not.
-     */
-    public boolean importData (Component comp, Transferable data)
-    {
-        return false;
-    }
+  /**
+   * Attempts to import data from the specified component.
+   *
+   * @return true if the data was successfully imported, false if not.
+   */
+  public boolean importData (Component comp, Transferable data)
+  {
+    return false;
+  }
 
-    /**
-     * Creates the transferable to use as the source for a data transfer.
-     */
-    protected Transferable createTransferable (Component comp)
-    {
-        throw new UnsupportedOperationException();
-    }
+  /**
+   * Creates the transferable to use as the source for a data transfer.
+   */
+  protected Transferable createTransferable (Component comp)
+  {
+    throw new UnsupportedOperationException();
+  }
 
-    /**
-     * Invoked after data has been exported.
-     */
-    protected void exportDone (Component source, Transferable data, int action)
-    {
-        // nothing by default
-    }
+  /**
+   * Invoked after data has been exported.
+   */
+  protected void exportDone (Component source, Transferable data, int action)
+  {
+    // nothing by default
+  }
 }

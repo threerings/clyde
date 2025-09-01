@@ -35,17 +35,17 @@ import com.threerings.opengl.gui.util.Dimension;
  * Contains a configurable set of dimensions.
  */
 public class DimensionConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /** The dimensions. */
-    @Editable(hgroup="d")
-    public int width, height;
+  /** The dimensions. */
+  @Editable(hgroup="d")
+  public int width, height;
 
-    /**
-     * Creates a dimension object corresponding to this config.
-     */
-    public Dimension createDimension ()
-    {
-        return new Dimension(width, height);
-    }
+  /**
+   * Creates a dimension object corresponding to this config.
+   */
+  public Dimension createDimension ()
+  {
+    return new Dimension(width, height);
+  }
 }

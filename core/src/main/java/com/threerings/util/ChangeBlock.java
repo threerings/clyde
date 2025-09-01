@@ -46,25 +46,25 @@ package com.threerings.util;
  */
 public class ChangeBlock
 {
-    /**
-     * Attempts to enter the change block.
-     *
-     * @return true if the change block was successfully entered, false if already in the change
-     * block.
-     */
-    public boolean enter ()
-    {
-        return _changing ? false : (_changing = true);
-    }
+  /**
+   * Attempts to enter the change block.
+   *
+   * @return true if the change block was successfully entered, false if already in the change
+   * block.
+   */
+  public boolean enter ()
+  {
+    return _changing ? false : (_changing = true);
+  }
 
-    /**
-     * Leaves the change block.
-     */
-    public void leave ()
-    {
-        _changing = false;
-    }
+  /**
+   * Leaves the change block.
+   */
+  public void leave ()
+  {
+    _changing = false;
+  }
 
-    /** If true, the current thread is in the change block. */
-    protected boolean _changing;
+  /** If true, the current thread is in the change block. */
+  protected boolean _changing;
 }

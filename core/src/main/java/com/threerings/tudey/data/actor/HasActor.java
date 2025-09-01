@@ -30,8 +30,8 @@ package com.threerings.tudey.data.actor;
  */
 public interface HasActor
 {
-    /**
-     * Returns a reference to the actor object.
-     */
-    public Actor getActor ();
+  /**
+   * Returns a reference to the actor object.
+   */
+  public Actor getActor ();
 }

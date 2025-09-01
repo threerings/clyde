@@ -41,29 +41,29 @@ import com.threerings.config.ManagedConfig;
  */
 public class ConfigValidatorTask extends AbstractValidatorTask
 {
-    @Override
-    protected boolean validate (ConfigManager cfgmgr, Iterable<File> files, Validator validator)
-    {
-        // validate the base configs
-        boolean valid = cfgmgr.validateReferences(validator);
+  @Override
+  protected boolean validate (ConfigManager cfgmgr, Iterable<File> files, Validator validator)
+  {
+    // validate the base configs
+    boolean valid = cfgmgr.validateReferences(validator);
 
-        // validate the resource configs
-        ResourceManager rsrcmgr = cfgmgr.getResourceManager();
-        for (File source : files) {
-            String path = rsrcmgr.getResourcePath(source);
-            if (path == null) continue;
-            ManagedConfig config = cfgmgr.getResourceConfig(path);
-            if (config == null) continue;
-            validator.pushWhere(path);
-            try {
-                valid &= config.validateReferences(validator);
-            } catch (Exception e) {
-                throw new BuildException("Error validating '" + path + "': " + e);
-            } finally {
-                validator.popWhere();
-            }
-        }
-
-        return valid;
+    // validate the resource configs
+    ResourceManager rsrcmgr = cfgmgr.getResourceManager();
+    for (File source : files) {
+      String path = rsrcmgr.getResourcePath(source);
+      if (path == null) continue;
+      ManagedConfig config = cfgmgr.getResourceConfig(path);
+      if (config == null) continue;
+      validator.pushWhere(path);
+      try {
+        valid &= config.validateReferences(validator);
+      } catch (Exception e) {
+        throw new BuildException("Error validating '" + path + "': " + e);
+      } finally {
+        validator.popWhere();
+      }
     }
+
+    return valid;
+  }
 }

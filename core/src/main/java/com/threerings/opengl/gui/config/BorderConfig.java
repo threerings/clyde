@@ -43,66 +43,66 @@ import com.threerings.opengl.renderer.Color4f;
  */
 @EditorTypes({ BorderConfig.Solid.class, BorderConfig.Blank.class })
 public abstract class BorderConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * A solid border.
-     */
-    public static class Solid extends BorderConfig
+  /**
+   * A solid border.
+   */
+  public static class Solid extends BorderConfig
+  {
+    /** The color of the border. */
+    @Editable(mode="alpha", hgroup="t")
+    public Color4f color = new Color4f();
+
+    @Override
+    protected Border createBorder ()
     {
-        /** The color of the border. */
-        @Editable(mode="alpha", hgroup="t")
-        public Color4f color = new Color4f();
-
-        @Override
-        protected Border createBorder ()
-        {
-            return new LineBorder(color, thickness);
-        }
+      return new LineBorder(color, thickness);
     }
+  }
 
-    /**
-     * A blank border.
-     */
-    public static class Blank extends BorderConfig
+  /**
+   * A blank border.
+   */
+  public static class Blank extends BorderConfig
+  {
+    @Override
+    protected Border createBorder ()
     {
-        @Override
-        protected Border createBorder ()
-        {
-            return new EmptyBorder(thickness, thickness, thickness, thickness);
-        }
+      return new EmptyBorder(thickness, thickness, thickness, thickness);
     }
+  }
 
-    /** The thickness of the border. */
-    @Editable(hgroup="t")
-    public int thickness = 1;
+  /** The thickness of the border. */
+  @Editable(hgroup="t")
+  public int thickness = 1;
 
-    /**
-     * Returns the border corresponding to this config.
-     */
-    public Border getBorder ()
-    {
-        Border border = (_border == null) ? null : _border.get();
-        if (border == null) {
-            _border = new SoftReference<Border>(border = createBorder());
-        }
-        return border;
+  /**
+   * Returns the border corresponding to this config.
+   */
+  public Border getBorder ()
+  {
+    Border border = (_border == null) ? null : _border.get();
+    if (border == null) {
+      _border = new SoftReference<Border>(border = createBorder());
     }
+    return border;
+  }
 
-    /**
-     * Invalidates any cached data.
-     */
-    public void invalidate ()
-    {
-        _border = null;
-    }
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    _border = null;
+  }
 
-    /**
-     * Creates the border corresponding to this config.
-     */
-    protected abstract Border createBorder ();
+  /**
+   * Creates the border corresponding to this config.
+   */
+  protected abstract Border createBorder ();
 
-    /** The cached border. */
-    @DeepOmit
-    protected transient SoftReference<Border> _border;
+  /** The cached border. */
+  @DeepOmit
+  protected transient SoftReference<Border> _border;
 }

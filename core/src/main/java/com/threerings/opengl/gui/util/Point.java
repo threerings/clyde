@@ -29,77 +29,77 @@ package com.threerings.opengl.gui.util;
  * Represents the location of a component.
  */
 public class Point
-    implements Cloneable
+  implements Cloneable
 {
-    /** The x position of the entity in question. */
-    public int x;
+  /** The x position of the entity in question. */
+  public int x;
 
-    /** The y position of the entity in question. */
-    public int y;
+  /** The y position of the entity in question. */
+  public int y;
 
-    public Point (int x, int y)
-    {
-        set(x, y);
+  public Point (int x, int y)
+  {
+    set(x, y);
+  }
+
+  public Point (Point other)
+  {
+    set(other);
+  }
+
+  public Point ()
+  {
+  }
+
+  /**
+   * Sets the value of this point to that of the specified other.
+   */
+  public Point set (Point point)
+  {
+    return set(point.x, point.y);
+  }
+
+  /**
+   * Sets the value of this point.
+   *
+   * @return a reference to this point, for chaining.
+   */
+  public Point set (int x, int y)
+  {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+
+  @Override
+  public Point clone ()
+  {
+    try {
+      return (Point) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new AssertionError(e);
     }
+  }
 
-    public Point (Point other)
-    {
-        set(other);
-    }
+  @Override
+  public int hashCode ()
+  {
+    return x*31 + y;
+  }
 
-    public Point ()
-    {
+  @Override
+  public boolean equals (Object other)
+  {
+    if (!(other instanceof Point)) {
+      return false;
     }
+    Point opoint = (Point)other;
+    return x == opoint.x && y == opoint.y;
+  }
 
-    /**
-     * Sets the value of this point to that of the specified other.
-     */
-    public Point set (Point point)
-    {
-        return set(point.x, point.y);
-    }
-
-    /**
-     * Sets the value of this point.
-     *
-     * @return a reference to this point, for chaining.
-     */
-    public Point set (int x, int y)
-    {
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-
-    @Override
-    public Point clone ()
-    {
-        try {
-            return (Point) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    @Override
-    public int hashCode ()
-    {
-        return x*31 + y;
-    }
-
-    @Override
-    public boolean equals (Object other)
-    {
-        if (!(other instanceof Point)) {
-            return false;
-        }
-        Point opoint = (Point)other;
-        return x == opoint.x && y == opoint.y;
-    }
-
-    @Override
-    public String toString ()
-    {
-        return (x >= 0 ? "+" : "") + x + (y >= 0 ? "+" : "") + y;
-    }
+  @Override
+  public String toString ()
+  {
+    return (x >= 0 ? "+" : "") + x + (y >= 0 ? "+" : "") + y;
+  }
 }

@@ -30,8 +30,8 @@ package com.threerings.expr;
  */
 public interface Executor
 {
-    /**
-     * Executes the action.
-     */
-    public void execute ();
+  /**
+   * Executes the action.
+   */
+  public void execute ();
 }

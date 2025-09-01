@@ -40,18 +40,18 @@ import com.threerings.config.dist.client.DConfigService;
  * to the requesting client.
  */
 @Generated(value={"com.threerings.presents.tools.GenServiceTask"},
-           comments="Derived from DConfigService.java.")
+      comments="Derived from DConfigService.java.")
 public class DConfigMarshaller extends InvocationMarshaller<ClientObject>
-    implements DConfigService
+  implements DConfigService
 {
-    /** The method id used to dispatch {@link #updateConfigs} requests. */
-    public static final int UPDATE_CONFIGS = 1;
+  /** The method id used to dispatch {@link #updateConfigs} requests. */
+  public static final int UPDATE_CONFIGS = 1;
 
-    // from interface DConfigService
-    public void updateConfigs (ConfigEntry[] arg1, ConfigEntry[] arg2, ConfigKey[] arg3)
-    {
-        sendRequest(UPDATE_CONFIGS, new Object[] {
-            arg1, arg2, arg3
-        });
-    }
+  // from interface DConfigService
+  public void updateConfigs (ConfigEntry[] arg1, ConfigEntry[] arg2, ConfigKey[] arg3)
+  {
+    sendRequest(UPDATE_CONFIGS, new Object[] {
+      arg1, arg2, arg3
+    });
+  }
 }

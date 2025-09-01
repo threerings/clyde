@@ -36,18 +36,18 @@ import com.google.common.base.Function;
  */
 public interface PreparedEditable
 {
-    public static final Function<Object, Object> PREPARER = new Function<Object, Object>() {
-        public Object apply (Object instance)
-        {
-            if (instance instanceof PreparedEditable) {
-                ((PreparedEditable)instance).prepareInstanceToEdit();
-            }
-            return instance;
-        }
-    };
+  public static final Function<Object, Object> PREPARER = new Function<Object, Object>() {
+    public Object apply (Object instance)
+    {
+      if (instance instanceof PreparedEditable) {
+        ((PreparedEditable)instance).prepareInstanceToEdit();
+      }
+      return instance;
+    }
+  };
 
-    /**
-     * Called to prepare this instance to be edited. Can instantiate sub-objects.
-     */
-    void prepareInstanceToEdit ();
+  /**
+   * Called to prepare this instance to be edited. Can instantiate sub-objects.
+   */
+  void prepareInstanceToEdit ();
 }

@@ -45,152 +45,152 @@ import com.threerings.opengl.util.GlContext;
  * A static model implementation.
  */
 public class Static extends Model.Implementation
-    implements Enqueueable
+  implements Enqueueable
 {
-    /**
-     * Creates a new static implementation.
-     */
-    public Static (GlContext ctx, Scope parentScope, StaticConfig.Resolved config)
-    {
-        super(parentScope);
-        setConfig(ctx, config);
+  /**
+   * Creates a new static implementation.
+   */
+  public Static (GlContext ctx, Scope parentScope, StaticConfig.Resolved config)
+  {
+    super(parentScope);
+    setConfig(ctx, config);
+  }
+
+  /**
+   * Sets the configuration of this model.
+   */
+  public void setConfig (GlContext ctx, StaticConfig.Resolved config)
+  {
+    _ctx = ctx;
+    _config = config;
+    updateFromConfig();
+  }
+
+  // documentation inherited from interface Enqueueable
+  public void enqueue ()
+  {
+    // update the shared transform state
+    Transform3D modelview = _transformState.getModelview();
+    _parentViewTransform.compose(_localTransform, modelview);
+    _transformState.setDirty(true);
+  }
+
+  @Override
+  public int getInfluenceFlags ()
+  {
+    return _config.influenceFlags;
+  }
+
+  @Override
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  @Override
+  public void updateBounds ()
+  {
+    // update the world transform
+    if (_parentWorldTransform == null) {
+      _worldTransform.set(_localTransform);
+    } else {
+      _parentWorldTransform.compose(_localTransform, _worldTransform);
     }
 
-    /**
-     * Sets the configuration of this model.
-     */
-    public void setConfig (GlContext ctx, StaticConfig.Resolved config)
-    {
-        _ctx = ctx;
-        _config = config;
-        updateFromConfig();
+    // and the world bounds
+    _config.bounds.transform(_worldTransform, _nbounds);
+    if (!_bounds.equals(_nbounds)) {
+      ((Model)_parentScope).boundsWillChange(this);
+      _bounds.set(_nbounds);
+      ((Model)_parentScope).boundsDidChange(this);
     }
+  }
 
-    // documentation inherited from interface Enqueueable
-    public void enqueue ()
-    {
-        // update the shared transform state
-        Transform3D modelview = _transformState.getModelview();
-        _parentViewTransform.compose(_localTransform, modelview);
-        _transformState.setDirty(true);
+  @Override
+  public void drawBounds ()
+  {
+    DebugBounds.draw(_bounds, Color4f.WHITE);
+  }
+
+  @Override
+  public void dumpInfo (String prefix)
+  {
+    System.out.println(prefix + "Static: " + _worldTransform + " " + _bounds);
+  }
+
+  @Override
+  public boolean getIntersection (Ray3D ray, Vector3f result)
+  {
+    // we must transform the ray into model space before checking against the collision mesh
+    if (_config.collision == null || !_bounds.intersects(ray) ||
+        !_config.collision.getIntersection(ray.transform(
+          _worldTransform.invert()), result)) {
+      return false;
     }
+    // then transform it back if we get a hit
+    _worldTransform.transformPointLocal(result);
+    return true;
+  }
 
-    @Override
-    public int getInfluenceFlags ()
-    {
-        return _config.influenceFlags;
+  @Override
+  public void composite ()
+  {
+    // add an enqueueable to initialize the shared state
+    _ctx.getCompositor().addEnqueueable(this);
+
+    // composite the surfaces
+    for (Surface surface : _surfaces) {
+      surface.composite();
     }
+  }
 
-    @Override
-    public Box getBounds ()
-    {
-        return _bounds;
+  /**
+   * Updates the model to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    if (_surfaces != null) {
+      for (Surface surface : _surfaces) {
+        surface.dispose();
+      }
     }
+    _surfaces = createSurfaces(_ctx, this, _config.gmats);
+    updateBounds();
+  }
 
-    @Override
-    public void updateBounds ()
-    {
-        // update the world transform
-        if (_parentWorldTransform == null) {
-            _worldTransform.set(_localTransform);
-        } else {
-            _parentWorldTransform.compose(_localTransform, _worldTransform);
-        }
+  /** The application context. */
+  protected GlContext _ctx;
 
-        // and the world bounds
-        _config.bounds.transform(_worldTransform, _nbounds);
-        if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange(this);
-            _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange(this);
-        }
-    }
+  /** The model configuration. */
+  protected StaticConfig.Resolved _config;
 
-    @Override
-    public void drawBounds ()
-    {
-        DebugBounds.draw(_bounds, Color4f.WHITE);
-    }
+  /** The surfaces corresponding to each visible mesh. */
+  protected Surface[] _surfaces;
 
-    @Override
-    public void dumpInfo (String prefix)
-    {
-        System.out.println(prefix + "Static: " + _worldTransform + " " + _bounds);
-    }
+  /** The parent world transform. */
+  @Bound("worldTransform")
+  protected Transform3D _parentWorldTransform;
 
-    @Override
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        // we must transform the ray into model space before checking against the collision mesh
-        if (_config.collision == null || !_bounds.intersects(ray) ||
-                !_config.collision.getIntersection(ray.transform(
-                    _worldTransform.invert()), result)) {
-            return false;
-        }
-        // then transform it back if we get a hit
-        _worldTransform.transformPointLocal(result);
-        return true;
-    }
+  /** The parent view transform. */
+  @Bound("viewTransform")
+  protected Transform3D _parentViewTransform;
 
-    @Override
-    public void composite ()
-    {
-        // add an enqueueable to initialize the shared state
-        _ctx.getCompositor().addEnqueueable(this);
+  /** The local transform. */
+  @Bound
+  protected Transform3D _localTransform;
 
-        // composite the surfaces
-        for (Surface surface : _surfaces) {
-            surface.composite();
-        }
-    }
+  /** The world transform. */
+  @Scoped
+  protected Transform3D _worldTransform = new Transform3D();
 
-    /**
-     * Updates the model to match its new or modified configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        if (_surfaces != null) {
-            for (Surface surface : _surfaces) {
-                surface.dispose();
-            }
-        }
-        _surfaces = createSurfaces(_ctx, this, _config.gmats);
-        updateBounds();
-    }
+  /** The shared transform state. */
+  @Scoped
+  protected TransformState _transformState = new TransformState();
 
-    /** The application context. */
-    protected GlContext _ctx;
+  /** The bounds of the model. */
+  @Scoped
+  protected Box _bounds = new Box();
 
-    /** The model configuration. */
-    protected StaticConfig.Resolved _config;
-
-    /** The surfaces corresponding to each visible mesh. */
-    protected Surface[] _surfaces;
-
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
-
-    /** The parent view transform. */
-    @Bound("viewTransform")
-    protected Transform3D _parentViewTransform;
-
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
-
-    /** The world transform. */
-    @Scoped
-    protected Transform3D _worldTransform = new Transform3D();
-
-    /** The shared transform state. */
-    @Scoped
-    protected TransformState _transformState = new TransformState();
-
-    /** The bounds of the model. */
-    @Scoped
-    protected Box _bounds = new Box();
-
-    /** Holds the new bounds of the model when updating. */
-    protected Box _nbounds = new Box();
+  /** Holds the new bounds of the model when updating. */
+  protected Box _nbounds = new Box();
 }

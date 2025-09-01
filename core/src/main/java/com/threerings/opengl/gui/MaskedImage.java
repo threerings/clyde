@@ -46,89 +46,89 @@ import com.threerings.opengl.renderer.TextureUnit;
  */
 public class MaskedImage extends Image
 {
-    /**
-     * Creates a masked image from existing images.
-     */
-    public MaskedImage (Image image, Image mask)
-    {
-        super(image.getWidth(), image.getHeight());
-        _mask = mask;
-        if (image._units != null) {
-            setTexture((Texture2D)image._units[0].texture);
-        } else {
-            _image = image._image;
-        }
+  /**
+   * Creates a masked image from existing images.
+   */
+  public MaskedImage (Image image, Image mask)
+  {
+    super(image.getWidth(), image.getHeight());
+    _mask = mask;
+    if (image._units != null) {
+      setTexture((Texture2D)image._units[0].texture);
+    } else {
+      _image = image._image;
+    }
+  }
+
+  @Override
+  public void load (Renderer renderer, int format)
+  {
+    if (_units == null) {
+      super.load(renderer, format);
+    }
+    if (_units[1] == null) {
+      Texture2D mtex = _mask.getTexture(renderer);
+      _units[1] = new TextureUnit(mtex);
+    }
+  }
+
+  @Override
+  public void render (
+    Renderer renderer, int sx, int sy, int swidth, int sheight,
+    int tx, int ty, int twidth, int theight, Color4f color, float alpha)
+  {
+    // don't bother rendering if it's completely transparent
+    if (alpha == 0f) {
+      return;
     }
 
-    @Override
-    public void load (Renderer renderer, int format)
-    {
-        if (_units == null) {
-            super.load(renderer, format);
-        }
-        if (_units[1] == null) {
-            Texture2D mtex = _mask.getTexture(renderer);
-            _units[1] = new TextureUnit(mtex);
-        }
-    }
+    // initialize the texture units if necessary
+    load(renderer, -1);
+    float lx = sx / (float)_twidth;
+    float ly = sy / (float)_theight;
+    float ux = (sx+swidth) / (float)_twidth;
+    float uy = (sy+sheight) / (float)_theight;
 
-    @Override
-    public void render (
-        Renderer renderer, int sx, int sy, int swidth, int sheight,
-        int tx, int ty, int twidth, int theight, Color4f color, float alpha)
-    {
-        // don't bother rendering if it's completely transparent
-        if (alpha == 0f) {
-            return;
-        }
+    float mwidth = _mask.getWidth() / (float)_units[1].texture.getWidth();
+    float mheight = _mask.getHeight() / (float)_units[1].texture.getHeight();
+    float mls = sx / (float)twidth * mwidth;
+    float mus = (sx + swidth) / (float)twidth * mwidth;
+    float mlt = sy / (float)theight * mheight;
+    float mut = (sy + sheight) / (float)theight  * mheight;
 
-        // initialize the texture units if necessary
-        load(renderer, -1);
-        float lx = sx / (float)_twidth;
-        float ly = sy / (float)_theight;
-        float ux = (sx+swidth) / (float)_twidth;
-        float uy = (sy+sheight) / (float)_theight;
-
-        float mwidth = _mask.getWidth() / (float)_units[1].texture.getWidth();
-        float mheight = _mask.getHeight() / (float)_units[1].texture.getHeight();
-        float mls = sx / (float)twidth * mwidth;
-        float mus = (sx + swidth) / (float)twidth * mwidth;
-        float mlt = sy / (float)theight * mheight;
-        float mut = (sy + sheight) / (float)theight  * mheight;
-
-        float a = color.a * alpha;
-        renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
-        renderer.setTextureState(_units);
-        renderer.setMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glBegin(GL11.GL_QUADS);
-        GL11.glTexCoord2f(lx, ly);
-        ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mls, mlt);
-        GL11.glVertex2f(tx, ty);
-        GL11.glTexCoord2f(ux, ly);
-        ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mus, mlt);
-        GL11.glVertex2f(tx+twidth, ty);
-        GL11.glTexCoord2f(ux, uy);
-        ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mus, mut);
-        GL11.glVertex2f(tx+twidth, ty+theight);
-        GL11.glTexCoord2f(lx, uy);
-        ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mls, mut);
-        GL11.glVertex2f(tx, ty+theight);
-        GL11.glEnd();
-    }
+    float a = color.a * alpha;
+    renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
+    renderer.setTextureState(_units);
+    renderer.setMatrixMode(GL11.GL_MODELVIEW);
+    GL11.glBegin(GL11.GL_QUADS);
+    GL11.glTexCoord2f(lx, ly);
+    ARBMultitexture.glMultiTexCoord2fARB(
+      ARBMultitexture.GL_TEXTURE1_ARB, mls, mlt);
+    GL11.glVertex2f(tx, ty);
+    GL11.glTexCoord2f(ux, ly);
+    ARBMultitexture.glMultiTexCoord2fARB(
+      ARBMultitexture.GL_TEXTURE1_ARB, mus, mlt);
+    GL11.glVertex2f(tx+twidth, ty);
+    GL11.glTexCoord2f(ux, uy);
+    ARBMultitexture.glMultiTexCoord2fARB(
+      ARBMultitexture.GL_TEXTURE1_ARB, mus, mut);
+    GL11.glVertex2f(tx+twidth, ty+theight);
+    GL11.glTexCoord2f(lx, uy);
+    ARBMultitexture.glMultiTexCoord2fARB(
+      ARBMultitexture.GL_TEXTURE1_ARB, mls, mut);
+    GL11.glVertex2f(tx, ty+theight);
+    GL11.glEnd();
+  }
 
 
-    @Override
-    protected void setTexture (Texture2D texture)
-    {
-        _twidth = texture.getWidth();
-        _theight = texture.getHeight();
-        _units = new TextureUnit[2];
-        _units[0] = new TextureUnit(texture);
-    }
+  @Override
+  protected void setTexture (Texture2D texture)
+  {
+    _twidth = texture.getWidth();
+    _theight = texture.getHeight();
+    _units = new TextureUnit[2];
+    _units[0] = new TextureUnit(texture);
+  }
 
-    protected Image _mask;
+  protected Image _mask;
 }

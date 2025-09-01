@@ -40,189 +40,189 @@ import static com.threerings.opengl.gui.Log.log;
  * Manages a group of {@link ToggleButton}s, ensuring that only one is selected at any given time.
  */
 public class ButtonGroup
-    implements ActionListener, Selectable<ToggleButton>, Iterable<ToggleButton>
+  implements ActionListener, Selectable<ToggleButton>, Iterable<ToggleButton>
 {
-    /**
-     * Creates a new button group in which one button is always selected.
-     *
-     * @param buttons the buttons in the group.
-     */
-    public ButtonGroup (ToggleButton... buttons)
-    {
-        this(true, buttons);
+  /**
+   * Creates a new button group in which one button is always selected.
+   *
+   * @param buttons the buttons in the group.
+   */
+  public ButtonGroup (ToggleButton... buttons)
+  {
+    this(true, buttons);
+  }
+
+  /**
+   * Creates a new button group.
+   *
+   * @param alwaysSelect if true and the group contains at least one button, one button must
+   * always be selected.
+   * @param buttons the buttons in the group.
+   */
+  public ButtonGroup (boolean alwaysSelect, ToggleButton... buttons)
+  {
+    _alwaysSelect = alwaysSelect;
+    for (ToggleButton button : buttons) {
+      add(button);
     }
+  }
 
-    /**
-     * Creates a new button group.
-     *
-     * @param alwaysSelect if true and the group contains at least one button, one button must
-     * always be selected.
-     * @param buttons the buttons in the group.
-     */
-    public ButtonGroup (boolean alwaysSelect, ToggleButton... buttons)
-    {
-        _alwaysSelect = alwaysSelect;
-        for (ToggleButton button : buttons) {
-            add(button);
-        }
+  /**
+   * Adds a listener for selection changes.
+   */
+  public void addListener (ActionListener listener)
+  {
+    _listeners.add(listener);
+  }
+
+  /**
+   * Removes a selection change listener.
+   */
+  public void removeListener (ActionListener listener)
+  {
+    _listeners.remove(listener);
+  }
+
+  /**
+   * Adds a button to the group.
+   */
+  public void add (ToggleButton button)
+  {
+    if (getSelectedIndex() != -1) {
+      button.setSelected(false);
+    } else if (_alwaysSelect) {
+      button.setSelected(true);
     }
+    _buttons.add(button);
+    button.addListener(this);
+  }
 
-    /**
-     * Adds a listener for selection changes.
-     */
-    public void addListener (ActionListener listener)
-    {
-        _listeners.add(listener);
+  /**
+   * Removes a button from the group.
+   */
+  public void remove (ToggleButton button)
+  {
+    _buttons.remove(button);
+    button.removeListener(this);
+    if (_alwaysSelect && button.isSelected() && !_buttons.isEmpty()) {
+      _buttons.get(0).setSelected(true);
     }
+  }
 
-    /**
-     * Removes a selection change listener.
-     */
-    public void removeListener (ActionListener listener)
-    {
-        _listeners.remove(listener);
+  /**
+   * Removes all of the buttons in the group.
+   */
+  public void removeAll ()
+  {
+    for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
+      _buttons.get(ii).removeListener(this);
     }
+    _buttons.clear();
+  }
 
-    /**
-     * Adds a button to the group.
-     */
-    public void add (ToggleButton button)
-    {
-        if (getSelectedIndex() != -1) {
-            button.setSelected(false);
-        } else if (_alwaysSelect) {
-            button.setSelected(true);
-        }
-        _buttons.add(button);
-        button.addListener(this);
+  /**
+   * Returns the number of buttons in the group.
+   */
+  public int getButtonCount ()
+  {
+    return _buttons.size();
+  }
+
+  /**
+   * Sets the always select state. If set to true and no button is selected, it will
+   * automatically select the first button in the group.
+   */
+  public void setAlwaysSelect (boolean alwaysSelect)
+  {
+    _alwaysSelect = alwaysSelect;
+    if (_alwaysSelect && getSelectedIndex() == -1 && getButtonCount() > 0) {
+      setSelected(_buttons.get(0));
     }
+  }
 
-    /**
-     * Removes a button from the group.
-     */
-    public void remove (ToggleButton button)
-    {
-        _buttons.remove(button);
-        button.removeListener(this);
-        if (_alwaysSelect && button.isSelected() && !_buttons.isEmpty()) {
-            _buttons.get(0).setSelected(true);
-        }
+  // from Selectable<ToggleButton>
+  public ToggleButton getSelected ()
+  {
+    int idx = getSelectedIndex();
+    return (idx == -1) ? null : _buttons.get(idx);
+  }
+
+  // from Selectable<ToggleButton>
+  public void setSelected (ToggleButton button)
+  {
+    if (!button.isSelected()) {
+      button.setSelected(true);
+      selectionChanged(button, 0L, 0);
     }
+  }
 
-    /**
-     * Removes all of the buttons in the group.
-     */
-    public void removeAll ()
-    {
-        for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
-            _buttons.get(ii).removeListener(this);
-        }
-        _buttons.clear();
+  // from Iterable<ToggleButton>
+  public Iterator<ToggleButton> iterator ()
+  {
+    return Iterators.unmodifiableIterator(_buttons.iterator());
+  }
+
+  /**
+   * Returns the button at the specified index.
+   */
+  public ToggleButton getButton (int idx)
+  {
+    return _buttons.get(idx);
+  }
+
+  // from Selectable<ToggleButton>
+  public void setSelectedIndex (int idx)
+  {
+    setSelected(_buttons.get(idx));
+  }
+
+  // from Selectable<ToggleButton>
+  public int getSelectedIndex ()
+  {
+    for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
+      if (_buttons.get(ii).isSelected()) {
+        return ii;
+      }
     }
+    return -1;
+  }
 
-    /**
-     * Returns the number of buttons in the group.
-     */
-    public int getButtonCount ()
-    {
-        return _buttons.size();
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    ToggleButton button = (ToggleButton)event.getSource();
+    if (button.isSelected()) {
+      selectionChanged(button, event.getWhen(), event.getModifiers());
+
+    } else if (_alwaysSelect) {
+      // can only unselect by selecting another button
+      button.setSelected(true);
     }
+  }
 
-    /**
-     * Sets the always select state. If set to true and no button is selected, it will
-     * automatically select the first button in the group.
-     */
-    public void setAlwaysSelect (boolean alwaysSelect)
-    {
-        _alwaysSelect = alwaysSelect;
-        if (_alwaysSelect && getSelectedIndex() == -1 && getButtonCount() > 0) {
-            setSelected(_buttons.get(0));
-        }
+  /**
+   * Updates the states of the unselected buttons and fires a selection event.
+   */
+  protected void selectionChanged (ToggleButton selected, long when, int modifiers)
+  {
+    for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
+      ToggleButton button = _buttons.get(ii);
+      if (button != selected) {
+        button.setSelected(false);
+      }
     }
-
-    // from Selectable<ToggleButton>
-    public ToggleButton getSelected ()
-    {
-        int idx = getSelectedIndex();
-        return (idx == -1) ? null : _buttons.get(idx);
+    ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
+    for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
+      event.dispatch(_listeners.get(ii));
     }
+  }
 
-    // from Selectable<ToggleButton>
-    public void setSelected (ToggleButton button)
-    {
-        if (!button.isSelected()) {
-            button.setSelected(true);
-            selectionChanged(button, 0L, 0);
-        }
-    }
+  /** If true and we have at least one button, one must always be selected. */
+  protected boolean _alwaysSelect;
 
-    // from Iterable<ToggleButton>
-    public Iterator<ToggleButton> iterator ()
-    {
-        return Iterators.unmodifiableIterator(_buttons.iterator());
-    }
+  /** The buttons in the group. */
+  protected List<ToggleButton> _buttons = Lists.newArrayList();
 
-    /**
-     * Returns the button at the specified index.
-     */
-    public ToggleButton getButton (int idx)
-    {
-        return _buttons.get(idx);
-    }
-
-    // from Selectable<ToggleButton>
-    public void setSelectedIndex (int idx)
-    {
-        setSelected(_buttons.get(idx));
-    }
-
-    // from Selectable<ToggleButton>
-    public int getSelectedIndex ()
-    {
-        for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
-            if (_buttons.get(ii).isSelected()) {
-                return ii;
-            }
-        }
-        return -1;
-    }
-
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        ToggleButton button = (ToggleButton)event.getSource();
-        if (button.isSelected()) {
-            selectionChanged(button, event.getWhen(), event.getModifiers());
-
-        } else if (_alwaysSelect) {
-            // can only unselect by selecting another button
-            button.setSelected(true);
-        }
-    }
-
-    /**
-     * Updates the states of the unselected buttons and fires a selection event.
-     */
-    protected void selectionChanged (ToggleButton selected, long when, int modifiers)
-    {
-        for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
-            ToggleButton button = _buttons.get(ii);
-            if (button != selected) {
-                button.setSelected(false);
-            }
-        }
-        ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
-        for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
-            event.dispatch(_listeners.get(ii));
-        }
-    }
-
-    /** If true and we have at least one button, one must always be selected. */
-    protected boolean _alwaysSelect;
-
-    /** The buttons in the group. */
-    protected List<ToggleButton> _buttons = Lists.newArrayList();
-
-    /** Listeners for action events. */
-    protected List<ActionListener> _listeners = Lists.newArrayList();
+  /** Listeners for action events. */
+  protected List<ActionListener> _listeners = Lists.newArrayList();
 }

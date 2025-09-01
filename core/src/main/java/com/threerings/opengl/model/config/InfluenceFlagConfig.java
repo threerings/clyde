@@ -37,60 +37,60 @@ import com.threerings.opengl.model.Model;
  * Contains a set of flags for different kinds of influences.
  */
 public class InfluenceFlagConfig extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /** Whether or not to enable fog influences. */
-    @Editable(hgroup="i")
-    public boolean fog;
+  /** Whether or not to enable fog influences. */
+  @Editable(hgroup="i")
+  public boolean fog;
 
-    /** Whether or not to enable light influences. */
-    @Editable(hgroup="i")
-    public boolean lights;
+  /** Whether or not to enable light influences. */
+  @Editable(hgroup="i")
+  public boolean lights;
 
-    /** Whether or not to enable projection influences. */
-    @Editable(hgroup="i")
-    public boolean projections;
+  /** Whether or not to enable projection influences. */
+  @Editable(hgroup="i")
+  public boolean projections;
 
-    /** Whether or not to enable definition influences. */
-    @Editable(hgroup="i")
-    public boolean definitions;
+  /** Whether or not to enable definition influences. */
+  @Editable(hgroup="i")
+  public boolean definitions;
 
-    /**
-     * Default constructor.
-     */
-    public InfluenceFlagConfig ()
-    {
-        this(true);
-    }
+  /**
+   * Default constructor.
+   */
+  public InfluenceFlagConfig ()
+  {
+    this(true);
+  }
 
-    /**
-     * Creates a new config.
-     */
-    public InfluenceFlagConfig (boolean value)
-    {
-        this(value, value, value, value);
-    }
+  /**
+   * Creates a new config.
+   */
+  public InfluenceFlagConfig (boolean value)
+  {
+    this(value, value, value, value);
+  }
 
-    /**
-     * Creates a new config.
-     */
-    public InfluenceFlagConfig (
-        boolean fog, boolean lights, boolean projections, boolean definitions)
-    {
-        this.fog = fog;
-        this.lights = lights;
-        this.projections = projections;
-        this.definitions = definitions;
-    }
+  /**
+   * Creates a new config.
+   */
+  public InfluenceFlagConfig (
+    boolean fog, boolean lights, boolean projections, boolean definitions)
+  {
+    this.fog = fog;
+    this.lights = lights;
+    this.projections = projections;
+    this.definitions = definitions;
+  }
 
-    /**
-     * Returns the set of influence flags corresponding to this config.
-     */
-    public int getFlags ()
-    {
-        return (fog ? Model.FOG_INFLUENCE : 0) |
-            (lights ? Model.LIGHT_INFLUENCE : 0) |
-            (projections ? Model.PROJECTION_INFLUENCE : 0) |
-            (definitions ? Model.DEFINITION_INFLUENCE : 0);
-    }
+  /**
+   * Returns the set of influence flags corresponding to this config.
+   */
+  public int getFlags ()
+  {
+    return (fog ? Model.FOG_INFLUENCE : 0) |
+      (lights ? Model.LIGHT_INFLUENCE : 0) |
+      (projections ? Model.PROJECTION_INFLUENCE : 0) |
+      (definitions ? Model.DEFINITION_INFLUENCE : 0);
+  }
 }

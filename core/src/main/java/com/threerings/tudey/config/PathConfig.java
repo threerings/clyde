@@ -48,197 +48,20 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class PathConfig extends ParameterizedConfig
 {
-    /** Used when we can't resolve the path's underlying original implementation. */
-    public static final Original NULL_ORIGINAL = new Original(Color4f.RED);
+  /** Used when we can't resolve the path's underlying original implementation. */
+  public static final Original NULL_ORIGINAL = new Original(Color4f.RED);
 
-    /**
-     * Contains the actual implementation of the path.
-     */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config's underlying original implementation.
-         */
-        public abstract Original getOriginal (ConfigManager cfgmgr);
-
-        /**
-         * Creates or updates a cursor implementation for this configuration.
-         *
-         * @param scope the path's expression scope.
-         * @param impl an existing implementation to reuse, if possible.
-         * @return either a reference to the existing implementation (if reused), a new
-         * implementation, or <code>null</code> if no implementation could be created.
-         */
-        public abstract PathCursor.Implementation getCursorImplementation (
-            TudeyContext ctx, Scope scope, PathCursor.Implementation impl);
-
-        /**
-         * Creates or updates a sprite implementation for this configuration.
-         *
-         * @param scope the path's expression scope.
-         * @param impl an existing implementation to reuse, if possible.
-         * @return either a reference to the existing implementation (if reused), a new
-         * implementation, or <code>null</code> if no implementation could be created.
-         */
-        public abstract PathSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, PathSprite.Implementation impl);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
-
-    /**
-     * An original implementation.
-     */
-    public static class Original extends Implementation
-    {
-        /** The color to use when showing this path in the scene editor. */
-        @Editable(mode="alpha", hgroup="c")
-        @Strippable
-        public Color4f color = new Color4f();
-
-        /** Whether or not the path should be used as a default entrance. */
-        @Editable(hgroup="c")
-        @Strippable
-        public boolean defaultEntrance;
-
-        /** Tags used to identify the path within the scene. */
-        @Editable
-        @Strippable
-        public TagConfig tags = new TagConfig();
-
-        /** The path's event handlers. */
-        @Editable
-        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
-
-        /**
-         * Default constructor.
-         */
-        public Original ()
-        {
-        }
-
-        /**
-         * Creates an implementation with the specified color.
-         */
-        public Original (Color4f color)
-        {
-            this.color.set(color);
-        }
-
-        /**
-         * Returns the name of the server-side logic class to use for the path, or
-         * <code>null</code> for none.
-         */
-        public String getLogicClassName ()
-        {
-            return (tags.getLength() == 0 && handlers.length == 0 && !defaultEntrance) ? null :
-                "com.threerings.tudey.server.logic.EntryLogic";
-        }
-
-        /**
-         * Adds the resources to preload for this path into the provided set.
-         */
-        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
-        {
-            for (HandlerConfig handler : handlers) {
-                handler.getPreloads(cfgmgr, preloads);
-            }
-        }
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            return this;
-        }
-
-        @Override
-        public PathCursor.Implementation getCursorImplementation (
-            TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
-        {
-            if (impl instanceof PathCursor.Original) {
-                ((PathCursor.Original)impl).setConfig(this);
-            } else {
-                impl = new PathCursor.Original(ctx, scope, this);
-            }
-            return impl;
-        }
-
-        @Override
-        public PathSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
-        {
-            if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
-                return null;
-            }
-            if (impl instanceof PathSprite.Original) {
-                ((PathSprite.Original)impl).setConfig(this);
-            } else {
-                impl = new PathSprite.Original(ctx, scope, this);
-            }
-            return impl;
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            for (HandlerConfig handler : handlers) {
-                handler.invalidate();
-            }
-        }
-    }
-
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The path reference. */
-        @Editable(nullable=true)
-        public ConfigReference<PathConfig> path;
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
-            return (config == null) ? null : config.getOriginal(cfgmgr);
-        }
-
-        @Override
-        public PathCursor.Implementation getCursorImplementation (
-            TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
-        {
-            PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
-            return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
-        }
-
-        @Override
-        public PathSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
-        {
-            PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
-            return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
-        }
-    }
-
-    /** The actual path implementation. */
-    @Editable
-    public Implementation implementation = new Original();
-
+  /**
+   * Contains the actual implementation of the path.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
      * Returns a reference to the config's underlying original implementation.
      */
-    public Original getOriginal (ConfigManager cfgmgr)
-    {
-        return implementation.getOriginal(cfgmgr);
-    }
+    public abstract Original getOriginal (ConfigManager cfgmgr);
 
     /**
      * Creates or updates a cursor implementation for this configuration.
@@ -248,11 +71,8 @@ public class PathConfig extends ParameterizedConfig
      * @return either a reference to the existing implementation (if reused), a new
      * implementation, or <code>null</code> if no implementation could be created.
      */
-    public PathCursor.Implementation getCursorImplementation (
-        TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
-    {
-        return implementation.getCursorImplementation(ctx, scope, impl);
-    }
+    public abstract PathCursor.Implementation getCursorImplementation (
+      TudeyContext ctx, Scope scope, PathCursor.Implementation impl);
 
     /**
      * Creates or updates a sprite implementation for this configuration.
@@ -262,17 +82,197 @@ public class PathConfig extends ParameterizedConfig
      * @return either a reference to the existing implementation (if reused), a new
      * implementation, or <code>null</code> if no implementation could be created.
      */
-    public PathSprite.Implementation getSpriteImplementation (
-        TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
+    public abstract PathSprite.Implementation getSpriteImplementation (
+      TudeyContext ctx, Scope scope, PathSprite.Implementation impl);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
-        return implementation.getSpriteImplementation(ctx, scope, impl);
+      // nothing by default
+    }
+  }
+
+  /**
+   * An original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /** The color to use when showing this path in the scene editor. */
+    @Editable(mode="alpha", hgroup="c")
+    @Strippable
+    public Color4f color = new Color4f();
+
+    /** Whether or not the path should be used as a default entrance. */
+    @Editable(hgroup="c")
+    @Strippable
+    public boolean defaultEntrance;
+
+    /** Tags used to identify the path within the scene. */
+    @Editable
+    @Strippable
+    public TagConfig tags = new TagConfig();
+
+    /** The path's event handlers. */
+    @Editable
+    public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
+
+    /**
+     * Default constructor.
+     */
+    public Original ()
+    {
+    }
+
+    /**
+     * Creates an implementation with the specified color.
+     */
+    public Original (Color4f color)
+    {
+      this.color.set(color);
+    }
+
+    /**
+     * Returns the name of the server-side logic class to use for the path, or
+     * <code>null</code> for none.
+     */
+    public String getLogicClassName ()
+    {
+      return (tags.getLength() == 0 && handlers.length == 0 && !defaultEntrance) ? null :
+        "com.threerings.tudey.server.logic.EntryLogic";
+    }
+
+    /**
+     * Adds the resources to preload for this path into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+      for (HandlerConfig handler : handlers) {
+        handler.getPreloads(cfgmgr, preloads);
+      }
     }
 
     @Override
-    protected void fireConfigUpdated ()
+    public Original getOriginal (ConfigManager cfgmgr)
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.fireConfigUpdated();
+      return this;
     }
+
+    @Override
+    public PathCursor.Implementation getCursorImplementation (
+      TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
+    {
+      if (impl instanceof PathCursor.Original) {
+        ((PathCursor.Original)impl).setConfig(this);
+      } else {
+        impl = new PathCursor.Original(ctx, scope, this);
+      }
+      return impl;
+    }
+
+    @Override
+    public PathSprite.Implementation getSpriteImplementation (
+      TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
+    {
+      if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
+        return null;
+      }
+      if (impl instanceof PathSprite.Original) {
+        ((PathSprite.Original)impl).setConfig(this);
+      } else {
+        impl = new PathSprite.Original(ctx, scope, this);
+      }
+      return impl;
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      for (HandlerConfig handler : handlers) {
+        handler.invalidate();
+      }
+    }
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The path reference. */
+    @Editable(nullable=true)
+    public ConfigReference<PathConfig> path;
+
+    @Override
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+      PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
+      return (config == null) ? null : config.getOriginal(cfgmgr);
+    }
+
+    @Override
+    public PathCursor.Implementation getCursorImplementation (
+      TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
+    {
+      PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
+      return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
+    }
+
+    @Override
+    public PathSprite.Implementation getSpriteImplementation (
+      TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
+    {
+      PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
+      return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
+    }
+  }
+
+  /** The actual path implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Returns a reference to the config's underlying original implementation.
+   */
+  public Original getOriginal (ConfigManager cfgmgr)
+  {
+    return implementation.getOriginal(cfgmgr);
+  }
+
+  /**
+   * Creates or updates a cursor implementation for this configuration.
+   *
+   * @param scope the path's expression scope.
+   * @param impl an existing implementation to reuse, if possible.
+   * @return either a reference to the existing implementation (if reused), a new
+   * implementation, or <code>null</code> if no implementation could be created.
+   */
+  public PathCursor.Implementation getCursorImplementation (
+    TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
+  {
+    return implementation.getCursorImplementation(ctx, scope, impl);
+  }
+
+  /**
+   * Creates or updates a sprite implementation for this configuration.
+   *
+   * @param scope the path's expression scope.
+   * @param impl an existing implementation to reuse, if possible.
+   * @return either a reference to the existing implementation (if reused), a new
+   * implementation, or <code>null</code> if no implementation could be created.
+   */
+  public PathSprite.Implementation getSpriteImplementation (
+    TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
+  {
+    return implementation.getSpriteImplementation(ctx, scope, impl);
+  }
+
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.fireConfigUpdated();
+  }
 }

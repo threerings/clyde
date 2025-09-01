@@ -48,528 +48,528 @@ import com.threerings.math.Vector4f;
  */
 public class Program extends ShaderObject
 {
+  /**
+   * Contains the location and value of a uniform variable.
+   */
+  public static abstract class Uniform
+  {
+    /** Set when the uniform value has changed and must be reapplied. */
+    public boolean dirty;
+
     /**
-     * Contains the location and value of a uniform variable.
+     * Creates a new uniform variable with the specified location.
      */
-    public static abstract class Uniform
+    public Uniform (int location)
     {
-        /** Set when the uniform value has changed and must be reapplied. */
-        public boolean dirty;
-
-        /**
-         * Creates a new uniform variable with the specified location.
-         */
-        public Uniform (int location)
-        {
-            _location = location;
-        }
-
-        /**
-         * Returns the location of this uniform.
-         */
-        public int getLocation ()
-        {
-            return _location;
-        }
-
-        /**
-         * Applies the value of this uniform.
-         */
-        public abstract void apply ();
-
-        /**
-         * Clones this uniform, reusing the supplied object if possible.
-         */
-        public abstract Uniform clone (Uniform uniform);
-
-        /** The location of this uniform. */
-        protected int _location;
+      _location = location;
     }
 
     /**
-     * A uniform containing an integer.
+     * Returns the location of this uniform.
      */
-    public static class IntegerUniform extends Uniform
+    public int getLocation ()
     {
-        /** The integer value. */
-        public int value;
-
-        /**
-         * Creates a new integer uniform with the specified location.
-         */
-        public IntegerUniform (int location)
-        {
-            super(location);
-        }
-
-        /**
-         * Creates a new integer uniform with the specified location and value.
-         */
-        public IntegerUniform (int location, int value)
-        {
-            super(location);
-            this.value = value;
-        }
-
-        @Override
-        public void apply ()
-        {
-            ARBShaderObjects.glUniform1iARB(_location, value);
-        }
-
-        @Override
-        public Uniform clone (Uniform uniform)
-        {
-            IntegerUniform clone = (uniform instanceof IntegerUniform) ?
-                ((IntegerUniform)uniform) : new IntegerUniform(_location);
-            clone.value = value;
-            return clone;
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof IntegerUniform &&
-                ((IntegerUniform)other).value == value;
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return value;
-        }
+      return _location;
     }
 
     /**
-     * A uniform containing a float.
+     * Applies the value of this uniform.
      */
-    public static class FloatUniform extends Uniform
+    public abstract void apply ();
+
+    /**
+     * Clones this uniform, reusing the supplied object if possible.
+     */
+    public abstract Uniform clone (Uniform uniform);
+
+    /** The location of this uniform. */
+    protected int _location;
+  }
+
+  /**
+   * A uniform containing an integer.
+   */
+  public static class IntegerUniform extends Uniform
+  {
+    /** The integer value. */
+    public int value;
+
+    /**
+     * Creates a new integer uniform with the specified location.
+     */
+    public IntegerUniform (int location)
     {
-        /** The float value. */
-        public float value;
-
-        /**
-         * Creates a new float uniform with the specified location.
-         */
-        public FloatUniform (int location)
-        {
-            super(location);
-        }
-
-        /**
-         * Creates a new float uniform with the specified location and value.
-         */
-        public FloatUniform (int location, float value)
-        {
-            super(location);
-            this.value = value;
-        }
-
-        @Override
-        public void apply ()
-        {
-            ARBShaderObjects.glUniform1fARB(_location, value);
-        }
-
-        @Override
-        public Uniform clone (Uniform uniform)
-        {
-            FloatUniform clone = (uniform instanceof FloatUniform) ?
-                ((FloatUniform)uniform) : new FloatUniform(_location);
-            clone.value = value;
-            return clone;
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof FloatUniform &&
-                ((FloatUniform)other).value == value;
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return Float.floatToIntBits(value);
-        }
+      super(location);
     }
 
     /**
-     * A uniform containing a two-element vector.
+     * Creates a new integer uniform with the specified location and value.
      */
-    public static class Vector2fUniform extends Uniform
+    public IntegerUniform (int location, int value)
     {
-        /** The vector value. */
-        public Vector2f value = new Vector2f();
+      super(location);
+      this.value = value;
+    }
 
-        /**
-         * Creates a new vector uniform with the specified location.
-         */
-        public Vector2fUniform (int location)
-        {
-            super(location);
-        }
+    @Override
+    public void apply ()
+    {
+      ARBShaderObjects.glUniform1iARB(_location, value);
+    }
 
-        /**
-         * Creates a new vector uniform with the specified location and value.
-         */
-        public Vector2fUniform (int location, Vector2f value)
-        {
-            super(location);
-            this.value.set(value);
-        }
+    @Override
+    public Uniform clone (Uniform uniform)
+    {
+      IntegerUniform clone = (uniform instanceof IntegerUniform) ?
+        ((IntegerUniform)uniform) : new IntegerUniform(_location);
+      clone.value = value;
+      return clone;
+    }
 
-        @Override
-        public void apply ()
-        {
-            ARBShaderObjects.glUniform2fARB(_location, value.x, value.y);
-        }
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof IntegerUniform &&
+        ((IntegerUniform)other).value == value;
+    }
 
-        @Override
-        public Uniform clone (Uniform uniform)
-        {
-            Vector2fUniform clone = (uniform instanceof Vector2fUniform) ?
-                ((Vector2fUniform)uniform) : new Vector2fUniform(_location);
-            clone.value.set(value);
-            return clone;
-        }
+    @Override
+    public int hashCode ()
+    {
+      return value;
+    }
+  }
 
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof Vector2fUniform &&
-                ((Vector2fUniform)other).value.equals(value);
-        }
+  /**
+   * A uniform containing a float.
+   */
+  public static class FloatUniform extends Uniform
+  {
+    /** The float value. */
+    public float value;
 
-        @Override
-        public int hashCode ()
-        {
-            return value != null ? value.hashCode() : 0;
-        }
+    /**
+     * Creates a new float uniform with the specified location.
+     */
+    public FloatUniform (int location)
+    {
+      super(location);
     }
 
     /**
-     * A uniform containing a three-element vector.
+     * Creates a new float uniform with the specified location and value.
      */
-    public static class Vector3fUniform extends Uniform
+    public FloatUniform (int location, float value)
     {
-        /** The vector value. */
-        public Vector3f value = new Vector3f();
+      super(location);
+      this.value = value;
+    }
 
-        /**
-         * Creates a new vector uniform with the specified location.
-         */
-        public Vector3fUniform (int location)
-        {
-            super(location);
-        }
+    @Override
+    public void apply ()
+    {
+      ARBShaderObjects.glUniform1fARB(_location, value);
+    }
 
-        /**
-         * Creates a new vector uniform with the specified location and value.
-         */
-        public Vector3fUniform (int location, Vector3f value)
-        {
-            super(location);
-            this.value.set(value);
-        }
+    @Override
+    public Uniform clone (Uniform uniform)
+    {
+      FloatUniform clone = (uniform instanceof FloatUniform) ?
+        ((FloatUniform)uniform) : new FloatUniform(_location);
+      clone.value = value;
+      return clone;
+    }
 
-        @Override
-        public void apply ()
-        {
-            ARBShaderObjects.glUniform3fARB(_location, value.x, value.y, value.z);
-        }
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof FloatUniform &&
+        ((FloatUniform)other).value == value;
+    }
 
-        @Override
-        public Uniform clone (Uniform uniform)
-        {
-            Vector3fUniform clone = (uniform instanceof Vector3fUniform) ?
-                ((Vector3fUniform)uniform) : new Vector3fUniform(_location);
-            clone.value.set(value);
-            return clone;
-        }
+    @Override
+    public int hashCode ()
+    {
+      return Float.floatToIntBits(value);
+    }
+  }
 
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof Vector3fUniform &&
-                ((Vector3fUniform)other).value.equals(value);
-        }
+  /**
+   * A uniform containing a two-element vector.
+   */
+  public static class Vector2fUniform extends Uniform
+  {
+    /** The vector value. */
+    public Vector2f value = new Vector2f();
 
-        @Override
-        public int hashCode ()
-        {
-            return value != null ? value.hashCode() : 0;
-        }
+    /**
+     * Creates a new vector uniform with the specified location.
+     */
+    public Vector2fUniform (int location)
+    {
+      super(location);
     }
 
     /**
-     * A uniform containing a four-element vector.
+     * Creates a new vector uniform with the specified location and value.
      */
-    public static class Vector4fUniform extends Uniform
+    public Vector2fUniform (int location, Vector2f value)
     {
-        /** The vector value. */
-        public Vector4f value = new Vector4f();
+      super(location);
+      this.value.set(value);
+    }
 
-        /**
-         * Creates a new vector uniform with the specified location.
-         */
-        public Vector4fUniform (int location)
-        {
-            super(location);
-        }
+    @Override
+    public void apply ()
+    {
+      ARBShaderObjects.glUniform2fARB(_location, value.x, value.y);
+    }
 
-        /**
-         * Creates a new vector uniform with the specified location and value.
-         */
-        public Vector4fUniform (int location, Vector4f value)
-        {
-            super(location);
-            this.value.set(value);
-        }
+    @Override
+    public Uniform clone (Uniform uniform)
+    {
+      Vector2fUniform clone = (uniform instanceof Vector2fUniform) ?
+        ((Vector2fUniform)uniform) : new Vector2fUniform(_location);
+      clone.value.set(value);
+      return clone;
+    }
 
-        @Override
-        public void apply ()
-        {
-            ARBShaderObjects.glUniform4fARB(_location, value.x, value.y, value.z, value.w);
-        }
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof Vector2fUniform &&
+        ((Vector2fUniform)other).value.equals(value);
+    }
 
-        @Override
-        public Uniform clone (Uniform uniform)
-        {
-            Vector4fUniform clone = (uniform instanceof Vector4fUniform) ?
-                ((Vector4fUniform)uniform) : new Vector4fUniform(_location);
-            clone.value.set(value);
-            return clone;
-        }
+    @Override
+    public int hashCode ()
+    {
+      return value != null ? value.hashCode() : 0;
+    }
+  }
 
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof Vector4fUniform &&
-                ((Vector4fUniform)other).value.equals(value);
-        }
+  /**
+   * A uniform containing a three-element vector.
+   */
+  public static class Vector3fUniform extends Uniform
+  {
+    /** The vector value. */
+    public Vector3f value = new Vector3f();
 
-        @Override
-        public int hashCode ()
-        {
-            return value != null ? value.hashCode() : 0;
-        }
+    /**
+     * Creates a new vector uniform with the specified location.
+     */
+    public Vector3fUniform (int location)
+    {
+      super(location);
     }
 
     /**
-     * A uniform containing a 4x4 matrix.
+     * Creates a new vector uniform with the specified location and value.
      */
-    public static class Matrix4fUniform extends Uniform
+    public Vector3fUniform (int location, Vector3f value)
     {
-        /** The matrix value. */
-        public Matrix4f value = new Matrix4f();
+      super(location);
+      this.value.set(value);
+    }
 
-        /**
-         * Creates a new matrix uniform with the specified location.
-         */
-        public Matrix4fUniform (int location)
-        {
-            super(location);
-        }
+    @Override
+    public void apply ()
+    {
+      ARBShaderObjects.glUniform3fARB(_location, value.x, value.y, value.z);
+    }
 
-        /**
-         * Creates a new matrix uniform with the specified location and value.
-         */
-        public Matrix4fUniform (int location, Matrix4f value)
-        {
-            super(location);
-            this.value.set(value);
-        }
+    @Override
+    public Uniform clone (Uniform uniform)
+    {
+      Vector3fUniform clone = (uniform instanceof Vector3fUniform) ?
+        ((Vector3fUniform)uniform) : new Vector3fUniform(_location);
+      clone.value.set(value);
+      return clone;
+    }
 
-        @Override
-        public void apply ()
-        {
-            value.get(_vbuf).rewind();
-            ARBShaderObjects.glUniformMatrix4ARB(_location, false, _vbuf);
-        }
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof Vector3fUniform &&
+        ((Vector3fUniform)other).value.equals(value);
+    }
 
-        @Override
-        public Uniform clone (Uniform uniform)
-        {
-            Matrix4fUniform clone = (uniform instanceof Matrix4fUniform) ?
-                ((Matrix4fUniform)uniform) : new Matrix4fUniform(_location);
-            clone.value.set(value);
-            return clone;
-        }
+    @Override
+    public int hashCode ()
+    {
+      return value != null ? value.hashCode() : 0;
+    }
+  }
 
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof Matrix4fUniform &&
-                ((Matrix4fUniform)other).value.equals(value);
-        }
+  /**
+   * A uniform containing a four-element vector.
+   */
+  public static class Vector4fUniform extends Uniform
+  {
+    /** The vector value. */
+    public Vector4f value = new Vector4f();
 
-        @Override
-        public int hashCode ()
-        {
-            return value != null ? value.hashCode() : 0;
-        }
+    /**
+     * Creates a new vector uniform with the specified location.
+     */
+    public Vector4fUniform (int location)
+    {
+      super(location);
     }
 
     /**
-     * Creates a new shader program.
+     * Creates a new vector uniform with the specified location and value.
      */
-    public Program (Renderer renderer)
+    public Vector4fUniform (int location, Vector4f value)
     {
-        super(renderer);
-        _id = ARBShaderObjects.glCreateProgramObjectARB();
-        _renderer.shaderObjectCreated();
+      super(location);
+      this.value.set(value);
+    }
+
+    @Override
+    public void apply ()
+    {
+      ARBShaderObjects.glUniform4fARB(_location, value.x, value.y, value.z, value.w);
+    }
+
+    @Override
+    public Uniform clone (Uniform uniform)
+    {
+      Vector4fUniform clone = (uniform instanceof Vector4fUniform) ?
+        ((Vector4fUniform)uniform) : new Vector4fUniform(_location);
+      clone.value.set(value);
+      return clone;
+    }
+
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof Vector4fUniform &&
+        ((Vector4fUniform)other).value.equals(value);
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return value != null ? value.hashCode() : 0;
+    }
+  }
+
+  /**
+   * A uniform containing a 4x4 matrix.
+   */
+  public static class Matrix4fUniform extends Uniform
+  {
+    /** The matrix value. */
+    public Matrix4f value = new Matrix4f();
+
+    /**
+     * Creates a new matrix uniform with the specified location.
+     */
+    public Matrix4fUniform (int location)
+    {
+      super(location);
     }
 
     /**
-     * Relinks the program with its current vertex and fragment shaders.
-     *
-     * @return true if the program linked successfully, false if there was an error.
+     * Creates a new matrix uniform with the specified location and value.
      */
-    public boolean relink ()
+    public Matrix4fUniform (int location, Matrix4f value)
     {
-        return setShaders(_vertex, _fragment);
+      super(location);
+      this.value.set(value);
     }
 
-    /**
-     * Sets the shaders for this program and links it.  If linkage fails (or even if it
-     * succeeds), {@link #getInfoLog} can be used to return more information.
-     *
-     * @return true if the program linked successfully, false if there was an error.
-     */
-    public boolean setShaders (Shader vertex, Shader fragment)
+    @Override
+    public void apply ()
     {
-        if (_vertex != vertex) {
-            if (_vertex != null) {
-                ARBShaderObjects.glDetachObjectARB(_id, _vertex.getId());
-            }
-            if ((_vertex = vertex) != null) {
-                ARBShaderObjects.glAttachObjectARB(_id, _vertex.getId());
-            }
+      value.get(_vbuf).rewind();
+      ARBShaderObjects.glUniformMatrix4ARB(_location, false, _vbuf);
+    }
+
+    @Override
+    public Uniform clone (Uniform uniform)
+    {
+      Matrix4fUniform clone = (uniform instanceof Matrix4fUniform) ?
+        ((Matrix4fUniform)uniform) : new Matrix4fUniform(_location);
+      clone.value.set(value);
+      return clone;
+    }
+
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof Matrix4fUniform &&
+        ((Matrix4fUniform)other).value.equals(value);
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return value != null ? value.hashCode() : 0;
+    }
+  }
+
+  /**
+   * Creates a new shader program.
+   */
+  public Program (Renderer renderer)
+  {
+    super(renderer);
+    _id = ARBShaderObjects.glCreateProgramObjectARB();
+    _renderer.shaderObjectCreated();
+  }
+
+  /**
+   * Relinks the program with its current vertex and fragment shaders.
+   *
+   * @return true if the program linked successfully, false if there was an error.
+   */
+  public boolean relink ()
+  {
+    return setShaders(_vertex, _fragment);
+  }
+
+  /**
+   * Sets the shaders for this program and links it.  If linkage fails (or even if it
+   * succeeds), {@link #getInfoLog} can be used to return more information.
+   *
+   * @return true if the program linked successfully, false if there was an error.
+   */
+  public boolean setShaders (Shader vertex, Shader fragment)
+  {
+    if (_vertex != vertex) {
+      if (_vertex != null) {
+        ARBShaderObjects.glDetachObjectARB(_id, _vertex.getId());
+      }
+      if ((_vertex = vertex) != null) {
+        ARBShaderObjects.glAttachObjectARB(_id, _vertex.getId());
+      }
+    }
+    if (_fragment != fragment) {
+      if (_fragment != null) {
+        ARBShaderObjects.glDetachObjectARB(_id, _fragment.getId());
+      }
+      if ((_fragment = fragment) != null) {
+        ARBShaderObjects.glAttachObjectARB(_id, _fragment.getId());
+      }
+    }
+    ARBShaderObjects.glLinkProgramARB(_id);
+    IntBuffer ibuf = BufferUtils.createIntBuffer(1);
+    ARBShaderObjects.glGetObjectParameterARB(
+      _id, ARBShaderObjects.GL_OBJECT_LINK_STATUS_ARB, ibuf);
+    return (ibuf.get(0) == GL11.GL_TRUE);
+  }
+
+  /**
+   * Returns a reference to the vertex shader.
+   */
+  public Shader getVertexShader ()
+  {
+    return _vertex;
+  }
+
+  /**
+   * Returns a reference to the fragment shader.
+   */
+  public Shader getFragmentShader ()
+  {
+    return _fragment;
+  }
+
+  /**
+   * Returns the location of the identified uniform variable.
+   */
+  public int getUniformLocation (String name)
+  {
+    Integer location = _uniformLocations.get(name);
+    if (location == null) {
+      _uniformLocations.put(
+        name, location = ARBShaderObjects.glGetUniformLocationARB(_id, toBuffer(name)));
+    }
+    return location;
+  }
+
+  /**
+   * Sets the values of the shader's uniform variables.
+   */
+  public void setUniforms (Uniform[] uniforms)
+  {
+    for (Uniform uniform : uniforms) {
+      int location = uniform.getLocation();
+      Uniform uval = _uniforms.get(location);
+      if (uval == uniform && !uniform.dirty) {
+        continue;
+      }
+      uniform.dirty = false;
+      if (!uniform.equals(uval)) {
+        uniform.apply();
+        Uniform nval = uniform.clone(uval);
+        if (nval != uval) {
+          _uniforms.put(location, nval);
         }
-        if (_fragment != fragment) {
-            if (_fragment != null) {
-                ARBShaderObjects.glDetachObjectARB(_id, _fragment.getId());
-            }
-            if ((_fragment = fragment) != null) {
-                ARBShaderObjects.glAttachObjectARB(_id, _fragment.getId());
-            }
-        }
-        ARBShaderObjects.glLinkProgramARB(_id);
-        IntBuffer ibuf = BufferUtils.createIntBuffer(1);
-        ARBShaderObjects.glGetObjectParameterARB(
-            _id, ARBShaderObjects.GL_OBJECT_LINK_STATUS_ARB, ibuf);
-        return (ibuf.get(0) == GL11.GL_TRUE);
+      }
     }
+  }
 
-    /**
-     * Returns a reference to the vertex shader.
-     */
-    public Shader getVertexShader ()
-    {
-        return _vertex;
+  /**
+   * Binds an attribute to the specified location.
+   */
+  public void setAttribLocation (String name, int index)
+  {
+    ARBVertexShader.glBindAttribLocationARB(_id, index, toBuffer(name));
+    _attribLocations.put(name, index);
+  }
+
+  /**
+   * Returns the location of the identified attribute.
+   */
+  public int getAttribLocation (String name)
+  {
+    Integer location = _attribLocations.get(name);
+    if (location == null) {
+      _attribLocations.put(name,
+        location = ARBVertexShader.glGetAttribLocationARB(_id, toBuffer(name)));
     }
+    return location;
+  }
 
-    /**
-     * Returns a reference to the fragment shader.
-     */
-    public Shader getFragmentShader ()
-    {
-        return _fragment;
-    }
+  /**
+   * Creates an invalid program (used by the renderer to force reapplication).
+   */
+  protected Program ()
+  {
+    super(null);
+  }
 
-    /**
-     * Returns the location of the identified uniform variable.
-     */
-    public int getUniformLocation (String name)
-    {
-        Integer location = _uniformLocations.get(name);
-        if (location == null) {
-            _uniformLocations.put(
-                name, location = ARBShaderObjects.glGetUniformLocationARB(_id, toBuffer(name)));
-        }
-        return location;
-    }
+  /**
+   * Creates a new byte buffer containing the specified string in null-terminated ASCII
+   * format.
+   */
+  protected static ByteBuffer toBuffer (String string)
+  {
+    ByteBuffer buf = ASCII_CHARSET.encode(string);
+    ByteBuffer buf0 = BufferUtils.createByteBuffer(buf.remaining() + 1);
+    buf0.put(buf).put((byte)0).rewind();
+    return buf0;
+  }
 
-    /**
-     * Sets the values of the shader's uniform variables.
-     */
-    public void setUniforms (Uniform[] uniforms)
-    {
-        for (Uniform uniform : uniforms) {
-            int location = uniform.getLocation();
-            Uniform uval = _uniforms.get(location);
-            if (uval == uniform && !uniform.dirty) {
-                continue;
-            }
-            uniform.dirty = false;
-            if (!uniform.equals(uval)) {
-                uniform.apply();
-                Uniform nval = uniform.clone(uval);
-                if (nval != uval) {
-                    _uniforms.put(location, nval);
-                }
-            }
-        }
-    }
+  /** The vertex shader. */
+  protected Shader _vertex;
 
-    /**
-     * Binds an attribute to the specified location.
-     */
-    public void setAttribLocation (String name, int index)
-    {
-        ARBVertexShader.glBindAttribLocationARB(_id, index, toBuffer(name));
-        _attribLocations.put(name, index);
-    }
+  /** The fragment shader. */
+  protected Shader _fragment;
 
-    /**
-     * Returns the location of the identified attribute.
-     */
-    public int getAttribLocation (String name)
-    {
-        Integer location = _attribLocations.get(name);
-        if (location == null) {
-            _attribLocations.put(name,
-                location = ARBVertexShader.glGetAttribLocationARB(_id, toBuffer(name)));
-        }
-        return location;
-    }
+  /** Maps uniform names to their locations. */
+  protected HashMap<String, Integer> _uniformLocations = new HashMap<String, Integer>();
 
-    /**
-     * Creates an invalid program (used by the renderer to force reapplication).
-     */
-    protected Program ()
-    {
-        super(null);
-    }
+  /** Maps attribute names to their locations. */
+  protected HashMap<String, Integer> _attribLocations = new HashMap<String, Integer>();
 
-    /**
-     * Creates a new byte buffer containing the specified string in null-terminated ASCII
-     * format.
-     */
-    protected static ByteBuffer toBuffer (String string)
-    {
-        ByteBuffer buf = ASCII_CHARSET.encode(string);
-        ByteBuffer buf0 = BufferUtils.createByteBuffer(buf.remaining() + 1);
-        buf0.put(buf).put((byte)0).rewind();
-        return buf0;
-    }
+  /** Maps uniform locations to their current values. */
+  protected HashIntMap<Uniform> _uniforms = new HashIntMap<Uniform>();
 
-    /** The vertex shader. */
-    protected Shader _vertex;
-
-    /** The fragment shader. */
-    protected Shader _fragment;
-
-    /** Maps uniform names to their locations. */
-    protected HashMap<String, Integer> _uniformLocations = new HashMap<String, Integer>();
-
-    /** Maps attribute names to their locations. */
-    protected HashMap<String, Integer> _attribLocations = new HashMap<String, Integer>();
-
-    /** Maps uniform locations to their current values. */
-    protected HashIntMap<Uniform> _uniforms = new HashIntMap<Uniform>();
-
-    /** Used to set values. */
-    protected static FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);
+  /** Used to set values. */
+  protected static FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);
 }

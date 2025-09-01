@@ -76,517 +76,517 @@ import com.threerings.opengl.util.Tickable;
  * Displays an embedded 3D view.
  */
 public class RenderableView extends Component
-    implements Tickable
+  implements Tickable
 {
-    /**
-     * Creates a new renderable view.
-     */
-    public RenderableView (GlContext ctx)
-    {
-        super(ctx);
-        _camhand = createCameraHandler();
+  /**
+   * Creates a new renderable view.
+   */
+  public RenderableView (GlContext ctx)
+  {
+    super(ctx);
+    _camhand = createCameraHandler();
+  }
+
+  /**
+   * An implementation of the spawnTransient function, so that we may support
+   * com.threerings.opengl.model.config.ActionConfig.SpawnTransient.
+   */
+  @Scoped
+  public Scene.Transient spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
+  {
+    // set up the transient (no pool)
+    Scene.Transient model = new Scene.Transient(_ctx, ref);
+    model.setParentScope(_scope);
+    model.setUserObject(ref);
+    model.addObserver(_transientObserver);
+
+    // add it
+    model.setLocalTransform(transform);
+    add(model);
+
+    return model;
+  }
+
+  /**
+   * Returns a reference to the view's scope.
+   */
+  public DynamicScope getScope ()
+  {
+    return _scope;
+  }
+
+  /**
+   * Returns a reference to the view camera.
+   */
+  public Camera getCamera ()
+  {
+    return _camera;
+  }
+
+  /**
+   * Returns a reference to the camera handler.
+   */
+  public CameraHandler getCameraHandler ()
+  {
+    return _camhand;
+  }
+
+  /**
+   * Sets whether this view is static and must be rendered manually.
+   */
+  public void setStatic (boolean stat)
+  {
+    if (_static == stat) {
+      return;
+    }
+    if (_static = stat) {
+      invalidate();
+    } else {
+      _image = null;
+      _renderer = null;
+    }
+  }
+
+  /**
+   * Checks whether this view is configured as static.
+   */
+  public boolean isStatic ()
+  {
+    return _static;
+  }
+
+  /**
+   * Sets the name of the view node.  If non-blank, the camera transform will assume the
+   * transform of the first node encountered with this name in the model list (overriding
+   * the transform applied by the camera handler).
+   */
+  public void setViewNode (String node)
+  {
+    _viewNode = node;
+  }
+
+  /**
+   * Returns the name of the view node.
+   */
+  public String getViewNode ()
+  {
+    return _viewNode;
+  }
+
+  /**
+   * Sets if we use the provided hints when computing our preferred size.
+   */
+  public void setUsePreferredSizeHints (boolean hints)
+  {
+    if (hints != _usePreferredSizeHints) {
+      _usePreferredSizeHints = hints;
+      invalidate();
+    }
+  }
+
+  /**
+   * Returns true if we use the hints to compute our preferred size.
+   */
+  public boolean usePreferredSizeHints ()
+  {
+    return _usePreferredSizeHints;
+  }
+
+  /**
+   * Sets the array of config models.
+   */
+  public void setConfigModels (Model[] models)
+  {
+    _configModels = models;
+  }
+
+  /**
+   * Returns a reference to the array of config models.
+   */
+  public Model[] getConfigModels ()
+  {
+    return _configModels;
+  }
+
+  /**
+   * Adds a compositable to the view.
+   */
+  public void add (Compositable compositable)
+  {
+    _compositables.add(compositable);
+    maybeRemakeTickables(compositable);
+  }
+
+  /**
+   * Removes a compositable from the view.
+   */
+  public void remove (Compositable compositable)
+  {
+    _compositables.remove(compositable);
+    maybeRemakeTickables(compositable);
+  }
+
+  /**
+   * Remake the tickables array if it possibly changed.
+   */
+  protected void maybeRemakeTickables (Compositable compositable)
+  {
+    if (compositable instanceof Tickable) {
+      _tickables = Iterables.toArray(
+          Iterables.filter(_compositables, Tickable.class),
+          Tickable.class);
+    }
+  }
+
+  /**
+   * Removes all compositables from the view.
+   */
+  public void removeAll ()
+  {
+    _compositables.clear();
+    _tickables = EMPTY_TICKABLES;
+  }
+
+  /**
+   * Manually rerenders the (static) view.
+   */
+  public void render ()
+  {
+    if (!_static) {
+      return;
+    }
+    Insets insets = getInsets();
+    int width = _width - insets.getHorizontal(), height = _height - insets.getVertical();
+    if (_image == null || _image.getWidth() != width || _image.getHeight() != height) {
+      Renderer renderer = _ctx.getRenderer();
+      Texture2D texture = (_image == null) ? null : _image.getTexture(renderer);
+      if (texture == null) {
+        texture = new Texture2D(renderer);
+        texture.setMinFilter(GL11.GL_LINEAR);
+        texture.setWrap(GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE);
+      }
+      int twidth = GlUtil.nextPowerOfTwo(width), theight = GlUtil.nextPowerOfTwo(height);
+      if (texture.getWidth() != twidth || texture.getHeight() != theight) {
+        texture.setImage(GL11.GL_RGBA, twidth, theight, false, false);
+      }
+      _image = new Image(texture, width, height);
+      _renderer = new TextureRenderer(
+        _ctx, texture, null, width, height, new PixelFormat(1, 8, 0));
+    }
+    _renderer.startRender();
+    try {
+      renderView(_ctx.getRenderer());
+    } finally {
+      _renderer.commitRender();
+    }
+  }
+
+  /**
+   * Get access to the image onto which we've rendered, which is only valid
+   * if we're static and a call has been made to render(). Otherwise null will be returned.
+   */
+  public Image getImage ()
+  {
+    return _image;
+  }
+
+  // documentation inherited from interface Tickable
+  public void tick (float elapsed)
+  {
+    // no time elapses for static views
+    if (_static) {
+      elapsed = 0f;
     }
 
-    /**
-     * An implementation of the spawnTransient function, so that we may support
-     * com.threerings.opengl.model.config.ActionConfig.SpawnTransient.
-     */
-    @Scoped
-    public Scene.Transient spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
-    {
-        // set up the transient (no pool)
-        Scene.Transient model = new Scene.Transient(_ctx, ref);
-        model.setParentScope(_scope);
-        model.setUserObject(ref);
-        model.addObserver(_transientObserver);
+    // set the camera in the compositor in case anything wants its position
+    Compositor compositor = _ctx.getCompositor();
+    Camera ocamera = compositor.getCamera();
+    compositor.setCamera(_camera);
 
-        // add it
-        model.setLocalTransform(transform);
-        add(model);
+    try {
+      // tick the config models
+      for (Model model : _configModels) {
+        model.tick(elapsed);
+      }
 
-        return model;
+      // tick the other compositables
+      Tickable[] tickers = _tickables; // stable array ref in case a tickable removes itself
+      for (int ii = 0, nn = tickers.length; ii < nn; ii++) {
+        tickers[ii].tick(elapsed);
+      }
+    } finally {
+      // restore the camera
+      compositor.setCamera(ocamera);
     }
+  }
 
-    /**
-     * Returns a reference to the view's scope.
-     */
-    public DynamicScope getScope ()
-    {
-        return _scope;
+  @Override
+  protected Dimension computePreferredSize (int whint, int hhint)
+  {
+    Dimension dim = super.computePreferredSize(whint, hhint);
+    if (_usePreferredSizeHints) {
+      if (whint > 0) {
+        dim.width = whint;
+      }
+      if (hhint > 0) {
+        dim.height = hhint;
+      }
     }
+    return dim;
+  }
 
-    /**
-     * Returns a reference to the view camera.
-     */
-    public Camera getCamera ()
-    {
-        return _camera;
-    }
+  @Override
+  protected void wasAdded ()
+  {
+    super.wasAdded();
+    _root = getWindow().getRoot();
+    _root.addTickParticipant(this);
+  }
 
-    /**
-     * Returns a reference to the camera handler.
-     */
-    public CameraHandler getCameraHandler ()
-    {
-        return _camhand;
-    }
+  @Override
+  protected void wasRemoved ()
+  {
+    super.wasRemoved();
+    _root.removeTickParticipant(this);
+    _root = null;
+  }
 
-    /**
-     * Sets whether this view is static and must be rendered manually.
-     */
-    public void setStatic (boolean stat)
-    {
-        if (_static == stat) {
-            return;
-        }
-        if (_static = stat) {
-            invalidate();
-        } else {
-            _image = null;
-            _renderer = null;
-        }
-    }
+  @Override
+  protected void layout ()
+  {
+    render();
+  }
 
-    /**
-     * Checks whether this view is configured as static.
-     */
-    public boolean isStatic ()
-    {
-        return _static;
-    }
-
-    /**
-     * Sets the name of the view node.  If non-blank, the camera transform will assume the
-     * transform of the first node encountered with this name in the model list (overriding
-     * the transform applied by the camera handler).
-     */
-    public void setViewNode (String node)
-    {
-        _viewNode = node;
-    }
-
-    /**
-     * Returns the name of the view node.
-     */
-    public String getViewNode ()
-    {
-        return _viewNode;
-    }
-
-    /**
-     * Sets if we use the provided hints when computing our preferred size.
-     */
-    public void setUsePreferredSizeHints (boolean hints)
-    {
-        if (hints != _usePreferredSizeHints) {
-            _usePreferredSizeHints = hints;
-            invalidate();
-        }
-    }
-
-    /**
-     * Returns true if we use the hints to compute our preferred size.
-     */
-    public boolean usePreferredSizeHints ()
-    {
-        return _usePreferredSizeHints;
-    }
-
-    /**
-     * Sets the array of config models.
-     */
-    public void setConfigModels (Model[] models)
-    {
-        _configModels = models;
-    }
-
-    /**
-     * Returns a reference to the array of config models.
-     */
-    public Model[] getConfigModels ()
-    {
-        return _configModels;
-    }
-
-    /**
-     * Adds a compositable to the view.
-     */
-    public void add (Compositable compositable)
-    {
-        _compositables.add(compositable);
-        maybeRemakeTickables(compositable);
-    }
-
-    /**
-     * Removes a compositable from the view.
-     */
-    public void remove (Compositable compositable)
-    {
-        _compositables.remove(compositable);
-        maybeRemakeTickables(compositable);
-    }
-
-    /**
-     * Remake the tickables array if it possibly changed.
-     */
-    protected void maybeRemakeTickables (Compositable compositable)
-    {
-        if (compositable instanceof Tickable) {
-            _tickables = Iterables.toArray(
-                    Iterables.filter(_compositables, Tickable.class),
-                    Tickable.class);
-        }
-    }
-
-    /**
-     * Removes all compositables from the view.
-     */
-    public void removeAll ()
-    {
-        _compositables.clear();
-        _tickables = EMPTY_TICKABLES;
-    }
-
-    /**
-     * Manually rerenders the (static) view.
-     */
-    public void render ()
-    {
-        if (!_static) {
-            return;
-        }
+  @Override
+  protected void renderComponent (Renderer renderer)
+  {
+    // static views simply draw the prerendered image
+    if (_static) {
+      if (_image != null) {
         Insets insets = getInsets();
-        int width = _width - insets.getHorizontal(), height = _height - insets.getVertical();
-        if (_image == null || _image.getWidth() != width || _image.getHeight() != height) {
-            Renderer renderer = _ctx.getRenderer();
-            Texture2D texture = (_image == null) ? null : _image.getTexture(renderer);
-            if (texture == null) {
-                texture = new Texture2D(renderer);
-                texture.setMinFilter(GL11.GL_LINEAR);
-                texture.setWrap(GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE);
-            }
-            int twidth = GlUtil.nextPowerOfTwo(width), theight = GlUtil.nextPowerOfTwo(height);
-            if (texture.getWidth() != twidth || texture.getHeight() != theight) {
-                texture.setImage(GL11.GL_RGBA, twidth, theight, false, false);
-            }
-            _image = new Image(texture, width, height);
-            _renderer = new TextureRenderer(
-                _ctx, texture, null, width, height, new PixelFormat(1, 8, 0));
-        }
-        _renderer.startRender();
-        try {
-            renderView(_ctx.getRenderer());
-        } finally {
-            _renderer.commitRender();
-        }
+        _image.render(renderer, insets.left, insets.bottom,
+          _width - insets.getHorizontal(), _height - insets.getVertical(), _alpha);
+      }
+    } else {
+      renderView(renderer);
+    }
+  }
+
+  /**
+   * Creates the camera handler for the view.
+   */
+  protected CameraHandler createCameraHandler ()
+  {
+    return new OrbitCameraHandler(_ctx, _camera, false);
+  }
+
+  /**
+   * Renders the view.
+   */
+  protected void renderView (Renderer renderer)
+  {
+    // save the compositor's original camera and dependency map, swap in our group state
+    Compositor compositor = _ctx.getCompositor();
+    Camera ocamera = compositor.getCamera();
+    Map<Dependency, Dependency> odeps = compositor.getDependencies();
+    RenderQueue.Group group = compositor.getGroup();
+    _gstate.swap(group);
+
+    // install our camera, dependency map
+    compositor.setCamera(_camera);
+    compositor.setDependencies(_dependencies);
+
+    // update the camera viewport
+    Insets insets = getInsets();
+    float scale = 1f;
+    Window w = getWindow();
+    if (w != null) {
+      Root r = w.getRoot();
+      if (r != null) scale = r.getScale();
+    }
+    _camera.getViewport().set(
+      _static ? 0 : FloatMath.round(scale * (getAbsoluteX() + insets.left)),
+      _static ? 0 : FloatMath.round(scale * (getAbsoluteY() + insets.bottom)),
+      FloatMath.round(scale * (_width - insets.getHorizontal())),
+      FloatMath.round(scale * (_height - insets.getVertical())));
+
+    // update the camera handler/camera position
+    _camhand.updatePerspective();
+    Transform3D viewNodeTransform = getViewNodeTransform();
+    if (viewNodeTransform == null) {
+      _camhand.updatePosition();
+    } else {
+      _camera.getWorldTransform().set(viewNodeTransform);
+      _camera.updateTransform();
     }
 
-    /**
-     * Get access to the image onto which we've rendered, which is only valid
-     * if we're static and a call has been made to render(). Otherwise null will be returned.
-     */
-    public Image getImage ()
-    {
-        return _image;
+    // update the view transform state
+    _viewTransformState.getModelview().set(_viewTransform);
+    _viewTransformState.setDirty(true);
+
+    try {
+      // push the modelview matrix
+      if (!_static) {
+        renderer.setMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPushMatrix();
+        GL11.glLoadIdentity();
+      }
+
+      // composite the config models
+      for (Model model : _configModels) {
+        model.composite();
+      }
+
+      // composite the other compositables
+      for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
+        _compositables.get(ii).composite();
+      }
+
+      // enqueue and clear the enqueueables
+      compositor.enqueueEnqueueables();
+
+      // sort the queues in preparation for rendering
+      group.sortQueues();
+
+      // apply the camera state
+      _camera.apply(renderer);
+
+      // clear the buffers
+      Rectangle oscissor = renderer.getScissor();
+      if (oscissor != null) {
+        _oscissor.set(oscissor);
+      }
+      renderer.setScissor(_camera.getViewport());
+      renderer.setClearDepth(1f);
+      renderer.setState(DepthState.TEST_WRITE);
+      if (_static) {
+        renderer.setState(ColorMaskState.ALL);
+        renderer.setClearColor(new Color4f(0f, 0f, 0f, 0f));
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+      } else {
+        GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+      }
+      renderer.setScissor(oscissor == null ? null : _oscissor);
+
+      // render the contents of the queues
+      group.renderQueues(RenderQueue.NORMAL_TYPE);
+
+    } finally {
+      // clear out the dependencies, render queues
+      compositor.clearDependencies();
+      group.clearQueues();
+
+      // restore the original camera, dependency map, group state
+      compositor.setCamera(ocamera);
+      compositor.setDependencies(odeps);
+      _gstate.swap(group);
+
+      // restore the original viewport and projection
+      if (!_static) {
+        Rectangle viewport = ocamera.getViewport();
+        renderer.setViewport(viewport);
+        renderer.setProjection(
+          0f, viewport.width, 0f, viewport.height, -1f, +1f, Vector3f.UNIT_Z, true);
+
+        // reapply the overlay states
+        renderer.setStates(_root.getStates());
+
+        // pop the modelview matrix
+        renderer.setMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPopMatrix();
+      }
     }
+  }
 
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-        // no time elapses for static views
-        if (_static) {
-            elapsed = 0f;
-        }
-
-        // set the camera in the compositor in case anything wants its position
-        Compositor compositor = _ctx.getCompositor();
-        Camera ocamera = compositor.getCamera();
-        compositor.setCamera(_camera);
-
-        try {
-            // tick the config models
-            for (Model model : _configModels) {
-                model.tick(elapsed);
-            }
-
-            // tick the other compositables
-            Tickable[] tickers = _tickables; // stable array ref in case a tickable removes itself
-            for (int ii = 0, nn = tickers.length; ii < nn; ii++) {
-                tickers[ii].tick(elapsed);
-            }
-        } finally {
-            // restore the camera
-            compositor.setCamera(ocamera);
-        }
+  /**
+   * Returns the transform corresponding to the view node, or <code>null</code> for none.
+   */
+  protected Transform3D getViewNodeTransform ()
+  {
+    if (StringUtil.isBlank(_viewNode)) {
+      return null;
     }
-
-    @Override
-    protected Dimension computePreferredSize (int whint, int hhint)
-    {
-        Dimension dim = super.computePreferredSize(whint, hhint);
-        if (_usePreferredSizeHints) {
-            if (whint > 0) {
-                dim.width = whint;
-            }
-            if (hhint > 0) {
-                dim.height = hhint;
-            }
-        }
-        return dim;
+    for (Model model : _configModels) {
+      Transform3D xform = model.getPointWorldTransform(_viewNode);
+      if (xform != null) {
+        return xform;
+      }
     }
-
-    @Override
-    protected void wasAdded ()
-    {
-        super.wasAdded();
-        _root = getWindow().getRoot();
-        _root.addTickParticipant(this);
+    for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
+      Compositable compositable = _compositables.get(ii);
+      if (compositable instanceof Model) {
+        Transform3D xform = ((Model)compositable).getPointWorldTransform(_viewNode);
+        if (xform != null) {
+          return xform;
+        }
+      }
     }
+    return null;
+  }
 
-    @Override
-    protected void wasRemoved ()
-    {
-        super.wasRemoved();
-        _root.removeTickParticipant(this);
-        _root = null;
+  /** The view scope. */
+  protected DynamicScope _scope = new DynamicScope(this, "view");
+
+  /** The UI root with which we've registered as a tick participant. */
+  protected Root _root;
+
+  /** The renderer camera. */
+  protected Camera _camera = new Camera();
+
+  /** The handler that controls the camera's parameters. */
+  protected CameraHandler _camhand;
+
+  /** Stores the state of the render queue. */
+  protected RenderQueue.Group.State _gstate = new RenderQueue.Group.State();
+
+  /** Stores the dependency set. */
+  protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
+  /** Whether or not the view is static. */
+  protected boolean _static;
+
+  /** The name of the view node, if any. */
+  protected String _viewNode;
+
+  /** The models loaded from the configuration. */
+  protected Model[] _configModels = Model.EMPTY_ARRAY;
+
+  /** The list of other compositables to include. */
+  protected List<Compositable> _compositables = Lists.newArrayList();
+
+  /** A working array of tickable compositables. */
+  protected transient Tickable[] _tickables = EMPTY_TICKABLES;
+
+  /** For static views, the rendered image. */
+  protected Image _image;
+
+  /** For static views, the texture renderer. */
+  protected TextureRenderer _renderer;
+
+  /** If we use hints while computing preferred size. */
+  protected boolean _usePreferredSizeHints;
+
+  /** A scoped reference to the camera's view transform. */
+  @Scoped
+  protected Transform3D _viewTransform = _camera.getViewTransform();
+
+  /** A transform state containing the camera's view transform. */
+  @Scoped
+  protected TransformState _viewTransformState = new TransformState();
+
+  /** Used to save the scissor region. */
+  protected Rectangle _oscissor = new Rectangle();
+
+  /** Removes transient models once they're done. */
+  protected ModelAdapter _transientObserver = new ModelAdapter() {
+    public boolean modelCompleted (Model model) {
+      ((Scene.Transient)model).setUpdater(null);
+      remove(model);
+      return true;
     }
+  };
 
-    @Override
-    protected void layout ()
-    {
-        render();
-    }
-
-    @Override
-    protected void renderComponent (Renderer renderer)
-    {
-        // static views simply draw the prerendered image
-        if (_static) {
-            if (_image != null) {
-                Insets insets = getInsets();
-                _image.render(renderer, insets.left, insets.bottom,
-                    _width - insets.getHorizontal(), _height - insets.getVertical(), _alpha);
-            }
-        } else {
-            renderView(renderer);
-        }
-    }
-
-    /**
-     * Creates the camera handler for the view.
-     */
-    protected CameraHandler createCameraHandler ()
-    {
-        return new OrbitCameraHandler(_ctx, _camera, false);
-    }
-
-    /**
-     * Renders the view.
-     */
-    protected void renderView (Renderer renderer)
-    {
-        // save the compositor's original camera and dependency map, swap in our group state
-        Compositor compositor = _ctx.getCompositor();
-        Camera ocamera = compositor.getCamera();
-        Map<Dependency, Dependency> odeps = compositor.getDependencies();
-        RenderQueue.Group group = compositor.getGroup();
-        _gstate.swap(group);
-
-        // install our camera, dependency map
-        compositor.setCamera(_camera);
-        compositor.setDependencies(_dependencies);
-
-        // update the camera viewport
-        Insets insets = getInsets();
-        float scale = 1f;
-        Window w = getWindow();
-        if (w != null) {
-            Root r = w.getRoot();
-            if (r != null) scale = r.getScale();
-        }
-        _camera.getViewport().set(
-            _static ? 0 : FloatMath.round(scale * (getAbsoluteX() + insets.left)),
-            _static ? 0 : FloatMath.round(scale * (getAbsoluteY() + insets.bottom)),
-            FloatMath.round(scale * (_width - insets.getHorizontal())),
-            FloatMath.round(scale * (_height - insets.getVertical())));
-
-        // update the camera handler/camera position
-        _camhand.updatePerspective();
-        Transform3D viewNodeTransform = getViewNodeTransform();
-        if (viewNodeTransform == null) {
-            _camhand.updatePosition();
-        } else {
-            _camera.getWorldTransform().set(viewNodeTransform);
-            _camera.updateTransform();
-        }
-
-        // update the view transform state
-        _viewTransformState.getModelview().set(_viewTransform);
-        _viewTransformState.setDirty(true);
-
-        try {
-            // push the modelview matrix
-            if (!_static) {
-                renderer.setMatrixMode(GL11.GL_MODELVIEW);
-                GL11.glPushMatrix();
-                GL11.glLoadIdentity();
-            }
-
-            // composite the config models
-            for (Model model : _configModels) {
-                model.composite();
-            }
-
-            // composite the other compositables
-            for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
-                _compositables.get(ii).composite();
-            }
-
-            // enqueue and clear the enqueueables
-            compositor.enqueueEnqueueables();
-
-            // sort the queues in preparation for rendering
-            group.sortQueues();
-
-            // apply the camera state
-            _camera.apply(renderer);
-
-            // clear the buffers
-            Rectangle oscissor = renderer.getScissor();
-            if (oscissor != null) {
-                _oscissor.set(oscissor);
-            }
-            renderer.setScissor(_camera.getViewport());
-            renderer.setClearDepth(1f);
-            renderer.setState(DepthState.TEST_WRITE);
-            if (_static) {
-                renderer.setState(ColorMaskState.ALL);
-                renderer.setClearColor(new Color4f(0f, 0f, 0f, 0f));
-                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-            } else {
-                GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-            }
-            renderer.setScissor(oscissor == null ? null : _oscissor);
-
-            // render the contents of the queues
-            group.renderQueues(RenderQueue.NORMAL_TYPE);
-
-        } finally {
-            // clear out the dependencies, render queues
-            compositor.clearDependencies();
-            group.clearQueues();
-
-            // restore the original camera, dependency map, group state
-            compositor.setCamera(ocamera);
-            compositor.setDependencies(odeps);
-            _gstate.swap(group);
-
-            // restore the original viewport and projection
-            if (!_static) {
-                Rectangle viewport = ocamera.getViewport();
-                renderer.setViewport(viewport);
-                renderer.setProjection(
-                    0f, viewport.width, 0f, viewport.height, -1f, +1f, Vector3f.UNIT_Z, true);
-
-                // reapply the overlay states
-                renderer.setStates(_root.getStates());
-
-                // pop the modelview matrix
-                renderer.setMatrixMode(GL11.GL_MODELVIEW);
-                GL11.glPopMatrix();
-            }
-        }
-    }
-
-    /**
-     * Returns the transform corresponding to the view node, or <code>null</code> for none.
-     */
-    protected Transform3D getViewNodeTransform ()
-    {
-        if (StringUtil.isBlank(_viewNode)) {
-            return null;
-        }
-        for (Model model : _configModels) {
-            Transform3D xform = model.getPointWorldTransform(_viewNode);
-            if (xform != null) {
-                return xform;
-            }
-        }
-        for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
-            Compositable compositable = _compositables.get(ii);
-            if (compositable instanceof Model) {
-                Transform3D xform = ((Model)compositable).getPointWorldTransform(_viewNode);
-                if (xform != null) {
-                    return xform;
-                }
-            }
-        }
-        return null;
-    }
-
-    /** The view scope. */
-    protected DynamicScope _scope = new DynamicScope(this, "view");
-
-    /** The UI root with which we've registered as a tick participant. */
-    protected Root _root;
-
-    /** The renderer camera. */
-    protected Camera _camera = new Camera();
-
-    /** The handler that controls the camera's parameters. */
-    protected CameraHandler _camhand;
-
-    /** Stores the state of the render queue. */
-    protected RenderQueue.Group.State _gstate = new RenderQueue.Group.State();
-
-    /** Stores the dependency set. */
-    protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
-
-    /** Whether or not the view is static. */
-    protected boolean _static;
-
-    /** The name of the view node, if any. */
-    protected String _viewNode;
-
-    /** The models loaded from the configuration. */
-    protected Model[] _configModels = Model.EMPTY_ARRAY;
-
-    /** The list of other compositables to include. */
-    protected List<Compositable> _compositables = Lists.newArrayList();
-
-    /** A working array of tickable compositables. */
-    protected transient Tickable[] _tickables = EMPTY_TICKABLES;
-
-    /** For static views, the rendered image. */
-    protected Image _image;
-
-    /** For static views, the texture renderer. */
-    protected TextureRenderer _renderer;
-
-    /** If we use hints while computing preferred size. */
-    protected boolean _usePreferredSizeHints;
-
-    /** A scoped reference to the camera's view transform. */
-    @Scoped
-    protected Transform3D _viewTransform = _camera.getViewTransform();
-
-    /** A transform state containing the camera's view transform. */
-    @Scoped
-    protected TransformState _viewTransformState = new TransformState();
-
-    /** Used to save the scissor region. */
-    protected Rectangle _oscissor = new Rectangle();
-
-    /** Removes transient models once they're done. */
-    protected ModelAdapter _transientObserver = new ModelAdapter() {
-        public boolean modelCompleted (Model model) {
-            ((Scene.Transient)model).setUpdater(null);
-            remove(model);
-            return true;
-        }
-    };
-
-    /** An empty tickable array. */
-    protected static final Tickable[] EMPTY_TICKABLES = new Tickable[0];
+  /** An empty tickable array. */
+  protected static final Tickable[] EMPTY_TICKABLES = new Tickable[0];
 
 }

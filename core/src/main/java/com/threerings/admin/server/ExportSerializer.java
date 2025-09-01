@@ -34,10 +34,10 @@ import com.threerings.export.util.ExportUtil;
  */
 public class ExportSerializer implements ConfigRegistry.Serializer
 {
-    @Override public String serialize (String name, Object value) {
-        return StringUtil.hexlate(ExportUtil.toBytes(value));
-    }
-    @Override public Object deserialize (String value) {
-        return ExportUtil.fromBytes(StringUtil.unhexlate(value));
-    }
+  @Override public String serialize (String name, Object value) {
+    return StringUtil.hexlate(ExportUtil.toBytes(value));
+  }
+  @Override public Object deserialize (String value) {
+    return ExportUtil.fromBytes(StringUtil.unhexlate(value));
+  }
 }

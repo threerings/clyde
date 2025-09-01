@@ -31,13 +31,13 @@ package com.threerings.tudey.data.effect;
  */
 public interface Prefireable
 {
-    /**
-     * Sets the oid of the client that (may have) prefired the effect, or zero for none.
-     */
-    public void setClientOid (int clientOid);
+  /**
+   * Sets the oid of the client that (may have) prefired the effect, or zero for none.
+   */
+  public void setClientOid (int clientOid);
 
-    /**
-     * Returns the oid of the client that (may have) prefired the effect.
-     */
-    public int getClientOid ();
+  /**
+   * Returns the oid of the client that (may have) prefired the effect.
+   */
+  public int getClientOid ();
 }

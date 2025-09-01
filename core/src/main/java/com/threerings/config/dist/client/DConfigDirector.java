@@ -64,210 +64,210 @@ import static com.threerings.ClydeLog.log;
  * Handles the client side of the distributed config system.
  */
 public class DConfigDirector extends BasicDirector
-    implements Subscriber<DConfigObject>, ConfigGroupListener,
-        ConfigUpdateListener<ManagedConfig>
+  implements Subscriber<DConfigObject>, ConfigGroupListener,
+    ConfigUpdateListener<ManagedConfig>
 {
-    /**
-     * Creates a new distributed config director.
-     */
-    public DConfigDirector (PresentsContext ctx, ConfigManager cfgmgr)
-    {
-        super(ctx);
-        _cfgmgr = cfgmgr;
+  /**
+   * Creates a new distributed config director.
+   */
+  public DConfigDirector (PresentsContext ctx, ConfigManager cfgmgr)
+  {
+    super(ctx);
+    _cfgmgr = cfgmgr;
 
-        // listen to all groups and for all updates
-        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-            @SuppressWarnings("unchecked")
-            ConfigGroup<ManagedConfig> mgroup = (ConfigGroup<ManagedConfig>)group;
-            mgroup.addListener(this);
-        }
-        _cfgmgr.addUpdateListener(this);
-
-        // create the transmit interval
-        _transmitInterval = new Interval(ctx.getClient().getRunQueue()) {
-            @Override public void expired () {
-                maybeTransmitUpdate();
-            }
-        };
+    // listen to all groups and for all updates
+    for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+      @SuppressWarnings("unchecked")
+      ConfigGroup<ManagedConfig> mgroup = (ConfigGroup<ManagedConfig>)group;
+      mgroup.addListener(this);
     }
+    _cfgmgr.addUpdateListener(this);
 
-    // documentation inherited from interface Subscriber
-    public void objectAvailable (DConfigObject cfgobj)
-    {
-        // create an update to apply events that did not originate on this client
-        new ConfigUpdater(_cfgmgr) {
-            @Override public void entryAdded (EntryAddedEvent<DSet.Entry> event) {
-                int clientOid = ((DConfigObject.ClientEntryAddedEvent)event).getClientOid();
-                if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
-                    try {
-                        super.entryAdded(event);
-                    } finally {
-                        _block.leave();
-                    }
-                }
-            }
-            @Override public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event) {
-                int clientOid = ((DConfigObject.ClientEntryUpdatedEvent)event).getClientOid();
-                if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
-                    try {
-                        super.entryUpdated(event);
-                    } finally {
-                        _block.leave();
-                    }
-                }
-            }
-            @Override public void entryRemoved (EntryRemovedEvent<DSet.Entry> event) {
-                int clientOid = ((DConfigObject.ClientEntryRemovedEvent)event).getClientOid();
-                if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
-                    try {
-                        super.entryRemoved(event);
-                    } finally {
-                        _block.leave();
-                    }
-                }
-            }
-        }.init(_cfgobj = cfgobj);
-    }
+    // create the transmit interval
+    _transmitInterval = new Interval(ctx.getClient().getRunQueue()) {
+      @Override public void expired () {
+        maybeTransmitUpdate();
+      }
+    };
+  }
 
-    // documentation inherited from interface Subscriber
-    public void requestFailed (int oid, ObjectAccessException cause)
-    {
-        log.warning("Failed to subscribe to config object.", "oid", oid, cause);
-    }
-
-    // documentation inherited from interface ConfigGroupListener
-    public void configAdded (ConfigEvent<ManagedConfig> event)
-    {
-        if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
-            return;
-        }
-        try {
-            ConfigEntry entry = new ConfigEntry(event.getConfig());
-            ConfigKey key = (ConfigKey)entry.getKey();
-            if (_removed.remove(key)) {
-                _updated.put(key, entry);
-            } else {
-                _added.put(key, entry);
-            }
-            maybeTransmitUpdate();
-
-        } finally {
+  // documentation inherited from interface Subscriber
+  public void objectAvailable (DConfigObject cfgobj)
+  {
+    // create an update to apply events that did not originate on this client
+    new ConfigUpdater(_cfgmgr) {
+      @Override public void entryAdded (EntryAddedEvent<DSet.Entry> event) {
+        int clientOid = ((DConfigObject.ClientEntryAddedEvent)event).getClientOid();
+        if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
+          try {
+            super.entryAdded(event);
+          } finally {
             _block.leave();
+          }
         }
-    }
-
-    // documentation inherited from interface ConfigGroupListener
-    public void configRemoved (ConfigEvent<ManagedConfig> event)
-    {
-        if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
-            return;
-        }
-        try {
-            ManagedConfig config = event.getConfig();
-            ConfigKey key = new ConfigKey(config.getClass(), config.getName());
-            if (_added.remove(key) == null) {
-                _updated.remove(key);
-                _removed.add(key);
-            }
-            maybeTransmitUpdate();
-
-        } finally {
+      }
+      @Override public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event) {
+        int clientOid = ((DConfigObject.ClientEntryUpdatedEvent)event).getClientOid();
+        if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
+          try {
+            super.entryUpdated(event);
+          } finally {
             _block.leave();
+          }
         }
-    }
-
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<ManagedConfig> event)
-    {
-        if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
-            return;
-        }
-        try {
-            ConfigEntry entry = new ConfigEntry(event.getConfig());
-            ConfigKey key = (ConfigKey)entry.getKey();
-            if (_added.containsKey(key)) {
-                _added.put(key, entry);
-            } else {
-                _updated.put(key, entry);
-            }
-            maybeTransmitUpdate();
-
-        } finally {
+      }
+      @Override public void entryRemoved (EntryRemovedEvent<DSet.Entry> event) {
+        int clientOid = ((DConfigObject.ClientEntryRemovedEvent)event).getClientOid();
+        if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
+          try {
+            super.entryRemoved(event);
+          } finally {
             _block.leave();
+          }
         }
+      }
+    }.init(_cfgobj = cfgobj);
+  }
+
+  // documentation inherited from interface Subscriber
+  public void requestFailed (int oid, ObjectAccessException cause)
+  {
+    log.warning("Failed to subscribe to config object.", "oid", oid, cause);
+  }
+
+  // documentation inherited from interface ConfigGroupListener
+  public void configAdded (ConfigEvent<ManagedConfig> event)
+  {
+    if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
+      return;
     }
+    try {
+      ConfigEntry entry = new ConfigEntry(event.getConfig());
+      ConfigKey key = (ConfigKey)entry.getKey();
+      if (_removed.remove(key)) {
+        _updated.put(key, entry);
+      } else {
+        _added.put(key, entry);
+      }
+      maybeTransmitUpdate();
 
-    @Override
-    public void clientDidLogoff (Client client)
-    {
-        super.clientDidLogoff(client);
-        _cfgobj = null;
+    } finally {
+      _block.leave();
     }
+  }
 
-    @Override
-    protected void fetchServices (Client client)
-    {
-        int oid = ((DConfigBootstrapData)client.getBootstrapData()).dconfigOid;
-        _ctx.getDObjectManager().subscribeToObject(oid, this);
+  // documentation inherited from interface ConfigGroupListener
+  public void configRemoved (ConfigEvent<ManagedConfig> event)
+  {
+    if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
+      return;
     }
+    try {
+      ManagedConfig config = event.getConfig();
+      ConfigKey key = new ConfigKey(config.getClass(), config.getName());
+      if (_added.remove(key) == null) {
+        _updated.remove(key);
+        _removed.add(key);
+      }
+      maybeTransmitUpdate();
 
-    /**
-     * Transmits all pending updates to the server if appropriate.
-     */
-    protected void maybeTransmitUpdate ()
-    {
-        if (_added.isEmpty() && _updated.isEmpty() && _removed.isEmpty()) {
-            return;
-        }
-        long now = System.currentTimeMillis();
-        long delay = _lastTransmit + MIN_TRANSMIT_INTERVAL - now;
-        if (delay > 0L) {
-            _transmitInterval.schedule(delay);
-            return;
-        }
-        _lastTransmit = now;
-        _cfgobj.dconfigService.updateConfigs(
-            _added.values().toArray(new ConfigEntry[_added.size()]),
-            _updated.values().toArray(new ConfigEntry[_updated.size()]),
-            _removed.toArray(new ConfigKey[_removed.size()]));
-        _added.clear();
-        _updated.clear();
-        _removed.clear();
+    } finally {
+      _block.leave();
     }
+  }
 
-    /**
-     * Determines whether the local client is logged in as an admin.
-     */
-    protected boolean clientIsAdmin ()
-    {
-        Object clobj = _ctx.getClient().getClientObject();
-        return clobj instanceof BodyObject && ((BodyObject)clobj).getTokens().isAdmin();
+  // documentation inherited from interface ConfigUpdateListener
+  public void configUpdated (ConfigEvent<ManagedConfig> event)
+  {
+    if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
+      return;
     }
+    try {
+      ConfigEntry entry = new ConfigEntry(event.getConfig());
+      ConfigKey key = (ConfigKey)entry.getKey();
+      if (_added.containsKey(key)) {
+        _added.put(key, entry);
+      } else {
+        _updated.put(key, entry);
+      }
+      maybeTransmitUpdate();
 
-    /** The root config manager. */
-    protected ConfigManager _cfgmgr;
+    } finally {
+      _block.leave();
+    }
+  }
 
-    /** The config object. */
-    protected DConfigObject _cfgobj;
+  @Override
+  public void clientDidLogoff (Client client)
+  {
+    super.clientDidLogoff(client);
+    _cfgobj = null;
+  }
 
-    /** Indicates that we should ignore any changes, because we're the one effecting them. */
-    protected ChangeBlock _block = new ChangeBlock();
+  @Override
+  protected void fetchServices (Client client)
+  {
+    int oid = ((DConfigBootstrapData)client.getBootstrapData()).dconfigOid;
+    _ctx.getDObjectManager().subscribeToObject(oid, this);
+  }
 
-    /** The set of added entries pending transmission. */
-    protected Map<ConfigKey, ConfigEntry> _added = Maps.newTreeMap();
+  /**
+   * Transmits all pending updates to the server if appropriate.
+   */
+  protected void maybeTransmitUpdate ()
+  {
+    if (_added.isEmpty() && _updated.isEmpty() && _removed.isEmpty()) {
+      return;
+    }
+    long now = System.currentTimeMillis();
+    long delay = _lastTransmit + MIN_TRANSMIT_INTERVAL - now;
+    if (delay > 0L) {
+      _transmitInterval.schedule(delay);
+      return;
+    }
+    _lastTransmit = now;
+    _cfgobj.dconfigService.updateConfigs(
+      _added.values().toArray(new ConfigEntry[_added.size()]),
+      _updated.values().toArray(new ConfigEntry[_updated.size()]),
+      _removed.toArray(new ConfigKey[_removed.size()]));
+    _added.clear();
+    _updated.clear();
+    _removed.clear();
+  }
 
-    /** The set of updated entries pending transmission. */
-    protected Map<ConfigKey, ConfigEntry> _updated = Maps.newTreeMap();
+  /**
+   * Determines whether the local client is logged in as an admin.
+   */
+  protected boolean clientIsAdmin ()
+  {
+    Object clobj = _ctx.getClient().getClientObject();
+    return clobj instanceof BodyObject && ((BodyObject)clobj).getTokens().isAdmin();
+  }
 
-    /** The set of removed keys pending transmission. */
-    protected Set<ConfigKey> _removed = Sets.newTreeSet();
+  /** The root config manager. */
+  protected ConfigManager _cfgmgr;
 
-    /** The time at which the last update was sent. */
-    protected long _lastTransmit;
+  /** The config object. */
+  protected DConfigObject _cfgobj;
 
-    /** Invokes the transmit method. */
-    protected Interval _transmitInterval;
+  /** Indicates that we should ignore any changes, because we're the one effecting them. */
+  protected ChangeBlock _block = new ChangeBlock();
 
-    /** The minimum amount of time between updates. */
-    protected static final long MIN_TRANSMIT_INTERVAL = 200L;
+  /** The set of added entries pending transmission. */
+  protected Map<ConfigKey, ConfigEntry> _added = Maps.newTreeMap();
+
+  /** The set of updated entries pending transmission. */
+  protected Map<ConfigKey, ConfigEntry> _updated = Maps.newTreeMap();
+
+  /** The set of removed keys pending transmission. */
+  protected Set<ConfigKey> _removed = Sets.newTreeSet();
+
+  /** The time at which the last update was sent. */
+  protected long _lastTransmit;
+
+  /** Invokes the transmit method. */
+  protected Interval _transmitInterval;
+
+  /** The minimum amount of time between updates. */
+  protected static final long MIN_TRANSMIT_INTERVAL = 200L;
 }

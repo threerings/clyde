@@ -36,102 +36,102 @@ import com.threerings.expr.util.ScopeUtil;
  * An integer-valued expression.
  */
 @EditorTypes({
-    IntegerExpression.Constant.class, IntegerExpression.Reference.class })
+  IntegerExpression.Constant.class, IntegerExpression.Reference.class })
 public abstract class IntegerExpression extends DeepObject
-    implements Exportable
+  implements Exportable
 {
+  /**
+   * A constant expression.
+   */
+  public static class Constant extends IntegerExpression
+  {
+    /** The value of the constant. */
+    @Editable
+    public int value;
+
     /**
-     * A constant expression.
+     * Creates a new constant expression with the specified value.
      */
-    public static class Constant extends IntegerExpression
+    public Constant (int value)
     {
-        /** The value of the constant. */
-        @Editable
-        public int value;
-
-        /**
-         * Creates a new constant expression with the specified value.
-         */
-        public Constant (int value)
-        {
-            this.value = value;
-        }
-
-        /**
-         * Creates a new constant expression with a value of zero.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public Evaluator createEvaluator (Scope scope)
-        {
-            return new Evaluator() {
-                public int evaluate () {
-                    return value;
-                }
-            };
-        }
+      this.value = value;
     }
 
     /**
-     * A reference expression.
+     * Creates a new constant expression with a value of zero.
      */
-    public static class Reference extends IntegerExpression
+    public Constant ()
     {
-        /** The name of the variable. */
-        @Editable
-        public String name = "";
+    }
 
-        /** The default value of the variable. */
-        @Editable
-        public int defvalue;
-
-        @Override
-        public Evaluator createEvaluator (Scope scope)
-        {
-            // first look for a mutable reference, then for a variable
-            final MutableInteger reference = ScopeUtil.resolve(
-                scope, name, (MutableInteger)null);
-            if (reference != null) {
-                return new Evaluator() {
-                    public int evaluate () {
-                        return reference.value;
-                    }
-                };
-            }
-            final Variable variable = ScopeUtil.resolve(
-                scope, name, Variable.newInstance(defvalue));
-            return new Evaluator() {
-                public int evaluate () {
-                    return variable.getInt();
-                }
-            };
+    @Override
+    public Evaluator createEvaluator (Scope scope)
+    {
+      return new Evaluator() {
+        public int evaluate () {
+          return value;
         }
+      };
     }
+  }
 
-    /**
-     * Performs the actual evaluation of the expression.
-     */
-    public static abstract class Evaluator
+  /**
+   * A reference expression.
+   */
+  public static class Reference extends IntegerExpression
+  {
+    /** The name of the variable. */
+    @Editable
+    public String name = "";
+
+    /** The default value of the variable. */
+    @Editable
+    public int defvalue;
+
+    @Override
+    public Evaluator createEvaluator (Scope scope)
     {
-        /**
-         * Evaluates and returns the current value of the expression.
-         */
-        public abstract int evaluate ();
+      // first look for a mutable reference, then for a variable
+      final MutableInteger reference = ScopeUtil.resolve(
+        scope, name, (MutableInteger)null);
+      if (reference != null) {
+        return new Evaluator() {
+          public int evaluate () {
+            return reference.value;
+          }
+        };
+      }
+      final Variable variable = ScopeUtil.resolve(
+        scope, name, Variable.newInstance(defvalue));
+      return new Evaluator() {
+        public int evaluate () {
+          return variable.getInt();
+        }
+      };
     }
+  }
 
+  /**
+   * Performs the actual evaluation of the expression.
+   */
+  public static abstract class Evaluator
+  {
     /**
-     * Creates an expression evaluator for the supplied context.
+     * Evaluates and returns the current value of the expression.
      */
-    public abstract Evaluator createEvaluator (Scope scope);
+    public abstract int evaluate ();
+  }
 
-    /**
-     * Invalidates any cached data.
-     */
-    public void invalidate ()
-    {
-        // nothing by default
-    }
+  /**
+   * Creates an expression evaluator for the supplied context.
+   */
+  public abstract Evaluator createEvaluator (Scope scope);
+
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    // nothing by default
+  }
 }

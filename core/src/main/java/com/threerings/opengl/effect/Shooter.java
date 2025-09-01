@@ -32,10 +32,10 @@ import com.threerings.math.Vector3f;
  */
 public interface Shooter
 {
-    /**
-     * Configures the supplied particle with an initial velocity.
-     *
-     * @return a reference to the particle's velocity, for chaining.
-     */
-    public Vector3f shoot (Particle particle);
+  /**
+   * Configures the supplied particle with an initial velocity.
+   *
+   * @return a reference to the particle's velocity, for chaining.
+   */
+  public Vector3f shoot (Particle particle);
 }

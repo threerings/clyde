@@ -48,220 +48,220 @@ import com.threerings.opengl.util.GlContext;
  * Contains a background configuration.
  */
 @EditorTypes({
-    BackgroundConfig.Solid.class, BackgroundConfig.Image.class,
-    BackgroundConfig.ColorizedImage.class, BackgroundConfig.Blank.class })
+  BackgroundConfig.Solid.class, BackgroundConfig.Image.class,
+  BackgroundConfig.ColorizedImage.class, BackgroundConfig.Blank.class })
 public abstract class BackgroundConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * A solid background.
-     */
-    public static class Solid extends BackgroundConfig
-    {
-        /** The color of the background. */
-        @Editable(mode="alpha")
-        public Color4f color = new Color4f(Color4f.BLACK);
+  /**
+   * A solid background.
+   */
+  public static class Solid extends BackgroundConfig
+  {
+    /** The color of the background. */
+    @Editable(mode="alpha")
+    public Color4f color = new Color4f(Color4f.BLACK);
 
-        @Override
-        protected Background createBackground (GlContext ctx)
-        {
-            return new TintedBackground(color);
-        }
+    @Override
+    protected Background createBackground (GlContext ctx)
+    {
+      return new TintedBackground(color);
+    }
+  }
+
+  /**
+   * An image background.
+   */
+  public static class Image extends BackgroundConfig
+  {
+    /** The various image modes. */
+    public enum Mode
+    {
+      CENTER_XY(ImageBackground.CENTER_XY),
+      CENTER_X(ImageBackground.CENTER_X),
+      CENTER_Y(ImageBackground.CENTER_Y),
+
+      SCALE_XY(ImageBackground.SCALE_XY),
+      SCALE_X(ImageBackground.SCALE_X),
+      SCALE_Y(ImageBackground.SCALE_Y),
+
+      TILE_XY(ImageBackground.TILE_XY),
+      TILE_X(ImageBackground.TILE_X),
+      TILE_Y(ImageBackground.TILE_Y),
+
+      FRAME_XY(ImageBackground.FRAME_XY, true),
+      FRAME_X(ImageBackground.FRAME_X, true),
+      FRAME_Y(ImageBackground.FRAME_Y, true),
+
+      ASPECT_INNER(ImageBackground.ASPECT_INNER),
+      ASPECT_OUTER(ImageBackground.ASPECT_OUTER);
+
+      /**
+       * Returns the corresponding {@link ImageBackground} constant.
+       */
+      public int getConstant ()
+      {
+        return _constant;
+      }
+
+      /**
+       * Determines whether this is one of the framing modes.
+       */
+      public boolean isFrame ()
+      {
+        return _frame;
+      }
+
+      Mode (int constant)
+      {
+        this(constant, false);
+      }
+
+      Mode (int constant, boolean frame)
+      {
+        _constant = constant;
+        _frame = frame;
+      }
+
+      /** The corresponding {@link ImageBackground} constant. */
+      protected final int _constant;
+
+      /** Whether this is one of the frame modes. */
+      protected final boolean _frame;
     }
 
-    /**
-     * An image background.
-     */
-    public static class Image extends BackgroundConfig
-    {
-        /** The various image modes. */
-        public enum Mode
-        {
-            CENTER_XY(ImageBackground.CENTER_XY),
-            CENTER_X(ImageBackground.CENTER_X),
-            CENTER_Y(ImageBackground.CENTER_Y),
+    /** The various tile anchors. */
+    public enum Anchor {
+      LOWER_LEFT(ImageBackground.ANCHOR_LL),
+      LOWER_RIGHT(ImageBackground.ANCHOR_LR),
+      UPPER_LEFT(ImageBackground.ANCHOR_UL),
+      UPPER_RIGHT(ImageBackground.ANCHOR_UR);
 
-            SCALE_XY(ImageBackground.SCALE_XY),
-            SCALE_X(ImageBackground.SCALE_X),
-            SCALE_Y(ImageBackground.SCALE_Y),
+      /**
+       * Returns the corresponding {@link ImageBackground} constant.
+       */
+      public int getConstant ()
+      {
+        return _constant;
+      }
 
-            TILE_XY(ImageBackground.TILE_XY),
-            TILE_X(ImageBackground.TILE_X),
-            TILE_Y(ImageBackground.TILE_Y),
+      Anchor (int constant)
+      {
+        _constant = constant;
+      }
 
-            FRAME_XY(ImageBackground.FRAME_XY, true),
-            FRAME_X(ImageBackground.FRAME_X, true),
-            FRAME_Y(ImageBackground.FRAME_Y, true),
-
-            ASPECT_INNER(ImageBackground.ASPECT_INNER),
-            ASPECT_OUTER(ImageBackground.ASPECT_OUTER);
-
-            /**
-             * Returns the corresponding {@link ImageBackground} constant.
-             */
-            public int getConstant ()
-            {
-                return _constant;
-            }
-
-            /**
-             * Determines whether this is one of the framing modes.
-             */
-            public boolean isFrame ()
-            {
-                return _frame;
-            }
-
-            Mode (int constant)
-            {
-                this(constant, false);
-            }
-
-            Mode (int constant, boolean frame)
-            {
-                _constant = constant;
-                _frame = frame;
-            }
-
-            /** The corresponding {@link ImageBackground} constant. */
-            protected final int _constant;
-
-            /** Whether this is one of the frame modes. */
-            protected final boolean _frame;
-        }
-
-        /** The various tile anchors. */
-        public enum Anchor {
-            LOWER_LEFT(ImageBackground.ANCHOR_LL),
-            LOWER_RIGHT(ImageBackground.ANCHOR_LR),
-            UPPER_LEFT(ImageBackground.ANCHOR_UL),
-            UPPER_RIGHT(ImageBackground.ANCHOR_UR);
-
-            /**
-             * Returns the corresponding {@link ImageBackground} constant.
-             */
-            public int getConstant ()
-            {
-                return _constant;
-            }
-
-            Anchor (int constant)
-            {
-                _constant = constant;
-            }
-
-            /** The corresponding {@link ImageBackground} constant. */
-            protected final int _constant;
-        }
-
-        /** The background image. */
-        @Editable(editor="resource", nullable=true, hgroup="f")
-        @FileConstraints(
-            description="m.image_files_desc",
-            extensions={".png", ".jpg", ".dds"},
-            directory="image_dir")
-        public String file;
-
-        /** The image mode. */
-        @Editable(hgroup="m")
-        public Mode mode = Mode.SCALE_XY;
-
-        /** The image anchor. */
-        @Editable(hgroup="m")
-        public Anchor anchor = Anchor.LOWER_LEFT;
-
-        /** The image frame. */
-        @Editable(nullable=true)
-        public InsetsConfig frame;
-
-        @Override
-        public void getUpdateResources (HashSet<String> paths)
-        {
-            if (file != null) {
-                paths.add(file);
-            }
-        }
-
-        @Override
-        protected Background createBackground (GlContext ctx)
-        {
-            return (file == null) ? new BlankBackground() :
-                new ImageBackground(mode.getConstant(), getImage(ctx),
-                    (frame != null && mode.isFrame()) ? frame.createInsets() : null,
-                    anchor.getConstant());
-        }
-
-        /**
-         * Retrieves the image for the background.
-         */
-        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
-        {
-            return ctx.getImageCache().getImage(file);
-        }
+      /** The corresponding {@link ImageBackground} constant. */
+      protected final int _constant;
     }
 
-    /**
-     * A colorized image.
-     */
-    public static class ColorizedImage extends Image
-    {
-        /** The colorizations to apply to the image. */
-        @Editable
-        public ColorizationConfig[] colorizations = new ColorizationConfig[0];
+    /** The background image. */
+    @Editable(editor="resource", nullable=true, hgroup="f")
+    @FileConstraints(
+      description="m.image_files_desc",
+      extensions={".png", ".jpg", ".dds"},
+      directory="image_dir")
+    public String file;
 
-        @Override
-        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
-        {
-            return IconConfig.getImage(ctx, file, colorizations);
-        }
-    }
+    /** The image mode. */
+    @Editable(hgroup="m")
+    public Mode mode = Mode.SCALE_XY;
 
-    /**
-     * A blank background.
-     */
-    public static class Blank extends BackgroundConfig
-    {
-        @Override
-        protected Background createBackground (GlContext ctx)
-        {
-            return new BlankBackground();
-        }
-    }
+    /** The image anchor. */
+    @Editable(hgroup="m")
+    public Anchor anchor = Anchor.LOWER_LEFT;
 
-    /**
-     * Adds the background's update resources to the provided set.
-     */
+    /** The image frame. */
+    @Editable(nullable=true)
+    public InsetsConfig frame;
+
+    @Override
     public void getUpdateResources (HashSet<String> paths)
     {
-        // nothing by default
+      if (file != null) {
+        paths.add(file);
+      }
     }
 
-    /**
-     * Returns the background corresponding to this config.
-     */
-    public Background getBackground (GlContext ctx)
+    @Override
+    protected Background createBackground (GlContext ctx)
     {
-        Background background = (_background == null) ? null : _background.get();
-        if (background == null) {
-            _background = new SoftReference<Background>(background = createBackground(ctx));
-        }
-        return background;
+      return (file == null) ? new BlankBackground() :
+        new ImageBackground(mode.getConstant(), getImage(ctx),
+          (frame != null && mode.isFrame()) ? frame.createInsets() : null,
+          anchor.getConstant());
     }
 
     /**
-     * Invalidates any cached data.
+     * Retrieves the image for the background.
      */
-    public void invalidate ()
+    protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
     {
-        _background = null;
+      return ctx.getImageCache().getImage(file);
     }
+  }
 
-    /**
-     * Creates the background corresponding to this config.
-     */
-    protected abstract Background createBackground (GlContext ctx);
+  /**
+   * A colorized image.
+   */
+  public static class ColorizedImage extends Image
+  {
+    /** The colorizations to apply to the image. */
+    @Editable
+    public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
-    /** The cached background. */
-    @DeepOmit
-    protected transient SoftReference<Background> _background;
+    @Override
+    protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
+    {
+      return IconConfig.getImage(ctx, file, colorizations);
+    }
+  }
+
+  /**
+   * A blank background.
+   */
+  public static class Blank extends BackgroundConfig
+  {
+    @Override
+    protected Background createBackground (GlContext ctx)
+    {
+      return new BlankBackground();
+    }
+  }
+
+  /**
+   * Adds the background's update resources to the provided set.
+   */
+  public void getUpdateResources (HashSet<String> paths)
+  {
+    // nothing by default
+  }
+
+  /**
+   * Returns the background corresponding to this config.
+   */
+  public Background getBackground (GlContext ctx)
+  {
+    Background background = (_background == null) ? null : _background.get();
+    if (background == null) {
+      _background = new SoftReference<Background>(background = createBackground(ctx));
+    }
+    return background;
+  }
+
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    _background = null;
+  }
+
+  /**
+   * Creates the background corresponding to this config.
+   */
+  protected abstract Background createBackground (GlContext ctx);
+
+  /** The cached background. */
+  @DeepOmit
+  protected transient SoftReference<Background> _background;
 }

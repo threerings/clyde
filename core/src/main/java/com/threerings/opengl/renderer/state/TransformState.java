@@ -34,53 +34,53 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class TransformState extends RenderState
 {
-    /** The identity transform. */
-    public static final TransformState IDENTITY = new TransformState();
+  /** The identity transform. */
+  public static final TransformState IDENTITY = new TransformState();
 
-    /**
-     * Creates a new transform state with the values in the supplied transform.
-     */
-    public TransformState (Transform3D modelview)
-    {
-        _modelview.set(modelview);
-    }
+  /**
+   * Creates a new transform state with the values in the supplied transform.
+   */
+  public TransformState (Transform3D modelview)
+  {
+    _modelview.set(modelview);
+  }
 
-    /**
-     * Creates a new transform state with the specified transform type
-     * ({@link Transform3D#GENERAL}, {@link Transform3D#AFFINE}, etc).
-     */
-    public TransformState (int type)
-    {
-        _modelview.setType(type);
-    }
+  /**
+   * Creates a new transform state with the specified transform type
+   * ({@link Transform3D#GENERAL}, {@link Transform3D#AFFINE}, etc).
+   */
+  public TransformState (int type)
+  {
+    _modelview.setType(type);
+  }
 
-    /**
-     * Creates a new transform state with an identity transform.
-     */
-    public TransformState ()
-    {
-    }
+  /**
+   * Creates a new transform state with an identity transform.
+   */
+  public TransformState ()
+  {
+  }
 
-    /**
-     * Returns a reference to the modelview transformation.
-     */
-    public Transform3D getModelview ()
-    {
-        return _modelview;
-    }
+  /**
+   * Returns a reference to the modelview transformation.
+   */
+  public Transform3D getModelview ()
+  {
+    return _modelview;
+  }
 
-    @Override
-    public int getType ()
-    {
-        return TRANSFORM_STATE;
-    }
+  @Override
+  public int getType ()
+  {
+    return TRANSFORM_STATE;
+  }
 
-    @Override
-    public void apply (Renderer renderer)
-    {
-        renderer.setTransformState(_modelview);
-    }
+  @Override
+  public void apply (Renderer renderer)
+  {
+    renderer.setTransformState(_modelview);
+  }
 
-    /** The modelview transformation. */
-    protected Transform3D _modelview = new Transform3D();
+  /** The modelview transformation. */
+  protected Transform3D _modelview = new Transform3D();
 }

@@ -53,92 +53,92 @@ import com.threerings.opengl.util.GlContext;
  */
 public class StaticSetConfig extends ModelConfig.Imported
 {
-    /** The selected model. */
-    @Editable(editor="choice", depends={"source"})
-    public String model;
+  /** The selected model. */
+  @Editable(editor="choice", depends={"source"})
+  public String model;
 
-    /** Maps top-level node names to meshes. */
-    @Shallow
-    public TreeMap<String, MeshSet> meshes;
+  /** Maps top-level node names to meshes. */
+  @Shallow
+  public TreeMap<String, MeshSet> meshes;
 
-    /**
-     * Returns the options for the model field.
-     */
-    @Keep
-    public String[] getModelOptions ()
-    {
-        return ((meshes == null) || meshes.isEmpty()) ?
-            ArrayUtil.EMPTY_STRING : meshes.keySet().toArray(new String[meshes.size()]);
+  /**
+   * Returns the options for the model field.
+   */
+  @Keep
+  public String[] getModelOptions ()
+  {
+    return ((meshes == null) || meshes.isEmpty()) ?
+      ArrayUtil.EMPTY_STRING : meshes.keySet().toArray(new String[meshes.size()]);
+  }
+
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    Resolved resolved = (_resolved == null) ? null : _resolved.get();
+    if (resolved == null) {
+      MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
+      if (mset == null) {
+        return null;
+      }
+      _resolved = new SoftReference<Resolved>(resolved = new Resolved(
+        mset.bounds, mset.collision,
+        getGeometryMaterials(ctx, mset.visible, materialMappings),
+        influences.getFlags()));
     }
-
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        Resolved resolved = (_resolved == null) ? null : _resolved.get();
-        if (resolved == null) {
-            MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
-            if (mset == null) {
-                return null;
-            }
-            _resolved = new SoftReference<Resolved>(resolved = new Resolved(
-                mset.bounds, mset.collision,
-                getGeometryMaterials(ctx, mset.visible, materialMappings),
-                influences.getFlags()));
-        }
-        if (impl instanceof Static) {
-            ((Static)impl).setConfig(ctx, resolved);
-        } else {
-            impl = new Static(ctx, scope, resolved);
-        }
-        return impl;
+    if (impl instanceof Static) {
+      ((Static)impl).setConfig(ctx, resolved);
+    } else {
+      impl = new Static(ctx, scope, resolved);
     }
+    return impl;
+  }
 
-    @Override
-    public void invalidate ()
-    {
-        _resolved = null;
+  @Override
+  public void invalidate ()
+  {
+    _resolved = null;
+  }
+
+  @Override
+  protected VisibleMesh getParticleMesh ()
+  {
+    MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
+    return (mset == null || mset.visible.length == 0) ? null : mset.visible[0];
+  }
+
+  @Override
+  protected void updateFromSource (ModelDef def)
+  {
+    if (def == null) {
+      model = null;
+      meshes = null;
+    } else {
+      def.update(this);
     }
+  }
 
-    @Override
-    protected VisibleMesh getParticleMesh ()
-    {
-        MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
-        return (mset == null || mset.visible.length == 0) ? null : mset.visible[0];
+  @Override
+  protected void getTextures (TreeSet<String> textures)
+  {
+    if (meshes != null) {
+      for (MeshSet set : meshes.values()) {
+        set.getTextures(textures);
+      }
     }
+  }
 
-    @Override
-    protected void updateFromSource (ModelDef def)
-    {
-        if (def == null) {
-            model = null;
-            meshes = null;
-        } else {
-            def.update(this);
-        }
+  @Override
+  protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+  {
+    if (meshes != null) {
+      for (MeshSet set : meshes.values()) {
+        set.getTextureTagPairs(pairs);
+      }
     }
+  }
 
-    @Override
-    protected void getTextures (TreeSet<String> textures)
-    {
-        if (meshes != null) {
-            for (MeshSet set : meshes.values()) {
-                set.getTextures(textures);
-            }
-        }
-    }
-
-    @Override
-    protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
-    {
-        if (meshes != null) {
-            for (MeshSet set : meshes.values()) {
-                set.getTextureTagPairs(pairs);
-            }
-        }
-    }
-
-    /** The cached resolved config bits. */
-    @DeepOmit
-    protected transient SoftReference<Resolved> _resolved;
+  /** The cached resolved config bits. */
+  @DeepOmit
+  protected transient SoftReference<Resolved> _resolved;
 }

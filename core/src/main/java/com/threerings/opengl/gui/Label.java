@@ -35,164 +35,164 @@ import com.threerings.opengl.gui.util.Dimension;
  * A simple component for displaying a textual label.
  */
 public class Label extends TextComponent
-    implements UIConstants
+  implements UIConstants
 {
-    /** Configures the label's strategy when it does not fit into its allocated space. */
-    public enum Fit { WRAP, TRUNCATE, SCALE };
+  /** Configures the label's strategy when it does not fit into its allocated space. */
+  public enum Fit { WRAP, TRUNCATE, SCALE };
 
-    /**
-     * Creates a label that will display the supplied text.
-     */
-    public Label (GlContext ctx, String text)
-    {
-        this(ctx, null, text);
+  /**
+   * Creates a label that will display the supplied text.
+   */
+  public Label (GlContext ctx, String text)
+  {
+    this(ctx, null, text);
+  }
+
+  /**
+   * Creates a label that will display the supplied icon.
+   */
+  public Label (GlContext ctx, Icon icon)
+  {
+    this(ctx, icon, null);
+  }
+
+  /**
+   * Creates a label that will display the supplied text and icon (either or
+   * both of which can be null).
+   */
+  public Label (GlContext ctx, Icon icon, String text)
+  {
+    super(ctx);
+    _label = new LabelRenderer(this);
+    if (icon != null) {
+      setIcon(icon);
     }
-
-    /**
-     * Creates a label that will display the supplied icon.
-     */
-    public Label (GlContext ctx, Icon icon)
-    {
-        this(ctx, icon, null);
+    if (text != null) {
+      setText(text);
     }
+  }
 
-    /**
-     * Creates a label that will display the supplied text and icon (either or
-     * both of which can be null).
-     */
-    public Label (GlContext ctx, Icon icon, String text)
-    {
-        super(ctx);
-        _label = new LabelRenderer(this);
-        if (icon != null) {
-            setIcon(icon);
-        }
-        if (text != null) {
-            setText(text);
-        }
-    }
+  /**
+   * Configures the label to display the specified icon.
+   */
+  public void setIcon (Icon icon)
+  {
+    _label.setIcon(icon);
+  }
 
-    /**
-     * Configures the label to display the specified icon.
-     */
-    public void setIcon (Icon icon)
-    {
-        _label.setIcon(icon);
-    }
+  /**
+   * Returns the icon being displayed by this label.
+   */
+  public Icon getIcon ()
+  {
+    return _label.getIcon();
+  }
 
-    /**
-     * Returns the icon being displayed by this label.
-     */
-    public Icon getIcon ()
-    {
-        return _label.getIcon();
-    }
+  /**
+   * Configures the gap between the icon and the text.
+   */
+  public void setIconTextGap (int gap)
+  {
+    _label.setIconTextGap(gap);
+  }
 
-    /**
-     * Configures the gap between the icon and the text.
-     */
-    public void setIconTextGap (int gap)
-    {
-        _label.setIconTextGap(gap);
-    }
+  /**
+   * Returns the gap between the icon and the text.
+   */
+  public int getIconTextGap ()
+  {
+    return _label.getIconTextGap();
+  }
 
-    /**
-     * Returns the gap between the icon and the text.
-     */
-    public int getIconTextGap ()
-    {
-        return _label.getIconTextGap();
-    }
+  /**
+   * Sets the rotation for the text (in ninety degree increments).
+   */
+  public void setTextRotation (int rotation)
+  {
+    _label.setTextRotation(rotation);
+  }
 
-    /**
-     * Sets the rotation for the text (in ninety degree increments).
-     */
-    public void setTextRotation (int rotation)
-    {
-        _label.setTextRotation(rotation);
-    }
+  /**
+   * Sets the orientation of this label with respect to its icon. If the
+   * horizontal (the default) the text is displayed to the right of the icon,
+   * if vertical the text is displayed below it.
+   */
+  public void setOrientation (int orient)
+  {
+    _label.setOrientation(orient);
+  }
 
-    /**
-     * Sets the orientation of this label with respect to its icon. If the
-     * horizontal (the default) the text is displayed to the right of the icon,
-     * if vertical the text is displayed below it.
-     */
-    public void setOrientation (int orient)
-    {
-        _label.setOrientation(orient);
-    }
+  /**
+   * Configures whether this label will wrap, truncate or scale if it cannot
+   * fit text into its allotted width. The default is to wrap.
+   */
+  public void setFit (Fit mode)
+  {
+    _label.setFit(mode);
+  }
 
-    /**
-     * Configures whether this label will wrap, truncate or scale if it cannot
-     * fit text into its allotted width. The default is to wrap.
-     */
-    public void setFit (Fit mode)
-    {
-        _label.setFit(mode);
-    }
+  /**
+   * Returns the current fit mode for this label.
+   */
+  public Fit getFit ()
+  {
+    return _label._fit;
+  }
 
-    /**
-     * Returns the current fit mode for this label.
-     */
-    public Fit getFit ()
-    {
-        return _label._fit;
-    }
+  /**
+   * Configures the preferred width of this label (the preferred height will be calculated
+   * from the font).
+   */
+  public void setPreferredWidth (int width)
+  {
+    _label.setPreferredWidth(width);
+  }
 
-    /**
-     * Configures the preferred width of this label (the preferred height will be calculated
-     * from the font).
-     */
-    public void setPreferredWidth (int width)
-    {
-        _label.setPreferredWidth(width);
-    }
+  /**
+   * Returns a reference to teh label's renderer.
+   */
+  public LabelRenderer getLabelRenderer ()
+  {
+    return _label;
+  }
 
-    /**
-     * Returns a reference to teh label's renderer.
-     */
-    public LabelRenderer getLabelRenderer ()
-    {
-        return _label;
-    }
+  // documentation inherited
+  public void setText (String text)
+  {
+    _label.setText(text);
+  }
 
-    // documentation inherited
-    public void setText (String text)
-    {
-        _label.setText(text);
-    }
+  // documentation inherited
+  public String getText ()
+  {
+    return _label.getText();
+  }
 
-    // documentation inherited
-    public String getText ()
-    {
-        return _label.getText();
-    }
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/Label";
+  }
 
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/Label";
-    }
+  // documentation inherited
+  protected void layout ()
+  {
+    super.layout();
+    _label.layout(getInsets(), getWidth(), getHeight());
+  }
 
-    // documentation inherited
-    protected void layout ()
-    {
-        super.layout();
-        _label.layout(getInsets(), getWidth(), getHeight());
-    }
+  // documentation inherited
+  protected void renderComponent (Renderer renderer)
+  {
+    super.renderComponent(renderer);
+    _label.render(renderer, 0, 0, getWidth(), getHeight(), _alpha);
+  }
 
-    // documentation inherited
-    protected void renderComponent (Renderer renderer)
-    {
-        super.renderComponent(renderer);
-        _label.render(renderer, 0, 0, getWidth(), getHeight(), _alpha);
-    }
+  // documentation inherited
+  protected Dimension computePreferredSize (int whint, int hhint)
+  {
+    return _label.computePreferredSize(whint, hhint);
+  }
 
-    // documentation inherited
-    protected Dimension computePreferredSize (int whint, int hhint)
-    {
-        return _label.computePreferredSize(whint, hhint);
-    }
-
-    protected LabelRenderer _label;
+  protected LabelRenderer _label;
 }

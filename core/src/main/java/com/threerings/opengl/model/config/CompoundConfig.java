@@ -44,72 +44,72 @@ import com.threerings.opengl.util.Preloadable;
  */
 public class CompoundConfig extends ModelConfig.Implementation
 {
+  /**
+   * Represents one of the models that makes up the compound.
+   */
+  public static class ComponentModel extends DeepObject
+    implements Exportable, Streamable
+  {
+    /** A node to attach the model to, if present. */
+    @Editable
+    public String node = "";
+
+    /** The model reference. */
+    @Editable(nullable=true)
+    public ConfigReference<ModelConfig> model;
+
+    /** The model transform. */
+    @Editable(step=0.01)
+    public Transform3D transform;
+
     /**
-     * Represents one of the models that makes up the compound.
+     * Default constructor.
      */
-    public static class ComponentModel extends DeepObject
-        implements Exportable, Streamable
+    public ComponentModel ()
     {
-        /** A node to attach the model to, if present. */
-        @Editable
-        public String node = "";
-
-        /** The model reference. */
-        @Editable(nullable=true)
-        public ConfigReference<ModelConfig> model;
-
-        /** The model transform. */
-        @Editable(step=0.01)
-        public Transform3D transform;
-
-        /**
-         * Default constructor.
-         */
-        public ComponentModel ()
-        {
-            transform = new Transform3D();
-        }
-
-        /**
-         * Constructor that takes a precreated model reference and transform.
-         */
-        public ComponentModel (ConfigReference<ModelConfig> model, Transform3D transform)
-        {
-            this.model = model;
-            this.transform = transform;
-        }
+      transform = new Transform3D();
     }
 
-    /** The model's tick policy. */
-    @Editable
-    public TickPolicy tickPolicy = TickPolicy.DEFAULT;
-
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
-
-    /** The component models. */
-    @Editable
-    public ComponentModel[] models = new ComponentModel[0];
-
-    @Override
-    public void preload (GlContext ctx)
+    /**
+     * Constructor that takes a precreated model reference and transform.
+     */
+    public ComponentModel (ConfigReference<ModelConfig> model, Transform3D transform)
     {
-        for (ComponentModel model : models) {
-            new Preloadable.Model(model.model).preload(ctx);
-        }
+      this.model = model;
+      this.transform = transform;
     }
+  }
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof Compound) {
-            ((Compound)impl).setConfig(ctx, this);
-        } else {
-            impl = new Compound(ctx, scope, this);
-        }
-        return impl;
+  /** The model's tick policy. */
+  @Editable
+  public TickPolicy tickPolicy = TickPolicy.DEFAULT;
+
+  /** The influences allowed to affect this model. */
+  @Editable
+  public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
+
+  /** The component models. */
+  @Editable
+  public ComponentModel[] models = new ComponentModel[0];
+
+  @Override
+  public void preload (GlContext ctx)
+  {
+    for (ComponentModel model : models) {
+      new Preloadable.Model(model.model).preload(ctx);
     }
+  }
+
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof Compound) {
+      ((Compound)impl).setConfig(ctx, this);
+    } else {
+      impl = new Compound(ctx, scope, this);
+    }
+    return impl;
+  }
 }
 

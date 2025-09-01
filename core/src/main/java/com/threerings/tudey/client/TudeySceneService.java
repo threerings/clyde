@@ -38,46 +38,46 @@ import com.threerings.tudey.data.InputFrame;
  */
 public interface TudeySceneService extends InvocationService<ClientObject>
 {
-    /**
-     * Notifies the server that the client has successfully entered the place.
-     */
-    public void enteredPlace ();
+  /**
+   * Notifies the server that the client has successfully entered the place.
+   */
+  public void enteredPlace ();
 
-    /**
-     * Requests to enqueue a batch of input frames recorded on the client (reliable version).
-     *
-     * @param acknowledge the timestamp of the last delta received by the client.
-     * @param smoothedTime the client's smoothed server time estimate.
-     */
-    public void enqueueInputReliable (int acknowledge, int smoothedTime, InputFrame[] frames);
+  /**
+   * Requests to enqueue a batch of input frames recorded on the client (reliable version).
+   *
+   * @param acknowledge the timestamp of the last delta received by the client.
+   * @param smoothedTime the client's smoothed server time estimate.
+   */
+  public void enqueueInputReliable (int acknowledge, int smoothedTime, InputFrame[] frames);
 
-    /**
-     * Requests to enqueue a batch of input frames recorded on the client (unreliable version).
-     *
-     * @param acknowledge the timestamp of the last delta received by the client.
-     * @param smoothedTime the client's smoothed server time estimate.
-     */
-    @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
-    public void enqueueInputUnreliable (int acknowledge, int smoothedTime, InputFrame[] frames);
+  /**
+   * Requests to enqueue a batch of input frames recorded on the client (unreliable version).
+   *
+   * @param acknowledge the timestamp of the last delta received by the client.
+   * @param smoothedTime the client's smoothed server time estimate.
+   */
+  @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
+  public void enqueueInputUnreliable (int acknowledge, int smoothedTime, InputFrame[] frames);
 
-    /**
-     * Requests to track the specified pawn.  This is only valid for clients that do not control
-     * a pawn of their own.
-     */
-    public void setTarget (int pawnId);
+  /**
+   * Requests to track the specified pawn.  This is only valid for clients that do not control
+   * a pawn of their own.
+   */
+  public void setTarget (int pawnId);
 
-    /**
-     * Requests to change the client's camera parameters (which affect its area of interest).
-     */
-    public void setCameraParams (CameraConfig config, float aspect);
+  /**
+   * Requests to change the client's camera parameters (which affect its area of interest).
+   */
+  public void setCameraParams (CameraConfig config, float aspect);
 
-    /**
-     * Submits a request related to the identified scene entry.
-     */
-    public void submitEntryRequest (Object key, String request);
+  /**
+   * Submits a request related to the identified scene entry.
+   */
+  public void submitEntryRequest (Object key, String request);
 
-    /**
-     * Submits a request related to the identified actor.
-     */
-    public void submitActorRequest (int actorId, String request);
+  /**
+   * Submits a request related to the identified actor.
+   */
+  public void submitActorRequest (int actorId, String request);
 }

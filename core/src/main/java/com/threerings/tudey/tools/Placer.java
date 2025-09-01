@@ -55,202 +55,202 @@ import static com.threerings.tudey.Log.log;
  */
 public class Placer extends ConfigTool<PlaceableConfig>
 {
-    /**
-     * Creates the placer tool.
-     */
-    public Placer (SceneEditor editor)
-    {
-        super(editor, PlaceableConfig.class, new PlaceableReference());
-        _entry.transform.setType(Transform3D.UNIFORM);
-        addSnapStyleSelector();
+  /**
+   * Creates the placer tool.
+   */
+  public Placer (SceneEditor editor)
+  {
+    super(editor, PlaceableConfig.class, new PlaceableReference());
+    _entry.transform.setType(Transform3D.UNIFORM);
+    addSnapStyleSelector();
+  }
+
+  /**
+   * Sets the placement angle.
+   */
+  public void setAngle (float angle)
+  {
+    _angle = angle;
+    if (_entry.placeable != null) {
+      _refToAngle.put(_entry.placeable, angle);
     }
+  }
 
-    /**
-     * Sets the placement angle.
-     */
-    public void setAngle (float angle)
-    {
-        _angle = angle;
-        if (_entry.placeable != null) {
-            _refToAngle.put(_entry.placeable, angle);
-        }
+  @Override
+  public void init ()
+  {
+    _cursor = new PlaceableCursor(_editor, _editor.getView(), _entry);
+  }
+
+  @Override
+  public void tick (float elapsed)
+  {
+    updateCursor();
+    if (_cursorVisible) {
+      _cursor.tick(elapsed);
+    } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
+      _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
     }
+  }
 
-    @Override
-    public void init ()
-    {
-        _cursor = new PlaceableCursor(_editor, _editor.getView(), _entry);
+  @Override
+  public void composite ()
+  {
+    if (_cursorVisible) {
+      _cursor.composite();
     }
+  }
 
-    @Override
-    public void tick (float elapsed)
-    {
-        updateCursor();
-        if (_cursorVisible) {
-            _cursor.tick(elapsed);
-        } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
-            _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
-        }
+  @Override
+  public void mousePressed (MouseEvent event)
+  {
+    if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
+      placeEntry();
     }
+  }
 
-    @Override
-    public void composite ()
-    {
-        if (_cursorVisible) {
-            _cursor.composite();
-        }
+  @Override
+  public void mouseWheelMoved (MouseWheelEvent event)
+  {
+    // adjust in terms of coarse (ninety degree) or fine increments
+    if (_cursorVisible) {
+      float increment = event.isShiftDown() ? FINE_ROTATION_INCREMENT : FloatMath.HALF_PI;
+      setAngle((Math.round(_angle / increment) + event.getWheelRotation()) * increment);
     }
+  }
 
-    @Override
-    public void mousePressed (MouseEvent event)
-    {
-        if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
-            placeEntry();
-        }
+  /**
+   * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
+   */
+  protected void updateCursor ()
+  {
+    if (!(_cursorVisible = (_entry.placeable != null) &&
+        getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+      return;
     }
-
-    @Override
-    public void mouseWheelMoved (MouseWheelEvent event)
-    {
-        // adjust in terms of coarse (ninety degree) or fine increments
-        if (_cursorVisible) {
-            float increment = event.isShiftDown() ? FINE_ROTATION_INCREMENT : FloatMath.HALF_PI;
-            setAngle((Math.round(_angle / increment) + event.getWheelRotation()) * increment);
-        }
+    // snap appropriately if shift is not held down
+    if (!_editor.isShiftDown()) {
+      getSnapStyle().applySnap(_isect);
     }
+    Transform3D transform = _entry.transform;
+    transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
+    transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
+    _cursor.update(_entry);
 
-    /**
-     * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
-     */
-    protected void updateCursor ()
-    {
-        if (!(_cursorVisible = (_entry.placeable != null) &&
-                getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
-            return;
-        }
-        // snap appropriately if shift is not held down
-        if (!_editor.isShiftDown()) {
-            getSnapStyle().applySnap(_isect);
-        }
-        Transform3D transform = _entry.transform;
-        transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
-        transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
-        _cursor.update(_entry);
+    // if we are dragging, consider performing another placement
+    if (_editor.isThirdButtonDown()) {
+      Shape shape = _cursor.getShape();
+      if (shape != null) {
+        _scene.getEntries(shape,
+          Predicates.and(SceneEditor.PLACEABLE_ENTRY_FILTER, _editor.getLayerPredicate()),
+          _entries);
+        _editor.removeEntries(_entries);
+        _entries.clear();
+      }
+    } else if (_editor.isFirstButtonDown() &&
+        transform.getTranslation().distance(_lastPlacement) >= MIN_SPACING) {
+      placeEntry();
+    }
+  }
 
-        // if we are dragging, consider performing another placement
-        if (_editor.isThirdButtonDown()) {
-            Shape shape = _cursor.getShape();
-            if (shape != null) {
-                _scene.getEntries(shape,
-                    Predicates.and(SceneEditor.PLACEABLE_ENTRY_FILTER, _editor.getLayerPredicate()),
-                    _entries);
-                _editor.removeEntries(_entries);
-                _entries.clear();
+  /**
+   * Places the current entry.
+   */
+  protected void placeEntry ()
+  {
+    // apply the rotation offset when placing
+    PlaceableEntry entry = (PlaceableEntry)_entry.clone();
+    PlaceableConfig.Original config = entry.getConfig(_editor.getConfigManager());
+    entry.transform.getRotation().multLocal(config.rotationOffset.getValue(new Quaternion()));
+
+    // if META is not held down, block any placements that are the same config and close
+    // even if an alternate rotation.
+    if (!_editor.isMetaDown()) {
+      Vector3f trans = entry.transform.extractTranslation();
+      Shape shape = _cursor.getShape();
+      if (shape != null) {
+        try {
+          _scene.getEntries(shape,
+            Predicates.and(SceneEditor.PLACEABLE_ENTRY_FILTER,
+              _editor.getLayerPredicate()),
+            _entries);
+          for (PlaceableEntry oldEntry :
+              Iterables.filter(_entries, PlaceableEntry.class)) {
+            if (oldEntry.placeable.equals(entry.placeable) &&
+                trans.epsilonEquals(oldEntry.transform.extractTranslation(),
+                  0.1f)) {
+              //log.info("Existing matching entry not replaced!");
+              getToolkit().beep();
+              return;
             }
-        } else if (_editor.isFirstButtonDown() &&
-                transform.getTranslation().distance(_lastPlacement) >= MIN_SPACING) {
-            placeEntry();
+          }
+        } finally {
+          _entries.clear();
         }
+      }
     }
 
-    /**
-     * Places the current entry.
-     */
-    protected void placeEntry ()
+    // actually place the new entry
+    _editor.addEntries(entry);
+    _lastPlacement.set(entry.transform.getTranslation());
+  }
+
+  @Override
+  protected void referenceChanged (ConfigReference<PlaceableConfig> ref)
+  {
+    Float angle = _refToAngle.get(ref);
+    _angle = (angle == null) ? 0f : angle;
+    super.referenceChanged(ref);
+    _entry.placeable = ref;
+  }
+
+  /**
+   * Allows us to edit the placeable reference.
+   */
+  protected static class PlaceableReference extends EditableReference<PlaceableConfig>
+  {
+    /** The placeable reference. */
+    @Editable(nullable=true)
+    public ConfigReference<PlaceableConfig> placeable;
+
+    @Override
+    public ConfigReference<PlaceableConfig> getReference ()
     {
-        // apply the rotation offset when placing
-        PlaceableEntry entry = (PlaceableEntry)_entry.clone();
-        PlaceableConfig.Original config = entry.getConfig(_editor.getConfigManager());
-        entry.transform.getRotation().multLocal(config.rotationOffset.getValue(new Quaternion()));
-
-        // if META is not held down, block any placements that are the same config and close
-        // even if an alternate rotation.
-        if (!_editor.isMetaDown()) {
-            Vector3f trans = entry.transform.extractTranslation();
-            Shape shape = _cursor.getShape();
-            if (shape != null) {
-                try {
-                    _scene.getEntries(shape,
-                        Predicates.and(SceneEditor.PLACEABLE_ENTRY_FILTER,
-                            _editor.getLayerPredicate()),
-                        _entries);
-                    for (PlaceableEntry oldEntry :
-                            Iterables.filter(_entries, PlaceableEntry.class)) {
-                        if (oldEntry.placeable.equals(entry.placeable) &&
-                                trans.epsilonEquals(oldEntry.transform.extractTranslation(),
-                                    0.1f)) {
-                            //log.info("Existing matching entry not replaced!");
-                            getToolkit().beep();
-                            return;
-                        }
-                    }
-                } finally {
-                    _entries.clear();
-                }
-            }
-        }
-
-        // actually place the new entry
-        _editor.addEntries(entry);
-        _lastPlacement.set(entry.transform.getTranslation());
+      return placeable;
     }
 
     @Override
-    protected void referenceChanged (ConfigReference<PlaceableConfig> ref)
+    public void setReference (ConfigReference<PlaceableConfig> ref)
     {
-        Float angle = _refToAngle.get(ref);
-        _angle = (angle == null) ? 0f : angle;
-        super.referenceChanged(ref);
-        _entry.placeable = ref;
+      placeable = ref;
     }
+  }
 
-    /**
-     * Allows us to edit the placeable reference.
-     */
-    protected static class PlaceableReference extends EditableReference<PlaceableConfig>
-    {
-        /** The placeable reference. */
-        @Editable(nullable=true)
-        public ConfigReference<PlaceableConfig> placeable;
+  /** The prototype entry. */
+  protected PlaceableEntry _entry = new PlaceableEntry();
 
-        @Override
-        public ConfigReference<PlaceableConfig> getReference ()
-        {
-            return placeable;
-        }
+  /** The cursor. */
+  protected PlaceableCursor _cursor;
 
-        @Override
-        public void setReference (ConfigReference<PlaceableConfig> ref)
-        {
-            placeable = ref;
-        }
-    }
+  /** Whether or not the cursor is in the window. */
+  protected boolean _cursorVisible;
 
-    /** The prototype entry. */
-    protected PlaceableEntry _entry = new PlaceableEntry();
+  /** The angle about the z axis. */
+  protected float _angle;
 
-    /** The cursor. */
-    protected PlaceableCursor _cursor;
+  /** The location at which we last placed. */
+  protected Vector3f _lastPlacement = new Vector3f();
 
-    /** Whether or not the cursor is in the window. */
-    protected boolean _cursorVisible;
+  /** Holds the result on an intersection test. */
+  protected Vector3f _isect = new Vector3f();
 
-    /** The angle about the z axis. */
-    protected float _angle;
+  /** Holds the entries intersecting the cursor. */
+  protected ArrayList<Entry> _entries = new ArrayList<Entry>();
 
-    /** The location at which we last placed. */
-    protected Vector3f _lastPlacement = new Vector3f();
+  /** Remember the configured orientation of recently used placeables. */
+  protected LRUHashMap<ConfigReference<PlaceableConfig>, Float> _refToAngle =
+      new LRUHashMap<ConfigReference<PlaceableConfig>, Float>(50); // 50 max items
 
-    /** Holds the result on an intersection test. */
-    protected Vector3f _isect = new Vector3f();
-
-    /** Holds the entries intersecting the cursor. */
-    protected ArrayList<Entry> _entries = new ArrayList<Entry>();
-
-    /** Remember the configured orientation of recently used placeables. */
-    protected LRUHashMap<ConfigReference<PlaceableConfig>, Float> _refToAngle =
-            new LRUHashMap<ConfigReference<PlaceableConfig>, Float>(50); // 50 max items
-
-    /** The minimum spacing between placements when dragging. */
-    protected static final float MIN_SPACING = 0.5f;
+  /** The minimum spacing between placements when dragging. */
+  protected static final float MIN_SPACING = 0.5f;
 }

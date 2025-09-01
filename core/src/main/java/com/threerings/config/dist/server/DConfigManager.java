@@ -51,106 +51,106 @@ import static com.threerings.ClydeLog.log;
  */
 @Singleton @EventThread
 public class DConfigManager
-    implements DConfigProvider
+  implements DConfigProvider
 {
-    /**
-     * Creates a new config manager.
-     */
-    @Inject public DConfigManager (
-        ConfigManager cfgmgr, PresentsDObjectMgr omgr, InvocationManager invmgr)
-    {
-        omgr.registerObject(_cfgobj = new DConfigObject());
-        _cfgobj.dconfigService = invmgr.registerProvider(this, DConfigMarshaller.class);
-        new ConfigUpdater(cfgmgr).init(_cfgobj);
-    }
+  /**
+   * Creates a new config manager.
+   */
+  @Inject public DConfigManager (
+    ConfigManager cfgmgr, PresentsDObjectMgr omgr, InvocationManager invmgr)
+  {
+    omgr.registerObject(_cfgobj = new DConfigObject());
+    _cfgobj.dconfigService = invmgr.registerProvider(this, DConfigMarshaller.class);
+    new ConfigUpdater(cfgmgr).init(_cfgobj);
+  }
 
-    /**
-     * Returns a reference to the config object.
-     */
-    public DConfigObject getConfigObject ()
-    {
-        return _cfgobj;
-    }
+  /**
+   * Returns a reference to the config object.
+   */
+  public DConfigObject getConfigObject ()
+  {
+    return _cfgobj;
+  }
 
-    /**
-     * Performs a set of updates without checking if the identified client has the proper access.
-     */
-    public void updateConfigs (
-        int cloid, Iterable<ConfigEntry> add, Iterable<ConfigEntry> update,
-        Iterable<ConfigKey> remove)
-    {
-        _cfgobj.startTransaction();
-        try {
-            // add the requested configs
-            for (ConfigEntry entry : add) {
-                ConfigKey key = (ConfigKey)entry.getKey();
-                if (_cfgobj.removed.containsKey(key)) {
-                    _cfgobj.requestEntryRemove(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
-                    _cfgobj.requestEntryAdd(DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
-                } else {
-                    ConfigEntry oentry;
-                    if ((oentry = _cfgobj.added.get(key)) != null) {
-                        if (!entry.equals(oentry)) {
-                            _cfgobj.requestEntryUpdate(
-                                DConfigObject.ADDED, _cfgobj.added, entry, cloid);
-                        }
-                    } else {
-                        _cfgobj.requestEntryAdd(DConfigObject.ADDED, _cfgobj.added, entry, cloid);
-                    }
-                }
-            }
-
-            // update the requested configs
-            for (ConfigEntry entry : update) {
-                ConfigKey key = (ConfigKey)entry.getKey();
-                ConfigEntry oentry;
-                if ((oentry = _cfgobj.added.get(key)) != null) {
-                    if (!entry.equals(oentry)) {
-                        _cfgobj.requestEntryUpdate(
-                            DConfigObject.ADDED, _cfgobj.added, entry, cloid);
-                    }
-                } else if ((oentry = _cfgobj.updated.get(key)) != null) {
-                    if (!entry.equals(oentry)) {
-                        _cfgobj.requestEntryUpdate(
-                            DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
-                    }
-                } else {
-                    _cfgobj.requestEntryAdd(DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
-                }
-            }
-
-            // remove the requested configs
-            for (ConfigKey key : remove) {
-                if (_cfgobj.added.containsKey(key)) {
-                    _cfgobj.requestEntryRemove(DConfigObject.ADDED, _cfgobj.added, key, cloid);
-                } else {
-                    if (_cfgobj.updated.containsKey(key)) {
-                        _cfgobj.requestEntryRemove(
-                            DConfigObject.UPDATED, _cfgobj.updated, key, cloid);
-                    }
-                    if (!_cfgobj.removed.containsKey(key)) {
-                        _cfgobj.requestEntryAdd(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
-                    }
-                }
-            }
-        } finally {
-            _cfgobj.commitTransaction();
-        }
-    }
-
-    // documentation inherited from interface DConfigProvider
-    public void updateConfigs (
-        ClientObject caller, ConfigEntry[] add, ConfigEntry[] update, ConfigKey[] remove)
-    {
-        // make sure they're an admin
-        if (((BodyObject)caller).getTokens().isAdmin()) {
-            updateConfigs(caller.getOid(),
-                Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
+  /**
+   * Performs a set of updates without checking if the identified client has the proper access.
+   */
+  public void updateConfigs (
+    int cloid, Iterable<ConfigEntry> add, Iterable<ConfigEntry> update,
+    Iterable<ConfigKey> remove)
+  {
+    _cfgobj.startTransaction();
+    try {
+      // add the requested configs
+      for (ConfigEntry entry : add) {
+        ConfigKey key = (ConfigKey)entry.getKey();
+        if (_cfgobj.removed.containsKey(key)) {
+          _cfgobj.requestEntryRemove(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
+          _cfgobj.requestEntryAdd(DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
         } else {
-            log.warning("Non-admin tried to update configs.", "who", caller);
+          ConfigEntry oentry;
+          if ((oentry = _cfgobj.added.get(key)) != null) {
+            if (!entry.equals(oentry)) {
+              _cfgobj.requestEntryUpdate(
+                DConfigObject.ADDED, _cfgobj.added, entry, cloid);
+            }
+          } else {
+            _cfgobj.requestEntryAdd(DConfigObject.ADDED, _cfgobj.added, entry, cloid);
+          }
         }
-    }
+      }
 
-    /** The config object. */
-    protected DConfigObject _cfgobj;
+      // update the requested configs
+      for (ConfigEntry entry : update) {
+        ConfigKey key = (ConfigKey)entry.getKey();
+        ConfigEntry oentry;
+        if ((oentry = _cfgobj.added.get(key)) != null) {
+          if (!entry.equals(oentry)) {
+            _cfgobj.requestEntryUpdate(
+              DConfigObject.ADDED, _cfgobj.added, entry, cloid);
+          }
+        } else if ((oentry = _cfgobj.updated.get(key)) != null) {
+          if (!entry.equals(oentry)) {
+            _cfgobj.requestEntryUpdate(
+              DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
+          }
+        } else {
+          _cfgobj.requestEntryAdd(DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
+        }
+      }
+
+      // remove the requested configs
+      for (ConfigKey key : remove) {
+        if (_cfgobj.added.containsKey(key)) {
+          _cfgobj.requestEntryRemove(DConfigObject.ADDED, _cfgobj.added, key, cloid);
+        } else {
+          if (_cfgobj.updated.containsKey(key)) {
+            _cfgobj.requestEntryRemove(
+              DConfigObject.UPDATED, _cfgobj.updated, key, cloid);
+          }
+          if (!_cfgobj.removed.containsKey(key)) {
+            _cfgobj.requestEntryAdd(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
+          }
+        }
+      }
+    } finally {
+      _cfgobj.commitTransaction();
+    }
+  }
+
+  // documentation inherited from interface DConfigProvider
+  public void updateConfigs (
+    ClientObject caller, ConfigEntry[] add, ConfigEntry[] update, ConfigKey[] remove)
+  {
+    // make sure they're an admin
+    if (((BodyObject)caller).getTokens().isAdmin()) {
+      updateConfigs(caller.getOid(),
+        Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
+    } else {
+      log.warning("Non-admin tried to update configs.", "who", caller);
+    }
+  }
+
+  /** The config object. */
+  protected DConfigObject _cfgobj;
 }

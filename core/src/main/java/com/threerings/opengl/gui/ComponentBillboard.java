@@ -53,200 +53,200 @@ import com.threerings.opengl.util.GlContext;
  * A component billboard model implementation.
  */
 public class ComponentBillboard extends Model.Implementation
-    implements Enqueueable
+  implements Enqueueable
 {
-    /**
-     * Creates a new billboard implementation.
-     */
-    public ComponentBillboard (GlContext ctx, Scope parentScope, ComponentBillboardConfig config)
-    {
-        super(parentScope);
-        _ctx = ctx;
+  /**
+   * Creates a new billboard implementation.
+   */
+  public ComponentBillboard (GlContext ctx, Scope parentScope, ComponentBillboardConfig config)
+  {
+    super(parentScope);
+    _ctx = ctx;
 
-        // create the batch that we will enqueue
-        RenderState[] states = RenderState.createDefaultSet();
-        states[RenderState.ARRAY_STATE] = null;
-        states[RenderState.COLOR_STATE] = null;
-        states[RenderState.MATERIAL_STATE] = null;
-        states[RenderState.TEXTURE_STATE] = null;
-        states[RenderState.TRANSFORM_STATE] = new TransformState();
-        _batch = new SimpleBatch(states, new SimpleBatch.DrawCommand() {
-            public boolean call () {
-                _root.render(_ctx.getRenderer());
-                return true;
-            }
-            public int getPrimitiveCount () {
-                return 0;
-            }
-        });
+    // create the batch that we will enqueue
+    RenderState[] states = RenderState.createDefaultSet();
+    states[RenderState.ARRAY_STATE] = null;
+    states[RenderState.COLOR_STATE] = null;
+    states[RenderState.MATERIAL_STATE] = null;
+    states[RenderState.TEXTURE_STATE] = null;
+    states[RenderState.TRANSFORM_STATE] = new TransformState();
+    _batch = new SimpleBatch(states, new SimpleBatch.DrawCommand() {
+      public boolean call () {
+        _root.render(_ctx.getRenderer());
+        return true;
+      }
+      public int getPrimitiveCount () {
+        return 0;
+      }
+    });
 
-        setConfig(ctx, config);
+    setConfig(ctx, config);
+  }
+
+  /**
+   * Sets the configuration of this model.
+   */
+  public void setConfig (GlContext ctx, ComponentBillboardConfig config)
+  {
+    _ctx = ctx;
+    _config = config;
+    updateFromConfig();
+  }
+
+  // documentation inherited from interface Enqueueable
+  public void enqueue ()
+  {
+    // update the rotation
+    _parentViewTransform.compose(_localTransform, _billboardViewTransform);
+    if (_updater != null) {
+      _updater.update();
+    } else {
+      _billboardLocalTransform.getRotation().set(Quaternion.IDENTITY);
     }
 
-    /**
-     * Sets the configuration of this model.
-     */
-    public void setConfig (GlContext ctx, ComponentBillboardConfig config)
-    {
-        _ctx = ctx;
-        _config = config;
-        updateFromConfig();
+    // update the view transform
+    TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
+    Transform3D modelview = tstate.getModelview();
+    _billboardViewTransform.compose(_billboardLocalTransform, modelview);
+    tstate.setDirty(true);
+
+    // update the depth
+    _batch.depth = modelview.transformPointZ(Vector3f.ZERO);
+
+    // enqueue our batch
+    _queue.add(_batch, _config.priority);
+  }
+
+  @Override
+  public int getInfluenceFlags ()
+  {
+    return _influenceFlags;
+  }
+
+  @Override
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  @Override
+  public void updateBounds ()
+  {
+    // update the world transform
+    if (_parentWorldTransform == null) {
+      return;
+    }
+    _parentWorldTransform.compose(_localTransform, _worldTransform);
+
+    // and the world bounds
+    float extent = Math.max(_root.getWidth()/2, _root.getHeight()/2) * _config.scale;
+    _nbounds.getMinimumExtent().set(-extent, -extent, -extent);
+    _nbounds.getMaximumExtent().set(+extent, +extent, +extent);
+    _nbounds.transformLocal(_worldTransform);
+    if (!_bounds.equals(_nbounds)) {
+      ((Model)_parentScope).boundsWillChange(this);
+      _bounds.set(_nbounds);
+      ((Model)_parentScope).boundsDidChange(this);
+    }
+  }
+
+  @Override
+  public void drawBounds ()
+  {
+    DebugBounds.draw(_bounds, Color4f.WHITE);
+  }
+
+  @Override
+  public void composite ()
+  {
+    _ctx.getCompositor().addEnqueueable(this);
+  }
+
+  /**
+   * Updates the model to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    // update the component
+    String bundle = StringUtil.isBlank(_config.bundle) ?
+      MessageManager.GLOBAL_BUNDLE : _config.bundle;
+    _root = _config.root.getComponent(
+      _ctx, this, _ctx.getMessageManager().getBundle(bundle), _root);
+    Dimension size = _root.getPreferredSize(-1, -1);
+    _root.setBounds(-size.width/2, -size.height/2, size.width, size.height);
+    _root.validate();
+    _root.wasAdded();
+
+    // update the influence flags
+    _influenceFlags = _config.influences.getFlags();
+
+    // update the queue reference and states
+    _queue = _ctx.getCompositor().getQueue(_config.queue);
+    RenderState[] states = _batch.getStates();
+    states[RenderState.ALPHA_STATE] = _config.alphaState.getState();
+    states[RenderState.DEPTH_STATE] = _config.depthState.getState();
+
+    // initialize the local transform
+    _billboardLocalTransform.set(Vector3f.ZERO, Quaternion.IDENTITY, _config.scale);
+
+    // (re)create the updater
+    if (_config.rotationEnabled) {
+      _updater = ArticulatedConfig.createBillboardUpdater(
+        this, _billboardViewTransform, _billboardLocalTransform,
+        _config.rotationX, _config.rotationY);
+    } else {
+      _updater = null;
     }
 
-    // documentation inherited from interface Enqueueable
-    public void enqueue ()
-    {
-        // update the rotation
-        _parentViewTransform.compose(_localTransform, _billboardViewTransform);
-        if (_updater != null) {
-            _updater.update();
-        } else {
-            _billboardLocalTransform.getRotation().set(Quaternion.IDENTITY);
-        }
+    // update the bounds
+    updateBounds();
+  }
 
-        // update the view transform
-        TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-        Transform3D modelview = tstate.getModelview();
-        _billboardViewTransform.compose(_billboardLocalTransform, modelview);
-        tstate.setDirty(true);
+  /** The application context. */
+  protected GlContext _ctx;
 
-        // update the depth
-        _batch.depth = modelview.transformPointZ(Vector3f.ZERO);
+  /** The queue into which we place our batch. */
+  protected RenderQueue _queue;
 
-        // enqueue our batch
-        _queue.add(_batch, _config.priority);
-    }
+  /** The batch that we submit to the renderer. */
+  protected SimpleBatch _batch;
 
-    @Override
-    public int getInfluenceFlags ()
-    {
-        return _influenceFlags;
-    }
+  /** The model configuration. */
+  protected ComponentBillboardConfig _config;
 
-    @Override
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
+  /** The root component. */
+  protected Component _root;
 
-    @Override
-    public void updateBounds ()
-    {
-        // update the world transform
-        if (_parentWorldTransform == null) {
-            return;
-        }
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
+  /** The transform updater. */
+  protected Updater _updater;
 
-        // and the world bounds
-        float extent = Math.max(_root.getWidth()/2, _root.getHeight()/2) * _config.scale;
-        _nbounds.getMinimumExtent().set(-extent, -extent, -extent);
-        _nbounds.getMaximumExtent().set(+extent, +extent, +extent);
-        _nbounds.transformLocal(_worldTransform);
-        if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange(this);
-            _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange(this);
-        }
-    }
+  /** The parent world transform. */
+  @Bound("worldTransform")
+  protected Transform3D _parentWorldTransform;
 
-    @Override
-    public void drawBounds ()
-    {
-        DebugBounds.draw(_bounds, Color4f.WHITE);
-    }
+  /** The parent view transform. */
+  @Bound("viewTransform")
+  protected Transform3D _parentViewTransform;
 
-    @Override
-    public void composite ()
-    {
-        _ctx.getCompositor().addEnqueueable(this);
-    }
+  /** The local transform. */
+  @Bound
+  protected Transform3D _localTransform;
 
-    /**
-     * Updates the model to match its new or modified configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        // update the component
-        String bundle = StringUtil.isBlank(_config.bundle) ?
-            MessageManager.GLOBAL_BUNDLE : _config.bundle;
-        _root = _config.root.getComponent(
-            _ctx, this, _ctx.getMessageManager().getBundle(bundle), _root);
-        Dimension size = _root.getPreferredSize(-1, -1);
-        _root.setBounds(-size.width/2, -size.height/2, size.width, size.height);
-        _root.validate();
-        _root.wasAdded();
+  /** The billboard view transform. */
+  protected Transform3D _billboardViewTransform = new Transform3D();
 
-        // update the influence flags
-        _influenceFlags = _config.influences.getFlags();
+  /** The billboard local transform. */
+  protected Transform3D _billboardLocalTransform = new Transform3D();
 
-        // update the queue reference and states
-        _queue = _ctx.getCompositor().getQueue(_config.queue);
-        RenderState[] states = _batch.getStates();
-        states[RenderState.ALPHA_STATE] = _config.alphaState.getState();
-        states[RenderState.DEPTH_STATE] = _config.depthState.getState();
+  /** The world transform. */
+  protected Transform3D _worldTransform = new Transform3D();
 
-        // initialize the local transform
-        _billboardLocalTransform.set(Vector3f.ZERO, Quaternion.IDENTITY, _config.scale);
+  /** Flags indicating which influences can affect the model. */
+  protected int _influenceFlags;
 
-        // (re)create the updater
-        if (_config.rotationEnabled) {
-            _updater = ArticulatedConfig.createBillboardUpdater(
-                this, _billboardViewTransform, _billboardLocalTransform,
-                _config.rotationX, _config.rotationY);
-        } else {
-            _updater = null;
-        }
+  /** The bounds of the model. */
+  protected Box _bounds = new Box();
 
-        // update the bounds
-        updateBounds();
-    }
-
-    /** The application context. */
-    protected GlContext _ctx;
-
-    /** The queue into which we place our batch. */
-    protected RenderQueue _queue;
-
-    /** The batch that we submit to the renderer. */
-    protected SimpleBatch _batch;
-
-    /** The model configuration. */
-    protected ComponentBillboardConfig _config;
-
-    /** The root component. */
-    protected Component _root;
-
-    /** The transform updater. */
-    protected Updater _updater;
-
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
-
-    /** The parent view transform. */
-    @Bound("viewTransform")
-    protected Transform3D _parentViewTransform;
-
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
-
-    /** The billboard view transform. */
-    protected Transform3D _billboardViewTransform = new Transform3D();
-
-    /** The billboard local transform. */
-    protected Transform3D _billboardLocalTransform = new Transform3D();
-
-    /** The world transform. */
-    protected Transform3D _worldTransform = new Transform3D();
-
-    /** Flags indicating which influences can affect the model. */
-    protected int _influenceFlags;
-
-    /** The bounds of the model. */
-    protected Box _bounds = new Box();
-
-    /** Holds the bounds of the model when updating. */
-    protected Box _nbounds = new Box();
+  /** Holds the bounds of the model when updating. */
+  protected Box _nbounds = new Box();
 }

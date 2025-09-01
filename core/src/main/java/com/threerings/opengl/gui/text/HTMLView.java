@@ -71,164 +71,164 @@ import static com.threerings.opengl.gui.Log.log;
  */
 public class HTMLView extends Component
 {
-    /**
-     * Creates a blank HTML view. The HTML contents can be set later with a
-     * call to {@link #setContents}.
-     */
-    public HTMLView (GlContext ctx)
-    {
-        super(ctx);
+  /**
+   * Creates a blank HTML view. The HTML contents can be set later with a
+   * call to {@link #setContents}.
+   */
+  public HTMLView (GlContext ctx)
+  {
+    super(ctx);
+  }
+
+  /**
+   * Creates an HTML view with the specified contents.
+   */
+  public HTMLView (GlContext ctx, String stylesheet, String contents)
+  {
+    super(ctx);
+    setStyleSheet(stylesheet);
+    setContents(contents);
+  }
+
+  /**
+   * Configures whether or not our text is antialiased. Antialiasing is on by
+   * default.
+   */
+  public void setAntialiased (boolean antialias)
+  {
+    if (_antialias != antialias) {
+      _antialias = antialias;
+      forceRelayout();
+    }
+  }
+
+  /**
+   * Configures the stylesheet used to render HTML in this view.
+   */
+  public void setStyleSheet (String stylesheet)
+  {
+    StyleSheet ss = new StyleSheet();
+    try {
+      // parse the stylesheet definition
+      ss.loadRules(new StringReader(stylesheet), null);
+      setStyleSheet(ss);
+    } catch (Throwable t) {
+      log.warning("Failed to parse stylesheet.", "sheet", stylesheet, t);
+    }
+  }
+
+  /**
+   * Configures the stylesheet used to render HTML in this view.
+   */
+  public void setStyleSheet (StyleSheet stylesheet)
+  {
+    _style = stylesheet;
+    forceRelayout();
+  }
+
+  /**
+   * Returns the stylesheet in effect for this view.
+   */
+  public StyleSheet getStyleSheet ()
+  {
+    return _style;
+  }
+
+  /**
+   * Returns the HTML editor kit used by this view.
+   */
+  public HTMLEditorKit getEditorKit ()
+  {
+    return _kit;
+  }
+
+  /**
+   * Configures the contents of this HTML view. This should be well-formed
+   * HTML which will be laid out according to the previously configured style
+   * sheet (which must be set before the contents).
+   */
+  public void setContents (String contents)
+  {
+    // lazily create a blank stylesheet
+    if (_style == null) {
+      _style = new StyleSheet();
     }
 
-    /**
-     * Creates an HTML view with the specified contents.
-     */
-    public HTMLView (GlContext ctx, String stylesheet, String contents)
-    {
-        super(ctx);
-        setStyleSheet(stylesheet);
-        setContents(contents);
+    // then parse the HTML document
+    HTMLDocument document = new HTMLDocument(_style);
+    try {
+      _kit.read(new StringReader(contents), document, 0);
+      setContents(document);
+    } catch (Throwable t) {
+      log.warning("Failed to parse HTML.", "contents", contents, t);
+    }
+  }
+
+  /**
+   * Configures the contents of this HTML view.
+   */
+  public void setContents (HTMLDocument document)
+  {
+    _view = new BridgeView(
+      _kit.getViewFactory().create(document.getDefaultRootElement()));
+    forceRelayout();
+  }
+
+  // documentation inherited
+  protected void layout ()
+  {
+    super.layout();
+
+    // if we have no view yet, stop now
+    if (_view == null) {
+      return;
     }
 
-    /**
-     * Configures whether or not our text is antialiased. Antialiasing is on by
-     * default.
-     */
-    public void setAntialiased (boolean antialias)
-    {
-        if (_antialias != antialias) {
-            _antialias = antialias;
-            forceRelayout();
-        }
+    // avoid rerendering our HTML unless something changed
+    int vwidth = getWidth() - getInsets().getHorizontal();
+    int vheight = getHeight() - getInsets().getVertical();
+    if (_rendered != null && _rsize != null &&
+      _rsize.width == vwidth && _rsize.height == vheight) {
+      return;
     }
 
-    /**
-     * Configures the stylesheet used to render HTML in this view.
-     */
-    public void setStyleSheet (String stylesheet)
-    {
-        StyleSheet ss = new StyleSheet();
-        try {
-            // parse the stylesheet definition
-            ss.loadRules(new StringReader(stylesheet), null);
-            setStyleSheet(ss);
-        } catch (Throwable t) {
-            log.warning("Failed to parse stylesheet.", "sheet", stylesheet, t);
-        }
+    BufferedImage image = new BufferedImage(
+      vwidth, vheight, BufferedImage.TYPE_4BYTE_ABGR);
+    Graphics2D gfx = image.createGraphics();
+    _rsize = new Rectangle(0, 0, vwidth, vheight);
+    try {
+      gfx.setClip(_rsize);
+      if (_antialias) {
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                   RenderingHints.VALUE_ANTIALIAS_ON);
+      }
+      _view.paint(gfx, _rsize);
+    } finally {
+      gfx.dispose();
     }
 
-    /**
-     * Configures the stylesheet used to render HTML in this view.
-     */
-    public void setStyleSheet (StyleSheet stylesheet)
-    {
-        _style = stylesheet;
-        forceRelayout();
+    // TODO: render into a properly sized image in the first place and
+    // create a JME Image directly
+    _rendered = new Image(image);
+  }
+
+  // documentation inherited
+  protected void renderComponent (Renderer renderer)
+  {
+    super.renderComponent(renderer);
+
+    if (_rendered != null) {
+      Insets insets = getInsets();
+      _rendered.render(renderer, insets.left, insets.bottom, _alpha);
     }
+  }
 
-    /**
-     * Returns the stylesheet in effect for this view.
-     */
-    public StyleSheet getStyleSheet ()
-    {
-        return _style;
-    }
-
-    /**
-     * Returns the HTML editor kit used by this view.
-     */
-    public HTMLEditorKit getEditorKit ()
-    {
-        return _kit;
-    }
-
-    /**
-     * Configures the contents of this HTML view. This should be well-formed
-     * HTML which will be laid out according to the previously configured style
-     * sheet (which must be set before the contents).
-     */
-    public void setContents (String contents)
-    {
-        // lazily create a blank stylesheet
-        if (_style == null) {
-            _style = new StyleSheet();
-        }
-
-        // then parse the HTML document
-        HTMLDocument document = new HTMLDocument(_style);
-        try {
-            _kit.read(new StringReader(contents), document, 0);
-            setContents(document);
-        } catch (Throwable t) {
-            log.warning("Failed to parse HTML.", "contents", contents, t);
-        }
-    }
-
-    /**
-     * Configures the contents of this HTML view.
-     */
-    public void setContents (HTMLDocument document)
-    {
-        _view = new BridgeView(
-            _kit.getViewFactory().create(document.getDefaultRootElement()));
-        forceRelayout();
-    }
-
-    // documentation inherited
-    protected void layout ()
-    {
-        super.layout();
-
-        // if we have no view yet, stop now
-        if (_view == null) {
-            return;
-        }
-
-        // avoid rerendering our HTML unless something changed
-        int vwidth = getWidth() - getInsets().getHorizontal();
-        int vheight = getHeight() - getInsets().getVertical();
-        if (_rendered != null && _rsize != null &&
-            _rsize.width == vwidth && _rsize.height == vheight) {
-            return;
-        }
-
-        BufferedImage image = new BufferedImage(
-            vwidth, vheight, BufferedImage.TYPE_4BYTE_ABGR);
-        Graphics2D gfx = image.createGraphics();
-        _rsize = new Rectangle(0, 0, vwidth, vheight);
-        try {
-            gfx.setClip(_rsize);
-            if (_antialias) {
-                gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                     RenderingHints.VALUE_ANTIALIAS_ON);
-            }
-            _view.paint(gfx, _rsize);
-        } finally {
-            gfx.dispose();
-        }
-
-        // TODO: render into a properly sized image in the first place and
-        // create a JME Image directly
-        _rendered = new Image(image);
-    }
-
-    // documentation inherited
-    protected void renderComponent (Renderer renderer)
-    {
-        super.renderComponent(renderer);
-
-        if (_rendered != null) {
-            Insets insets = getInsets();
-            _rendered.render(renderer, insets.left, insets.bottom, _alpha);
-        }
-    }
-
-    // documentation inherited
-    protected Dimension computePreferredSize (int whint, int hhint)
-    {
-        // this might in theory work except that for whatever reason our
-        // BoxView claims a size of zero even after we lay it out with
-        // information on the size of one axis; grumble grumble
+  // documentation inherited
+  protected Dimension computePreferredSize (int whint, int hhint)
+  {
+    // this might in theory work except that for whatever reason our
+    // BoxView claims a size of zero even after we lay it out with
+    // information on the size of one axis; grumble grumble
 //         int px = 0, py = 0;
 //         if (whint > 0) {
 //             _view.setSize(whint, 0);
@@ -259,125 +259,125 @@ public class HTMLView extends Component
 //             }
 //         }
 
-        if (_view != null) {
-            _view.setSize((whint > 0) ? whint : 0, (hhint > 0) ? hhint : 0);
-            int px = (int)Math.ceil(_view.getPreferredSpan(View.X_AXIS));
-            int py = (int)Math.ceil(_view.getPreferredSpan(View.Y_AXIS));
-            return new Dimension(Math.max(1, px), Math.max(1, py));
-        } else {
-            return new Dimension(Math.max(1, whint), Math.max(1, hhint));
-        }
+    if (_view != null) {
+      _view.setSize((whint > 0) ? whint : 0, (hhint > 0) ? hhint : 0);
+      int px = (int)Math.ceil(_view.getPreferredSpan(View.X_AXIS));
+      int py = (int)Math.ceil(_view.getPreferredSpan(View.Y_AXIS));
+      return new Dimension(Math.max(1, px), Math.max(1, py));
+    } else {
+      return new Dimension(Math.max(1, whint), Math.max(1, hhint));
+    }
+  }
+
+  protected void forceRelayout ()
+  {
+    _rsize = null;
+    invalidate();
+  }
+
+  protected class BridgeView extends View
+  {
+    public BridgeView (View target) {
+      super(null);
+      _target = target;
+      _target.setParent(this);
     }
 
-    protected void forceRelayout ()
-    {
-        _rsize = null;
-        invalidate();
+    public View getTarget () {
+      return _target;
     }
 
-    protected class BridgeView extends View
-    {
-        public BridgeView (View target) {
-            super(null);
-            _target = target;
-            _target.setParent(this);
-        }
-
-        public View getTarget () {
-            return _target;
-        }
-
-        public AttributeSet getAttributes () {
-            return null;
-        }
-
-        public float getPreferredSpan (int axis) {
-            return _target.getPreferredSpan(axis);
-        }
-
-        public float getMinimumSpan (int axis) {
-            return _target.getMinimumSpan(axis);
-        }
-
-        public float getMaximumSpan (int axis) {
-            return Integer.MAX_VALUE;
-        }
-
-        public void preferenceChanged (View child, boolean width, boolean height) {
-            forceRelayout();
-        }
-
-        public float getAlignment (int axis) {
-            return _target.getAlignment(axis);
-        }
-
-        public void paint (Graphics g, Shape allocation) {
-            Rectangle alloc = allocation.getBounds();
-            _target.setSize(alloc.width, alloc.height);
-            _target.paint(g, allocation);
-        }
-
-        public void setParent (View parent) {
-            throw new Error("Whatchu talkin' 'bout Willis?");
-        }
-
-        public int getViewCount () {
-            return 1;
-        }
-
-        public View getView (int n) {
-            return _target;
-        }
-
-        public Shape modelToView (int pos, Shape a, Position.Bias b)
-            throws BadLocationException {
-            return _target.modelToView(pos, a, b);
-        }
-
-        public Shape modelToView (int p0, Position.Bias b0, int p1, Position.Bias b1, Shape a)
-            throws BadLocationException {
-            return _target.modelToView(p0, b0, p1, b1, a);
-        }
-
-        public int viewToModel (float x, float y, Shape a, Position.Bias[] bias) {
-            return _target.viewToModel(x, y, a, bias);
-        }
-
-        public Document getDocument () {
-            return _target.getDocument();
-        }
-
-        public int getStartOffset () {
-            return _target.getStartOffset();
-        }
-
-        public int getEndOffset () {
-            return _target.getEndOffset();
-        }
-
-        public Element getElement () {
-            return _target.getElement();
-        }
-
-        public void setSize (float width, float height) {
-            _target.setSize(width, height);
-        }
-
-        public Container getContainer () {
-            return null;
-        }
-
-        public ViewFactory getViewFactory () {
-            return _kit.getViewFactory();
-        }
-
-        protected View _target;
+    public AttributeSet getAttributes () {
+      return null;
     }
 
-    protected StyleSheet _style;
-    protected Rectangle _rsize;
-    protected BridgeView _view;
-    protected Image _rendered;
-    protected boolean _antialias = true;
-    protected HTMLEditorKit _kit = new HTMLEditorKit();
+    public float getPreferredSpan (int axis) {
+      return _target.getPreferredSpan(axis);
+    }
+
+    public float getMinimumSpan (int axis) {
+      return _target.getMinimumSpan(axis);
+    }
+
+    public float getMaximumSpan (int axis) {
+      return Integer.MAX_VALUE;
+    }
+
+    public void preferenceChanged (View child, boolean width, boolean height) {
+      forceRelayout();
+    }
+
+    public float getAlignment (int axis) {
+      return _target.getAlignment(axis);
+    }
+
+    public void paint (Graphics g, Shape allocation) {
+      Rectangle alloc = allocation.getBounds();
+      _target.setSize(alloc.width, alloc.height);
+      _target.paint(g, allocation);
+    }
+
+    public void setParent (View parent) {
+      throw new Error("Whatchu talkin' 'bout Willis?");
+    }
+
+    public int getViewCount () {
+      return 1;
+    }
+
+    public View getView (int n) {
+      return _target;
+    }
+
+    public Shape modelToView (int pos, Shape a, Position.Bias b)
+      throws BadLocationException {
+      return _target.modelToView(pos, a, b);
+    }
+
+    public Shape modelToView (int p0, Position.Bias b0, int p1, Position.Bias b1, Shape a)
+      throws BadLocationException {
+      return _target.modelToView(p0, b0, p1, b1, a);
+    }
+
+    public int viewToModel (float x, float y, Shape a, Position.Bias[] bias) {
+      return _target.viewToModel(x, y, a, bias);
+    }
+
+    public Document getDocument () {
+      return _target.getDocument();
+    }
+
+    public int getStartOffset () {
+      return _target.getStartOffset();
+    }
+
+    public int getEndOffset () {
+      return _target.getEndOffset();
+    }
+
+    public Element getElement () {
+      return _target.getElement();
+    }
+
+    public void setSize (float width, float height) {
+      _target.setSize(width, height);
+    }
+
+    public Container getContainer () {
+      return null;
+    }
+
+    public ViewFactory getViewFactory () {
+      return _kit.getViewFactory();
+    }
+
+    protected View _target;
+  }
+
+  protected StyleSheet _style;
+  protected Rectangle _rsize;
+  protected BridgeView _view;
+  protected Image _rendered;
+  protected boolean _antialias = true;
+  protected HTMLEditorKit _kit = new HTMLEditorKit();
 }

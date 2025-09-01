@@ -35,102 +35,102 @@ import com.threerings.expr.util.ScopeUtil;
  * A 2D vector-valued expression.
  */
 @EditorTypes({
-    Vector2fExpression.Constant.class,
-    Vector2fExpression.Reference.class,
-    Vector2fExpression.Cartesian.class })
+  Vector2fExpression.Constant.class,
+  Vector2fExpression.Reference.class,
+  Vector2fExpression.Cartesian.class })
 public abstract class Vector2fExpression extends ObjectExpression<Vector2f>
 {
+  /**
+   * A constant expression.
+   */
+  public static class Constant extends Vector2fExpression
+  {
+    /** The value of the constant. */
+    @Editable(step=0.01)
+    public Vector2f value = new Vector2f();
+
     /**
-     * A constant expression.
+     * Creates a new constant expression with the specified value.
      */
-    public static class Constant extends Vector2fExpression
+    public Constant (Vector2f value)
     {
-        /** The value of the constant. */
-        @Editable(step=0.01)
-        public Vector2f value = new Vector2f();
-
-        /**
-         * Creates a new constant expression with the specified value.
-         */
-        public Constant (Vector2f value)
-        {
-            this.value.set(value);
-        }
-
-        /**
-         * Creates a new constant expression with a value of zero.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public Evaluator<Vector2f> createEvaluator (Scope scope)
-        {
-            return new Evaluator<Vector2f>() {
-                public Vector2f evaluate () {
-                    return value;
-                }
-            };
-        }
+      this.value.set(value);
     }
 
     /**
-     * A reference expression.
+     * Creates a new constant expression with a value of zero.
      */
-    public static class Reference extends Vector2fExpression
+    public Constant ()
     {
-        /** The name of the variable. */
-        @Editable
-        public String name = "";
-
-        /** The default value of the variable. */
-        @Editable(step=0.01)
-        public Vector2f defvalue = new Vector2f();
-
-        @Override
-        public Evaluator<Vector2f> createEvaluator (Scope scope)
-        {
-            final Vector2f value = ScopeUtil.resolve(scope, name, defvalue);
-            return new Evaluator<Vector2f>() {
-                public Vector2f evaluate () {
-                    return value;
-                }
-            };
-        }
     }
 
-    /**
-     * An expression consisting of separate expressions for each component.
-     */
-    public static class Cartesian extends Vector2fExpression
+    @Override
+    public Evaluator<Vector2f> createEvaluator (Scope scope)
     {
-        /** The x component. */
-        @Editable
-        public FloatExpression x = new FloatExpression.Constant();
-
-        /** The y component. */
-        @Editable
-        public FloatExpression y = new FloatExpression.Constant();
-
-        @Override
-        public Evaluator<Vector2f> createEvaluator (Scope scope)
-        {
-            final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
-            final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
-            return new Evaluator<Vector2f>() {
-                public Vector2f evaluate () {
-                    return _result.set(xeval.evaluate(), yeval.evaluate());
-                }
-                protected Vector2f _result = new Vector2f();
-            };
+      return new Evaluator<Vector2f>() {
+        public Vector2f evaluate () {
+          return value;
         }
-
-        @Override
-        public void invalidate ()
-        {
-            x.invalidate();
-            y.invalidate();
-        }
+      };
     }
+  }
+
+  /**
+   * A reference expression.
+   */
+  public static class Reference extends Vector2fExpression
+  {
+    /** The name of the variable. */
+    @Editable
+    public String name = "";
+
+    /** The default value of the variable. */
+    @Editable(step=0.01)
+    public Vector2f defvalue = new Vector2f();
+
+    @Override
+    public Evaluator<Vector2f> createEvaluator (Scope scope)
+    {
+      final Vector2f value = ScopeUtil.resolve(scope, name, defvalue);
+      return new Evaluator<Vector2f>() {
+        public Vector2f evaluate () {
+          return value;
+        }
+      };
+    }
+  }
+
+  /**
+   * An expression consisting of separate expressions for each component.
+   */
+  public static class Cartesian extends Vector2fExpression
+  {
+    /** The x component. */
+    @Editable
+    public FloatExpression x = new FloatExpression.Constant();
+
+    /** The y component. */
+    @Editable
+    public FloatExpression y = new FloatExpression.Constant();
+
+    @Override
+    public Evaluator<Vector2f> createEvaluator (Scope scope)
+    {
+      final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
+      final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
+      return new Evaluator<Vector2f>() {
+        public Vector2f evaluate () {
+          return _result.set(xeval.evaluate(), yeval.evaluate());
+        }
+        protected Vector2f _result = new Vector2f();
+      };
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      x.invalidate();
+      y.invalidate();
+    }
+  }
 }

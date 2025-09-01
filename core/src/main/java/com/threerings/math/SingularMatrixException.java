@@ -30,18 +30,18 @@ package com.threerings.math;
  */
 public class SingularMatrixException extends RuntimeException
 {
-    /**
-     * Creates a new exception.
-     */
-    public SingularMatrixException ()
-    {
-    }
+  /**
+   * Creates a new exception.
+   */
+  public SingularMatrixException ()
+  {
+  }
 
-    /**
-     * Creates a new exception with the provided message.
-     */
-    public SingularMatrixException (String message)
-    {
-        super(message);
-    }
+  /**
+   * Creates a new exception with the provided message.
+   */
+  public SingularMatrixException (String message)
+  {
+    super(message);
+  }
 }

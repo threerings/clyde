@@ -38,222 +38,222 @@ import com.threerings.math.FloatMath;
  * A floating point random variable.
  */
 @EditorTypes(value={
-    FloatVariable.Constant.class,
-    FloatVariable.Uniform.class,
-    FloatVariable.Normal.class,
-    FloatVariable.Exponential.class }, label="distribution")
+  FloatVariable.Constant.class,
+  FloatVariable.Uniform.class,
+  FloatVariable.Normal.class,
+  FloatVariable.Exponential.class }, label="distribution")
 public abstract class FloatVariable extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
+  /**
+   * Always returns the same value.
+   */
+  public static class Constant extends FloatVariable
+  {
+    /** The value to return. */
+    @Editable(
+      min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+      step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public float value;
+
     /**
-     * Always returns the same value.
+     * Creates a constant variable with the specified value.
      */
-    public static class Constant extends FloatVariable
+    public Constant (float value)
     {
-        /** The value to return. */
-        @Editable(
-            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public float value;
-
-        /**
-         * Creates a constant variable with the specified value.
-         */
-        public Constant (float value)
-        {
-            this.value = value;
-        }
-
-        /**
-         * Creates a constant variable with the specified variable's mean.
-         */
-        public Constant (FloatVariable variable)
-        {
-            value = variable.getMean();
-        }
-
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public float getValue ()
-        {
-            return value;
-        }
-
-        @Override
-        public float getMean ()
-        {
-            return value;
-        }
+      this.value = value;
     }
 
     /**
-     * Returns a uniformly distributed value.
+     * Creates a constant variable with the specified variable's mean.
      */
-    public static class Uniform extends FloatVariable
+    public Constant (FloatVariable variable)
     {
-        /** The minimum value to return. */
-        @Editable(
-            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public float minimum;
-
-        /** The maximum value to return. */
-        @Editable(
-            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public float maximum;
-
-        /**
-         * Creates a uniformly distributed variable with the specified minimum and maximum values.
-         */
-        public Uniform (float minimum, float maximum)
-        {
-            this.minimum = minimum;
-            this.maximum = maximum;
-        }
-
-        /**
-         * Creates a uniformly distributed variable with the specified variable's mean.
-         */
-        public Uniform (FloatVariable variable)
-        {
-            minimum = maximum = variable.getMean();
-        }
-
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Uniform ()
-        {
-        }
-
-        @Override
-        public float getValue ()
-        {
-            return FloatMath.random(minimum, maximum);
-        }
-
-        @Override
-        public float getMean ()
-        {
-            return (minimum + maximum) * 0.5f;
-        }
+      value = variable.getMean();
     }
 
     /**
-     * Returns a normally distributed value.
+     * No-arg constructor for deserialization, etc.
      */
-    public static class Normal extends FloatVariable
+    public Constant ()
     {
-        /** The mean value. */
-        @Editable(
-            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public float mean;
+    }
 
-        /** The standard deviation. */
-        @Editable(
-            min=0.0, max=Double.MAX_VALUE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public float stddev;
+    @Override
+    public float getValue ()
+    {
+      return value;
+    }
 
-        /**
-         * Creates a normally distributed variable with the specified mean and standard deviation.
-         */
-        public Normal (float mean, float stddev)
-        {
-            this.mean = mean;
-            this.stddev = stddev;
-        }
+    @Override
+    public float getMean ()
+    {
+      return value;
+    }
+  }
 
-        /**
-         * Creates a normally distributed variable with the specified variable's mean.
-         */
-        public Normal (FloatVariable variable)
-        {
-            mean = variable.getMean();
-        }
+  /**
+   * Returns a uniformly distributed value.
+   */
+  public static class Uniform extends FloatVariable
+  {
+    /** The minimum value to return. */
+    @Editable(
+      min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+      step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public float minimum;
 
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Normal ()
-        {
-        }
+    /** The maximum value to return. */
+    @Editable(
+      min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+      step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public float maximum;
 
-        @Override
-        public float getValue ()
-        {
-            return FloatMath.normal(mean, stddev);
-        }
-
-        @Override
-        public float getMean ()
-        {
-            return mean;
-        }
+    /**
+     * Creates a uniformly distributed variable with the specified minimum and maximum values.
+     */
+    public Uniform (float minimum, float maximum)
+    {
+      this.minimum = minimum;
+      this.maximum = maximum;
     }
 
     /**
-     * Returns an exponentially distributed value.
+     * Creates a uniformly distributed variable with the specified variable's mean.
      */
-    public static class Exponential extends FloatVariable
+    public Uniform (FloatVariable variable)
     {
-        /** The mean value. */
-        @Editable(
-            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public float mean;
-
-        /**
-         * Creates an exponentially distributed variable with the specified mean.
-         */
-        public Exponential (float mean)
-        {
-            this.mean = mean;
-        }
-
-        /**
-         * Creates an exponentially distributed variable with the specified variable's mean.
-         */
-        public Exponential (FloatVariable variable)
-        {
-            mean = variable.getMean();
-        }
-
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Exponential ()
-        {
-        }
-
-        @Override
-        public float getValue ()
-        {
-            return FloatMath.exponential(mean);
-        }
-
-        @Override
-        public float getMean ()
-        {
-            return mean;
-        }
+      minimum = maximum = variable.getMean();
     }
 
     /**
-     * Returns a sample value according to the variable's distribution.
+     * No-arg constructor for deserialization, etc.
      */
-    public abstract float getValue ();
+    public Uniform ()
+    {
+    }
+
+    @Override
+    public float getValue ()
+    {
+      return FloatMath.random(minimum, maximum);
+    }
+
+    @Override
+    public float getMean ()
+    {
+      return (minimum + maximum) * 0.5f;
+    }
+  }
+
+  /**
+   * Returns a normally distributed value.
+   */
+  public static class Normal extends FloatVariable
+  {
+    /** The mean value. */
+    @Editable(
+      min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+      step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public float mean;
+
+    /** The standard deviation. */
+    @Editable(
+      min=0.0, max=Double.MAX_VALUE,
+      step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public float stddev;
 
     /**
-     * Returns the variable's mean.
+     * Creates a normally distributed variable with the specified mean and standard deviation.
      */
-    public abstract float getMean ();
+    public Normal (float mean, float stddev)
+    {
+      this.mean = mean;
+      this.stddev = stddev;
+    }
+
+    /**
+     * Creates a normally distributed variable with the specified variable's mean.
+     */
+    public Normal (FloatVariable variable)
+    {
+      mean = variable.getMean();
+    }
+
+    /**
+     * No-arg constructor for deserialization, etc.
+     */
+    public Normal ()
+    {
+    }
+
+    @Override
+    public float getValue ()
+    {
+      return FloatMath.normal(mean, stddev);
+    }
+
+    @Override
+    public float getMean ()
+    {
+      return mean;
+    }
+  }
+
+  /**
+   * Returns an exponentially distributed value.
+   */
+  public static class Exponential extends FloatVariable
+  {
+    /** The mean value. */
+    @Editable(
+      min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+      step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public float mean;
+
+    /**
+     * Creates an exponentially distributed variable with the specified mean.
+     */
+    public Exponential (float mean)
+    {
+      this.mean = mean;
+    }
+
+    /**
+     * Creates an exponentially distributed variable with the specified variable's mean.
+     */
+    public Exponential (FloatVariable variable)
+    {
+      mean = variable.getMean();
+    }
+
+    /**
+     * No-arg constructor for deserialization, etc.
+     */
+    public Exponential ()
+    {
+    }
+
+    @Override
+    public float getValue ()
+    {
+      return FloatMath.exponential(mean);
+    }
+
+    @Override
+    public float getMean ()
+    {
+      return mean;
+    }
+  }
+
+  /**
+   * Returns a sample value according to the variable's distribution.
+   */
+  public abstract float getValue ();
+
+  /**
+   * Returns the variable's mean.
+   */
+  public abstract float getMean ();
 }

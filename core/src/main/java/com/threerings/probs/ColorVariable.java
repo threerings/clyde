@@ -40,104 +40,104 @@ import com.threerings.opengl.renderer.Color4f;
  * A color-valued random variable.
  */
 @EditorTypes(value={
-    ColorVariable.Constant.class,
-    ColorVariable.Uniform.class }, label="distribution")
+  ColorVariable.Constant.class,
+  ColorVariable.Uniform.class }, label="distribution")
 public abstract class ColorVariable extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
+  /**
+   * Always returns the same value.
+   */
+  public static class Constant extends ColorVariable
+  {
+    /** The value to return. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public Color4f value = new Color4f();
+
     /**
-     * Always returns the same value.
+     * Creates a constant variable from the parameters of the other variable.
      */
-    public static class Constant extends ColorVariable
+    public Constant (ColorVariable variable)
     {
-        /** The value to return. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public Color4f value = new Color4f();
-
-        /**
-         * Creates a constant variable from the parameters of the other variable.
-         */
-        public Constant (ColorVariable variable)
-        {
-            variable.getMean(value);
-        }
-
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public Color4f getValue (Color4f result)
-        {
-            return result.set(value);
-        }
-
-        @Override
-        public Color4f getMean (Color4f result)
-        {
-            return result.set(value);
-        }
+      variable.getMean(value);
     }
 
     /**
-     * Returns values uniformly distributed in RGBA space.
+     * No-arg constructor for deserialization, etc.
      */
-    public static class Uniform extends ColorVariable
+    public Constant ()
     {
-        /** The minimum extent. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public Color4f minimum = new Color4f();
+    }
 
-        /** The maximum extent. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public Color4f maximum = new Color4f();
+    @Override
+    public Color4f getValue (Color4f result)
+    {
+      return result.set(value);
+    }
 
-        /**
-         * Creates a uniform variable from the parameters of the other variable.
-         */
-        public Uniform (ColorVariable variable)
-        {
-            maximum.set(variable.getMean(minimum));
-        }
+    @Override
+    public Color4f getMean (Color4f result)
+    {
+      return result.set(value);
+    }
+  }
 
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Uniform ()
-        {
-        }
+  /**
+   * Returns values uniformly distributed in RGBA space.
+   */
+  public static class Uniform extends ColorVariable
+  {
+    /** The minimum extent. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public Color4f minimum = new Color4f();
 
-        @Override
-        public Color4f getValue (Color4f result)
-        {
-            return result.set(
-                FloatMath.random(minimum.r, maximum.r),
-                FloatMath.random(minimum.g, maximum.g),
-                FloatMath.random(minimum.b, maximum.b),
-                FloatMath.random(minimum.a, maximum.a));
-        }
+    /** The maximum extent. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public Color4f maximum = new Color4f();
 
-        @Override
-        public Color4f getMean (Color4f result)
-        {
-            return minimum.add(maximum, result).multLocal(0.5f);
-        }
+    /**
+     * Creates a uniform variable from the parameters of the other variable.
+     */
+    public Uniform (ColorVariable variable)
+    {
+      maximum.set(variable.getMean(minimum));
     }
 
     /**
-     * Computes a sample value according to the variable's distribution.
-     *
-     * @return a reference to the result value, for chaining.
+     * No-arg constructor for deserialization, etc.
      */
-    public abstract Color4f getValue (Color4f result);
+    public Uniform ()
+    {
+    }
 
-    /**
-     * Computes the mean value.
-     *
-     * @return a reference to the result value, for chaining.
-     */
-    public abstract Color4f getMean (Color4f result);
+    @Override
+    public Color4f getValue (Color4f result)
+    {
+      return result.set(
+        FloatMath.random(minimum.r, maximum.r),
+        FloatMath.random(minimum.g, maximum.g),
+        FloatMath.random(minimum.b, maximum.b),
+        FloatMath.random(minimum.a, maximum.a));
+    }
+
+    @Override
+    public Color4f getMean (Color4f result)
+    {
+      return minimum.add(maximum, result).multLocal(0.5f);
+    }
+  }
+
+  /**
+   * Computes a sample value according to the variable's distribution.
+   *
+   * @return a reference to the result value, for chaining.
+   */
+  public abstract Color4f getValue (Color4f result);
+
+  /**
+   * Computes the mean value.
+   *
+   * @return a reference to the result value, for chaining.
+   */
+  public abstract Color4f getMean (Color4f result);
 }

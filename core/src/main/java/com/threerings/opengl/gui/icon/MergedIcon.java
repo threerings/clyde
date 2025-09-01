@@ -32,48 +32,48 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class MergedIcon extends Icon
 {
-    /**
-     * Create a merged icon.
-     */
-    public MergedIcon (Icon...icons)
-    {
-        _icons = icons;
-        for (Icon icon : _icons) {
-            if (icon.getWidth() > _maxWidth) {
-                _maxWidth = icon.getWidth();
-            }
-            if (icon.getHeight() > _maxHeight) {
-                _maxHeight = icon.getHeight();
-            }
-        }
+  /**
+   * Create a merged icon.
+   */
+  public MergedIcon (Icon...icons)
+  {
+    _icons = icons;
+    for (Icon icon : _icons) {
+      if (icon.getWidth() > _maxWidth) {
+        _maxWidth = icon.getWidth();
+      }
+      if (icon.getHeight() > _maxHeight) {
+        _maxHeight = icon.getHeight();
+      }
     }
+  }
 
-    @Override
-    public int getWidth ()
-    {
-        return _maxWidth;
+  @Override
+  public int getWidth ()
+  {
+    return _maxWidth;
+  }
+
+  @Override
+  public int getHeight ()
+  {
+    return _maxHeight;
+  }
+
+  @Override
+  public void render (Renderer renderer, int x, int y, float alpha)
+  {
+    for (Icon icon : _icons) {
+      icon.render(renderer, x, y, alpha);
     }
+  }
 
-    @Override
-    public int getHeight ()
-    {
-        return _maxHeight;
-    }
+  /** The max width of the icons. */
+  protected int _maxWidth;
 
-    @Override
-    public void render (Renderer renderer, int x, int y, float alpha)
-    {
-        for (Icon icon : _icons) {
-            icon.render(renderer, x, y, alpha);
-        }
-    }
+  /** The max height of the icons. */
+  protected int _maxHeight;
 
-    /** The max width of the icons. */
-    protected int _maxWidth;
-
-    /** The max height of the icons. */
-    protected int _maxHeight;
-
-    /** The merged icons. */
-    protected Icon[] _icons;
+  /** The merged icons. */
+  protected Icon[] _icons;
 }

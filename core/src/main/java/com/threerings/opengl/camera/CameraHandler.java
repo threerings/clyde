@@ -43,190 +43,190 @@ import com.threerings.opengl.gui.util.Rectangle;
  * Controls the camera parameters.
  */
 public abstract class CameraHandler
-    implements Renderer.Observer
+  implements Renderer.Observer
 {
+  /**
+   * Provides a means of temporarily offsetting the camera transform.
+   */
+  public interface Offset
+  {
     /**
-     * Provides a means of temporarily offsetting the camera transform.
-     */
-    public interface Offset
-    {
-        /**
-         * Applies the offset.
-         *
-         * @return true to keep the offset in the list, false to remove it.
-         */
-        public boolean apply (Transform3D transform);
-    }
-
-    /**
-     * Creates a new camera handler for the compositor camera.
-     */
-    public CameraHandler (GlContext ctx)
-    {
-        this(ctx, ctx.getCompositor().getCamera(), true);
-    }
-
-    /**
-     * Creates a new camera handler for the specified camera.
+     * Applies the offset.
      *
-     * @param matchRenderSurface if true, automatically adjust the camera viewport to match the
-     * dimensions of the renderer surface.
+     * @return true to keep the offset in the list, false to remove it.
      */
-    public CameraHandler (GlContext ctx, Camera camera, boolean matchRenderSurface)
-    {
-        _ctx = ctx;
-        _camera = camera;
-        _matchRenderSurface = matchRenderSurface;
+    public boolean apply (Transform3D transform);
+  }
+
+  /**
+   * Creates a new camera handler for the compositor camera.
+   */
+  public CameraHandler (GlContext ctx)
+  {
+    this(ctx, ctx.getCompositor().getCamera(), true);
+  }
+
+  /**
+   * Creates a new camera handler for the specified camera.
+   *
+   * @param matchRenderSurface if true, automatically adjust the camera viewport to match the
+   * dimensions of the renderer surface.
+   */
+  public CameraHandler (GlContext ctx, Camera camera, boolean matchRenderSurface)
+  {
+    _ctx = ctx;
+    _camera = camera;
+    _matchRenderSurface = matchRenderSurface;
+  }
+
+  /**
+   * Sets the camera's perspective parameters.
+   */
+  public void setPerspective (float fovy, float near, float far)
+  {
+    _fovy = fovy;
+    _near = near;
+    _far = far;
+    updatePerspective();
+  }
+
+  /**
+   * Returns the camera's field of view in radians.
+   */
+  public float getFieldOfView ()
+  {
+    return _fovy;
+  }
+
+  /**
+   * Returns the distance to the near clip plane.
+   */
+  public float getNear ()
+  {
+    return _near;
+  }
+
+  /**
+   * Returns the distance to the far clip plane.
+   */
+  public float getFar ()
+  {
+    return _far;
+  }
+
+  /**
+   * Adds an element to the list of offsets to apply.
+   */
+  public void addOffset (Offset offset)
+  {
+    _offsets.add(offset);
+  }
+
+  /**
+   * Returns a reference to the translation to use for the notional "viewer."
+   */
+  public Vector3f getViewerTranslation ()
+  {
+    return _camera.getWorldTransform().getTranslation();
+  }
+
+  /**
+   * Returns a reference to the rotation to use for the viewer.
+   */
+  public Quaternion getViewerRotation ()
+  {
+    return _camera.getWorldTransform().getRotation();
+  }
+
+  /**
+   * Determines whether the camera handler is currently active.
+   */
+  public boolean isAdded ()
+  {
+    return _ctx.getCameraHandler() == this;
+  }
+
+  /**
+   * Notifies the handler that it has been added.
+   */
+  public void wasAdded ()
+  {
+    if (_matchRenderSurface) {
+      Renderer renderer = _ctx.getRenderer();
+      sizeChanged(renderer.getWidth(), renderer.getHeight());
+      renderer.addObserver(this);
+    }
+  }
+
+  /**
+   * Notifies the handler that it has been removed.
+   */
+  public void wasRemoved ()
+  {
+    if (_matchRenderSurface) {
+      _ctx.getRenderer().removeObserver(this);
+    }
+  }
+
+  /**
+   * Updates the camera perspective parameters.
+   */
+  public void updatePerspective ()
+  {
+    Rectangle viewport = _camera.getViewport();
+    _camera.setPerspective(_fovy, (float)viewport.width / viewport.height, _near, _far);
+  }
+
+  /**
+   * Updates the camera position.
+   */
+  public void updatePosition ()
+  {
+    // get the base transform
+    Transform3D transform = _camera.getWorldTransform();
+    getTransform(transform);
+
+    // apply the offsets
+    for (int ii = _offsets.size() - 1; ii >= 0; ii--) {
+      if (!_offsets.get(ii).apply(transform)) {
+        _offsets.remove(ii);
+      }
     }
 
-    /**
-     * Sets the camera's perspective parameters.
-     */
-    public void setPerspective (float fovy, float near, float far)
-    {
-        _fovy = fovy;
-        _near = near;
-        _far = far;
-        updatePerspective();
-    }
+    // update the camera
+    _camera.updateTransform();
+  }
 
-    /**
-     * Returns the camera's field of view in radians.
-     */
-    public float getFieldOfView ()
-    {
-        return _fovy;
-    }
+  // documentation inherited from interface Renderer.Observer
+  public void sizeChanged (int width, int height)
+  {
+    _camera.getViewport().set(0, 0, width, height);
+    updatePerspective();
+  }
 
-    /**
-     * Returns the distance to the near clip plane.
-     */
-    public float getNear ()
-    {
-        return _near;
-    }
+  /**
+   * Computes the base (pre-offset) camera transform.
+   */
+  protected abstract void getTransform (Transform3D transform);
 
-    /**
-     * Returns the distance to the far clip plane.
-     */
-    public float getFar ()
-    {
-        return _far;
-    }
+  /** The renderer context. */
+  protected GlContext _ctx;
 
-    /**
-     * Adds an element to the list of offsets to apply.
-     */
-    public void addOffset (Offset offset)
-    {
-        _offsets.add(offset);
-    }
+  /** The camera that we're handling. */
+  protected Camera _camera;
 
-    /**
-     * Returns a reference to the translation to use for the notional "viewer."
-     */
-    public Vector3f getViewerTranslation ()
-    {
-        return _camera.getWorldTransform().getTranslation();
-    }
+  /** Whether or not we're to match the size of the render surface. */
+  protected boolean _matchRenderSurface;
 
-    /**
-     * Returns a reference to the rotation to use for the viewer.
-     */
-    public Quaternion getViewerRotation ()
-    {
-        return _camera.getWorldTransform().getRotation();
-    }
+  /** The vertical field of view (in radians). */
+  protected float _fovy = FloatMath.PI / 3f;
 
-    /**
-     * Determines whether the camera handler is currently active.
-     */
-    public boolean isAdded ()
-    {
-        return _ctx.getCameraHandler() == this;
-    }
+  /** The distance to the near clip plane. */
+  protected float _near = 1f;
 
-    /**
-     * Notifies the handler that it has been added.
-     */
-    public void wasAdded ()
-    {
-        if (_matchRenderSurface) {
-            Renderer renderer = _ctx.getRenderer();
-            sizeChanged(renderer.getWidth(), renderer.getHeight());
-            renderer.addObserver(this);
-        }
-    }
+  /** The distance to the far clip plane. */
+  protected float _far = 100f;
 
-    /**
-     * Notifies the handler that it has been removed.
-     */
-    public void wasRemoved ()
-    {
-        if (_matchRenderSurface) {
-            _ctx.getRenderer().removeObserver(this);
-        }
-    }
-
-    /**
-     * Updates the camera perspective parameters.
-     */
-    public void updatePerspective ()
-    {
-        Rectangle viewport = _camera.getViewport();
-        _camera.setPerspective(_fovy, (float)viewport.width / viewport.height, _near, _far);
-    }
-
-    /**
-     * Updates the camera position.
-     */
-    public void updatePosition ()
-    {
-        // get the base transform
-        Transform3D transform = _camera.getWorldTransform();
-        getTransform(transform);
-
-        // apply the offsets
-        for (int ii = _offsets.size() - 1; ii >= 0; ii--) {
-            if (!_offsets.get(ii).apply(transform)) {
-                _offsets.remove(ii);
-            }
-        }
-
-        // update the camera
-        _camera.updateTransform();
-    }
-
-    // documentation inherited from interface Renderer.Observer
-    public void sizeChanged (int width, int height)
-    {
-        _camera.getViewport().set(0, 0, width, height);
-        updatePerspective();
-    }
-
-    /**
-     * Computes the base (pre-offset) camera transform.
-     */
-    protected abstract void getTransform (Transform3D transform);
-
-    /** The renderer context. */
-    protected GlContext _ctx;
-
-    /** The camera that we're handling. */
-    protected Camera _camera;
-
-    /** Whether or not we're to match the size of the render surface. */
-    protected boolean _matchRenderSurface;
-
-    /** The vertical field of view (in radians). */
-    protected float _fovy = FloatMath.PI / 3f;
-
-    /** The distance to the near clip plane. */
-    protected float _near = 1f;
-
-    /** The distance to the far clip plane. */
-    protected float _far = 100f;
-
-    /** The list of registered offsets. */
-    protected List<Offset> _offsets = Lists.newArrayList();
+  /** The list of registered offsets. */
+  protected List<Offset> _offsets = Lists.newArrayList();
 }

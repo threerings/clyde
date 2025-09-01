@@ -44,37 +44,37 @@ import com.google.common.collect.Lists;
  */
 public abstract class FileSetTask extends Task
 {
-    /**
-     * Adds a fileset to the list of sets to process.
-     */
-    public void addFileset (FileSet set)
-    {
-        _filesets.add(set);
-    }
+  /**
+   * Adds a fileset to the list of sets to process.
+   */
+  public void addFileset (FileSet set)
+  {
+    _filesets.add(set);
+  }
 
-    /**
-     * Get the files from all the filesets.
-     */
-    protected Iterable<File> getFiles ()
-    {
-        return Iterables.concat(Iterables.transform(_filesets, _filesetToFiles));
-    }
+  /**
+   * Get the files from all the filesets.
+   */
+  protected Iterable<File> getFiles ()
+  {
+    return Iterables.concat(Iterables.transform(_filesets, _filesetToFiles));
+  }
 
-    /** A function to transform a fileset into the files it represents. */
-    protected final Function<FileSet, Iterable<File>> _filesetToFiles =
-            new Function<FileSet, Iterable<File>>() {
-                public Iterable<File> apply (FileSet fileset) {
-                    DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
-                    final File fromDir = fileset.getDir(getProject());
-                    return Iterables.transform(Arrays.asList(ds.getIncludedFiles()),
-                            new Function<String, File>() {
-                                public File apply (String file) {
-                                    return new File(fromDir, file);
-                                }
-                            });
+  /** A function to transform a fileset into the files it represents. */
+  protected final Function<FileSet, Iterable<File>> _filesetToFiles =
+      new Function<FileSet, Iterable<File>>() {
+        public Iterable<File> apply (FileSet fileset) {
+          DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+          final File fromDir = fileset.getDir(getProject());
+          return Iterables.transform(Arrays.asList(ds.getIncludedFiles()),
+              new Function<String, File>() {
+                public File apply (String file) {
+                  return new File(fromDir, file);
                 }
-            };
+              });
+        }
+      };
 
-    /** A list of filesets. */
-    protected List<FileSet> _filesets = Lists.newArrayList();
+  /** A list of filesets. */
+  protected List<FileSet> _filesets = Lists.newArrayList();
 }

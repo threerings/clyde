@@ -44,234 +44,234 @@ import com.threerings.opengl.renderer.state.MaterialState;
  */
 @EditorTypes({ MaterialStateConfig.OneSided.class, MaterialStateConfig.TwoSided.class })
 public abstract class MaterialStateConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /** Color material mode constants. */
-    public enum ColorMaterialMode
+  /** Color material mode constants. */
+  public enum ColorMaterialMode
+  {
+    DISABLED(-1),
+    AMBIENT(GL11.GL_AMBIENT),
+    DIFFUSE(GL11.GL_DIFFUSE),
+    AMBIENT_AND_DIFFUSE(GL11.GL_AMBIENT_AND_DIFFUSE),
+    SPECULAR(GL11.GL_SPECULAR),
+    EMISSION(GL11.GL_EMISSION);
+
+    public int getConstant ()
     {
-        DISABLED(-1),
-        AMBIENT(GL11.GL_AMBIENT),
-        DIFFUSE(GL11.GL_DIFFUSE),
-        AMBIENT_AND_DIFFUSE(GL11.GL_AMBIENT_AND_DIFFUSE),
-        SPECULAR(GL11.GL_SPECULAR),
-        EMISSION(GL11.GL_EMISSION);
-
-        public int getConstant ()
-        {
-            return _constant;
-        }
-
-        ColorMaterialMode (int constant)
-        {
-            _constant = constant;
-        }
-
-        protected final int _constant;
+      return _constant;
     }
 
-    /** Color material face constants. */
-    public enum ColorMaterialFace
+    ColorMaterialMode (int constant)
     {
-        FRONT(GL11.GL_FRONT),
-        BACK(GL11.GL_BACK),
-        FRONT_AND_BACK(GL11.GL_FRONT_AND_BACK);
-
-        public int getConstant ()
-        {
-            return _constant;
-        }
-
-        ColorMaterialFace (int constant)
-        {
-            _constant = constant;
-        }
-
-        protected final int _constant;
+      _constant = constant;
     }
 
-    /**
-     * A one-sided material configuration.
-     */
-    public static class OneSided extends MaterialStateConfig
+    protected final int _constant;
+  }
+
+  /** Color material face constants. */
+  public enum ColorMaterialFace
+  {
+    FRONT(GL11.GL_FRONT),
+    BACK(GL11.GL_BACK),
+    FRONT_AND_BACK(GL11.GL_FRONT_AND_BACK);
+
+    public int getConstant ()
     {
-        /** The ambient reflectivity. */
-        @Editable(mode="alpha", hgroup="m1")
-        public Color4f ambient = new Color4f(Color4f.WHITE);
-
-        /** The specular reflectivity. */
-        @Editable(mode="alpha", hgroup="m1")
-        public Color4f specular = new Color4f(Color4f.BLACK);
-
-        /** The diffuse reflectivity. */
-        @Editable(mode="alpha", hgroup="m2")
-        public Color4f diffuse = new Color4f(Color4f.WHITE);
-
-        /** The emissive color. */
-        @Editable(mode="alpha", hgroup="m2")
-        public Color4f emission = new Color4f(Color4f.BLACK);
-
-        /** The specular exponent. */
-        @Editable(min=0, max=128, step=0.1, hgroup="cm")
-        public float shininess;
-
-        public OneSided (TwoSided other)
-        {
-            ambient.set(other.front.ambient);
-            diffuse.set(other.front.diffuse);
-            specular.set(other.front.specular);
-            emission.set(other.front.emission);
-            shininess = other.front.shininess;
-        }
-
-        public OneSided ()
-        {
-        }
-
-        @Override
-        protected MaterialState createInstance ()
-        {
-            return new MaterialState(
-                ambient, diffuse, specular, emission, shininess, colorMaterialMode.getConstant(),
-                localViewer, separateSpecular && GLContext.getCapabilities().OpenGL12,
-                flatShading);
-        }
+      return _constant;
     }
 
-    /**
-     * A two-sided material configuration.
-     */
-    public static class TwoSided extends MaterialStateConfig
+    ColorMaterialFace (int constant)
     {
-        /** The front side. */
-        @Editable(hgroup="s")
-        public Side front = new Side();
-
-        /** The back side. */
-        @Editable(hgroup="s")
-        public Side back = new Side();
-
-        /** The color material face. */
-        @Editable(weight=1, hgroup="cm")
-        public ColorMaterialFace colorMaterialFace = ColorMaterialFace.FRONT_AND_BACK;
-
-        public TwoSided (OneSided other)
-        {
-            front.set(other);
-            back.set(other);
-        }
-
-        public TwoSided ()
-        {
-        }
-
-        @Override
-        protected MaterialState createInstance ()
-        {
-            return new MaterialState(
-                front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
-                back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
-                colorMaterialMode.getConstant(), colorMaterialFace.getConstant(), localViewer,
-                separateSpecular && GLContext.getCapabilities().OpenGL12, flatShading);
-        }
+      _constant = constant;
     }
 
-    /**
-     * The parameters of one side.
-     */
-    public static class Side extends DeepObject
-        implements Exportable
+    protected final int _constant;
+  }
+
+  /**
+   * A one-sided material configuration.
+   */
+  public static class OneSided extends MaterialStateConfig
+  {
+    /** The ambient reflectivity. */
+    @Editable(mode="alpha", hgroup="m1")
+    public Color4f ambient = new Color4f(Color4f.WHITE);
+
+    /** The specular reflectivity. */
+    @Editable(mode="alpha", hgroup="m1")
+    public Color4f specular = new Color4f(Color4f.BLACK);
+
+    /** The diffuse reflectivity. */
+    @Editable(mode="alpha", hgroup="m2")
+    public Color4f diffuse = new Color4f(Color4f.WHITE);
+
+    /** The emissive color. */
+    @Editable(mode="alpha", hgroup="m2")
+    public Color4f emission = new Color4f(Color4f.BLACK);
+
+    /** The specular exponent. */
+    @Editable(min=0, max=128, step=0.1, hgroup="cm")
+    public float shininess;
+
+    public OneSided (TwoSided other)
     {
-        /** The ambient reflectivity. */
-        @Editable(mode="alpha")
-        public Color4f ambient = new Color4f(Color4f.WHITE);
-
-        /** The diffuse reflectivity. */
-        @Editable(mode="alpha")
-        public Color4f diffuse = new Color4f(Color4f.WHITE);
-
-        /** The specular reflectivity. */
-        @Editable(mode="alpha")
-        public Color4f specular = new Color4f(Color4f.BLACK);
-
-        /** The emissive color. */
-        @Editable(mode="alpha")
-        public Color4f emission = new Color4f(Color4f.BLACK);
-
-        /** The specular exponent. */
-        @Editable(min=0, max=128, step=0.1)
-        public float shininess;
-
-        /**
-         * Sets all of the parameters to those in the supplied config.
-         */
-        public void set (OneSided other)
-        {
-            ambient.set(other.ambient);
-            diffuse.set(other.diffuse);
-            specular.set(other.specular);
-            emission.set(other.emission);
-            shininess = other.shininess;
-        }
+      ambient.set(other.front.ambient);
+      diffuse.set(other.front.diffuse);
+      specular.set(other.front.specular);
+      emission.set(other.front.emission);
+      shininess = other.front.shininess;
     }
 
-    /** The color material mode. */
+    public OneSided ()
+    {
+    }
+
+    @Override
+    protected MaterialState createInstance ()
+    {
+      return new MaterialState(
+        ambient, diffuse, specular, emission, shininess, colorMaterialMode.getConstant(),
+        localViewer, separateSpecular && GLContext.getCapabilities().OpenGL12,
+        flatShading);
+    }
+  }
+
+  /**
+   * A two-sided material configuration.
+   */
+  public static class TwoSided extends MaterialStateConfig
+  {
+    /** The front side. */
+    @Editable(hgroup="s")
+    public Side front = new Side();
+
+    /** The back side. */
+    @Editable(hgroup="s")
+    public Side back = new Side();
+
+    /** The color material face. */
     @Editable(weight=1, hgroup="cm")
-    public ColorMaterialMode colorMaterialMode = ColorMaterialMode.AMBIENT_AND_DIFFUSE;
+    public ColorMaterialFace colorMaterialFace = ColorMaterialFace.FRONT_AND_BACK;
 
-    /** The local viewer flag. */
-    @Editable(hgroup="m3", weight=2)
-    public boolean localViewer;
-
-    /** The separate specular flag. */
-    @Editable(hgroup="m3", weight=2)
-    public boolean separateSpecular;
-
-    /** The flat shading flag. */
-    @Editable(hgroup="m3", weight=2)
-    public boolean flatShading;
-
-    /** If true, do not use a shared instance. */
-    @Editable(weight=2)
-    public boolean uniqueInstance;
-
-    /**
-     * Determines whether this state is supported by the hardware.
-     */
-    public boolean isSupported (boolean fallback)
+    public TwoSided (OneSided other)
     {
-        return !separateSpecular || GLContext.getCapabilities().OpenGL12 || fallback;
+      front.set(other);
+      back.set(other);
     }
 
-    /**
-     * Returns the corresponding material state.
-     */
-    public MaterialState getState ()
+    public TwoSided ()
     {
-        if (uniqueInstance) {
-            return createInstance();
-        }
-        MaterialState instance = (_instance == null) ? null : _instance.get();
-        if (instance == null) {
-            _instance = new SoftReference<MaterialState>(
-                instance = MaterialState.getInstance(createInstance()));
-        }
-        return instance;
     }
 
-    /**
-     * Invalidates the config's cached data.
-     */
-    public void invalidate ()
+    @Override
+    protected MaterialState createInstance ()
     {
-        _instance = null;
+      return new MaterialState(
+        front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
+        back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
+        colorMaterialMode.getConstant(), colorMaterialFace.getConstant(), localViewer,
+        separateSpecular && GLContext.getCapabilities().OpenGL12, flatShading);
     }
+  }
+
+  /**
+   * The parameters of one side.
+   */
+  public static class Side extends DeepObject
+    implements Exportable
+  {
+    /** The ambient reflectivity. */
+    @Editable(mode="alpha")
+    public Color4f ambient = new Color4f(Color4f.WHITE);
+
+    /** The diffuse reflectivity. */
+    @Editable(mode="alpha")
+    public Color4f diffuse = new Color4f(Color4f.WHITE);
+
+    /** The specular reflectivity. */
+    @Editable(mode="alpha")
+    public Color4f specular = new Color4f(Color4f.BLACK);
+
+    /** The emissive color. */
+    @Editable(mode="alpha")
+    public Color4f emission = new Color4f(Color4f.BLACK);
+
+    /** The specular exponent. */
+    @Editable(min=0, max=128, step=0.1)
+    public float shininess;
 
     /**
-     * Creates a material state instance corresponding to this config.
+     * Sets all of the parameters to those in the supplied config.
      */
-    protected abstract MaterialState createInstance ();
+    public void set (OneSided other)
+    {
+      ambient.set(other.ambient);
+      diffuse.set(other.diffuse);
+      specular.set(other.specular);
+      emission.set(other.emission);
+      shininess = other.shininess;
+    }
+  }
 
-    /** Cached state instance. */
-    @DeepOmit
-    protected transient SoftReference<MaterialState> _instance;
+  /** The color material mode. */
+  @Editable(weight=1, hgroup="cm")
+  public ColorMaterialMode colorMaterialMode = ColorMaterialMode.AMBIENT_AND_DIFFUSE;
+
+  /** The local viewer flag. */
+  @Editable(hgroup="m3", weight=2)
+  public boolean localViewer;
+
+  /** The separate specular flag. */
+  @Editable(hgroup="m3", weight=2)
+  public boolean separateSpecular;
+
+  /** The flat shading flag. */
+  @Editable(hgroup="m3", weight=2)
+  public boolean flatShading;
+
+  /** If true, do not use a shared instance. */
+  @Editable(weight=2)
+  public boolean uniqueInstance;
+
+  /**
+   * Determines whether this state is supported by the hardware.
+   */
+  public boolean isSupported (boolean fallback)
+  {
+    return !separateSpecular || GLContext.getCapabilities().OpenGL12 || fallback;
+  }
+
+  /**
+   * Returns the corresponding material state.
+   */
+  public MaterialState getState ()
+  {
+    if (uniqueInstance) {
+      return createInstance();
+    }
+    MaterialState instance = (_instance == null) ? null : _instance.get();
+    if (instance == null) {
+      _instance = new SoftReference<MaterialState>(
+        instance = MaterialState.getInstance(createInstance()));
+    }
+    return instance;
+  }
+
+  /**
+   * Invalidates the config's cached data.
+   */
+  public void invalidate ()
+  {
+    _instance = null;
+  }
+
+  /**
+   * Creates a material state instance corresponding to this config.
+   */
+  protected abstract MaterialState createInstance ();
+
+  /** Cached state instance. */
+  @DeepOmit
+  protected transient SoftReference<MaterialState> _instance;
 }

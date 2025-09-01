@@ -35,31 +35,31 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class ToolSceneView extends TudeySceneView
 {
-    /**
-     * Creates a new scene view.
-     */
-    public ToolSceneView (TudeyContext ctx, ToolSceneController ctrl)
-    {
-        super(ctx, ctrl);
-    }
+  /**
+   * Creates a new scene view.
+   */
+  public ToolSceneView (TudeyContext ctx, ToolSceneController ctrl)
+  {
+    super(ctx, ctrl);
+  }
 
-    /** Whether or not markers are visible. */
-    @Scoped
-    protected boolean _markersVisible;
+  /** Whether or not markers are visible. */
+  @Scoped
+  protected boolean _markersVisible;
 
-    /** Whether or not lighting is enabled. */
-    @Scoped
-    protected boolean _lightingEnabled = true;
+  /** Whether or not lighting is enabled. */
+  @Scoped
+  protected boolean _lightingEnabled = true;
 
-    /** Whether or not fog is enabled. */
-    @Scoped
-    protected boolean _fogEnabled = true;
+  /** Whether or not fog is enabled. */
+  @Scoped
+  protected boolean _fogEnabled = true;
 
-    /** Whether or not sound is enabled. */
-    @Scoped
-    protected boolean _soundEnabled = true;
+  /** Whether or not sound is enabled. */
+  @Scoped
+  protected boolean _soundEnabled = true;
 
-    /** Whether or not camera transitions are enabled. */
-    @Scoped
-    protected boolean _cameraEnabled = true;
+  /** Whether or not camera transitions are enabled. */
+  @Scoped
+  protected boolean _cameraEnabled = true;
 }

@@ -33,47 +33,47 @@ import com.threerings.opengl.util.Tickable;
  * A component that fades in text when displayed.
  */
 public class FadeLabel extends Label
-    implements Tickable
+  implements Tickable
 {
-    /**
-     * Creates a label that will display the supplied text.
-     */
-    public FadeLabel (GlContext ctx, int lineFadeTime)
-    {
-        super(ctx, "");
-        _label.setLineFadeTime(lineFadeTime);
-    }
+  /**
+   * Creates a label that will display the supplied text.
+   */
+  public FadeLabel (GlContext ctx, int lineFadeTime)
+  {
+    super(ctx, "");
+    _label.setLineFadeTime(lineFadeTime);
+  }
 
-    /**
-     * Set the line fade time.
-     */
-    public void setLineFadeTime (int lineFadeTime)
-    {
-        _label.setLineFadeTime(lineFadeTime);
-    }
+  /**
+   * Set the line fade time.
+   */
+  public void setLineFadeTime (int lineFadeTime)
+  {
+    _label.setLineFadeTime(lineFadeTime);
+  }
 
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-        _label.tick((int)(elapsed * 1000));
-    }
+  // documentation inherited from interface Tickable
+  public void tick (float elapsed)
+  {
+    _label.tick((int)(elapsed * 1000));
+  }
 
-    @Override
-    protected void wasAdded ()
-    {
-        super.wasAdded();
-        _root = getWindow().getRoot();
-        _root.addTickParticipant(this);
-    }
+  @Override
+  protected void wasAdded ()
+  {
+    super.wasAdded();
+    _root = getWindow().getRoot();
+    _root.addTickParticipant(this);
+  }
 
-    @Override
-    protected void wasRemoved ()
-    {
-        super.wasRemoved();
-        _root.removeTickParticipant(this);
-        _root = null;
-    }
+  @Override
+  protected void wasRemoved ()
+  {
+    super.wasRemoved();
+    _root.removeTickParticipant(this);
+    _root = null;
+  }
 
-    /** The UI root with which we've registered as a tick participant. */
-    protected Root _root;
+  /** The UI root with which we've registered as a tick participant. */
+  protected Root _root;
 }

@@ -41,45 +41,45 @@ import com.threerings.whirled.zone.server.ZoneMoveHandler;
  */
 public class TudeyZoneMoveHandler extends ZoneMoveHandler
 {
-    /**
-     * Creates a new zone move handler.
-     */
-    public TudeyZoneMoveHandler (
-        LocationManager locmgr, ZoneManager zmgr, SceneRegistry screg, BodyObject body,
-        int sceneId, int sceneVer, Object portalKey, ZoneService.ZoneMoveListener listener)
-    {
-        super(locmgr, zmgr, screg, body, sceneId, sceneVer, listener);
-        _portalKey = portalKey;
+  /**
+   * Creates a new zone move handler.
+   */
+  public TudeyZoneMoveHandler (
+    LocationManager locmgr, ZoneManager zmgr, SceneRegistry screg, BodyObject body,
+    int sceneId, int sceneVer, Object portalKey, ZoneService.ZoneMoveListener listener)
+  {
+    super(locmgr, zmgr, screg, body, sceneId, sceneVer, listener);
+    _portalKey = portalKey;
+  }
+
+  @Override
+  protected void resolveScene ()
+  {
+    ((TudeySceneRegistry)_screg).resolveScene(_body, _sceneId, this);
+  }
+
+  @Override
+  protected void effectSceneMove (SceneManager scmgr)
+    throws InvocationException
+  {
+    // if there's no portal key, just call normal implementation
+    if (_portalKey == null) {
+      super.effectSceneMove(scmgr);
+      return;
     }
+    // let the destination scene manager know that we're coming in
+    TudeySceneManager destmgr = (TudeySceneManager)scmgr;
+    destmgr.mapEnteringBody(_body, _portalKey);
 
-    @Override
-    protected void resolveScene ()
-    {
-        ((TudeySceneRegistry)_screg).resolveScene(_body, _sceneId, this);
+    try {
+      super.effectSceneMove(destmgr);
+    } catch (InvocationException ie) {
+      // if anything goes haywire, clear out our entering status
+      destmgr.clearEnteringBody(_body);
+      throw ie;
     }
+  }
 
-    @Override
-    protected void effectSceneMove (SceneManager scmgr)
-        throws InvocationException
-    {
-        // if there's no portal key, just call normal implementation
-        if (_portalKey == null) {
-            super.effectSceneMove(scmgr);
-            return;
-        }
-        // let the destination scene manager know that we're coming in
-        TudeySceneManager destmgr = (TudeySceneManager)scmgr;
-        destmgr.mapEnteringBody(_body, _portalKey);
-
-        try {
-            super.effectSceneMove(destmgr);
-        } catch (InvocationException ie) {
-            // if anything goes haywire, clear out our entering status
-            destmgr.clearEnteringBody(_body);
-            throw ie;
-        }
-    }
-
-    /** Identifies the destination portal. */
-    protected Object _portalKey;
+  /** Identifies the destination portal. */
+  protected Object _portalKey;
 }

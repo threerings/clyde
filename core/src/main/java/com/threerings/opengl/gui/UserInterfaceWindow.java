@@ -38,100 +38,100 @@ import com.threerings.opengl.gui.layout.BorderLayout;
  */
 public class UserInterfaceWindow extends StretchWindow
 {
-    /**
-     * Creates a new user interface window.
-     *
-     * @param stretch whether or not to stretch the window across the entire screen.
-     */
-    public UserInterfaceWindow (GlContext ctx, boolean stretch)
-    {
-        this(ctx, stretch, (ConfigReference<UserInterfaceConfig>)null);
-    }
+  /**
+   * Creates a new user interface window.
+   *
+   * @param stretch whether or not to stretch the window across the entire screen.
+   */
+  public UserInterfaceWindow (GlContext ctx, boolean stretch)
+  {
+    this(ctx, stretch, (ConfigReference<UserInterfaceConfig>)null);
+  }
 
-    /**
-     * Creates a new interface window with the named configuration.
-     *
-     * @param stretch whether or not to stretch the window across the entire screen.
-     */
-    public UserInterfaceWindow (GlContext ctx, boolean stretch, String name)
-    {
-        this(ctx, stretch, new ConfigReference<UserInterfaceConfig>(name));
-    }
+  /**
+   * Creates a new interface window with the named configuration.
+   *
+   * @param stretch whether or not to stretch the window across the entire screen.
+   */
+  public UserInterfaceWindow (GlContext ctx, boolean stretch, String name)
+  {
+    this(ctx, stretch, new ConfigReference<UserInterfaceConfig>(name));
+  }
 
-    /**
-     * Creates a new interface with the named configuration and arguments.
-     *
-     * @param stretch whether or not to stretch the window across the entire screen.
-     */
-    public UserInterfaceWindow (
-        GlContext ctx, boolean stretch, String name, String firstKey,
-        Object firstValue, Object... otherArgs)
-    {
-        this(ctx, stretch, new ConfigReference<UserInterfaceConfig>(
-            name, firstKey, firstValue, otherArgs));
-    }
+  /**
+   * Creates a new interface with the named configuration and arguments.
+   *
+   * @param stretch whether or not to stretch the window across the entire screen.
+   */
+  public UserInterfaceWindow (
+    GlContext ctx, boolean stretch, String name, String firstKey,
+    Object firstValue, Object... otherArgs)
+  {
+    this(ctx, stretch, new ConfigReference<UserInterfaceConfig>(
+      name, firstKey, firstValue, otherArgs));
+  }
 
-    /**
-     * Creates a new user interface window.
-     *
-     * @param stretch whether or not to stretch the window across the entire screen.
-     */
-    public UserInterfaceWindow (
-        GlContext ctx, boolean stretch, ConfigReference<UserInterfaceConfig> ref)
-    {
-        super(ctx, new BorderLayout());
-        _stretch = stretch;
-        _scope.setParentScope(ctx.getScope());
-        _interface = createInterface();
-        _interface.getScope().setParentScope(_scope);
-        _interface.setConfig(ref);
-        add(_interface, BorderLayout.CENTER);
-    }
+  /**
+   * Creates a new user interface window.
+   *
+   * @param stretch whether or not to stretch the window across the entire screen.
+   */
+  public UserInterfaceWindow (
+    GlContext ctx, boolean stretch, ConfigReference<UserInterfaceConfig> ref)
+  {
+    super(ctx, new BorderLayout());
+    _stretch = stretch;
+    _scope.setParentScope(ctx.getScope());
+    _interface = createInterface();
+    _interface.getScope().setParentScope(_scope);
+    _interface.setConfig(ref);
+    add(_interface, BorderLayout.CENTER);
+  }
 
-    /**
-     * Returns a reference to the window scope.
-     */
-    public DynamicScope getScope ()
-    {
-        return _scope;
-    }
+  /**
+   * Returns a reference to the window scope.
+   */
+  public DynamicScope getScope ()
+  {
+    return _scope;
+  }
 
-    /**
-     * Returns a reference to the user interface component.
-     */
-    public UserInterface getInterface ()
-    {
-        return _interface;
-    }
+  /**
+   * Returns a reference to the user interface component.
+   */
+  public UserInterface getInterface ()
+  {
+    return _interface;
+  }
 
-    /**
-     * A shortcut method for retrieving a component registered by name from the interface.
-     */
-    public Component getComponent (String name)
-    {
-        return _interface.getComponent(name);
-    }
+  /**
+   * A shortcut method for retrieving a component registered by name from the interface.
+   */
+  public Component getComponent (String name)
+  {
+    return _interface.getComponent(name);
+  }
 
-    /**
-     * Creates the user interface for the window.
-     */
-    protected UserInterface createInterface ()
-    {
-        return new UserInterface(_ctx);
-    }
+  /**
+   * Creates the user interface for the window.
+   */
+  protected UserInterface createInterface ()
+  {
+    return new UserInterface(_ctx);
+  }
 
-    @Override
-    protected boolean isStretching ()
-    {
-        return _stretch;
-    }
+  @Override
+  protected boolean isStretching ()
+  {
+    return _stretch;
+  }
 
-    /** The window scope. */
-    protected DynamicScope _scope = new DynamicScope(this, "window");
+  /** The window scope. */
+  protected DynamicScope _scope = new DynamicScope(this, "window");
 
-    /** The contained user interface. */
-    protected UserInterface _interface;
+  /** The contained user interface. */
+  protected UserInterface _interface;
 
-    /** Whether or not to stretch the window across the entire display. */
-    protected boolean _stretch;
+  /** Whether or not to stretch the window across the entire display. */
+  protected boolean _stretch;
 }

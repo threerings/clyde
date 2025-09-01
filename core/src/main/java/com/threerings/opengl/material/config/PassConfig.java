@@ -65,168 +65,168 @@ import com.threerings.opengl.util.Preloadable;
  * Represents a single material pass.
  */
 public class PassConfig extends DeepObject
-    implements Exportable, Preloadable.LoadableConfig
+  implements Exportable, Preloadable.LoadableConfig
 {
-    /** The alpha state to use in this pass. */
-    @Editable
-    public AlphaStateConfig alphaState = new AlphaStateConfig();
+  /** The alpha state to use in this pass. */
+  @Editable
+  public AlphaStateConfig alphaState = new AlphaStateConfig();
 
-    /** The color state to use in this pass (overriding the default). */
-    @Editable(nullable=true)
-    public ColorStateConfig colorStateOverride;
+  /** The color state to use in this pass (overriding the default). */
+  @Editable(nullable=true)
+  public ColorStateConfig colorStateOverride;
 
-    /** The color mask state to use in this pass. */
-    @Editable
-    public ColorMaskStateConfig colorMaskState = new ColorMaskStateConfig();
+  /** The color mask state to use in this pass. */
+  @Editable
+  public ColorMaskStateConfig colorMaskState = new ColorMaskStateConfig();
 
-    /** The cull state to use in this pass. */
-    @Editable
-    public CullStateConfig cullState = new CullStateConfig();
+  /** The cull state to use in this pass. */
+  @Editable
+  public CullStateConfig cullState = new CullStateConfig();
 
-    /** The depth state to use in this pass. */
-    @Editable
-    public DepthStateConfig depthState = new DepthStateConfig();
+  /** The depth state to use in this pass. */
+  @Editable
+  public DepthStateConfig depthState = new DepthStateConfig();
 
-    /** The fog state to use in this pass (overriding the default). */
-    @Editable(nullable=true)
-    public FogStateConfig fogStateOverride;
+  /** The fog state to use in this pass (overriding the default). */
+  @Editable(nullable=true)
+  public FogStateConfig fogStateOverride;
 
-    /** The light state to use in this pass (overriding the default). */
-    @Editable(nullable=true)
-    public LightStateConfig lightStateOverride;
+  /** The light state to use in this pass (overriding the default). */
+  @Editable(nullable=true)
+  public LightStateConfig lightStateOverride;
 
-    /** The line state. */
-    @Editable(nullable=true)
-    public LineStateConfig lineState;
+  /** The line state. */
+  @Editable(nullable=true)
+  public LineStateConfig lineState;
 
-    /** The material state to use in this pass. */
-    @Editable(nullable=true)
-    public MaterialStateConfig materialState = new MaterialStateConfig.OneSided();
+  /** The material state to use in this pass. */
+  @Editable(nullable=true)
+  public MaterialStateConfig materialState = new MaterialStateConfig.OneSided();
 
-    /** The point state. */
-    @Editable(nullable=true)
-    public PointStateConfig pointState;
+  /** The point state. */
+  @Editable(nullable=true)
+  public PointStateConfig pointState;
 
-    /** The polygon state to use in this pass. */
-    @Editable
-    public PolygonStateConfig polygonState = new PolygonStateConfig();
+  /** The polygon state to use in this pass. */
+  @Editable
+  public PolygonStateConfig polygonState = new PolygonStateConfig();
 
-    /** The shader state to use in this pass. */
-    @Editable
-    public ShaderStateConfig shaderState = new ShaderStateConfig.Disabled();
+  /** The shader state to use in this pass. */
+  @Editable
+  public ShaderStateConfig shaderState = new ShaderStateConfig.Disabled();
 
-    /** The stencil state to use in this pass. */
-    @Editable
-    public StencilStateConfig stencilState = new StencilStateConfig();
+  /** The stencil state to use in this pass. */
+  @Editable
+  public StencilStateConfig stencilState = new StencilStateConfig();
 
-    /** The texture state to use in this pass. */
-    @Editable
-    public TextureStateConfig textureState = new TextureStateConfig();
+  /** The texture state to use in this pass. */
+  @Editable
+  public TextureStateConfig textureState = new TextureStateConfig();
 
-    /** The static expression bindings for this pass. */
-    @Editable
-    public ExpressionBinding[] staticBindings = ExpressionBinding.EMPTY_ARRAY;
+  /** The static expression bindings for this pass. */
+  @Editable
+  public ExpressionBinding[] staticBindings = ExpressionBinding.EMPTY_ARRAY;
 
-    /** The dynamic expression bindings for this pass. */
-    @Editable
-    public ExpressionBinding[] dynamicBindings = ExpressionBinding.EMPTY_ARRAY;
+  /** The dynamic expression bindings for this pass. */
+  @Editable
+  public ExpressionBinding[] dynamicBindings = ExpressionBinding.EMPTY_ARRAY;
 
-    /** Whether or not to ignore the vertex colors. */
-    @Editable
-    public boolean ignoreVertexColors;
+  /** Whether or not to ignore the vertex colors. */
+  @Editable
+  public boolean ignoreVertexColors;
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        // Do nothing for now. TODO: Figure out what needs to be brought in.
-        if (materialState != null) materialState.getState();
-        for (ExpressionBinding binding : staticBindings) {
-            binding.preload(ctx);
-        }
-        for (ExpressionBinding binding : dynamicBindings) {
-            binding.preload(ctx);
-        }
+  @Override
+  public void preload (GlContext ctx)
+  {
+    // Do nothing for now. TODO: Figure out what needs to be brought in.
+    if (materialState != null) materialState.getState();
+    for (ExpressionBinding binding : staticBindings) {
+      binding.preload(ctx);
     }
-
-    /**
-     * Determines whether this pass is supported.
-     */
-    public boolean isSupported (GlContext ctx, boolean fallback)
-    {
-        return (materialState == null || materialState.isSupported(fallback)) &&
-            shaderState.isSupported(ctx, fallback) &&
-            textureState.isSupported(ctx, fallback);
+    for (ExpressionBinding binding : dynamicBindings) {
+      binding.preload(ctx);
     }
+  }
 
-    /**
-     * Returns a descriptor for this pass that can be used to configure a geometry instance.
-     */
-    public PassDescriptor createDescriptor (GlContext ctx)
-    {
-        PassDescriptor desc = new PassDescriptor();
-        shaderState.populateDescriptor(ctx, desc);
-        textureState.populateDescriptor(desc);
-        if (ignoreVertexColors) {
-            desc.colors = false;
-        } else {
-            desc.colors |= !(lightStateOverride instanceof LightStateConfig.Enabled) ||
-                materialState == null ||
-                materialState.colorMaterialMode != ColorMaterialMode.DISABLED;
-        }
-        desc.normals |= !(lightStateOverride instanceof LightStateConfig.Disabled);
-        return desc;
+  /**
+   * Determines whether this pass is supported.
+   */
+  public boolean isSupported (GlContext ctx, boolean fallback)
+  {
+    return (materialState == null || materialState.isSupported(fallback)) &&
+      shaderState.isSupported(ctx, fallback) &&
+      textureState.isSupported(ctx, fallback);
+  }
+
+  /**
+   * Returns a descriptor for this pass that can be used to configure a geometry instance.
+   */
+  public PassDescriptor createDescriptor (GlContext ctx)
+  {
+    PassDescriptor desc = new PassDescriptor();
+    shaderState.populateDescriptor(ctx, desc);
+    textureState.populateDescriptor(desc);
+    if (ignoreVertexColors) {
+      desc.colors = false;
+    } else {
+      desc.colors |= !(lightStateOverride instanceof LightStateConfig.Enabled) ||
+        materialState == null ||
+        materialState.colorMaterialMode != ColorMaterialMode.DISABLED;
     }
+    desc.normals |= !(lightStateOverride instanceof LightStateConfig.Disabled);
+    return desc;
+  }
 
-    /**
-     * Creates the set of states for this pass.
-     *
-     * @param adders holds adders to run on composite.
-     * @param updaters holds updaters to run on enqueue.
-     */
-    public RenderState[] createStates (
-        GlContext ctx, Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
-    {
-        RenderState[] states = RenderState.createEmptySet();
-        states[RenderState.ALPHA_STATE] = alphaState.getState();
-        states[RenderState.COLOR_STATE] = (colorStateOverride == null) ?
-            ScopeUtil.resolve(scope, "colorState", ColorState.WHITE, ColorState.class) :
-                colorStateOverride.getState();
-        states[RenderState.COLOR_MASK_STATE] = colorMaskState.getState();
-        states[RenderState.CULL_STATE] = cullState.getState();
-        states[RenderState.DEPTH_STATE] = depthState.getState();
-        states[RenderState.FOG_STATE] = (fogStateOverride == null) ?
-            ScopeUtil.resolve(scope, "fogState", FogState.DISABLED, FogState.class) :
-                fogStateOverride.getState();
-        states[RenderState.LIGHT_STATE] = (lightStateOverride == null) ?
-            ScopeUtil.resolve(scope, "lightState", LightState.DISABLED, LightState.class) :
-                lightStateOverride.getState(ctx, scope, updaters);
-        states[RenderState.LINE_STATE] = (lineState == null) ? null : lineState.getState();
-        states[RenderState.MATERIAL_STATE] = (materialState == null) ?
-            null : materialState.getState();
-        states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
-        states[RenderState.POLYGON_STATE] = polygonState.getState();
-        states[RenderState.STENCIL_STATE] = stencilState.getState();
-        states[RenderState.TEXTURE_STATE] = textureState.getState(ctx, scope, adders, updaters);
+  /**
+   * Creates the set of states for this pass.
+   *
+   * @param adders holds adders to run on composite.
+   * @param updaters holds updaters to run on enqueue.
+   */
+  public RenderState[] createStates (
+    GlContext ctx, Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
+  {
+    RenderState[] states = RenderState.createEmptySet();
+    states[RenderState.ALPHA_STATE] = alphaState.getState();
+    states[RenderState.COLOR_STATE] = (colorStateOverride == null) ?
+      ScopeUtil.resolve(scope, "colorState", ColorState.WHITE, ColorState.class) :
+        colorStateOverride.getState();
+    states[RenderState.COLOR_MASK_STATE] = colorMaskState.getState();
+    states[RenderState.CULL_STATE] = cullState.getState();
+    states[RenderState.DEPTH_STATE] = depthState.getState();
+    states[RenderState.FOG_STATE] = (fogStateOverride == null) ?
+      ScopeUtil.resolve(scope, "fogState", FogState.DISABLED, FogState.class) :
+        fogStateOverride.getState();
+    states[RenderState.LIGHT_STATE] = (lightStateOverride == null) ?
+      ScopeUtil.resolve(scope, "lightState", LightState.DISABLED, LightState.class) :
+        lightStateOverride.getState(ctx, scope, updaters);
+    states[RenderState.LINE_STATE] = (lineState == null) ? null : lineState.getState();
+    states[RenderState.MATERIAL_STATE] = (materialState == null) ?
+      null : materialState.getState();
+    states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
+    states[RenderState.POLYGON_STATE] = polygonState.getState();
+    states[RenderState.STENCIL_STATE] = stencilState.getState();
+    states[RenderState.TEXTURE_STATE] = textureState.getState(ctx, scope, adders, updaters);
 
-        // we create the shader state last because it may depend on the other states
-        states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, states, updaters);
-        return states;
+    // we create the shader state last because it may depend on the other states
+    states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, states, updaters);
+    return states;
+  }
+
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    if (materialState != null) {
+      materialState.invalidate();
     }
-
-    /**
-     * Invalidates any cached data.
-     */
-    public void invalidate ()
-    {
-        if (materialState != null) {
-            materialState.invalidate();
-        }
-        textureState.invalidate();
-        for (ExpressionBinding binding : staticBindings) {
-            binding.invalidate();
-        }
-        for (ExpressionBinding binding : dynamicBindings) {
-            binding.invalidate();
-        }
+    textureState.invalidate();
+    for (ExpressionBinding binding : staticBindings) {
+      binding.invalidate();
     }
+    for (ExpressionBinding binding : dynamicBindings) {
+      binding.invalidate();
+    }
+  }
 }

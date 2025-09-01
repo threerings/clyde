@@ -45,65 +45,65 @@ import static com.threerings.export.Log.log;
  */
 public class BinaryToXMLConverter
 {
-    /**
-     * Program entry point.
-     */
-    public static void main (String[] args)
-        throws Exception
-    {
-        if (args.length == 2) {
-            convert(args[0], args[1]);
-        } else if (args.length == 1) {
-            convert(args[0]);
-        } else {
-            System.err.println(
-                "Usage: BinaryToXMLConverter <binary input file> <xml output file>");
-            System.err.println(
-                "   or  BinaryToXMLConverter <binary input file pattern>");
-        }
+  /**
+   * Program entry point.
+   */
+  public static void main (String[] args)
+    throws Exception
+  {
+    if (args.length == 2) {
+      convert(args[0], args[1]);
+    } else if (args.length == 1) {
+      convert(args[0]);
+    } else {
+      System.err.println(
+        "Usage: BinaryToXMLConverter <binary input file> <xml output file>");
+      System.err.println(
+        "   or  BinaryToXMLConverter <binary input file pattern>");
     }
+  }
 
-    /**
-     * Converts the file(s) identified by the given pattern.
-     */
-    public static void convert (String pattern)
-        throws IOException
-    {
-        log.info("Starting conversion", "pattern", pattern, "pwd", new File(".").getCanonicalPath());
-        DirectoryScanner scanner = new DirectoryScanner();
-        scanner.setBasedir(".");
-        scanner.setIncludes(new String[] { pattern });
-        scanner.scan();
-        int count = 0;
-        for (String source : scanner.getIncludedFiles()) {
-            try {
-                convert(source, FileUtil.resuffix(new File(source), ".dat", ".xml"));
-                count++;
-            } catch (Exception e) {
-                log.warning("Error converting file.", "file", source, e);
-            }
-        }
-        log.info("Finished conversion", "count", count);
+  /**
+   * Converts the file(s) identified by the given pattern.
+   */
+  public static void convert (String pattern)
+    throws IOException
+  {
+    log.info("Starting conversion", "pattern", pattern, "pwd", new File(".").getCanonicalPath());
+    DirectoryScanner scanner = new DirectoryScanner();
+    scanner.setBasedir(".");
+    scanner.setIncludes(new String[] { pattern });
+    scanner.scan();
+    int count = 0;
+    for (String source : scanner.getIncludedFiles()) {
+      try {
+        convert(source, FileUtil.resuffix(new File(source), ".dat", ".xml"));
+        count++;
+      } catch (Exception e) {
+        log.warning("Error converting file.", "file", source, e);
+      }
     }
+    log.info("Finished conversion", "count", count);
+  }
 
-    /**
-     * Performs the actual conversion.
-     */
-    public static void convert (String source, String dest)
-        throws IOException
-    {
-        BinaryImporter in = new BinaryImporter(new FileInputStream(source));
-        XMLExporter out = new XMLExporter(
-                "-".equals(dest) ? System.out : new FileOutputStream(dest));
-        try {
-            while (true) {
-                out.writeObject(in.readObject());
-            }
-        } catch (EOFException e) {
-            // no problem
-        } finally {
-            in.close();
-            out.close();
-        }
+  /**
+   * Performs the actual conversion.
+   */
+  public static void convert (String source, String dest)
+    throws IOException
+  {
+    BinaryImporter in = new BinaryImporter(new FileInputStream(source));
+    XMLExporter out = new XMLExporter(
+        "-".equals(dest) ? System.out : new FileOutputStream(dest));
+    try {
+      while (true) {
+        out.writeObject(in.readObject());
+      }
+    } catch (EOFException e) {
+      // no problem
+    } finally {
+      in.close();
+      out.close();
     }
+  }
 }

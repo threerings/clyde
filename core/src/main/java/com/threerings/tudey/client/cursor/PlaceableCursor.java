@@ -50,238 +50,238 @@ import com.threerings.tudey.util.TudeyContext;
  * A cursor for a placeable object.
  */
 public class PlaceableCursor extends EntryCursor
-    implements ConfigUpdateListener<PlaceableConfig>
+  implements ConfigUpdateListener<PlaceableConfig>
 {
+  /**
+   * The actual cursor implementation.
+   */
+  public static abstract class Implementation extends SimpleScope
+    implements Tickable, Compositable
+  {
     /**
-     * The actual cursor implementation.
+     * Creates a new implementation.
      */
-    public static abstract class Implementation extends SimpleScope
-        implements Tickable, Compositable
+    public Implementation (Scope parentScope)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Implementation (Scope parentScope)
-        {
-            super(parentScope);
-        }
-
-        /**
-         * Returns a reference to the transformed shape.
-         */
-        public Shape getShape ()
-        {
-            return null;
-        }
-
-        /**
-         * Updates the cursor state.
-         */
-        public void update (PlaceableEntry entry)
-        {
-            // nothing by default
-        }
-
-        // documentation inherited from interface Tickable
-        public void tick (float elapsed)
-        {
-            // nothing by default
-        }
-
-        // documentation inherited from interface Compositable
-        public void composite ()
-        {
-            // nothing by default
-        }
-
-        @Override
-        public String getScopeName ()
-        {
-            return "impl";
-        }
+      super(parentScope);
     }
 
     /**
-     * The original implementation.
+     * Returns a reference to the transformed shape.
      */
-    public static class Original extends Implementation
+    public Shape getShape ()
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Original (TudeyContext ctx, Scope parentScope, PlaceableConfig.Original config)
-        {
-            super(parentScope);
-            _model = new Model(ctx);
-            _model.setParentScope(this);
-            _model.setRenderScheme(RenderScheme.TRANSLUCENT);
-            _model.setColorState(new ColorState());
-            _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
-            _footprint = new ShapeConfigElement(ctx);
-            _footprint.getColor().set(FOOTPRINT_COLOR);
-            setConfig(config);
-        }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (PlaceableConfig.Original config)
-        {
-            _model.setConfig(config.model);
-            _footprint.setConfig(config.shape, true);
-            _localShape = config.shape.getShape();
-        }
-
-        @Override
-        public Shape getShape ()
-        {
-            return _worldShape;
-        }
-
-        @Override
-        public void update (PlaceableEntry entry)
-        {
-            _model.setLocalTransform(entry.transform);
-            _footprint.setTransform(entry.transform);
-            _transform.set(entry.transform);
-            _worldShape = _localShape.transform(_transform, _worldShape);
-        }
-
-        @Override
-        public void tick (float elapsed)
-        {
-            _model.tick(elapsed);
-        }
-
-        @Override
-        public void composite ()
-        {
-            _model.composite();
-            _footprint.composite();
-        }
-
-        /** The model. */
-        protected Model _model;
-
-        /** The footprint. */
-        protected ShapeConfigElement _footprint;
-
-        /** The flattened transform. */
-        protected Transform2D _transform = new Transform2D();
-
-        /** The untransformed shape. */
-        protected Shape _localShape;
-
-        /** The transformed shape. */
-        protected Shape _worldShape;
+      return null;
     }
 
     /**
-     * Creates a new placeable cursor.
+     * Updates the cursor state.
      */
-    public PlaceableCursor (TudeyContext ctx, TudeySceneView view, PlaceableEntry entry)
+    public void update (PlaceableEntry entry)
     {
-        super(ctx, view);
-        update(entry);
+      // nothing by default
     }
 
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<PlaceableConfig> event)
+    // documentation inherited from interface Tickable
+    public void tick (float elapsed)
     {
-        updateFromConfig();
-        _impl.update(_entry);
+      // nothing by default
+    }
+
+    // documentation inherited from interface Compositable
+    public void composite ()
+    {
+      // nothing by default
     }
 
     @Override
-    public Entry getEntry ()
+    public String getScopeName ()
     {
-        return _entry;
+      return "impl";
+    }
+  }
+
+  /**
+   * The original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /**
+     * Creates a new implementation.
+     */
+    public Original (TudeyContext ctx, Scope parentScope, PlaceableConfig.Original config)
+    {
+      super(parentScope);
+      _model = new Model(ctx);
+      _model.setParentScope(this);
+      _model.setRenderScheme(RenderScheme.TRANSLUCENT);
+      _model.setColorState(new ColorState());
+      _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
+      _footprint = new ShapeConfigElement(ctx);
+      _footprint.getColor().set(FOOTPRINT_COLOR);
+      setConfig(config);
+    }
+
+    /**
+     * (Re)configures the implementation.
+     */
+    public void setConfig (PlaceableConfig.Original config)
+    {
+      _model.setConfig(config.model);
+      _footprint.setConfig(config.shape, true);
+      _localShape = config.shape.getShape();
     }
 
     @Override
     public Shape getShape ()
     {
-        return _impl.getShape();
+      return _worldShape;
     }
 
     @Override
-    public void update (Entry entry)
+    public void update (PlaceableEntry entry)
     {
-        setConfig((_entry = (PlaceableEntry)entry).placeable);
-        _impl.update(_entry);
+      _model.setLocalTransform(entry.transform);
+      _footprint.setTransform(entry.transform);
+      _transform.set(entry.transform);
+      _worldShape = _localShape.transform(_transform, _worldShape);
     }
 
     @Override
     public void tick (float elapsed)
     {
-        _impl.tick(elapsed);
+      _model.tick(elapsed);
     }
 
     @Override
     public void composite ()
     {
-        _impl.composite();
+      _model.composite();
+      _footprint.composite();
     }
 
-    @Override
-    public void dispose ()
-    {
-        super.dispose();
-        _impl.dispose();
-        if (_config != null) {
-            _config.removeListener(this);
-        }
+    /** The model. */
+    protected Model _model;
+
+    /** The footprint. */
+    protected ShapeConfigElement _footprint;
+
+    /** The flattened transform. */
+    protected Transform2D _transform = new Transform2D();
+
+    /** The untransformed shape. */
+    protected Shape _localShape;
+
+    /** The transformed shape. */
+    protected Shape _worldShape;
+  }
+
+  /**
+   * Creates a new placeable cursor.
+   */
+  public PlaceableCursor (TudeyContext ctx, TudeySceneView view, PlaceableEntry entry)
+  {
+    super(ctx, view);
+    update(entry);
+  }
+
+  // documentation inherited from interface ConfigUpdateListener
+  public void configUpdated (ConfigEvent<PlaceableConfig> event)
+  {
+    updateFromConfig();
+    _impl.update(_entry);
+  }
+
+  @Override
+  public Entry getEntry ()
+  {
+    return _entry;
+  }
+
+  @Override
+  public Shape getShape ()
+  {
+    return _impl.getShape();
+  }
+
+  @Override
+  public void update (Entry entry)
+  {
+    setConfig((_entry = (PlaceableEntry)entry).placeable);
+    _impl.update(_entry);
+  }
+
+  @Override
+  public void tick (float elapsed)
+  {
+    _impl.tick(elapsed);
+  }
+
+  @Override
+  public void composite ()
+  {
+    _impl.composite();
+  }
+
+  @Override
+  public void dispose ()
+  {
+    super.dispose();
+    _impl.dispose();
+    if (_config != null) {
+      _config.removeListener(this);
     }
+  }
 
-    /**
-     * Sets the configuration of the placeable.
-     */
-    protected void setConfig (ConfigReference<PlaceableConfig> ref)
-    {
-        setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+  /**
+   * Sets the configuration of the placeable.
+   */
+  protected void setConfig (ConfigReference<PlaceableConfig> ref)
+  {
+    setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+  }
+
+  /**
+   * Sets the configuration of the placeable.
+   */
+  protected void setConfig (PlaceableConfig config)
+  {
+    if (_config == config) {
+      return;
     }
-
-    /**
-     * Sets the configuration of the placeable.
-     */
-    protected void setConfig (PlaceableConfig config)
-    {
-        if (_config == config) {
-            return;
-        }
-        if (_config != null) {
-            _config.removeListener(this);
-        }
-        if ((_config = config) != null) {
-            _config.addListener(this);
-        }
-        updateFromConfig();
+    if (_config != null) {
+      _config.removeListener(this);
     }
-
-    /**
-     * Updates this cursor to match its configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        Implementation nimpl = (_config == null) ?
-            null : _config.getCursorImplementation(_ctx, this, _impl);
-        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
-        if (_impl != nimpl) {
-            _impl.dispose();
-            _impl = nimpl;
-        }
+    if ((_config = config) != null) {
+      _config.addListener(this);
     }
+    updateFromConfig();
+  }
 
-    /** The prototype entry. */
-    protected PlaceableEntry _entry;
+  /**
+   * Updates this cursor to match its configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    Implementation nimpl = (_config == null) ?
+      null : _config.getCursorImplementation(_ctx, this, _impl);
+    nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+    if (_impl != nimpl) {
+      _impl.dispose();
+      _impl = nimpl;
+    }
+  }
 
-    /** The placeable config. */
-    protected PlaceableConfig _config;
+  /** The prototype entry. */
+  protected PlaceableEntry _entry;
 
-    /** The cursor implementation. */
-    protected Implementation _impl = NULL_IMPLEMENTATION;
+  /** The placeable config. */
+  protected PlaceableConfig _config;
 
-    /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
-    };
+  /** The cursor implementation. */
+  protected Implementation _impl = NULL_IMPLEMENTATION;
+
+  /** An implementation that does nothing. */
+  protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+  };
 }

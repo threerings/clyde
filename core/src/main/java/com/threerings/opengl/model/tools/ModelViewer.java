@@ -79,376 +79,376 @@ import static com.threerings.opengl.Log.log;
  * A simple model viewer application.
  */
 public class ModelViewer extends ModelTool
-    implements ChangeListener, ConfigUpdateListener<ModelConfig>, ModelObserver
+  implements ChangeListener, ConfigUpdateListener<ModelConfig>, ModelObserver
 {
+  /**
+   * The program entry point.
+   */
+  public static void main (String[] args)
+  {
+    new ModelViewer(args.length > 0 ? args[0] : null).startup();
+  }
+
+  /**
+   * Creates the model viewer with (optionally) the path to a model to load.
+   */
+  public ModelViewer (String model)
+  {
+    super("viewer");
+
+    // set the title
+    _frame.setTitle(_msgs.get("m.title"));
+
+    // populate the menu bar
+    JMenuBar menubar = new JMenuBar();
+    _frame.setJMenuBar(menubar);
+
+    JMenu file = createMenu("file", KeyEvent.VK_F);
+    menubar.add(file);
+    createFileMenuItems(file);
+
+    JMenu edit = createMenu("edit", KeyEvent.VK_E);
+    menubar.add(edit);
+    createEditMenuItems(edit);
+
+    JMenu view = createMenu("view", KeyEvent.VK_V);
+    menubar.add(view);
+    view.add(_autoReset = createCheckBoxMenuItem("auto_reset", KeyEvent.VK_A, KeyEvent.VK_E));
+    view.addSeparator();
+    view.add(_showEnvironment =
+      createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
+    _showEnvironment.setSelected(true);
+    view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
+    _showGrid.setSelected(true);
+    view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
+    view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_C, KeyEvent.VK_M));
+    _showCompass.setSelected(true);
+    view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
+    view.addSeparator();
+    view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
+    view.addSeparator();
+    view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
+    view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
+
+    JMenu tools = createMenu("tools", KeyEvent.VK_T);
+    menubar.add(tools);
+    tools.add(createMenuItem("save_snapshot", KeyEvent.VK_S, KeyEvent.VK_F12, 0));
+
+    // configure the side panel
+    _cpanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    _cpanel.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 1));
+
+    // add the config editor
+    _cpanel.add(_epanel = new EditorPanel(this));
+
+    // add the animation control container
+    _apanel = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
+    _apanel.setBorder(BorderFactory.createTitledBorder(_msgs.get("m.animations")));
+    _cpanel.add(_apanel, GroupLayout.FIXED);
+    _apanel.setVisible(false);
+
+    // add the track panel container
+    _tpanels = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
+    _apanel.add(_tpanels);
+
+    // add the animation controls
+    JPanel buttons = new JPanel();
+    _apanel.add(buttons);
+    buttons.add(createButton("add_track"));
+    buttons.add(_removeTrack = createButton("remove_track"));
+    _removeTrack.setEnabled(false);
+
+    // add the controls
+    JPanel controls = new JPanel();
+    _cpanel.add(controls, GroupLayout.FIXED);
+    controls.add(new JLabel(_msgs.get("m.global_speed")));
+    controls.add(_speedSpinner = new DraggableSpinner(1f, 0f, Float.MAX_VALUE, 0.01f));
+    _speedSpinner.setMinimumSize(_speedSpinner.getPreferredSize());
+    _speedSpinner.setMaximumSize(_speedSpinner.getPreferredSize());
+    _speedSpinner.addChangeListener(this);
+
+    // configure the config editor
+    ModelConfig.Derived impl = new ModelConfig.Derived();
+    if (model != null) {
+      String path = _rsrcmgr.getResourcePath(new File(model));
+      if (path != null) {
+        impl.model = new ConfigReference<ModelConfig>(path);
+      }
+    }
+    _epanel.setObject(impl);
+    _epanel.addChangeListener(this);
+  }
+
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    if (event.getSource() == _epanel) {
+      // let the config know that it was updated
+      if (!_block.enter()) {
+        return;
+      }
+      try {
+        _model.getConfig().wasUpdated();
+      } finally {
+        _block.leave();
+      }
+    }
+  }
+
+  // documentation inherited from interface ConfigUpdateListener
+  public void configUpdated (ConfigEvent<ModelConfig> event)
+  {
+    // update the track panels
+    Animation[] anims = _model.getAnimations();
+    if (anims.length == 0) {
+      _apanel.setVisible(false);
+    } else {
+      _apanel.setVisible(true);
+      for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
+        ((TrackPanel)_tpanels.getComponent(ii)).updateAnimations();
+      }
+    }
+
+    // update the editor panel
+    if (!_block.enter()) {
+      return;
+    }
+    try {
+      _epanel.update();
+      _epanel.validate();
+    } finally {
+      _block.leave();
+    }
+  }
+
+  // documentation inherited from interface ModelObserver
+  public boolean animationStarted (Animation animation)
+  {
+    updateTrackControls();
+    return true;
+  }
+
+  // documentation inherited from interface ModelObserver
+  public boolean animationStopped (Animation animation, boolean completed)
+  {
+    updateTrackControls();
+    return true;
+  }
+
+  // documentation inherited from interface ModelObserver
+  public boolean modelCompleted (Model model)
+  {
+    return true;
+  }
+
+  @Override
+  public void actionPerformed (ActionEvent event)
+  {
+    String action = event.getActionCommand();
+    if (action.equals("add_track")) {
+      _tpanels.add(new TrackPanel());
+      _removeTrack.setEnabled(true);
+      SwingUtil.refresh(_cpanel);
+
+    } else if (action.equals("remove_track")) {
+      _tpanels.remove(_tpanels.getComponentCount() - 1);
+      _removeTrack.setEnabled(_tpanels.getComponentCount() > 1);
+      SwingUtil.refresh(_cpanel);
+
+    } else if (action.equals("save_snapshot")) {
+      SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+      File file = new File(FileSystemView.getFileSystemView().getDefaultDirectory(),
+        "viewer_" + fmt.format(new Date()) + ".png");
+      try {
+        ImageIO.write(createSnapshot(true), "png", file);
+      } catch (IOException e) {
+        log.warning("Failed to write snapshot.", "file", file, e);
+      }
+    } else {
+      super.actionPerformed(event);
+    }
+  }
+
+  protected void createFileMenuItems (JMenu file)
+  {
+    file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+  }
+
+  protected void createEditMenuItems (JMenu edit)
+  {
+    edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
+    edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_R));
+    edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
+  }
+
+  @Override
+  protected JComponent createCanvasContainer ()
+  {
+    JSplitPane pane = new JSplitPane(
+      JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _cpanel = GroupLayout.makeVStretchBox(5));
+    _canvas.setMinimumSize(new Dimension(1, 1));
+    pane.setResizeWeight(1.0);
+    pane.setOneTouchExpandable(true);
+    return pane;
+  }
+
+  @Override
+  protected CanvasToolPrefs createEditablePrefs ()
+  {
+    return new ModelToolPrefs(_prefs);
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    super.didInit();
+
+    // set up the model
+    ModelConfig config = new ModelConfig();
+    config.init(_cfgmgr);
+    config.implementation = (ModelConfig.Derived)_epanel.getObject();
+    config.addListener(this);
+    _scene.add(_model = new Model(this, config));
+    _model.addObserver(this);
+
+    // add the initial track panel
+    _apanel.setVisible(_model.getAnimations().length > 0);
+    _tpanels.add(new TrackPanel());
+  }
+
+  @Override
+  protected void updateView ()
+  {
+    // scaled the elapsed time by the speed
+    long nnow = System.currentTimeMillis();
+    _elapsed += (nnow - _lastUpdate) * _speedSpinner.getFloatValue();
+    _lastUpdate = nnow;
+
+    // remove the integer portion for use as time increment
+    long lelapsed = (long)_elapsed;
+    _elapsed -= lelapsed;
+    _now.value += lelapsed;
+
+    updateView(lelapsed / 1000f);
+  }
+
+  @Override
+  protected void updateView (float elapsed)
+  {
+    super.updateView(elapsed);
+    if (_autoReset.isSelected() && _model.hasCompleted()) {
+      _model.reset();
+    }
+  }
+
+  /**
+   * Updates all of the track controls.
+   */
+  protected void updateTrackControls ()
+  {
+    for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
+      ((TrackPanel)_tpanels.getComponent(ii)).updateControls();
+    }
+  }
+
+  /**
+   * A single panel for running animations.
+   */
+  protected class TrackPanel extends JPanel
+    implements ActionListener
+  {
     /**
-     * The program entry point.
+     * Creates a new animation panel.
      */
-    public static void main (String[] args)
+    public TrackPanel ()
     {
-        new ModelViewer(args.length > 0 ? args[0] : null).startup();
+      add(_box = new JComboBox(_model.getAnimations()));
+      _box.addActionListener(this);
+      add(new Spacer(1, 1));
+      add(_start = new JButton(_msgs.get("m.start")));
+      _start.addActionListener(this);
+      add(_stop = new JButton(_msgs.get("m.stop")));
+      _stop.addActionListener(this);
+
+      // update the controls
+      updateControls();
     }
 
     /**
-     * Creates the model viewer with (optionally) the path to a model to load.
+     * Updates the list of animations.
      */
-    public ModelViewer (String model)
+    public void updateAnimations ()
     {
-        super("viewer");
-
-        // set the title
-        _frame.setTitle(_msgs.get("m.title"));
-
-        // populate the menu bar
-        JMenuBar menubar = new JMenuBar();
-        _frame.setJMenuBar(menubar);
-
-        JMenu file = createMenu("file", KeyEvent.VK_F);
-        menubar.add(file);
-        createFileMenuItems(file);
-
-        JMenu edit = createMenu("edit", KeyEvent.VK_E);
-        menubar.add(edit);
-        createEditMenuItems(edit);
-
-        JMenu view = createMenu("view", KeyEvent.VK_V);
-        menubar.add(view);
-        view.add(_autoReset = createCheckBoxMenuItem("auto_reset", KeyEvent.VK_A, KeyEvent.VK_E));
-        view.addSeparator();
-        view.add(_showEnvironment =
-            createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
-        _showEnvironment.setSelected(true);
-        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
-        _showGrid.setSelected(true);
-        view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
-        view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_C, KeyEvent.VK_M));
-        _showCompass.setSelected(true);
-        view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
-        view.addSeparator();
-        view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
-        view.addSeparator();
-        view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
-        view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
-
-        JMenu tools = createMenu("tools", KeyEvent.VK_T);
-        menubar.add(tools);
-        tools.add(createMenuItem("save_snapshot", KeyEvent.VK_S, KeyEvent.VK_F12, 0));
-
-        // configure the side panel
-        _cpanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        _cpanel.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 1));
-
-        // add the config editor
-        _cpanel.add(_epanel = new EditorPanel(this));
-
-        // add the animation control container
-        _apanel = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
-        _apanel.setBorder(BorderFactory.createTitledBorder(_msgs.get("m.animations")));
-        _cpanel.add(_apanel, GroupLayout.FIXED);
-        _apanel.setVisible(false);
-
-        // add the track panel container
-        _tpanels = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
-        _apanel.add(_tpanels);
-
-        // add the animation controls
-        JPanel buttons = new JPanel();
-        _apanel.add(buttons);
-        buttons.add(createButton("add_track"));
-        buttons.add(_removeTrack = createButton("remove_track"));
-        _removeTrack.setEnabled(false);
-
-        // add the controls
-        JPanel controls = new JPanel();
-        _cpanel.add(controls, GroupLayout.FIXED);
-        controls.add(new JLabel(_msgs.get("m.global_speed")));
-        controls.add(_speedSpinner = new DraggableSpinner(1f, 0f, Float.MAX_VALUE, 0.01f));
-        _speedSpinner.setMinimumSize(_speedSpinner.getPreferredSize());
-        _speedSpinner.setMaximumSize(_speedSpinner.getPreferredSize());
-        _speedSpinner.addChangeListener(this);
-
-        // configure the config editor
-        ModelConfig.Derived impl = new ModelConfig.Derived();
-        if (model != null) {
-            String path = _rsrcmgr.getResourcePath(new File(model));
-            if (path != null) {
-                impl.model = new ConfigReference<ModelConfig>(path);
-            }
-        }
-        _epanel.setObject(impl);
-        _epanel.addChangeListener(this);
+      _box.setModel(new DefaultComboBoxModel(_model.getAnimations()));
+      updateControls();
     }
 
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
+    /**
+     * Updates the controls in response to a change in the selected animation.
+     */
+    public void updateControls ()
     {
-        if (event.getSource() == _epanel) {
-            // let the config know that it was updated
-            if (!_block.enter()) {
-                return;
-            }
-            try {
-                _model.getConfig().wasUpdated();
-            } finally {
-                _block.leave();
-            }
-        }
+      Animation animation = (Animation)_box.getSelectedItem();
+      _start.setEnabled(animation != null);
+      _stop.setEnabled(animation != null && animation.isPlaying());
     }
 
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<ModelConfig> event)
-    {
-        // update the track panels
-        Animation[] anims = _model.getAnimations();
-        if (anims.length == 0) {
-            _apanel.setVisible(false);
-        } else {
-            _apanel.setVisible(true);
-            for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
-                ((TrackPanel)_tpanels.getComponent(ii)).updateAnimations();
-            }
-        }
-
-        // update the editor panel
-        if (!_block.enter()) {
-            return;
-        }
-        try {
-            _epanel.update();
-            _epanel.validate();
-        } finally {
-            _block.leave();
-        }
-    }
-
-    // documentation inherited from interface ModelObserver
-    public boolean animationStarted (Animation animation)
-    {
-        updateTrackControls();
-        return true;
-    }
-
-    // documentation inherited from interface ModelObserver
-    public boolean animationStopped (Animation animation, boolean completed)
-    {
-        updateTrackControls();
-        return true;
-    }
-
-    // documentation inherited from interface ModelObserver
-    public boolean modelCompleted (Model model)
-    {
-        return true;
-    }
-
-    @Override
+    // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
-        String action = event.getActionCommand();
-        if (action.equals("add_track")) {
-            _tpanels.add(new TrackPanel());
-            _removeTrack.setEnabled(true);
-            SwingUtil.refresh(_cpanel);
-
-        } else if (action.equals("remove_track")) {
-            _tpanels.remove(_tpanels.getComponentCount() - 1);
-            _removeTrack.setEnabled(_tpanels.getComponentCount() > 1);
-            SwingUtil.refresh(_cpanel);
-
-        } else if (action.equals("save_snapshot")) {
-            SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-            File file = new File(FileSystemView.getFileSystemView().getDefaultDirectory(),
-                "viewer_" + fmt.format(new Date()) + ".png");
-            try {
-                ImageIO.write(createSnapshot(true), "png", file);
-            } catch (IOException e) {
-                log.warning("Failed to write snapshot.", "file", file, e);
-            }
-        } else {
-            super.actionPerformed(event);
-        }
+      Object source = event.getSource();
+      if (source == _box) {
+        updateControls();
+      } else if (source == _start) {
+        ((Animation)_box.getSelectedItem()).start();
+      } else if (source == _stop) {
+        ((Animation)_box.getSelectedItem()).stop();
+      }
     }
 
-    protected void createFileMenuItems (JMenu file)
-    {
-        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
-    }
+    /** The combo box containing the selectable animations. */
+    protected JComboBox _box;
 
-    protected void createEditMenuItems (JMenu edit)
-    {
-        edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
-        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_R));
-        edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
-    }
+    /** The start and stop buttons. */
+    protected JButton _start, _stop;
+  }
 
-    @Override
-    protected JComponent createCanvasContainer ()
-    {
-        JSplitPane pane = new JSplitPane(
-            JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _cpanel = GroupLayout.makeVStretchBox(5));
-        _canvas.setMinimumSize(new Dimension(1, 1));
-        pane.setResizeWeight(1.0);
-        pane.setOneTouchExpandable(true);
-        return pane;
-    }
+  /** The toggle for automatic reset. */
+  protected JCheckBoxMenuItem _autoReset;
 
-    @Override
-    protected CanvasToolPrefs createEditablePrefs ()
-    {
-        return new ModelToolPrefs(_prefs);
-    }
+  /** The panel that holds the control bits. */
+  protected JPanel _cpanel;
 
-    @Override
-    protected void didInit ()
-    {
-        super.didInit();
+  /** The editor panel we use to edit the model configuration. */
+  protected EditorPanel _epanel;
 
-        // set up the model
-        ModelConfig config = new ModelConfig();
-        config.init(_cfgmgr);
-        config.implementation = (ModelConfig.Derived)_epanel.getObject();
-        config.addListener(this);
-        _scene.add(_model = new Model(this, config));
-        _model.addObserver(this);
+  /** The animation control container. */
+  protected JPanel _apanel;
 
-        // add the initial track panel
-        _apanel.setVisible(_model.getAnimations().length > 0);
-        _tpanels.add(new TrackPanel());
-    }
+  /** The container for the animation track panels. */
+  protected JPanel _tpanels;
 
-    @Override
-    protected void updateView ()
-    {
-        // scaled the elapsed time by the speed
-        long nnow = System.currentTimeMillis();
-        _elapsed += (nnow - _lastUpdate) * _speedSpinner.getFloatValue();
-        _lastUpdate = nnow;
+  /** The remove track button. */
+  protected JButton _removeTrack;
 
-        // remove the integer portion for use as time increment
-        long lelapsed = (long)_elapsed;
-        _elapsed -= lelapsed;
-        _now.value += lelapsed;
+  /** The speed control spinner. */
+  protected DraggableSpinner _speedSpinner;
 
-        updateView(lelapsed / 1000f);
-    }
+  /** The time of the last update. */
+  protected long _lastUpdate = System.currentTimeMillis();
 
-    @Override
-    protected void updateView (float elapsed)
-    {
-        super.updateView(elapsed);
-        if (_autoReset.isSelected() && _model.hasCompleted()) {
-            _model.reset();
-        }
-    }
+  /** Accumulated elapsed time. */
+  protected float _elapsed;
 
-    /**
-     * Updates all of the track controls.
-     */
-    protected void updateTrackControls ()
-    {
-        for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
-            ((TrackPanel)_tpanels.getComponent(ii)).updateControls();
-        }
-    }
+  /** Indicates that we should ignore any changes, because we're the one effecting them. */
+  protected ChangeBlock _block = new ChangeBlock();
 
-    /**
-     * A single panel for running animations.
-     */
-    protected class TrackPanel extends JPanel
-        implements ActionListener
-    {
-        /**
-         * Creates a new animation panel.
-         */
-        public TrackPanel ()
-        {
-            add(_box = new JComboBox(_model.getAnimations()));
-            _box.addActionListener(this);
-            add(new Spacer(1, 1));
-            add(_start = new JButton(_msgs.get("m.start")));
-            _start.addActionListener(this);
-            add(_stop = new JButton(_msgs.get("m.stop")));
-            _stop.addActionListener(this);
+  /** The application preferences. */
+  protected static Preferences _prefs = Preferences.userNodeForPackage(ModelViewer.class);
 
-            // update the controls
-            updateControls();
-        }
-
-        /**
-         * Updates the list of animations.
-         */
-        public void updateAnimations ()
-        {
-            _box.setModel(new DefaultComboBoxModel(_model.getAnimations()));
-            updateControls();
-        }
-
-        /**
-         * Updates the controls in response to a change in the selected animation.
-         */
-        public void updateControls ()
-        {
-            Animation animation = (Animation)_box.getSelectedItem();
-            _start.setEnabled(animation != null);
-            _stop.setEnabled(animation != null && animation.isPlaying());
-        }
-
-        // documentation inherited from interface ActionListener
-        public void actionPerformed (ActionEvent event)
-        {
-            Object source = event.getSource();
-            if (source == _box) {
-                updateControls();
-            } else if (source == _start) {
-                ((Animation)_box.getSelectedItem()).start();
-            } else if (source == _stop) {
-                ((Animation)_box.getSelectedItem()).stop();
-            }
-        }
-
-        /** The combo box containing the selectable animations. */
-        protected JComboBox _box;
-
-        /** The start and stop buttons. */
-        protected JButton _start, _stop;
-    }
-
-    /** The toggle for automatic reset. */
-    protected JCheckBoxMenuItem _autoReset;
-
-    /** The panel that holds the control bits. */
-    protected JPanel _cpanel;
-
-    /** The editor panel we use to edit the model configuration. */
-    protected EditorPanel _epanel;
-
-    /** The animation control container. */
-    protected JPanel _apanel;
-
-    /** The container for the animation track panels. */
-    protected JPanel _tpanels;
-
-    /** The remove track button. */
-    protected JButton _removeTrack;
-
-    /** The speed control spinner. */
-    protected DraggableSpinner _speedSpinner;
-
-    /** The time of the last update. */
-    protected long _lastUpdate = System.currentTimeMillis();
-
-    /** Accumulated elapsed time. */
-    protected float _elapsed;
-
-    /** Indicates that we should ignore any changes, because we're the one effecting them. */
-    protected ChangeBlock _block = new ChangeBlock();
-
-    /** The application preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(ModelViewer.class);
-
-    /** The format for the speed display. */
-    protected static final DecimalFormat SPEED_FORMAT = new DecimalFormat("0.00x");
-    static {
-        SPEED_FORMAT.setMaximumFractionDigits(2);
-    }
+  /** The format for the speed display. */
+  protected static final DecimalFormat SPEED_FORMAT = new DecimalFormat("0.00x");
+  static {
+    SPEED_FORMAT.setMaximumFractionDigits(2);
+  }
 }

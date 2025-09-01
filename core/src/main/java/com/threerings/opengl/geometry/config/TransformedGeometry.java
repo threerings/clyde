@@ -32,15 +32,15 @@ import com.threerings.math.Transform3D;
  */
 public class TransformedGeometry
 {
-    /** The geometry. */
-    public final GeometryConfig geometry;
+  /** The geometry. */
+  public final GeometryConfig geometry;
 
-    /** The transform to apply to the geometry. */
-    public final Transform3D transform;
+  /** The transform to apply to the geometry. */
+  public final Transform3D transform;
 
-    public TransformedGeometry (GeometryConfig geometry, Transform3D transform)
-    {
-        this.geometry = geometry;
-        this.transform = transform;
-    }
+  public TransformedGeometry (GeometryConfig geometry, Transform3D transform)
+  {
+    this.geometry = geometry;
+    this.transform = transform;
+  }
 }

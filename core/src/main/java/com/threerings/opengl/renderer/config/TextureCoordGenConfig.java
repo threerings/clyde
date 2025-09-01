@@ -40,133 +40,133 @@ import com.threerings.util.DeepObject;
  * Contains a texture coordinate generation function.
  */
 @EditorTypes({
-    TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
-    TextureCoordGenConfig.SphereMap.class, TextureCoordGenConfig.NormalMap.class,
-    TextureCoordGenConfig.ReflectionMap.class })
+  TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
+  TextureCoordGenConfig.SphereMap.class, TextureCoordGenConfig.NormalMap.class,
+  TextureCoordGenConfig.ReflectionMap.class })
 public abstract class TextureCoordGenConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * Superclass of the linear texture coordinate generation functions.
-     */
-    public static abstract class Linear extends TextureCoordGenConfig
-    {
-        /** The x plane coefficient. */
-        @Editable(step=0.01, hgroup="p")
-        public float x;
+  /**
+   * Superclass of the linear texture coordinate generation functions.
+   */
+  public static abstract class Linear extends TextureCoordGenConfig
+  {
+    /** The x plane coefficient. */
+    @Editable(step=0.01, hgroup="p")
+    public float x;
 
-        /** The y plane coefficient. */
-        @Editable(step=0.01, hgroup="p")
-        public float y;
+    /** The y plane coefficient. */
+    @Editable(step=0.01, hgroup="p")
+    public float y;
 
-        /** The z plane coefficient. */
-        @Editable(step=0.01, hgroup="p")
-        public float z;
+    /** The z plane coefficient. */
+    @Editable(step=0.01, hgroup="p")
+    public float z;
 
-        /** The w plane coefficient. */
-        @Editable(step=0.01, hgroup="p")
-        public float w;
+    /** The w plane coefficient. */
+    @Editable(step=0.01, hgroup="p")
+    public float w;
 
-        @Override
-        public boolean usesNormals ()
-        {
-            return false;
-        }
-    }
-
-    /**
-     * Generates coordinates using a linear function in object (model) space.
-     */
-    public static class ObjectLinear extends Linear
-    {
-        @Override
-        public int getModeAndPlane (Vector4f plane)
-        {
-            plane.set(x, y, z, w);
-            return GL11.GL_OBJECT_LINEAR;
-        }
-    }
-
-    /**
-     * Generates coordinates using a linear function in eye space.
-     */
-    public static class EyeLinear extends Linear
-    {
-        @Override
-        public int getModeAndPlane (Vector4f plane)
-        {
-            plane.set(x, y, z, w);
-            return GL11.GL_EYE_LINEAR;
-        }
-    }
-
-    /**
-     * Generates coordinates using a sphere map function.
-     */
-    public static class SphereMap extends TextureCoordGenConfig
-    {
-        @Override
-        public int getModeAndPlane (Vector4f plane)
-        {
-            return GL11.GL_SPHERE_MAP;
-        }
-    }
-
-    /**
-     * Generates coordinates using a normal map function.
-     */
-    public static class NormalMap extends TextureCoordGenConfig
-    {
-        @Override
-        public boolean isSupported (boolean fallback)
-        {
-            return GLContext.getCapabilities().GL_ARB_texture_cube_map;
-        }
-
-        @Override
-        public int getModeAndPlane (Vector4f plane)
-        {
-            return ARBTextureCubeMap.GL_NORMAL_MAP_ARB;
-        }
-    }
-
-    /**
-     * Generates coordinates using a reflection map function.
-     */
-    public static class ReflectionMap extends TextureCoordGenConfig
-    {
-        @Override
-        public boolean isSupported (boolean fallback)
-        {
-            return GLContext.getCapabilities().GL_ARB_texture_cube_map;
-        }
-
-        @Override
-        public int getModeAndPlane (Vector4f plane)
-        {
-            return ARBTextureCubeMap.GL_REFLECTION_MAP_ARB;
-        }
-    }
-
-    /**
-     * Checks whether the mode is supported.
-     */
-    public boolean isSupported (boolean fallback)
-    {
-        return true;
-    }
-
-    /**
-     * Returns the OpenGL constant for the mode and populates the supplied object with the plane
-     * coefficients (if applicable).
-     */
-    public abstract int getModeAndPlane (Vector4f plane);
-
-    /**
-     * Checks whether the texture coordinate generation function uses vertex normals.
-     */
+    @Override
     public boolean usesNormals ()
     {
-        return true;
+      return false;
     }
+  }
+
+  /**
+   * Generates coordinates using a linear function in object (model) space.
+   */
+  public static class ObjectLinear extends Linear
+  {
+    @Override
+    public int getModeAndPlane (Vector4f plane)
+    {
+      plane.set(x, y, z, w);
+      return GL11.GL_OBJECT_LINEAR;
+    }
+  }
+
+  /**
+   * Generates coordinates using a linear function in eye space.
+   */
+  public static class EyeLinear extends Linear
+  {
+    @Override
+    public int getModeAndPlane (Vector4f plane)
+    {
+      plane.set(x, y, z, w);
+      return GL11.GL_EYE_LINEAR;
+    }
+  }
+
+  /**
+   * Generates coordinates using a sphere map function.
+   */
+  public static class SphereMap extends TextureCoordGenConfig
+  {
+    @Override
+    public int getModeAndPlane (Vector4f plane)
+    {
+      return GL11.GL_SPHERE_MAP;
+    }
+  }
+
+  /**
+   * Generates coordinates using a normal map function.
+   */
+  public static class NormalMap extends TextureCoordGenConfig
+  {
+    @Override
+    public boolean isSupported (boolean fallback)
+    {
+      return GLContext.getCapabilities().GL_ARB_texture_cube_map;
+    }
+
+    @Override
+    public int getModeAndPlane (Vector4f plane)
+    {
+      return ARBTextureCubeMap.GL_NORMAL_MAP_ARB;
+    }
+  }
+
+  /**
+   * Generates coordinates using a reflection map function.
+   */
+  public static class ReflectionMap extends TextureCoordGenConfig
+  {
+    @Override
+    public boolean isSupported (boolean fallback)
+    {
+      return GLContext.getCapabilities().GL_ARB_texture_cube_map;
+    }
+
+    @Override
+    public int getModeAndPlane (Vector4f plane)
+    {
+      return ARBTextureCubeMap.GL_REFLECTION_MAP_ARB;
+    }
+  }
+
+  /**
+   * Checks whether the mode is supported.
+   */
+  public boolean isSupported (boolean fallback)
+  {
+    return true;
+  }
+
+  /**
+   * Returns the OpenGL constant for the mode and populates the supplied object with the plane
+   * coefficients (if applicable).
+   */
+  public abstract int getModeAndPlane (Vector4f plane);
+
+  /**
+   * Checks whether the texture coordinate generation function uses vertex normals.
+   */
+  public boolean usesNormals ()
+  {
+    return true;
+  }
 }

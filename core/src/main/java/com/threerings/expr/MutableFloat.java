@@ -30,40 +30,40 @@ package com.threerings.expr;
  */
 public class MutableFloat
 {
-    /** The value of this variable. */
-    public float value;
+  /** The value of this variable. */
+  public float value;
 
-    /**
-     * Creates a mutable float with the supplied value.
-     */
-    public MutableFloat (float value)
-    {
-        this.value = value;
-    }
+  /**
+   * Creates a mutable float with the supplied value.
+   */
+  public MutableFloat (float value)
+  {
+    this.value = value;
+  }
 
-    /**
-     * Creates a mutable float with a value of zero.
-     */
-    public MutableFloat ()
-    {
-    }
+  /**
+   * Creates a mutable float with a value of zero.
+   */
+  public MutableFloat ()
+  {
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return Float.floatToIntBits(value);
-    }
+  @Override
+  public int hashCode ()
+  {
+    return Float.floatToIntBits(value);
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof MutableFloat &&
-            Float.floatToIntBits(((MutableFloat)other).value) == Float.floatToIntBits(value);
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof MutableFloat &&
+      Float.floatToIntBits(((MutableFloat)other).value) == Float.floatToIntBits(value);
+  }
 
-    @Override
-    public String toString ()
-    {
-        return String.valueOf(value);
-    }
+  @Override
+  public String toString ()
+  {
+    return String.valueOf(value);
+  }
 }

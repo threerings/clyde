@@ -39,103 +39,103 @@ import com.threerings.math.Vector3f;
  * A vector-valued random variable.
  */
 @EditorTypes(value={
-    VectorVariable.Constant.class,
-    VectorVariable.Uniform.class }, label="distribution")
+  VectorVariable.Constant.class,
+  VectorVariable.Uniform.class }, label="distribution")
 public abstract class VectorVariable extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
+  /**
+   * Always returns the same value.
+   */
+  public static class Constant extends VectorVariable
+  {
+    /** The value to return. */
+    @Editable(step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public Vector3f value = new Vector3f();
+
     /**
-     * Always returns the same value.
+     * Creates a constant variable from the parameters of the other variable.
      */
-    public static class Constant extends VectorVariable
+    public Constant (VectorVariable variable)
     {
-        /** The value to return. */
-        @Editable(step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public Vector3f value = new Vector3f();
-
-        /**
-         * Creates a constant variable from the parameters of the other variable.
-         */
-        public Constant (VectorVariable variable)
-        {
-            variable.getMean(value);
-        }
-
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public Vector3f getValue (Vector3f result)
-        {
-            return result.set(value);
-        }
-
-        @Override
-        public Vector3f getMean (Vector3f result)
-        {
-            return result.set(value);
-        }
+      variable.getMean(value);
     }
 
     /**
-     * Returns a uniformly distributed value.
+     * No-arg constructor for deserialization, etc.
      */
-    public static class Uniform extends VectorVariable
+    public Constant ()
     {
-        /** The minimum extent. */
-        @Editable(hgroup="range", step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public Vector3f minimum = new Vector3f();
+    }
 
-        /** The maximum extent. */
-        @Editable(hgroup="range", step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
-        public Vector3f maximum = new Vector3f();
+    @Override
+    public Vector3f getValue (Vector3f result)
+    {
+      return result.set(value);
+    }
 
-        /**
-         * Creates a uniform variable from the parameters of the other variable.
-         */
-        public Uniform (VectorVariable variable)
-        {
-            maximum.set(variable.getMean(minimum));
-        }
+    @Override
+    public Vector3f getMean (Vector3f result)
+    {
+      return result.set(value);
+    }
+  }
 
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Uniform ()
-        {
-        }
+  /**
+   * Returns a uniformly distributed value.
+   */
+  public static class Uniform extends VectorVariable
+  {
+    /** The minimum extent. */
+    @Editable(hgroup="range", step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public Vector3f minimum = new Vector3f();
 
-        @Override
-        public Vector3f getValue (Vector3f result)
-        {
-            return result.set(
-                FloatMath.random(minimum.x, maximum.x),
-                FloatMath.random(minimum.y, maximum.y),
-                FloatMath.random(minimum.z, maximum.z));
-        }
+    /** The maximum extent. */
+    @Editable(hgroup="range", step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+    public Vector3f maximum = new Vector3f();
 
-        @Override
-        public Vector3f getMean (Vector3f result)
-        {
-            return minimum.add(maximum, result).multLocal(0.5f);
-        }
+    /**
+     * Creates a uniform variable from the parameters of the other variable.
+     */
+    public Uniform (VectorVariable variable)
+    {
+      maximum.set(variable.getMean(minimum));
     }
 
     /**
-     * Computes a sample value according to the variable's distribution.
-     *
-     * @return a reference to the result value, for chaining.
+     * No-arg constructor for deserialization, etc.
      */
-    public abstract Vector3f getValue (Vector3f result);
+    public Uniform ()
+    {
+    }
 
-    /**
-     * Computes the mean value.
-     *
-     * @return a reference to the result value, for chaining.
-     */
-    public abstract Vector3f getMean (Vector3f result);
+    @Override
+    public Vector3f getValue (Vector3f result)
+    {
+      return result.set(
+        FloatMath.random(minimum.x, maximum.x),
+        FloatMath.random(minimum.y, maximum.y),
+        FloatMath.random(minimum.z, maximum.z));
+    }
+
+    @Override
+    public Vector3f getMean (Vector3f result)
+    {
+      return minimum.add(maximum, result).multLocal(0.5f);
+    }
+  }
+
+  /**
+   * Computes a sample value according to the variable's distribution.
+   *
+   * @return a reference to the result value, for chaining.
+   */
+  public abstract Vector3f getValue (Vector3f result);
+
+  /**
+   * Computes the mean value.
+   *
+   * @return a reference to the result value, for chaining.
+   */
+  public abstract Vector3f getMean (Vector3f result);
 }

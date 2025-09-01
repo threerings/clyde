@@ -37,118 +37,118 @@ import com.threerings.tudey.space.SimpleSpaceElement;
  */
 public class ShapeElement extends SimpleSpaceElement
 {
-    /**
-     * Creates a new shape element.
-     */
-    public ShapeElement (ShapeConfig config)
-    {
-        setConfig(config);
+  /**
+   * Creates a new shape element.
+   */
+  public ShapeElement (ShapeConfig config)
+  {
+    setConfig(config);
+  }
+
+  /**
+   * Creates a new shape element.
+   */
+  public ShapeElement (Shape localShape)
+  {
+    setLocalShape(localShape);
+  }
+
+  /**
+   * Sets the configuration of the shape.
+   */
+  public void setConfig (ShapeConfig config)
+  {
+    setLocalShape(config.getShape());
+  }
+
+  /**
+   * Sets the local shape reference.
+   */
+  public void setLocalShape (Shape shape)
+  {
+    _localShape = shape;
+    updateBounds();
+  }
+
+  /**
+   * Returns a reference to the element's local shape.
+   */
+  public Shape getLocalShape ()
+  {
+    return _localShape;
+  }
+
+  /**
+   * Returns a reference to the element's transformed shape.
+   */
+  public Shape getWorldShape ()
+  {
+    return _worldShape;
+  }
+
+  @Override
+  public void updateBounds ()
+  {
+    _worldShape = _localShape.transform(_transform, _worldShape);
+    Rect sbounds = _worldShape.getBounds();
+    if (!_bounds.equals(sbounds)) {
+      boundsWillChange();
+      _bounds.set(sbounds);
+      boundsDidChange();
     }
+  }
 
-    /**
-     * Creates a new shape element.
-     */
-    public ShapeElement (Shape localShape)
-    {
-        setLocalShape(localShape);
-    }
+  @Override
+  public boolean getIntersection (Ray2D ray, Vector2f result)
+  {
+    return _worldShape.getIntersection(ray, result);
+  }
 
-    /**
-     * Sets the configuration of the shape.
-     */
-    public void setConfig (ShapeConfig config)
-    {
-        setLocalShape(config.getShape());
-    }
+  @Override
+  public void getNearestPoint (Vector2f point, Vector2f result)
+  {
+    _worldShape.getNearestPoint(point, result);
+  }
 
-    /**
-     * Sets the local shape reference.
-     */
-    public void setLocalShape (Shape shape)
-    {
-        _localShape = shape;
-        updateBounds();
-    }
+  @Override
+  public boolean intersects (Point point)
+  {
+    return _worldShape.intersects(point);
+  }
 
-    /**
-     * Returns a reference to the element's local shape.
-     */
-    public Shape getLocalShape ()
-    {
-        return _localShape;
-    }
+  @Override
+  public boolean intersects (Segment segment)
+  {
+    return _worldShape.intersects(segment);
+  }
 
-    /**
-     * Returns a reference to the element's transformed shape.
-     */
-    public Shape getWorldShape ()
-    {
-        return _worldShape;
-    }
+  @Override
+  public boolean intersects (Circle circle)
+  {
+    return _worldShape.intersects(circle);
+  }
 
-    @Override
-    public void updateBounds ()
-    {
-        _worldShape = _localShape.transform(_transform, _worldShape);
-        Rect sbounds = _worldShape.getBounds();
-        if (!_bounds.equals(sbounds)) {
-            boundsWillChange();
-            _bounds.set(sbounds);
-            boundsDidChange();
-        }
-    }
+  @Override
+  public boolean intersects (Capsule capsule)
+  {
+    return _worldShape.intersects(capsule);
+  }
 
-    @Override
-    public boolean getIntersection (Ray2D ray, Vector2f result)
-    {
-        return _worldShape.getIntersection(ray, result);
-    }
+  @Override
+  public boolean intersects (Polygon polygon)
+  {
+    return _worldShape.intersects(polygon);
+  }
 
-    @Override
-    public void getNearestPoint (Vector2f point, Vector2f result)
-    {
-        _worldShape.getNearestPoint(point, result);
-    }
+  @Override
+  public boolean intersects (Compound compound)
+  {
+    return _worldShape.intersects(compound);
+  }
 
-    @Override
-    public boolean intersects (Point point)
-    {
-        return _worldShape.intersects(point);
-    }
+  /** The untransformed shape. */
+  protected Shape _localShape;
 
-    @Override
-    public boolean intersects (Segment segment)
-    {
-        return _worldShape.intersects(segment);
-    }
-
-    @Override
-    public boolean intersects (Circle circle)
-    {
-        return _worldShape.intersects(circle);
-    }
-
-    @Override
-    public boolean intersects (Capsule capsule)
-    {
-        return _worldShape.intersects(capsule);
-    }
-
-    @Override
-    public boolean intersects (Polygon polygon)
-    {
-        return _worldShape.intersects(polygon);
-    }
-
-    @Override
-    public boolean intersects (Compound compound)
-    {
-        return _worldShape.intersects(compound);
-    }
-
-    /** The untransformed shape. */
-    protected Shape _localShape;
-
-    /** The transformed shape. */
-    protected Shape _worldShape;
+  /** The transformed shape. */
+  protected Shape _worldShape;
 }

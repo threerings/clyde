@@ -37,53 +37,53 @@ import com.threerings.util.Shallow;
  */
 public class ArgumentPathProperty extends PathProperty
 {
-    /**
-     * Creates a new map property.
-     *
-     * @param cfgmgr the config manager to use when resolving references.
-     * @param name the name of the property.
-     * @param reference the reference object from which we derive our property chains and default
-     * values.
-     * @param path the path.
-     * @throws InvalidPathsException if the path is invalid.
-     */
-    public ArgumentPathProperty (ConfigManager cfgmgr, String name, Object reference, String path)
-        throws InvalidPathsException
-    {
-        super(cfgmgr, name, reference, path);
-        _reference = reference;
-    }
+  /**
+   * Creates a new map property.
+   *
+   * @param cfgmgr the config manager to use when resolving references.
+   * @param name the name of the property.
+   * @param reference the reference object from which we derive our property chains and default
+   * values.
+   * @param path the path.
+   * @throws InvalidPathsException if the path is invalid.
+   */
+  public ArgumentPathProperty (ConfigManager cfgmgr, String name, Object reference, String path)
+    throws InvalidPathsException
+  {
+    super(cfgmgr, name, reference, path);
+    _reference = reference;
+  }
 
-    @Override
-    public Object getMemberObject (Object object)
-    {
-        return super.getMemberObject(_reference);
-    }
+  @Override
+  public Object getMemberObject (Object object)
+  {
+    return super.getMemberObject(_reference);
+  }
 
-    @Override
-    public Object get (Object object)
-    {
-        @SuppressWarnings("unchecked") Map<Object, Object> map =
-            (Map<Object, Object>)object;
-        Object value = map.get(_name);
-        // If we don't have a value for this key, or it's invalid, use the default
-        boolean noValue = (value == null) && !map.containsKey(_name);
-        if (noValue || !isLegalValue(value)) {
-            value = DeepUtil.copy(super.get(_reference));
-            map.put(_name, value);
-        }
-        return value;
+  @Override
+  public Object get (Object object)
+  {
+    @SuppressWarnings("unchecked") Map<Object, Object> map =
+      (Map<Object, Object>)object;
+    Object value = map.get(_name);
+    // If we don't have a value for this key, or it's invalid, use the default
+    boolean noValue = (value == null) && !map.containsKey(_name);
+    if (noValue || !isLegalValue(value)) {
+      value = DeepUtil.copy(super.get(_reference));
+      map.put(_name, value);
     }
+    return value;
+  }
 
-    @Override
-    public void set (Object object, Object value)
-    {
-        @SuppressWarnings("unchecked") Map<Object, Object> map =
-            (Map<Object, Object>)object;
-        map.put(_name, value);
-    }
+  @Override
+  public void set (Object object, Object value)
+  {
+    @SuppressWarnings("unchecked") Map<Object, Object> map =
+      (Map<Object, Object>)object;
+    map.put(_name, value);
+  }
 
-    /** The reference object from which we obtain the default values. */
-    @Shallow
-    protected Object _reference;
+  /** The reference object from which we obtain the default values. */
+  @Shallow
+  protected Object _reference;
 }

@@ -46,76 +46,76 @@ import com.threerings.opengl.util.GlContext;
  */
 public class ComponentBillboardConfig extends ModelConfig.Implementation
 {
-    /** The message bundle to use for translations (or the empty string for the default). */
-    @Editable(hgroup="b")
-    public String bundle = "";
+  /** The message bundle to use for translations (or the empty string for the default). */
+  @Editable(hgroup="b")
+  public String bundle = "";
 
-    /** A uniform scale to apply. */
-    @Editable(min=0.0, step=0.001, hgroup="b")
-    public float scale = 0.01f;
+  /** A uniform scale to apply. */
+  @Editable(min=0.0, step=0.001, hgroup="b")
+  public float scale = 0.01f;
 
-    /** The root component. */
-    @Editable
-    public ComponentConfig root = new ComponentConfig.Spacer();
+  /** The root component. */
+  @Editable
+  public ComponentConfig root = new ComponentConfig.Spacer();
 
-    /** Whether or not rotation is enabled. */
-    @Editable
-    public boolean rotationEnabled = true;
+  /** Whether or not rotation is enabled. */
+  @Editable
+  public boolean rotationEnabled = true;
 
-    /** The x rotation mode. */
-    @Editable(hgroup="r")
-    public BillboardRotationX rotationX = BillboardRotationX.ALIGN_TO_VIEW;
+  /** The x rotation mode. */
+  @Editable(hgroup="r")
+  public BillboardRotationX rotationX = BillboardRotationX.ALIGN_TO_VIEW;
 
-    /** The y rotation mode. */
-    @Editable(hgroup="r")
-    public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
+  /** The y rotation mode. */
+  @Editable(hgroup="r")
+  public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
 
-    /** The queue into which we render. */
-    @Editable(nullable=true, hgroup="q")
-    @Reference(RenderQueueConfig.class)
-    public String queue = RenderQueue.TRANSPARENT;
+  /** The queue into which we render. */
+  @Editable(nullable=true, hgroup="q")
+  @Reference(RenderQueueConfig.class)
+  public String queue = RenderQueue.TRANSPARENT;
 
-    /** The priority at which the batch is enqueued. */
-    @Editable(hgroup="q")
-    public int priority;
+  /** The priority at which the batch is enqueued. */
+  @Editable(hgroup="q")
+  public int priority;
 
-    /** The alpha state to use in this pass. */
-    @Editable
-    public AlphaStateConfig alphaState = new AlphaStateConfig();
+  /** The alpha state to use in this pass. */
+  @Editable
+  public AlphaStateConfig alphaState = new AlphaStateConfig();
 
-    /** The depth state to use. */
-    @Editable
-    public DepthStateConfig depthState = new DepthStateConfig();
+  /** The depth state to use. */
+  @Editable
+  public DepthStateConfig depthState = new DepthStateConfig();
 
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
+  /** The influences allowed to affect this model. */
+  @Editable
+  public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
 
-    /**
-     * Default constructor.
-     */
-    public ComponentBillboardConfig ()
-    {
-        // set up the default states
-        alphaState.destBlendFactor = AlphaStateConfig.DestBlendFactor.ONE_MINUS_SRC_ALPHA;
-        depthState.mask = false;
+  /**
+   * Default constructor.
+   */
+  public ComponentBillboardConfig ()
+  {
+    // set up the default states
+    alphaState.destBlendFactor = AlphaStateConfig.DestBlendFactor.ONE_MINUS_SRC_ALPHA;
+    depthState.mask = false;
+  }
+
+  @Override
+  public void preload (GlContext ctx)
+  {
+    // Do nothing
+  }
+
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof ComponentBillboard) {
+      ((ComponentBillboard)impl).setConfig(ctx, this);
+    } else {
+      impl = new ComponentBillboard(ctx, scope, this);
     }
-
-    @Override
-    public void preload (GlContext ctx)
-    {
-        // Do nothing
-    }
-
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof ComponentBillboard) {
-            ((ComponentBillboard)impl).setConfig(ctx, this);
-        } else {
-            impl = new ComponentBillboard(ctx, scope, this);
-        }
-        return impl;
-    }
+    return impl;
+  }
 }

@@ -36,115 +36,115 @@ import com.threerings.opengl.gui.icon.Icon;
  */
 public abstract class AbstractButton extends Label
 {
-    /**
-     * Creates a button with the specified icon, label, action, and argument.
-     */
-    public AbstractButton (GlContext ctx, Icon icon, String text, String action, Object argument)
-    {
-        super(ctx, icon, text);
-        _action = action;
-        _argument = argument;
-    }
+  /**
+   * Creates a button with the specified icon, label, action, and argument.
+   */
+  public AbstractButton (GlContext ctx, Icon icon, String text, String action, Object argument)
+  {
+    super(ctx, icon, text);
+    _action = action;
+    _argument = argument;
+  }
 
-    /**
-     * Configures the action to be generated when this button is clicked.
-     */
-    public void setAction (String action)
-    {
-        _action = action;
-    }
+  /**
+   * Configures the action to be generated when this button is clicked.
+   */
+  public void setAction (String action)
+  {
+    _action = action;
+  }
 
-    /**
-     * Returns the action generated when this button is clicked.
-     */
-    public String getAction ()
-    {
-        return _action;
-    }
+  /**
+   * Returns the action generated when this button is clicked.
+   */
+  public String getAction ()
+  {
+    return _action;
+  }
 
-    /**
-     * Set the argument dispatched by this button.
-     */
-    public void setArgument (Object argument)
-    {
-        _argument = argument;
-    }
+  /**
+   * Set the argument dispatched by this button.
+   */
+  public void setArgument (Object argument)
+  {
+    _argument = argument;
+  }
 
-    /**
-     * Get the argument dispatched by this button.
-     */
-    public Object getArgument ()
-    {
-        return _argument;
-    }
+  /**
+   * Get the argument dispatched by this button.
+   */
+  public Object getArgument ()
+  {
+    return _argument;
+  }
 
-    // documentation inherited
-    public boolean dispatchEvent (Event event)
-    {
-        if (isEnabled() && event instanceof MouseEvent) {
-            int ostate = getState();
-            MouseEvent mev = (MouseEvent)event;
-            switch (mev.getType()) {
-            default:
-                return super.dispatchEvent(event);
-
-            case MouseEvent.MOUSE_DRAGGED:
-                // disarm if the mouse is dragged beyond the bounds (this is not an "exit": that
-                // happens when the mouse button is released
-                int mx = mev.getX(), my = mev.getY();
-                int ax = getAbsoluteX(), ay = getAbsoluteY();
-                _armed = _pressed &&
-                    ((mx >= ax) && (my >= ay) && (mx < ax + _width) && (my < ay + _height));
-                break;
-
-            case MouseEvent.MOUSE_PRESSED:
-                // this also disarms the button currently armed and another mousebutton is pressed
-                _pressed = _armed = (mev.getButton() == MouseEvent.BUTTON1);
-                break;
-
-            case MouseEvent.MOUSE_RELEASED:
-                if (_armed) {
-                    fireAction(mev.getWhen(), mev.getModifiers());
-                }
-                _pressed = _armed = false;
-                break;
-            }
-
-            // update our background image if necessary
-            int state = getState();
-            if (state != ostate) {
-                stateDidChange();
-            }
-
-            // dispatch this event to our listeners
-            if (_listeners != null) {
-                for (int ii = 0, ll = _listeners.size(); ii < ll; ii++) {
-                    event.dispatch(_listeners.get(ii));
-                }
-            }
-
-            return true;
-        }
-
+  // documentation inherited
+  public boolean dispatchEvent (Event event)
+  {
+    if (isEnabled() && event instanceof MouseEvent) {
+      int ostate = getState();
+      MouseEvent mev = (MouseEvent)event;
+      switch (mev.getType()) {
+      default:
         return super.dispatchEvent(event);
+
+      case MouseEvent.MOUSE_DRAGGED:
+        // disarm if the mouse is dragged beyond the bounds (this is not an "exit": that
+        // happens when the mouse button is released
+        int mx = mev.getX(), my = mev.getY();
+        int ax = getAbsoluteX(), ay = getAbsoluteY();
+        _armed = _pressed &&
+          ((mx >= ax) && (my >= ay) && (mx < ax + _width) && (my < ay + _height));
+        break;
+
+      case MouseEvent.MOUSE_PRESSED:
+        // this also disarms the button currently armed and another mousebutton is pressed
+        _pressed = _armed = (mev.getButton() == MouseEvent.BUTTON1);
+        break;
+
+      case MouseEvent.MOUSE_RELEASED:
+        if (_armed) {
+          fireAction(mev.getWhen(), mev.getModifiers());
+        }
+        _pressed = _armed = false;
+        break;
+      }
+
+      // update our background image if necessary
+      int state = getState();
+      if (state != ostate) {
+        stateDidChange();
+      }
+
+      // dispatch this event to our listeners
+      if (_listeners != null) {
+        for (int ii = 0, ll = _listeners.size(); ii < ll; ii++) {
+          event.dispatch(_listeners.get(ii));
+        }
+      }
+
+      return true;
     }
 
-    /**
-     * Called when the button is "clicked" which may due to the mouse being
-     * pressed and released while over the button or due to keyboard
-     * manipulation while the button has focus.
-     */
-    protected abstract void fireAction (long when, int modifiers);
+    return super.dispatchEvent(event);
+  }
 
-    /** The action we'll fire. */
-    protected String _action;
+  /**
+   * Called when the button is "clicked" which may due to the mouse being
+   * pressed and released while over the button or due to keyboard
+   * manipulation while the button has focus.
+   */
+  protected abstract void fireAction (long when, int modifiers);
 
-    /** The argument for the action. */
-    protected Object _argument;
+  /** The action we'll fire. */
+  protected String _action;
 
-    /** Has a pressed action been started on this button? */
-    protected boolean _pressed;
+  /** The argument for the action. */
+  protected Object _argument;
 
-    /** Is this button actually armed? */
-    protected boolean _armed;
+  /** Has a pressed action been started on this button? */
+  protected boolean _pressed;
+
+  /** Is this button actually armed? */
+  protected boolean _armed;
 }

@@ -47,50 +47,50 @@ import com.threerings.editor.swing.PropertyEditor;
  * Editor for enumerated type properties.
  */
 public class EnumEditor extends PropertyEditor
-    implements ActionListener
+  implements ActionListener
 {
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        Object value = getValues().get(_box.getSelectedIndex());
-        if (!Objects.equal(_property.get(_object), value)) {
-            _property.set(_object, value);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    Object value = getValues().get(_box.getSelectedIndex());
+    if (!Objects.equal(_property.get(_object), value)) {
+      _property.set(_object, value);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _box.setSelectedIndex(getValues().indexOf(_property.get(_object)));
-    }
+  @Override
+  public void update ()
+  {
+    _box.setSelectedIndex(getValues().indexOf(_property.get(_object)));
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        add(new JLabel(getPropertyLabel() + ":"));
-        final MessageBundle msgs =
-            _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
-        Object[] labels = Lists.transform(getValues(), new Function<Enum<?>, String>() {
-            public String apply (Enum<?> value) {
-                return getLabel(value, msgs);
-            }
-        }).toArray();
-        add(_box = new JComboBox(labels));
-        _box.addActionListener(this);
-    }
+  @Override
+  protected void didInit ()
+  {
+    add(new JLabel(getPropertyLabel() + ":"));
+    final MessageBundle msgs =
+      _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
+    Object[] labels = Lists.transform(getValues(), new Function<Enum<?>, String>() {
+      public String apply (Enum<?> value) {
+        return getLabel(value, msgs);
+      }
+    }).toArray();
+    add(_box = new JComboBox(labels));
+    _box.addActionListener(this);
+  }
 
-    /**
-     * Get the valid values for this enum property, which may or may not include null.
-     */
-    protected List<Enum<?>> getValues ()
-    {
-        Enum<?>[] constants = (Enum<?>[])_property.getType().getEnumConstants();
-        return _property.nullable()
-            ? Lists.asList(null, constants)
-            : Arrays.asList(constants);
-    }
+  /**
+   * Get the valid values for this enum property, which may or may not include null.
+   */
+  protected List<Enum<?>> getValues ()
+  {
+    Enum<?>[] constants = (Enum<?>[])_property.getType().getEnumConstants();
+    return _property.nullable()
+      ? Lists.asList(null, constants)
+      : Arrays.asList(constants);
+  }
 
-    /** The combo box. */
-    protected JComboBox _box;
+  /** The combo box. */
+  protected JComboBox _box;
 }

@@ -58,178 +58,178 @@ import com.threerings.opengl.util.GlContext;
  * The configuration of an influence.
  */
 @EditorTypes({
-    SceneInfluenceConfig.AmbientLight.class, SceneInfluenceConfig.Fog.class,
-    SceneInfluenceConfig.Light.class, SceneInfluenceConfig.Projector.class,
-    SceneInfluenceConfig.Definer.class })
+  SceneInfluenceConfig.AmbientLight.class, SceneInfluenceConfig.Fog.class,
+  SceneInfluenceConfig.Light.class, SceneInfluenceConfig.Projector.class,
+  SceneInfluenceConfig.Definer.class })
 public abstract class SceneInfluenceConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * Represents the influence of ambient light.
-     */
-    public static class AmbientLight extends SceneInfluenceConfig
+  /**
+   * Represents the influence of ambient light.
+   */
+  public static class AmbientLight extends SceneInfluenceConfig
+  {
+    /** The ambient light color. */
+    @Editable
+    public Color4f color = new Color4f(0.2f, 0.2f, 0.2f, 1f);
+
+    @Override
+    protected SceneInfluence createInfluence (
+      GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
-        /** The ambient light color. */
-        @Editable
-        public Color4f color = new Color4f(0.2f, 0.2f, 0.2f, 1f);
-
-        @Override
-        protected SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
-        {
-            return ScopeUtil.resolve(scope, "lightingEnabled", true) ?
-                new AmbientLightInfluence(color) : createNoopInfluence();
-        }
+      return ScopeUtil.resolve(scope, "lightingEnabled", true) ?
+        new AmbientLightInfluence(color) : createNoopInfluence();
     }
+  }
 
-    /**
-     * Represents the influence of fog.
-     */
-    public static class Fog extends SceneInfluenceConfig
+  /**
+   * Represents the influence of fog.
+   */
+  public static class Fog extends SceneInfluenceConfig
+  {
+    /** The fog state. */
+    @Editable
+    public FogStateConfig state = new FogStateConfig.Linear();
+
+    @Override
+    protected SceneInfluence createInfluence (
+      GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
-        /** The fog state. */
-        @Editable
-        public FogStateConfig state = new FogStateConfig.Linear();
-
-        @Override
-        protected SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
-        {
-            return ScopeUtil.resolve(scope, "fogEnabled", true) ?
-                new FogInfluence(state.getState()) : createNoopInfluence();
-        }
+      return ScopeUtil.resolve(scope, "fogEnabled", true) ?
+        new FogInfluence(state.getState()) : createNoopInfluence();
     }
+  }
 
-    /**
-     * Represents the influence of a light.
-     */
-    public static class Light extends SceneInfluenceConfig
+  /**
+   * Represents the influence of a light.
+   */
+  public static class Light extends SceneInfluenceConfig
+  {
+    /** The light config. */
+    @Editable
+    public LightConfig light = new LightConfig.Directional();
+
+    /** The shadow config, if any. */
+    @Editable(nullable=true)
+    public ShadowConfig shadow;
+
+    @Override
+    protected SceneInfluence createInfluence (
+      GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
-        /** The light config. */
-        @Editable
-        public LightConfig light = new LightConfig.Directional();
-
-        /** The shadow config, if any. */
-        @Editable(nullable=true)
-        public ShadowConfig shadow;
-
-        @Override
-        protected SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
-        {
-            if (!ScopeUtil.resolve(scope, "lightingEnabled", true)) {
-                return createNoopInfluence();
-            }
-            com.threerings.opengl.renderer.Light viewLight =
-                light.createLight(ctx, scope, false, updaters);
-            return (shadow == null) ? new LightInfluence(viewLight) :
-                shadow.createInfluence(ctx, scope, light, viewLight, updaters);
-        }
+      if (!ScopeUtil.resolve(scope, "lightingEnabled", true)) {
+        return createNoopInfluence();
+      }
+      com.threerings.opengl.renderer.Light viewLight =
+        light.createLight(ctx, scope, false, updaters);
+      return (shadow == null) ? new LightInfluence(viewLight) :
+        shadow.createInfluence(ctx, scope, light, viewLight, updaters);
     }
+  }
 
-    /**
-     * Represents a projection influence.
-     */
-    public static class Projector extends SceneInfluenceConfig
+  /**
+   * Represents a projection influence.
+   */
+  public static class Projector extends SceneInfluenceConfig
+  {
+    /** The projection config. */
+    @Editable
+    public ProjectionConfig projection = new ProjectionConfig.Perspective();
+
+    @Override
+    protected SceneInfluence createInfluence (
+      GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
-        /** The projection config. */
-        @Editable
-        public ProjectionConfig projection = new ProjectionConfig.Perspective();
-
-        @Override
-        protected SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
-        {
-            return new ProjectorInfluence(projection.createProjection(ctx, scope, updaters));
-        }
+      return new ProjectorInfluence(projection.createProjection(ctx, scope, updaters));
     }
+  }
 
-    /**
-     * Represents a variable definition influence.
-     */
-    public static class Definer extends SceneInfluenceConfig
-    {
-        /** The definition configs. */
-        @Editable
-        public ExpressionDefinition[] definitions = new ExpressionDefinition[0];
+  /**
+   * Represents a variable definition influence.
+   */
+  public static class Definer extends SceneInfluenceConfig
+  {
+    /** The definition configs. */
+    @Editable
+    public ExpressionDefinition[] definitions = new ExpressionDefinition[0];
 
-        @Override
-        public void invalidate ()
-        {
-            super.invalidate();
-            for (ExpressionDefinition definition : definitions) {
-                definition.invalidate();
-            }
-        }
-
-        @Override
-        protected SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
-        {
-            List<Tuple<String, Object>> list = Lists.newArrayList();
-            for (ExpressionDefinition definition : definitions) {
-                list.add(Tuple.newTuple(definition.name, definition.getValue(scope, updaters)));
-            }
-            @SuppressWarnings("unchecked") Tuple<String, Object>[] array =
-                (Tuple<String, Object>[])new Tuple<?, ?>[list.size()];
-            return new DefinerInfluence(list.toArray(array));
-        }
-    }
-
-    /** The static expression bindings for this influence. */
-    @Editable(weight=1)
-    public ExpressionBinding[] staticBindings = ExpressionBinding.EMPTY_ARRAY;
-
-    /** The dynamic expression bindings for this influence. */
-    @Editable(weight=1)
-    public ExpressionBinding[] dynamicBindings = ExpressionBinding.EMPTY_ARRAY;
-
-    /**
-     * Creates the scene influence corresponding to this config.
-     *
-     * @param updaters a list to populate with required updaters.
-     */
-    public SceneInfluence createSceneInfluence (
-        GlContext ctx, Scope scope, ArrayList<Updater> updaters)
-    {
-        // create the basic influence
-        SceneInfluence influence = createInfluence(ctx, scope, updaters);
-
-        // update the static bindings and add the dynamic updaters to the list
-        for (ExpressionBinding binding : staticBindings) {
-            binding.createUpdater(ctx.getConfigManager(), scope, influence).update();
-        }
-        for (ExpressionBinding binding : dynamicBindings) {
-            updaters.add(binding.createUpdater(ctx.getConfigManager(), scope, influence));
-        }
-
-        return influence;
-    }
-
-    /**
-     * Invalidates any cached data.
-     */
+    @Override
     public void invalidate ()
     {
-        for (ExpressionBinding binding : staticBindings) {
-            binding.invalidate();
-        }
-        for (ExpressionBinding binding : dynamicBindings) {
-            binding.invalidate();
-        }
+      super.invalidate();
+      for (ExpressionDefinition definition : definitions) {
+        definition.invalidate();
+      }
     }
 
-    /**
-     * Creates the actual influence object.
-     */
-    protected abstract SceneInfluence createInfluence (
-        GlContext ctx, Scope scope, ArrayList<Updater> updaters);
-
-    /**
-     * Creates an influence that does nothing.
-     */
-    protected static SceneInfluence createNoopInfluence ()
+    @Override
+    protected SceneInfluence createInfluence (
+      GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
-        return new SceneInfluence() { };
+      List<Tuple<String, Object>> list = Lists.newArrayList();
+      for (ExpressionDefinition definition : definitions) {
+        list.add(Tuple.newTuple(definition.name, definition.getValue(scope, updaters)));
+      }
+      @SuppressWarnings("unchecked") Tuple<String, Object>[] array =
+        (Tuple<String, Object>[])new Tuple<?, ?>[list.size()];
+      return new DefinerInfluence(list.toArray(array));
     }
+  }
+
+  /** The static expression bindings for this influence. */
+  @Editable(weight=1)
+  public ExpressionBinding[] staticBindings = ExpressionBinding.EMPTY_ARRAY;
+
+  /** The dynamic expression bindings for this influence. */
+  @Editable(weight=1)
+  public ExpressionBinding[] dynamicBindings = ExpressionBinding.EMPTY_ARRAY;
+
+  /**
+   * Creates the scene influence corresponding to this config.
+   *
+   * @param updaters a list to populate with required updaters.
+   */
+  public SceneInfluence createSceneInfluence (
+    GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+  {
+    // create the basic influence
+    SceneInfluence influence = createInfluence(ctx, scope, updaters);
+
+    // update the static bindings and add the dynamic updaters to the list
+    for (ExpressionBinding binding : staticBindings) {
+      binding.createUpdater(ctx.getConfigManager(), scope, influence).update();
+    }
+    for (ExpressionBinding binding : dynamicBindings) {
+      updaters.add(binding.createUpdater(ctx.getConfigManager(), scope, influence));
+    }
+
+    return influence;
+  }
+
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    for (ExpressionBinding binding : staticBindings) {
+      binding.invalidate();
+    }
+    for (ExpressionBinding binding : dynamicBindings) {
+      binding.invalidate();
+    }
+  }
+
+  /**
+   * Creates the actual influence object.
+   */
+  protected abstract SceneInfluence createInfluence (
+    GlContext ctx, Scope scope, ArrayList<Updater> updaters);
+
+  /**
+   * Creates an influence that does nothing.
+   */
+  protected static SceneInfluence createNoopInfluence ()
+  {
+    return new SceneInfluence() { };
+  }
 }

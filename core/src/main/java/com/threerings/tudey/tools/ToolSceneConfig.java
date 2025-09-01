@@ -34,15 +34,15 @@ import com.threerings.tudey.data.TudeySceneConfig;
  */
 public class ToolSceneConfig extends TudeySceneConfig
 {
-    @Override
-    public PlaceController createController ()
-    {
-        return new ToolSceneController();
-    }
+  @Override
+  public PlaceController createController ()
+  {
+    return new ToolSceneController();
+  }
 
-    @Override
-    public String getManagerClassName ()
-    {
-        return "com.threerings.tudey.tools.ToolSceneManager";
-    }
+  @Override
+  public String getManagerClassName ()
+  {
+    return "com.threerings.tudey.tools.ToolSceneManager";
+  }
 }

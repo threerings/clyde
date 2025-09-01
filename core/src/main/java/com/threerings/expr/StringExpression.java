@@ -37,132 +37,132 @@ import com.threerings.expr.util.ScopeUtil;
  * A string-valued expression.
  */
 @EditorTypes({
-    StringExpression.Parsed.class, StringExpression.Constant.class,
-    StringExpression.Reference.class })
+  StringExpression.Parsed.class, StringExpression.Constant.class,
+  StringExpression.Reference.class })
 public abstract class StringExpression extends ObjectExpression<String>
 {
-    /**
-     * An expression entered as a string to be parsed.
-     */
-    public static class Parsed extends StringExpression
+  /**
+   * An expression entered as a string to be parsed.
+   */
+  public static class Parsed extends StringExpression
+  {
+    /** The expression to parse. */
+    @Editable
+    public String expression = "";
+
+    @Override
+    public Evaluator<String> createEvaluator (Scope scope)
     {
-        /** The expression to parse. */
-        @Editable
-        public String expression = "";
-
-        @Override
-        public Evaluator<String> createEvaluator (Scope scope)
-        {
-            if (_expr == null) {
-                try {
-                    _expr = parseExpression(expression);
-                } catch (Exception e) {
-                    // don't worry about it; it's probably being entered
-                }
-                if (_expr == null) {
-                    _expr = new Constant("");
-                }
-            }
-            return _expr.createEvaluator(scope);
+      if (_expr == null) {
+        try {
+          _expr = parseExpression(expression);
+        } catch (Exception e) {
+          // don't worry about it; it's probably being entered
         }
-
-        @Override
-        public void invalidate ()
-        {
-            _expr = null;
+        if (_expr == null) {
+          _expr = new Constant("");
         }
+      }
+      return _expr.createEvaluator(scope);
+    }
 
-        /** The cached, parsed expression. */
-        @DeepOmit
-        protected transient StringExpression _expr;
+    @Override
+    public void invalidate ()
+    {
+      _expr = null;
+    }
+
+    /** The cached, parsed expression. */
+    @DeepOmit
+    protected transient StringExpression _expr;
+  }
+
+  /**
+   * A constant expression.
+   */
+  public static class Constant extends StringExpression
+  {
+    /** The value of the constant. */
+    @Editable
+    public String value = "";
+
+    /**
+     * Creates a new constant expression with the supplied value.
+     */
+    public Constant (String value)
+    {
+      this.value = value;
     }
 
     /**
-     * A constant expression.
+     * Default constructor.
      */
-    public static class Constant extends StringExpression
+    public Constant ()
     {
-        /** The value of the constant. */
-        @Editable
-        public String value = "";
-
-        /**
-         * Creates a new constant expression with the supplied value.
-         */
-        public Constant (String value)
-        {
-            this.value = value;
-        }
-
-        /**
-         * Default constructor.
-         */
-        public Constant ()
-        {
-        }
-
-        @Override
-        public Evaluator<String> createEvaluator (Scope scope)
-        {
-            return new Evaluator<String>() {
-                public String evaluate () {
-                    return value;
-                }
-            };
-        }
     }
 
-    /**
-     * A reference expression.
-     */
-    public static class Reference extends StringExpression
+    @Override
+    public Evaluator<String> createEvaluator (Scope scope)
     {
-        /** The name of the variable. */
-        @Editable
-        public String name = "";
-
-        /** The default value of the variable. */
-        @Editable
-        public String defvalue = "";
-
-        @Override
-        public Evaluator<String> createEvaluator (Scope scope)
-        {
-            // first look for a builder reference, then for a variable
-            final StringBuilder reference = ScopeUtil.resolve(
-                scope, name, null, StringBuilder.class);
-            if (reference != null) {
-                return new Evaluator<String>() {
-                    public String evaluate () {
-                        return reference.toString();
-                    }
-                };
-            }
-            final Variable variable = ScopeUtil.resolve(
-                scope, name, Variable.newInstance(defvalue));
-            return new Evaluator<String>() {
-                public String evaluate () {
-                    return (String)variable.get();
-                }
-            };
+      return new Evaluator<String>() {
+        public String evaluate () {
+          return value;
         }
+      };
     }
+  }
 
-    /**
-     * Parses the supplied string expression.
-     */
-    protected static StringExpression parseExpression (String expression)
-        throws Exception
+  /**
+   * A reference expression.
+   */
+  public static class Reference extends StringExpression
+  {
+    /** The name of the variable. */
+    @Editable
+    public String name = "";
+
+    /** The default value of the variable. */
+    @Editable
+    public String defvalue = "";
+
+    @Override
+    public Evaluator<String> createEvaluator (Scope scope)
     {
-        return (StringExpression)new ExpressionParser<Object>(new StringReader(expression)) {
-            @Override protected Object handleString (String value) {
-                return new Constant(value);
-            }
-            @Override protected Object handleIdentifier (String name) {
-                Reference ref = new Reference();
-                ref.name = name;
-                return ref;
-            }
-        }.parse();
+      // first look for a builder reference, then for a variable
+      final StringBuilder reference = ScopeUtil.resolve(
+        scope, name, null, StringBuilder.class);
+      if (reference != null) {
+        return new Evaluator<String>() {
+          public String evaluate () {
+            return reference.toString();
+          }
+        };
+      }
+      final Variable variable = ScopeUtil.resolve(
+        scope, name, Variable.newInstance(defvalue));
+      return new Evaluator<String>() {
+        public String evaluate () {
+          return (String)variable.get();
+        }
+      };
     }
+  }
+
+  /**
+   * Parses the supplied string expression.
+   */
+  protected static StringExpression parseExpression (String expression)
+    throws Exception
+  {
+    return (StringExpression)new ExpressionParser<Object>(new StringReader(expression)) {
+      @Override protected Object handleString (String value) {
+        return new Constant(value);
+      }
+      @Override protected Object handleIdentifier (String name) {
+        Reference ref = new Reference();
+        ref.name = name;
+        return ref;
+      }
+    }.parse();
+  }
 }

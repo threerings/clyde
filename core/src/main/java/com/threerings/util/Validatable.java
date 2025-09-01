@@ -8,8 +8,8 @@ package com.threerings.util;
  */
 public interface Validatable
 {
-    /**
-     * Is this object in a valid state?
-     */
-    public boolean isValid ();
+  /**
+   * Is this object in a valid state?
+   */
+  public boolean isValid ();
 }

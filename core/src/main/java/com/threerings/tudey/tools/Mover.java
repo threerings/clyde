@@ -34,41 +34,41 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
  */
 public class Mover extends BaseMover
 {
-    /**
-     * Creates the mover tool.
-     */
-    public Mover (SceneEditor editor)
-    {
-        super(editor);
-    }
+  /**
+   * Creates the mover tool.
+   */
+  public Mover (SceneEditor editor)
+  {
+    super(editor);
+  }
 
-    @Override
-    public void deactivate ()
-    {
-        // cancel any movement in process
-        super.deactivate();
-        clear();
-    }
+  @Override
+  public void deactivate ()
+  {
+    // cancel any movement in process
+    super.deactivate();
+    clear();
+  }
 
-    @Override
-    public void mousePressed (MouseEvent event)
-    {
-        if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {
-            return;
-        }
-        if (_cursorVisible) {
-            // place the transformed entries and clear the tool
-            _editor.select(placeEntries());
-            clear();
+  @Override
+  public void mousePressed (MouseEvent event)
+  {
+    if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {
+      return;
+    }
+    if (_cursorVisible) {
+      // place the transformed entries and clear the tool
+      _editor.select(placeEntries());
+      clear();
+    } else {
+      Entry entry = _editor.getMouseEntry();
+      if (entry != null) {
+        if (_editor.isSelected(entry)) {
+          _editor.moveSelection();
         } else {
-            Entry entry = _editor.getMouseEntry();
-            if (entry != null) {
-                if (_editor.isSelected(entry)) {
-                    _editor.moveSelection();
-                } else {
-                    _editor.removeAndMove(entry);
-                }
-            }
+          _editor.removeAndMove(entry);
         }
+      }
     }
+  }
 }

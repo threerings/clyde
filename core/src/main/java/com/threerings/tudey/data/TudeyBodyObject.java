@@ -35,48 +35,48 @@ import com.threerings.crowd.data.PlaceObject;
  */
 public class TudeyBodyObject extends BodyObject
 {
-    // AUTO-GENERATED: FIELDS START
-    /** The field name of the <code>pawnId</code> field. */
-    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
-    public static final String PAWN_ID = "pawnId";
-    // AUTO-GENERATED: FIELDS END
+  // AUTO-GENERATED: FIELDS START
+  /** The field name of the <code>pawnId</code> field. */
+  @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
+  public static final String PAWN_ID = "pawnId";
+  // AUTO-GENERATED: FIELDS END
 
-    /** The name of the message posted by the server to force the client to perform a client
-     * action. The message provides two arguments: the client action config and the
-     * {@link EntityKey} of the source. */
-    public static final String FORCE_CLIENT_ACTION = "forceClientAction";
+  /** The name of the message posted by the server to force the client to perform a client
+   * action. The message provides two arguments: the client action config and the
+   * {@link EntityKey} of the source. */
+  public static final String FORCE_CLIENT_ACTION = "forceClientAction";
 
-    /** The id of the player's pawn. */
-    public int pawnId;
+  /** The id of the player's pawn. */
+  public int pawnId;
 
-    @Override
-    public OccupantInfo createOccupantInfo (PlaceObject plobj)
-    {
-        return new TudeyOccupantInfo(this);
-    }
+  @Override
+  public OccupantInfo createOccupantInfo (PlaceObject plobj)
+  {
+    return new TudeyOccupantInfo(this);
+  }
 
-    @Override
-    public String toString ()
-    {
-        return who();
-    }
+  @Override
+  public String toString ()
+  {
+    return who();
+  }
 
-    // AUTO-GENERATED: METHODS START
-    /**
-     * Requests that the <code>pawnId</code> field be set to the
-     * specified value. The local value will be updated immediately and an
-     * event will be propagated through the system to notify all listeners
-     * that the attribute did change. Proxied copies of this object (on
-     * clients) will apply the value change when they received the
-     * attribute changed notification.
-     */
-    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
-    public void setPawnId (int value)
-    {
-        int ovalue = this.pawnId;
-        requestAttributeChange(
-            PAWN_ID, Integer.valueOf(value), Integer.valueOf(ovalue));
-        this.pawnId = value;
-    }
-    // AUTO-GENERATED: METHODS END
+  // AUTO-GENERATED: METHODS START
+  /**
+   * Requests that the <code>pawnId</code> field be set to the
+   * specified value. The local value will be updated immediately and an
+   * event will be propagated through the system to notify all listeners
+   * that the attribute did change. Proxied copies of this object (on
+   * clients) will apply the value change when they received the
+   * attribute changed notification.
+   */
+  @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
+  public void setPawnId (int value)
+  {
+    int ovalue = this.pawnId;
+    requestAttributeChange(
+      PAWN_ID, Integer.valueOf(value), Integer.valueOf(ovalue));
+    this.pawnId = value;
+  }
+  // AUTO-GENERATED: METHODS END
 }

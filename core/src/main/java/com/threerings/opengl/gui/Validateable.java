@@ -30,16 +30,16 @@ package com.threerings.opengl.gui;
  */
 public interface Validateable
 {
-    /**
-     * Instructs this component to lay itself out and then mark itself as valid.
-     */
-    public void validate ();
+  /**
+   * Instructs this component to lay itself out and then mark itself as valid.
+   */
+  public void validate ();
 
 
-    /**
-     * Returns true if this component is added to a hierarchy of components that culminates in a
-     * top-level window.
-     */
-    public boolean isAdded ();
+  /**
+   * Returns true if this component is added to a hierarchy of components that culminates in a
+   * top-level window.
+   */
+  public boolean isAdded ();
 
 }

@@ -38,26 +38,26 @@ import static com.threerings.opengl.Log.log;
  */
 public class CompletedConfig extends ModelConfig.Implementation
 {
-    @Override
-    public void preload (GlContext ctx)
-    {
-        // (thoughts and prayers)
-    }
+  @Override
+  public void preload (GlContext ctx)
+  {
+    // (thoughts and prayers)
+  }
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        return COMPLETED_INSTANCE;
-    }
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    return COMPLETED_INSTANCE;
+  }
 
-    /** Shared singleton instance with no state. */
-    private static final Model.Implementation COMPLETED_INSTANCE = new Model.Implementation(null) {
-        @Override public TickPolicy getTickPolicy () {
-            return TickPolicy.ALWAYS;
-        }
-        @Override public boolean hasCompleted () {
-            return true;
-        }
-    };
+  /** Shared singleton instance with no state. */
+  private static final Model.Implementation COMPLETED_INSTANCE = new Model.Implementation(null) {
+    @Override public TickPolicy getTickPolicy () {
+      return TickPolicy.ALWAYS;
+    }
+    @Override public boolean hasCompleted () {
+      return true;
+    }
+  };
 }

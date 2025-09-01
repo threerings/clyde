@@ -33,13 +33,13 @@ import com.threerings.opengl.util.Tickable;
  */
 public interface GlView extends Tickable, Compositable
 {
-    /**
-     * Notifies the view that it is going to be rendered.
-     */
-    public void wasAdded ();
+  /**
+   * Notifies the view that it is going to be rendered.
+   */
+  public void wasAdded ();
 
-    /**
-     * Notifies the view that it will no longer be rendered.
-     */
-    public void wasRemoved ();
+  /**
+   * Notifies the view that it will no longer be rendered.
+   */
+  public void wasRemoved ();
 }

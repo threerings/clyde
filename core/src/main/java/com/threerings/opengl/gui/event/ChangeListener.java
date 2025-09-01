@@ -30,8 +30,8 @@ package com.threerings.opengl.gui.event;
  */
 public interface ChangeListener
 {
-    /**
-     * Indicates that the underlying model has changed.
-     */
-    public void stateChanged (ChangeEvent event);
+  /**
+   * Indicates that the underlying model has changed.
+   */
+  public void stateChanged (ChangeEvent event);
 }

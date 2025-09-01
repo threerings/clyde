@@ -37,28 +37,28 @@ import com.threerings.tudey.data.TudeySceneModel.Paint;
  */
 public interface EntryManipulator
 {
-    /**
-     * Adds entries to the scene.
-     */
-    public void addEntries (Entry... entries);
+  /**
+   * Adds entries to the scene.
+   */
+  public void addEntries (Entry... entries);
 
-    /**
-     * Updates entries within the scene.
-     */
-    public void updateEntries (Entry... entries);
+  /**
+   * Updates entries within the scene.
+   */
+  public void updateEntries (Entry... entries);
 
-    /**
-     * Removes entries from the scene.
-     */
-    public void removeEntries (Object... keys);
+  /**
+   * Removes entries from the scene.
+   */
+  public void removeEntries (Object... keys);
 
-    /**
-     * Removes the specified entries from the scene.
-     */
-    public void removeEntries (Collection<? extends Entry> entries);
+  /**
+   * Removes the specified entries from the scene.
+   */
+  public void removeEntries (Collection<? extends Entry> entries);
 
-    /**
-     * Sets or clears the paint for a region in the scene.
-     */
-    public void setPaint (Rectangle region, Paint paint);
+  /**
+   * Sets or clears the paint for a region in the scene.
+   */
+  public void setPaint (Rectangle region, Paint paint);
 }

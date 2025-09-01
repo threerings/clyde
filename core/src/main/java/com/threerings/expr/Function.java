@@ -30,15 +30,15 @@ package com.threerings.expr;
  */
 public abstract class Function
 {
-    /** A function that does nothing and returns <code>null</code>. */
-    public static final Function NULL = new Function() {
-        public Object call (Object... args) {
-            return null;
-        }
-    };
+  /** A function that does nothing and returns <code>null</code>. */
+  public static final Function NULL = new Function() {
+    public Object call (Object... args) {
+      return null;
+    }
+  };
 
-    /**
-     * Calls the function.
-     */
-    public abstract Object call (Object... args);
+  /**
+   * Calls the function.
+   */
+  public abstract Object call (Object... args);
 }

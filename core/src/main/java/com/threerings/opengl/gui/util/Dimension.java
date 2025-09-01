@@ -30,30 +30,30 @@ package com.threerings.opengl.gui.util;
  */
 public class Dimension
 {
-    /** The width of the entity in question. */
-    public int width;
+  /** The width of the entity in question. */
+  public int width;
 
-    /** The height of the entity in question. */
-    public int height;
+  /** The height of the entity in question. */
+  public int height;
 
-    public Dimension (int width, int height)
-    {
-        this.width = width;
-        this.height = height;
-    }
+  public Dimension (int width, int height)
+  {
+    this.width = width;
+    this.height = height;
+  }
 
-    public Dimension (Dimension other)
-    {
-        width = other.width;
-        height = other.height;
-    }
+  public Dimension (Dimension other)
+  {
+    width = other.width;
+    height = other.height;
+  }
 
-    public Dimension ()
-    {
-    }
+  public Dimension ()
+  {
+  }
 
-    public String toString ()
-    {
-        return width + "x" + height;
-    }
+  public String toString ()
+  {
+    return width + "x" + height;
+  }
 }

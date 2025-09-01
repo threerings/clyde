@@ -40,9 +40,9 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE, ElementType.PACKAGE })
 public @interface EditorMessageBundle
 {
-    /** The default message bundle. */
-    public static final String DEFAULT = "editor.default";
+  /** The default message bundle. */
+  public static final String DEFAULT = "editor.default";
 
-    /** The name of the message bundle. */
-    String value ();
+  /** The name of the message bundle. */
+  String value ();
 }

@@ -35,39 +35,39 @@ import com.threerings.opengl.util.GlContext;
  */
 public class PasswordField extends TextField
 {
-    public PasswordField (GlContext ctx)
-    {
-        super(ctx);
+  public PasswordField (GlContext ctx)
+  {
+    super(ctx);
+  }
+
+  public PasswordField (GlContext ctx, int maxLength)
+  {
+    super(ctx, maxLength);
+  }
+
+  public PasswordField (GlContext ctx, String text)
+  {
+    super(ctx, text);
+  }
+
+  public PasswordField (GlContext ctx, String text, int maxLength)
+  {
+    super(ctx, text, maxLength);
+  }
+
+  // documentation inherited
+  protected String getDisplayText ()
+  {
+    String text = super.getDisplayText();
+    if (text == null || (!hasFocus() && usePlaceholder())) {
+      return text;
     }
 
-    public PasswordField (GlContext ctx, int maxLength)
-    {
-        super(ctx, maxLength);
+    if (_stars == null || _stars.length() != text.length()) {
+      _stars = StringUtil.fill('*', text.length());
     }
+    return _stars;
+  }
 
-    public PasswordField (GlContext ctx, String text)
-    {
-        super(ctx, text);
-    }
-
-    public PasswordField (GlContext ctx, String text, int maxLength)
-    {
-        super(ctx, text, maxLength);
-    }
-
-    // documentation inherited
-    protected String getDisplayText ()
-    {
-        String text = super.getDisplayText();
-        if (text == null || (!hasFocus() && usePlaceholder())) {
-            return text;
-        }
-
-        if (_stars == null || _stars.length() != text.length()) {
-            _stars = StringUtil.fill('*', text.length());
-        }
-        return _stars;
-    }
-
-    protected String _stars;
+  protected String _stars;
 }

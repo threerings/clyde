@@ -44,71 +44,71 @@ import com.threerings.opengl.util.Preloadable;
  */
 public class ConditionalConfig extends ModelConfig.Implementation
 {
-    /**
-     * Represents one of the cases that makes up the conditional.
-     */
-    public static class Case extends DeepObject
-        implements Exportable
-    {
-        /** The condition for the case. */
-        @Editable
-        public BooleanExpression condition = new BooleanExpression.Constant(true);
-
-        /** The model reference. */
-        @Editable(nullable=true)
-        public ConfigReference<ModelConfig> model;
-
-        /** The model transform. */
-        @Editable(step=0.01)
-        public Transform3D transform = new Transform3D();
-    }
-
-    /** The model's tick policy. */
+  /**
+   * Represents one of the cases that makes up the conditional.
+   */
+  public static class Case extends DeepObject
+    implements Exportable
+  {
+    /** The condition for the case. */
     @Editable
-    public TickPolicy tickPolicy = TickPolicy.DEFAULT;
+    public BooleanExpression condition = new BooleanExpression.Constant(true);
 
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
-
-    /** The condition cases. */
-    @Editable
-    public Case[] cases = new Case[0];
-
-    /** The default model reference. */
+    /** The model reference. */
     @Editable(nullable=true)
-    public ConfigReference<ModelConfig> defaultModel;
+    public ConfigReference<ModelConfig> model;
 
-    /** The default model transform. */
+    /** The model transform. */
     @Editable(step=0.01)
-    public Transform3D defaultTransform = new Transform3D();
+    public Transform3D transform = new Transform3D();
+  }
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        new Preloadable.Model(defaultModel).preload(ctx);
-        for (Case condition : cases) {
-            new Preloadable.Model(condition.model).preload(ctx);
-        }
-    }
+  /** The model's tick policy. */
+  @Editable
+  public TickPolicy tickPolicy = TickPolicy.DEFAULT;
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof Conditional) {
-            ((Conditional)impl).setConfig(ctx, this);
-        } else {
-            impl = new Conditional(ctx, scope, this);
-        }
-        return impl;
-    }
+  /** The influences allowed to affect this model. */
+  @Editable
+  public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
 
-    @Override
-    public void invalidate ()
-    {
-        for (Case caze : cases) {
-            caze.condition.invalidate();
-        }
+  /** The condition cases. */
+  @Editable
+  public Case[] cases = new Case[0];
+
+  /** The default model reference. */
+  @Editable(nullable=true)
+  public ConfigReference<ModelConfig> defaultModel;
+
+  /** The default model transform. */
+  @Editable(step=0.01)
+  public Transform3D defaultTransform = new Transform3D();
+
+  @Override
+  public void preload (GlContext ctx)
+  {
+    new Preloadable.Model(defaultModel).preload(ctx);
+    for (Case condition : cases) {
+      new Preloadable.Model(condition.model).preload(ctx);
     }
+  }
+
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof Conditional) {
+      ((Conditional)impl).setConfig(ctx, this);
+    } else {
+      impl = new Conditional(ctx, scope, this);
+    }
+    return impl;
+  }
+
+  @Override
+  public void invalidate ()
+  {
+    for (Case caze : cases) {
+      caze.condition.invalidate();
+    }
+  }
 }

@@ -37,99 +37,99 @@ import com.threerings.opengl.renderer.state.StencilState;
  * Configurable stencil state.
  */
 public class StencilStateConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /** Stencil test function constants. */
-    public enum TestFunc
+  /** Stencil test function constants. */
+  public enum TestFunc
+  {
+    NEVER(GL11.GL_NEVER),
+    LESS(GL11.GL_LESS),
+    EQUAL(GL11.GL_EQUAL),
+    LEQUAL(GL11.GL_LEQUAL),
+    GREATER(GL11.GL_GREATER),
+    NOTEQUAL(GL11.GL_NOTEQUAL),
+    GEQUAL(GL11.GL_GEQUAL),
+    ALWAYS(GL11.GL_ALWAYS);
+
+    public int getConstant ()
     {
-        NEVER(GL11.GL_NEVER),
-        LESS(GL11.GL_LESS),
-        EQUAL(GL11.GL_EQUAL),
-        LEQUAL(GL11.GL_LEQUAL),
-        GREATER(GL11.GL_GREATER),
-        NOTEQUAL(GL11.GL_NOTEQUAL),
-        GEQUAL(GL11.GL_GEQUAL),
-        ALWAYS(GL11.GL_ALWAYS);
-
-        public int getConstant ()
-        {
-            return _constant;
-        }
-
-        TestFunc (int constant)
-        {
-            _constant = constant;
-        }
-
-        protected final int _constant;
+      return _constant;
     }
 
-    /** Stencil ops. */
-    public enum Op
+    TestFunc (int constant)
     {
-        KEEP(GL11.GL_KEEP),
-        ZERO(GL11.GL_ZERO),
-        REPLACE(GL11.GL_REPLACE),
-        INCR(GL11.GL_INCR),
-        DECR(GL11.GL_DECR),
-        INVERT(GL11.GL_INVERT);
-
-        public int getConstant ()
-        {
-            return _constant;
-        }
-
-        Op (int constant)
-        {
-            _constant = constant;
-        }
-
-        protected final int _constant;
+      _constant = constant;
     }
 
-    /** The stencil test function. */
-    @Editable(hgroup="t")
-    public TestFunc testFunc = TestFunc.ALWAYS;
+    protected final int _constant;
+  }
 
-    /** The stencil test reference value. */
-    @Editable(min=0, hgroup="t")
-    public int testRef;
+  /** Stencil ops. */
+  public enum Op
+  {
+    KEEP(GL11.GL_KEEP),
+    ZERO(GL11.GL_ZERO),
+    REPLACE(GL11.GL_REPLACE),
+    INCR(GL11.GL_INCR),
+    DECR(GL11.GL_DECR),
+    INVERT(GL11.GL_INVERT);
 
-    /** The stencil fail operation. */
-    @Editable(hgroup="o")
-    public Op failOp = Op.KEEP;
-
-    /** The stencil depth fail operation. */
-    @Editable(hgroup="o")
-    public Op depthFailOp = Op.KEEP;
-
-    /** The stencil pass operation. */
-    @Editable(hgroup="o")
-    public Op passOp = Op.KEEP;
-
-    /** The stencil test mask. */
-    @Editable(hgroup="m")
-    public int testMask = 0x7FFFFFFF;
-
-    /** The stencil write mask. */
-    @Editable(hgroup="m")
-    public int writeMask = 0x7FFFFFFF;
-
-    /** If true, do not use a shared instance. */
-    @Editable
-    public boolean uniqueInstance;
-
-    /**
-     * Returns the corresponding stencil state.
-     */
-    public StencilState getState ()
+    public int getConstant ()
     {
-        return uniqueInstance ?
-            new StencilState(
-                testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
-                depthFailOp.getConstant(), passOp.getConstant(), writeMask) :
-            StencilState.getInstance(
-                testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
-                depthFailOp.getConstant(), passOp.getConstant(), writeMask);
+      return _constant;
     }
+
+    Op (int constant)
+    {
+      _constant = constant;
+    }
+
+    protected final int _constant;
+  }
+
+  /** The stencil test function. */
+  @Editable(hgroup="t")
+  public TestFunc testFunc = TestFunc.ALWAYS;
+
+  /** The stencil test reference value. */
+  @Editable(min=0, hgroup="t")
+  public int testRef;
+
+  /** The stencil fail operation. */
+  @Editable(hgroup="o")
+  public Op failOp = Op.KEEP;
+
+  /** The stencil depth fail operation. */
+  @Editable(hgroup="o")
+  public Op depthFailOp = Op.KEEP;
+
+  /** The stencil pass operation. */
+  @Editable(hgroup="o")
+  public Op passOp = Op.KEEP;
+
+  /** The stencil test mask. */
+  @Editable(hgroup="m")
+  public int testMask = 0x7FFFFFFF;
+
+  /** The stencil write mask. */
+  @Editable(hgroup="m")
+  public int writeMask = 0x7FFFFFFF;
+
+  /** If true, do not use a shared instance. */
+  @Editable
+  public boolean uniqueInstance;
+
+  /**
+   * Returns the corresponding stencil state.
+   */
+  public StencilState getState ()
+  {
+    return uniqueInstance ?
+      new StencilState(
+        testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
+        depthFailOp.getConstant(), passOp.getConstant(), writeMask) :
+      StencilState.getInstance(
+        testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
+        depthFailOp.getConstant(), passOp.getConstant(), writeMask);
+  }
 }

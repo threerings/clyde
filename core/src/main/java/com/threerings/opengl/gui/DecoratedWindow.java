@@ -36,28 +36,28 @@ import com.threerings.opengl.gui.layout.GroupLayout;
  */
 public class DecoratedWindow extends Window
 {
-    /**
-     * Creates a decorated window using the supplied look and feel.
-     *
-     * @param title the title of the window or null if no title bar is
-     * desired.
-     */
-    public DecoratedWindow (GlContext ctx, String title)
-    {
-        super(ctx, GroupLayout.makeVStretch());
-        ((GroupLayout)getLayoutManager()).setOffAxisPolicy(
-            GroupLayout.CONSTRAIN);
+  /**
+   * Creates a decorated window using the supplied look and feel.
+   *
+   * @param title the title of the window or null if no title bar is
+   * desired.
+   */
+  public DecoratedWindow (GlContext ctx, String title)
+  {
+    super(ctx, GroupLayout.makeVStretch());
+    ((GroupLayout)getLayoutManager()).setOffAxisPolicy(
+      GroupLayout.CONSTRAIN);
 
-        if (title != null) {
-            Label label = new Label(ctx, title);
-            label.setStyleConfig("Default/WindowTitle");
-            add(label, GroupLayout.FIXED);
-        }
+    if (title != null) {
+      Label label = new Label(ctx, title);
+      label.setStyleConfig("Default/WindowTitle");
+      add(label, GroupLayout.FIXED);
     }
+  }
 
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/DecoratedWindow";
-    }
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/DecoratedWindow";
+  }
 }

@@ -41,38 +41,38 @@ import com.threerings.tudey.shape.Shape;
  */
 public class SimpleSpace extends Space
 {
-    @Override
-    public SpaceElement getIntersection (
-        Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter)
-    {
-        return getIntersection(_elements, ray, location, filter);
-    }
+  @Override
+  public SpaceElement getIntersection (
+    Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter)
+  {
+    return getIntersection(_elements, ray, location, filter);
+  }
 
-    @Override
-    public void getIntersecting (
-            Shape shape, Predicate<? super SpaceElement> filter, Collection<SpaceElement> results)
-    {
-        getIntersecting(_elements, shape, filter, results);
-    }
+  @Override
+  public void getIntersecting (
+      Shape shape, Predicate<? super SpaceElement> filter, Collection<SpaceElement> results)
+  {
+    getIntersecting(_elements, shape, filter, results);
+  }
 
-    @Override
-    public void getElements (Rect bounds, Collection<SpaceElement> results)
-    {
-        getIntersecting(_elements, bounds, results);
-    }
+  @Override
+  public void getElements (Rect bounds, Collection<SpaceElement> results)
+  {
+    getIntersecting(_elements, bounds, results);
+  }
 
-    @Override
-    protected void addToSpatial (SpaceElement element)
-    {
-        _elements.add(element);
-    }
+  @Override
+  protected void addToSpatial (SpaceElement element)
+  {
+    _elements.add(element);
+  }
 
-    @Override
-    protected void removeFromSpatial (SpaceElement element)
-    {
-        _elements.remove(element);
-    }
+  @Override
+  protected void removeFromSpatial (SpaceElement element)
+  {
+    _elements.remove(element);
+  }
 
-    /** The list of all space elements. */
-    protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
+  /** The list of all space elements. */
+  protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
 }

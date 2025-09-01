@@ -50,85 +50,85 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  */
 public class ShapeConfigElement extends SimpleSceneElement
 {
-    /**
-     * Creates a new shape config element.
-     */
-    public ShapeConfigElement (GlContext ctx)
-    {
-        super(ctx);
+  /**
+   * Creates a new shape config element.
+   */
+  public ShapeConfigElement (GlContext ctx)
+  {
+    super(ctx);
+  }
+
+  /**
+   * Sets the configuration of the shape to draw.
+   *
+   * @param outline if true, draw the outline of the shape; if false, draw the solid form.
+   */
+  public void setConfig (ShapeConfig config, boolean outline)
+  {
+    _localBounds = config.getBounds();
+    _list = config.getList(_ctx, outline);
+    _shape = outline ? null : config.getShape();
+    updateBounds();
+  }
+
+  /**
+   * Returns a reference to the outline color.
+   */
+  public Color4f getColor ()
+  {
+    ColorState cstate = (ColorState)_batch.getStates()[RenderState.COLOR_STATE];
+    return cstate.getColor();
+  }
+
+  @Override
+  protected RenderState[] createStates ()
+  {
+    RenderState[] states = super.createStates();
+    states[RenderState.COLOR_STATE] = new ColorState();
+    states[RenderState.LINE_STATE] = LineState.getInstance(3f);
+    states[RenderState.POINT_STATE] = PointState.getInstance(3f);
+    return states;
+  }
+
+  @Override
+  public boolean getIntersection (Ray3D ray, Vector3f result)
+  {
+    // transform into model space and find the intersection (if any) with the x/y plane
+    if (_shape == null || !_bounds.intersects(ray)) {
+      return false;
     }
-
-    /**
-     * Sets the configuration of the shape to draw.
-     *
-     * @param outline if true, draw the outline of the shape; if false, draw the solid form.
-     */
-    public void setConfig (ShapeConfig config, boolean outline)
-    {
-        _localBounds = config.getBounds();
-        _list = config.getList(_ctx, outline);
-        _shape = outline ? null : config.getShape();
-        updateBounds();
+    Vector3f pt = new Vector3f();
+    if (!Plane.XY_PLANE.getIntersection(ray.transform(_transform.invert()), pt)) {
+      return false;
     }
-
-    /**
-     * Returns a reference to the outline color.
-     */
-    public Color4f getColor ()
-    {
-        ColorState cstate = (ColorState)_batch.getStates()[RenderState.COLOR_STATE];
-        return cstate.getColor();
+    // then check against the shape and transform it back if we get a hit
+    if (!_shape.intersects(new Point(pt.x, pt.y))) {
+      return false;
     }
+    _transform.transformPointLocal(result.set(pt));
+    return true;
+  }
 
-    @Override
-    protected RenderState[] createStates ()
-    {
-        RenderState[] states = super.createStates();
-        states[RenderState.COLOR_STATE] = new ColorState();
-        states[RenderState.LINE_STATE] = LineState.getInstance(3f);
-        states[RenderState.POINT_STATE] = PointState.getInstance(3f);
-        return states;
-    }
+  @Override
+  protected Box getLocalBounds ()
+  {
+    return _localBounds;
+  }
 
-    @Override
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        // transform into model space and find the intersection (if any) with the x/y plane
-        if (_shape == null || !_bounds.intersects(ray)) {
-            return false;
-        }
-        Vector3f pt = new Vector3f();
-        if (!Plane.XY_PLANE.getIntersection(ray.transform(_transform.invert()), pt)) {
-            return false;
-        }
-        // then check against the shape and transform it back if we get a hit
-        if (!_shape.intersects(new Point(pt.x, pt.y))) {
-            return false;
-        }
-        _transform.transformPointLocal(result.set(pt));
-        return true;
-    }
+  @Override
+  protected void draw ()
+  {
+    // make sure we're in modelview matrix mode before calling the list
+    _ctx.getRenderer().setMatrixMode(GL11.GL_MODELVIEW);
+    _list.call();
+  }
 
-    @Override
-    protected Box getLocalBounds ()
-    {
-        return _localBounds;
-    }
+  /** The local bounds of the shape. */
+  protected Box _localBounds;
 
-    @Override
-    protected void draw ()
-    {
-        // make sure we're in modelview matrix mode before calling the list
-        _ctx.getRenderer().setMatrixMode(GL11.GL_MODELVIEW);
-        _list.call();
-    }
+  /** The display list containing the shape draw commands. */
+  protected DisplayList _list;
 
-    /** The local bounds of the shape. */
-    protected Box _localBounds;
-
-    /** The display list containing the shape draw commands. */
-    protected DisplayList _list;
-
-    /** The untransformed shape, or <code>null</code> if non-intersectable. */
-    protected Shape _shape;
+  /** The untransformed shape, or <code>null</code> if non-intersectable. */
+  protected Shape _shape;
 }

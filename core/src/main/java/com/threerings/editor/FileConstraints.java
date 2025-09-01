@@ -39,15 +39,15 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface FileConstraints
 {
-    /** The translatable description. */
-    String description ();
+  /** The translatable description. */
+  String description ();
 
-    /** The allowable file extensions. */
-    String[] extensions ();
+  /** The allowable file extensions. */
+  String[] extensions ();
 
-    /** The directory preference key (if empty, use current directory). */
-    String directory () default "";
+  /** The directory preference key (if empty, use current directory). */
+  String directory () default "";
 
-    /** Should we strip the extension off the filename? Use at your own risk. */
-    boolean stripExtension () default false;
+  /** Should we strip the extension off the filename? Use at your own risk. */
+  boolean stripExtension () default false;
 }

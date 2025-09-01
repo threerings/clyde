@@ -31,18 +31,18 @@ package com.threerings.opengl.compositor;
  */
 public class RenderScheme
 {
-    /** The name of the translucent scheme. */
-    public static final String TRANSLUCENT = "Translucent";
+  /** The name of the translucent scheme. */
+  public static final String TRANSLUCENT = "Translucent";
 
-    /** The name of the ST projection scheme (basic orthographic). */
-    public static final String PROJECTION_ST = "Projection (ST)";
+  /** The name of the ST projection scheme (basic orthographic). */
+  public static final String PROJECTION_ST = "Projection (ST)";
 
-    /** The name of the STR projection scheme (orthographic with depth). */
-    public static final String PROJECTION_STR = "Projection (STR)";
+  /** The name of the STR projection scheme (orthographic with depth). */
+  public static final String PROJECTION_STR = "Projection (STR)";
 
-    /** The name of the STQ projection scheme (basic perspective). */
-    public static final String PROJECTION_STQ = "Projection (STQ)";
+  /** The name of the STQ projection scheme (basic perspective). */
+  public static final String PROJECTION_STQ = "Projection (STQ)";
 
-    /** The name of the STRQ projection scheme (perspective with depth). */
-    public static final String PROJECTION_STRQ = "Projection (STRQ)";
+  /** The name of the STRQ projection scheme (perspective with depth). */
+  public static final String PROJECTION_STRQ = "Projection (STRQ)";
 }

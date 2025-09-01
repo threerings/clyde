@@ -39,97 +39,97 @@ import com.threerings.opengl.effect.ColorFunction;
  * A {@link ColorFunction} random variable.
  */
 @EditorTypes(value={
-    ColorFunctionVariable.Fixed.class,
-    ColorFunctionVariable.VariableConstant.class,
-    ColorFunctionVariable.VariableLinear.class }, label="mode")
+  ColorFunctionVariable.Fixed.class,
+  ColorFunctionVariable.VariableConstant.class,
+  ColorFunctionVariable.VariableLinear.class }, label="mode")
 public abstract class ColorFunctionVariable extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
+  /**
+   * Simply returns the same function.
+   */
+  public static class Fixed extends ColorFunctionVariable
+  {
+    /** The function to return. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public ColorFunction function = new ColorFunction.Constant();
+
     /**
-     * Simply returns the same function.
+     * Creates a fixed variable with the specified function.
      */
-    public static class Fixed extends ColorFunctionVariable
+    public Fixed (ColorFunction function)
     {
-        /** The function to return. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public ColorFunction function = new ColorFunction.Constant();
-
-        /**
-         * Creates a fixed variable with the specified function.
-         */
-        public Fixed (ColorFunction function)
-        {
-            this.function = function;
-        }
-
-        /**
-         * No-arg constructor for deserialization, etc.
-         */
-        public Fixed ()
-        {
-        }
-
-        @Override
-        public ColorFunction getValue (ColorFunction result)
-        {
-            return function.copy(result);
-        }
+      this.function = function;
     }
 
     /**
-     * Returns a constant function with a variable value.
+     * No-arg constructor for deserialization, etc.
      */
-    public static class VariableConstant extends ColorFunctionVariable
+    public Fixed ()
     {
-        /** The value to return. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public ColorVariable value = new ColorVariable.Constant();
-
-        @Override
-        public ColorFunction getValue (ColorFunction result)
-        {
-            ColorFunction.Constant cresult = (result instanceof ColorFunction.Constant) ?
-                ((ColorFunction.Constant)result) : new ColorFunction.Constant();
-            value.getValue(cresult.value);
-            return cresult;
-        }
     }
 
-    /**
-     * Returns a linear function with independent variable start and end values.
-     */
-    public static class VariableLinear extends ColorFunctionVariable
+    @Override
+    public ColorFunction getValue (ColorFunction result)
     {
-        /** The value to return. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public ColorVariable start = new ColorVariable.Constant();
-
-        /** The value to return. */
-        @Editable(mode=Editable.INHERIT_STRING)
-        public ColorVariable end = new ColorVariable.Constant();
-
-        /** The type of easing to use. */
-        @Editable
-        public Easing easing = new Easing.None();
-
-        @Override
-        public ColorFunction getValue (ColorFunction result)
-        {
-            ColorFunction.Linear lresult = (result instanceof ColorFunction.Linear) ?
-                ((ColorFunction.Linear)result) : new ColorFunction.Linear();
-            start.getValue(lresult.start);
-            end.getValue(lresult.end);
-            lresult.easing = easing.copy(lresult.easing);
-            return lresult;
-        }
+      return function.copy(result);
     }
+  }
 
-    /**
-     * Computes a sample value according to the variable's distribution.
-     *
-     * @param result an object to repopulate, if possible.
-     * @return either the result object, if it could be repopulated, or a new object
-     * containing the result.
-     */
-    public abstract ColorFunction getValue (ColorFunction result);
+  /**
+   * Returns a constant function with a variable value.
+   */
+  public static class VariableConstant extends ColorFunctionVariable
+  {
+    /** The value to return. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public ColorVariable value = new ColorVariable.Constant();
+
+    @Override
+    public ColorFunction getValue (ColorFunction result)
+    {
+      ColorFunction.Constant cresult = (result instanceof ColorFunction.Constant) ?
+        ((ColorFunction.Constant)result) : new ColorFunction.Constant();
+      value.getValue(cresult.value);
+      return cresult;
+    }
+  }
+
+  /**
+   * Returns a linear function with independent variable start and end values.
+   */
+  public static class VariableLinear extends ColorFunctionVariable
+  {
+    /** The value to return. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public ColorVariable start = new ColorVariable.Constant();
+
+    /** The value to return. */
+    @Editable(mode=Editable.INHERIT_STRING)
+    public ColorVariable end = new ColorVariable.Constant();
+
+    /** The type of easing to use. */
+    @Editable
+    public Easing easing = new Easing.None();
+
+    @Override
+    public ColorFunction getValue (ColorFunction result)
+    {
+      ColorFunction.Linear lresult = (result instanceof ColorFunction.Linear) ?
+        ((ColorFunction.Linear)result) : new ColorFunction.Linear();
+      start.getValue(lresult.start);
+      end.getValue(lresult.end);
+      lresult.easing = easing.copy(lresult.easing);
+      return lresult;
+    }
+  }
+
+  /**
+   * Computes a sample value according to the variable's distribution.
+   *
+   * @param result an object to repopulate, if possible.
+   * @return either the result object, if it could be repopulated, or a new object
+   * containing the result.
+   */
+  public abstract ColorFunction getValue (ColorFunction result);
 }

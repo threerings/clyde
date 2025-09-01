@@ -40,75 +40,75 @@ import com.threerings.export.BinaryImporter;
  * a new {@link BinaryExporter}).
  */
 public class SerializableWrapper
-    implements Externalizable
+  implements Externalizable
 {
-    /**
-     * Creates a new wrapper for the specified object.
-     */
-    public SerializableWrapper (Object object)
-    {
-        _object = object;
-    }
+  /**
+   * Creates a new wrapper for the specified object.
+   */
+  public SerializableWrapper (Object object)
+  {
+    _object = object;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public SerializableWrapper ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public SerializableWrapper ()
+  {
+  }
 
-    /**
-     * Returns a reference to the wrapped object.
-     */
-    public Object getObject ()
-    {
-        return _object;
-    }
+  /**
+   * Returns a reference to the wrapped object.
+   */
+  public Object getObject ()
+  {
+    return _object;
+  }
 
-    // documentation inherited from interface Externalizable
-    public void writeExternal (final ObjectOutput out)
-        throws IOException
-    {
-        // gotta wrap the output because BinaryExporter expects an actual stream
-        BinaryExporter exporter = new BinaryExporter(new OutputStream() {
-            public void write (int b) throws IOException {
-                out.write(b);
-            }
-            public void write (byte[] b, int off, int len) throws IOException {
-                out.write(b, off, len);
-            }
-            public void flush () throws IOException {
-                out.flush();
-            }
-        });
-        try {
-            exporter.writeObject(_object);
-        } finally {
-            exporter.finish();
-        }
+  // documentation inherited from interface Externalizable
+  public void writeExternal (final ObjectOutput out)
+    throws IOException
+  {
+    // gotta wrap the output because BinaryExporter expects an actual stream
+    BinaryExporter exporter = new BinaryExporter(new OutputStream() {
+      public void write (int b) throws IOException {
+        out.write(b);
+      }
+      public void write (byte[] b, int off, int len) throws IOException {
+        out.write(b, off, len);
+      }
+      public void flush () throws IOException {
+        out.flush();
+      }
+    });
+    try {
+      exporter.writeObject(_object);
+    } finally {
+      exporter.finish();
     }
+  }
 
-    // documentation inherited from interface Externalizable
-    public void readExternal (final ObjectInput in)
-        throws IOException, ClassNotFoundException
-    {
-        BinaryImporter importer = new BinaryImporter(new InputStream() {
-            public int read () throws IOException {
-                return in.read();
-            }
-            public int read (byte[] b, int off, int len) throws IOException {
-                return in.read(b, off, len);
-            }
-            public long skip (long n) throws IOException {
-                return in.skip(n);
-            }
-            public int available () throws IOException {
-                return in.available();
-            }
-        });
-        _object = importer.readObject();
-    }
+  // documentation inherited from interface Externalizable
+  public void readExternal (final ObjectInput in)
+    throws IOException, ClassNotFoundException
+  {
+    BinaryImporter importer = new BinaryImporter(new InputStream() {
+      public int read () throws IOException {
+        return in.read();
+      }
+      public int read (byte[] b, int off, int len) throws IOException {
+        return in.read(b, off, len);
+      }
+      public long skip (long n) throws IOException {
+        return in.skip(n);
+      }
+      public int available () throws IOException {
+        return in.available();
+      }
+    });
+    _object = importer.readObject();
+  }
 
-    /** The wrapped object. */
-    protected Object _object;
+  /** The wrapped object. */
+  protected Object _object;
 }

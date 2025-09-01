@@ -38,105 +38,105 @@ import com.threerings.util.DeepObject;
  */
 public class InterfaceScriptConfig extends ParameterizedConfig
 {
+  /**
+   * Contains the actual implementation of the script.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
-     * Contains the actual implementation of the script.
+     * Returns a reference to the config's underlying original implementation.
      */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config's underlying original implementation.
-         */
-        public abstract Original getOriginal (ConfigManager cfgmgr);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
+    public abstract Original getOriginal (ConfigManager cfgmgr);
 
     /**
-     * An original implementation.
+     * Invalidates any cached data.
      */
-    public static class Original extends Implementation
+    public void invalidate ()
     {
-        /** The loop duration, or zero for unlooped. */
-        @Editable(min=0.0, step=0.01)
-        public float loopDuration;
-
-        /** The actions of which the script is composed. */
-        @Editable
-        public TimedAction[] actions = new TimedAction[0];
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            return this;
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            for (TimedAction taction : actions) {
-                taction.action.invalidate();
-            }
-        }
+      // nothing by default
     }
+  }
 
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The script reference. */
-        @Editable(nullable=true)
-        public ConfigReference<InterfaceScriptConfig> interfaceScript;
+  /**
+   * An original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /** The loop duration, or zero for unlooped. */
+    @Editable(min=0.0, step=0.01)
+    public float loopDuration;
 
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            InterfaceScriptConfig config = cfgmgr.getConfig(
-                InterfaceScriptConfig.class, interfaceScript);
-            return (config == null) ? null : config.getOriginal(cfgmgr);
-        }
-    }
-
-    /**
-     * An action to perform after a specific time interval.
-     */
-    public static class TimedAction extends DeepObject
-        implements Exportable
-    {
-        /** The time at which to perform the action. */
-        @Editable(min=0, step=0.01)
-        public float time;
-
-        /** The action to perform. */
-        @Editable
-        public ActionConfig action = new ActionConfig.CallFunction();
-    }
-
-    /** The actual script implementation. */
+    /** The actions of which the script is composed. */
     @Editable
-    public Implementation implementation = new Original();
+    public TimedAction[] actions = new TimedAction[0];
 
-    /**
-     * Retrieves a reference to the underlying original implementation.
-     */
+    @Override
     public Original getOriginal (ConfigManager cfgmgr)
     {
-        return implementation.getOriginal(cfgmgr);
+      return this;
     }
 
     @Override
-    protected void fireConfigUpdated ()
+    public void invalidate ()
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.fireConfigUpdated();
+      for (TimedAction taction : actions) {
+        taction.action.invalidate();
+      }
     }
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The script reference. */
+    @Editable(nullable=true)
+    public ConfigReference<InterfaceScriptConfig> interfaceScript;
+
+    @Override
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+      InterfaceScriptConfig config = cfgmgr.getConfig(
+        InterfaceScriptConfig.class, interfaceScript);
+      return (config == null) ? null : config.getOriginal(cfgmgr);
+    }
+  }
+
+  /**
+   * An action to perform after a specific time interval.
+   */
+  public static class TimedAction extends DeepObject
+    implements Exportable
+  {
+    /** The time at which to perform the action. */
+    @Editable(min=0, step=0.01)
+    public float time;
+
+    /** The action to perform. */
+    @Editable
+    public ActionConfig action = new ActionConfig.CallFunction();
+  }
+
+  /** The actual script implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Retrieves a reference to the underlying original implementation.
+   */
+  public Original getOriginal (ConfigManager cfgmgr)
+  {
+    return implementation.getOriginal(cfgmgr);
+  }
+
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.fireConfigUpdated();
+  }
 }

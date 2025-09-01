@@ -41,97 +41,97 @@ import com.threerings.opengl.util.GlContext;
  */
 public class SimpleScene extends Scene
 {
-    /**
-     * Creates a new simple scene.
-     */
-    public SimpleScene (GlContext ctx)
-    {
-        super(ctx);
-    }
+  /**
+   * Creates a new simple scene.
+   */
+  public SimpleScene (GlContext ctx)
+  {
+    super(ctx);
+  }
 
-    /**
-     * Creates a new simple scene.
-     *
-     * @param sources the number of simultaneous sound sources to allow.
-     */
-    public SimpleScene (GlContext ctx, int sources)
-    {
-        super(ctx, sources);
-    }
+  /**
+   * Creates a new simple scene.
+   *
+   * @param sources the number of simultaneous sound sources to allow.
+   */
+  public SimpleScene (GlContext ctx, int sources)
+  {
+    super(ctx, sources);
+  }
 
-    // documentation inherited from interface Compositable
-    public void composite ()
-    {
-        composite(_elements, _ctx.getCompositor().getCamera().getWorldVolume());
-    }
+  // documentation inherited from interface Compositable
+  public void composite ()
+  {
+    composite(_elements, _ctx.getCompositor().getCamera().getWorldVolume());
+  }
 
-    @Override
-    public SceneElement getIntersection (
-        Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter)
-    {
-        return getIntersection(_elements, ray, location, filter);
-    }
+  @Override
+  public SceneElement getIntersection (
+    Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter)
+  {
+    return getIntersection(_elements, ray, location, filter);
+  }
 
-    @Override
-    public void getElements (Box bounds, Collection<SceneElement> results)
-    {
-        getIntersecting(_elements, bounds, results);
-    }
+  @Override
+  public void getElements (Box bounds, Collection<SceneElement> results)
+  {
+    getIntersecting(_elements, bounds, results);
+  }
 
-    @Override
-    public void getInfluences (Box bounds, Collection<SceneInfluence> results)
-    {
-        getIntersecting(_influences, bounds, results);
-    }
+  @Override
+  public void getInfluences (Box bounds, Collection<SceneInfluence> results)
+  {
+    getIntersecting(_influences, bounds, results);
+  }
 
-    @Override
-    public void getEffects (Box bounds, Collection<ViewerEffect> results)
-    {
-        getIntersecting(_effects, bounds, results);
-    }
+  @Override
+  public void getEffects (Box bounds, Collection<ViewerEffect> results)
+  {
+    getIntersecting(_effects, bounds, results);
+  }
 
-    @Override
-    protected void addToSpatial (SceneElement element)
-    {
-        _elements.add(element);
-    }
+  @Override
+  protected void addToSpatial (SceneElement element)
+  {
+    _elements.add(element);
+  }
 
-    @Override
-    protected void removeFromSpatial (SceneElement element)
-    {
-        _elements.remove(element);
-    }
+  @Override
+  protected void removeFromSpatial (SceneElement element)
+  {
+    _elements.remove(element);
+  }
 
-    @Override
-    protected void addToSpatial (SceneInfluence influence)
-    {
-        _influences.add(influence);
-    }
+  @Override
+  protected void addToSpatial (SceneInfluence influence)
+  {
+    _influences.add(influence);
+  }
 
-    @Override
-    protected void removeFromSpatial (SceneInfluence influence)
-    {
-        _influences.remove(influence);
-    }
+  @Override
+  protected void removeFromSpatial (SceneInfluence influence)
+  {
+    _influences.remove(influence);
+  }
 
-    @Override
-    protected void addToSpatial (ViewerEffect effect)
-    {
-        _effects.add(effect);
-    }
+  @Override
+  protected void addToSpatial (ViewerEffect effect)
+  {
+    _effects.add(effect);
+  }
 
-    @Override
-    protected void removeFromSpatial (ViewerEffect effect)
-    {
-        _effects.remove(effect);
-    }
+  @Override
+  protected void removeFromSpatial (ViewerEffect effect)
+  {
+    _effects.remove(effect);
+  }
 
-    /** The list of all scene elements. */
-    protected ArrayList<SceneElement> _elements = new ArrayList<SceneElement>();
+  /** The list of all scene elements. */
+  protected ArrayList<SceneElement> _elements = new ArrayList<SceneElement>();
 
-    /** The list of all scene influences. */
-    protected ArrayList<SceneInfluence> _influences = new ArrayList<SceneInfluence>();
+  /** The list of all scene influences. */
+  protected ArrayList<SceneInfluence> _influences = new ArrayList<SceneInfluence>();
 
-    /** The list of all viewer effects. */
-    protected ArrayList<ViewerEffect> _effects = new ArrayList<ViewerEffect>();
+  /** The list of all viewer effects. */
+  protected ArrayList<ViewerEffect> _effects = new ArrayList<ViewerEffect>();
 }

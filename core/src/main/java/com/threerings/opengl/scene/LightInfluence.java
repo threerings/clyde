@@ -32,20 +32,20 @@ import com.threerings.opengl.renderer.Light;
  */
 public class LightInfluence extends SceneInfluence
 {
-    /**
-     * Creates a new light influence.
-     */
-    public LightInfluence (Light light)
-    {
-        _light = light;
-    }
+  /**
+   * Creates a new light influence.
+   */
+  public LightInfluence (Light light)
+  {
+    _light = light;
+  }
 
-    @Override
-    public Light getLight ()
-    {
-        return _light;
-    }
+  @Override
+  public Light getLight ()
+  {
+    return _light;
+  }
 
-    /** The light object. */
-    protected Light _light;
+  /** The light object. */
+  protected Light _light;
 }

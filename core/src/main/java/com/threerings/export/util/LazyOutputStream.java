@@ -44,92 +44,92 @@ import com.google.common.base.Preconditions;
  */
 public class LazyOutputStream extends OutputStream
 {
-    /**
-     * Creates a new lazy stream that will call to create its stream at the right time.
-     */
-    public LazyOutputStream (Callable<? extends OutputStream> creator)
-    {
-        _creator = Preconditions.checkNotNull(creator);
+  /**
+   * Creates a new lazy stream that will call to create its stream at the right time.
+   */
+  public LazyOutputStream (Callable<? extends OutputStream> creator)
+  {
+    _creator = Preconditions.checkNotNull(creator);
+  }
+
+  /**
+   * Creates a new lazy stream that will write to the specified file.
+   */
+  public LazyOutputStream (final File file)
+  {
+    this(new Callable<FileOutputStream>() {
+          public FileOutputStream call ()
+            throws IOException
+          {
+            return new FileOutputStream(file);
+          }
+        });
+  }
+
+  @Override
+  public void write (int b)
+    throws IOException
+  {
+    ensureInitialized();
+    _out.write(b);
+  }
+
+  @Override
+  public void write (byte[] b)
+    throws IOException
+  {
+    ensureInitialized();
+    _out.write(b);
+  }
+
+  @Override
+  public void write (byte[] b, int off, int len)
+    throws IOException
+  {
+    ensureInitialized();
+    _out.write(b, off, len);
+  }
+
+  @Override
+  public void flush ()
+    throws IOException
+  {
+    if (_out != null) {
+      _out.flush();
     }
+  }
 
-    /**
-     * Creates a new lazy stream that will write to the specified file.
-     */
-    public LazyOutputStream (final File file)
-    {
-        this(new Callable<FileOutputStream>() {
-                    public FileOutputStream call ()
-                        throws IOException
-                    {
-                        return new FileOutputStream(file);
-                    }
-                });
+  @Override
+  public void close ()
+    throws IOException
+  {
+    if (_out != null) {
+      _out.close();
     }
+  }
 
-    @Override
-    public void write (int b)
-        throws IOException
-    {
-        ensureInitialized();
-        _out.write(b);
+  /**
+   * Creates the underlying output stream if necessary.
+   */
+  protected void ensureInitialized ()
+    throws IOException
+  {
+    if (_out == null) {
+      try {
+        _out = _creator.call();
+      } catch (IOException ioe) {
+        throw ioe;
+      } catch (Exception e) {
+        throw new IOException("Exception lazy-creating OutputStream: " + e.getMessage(), e);
+      } finally {
+        _creator = null;
+      }
     }
+  }
 
-    @Override
-    public void write (byte[] b)
-        throws IOException
-    {
-        ensureInitialized();
-        _out.write(b);
-    }
+  /** Called to create the output stream. */
+  protected Callable<? extends OutputStream> _creator;
 
-    @Override
-    public void write (byte[] b, int off, int len)
-        throws IOException
-    {
-        ensureInitialized();
-        _out.write(b, off, len);
-    }
-
-    @Override
-    public void flush ()
-        throws IOException
-    {
-        if (_out != null) {
-            _out.flush();
-        }
-    }
-
-    @Override
-    public void close ()
-        throws IOException
-    {
-        if (_out != null) {
-            _out.close();
-        }
-    }
-
-    /**
-     * Creates the underlying output stream if necessary.
-     */
-    protected void ensureInitialized ()
-        throws IOException
-    {
-        if (_out == null) {
-            try {
-                _out = _creator.call();
-            } catch (IOException ioe) {
-                throw ioe;
-            } catch (Exception e) {
-                throw new IOException("Exception lazy-creating OutputStream: " + e.getMessage(), e);
-            } finally {
-                _creator = null;
-            }
-        }
-    }
-
-    /** Called to create the output stream. */
-    protected Callable<? extends OutputStream> _creator;
-
-    /** The underlying output stream, if created. */
-    protected OutputStream _out;
+  /** The underlying output stream, if created. */
+  protected OutputStream _out;
 }

@@ -33,16 +33,16 @@ import com.threerings.opengl.gui.util.Insets;
  */
 public class EmptyBorder extends Border
 {
-    public EmptyBorder (int left, int top, int right, int bottom)
-    {
-        _insets = new Insets(left, top, right, bottom);
-    }
+  public EmptyBorder (int left, int top, int right, int bottom)
+  {
+    _insets = new Insets(left, top, right, bottom);
+  }
 
-    // documentation inherited
-    public Insets adjustInsets (Insets insets)
-    {
-        return _insets.add(insets);
-    }
+  // documentation inherited
+  public Insets adjustInsets (Insets insets)
+  {
+    return _insets.add(insets);
+  }
 
-    protected Insets _insets;
+  protected Insets _insets;
 }

@@ -30,11 +30,11 @@ package com.threerings.editor;
  */
 public class InvalidPathsException extends Exception
 {
-    /**
-     * Creates a new exception with the supplied message.
-     */
-    public InvalidPathsException (String message)
-    {
-        super(message);
-    }
+  /**
+   * Creates a new exception with the supplied message.
+   */
+  public InvalidPathsException (String message)
+  {
+    super(message);
+  }
 }

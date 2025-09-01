@@ -38,119 +38,119 @@ import com.threerings.opengl.gui.util.Rectangle;
  */
 public class VGroupLayout extends GroupLayout
 {
-    // documentation inherited
-    public Dimension computePreferredSize (Container target, int whint, int hhint)
-    {
-        DimenInfo info = computeDimens(target, false, whint, hhint);
-        Dimension dims = new Dimension();
+  // documentation inherited
+  public Dimension computePreferredSize (Container target, int whint, int hhint)
+  {
+    DimenInfo info = computeDimens(target, false, whint, hhint);
+    Dimension dims = new Dimension();
 
-        if (_policy == STRETCH) {
-            dims.height = info.maxfreehei * (info.count - info.numfix) + info.fixhei;
-        } else if (_policy == EQUALIZE) {
-            dims.height = info.maxhei * info.count;
-        } else { // NONE or CONSTRAIN
-            dims.height = info.tothei;
-        }
-
-        dims.height += (info.count - 1) * _gap;
-        dims.width = info.maxwid;
-
-        return dims;
+    if (_policy == STRETCH) {
+      dims.height = info.maxfreehei * (info.count - info.numfix) + info.fixhei;
+    } else if (_policy == EQUALIZE) {
+      dims.height = info.maxhei * info.count;
+    } else { // NONE or CONSTRAIN
+      dims.height = info.tothei;
     }
 
-    // documentation inherited
-    public void layoutContainer (Container target)
-    {
-        // adjust the bounds width and height to account for the insets
-        Rectangle b = target.getBounds();
-        Insets insets = target.getInsets();
-        b.width -= insets.getHorizontal();
-        b.height -= insets.getVertical();
+    dims.height += (info.count - 1) * _gap;
+    dims.width = info.maxwid;
 
-        DimenInfo info = computeDimens(target, false, b.width, b.height);
-        int nk = target.getComponentCount();
-        int sx, sy;
-        int tothei, totgap = _gap * (info.count-1);
-        int freecount = info.count - info.numfix;
+    return dims;
+  }
 
-        // when stretching, there is the possibility that a pixel or more will be lost to rounding
-        // error. we account for that here and assign the extra space to the first free component
-        int freefrac = 0;
+  // documentation inherited
+  public void layoutContainer (Container target)
+  {
+    // adjust the bounds width and height to account for the insets
+    Rectangle b = target.getBounds();
+    Insets insets = target.getInsets();
+    b.width -= insets.getHorizontal();
+    b.height -= insets.getVertical();
 
-        // do the on-axis policy calculations
-        int defhei = 0;
-        if (_policy == STRETCH) {
-            if (freecount > 0) {
-                int freehei = b.height - info.fixhei - totgap;
-                defhei = freehei / freecount;
-                freefrac = freehei % freecount;
-                tothei = b.height;
-            } else {
-                tothei = info.fixhei + totgap;
-            }
+    DimenInfo info = computeDimens(target, false, b.width, b.height);
+    int nk = target.getComponentCount();
+    int sx, sy;
+    int tothei, totgap = _gap * (info.count-1);
+    int freecount = info.count - info.numfix;
 
-        } else if (_policy == EQUALIZE) {
-            defhei = info.maxhei;
-            tothei = info.fixhei + defhei * freecount + totgap;
+    // when stretching, there is the possibility that a pixel or more will be lost to rounding
+    // error. we account for that here and assign the extra space to the first free component
+    int freefrac = 0;
 
-        } else {
-            tothei = info.tothei + totgap;
-        }
+    // do the on-axis policy calculations
+    int defhei = 0;
+    if (_policy == STRETCH) {
+      if (freecount > 0) {
+        int freehei = b.height - info.fixhei - totgap;
+        defhei = freehei / freecount;
+        freefrac = freehei % freecount;
+        tothei = b.height;
+      } else {
+        tothei = info.fixhei + totgap;
+      }
 
-        // do the off-axis policy calculations
-        int defwid = 0;
-        if (_offpolicy == STRETCH) {
-            defwid = b.width;
-        } else if (_offpolicy == EQUALIZE) {
-            defwid = info.maxwid;
-        }
+    } else if (_policy == EQUALIZE) {
+      defhei = info.maxhei;
+      tothei = info.fixhei + defhei * freecount + totgap;
 
-        // do the justification-related calculations
-        if (_justification == LEFT || _justification == BOTTOM) {
-            sy = insets.bottom + tothei;
-        } else if (_justification == CENTER) {
-            sy = insets.bottom + b.height - (b.height - tothei)/2;
-        } else { // RIGHT or TOP
-            sy = insets.bottom + b.height;
-        }
-
-        // do the layout
-        for (int i = 0; i < nk; i++) {
-            // skip non-visible kids
-            if (info.dimens[i] == null) {
-                continue;
-            }
-
-            Component child = target.getComponent(i);
-            int newwid, newhei;
-
-            if (_policy == NONE || isFixed(child)) {
-                newhei = info.dimens[i].height;
-            } else {
-                newhei = defhei + freefrac;
-                // clear out the extra pixels the first time they're used
-                freefrac = 0;
-            }
-
-            if (_offpolicy == NONE) {
-                newwid = info.dimens[i].width;
-            } else if (_offpolicy == CONSTRAIN) {
-                newwid = Math.min(info.dimens[i].width, b.width);
-            } else {
-                newwid = defwid;
-            }
-
-            // determine our off-axis position
-            if (_offjust == LEFT || _offjust == TOP) {
-                sx = insets.left;
-            } else if (_offjust == RIGHT || _offjust == BOTTOM) {
-                sx = insets.left + (b.width - newwid);
-            } else { // CENTER
-                sx = insets.left + (b.width - newwid)/2;
-            }
-
-            child.setBounds(sx, sy - newhei, newwid, newhei);
-            sy -= (newhei + _gap);
-        }
+    } else {
+      tothei = info.tothei + totgap;
     }
+
+    // do the off-axis policy calculations
+    int defwid = 0;
+    if (_offpolicy == STRETCH) {
+      defwid = b.width;
+    } else if (_offpolicy == EQUALIZE) {
+      defwid = info.maxwid;
+    }
+
+    // do the justification-related calculations
+    if (_justification == LEFT || _justification == BOTTOM) {
+      sy = insets.bottom + tothei;
+    } else if (_justification == CENTER) {
+      sy = insets.bottom + b.height - (b.height - tothei)/2;
+    } else { // RIGHT or TOP
+      sy = insets.bottom + b.height;
+    }
+
+    // do the layout
+    for (int i = 0; i < nk; i++) {
+      // skip non-visible kids
+      if (info.dimens[i] == null) {
+        continue;
+      }
+
+      Component child = target.getComponent(i);
+      int newwid, newhei;
+
+      if (_policy == NONE || isFixed(child)) {
+        newhei = info.dimens[i].height;
+      } else {
+        newhei = defhei + freefrac;
+        // clear out the extra pixels the first time they're used
+        freefrac = 0;
+      }
+
+      if (_offpolicy == NONE) {
+        newwid = info.dimens[i].width;
+      } else if (_offpolicy == CONSTRAIN) {
+        newwid = Math.min(info.dimens[i].width, b.width);
+      } else {
+        newwid = defwid;
+      }
+
+      // determine our off-axis position
+      if (_offjust == LEFT || _offjust == TOP) {
+        sx = insets.left;
+      } else if (_offjust == RIGHT || _offjust == BOTTOM) {
+        sx = insets.left + (b.width - newwid);
+      } else { // CENTER
+        sx = insets.left + (b.width - newwid)/2;
+      }
+
+      child.setBounds(sx, sy - newhei, newwid, newhei);
+      sy -= (newhei + _gap);
+    }
+  }
 }

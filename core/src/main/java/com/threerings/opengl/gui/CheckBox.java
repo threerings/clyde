@@ -35,36 +35,36 @@ import com.threerings.opengl.gui.icon.Icon;
  */
 public class CheckBox extends ToggleButton
 {
-    public CheckBox (GlContext ctx, String label)
-    {
-        super(ctx, label);
+  public CheckBox (GlContext ctx, String label)
+  {
+    super(ctx, label);
+  }
+
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/CheckBox";
+  }
+
+  @Override
+  protected void updateFromStyleConfig (int state, StyleConfig.Original config)
+  {
+    super.updateFromStyleConfig(state, config);
+
+    _icons[state] = (config.icon == null) ? null : config.icon.getIcon(_ctx);
+    if (getState() == state) {
+      _label.setIcon(_icons[state]);
     }
+  }
 
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/CheckBox";
-    }
+  // documentation inherited
+  protected void stateDidChange ()
+  {
+    super.stateDidChange();
 
-    @Override
-    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
-    {
-        super.updateFromStyleConfig(state, config);
+    // configure our checkbox icon
+    _label.setIcon(_icons[getState()]);
+  }
 
-        _icons[state] = (config.icon == null) ? null : config.icon.getIcon(_ctx);
-        if (getState() == state) {
-            _label.setIcon(_icons[state]);
-        }
-    }
-
-    // documentation inherited
-    protected void stateDidChange ()
-    {
-        super.stateDidChange();
-
-        // configure our checkbox icon
-        _label.setIcon(_icons[getState()]);
-    }
-
-    protected Icon[] _icons = new Icon[getStateCount()];
+  protected Icon[] _icons = new Icon[getStateCount()];
 }

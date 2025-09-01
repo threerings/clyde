@@ -40,30 +40,30 @@ import com.threerings.editor.PathProperty;
  */
 public class PathTableArrayListEditor extends TableArrayListEditor
 {
-    @Override
-    protected void didInit ()
-    {
-        super.didInit();
-        _table.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
-            public Component getTableCellRendererComponent (JTable table, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column)
-            {
-                super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
-                Color color = isSelected ? table.getSelectionForeground() : table.getForeground();
-                if (value instanceof String) {
-                    String p = (String)value;
-                    Object root = getRootObject();
-                    if (((root instanceof ParameterizedConfig) &&
-                            ((ParameterizedConfig)root).isInvalidParameterPath(p))
-                            ||
-                            (PathProperty.createPath(_ctx.getConfigManager(), root, p) == null)) {
-                        color = isSelected ? Color.red.brighter() : Color.red;
-                    }
-                }
-                setForeground(color);
-                return this;
-            }
-        });
-    }
+  @Override
+  protected void didInit ()
+  {
+    super.didInit();
+    _table.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
+      public Component getTableCellRendererComponent (JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column)
+      {
+        super.getTableCellRendererComponent(
+          table, value, isSelected, hasFocus, row, column);
+        Color color = isSelected ? table.getSelectionForeground() : table.getForeground();
+        if (value instanceof String) {
+          String p = (String)value;
+          Object root = getRootObject();
+          if (((root instanceof ParameterizedConfig) &&
+              ((ParameterizedConfig)root).isInvalidParameterPath(p))
+              ||
+              (PathProperty.createPath(_ctx.getConfigManager(), root, p) == null)) {
+            color = isSelected ? Color.red.brighter() : Color.red;
+          }
+        }
+        setForeground(color);
+        return this;
+      }
+    });
+  }
 }

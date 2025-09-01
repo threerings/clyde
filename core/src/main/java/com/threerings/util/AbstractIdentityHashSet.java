@@ -40,58 +40,58 @@ import com.google.common.collect.Sets;
  */
 public abstract class AbstractIdentityHashSet<T> extends AbstractSet<T>
 {
-    /**
-     * Creates a new set with the default expected maximum size.
-     */
-    public AbstractIdentityHashSet ()
-    {
-        _map = new IdentityHashMap<T, Boolean>();
-    }
+  /**
+   * Creates a new set with the default expected maximum size.
+   */
+  public AbstractIdentityHashSet ()
+  {
+    _map = new IdentityHashMap<T, Boolean>();
+  }
 
-    /**
-     * Creates a new set with the specified expected maximum size.
-     */
-    public AbstractIdentityHashSet (int expectedMaxSize)
-    {
-        _map = new IdentityHashMap<T, Boolean>(expectedMaxSize);
-    }
+  /**
+   * Creates a new set with the specified expected maximum size.
+   */
+  public AbstractIdentityHashSet (int expectedMaxSize)
+  {
+    _map = new IdentityHashMap<T, Boolean>(expectedMaxSize);
+  }
 
-    @Override
-    public int size ()
-    {
-        return _map.size();
-    }
+  @Override
+  public int size ()
+  {
+    return _map.size();
+  }
 
-    @Override
-    public boolean add (T element)
-    {
-        return _map.put(element, Boolean.TRUE) == null;
-    }
+  @Override
+  public boolean add (T element)
+  {
+    return _map.put(element, Boolean.TRUE) == null;
+  }
 
-    @Override
-    public boolean remove (Object object)
-    {
-        return _map.remove(object) != null;
-    }
+  @Override
+  public boolean remove (Object object)
+  {
+    return _map.remove(object) != null;
+  }
 
-    @Override
-    public boolean contains (Object object)
-    {
-        return _map.containsKey(object);
-    }
+  @Override
+  public boolean contains (Object object)
+  {
+    return _map.containsKey(object);
+  }
 
-    @Override
-    public void clear ()
-    {
-        _map.clear();
-    }
+  @Override
+  public void clear ()
+  {
+    _map.clear();
+  }
 
-    @Override
-    public Iterator<T> iterator ()
-    {
-        return _map.keySet().iterator();
-    }
+  @Override
+  public Iterator<T> iterator ()
+  {
+    return _map.keySet().iterator();
+  }
 
-    /** The underlying map. */
-    protected IdentityHashMap<T, Boolean> _map;
+  /** The underlying map. */
+  protected IdentityHashMap<T, Boolean> _map;
 }

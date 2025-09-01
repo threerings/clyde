@@ -32,19 +32,19 @@ import java.awt.event.MouseEvent;
  */
 public class Eyedropper extends EditorTool
 {
-    /**
-     * Creates the eyedropper.
-     */
-    public Eyedropper (SceneEditor editor)
-    {
-        super(editor);
-    }
+  /**
+   * Creates the eyedropper.
+   */
+  public Eyedropper (SceneEditor editor)
+  {
+    super(editor);
+  }
 
-    @Override
-    public void mousePressed (MouseEvent event)
-    {
-        if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {
-            _editor.useMouseEntry();
-        }
+  @Override
+  public void mousePressed (MouseEvent event)
+  {
+    if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {
+      _editor.useMouseEntry();
     }
+  }
 }

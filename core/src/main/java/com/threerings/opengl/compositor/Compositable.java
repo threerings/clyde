@@ -32,9 +32,9 @@ package com.threerings.opengl.compositor;
  */
 public interface Compositable
 {
-    /**
-     * Adds this object's {@link Dependency}s and {@link Enqueueable}s to the compositor in
-     * preparation for rendering.
-     */
-    public void composite ();
+  /**
+   * Adds this object's {@link Dependency}s and {@link Enqueueable}s to the compositor in
+   * preparation for rendering.
+   */
+  public void composite ();
 }

@@ -32,23 +32,23 @@ import org.lwjgl.opengl.Drawable;
  */
 public interface GlCanvas
 {
-    /**
-     * Returns the canvas drawable.
-     */
-    public Drawable getDrawable ();
+  /**
+   * Returns the canvas drawable.
+   */
+  public Drawable getDrawable ();
 
-    /**
-     * Enables or disables vsync.
-     */
-    public void setVSyncEnabled (boolean vsync);
+  /**
+   * Enables or disables vsync.
+   */
+  public void setVSyncEnabled (boolean vsync);
 
-    /**
-     * Makes the canvas context current.
-     */
-    public void makeCurrent ();
+  /**
+   * Makes the canvas context current.
+   */
+  public void makeCurrent ();
 
-    /**
-     * Shuts down the canvas.
-     */
-    public void shutdown ();
+  /**
+   * Shuts down the canvas.
+   */
+  public void shutdown ();
 }

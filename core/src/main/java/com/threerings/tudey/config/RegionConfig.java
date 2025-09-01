@@ -39,99 +39,99 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * Configurations for regions.
  */
 @EditorTypes({
-    RegionConfig.Default.class, RegionConfig.Transformed.class,
-    RegionConfig.Fixed.class })
+  RegionConfig.Default.class, RegionConfig.Transformed.class,
+  RegionConfig.Fixed.class })
 @Strippable
 public abstract class RegionConfig extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /**
-     * Base class for the located region configs.
-     */
-    public static abstract class Located extends RegionConfig
-    {
-        /** The location to use. */
-        @Editable
-        public TargetConfig location = new TargetConfig.Source();
+  /**
+   * Base class for the located region configs.
+   */
+  public static abstract class Located extends RegionConfig
+  {
+    /** The location to use. */
+    @Editable
+    public TargetConfig location = new TargetConfig.Source();
 
-        @Override
-        public void invalidate ()
-        {
-            location.invalidate();
-        }
-    }
-
-    /**
-     * A potentially expanded or contracted version of the source shape.
-     */
-    public static class Default extends Located
-    {
-        /** The amount to expand the intersection shape. */
-        @Editable(step=0.01)
-        public float expansion;
-
-        @Override
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.RegionLogic$Default";
-        }
-    }
-
-    /**
-     * An explicitly specified shape that uses the source's translation and rotation.
-     */
-    public static class Transformed extends Located
-    {
-        /** The shape of the region. */
-        @Editable
-        public ShapeConfig shape = new ShapeConfig.Point();
-
-        @Override
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.RegionLogic$Transformed";
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            super.invalidate();
-            shape.invalidate();
-        }
-    }
-
-    /**
-     * A fixed (world space) region.
-     */
-    public static class Fixed extends RegionConfig
-    {
-        /** The shape of the region. */
-        @Editable
-        public ShapeConfig shape = new ShapeConfig.Point();
-
-        @Override
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.RegionLogic$Fixed";
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            shape.invalidate();
-        }
-    }
-
-    /**
-     * Returns the name of the server-side logic class for this region.
-     */
-    public abstract String getLogicClassName ();
-
-    /**
-     * Invalidates any cached data.
-     */
+    @Override
     public void invalidate ()
     {
-        // nothing by default
+      location.invalidate();
     }
+  }
+
+  /**
+   * A potentially expanded or contracted version of the source shape.
+   */
+  public static class Default extends Located
+  {
+    /** The amount to expand the intersection shape. */
+    @Editable(step=0.01)
+    public float expansion;
+
+    @Override
+    public String getLogicClassName ()
+    {
+      return "com.threerings.tudey.server.logic.RegionLogic$Default";
+    }
+  }
+
+  /**
+   * An explicitly specified shape that uses the source's translation and rotation.
+   */
+  public static class Transformed extends Located
+  {
+    /** The shape of the region. */
+    @Editable
+    public ShapeConfig shape = new ShapeConfig.Point();
+
+    @Override
+    public String getLogicClassName ()
+    {
+      return "com.threerings.tudey.server.logic.RegionLogic$Transformed";
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      super.invalidate();
+      shape.invalidate();
+    }
+  }
+
+  /**
+   * A fixed (world space) region.
+   */
+  public static class Fixed extends RegionConfig
+  {
+    /** The shape of the region. */
+    @Editable
+    public ShapeConfig shape = new ShapeConfig.Point();
+
+    @Override
+    public String getLogicClassName ()
+    {
+      return "com.threerings.tudey.server.logic.RegionLogic$Fixed";
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      shape.invalidate();
+    }
+  }
+
+  /**
+   * Returns the name of the server-side logic class for this region.
+   */
+  public abstract String getLogicClassName ();
+
+  /**
+   * Invalidates any cached data.
+   */
+  public void invalidate ()
+  {
+    // nothing by default
+  }
 }

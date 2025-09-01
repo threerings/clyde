@@ -38,47 +38,47 @@ import com.threerings.editor.swing.BasePropertyEditor;
  * A property editor that simply returns the path to the current property.
  */
 public class GetPathEditor extends ObjectEditor
-    implements ActionListener
+  implements ActionListener
 {
-    // documentation inehrtied from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        BasePropertyEditor editor = this;
-        for (Component comp = this; comp != null; ) {
-            if (comp instanceof BasePropertyEditor) {
-                editor = (BasePropertyEditor)comp;
-            }
-            comp = comp.getParent();
-        }
-        copyPropertyPath(editor.getMousePath());
+  // documentation inehrtied from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    BasePropertyEditor editor = this;
+    for (Component comp = this; comp != null; ) {
+      if (comp instanceof BasePropertyEditor) {
+        editor = (BasePropertyEditor)comp;
+      }
+      comp = comp.getParent();
     }
+    copyPropertyPath(editor.getMousePath());
+  }
 
-    @Override
-    public void update ()
-    {
-        if (_panel != null) {
-            super.update();
-        }
+  @Override
+  public void update ()
+  {
+    if (_panel != null) {
+      super.update();
     }
+  }
 
-    @Override
-    public String getComponentPath (Component comp, boolean mouse)
-    {
-        if (_panel != null) {
-            return super.getComponentPath(comp, mouse);
-        }
-        return "";
+  @Override
+  public String getComponentPath (Component comp, boolean mouse)
+  {
+    if (_panel != null) {
+      return super.getComponentPath(comp, mouse);
     }
+    return "";
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        if (_property instanceof PathProperty) {
-            super.didInit();
-        } else {
-            JButton getPath = new JButton(_msgs.get("m.get_path"));
-            add(getPath);
-            getPath.addActionListener(this);
-        }
+  @Override
+  protected void didInit ()
+  {
+    if (_property instanceof PathProperty) {
+      super.didInit();
+    } else {
+      JButton getPath = new JButton(_msgs.get("m.get_path"));
+      add(getPath);
+      getPath.addActionListener(this);
     }
+  }
 }

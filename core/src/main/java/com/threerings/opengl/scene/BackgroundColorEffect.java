@@ -32,20 +32,20 @@ import com.threerings.opengl.renderer.Color4f;
  */
 public class BackgroundColorEffect extends ViewerEffect
 {
-    /**
-     * Creates a new background color effect.
-     */
-    public BackgroundColorEffect (Color4f color)
-    {
-        _backgroundColor.set(color);
-    }
+  /**
+   * Creates a new background color effect.
+   */
+  public BackgroundColorEffect (Color4f color)
+  {
+    _backgroundColor.set(color);
+  }
 
-    @Override
-    public Color4f getBackgroundColor ()
-    {
-        return _backgroundColor;
-    }
+  @Override
+  public Color4f getBackgroundColor ()
+  {
+    return _backgroundColor;
+  }
 
-    /** The background color. */
-    protected Color4f _backgroundColor = new Color4f();
+  /** The background color. */
+  protected Color4f _backgroundColor = new Color4f();
 }

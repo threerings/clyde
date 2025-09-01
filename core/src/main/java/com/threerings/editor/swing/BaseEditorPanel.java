@@ -47,163 +47,163 @@ import com.threerings.editor.util.EditorContext;
  */
 public abstract class BaseEditorPanel extends BasePropertyEditor
 {
-    /**
-     * Creates an empty editor panel.
-     */
-    public BaseEditorPanel (EditorContext ctx, Property[] ancestors, boolean omitColumns)
-    {
-        _ctx = ctx;
-        _ancestors = ancestors;
-        _omitColumns = omitColumns;
-        _msgmgr = ctx.getMessageManager();
-        _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
+  /**
+   * Creates an empty editor panel.
+   */
+  public BaseEditorPanel (EditorContext ctx, Property[] ancestors, boolean omitColumns)
+  {
+    _ctx = ctx;
+    _ancestors = ancestors;
+    _omitColumns = omitColumns;
+    _msgmgr = ctx.getMessageManager();
+    _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
 
-        // add a mapping to copy the path of the property under the mouse cursor to the clipboard
-        if (ancestors == null) {
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
-                "copy_path");
-            getActionMap().put("copy_path", new AbstractAction() {
-                public void actionPerformed (ActionEvent event) {
-                    copyPropertyPath(getMousePath());
-                }
-            });
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
-                "direct_path");
-            getActionMap().put("direct_path", new AbstractAction() {
-                public void actionPerformed (ActionEvent event) {
-                    createDirectPath(getMousePath());
-                }
-            });
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.META_MASK),
-                "copy_file_path");
-            getActionMap().put("copy_file_path", new AbstractAction() {
-                public void actionPerformed (ActionEvent event) {
-                    copyFilePathUnderMouse();
-                }
-            });
-
-            // since we are a top-level editor, set up the parameter highlighter
-            new ParameterHighlighter(this);
+    // add a mapping to copy the path of the property under the mouse cursor to the clipboard
+    if (ancestors == null) {
+      getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
+        "copy_path");
+      getActionMap().put("copy_path", new AbstractAction() {
+        public void actionPerformed (ActionEvent event) {
+          copyPropertyPath(getMousePath());
         }
-
-        setLayout(new VGroupLayout(
-            isEmbedded() ? GroupLayout.NONE : GroupLayout.STRETCH,
-            GroupLayout.STRETCH, 5, GroupLayout.TOP));
-    }
-
-    /**
-     * Returns a reference to the array of ancestor properties from which constraints are
-     * inherited.
-     */
-    public Property[] getAncestors ()
-    {
-        return _ancestors;
-    }
-
-    /**
-     * Returns whether or not we should omit properties flagged as columns.
-     */
-    public boolean getOmitColumns ()
-    {
-        return _omitColumns;
-    }
-
-    /**
-     * Sets the object being edited.
-     */
-    public void setObject (Object object)
-    {
-        _object = object;
-    }
-
-    /**
-     * Returns the object being edited.
-     */
-    public Object getObject ()
-    {
-        return _object;
-    }
-
-    /**
-     * Determines whether this editor panel is embedded within another.
-     */
-    protected boolean isEmbedded ()
-    {
-        return (_ancestors != null);
-    }
-
-    /**
-     * Attempts to create a new direct property path.
-     */
-    protected void createDirectPath (String path)
-    {
-        if (path.startsWith(".")) {
-            path = path.substring(1);
+      });
+      getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
+        "direct_path");
+      getActionMap().put("direct_path", new AbstractAction() {
+        public void actionPerformed (ActionEvent event) {
+          createDirectPath(getMousePath());
         }
-        if (path.length() > 0 && _object instanceof ParameterizedConfig) {
-            if (((ParameterizedConfig)_object).isInvalidParameterPath(path)) {
-                getToolkit().beep();
-                return;
-            }
-            String name = path.substring(path.lastIndexOf(".") + 1);
-            if (name.endsWith("]")) {
-                int brack1 = name.lastIndexOf('[');
-                int quote2 = name.lastIndexOf('"');
-                name = (quote2 > brack1) // is there a " within the []?
-                    ? name.substring(brack1 + 2, quote2) // get what's within the quotes
-                    : name.substring(0, brack1); // everything up to the [
-            }
-            if (_ddialog == null) {
-                _ddialog = DirectDialog.createDialog(this, _ctx);
-            }
-            _ddialog.show(this, name, path);
+      });
+      getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.META_MASK),
+        "copy_file_path");
+      getActionMap().put("copy_file_path", new AbstractAction() {
+        public void actionPerformed (ActionEvent event) {
+          copyFilePathUnderMouse();
         }
+      });
+
+      // since we are a top-level editor, set up the parameter highlighter
+      new ParameterHighlighter(this);
     }
 
-    /**
-     * Locate a PropertyEditor under the mouse that has a file, if found then copy the full
-     * file path to the clipboard and dump to stdout too.
-     */
-    protected void copyFilePathUnderMouse ()
-    {
-        Point pt = getMousePosition();
-        if (pt != null) {
-            for (Component comp = findComponentAt(pt); comp != null; comp = comp.getParent()) {
-                if (comp instanceof PropertyEditor) {
-                    String file = ((PropertyEditor)comp).getEditedFilePath();
-                    if (file == null) {
-                        break; // do the beep
-                    }
-                    StringSelection contents = new StringSelection(file);
-                    getToolkit().getSystemClipboard().setContents(contents, contents);
-                    // this is handy output, to be kept:
-                    System.out.println("Copied to clipboard: " + file);
-                    return; // do not beep
-                }
-            }
-        }
+    setLayout(new VGroupLayout(
+      isEmbedded() ? GroupLayout.NONE : GroupLayout.STRETCH,
+      GroupLayout.STRETCH, 5, GroupLayout.TOP));
+  }
 
-        // did not find a file
+  /**
+   * Returns a reference to the array of ancestor properties from which constraints are
+   * inherited.
+   */
+  public Property[] getAncestors ()
+  {
+    return _ancestors;
+  }
+
+  /**
+   * Returns whether or not we should omit properties flagged as columns.
+   */
+  public boolean getOmitColumns ()
+  {
+    return _omitColumns;
+  }
+
+  /**
+   * Sets the object being edited.
+   */
+  public void setObject (Object object)
+  {
+    _object = object;
+  }
+
+  /**
+   * Returns the object being edited.
+   */
+  public Object getObject ()
+  {
+    return _object;
+  }
+
+  /**
+   * Determines whether this editor panel is embedded within another.
+   */
+  protected boolean isEmbedded ()
+  {
+    return (_ancestors != null);
+  }
+
+  /**
+   * Attempts to create a new direct property path.
+   */
+  protected void createDirectPath (String path)
+  {
+    if (path.startsWith(".")) {
+      path = path.substring(1);
+    }
+    if (path.length() > 0 && _object instanceof ParameterizedConfig) {
+      if (((ParameterizedConfig)_object).isInvalidParameterPath(path)) {
         getToolkit().beep();
+        return;
+      }
+      String name = path.substring(path.lastIndexOf(".") + 1);
+      if (name.endsWith("]")) {
+        int brack1 = name.lastIndexOf('[');
+        int quote2 = name.lastIndexOf('"');
+        name = (quote2 > brack1) // is there a " within the []?
+          ? name.substring(brack1 + 2, quote2) // get what's within the quotes
+          : name.substring(0, brack1); // everything up to the [
+      }
+      if (_ddialog == null) {
+        _ddialog = DirectDialog.createDialog(this, _ctx);
+      }
+      _ddialog.show(this, name, path);
+    }
+  }
+
+  /**
+   * Locate a PropertyEditor under the mouse that has a file, if found then copy the full
+   * file path to the clipboard and dump to stdout too.
+   */
+  protected void copyFilePathUnderMouse ()
+  {
+    Point pt = getMousePosition();
+    if (pt != null) {
+      for (Component comp = findComponentAt(pt); comp != null; comp = comp.getParent()) {
+        if (comp instanceof PropertyEditor) {
+          String file = ((PropertyEditor)comp).getEditedFilePath();
+          if (file == null) {
+            break; // do the beep
+          }
+          StringSelection contents = new StringSelection(file);
+          getToolkit().getSystemClipboard().setContents(contents, contents);
+          // this is handy output, to be kept:
+          System.out.println("Copied to clipboard: " + file);
+          return; // do not beep
+        }
+      }
     }
 
-    /**
-     * Updates the editor state in response to an external change in the object's state.
-     */
-    public abstract void update ();
+    // did not find a file
+    getToolkit().beep();
+  }
 
-    /** The ancestor properties from which constraints are inherited. */
-    protected Property[] _ancestors;
+  /**
+   * Updates the editor state in response to an external change in the object's state.
+   */
+  public abstract void update ();
 
-    /** If true, omit properties flagged as columns. */
-    protected boolean _omitColumns;
+  /** The ancestor properties from which constraints are inherited. */
+  protected Property[] _ancestors;
 
-    /** The object being edited. */
-    protected Object _object;
+  /** If true, omit properties flagged as columns. */
+  protected boolean _omitColumns;
 
-    /** The dialog for creating direct parameters. */
-    protected DirectDialog _ddialog;
+  /** The object being edited. */
+  protected Object _object;
+
+  /** The dialog for creating direct parameters. */
+  protected DirectDialog _ddialog;
 }

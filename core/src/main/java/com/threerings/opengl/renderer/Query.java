@@ -36,87 +36,87 @@ import org.lwjgl.opengl.GL11;
  */
 public abstract class Query
 {
+  /**
+   * Queries the number of samples passed.
+   */
+  public static class SamplesPassed extends Query
+  {
     /**
-     * Queries the number of samples passed.
+     * Creates a new samples-passed query for the specified renderer.
      */
-    public static class SamplesPassed extends Query
+    public SamplesPassed (Renderer renderer)
     {
-        /**
-         * Creates a new samples-passed query for the specified renderer.
-         */
-        public SamplesPassed (Renderer renderer)
-        {
-            super(renderer, ARBOcclusionQuery.GL_SAMPLES_PASSED_ARB);
-        }
+      super(renderer, ARBOcclusionQuery.GL_SAMPLES_PASSED_ARB);
     }
+  }
 
-    /**
-     * Creates a new query for the specified renderer.
-     */
-    public Query (Renderer renderer, int target)
-    {
-        _renderer = renderer;
-        IntBuffer idbuf = BufferUtils.createIntBuffer(1);
-        ARBOcclusionQuery.glGenQueriesARB(idbuf);
-        _id = idbuf.get(0);
-        _target = target;
+  /**
+   * Creates a new query for the specified renderer.
+   */
+  public Query (Renderer renderer, int target)
+  {
+    _renderer = renderer;
+    IntBuffer idbuf = BufferUtils.createIntBuffer(1);
+    ARBOcclusionQuery.glGenQueriesARB(idbuf);
+    _id = idbuf.get(0);
+    _target = target;
+  }
+
+  /**
+   * Returns this query's OpenGL identifier.
+   */
+  public final int getId ()
+  {
+    return _id;
+  }
+
+  /**
+   * Returns the query's target.
+   */
+  public final int getTarget ()
+  {
+    return _target;
+  }
+
+  /**
+   * Determines whether the result of the query would be available without blocking.
+   */
+  public boolean isResultAvailable ()
+  {
+    ARBOcclusionQuery.glGetQueryObjectARB(
+      _id, ARBOcclusionQuery.GL_QUERY_RESULT_AVAILABLE_ARB, _result);
+    return _result.get(0) == GL11.GL_TRUE;
+  }
+
+  /**
+   * Retrieves and returns the result of this query.
+   */
+  public int getResult ()
+  {
+    ARBOcclusionQuery.glGetQueryObjectARB(
+      _id, ARBOcclusionQuery.GL_QUERY_RESULT_ARB, _result);
+    return _result.get(0);
+  }
+
+  @Override
+  protected void finalize ()
+    throws Throwable
+  {
+    super.finalize();
+    if (_id > 0) {
+      _renderer.queryFinalized(_id);
     }
+  }
 
-    /**
-     * Returns this query's OpenGL identifier.
-     */
-    public final int getId ()
-    {
-        return _id;
-    }
+  /** The renderer responsible for this query. */
+  protected Renderer _renderer;
 
-    /**
-     * Returns the query's target.
-     */
-    public final int getTarget ()
-    {
-        return _target;
-    }
+  /** The OpenGL identifier for this query. */
+  protected int _id;
 
-    /**
-     * Determines whether the result of the query would be available without blocking.
-     */
-    public boolean isResultAvailable ()
-    {
-        ARBOcclusionQuery.glGetQueryObjectARB(
-            _id, ARBOcclusionQuery.GL_QUERY_RESULT_AVAILABLE_ARB, _result);
-        return _result.get(0) == GL11.GL_TRUE;
-    }
+  /** The query target. */
+  protected int _target;
 
-    /**
-     * Retrieves and returns the result of this query.
-     */
-    public int getResult ()
-    {
-        ARBOcclusionQuery.glGetQueryObjectARB(
-            _id, ARBOcclusionQuery.GL_QUERY_RESULT_ARB, _result);
-        return _result.get(0);
-    }
-
-    @Override
-    protected void finalize ()
-        throws Throwable
-    {
-        super.finalize();
-        if (_id > 0) {
-            _renderer.queryFinalized(_id);
-        }
-    }
-
-    /** The renderer responsible for this query. */
-    protected Renderer _renderer;
-
-    /** The OpenGL identifier for this query. */
-    protected int _id;
-
-    /** The query target. */
-    protected int _target;
-
-    /** Stores results. */
-    protected IntBuffer _result = BufferUtils.createIntBuffer(1);
+  /** Stores results. */
+  protected IntBuffer _result = BufferUtils.createIntBuffer(1);
 }

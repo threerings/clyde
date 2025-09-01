@@ -41,113 +41,113 @@ import com.threerings.tudey.shape.Shape;
  */
 public class EffectLogic extends Logic
 {
-    /**
-     * Initializes the logic.
-     *
-     * @param translation an offset from the target's translation, or null, or the absolute
-     * translation if there's no target.
-     * @param rotation an offset from the target's rotation, or the absolute rotation if there's
-     * no target.
-     */
-    public void init (
-        TudeySceneManager scenemgr, ConfigReference<EffectConfig> ref,
-        EffectConfig.Original config, int timestamp, Logic target,
-        Vector2f translation, float rotation)
-    {
-        super.init(scenemgr);
-        _config = config;
-        _target = target;
+  /**
+   * Initializes the logic.
+   *
+   * @param translation an offset from the target's translation, or null, or the absolute
+   * translation if there's no target.
+   * @param rotation an offset from the target's rotation, or the absolute rotation if there's
+   * no target.
+   */
+  public void init (
+    TudeySceneManager scenemgr, ConfigReference<EffectConfig> ref,
+    EffectConfig.Original config, int timestamp, Logic target,
+    Vector2f translation, float rotation)
+  {
+    super.init(scenemgr);
+    _config = config;
+    _target = target;
 
-        EntityKey targetKey;
-        if (target != null) {
-            targetKey = target.getEntityKey();
-            translation = (translation == null)
-                ? target.getTranslation()
-                : translation.add(target.getTranslation());
-            rotation = FloatMath.normalizeAngle(rotation + target.getRotation());
+    EntityKey targetKey;
+    if (target != null) {
+      targetKey = target.getEntityKey();
+      translation = (translation == null)
+        ? target.getTranslation()
+        : translation.add(target.getTranslation());
+      rotation = FloatMath.normalizeAngle(rotation + target.getRotation());
 
-        } else {
-            targetKey = null;
-        }
-
-        _effect = createEffect(ref, timestamp, targetKey, translation, rotation);
-        _effect.init(scenemgr.getConfigManager());
-        _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
-        _action = (config.action == null) ? null : createAction(config.action, this);
-
-        // give subclasses a chance to initialize
-        didInit();
+    } else {
+      targetKey = null;
     }
 
-    /**
-     * Returns a reference to the effect fired.
-     */
-    public Effect getEffect ()
-    {
-        return _effect;
+    _effect = createEffect(ref, timestamp, targetKey, translation, rotation);
+    _effect.init(scenemgr.getConfigManager());
+    _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
+    _action = (config.action == null) ? null : createAction(config.action, this);
+
+    // give subclasses a chance to initialize
+    didInit();
+  }
+
+  /**
+   * Returns a reference to the effect fired.
+   */
+  public Effect getEffect ()
+  {
+    return _effect;
+  }
+
+  /**
+   * Returns a reference to the shape of the effect.
+   */
+  public Shape getShape ()
+  {
+    return _shape;
+  }
+
+  @Override
+  public boolean isVisible (PawnLogic pawn)
+  {
+    return !_config.targetOnly || _target == pawn;
+  }
+
+  @Override
+  public Vector2f getTranslation ()
+  {
+    return _effect.getTranslation();
+  }
+
+  @Override
+  public float getRotation ()
+  {
+    return _effect.getRotation();
+  }
+
+  /**
+   * Creates the effect for this logic.
+   */
+  protected Effect createEffect (
+    ConfigReference<EffectConfig> ref, int timestamp,
+    EntityKey target, Vector2f translation, float rotation)
+  {
+    return _config.createEffect(ref, timestamp, target, translation, rotation);
+  }
+
+  /**
+   * Override to perform custom initialization.
+   */
+  protected void didInit ()
+  {
+    // execute the configured action, if any
+    if (_action != null) {
+      _action.execute(_effect.getTimestamp(), (_target == null) ? this : _target);
     }
+  }
 
-    /**
-     * Returns a reference to the shape of the effect.
-     */
-    public Shape getShape ()
-    {
-        return _shape;
-    }
+  // TODO: a way to call removed() on the action
 
-    @Override
-    public boolean isVisible (PawnLogic pawn)
-    {
-        return !_config.targetOnly || _target == pawn;
-    }
+  /** The effect configuration. */
+  protected EffectConfig.Original _config;
 
-    @Override
-    public Vector2f getTranslation ()
-    {
-        return _effect.getTranslation();
-    }
+  /** The effect fired. */
+  protected Effect _effect;
 
-    @Override
-    public float getRotation ()
-    {
-        return _effect.getRotation();
-    }
+  /** The target of the effect (if any). */
+  protected Logic _target;
 
-    /**
-     * Creates the effect for this logic.
-     */
-    protected Effect createEffect (
-        ConfigReference<EffectConfig> ref, int timestamp,
-        EntityKey target, Vector2f translation, float rotation)
-    {
-        return _config.createEffect(ref, timestamp, target, translation, rotation);
-    }
+  /** The shape of the effect. */
+  protected Shape _shape;
 
-    /**
-     * Override to perform custom initialization.
-     */
-    protected void didInit ()
-    {
-        // execute the configured action, if any
-        if (_action != null) {
-            _action.execute(_effect.getTimestamp(), (_target == null) ? this : _target);
-        }
-    }
-
-    // TODO: a way to call removed() on the action
-
-    /** The effect configuration. */
-    protected EffectConfig.Original _config;
-
-    /** The effect fired. */
-    protected Effect _effect;
-
-    /** The target of the effect (if any). */
-    protected Logic _target;
-
-    /** The shape of the effect. */
-    protected Shape _shape;
-
-    /** The effect action, if any. */
-    protected ActionLogic _action;
+  /** The effect action, if any. */
+  protected ActionLogic _action;
 }

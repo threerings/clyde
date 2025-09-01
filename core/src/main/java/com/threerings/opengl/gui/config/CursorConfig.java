@@ -44,56 +44,56 @@ import com.threerings.opengl.util.GlContext;
  */
 public class CursorConfig extends ManagedConfig
 {
-    /** The cursor image. */
-    @Editable(editor="resource", nullable=true)
-    @FileConstraints(
-        description="m.image_files_desc",
-        extensions={".png", ".jpg"},
-        directory="image_dir")
-    public String image;
+  /** The cursor image. */
+  @Editable(editor="resource", nullable=true)
+  @FileConstraints(
+    description="m.image_files_desc",
+    extensions={".png", ".jpg"},
+    directory="image_dir")
+  public String image;
 
-    /** Colorizations to apply to the cursor. */
-    @Editable
-    public ColorizationConfig[] colorizations = new ColorizationConfig[0];
+  /** Colorizations to apply to the cursor. */
+  @Editable
+  public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
-    /** The hot spot x coordinate. */
-    @Editable(min=0, hgroup="h")
-    public int hotSpotX;
+  /** The hot spot x coordinate. */
+  @Editable(min=0, hgroup="h")
+  public int hotSpotX;
 
-    /** The hot spot y coordinate. */
-    @Editable(min=0, hgroup="h")
-    public int hotSpotY;
+  /** The hot spot y coordinate. */
+  @Editable(min=0, hgroup="h")
+  public int hotSpotY;
 
-    /**
-     * Returns the cursor corresponding to this config.
-     */
-    public Cursor getCursor (GlContext ctx)
-    {
-        Cursor cursor = (_cursor == null) ? null : _cursor.get();
-        if (cursor == null) {
-            _cursor = new SoftReference<Cursor>(cursor = new Cursor(
-                TextureConfig.getImage(ctx, image, colorizations), hotSpotX, hotSpotY));
-        }
-        return cursor;
+  /**
+   * Returns the cursor corresponding to this config.
+   */
+  public Cursor getCursor (GlContext ctx)
+  {
+    Cursor cursor = (_cursor == null) ? null : _cursor.get();
+    if (cursor == null) {
+      _cursor = new SoftReference<Cursor>(cursor = new Cursor(
+        TextureConfig.getImage(ctx, image, colorizations), hotSpotX, hotSpotY));
     }
+    return cursor;
+  }
 
-    @Override
-    protected void fireConfigUpdated ()
-    {
-        // invalidate
-        _cursor = null;
-        super.fireConfigUpdated();
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate
+    _cursor = null;
+    super.fireConfigUpdated();
+  }
+
+  @Override
+  protected void getUpdateResources (HashSet<String> paths)
+  {
+    if (image != null) {
+      paths.add(image);
     }
+  }
 
-    @Override
-    protected void getUpdateResources (HashSet<String> paths)
-    {
-        if (image != null) {
-            paths.add(image);
-        }
-    }
-
-    /** The cached cursor. */
-    @DeepOmit
-    protected transient SoftReference<Cursor> _cursor;
+  /** The cached cursor. */
+  @DeepOmit
+  protected transient SoftReference<Cursor> _cursor;
 }

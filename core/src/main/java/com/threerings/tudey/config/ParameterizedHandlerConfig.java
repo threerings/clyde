@@ -41,98 +41,98 @@ import com.threerings.opengl.util.PreloadableSet;
  */
 public class ParameterizedHandlerConfig extends ParameterizedConfig
 {
-    /**
-     * Contains the actual implementation of the parameterized handler.
-     */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config's underlying original implementation.
-         */
-        public abstract Original getOriginal (ConfigManager cfgmgr);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
-
-    /**
-     * An original implementation.
-     */
-    public static class Original extends Implementation
-    {
-        /** The handlers. */
-        @Editable
-        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
-
-        /**
-         * Adds the resources to preload for this attack into the provided set.
-         */
-        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
-        {
-            for (HandlerConfig handler : handlers) {
-                handler.getPreloads(cfgmgr, preloads);
-            }
-        }
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            return this;
-        }
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            for (HandlerConfig handler : handlers) {
-                handler.invalidate();
-            }
-        }
-    }
-
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The handler reference. */
-        @Editable(nullable=true)
-        public ConfigReference<ParameterizedHandlerConfig> ref;
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            ParameterizedHandlerConfig config =
-                    cfgmgr.getConfig(ParameterizedHandlerConfig.class, ref);
-            return (config == null) ? null : config.getOriginal(cfgmgr);
-        }
-    }
-
-    /** The actual handler implementation. */
-    @Editable
-    public Implementation implementation = new Original();
-
+  /**
+   * Contains the actual implementation of the parameterized handler.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
      * Returns a reference to the config's underlying original implementation.
      */
-    public Original getOriginal (ConfigManager cfgmgr)
+    public abstract Original getOriginal (ConfigManager cfgmgr);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
-        return implementation.getOriginal(cfgmgr);
+      // nothing by default
+    }
+  }
+
+  /**
+   * An original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /** The handlers. */
+    @Editable
+    public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
+
+    /**
+     * Adds the resources to preload for this attack into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+      for (HandlerConfig handler : handlers) {
+        handler.getPreloads(cfgmgr, preloads);
+      }
     }
 
     @Override
-    protected void fireConfigUpdated ()
+    public Original getOriginal (ConfigManager cfgmgr)
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.fireConfigUpdated();
+      return this;
     }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+      for (HandlerConfig handler : handlers) {
+        handler.invalidate();
+      }
+    }
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The handler reference. */
+    @Editable(nullable=true)
+    public ConfigReference<ParameterizedHandlerConfig> ref;
+
+    @Override
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+      ParameterizedHandlerConfig config =
+          cfgmgr.getConfig(ParameterizedHandlerConfig.class, ref);
+      return (config == null) ? null : config.getOriginal(cfgmgr);
+    }
+  }
+
+  /** The actual handler implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Returns a reference to the config's underlying original implementation.
+   */
+  public Original getOriginal (ConfigManager cfgmgr)
+  {
+    return implementation.getOriginal(cfgmgr);
+  }
+
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.fireConfigUpdated();
+  }
 }

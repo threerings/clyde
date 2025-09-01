@@ -35,59 +35,59 @@ import com.threerings.media.util.TrailingAverage;
  */
 public class TruncatedAverage extends TrailingAverage
 {
-    /**
-     * Creates a new truncated average that records the last ten values and omits the three highest
-     * and lowest when computing the average.
-     */
-    public TruncatedAverage ()
-    {
-        this(10, 3, 3);
+  /**
+   * Creates a new truncated average that records the last ten values and omits the three highest
+   * and lowest when computing the average.
+   */
+  public TruncatedAverage ()
+  {
+    this(10, 3, 3);
+  }
+
+  /**
+   * Creates a new truncated average that records the specified number of values and omits the
+   * given number of values at the higher and lower ends.
+   */
+  public TruncatedAverage (int history, int omitLowest, int omitHighest)
+  {
+    super(history);
+    _omitLowest = omitLowest;
+    _omitHighest = omitHighest;
+    _sorted = new int[history];
+  }
+
+  @Override
+  public void record (int value)
+  {
+    super.record(value);
+
+    // copy the current values and sort
+    int end = Math.min(_history.length, _index);
+    System.arraycopy(_history, 0, _sorted, 0, end);
+    Arrays.sort(_sorted, 0, end);
+
+    // add up the values, less the ones at the end
+    int total = 0;
+    int first = (_omitLowest * end) / _history.length;
+    int last = end - (_omitHighest * end) / _history.length;
+    for (int ii = first; ii < last; ii++) {
+      total += _sorted[ii];
     }
+    _value = total / (last - first);
+  }
 
-    /**
-     * Creates a new truncated average that records the specified number of values and omits the
-     * given number of values at the higher and lower ends.
-     */
-    public TruncatedAverage (int history, int omitLowest, int omitHighest)
-    {
-        super(history);
-        _omitLowest = omitLowest;
-        _omitHighest = omitHighest;
-        _sorted = new int[history];
-    }
+  @Override
+  public int value ()
+  {
+    return _value;
+  }
 
-    @Override
-    public void record (int value)
-    {
-        super.record(value);
+  /** The number of values to omit on the lower and higher ends. */
+  protected int _omitLowest, _omitHighest;
 
-        // copy the current values and sort
-        int end = Math.min(_history.length, _index);
-        System.arraycopy(_history, 0, _sorted, 0, end);
-        Arrays.sort(_sorted, 0, end);
+  /** An array for the sorted values. */
+  protected int[] _sorted;
 
-        // add up the values, less the ones at the end
-        int total = 0;
-        int first = (_omitLowest * end) / _history.length;
-        int last = end - (_omitHighest * end) / _history.length;
-        for (int ii = first; ii < last; ii++) {
-            total += _sorted[ii];
-        }
-        _value = total / (last - first);
-    }
-
-    @Override
-    public int value ()
-    {
-        return _value;
-    }
-
-    /** The number of values to omit on the lower and higher ends. */
-    protected int _omitLowest, _omitHighest;
-
-    /** An array for the sorted values. */
-    protected int[] _sorted;
-
-    /** The current value. */
-    protected int _value;
+  /** The current value. */
+  protected int _value;
 }

@@ -17,9 +17,9 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface ReferenceConstraints
 {
-    /** The translatable description. */
-    String description () default "";
+  /** The translatable description. */
+  String description () default "";
 
-    /** The allowable sub-types of the config that the config reference must resolve to. */
-    Class<? extends ManagedConfig>[] value ();
+  /** The allowable sub-types of the config that the config reference must resolve to. */
+  Class<? extends ManagedConfig>[] value ();
 }

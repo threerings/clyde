@@ -55,91 +55,91 @@ import static com.threerings.editor.Log.log;
  */
 public class EnumPanelArrayListEditor extends PanelArrayListEditor
 {
-    @Override
-    protected void updatePanel (EntryPanel panel, Object value)
+  @Override
+  protected void updatePanel (EntryPanel panel, Object value)
+  {
+    JComboBox box = ((EnumEntryPanel)panel).getBox();
+    box.setSelectedIndex(getValues().indexOf(value));
+  }
+
+  @Override
+  protected void addPanel (Object value)
+  {
+    _panels.add(new EnumEntryPanel(value));
+  }
+
+  /**
+   * Get the valid values for this enum property, which may or may not include null.
+   */
+  protected List<Enum<?>> getValues ()
+  {
+    return Arrays.asList((Enum<?>[])getEnumType().getEnumConstants());
+  }
+
+  protected Class<?> getEnumType ()
+  {
+    Class<?> ctype = _property.getComponentType();
+    if (ctype.isArray()) {
+      ctype = ctype.getComponentType();
+    }
+    return ctype;
+  }
+
+  /**
+   * Called when a enum is updated.
+   */
+  protected void boxUpdated (JComboBox box)
+  {
+    int idx = ((EntryPanel)box.getParent().getParent()).getIndex();
+    setValue(idx, getValues().get(box.getSelectedIndex()));
+    fireStateChanged(true);
+  }
+
+  /**
+   * A panel for an enum entry.
+   */
+  protected class EnumEntryPanel extends EntryPanel
+  {
+    public EnumEntryPanel (Object value)
     {
-        JComboBox box = ((EnumEntryPanel)panel).getBox();
-        box.setSelectedIndex(getValues().indexOf(value));
+      super(value);
+    }
+
+    public JComboBox getBox ()
+    {
+      return _box;
     }
 
     @Override
-    protected void addPanel (Object value)
+    public String getComponentPath (Component comp, boolean mouse)
     {
-        _panels.add(new EnumEntryPanel(value));
+      return "";
     }
 
-    /**
-     * Get the valid values for this enum property, which may or may not include null.
-     */
-    protected List<Enum<?>> getValues ()
+    @Override
+    protected JPanel createPanel (Object value)
     {
-        return Arrays.asList((Enum<?>[])getEnumType().getEnumConstants());
+      JPanel panel = new JPanel(new VGroupLayout(
+            GroupLayout.NONE, GroupLayout.CONSTRAIN, 5, GroupLayout.TOP));
+      final MessageBundle msgs =
+        _msgmgr.getBundle(Introspector.getMessageBundle(getEnumType()));
+      List<Enum<?>> values = getValues();
+      Object[] labels = Lists.transform(values, new Function<Enum<?>, String>() {
+        public String apply (Enum<?> value) {
+          return getLabel(value, msgs);
+        }
+      }).toArray();
+      panel.add(_box = new JComboBox(labels));
+      _box.setSelectedIndex(values.indexOf(value));
+      _box.addActionListener(new ActionListener() {
+        public void actionPerformed (ActionEvent event) {
+          boxUpdated((JComboBox)event.getSource());
+        }
+      });
+
+      return panel;
     }
 
-    protected Class<?> getEnumType ()
-    {
-        Class<?> ctype = _property.getComponentType();
-        if (ctype.isArray()) {
-            ctype = ctype.getComponentType();
-        }
-        return ctype;
-    }
-
-    /**
-     * Called when a enum is updated.
-     */
-    protected void boxUpdated (JComboBox box)
-    {
-        int idx = ((EntryPanel)box.getParent().getParent()).getIndex();
-        setValue(idx, getValues().get(box.getSelectedIndex()));
-        fireStateChanged(true);
-    }
-
-    /**
-     * A panel for an enum entry.
-     */
-    protected class EnumEntryPanel extends EntryPanel
-    {
-        public EnumEntryPanel (Object value)
-        {
-            super(value);
-        }
-
-        public JComboBox getBox ()
-        {
-            return _box;
-        }
-
-        @Override
-        public String getComponentPath (Component comp, boolean mouse)
-        {
-            return "";
-        }
-
-        @Override
-        protected JPanel createPanel (Object value)
-        {
-            JPanel panel = new JPanel(new VGroupLayout(
-                        GroupLayout.NONE, GroupLayout.CONSTRAIN, 5, GroupLayout.TOP));
-            final MessageBundle msgs =
-                _msgmgr.getBundle(Introspector.getMessageBundle(getEnumType()));
-            List<Enum<?>> values = getValues();
-            Object[] labels = Lists.transform(values, new Function<Enum<?>, String>() {
-                public String apply (Enum<?> value) {
-                    return getLabel(value, msgs);
-                }
-            }).toArray();
-            panel.add(_box = new JComboBox(labels));
-            _box.setSelectedIndex(values.indexOf(value));
-            _box.addActionListener(new ActionListener() {
-                public void actionPerformed (ActionEvent event) {
-                    boxUpdated((JComboBox)event.getSource());
-                }
-            });
-
-            return panel;
-        }
-
-        protected JComboBox _box;
-    }
+    protected JComboBox _box;
+  }
 }

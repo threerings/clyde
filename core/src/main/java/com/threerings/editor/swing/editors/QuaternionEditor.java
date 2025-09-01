@@ -41,39 +41,39 @@ import com.threerings.editor.swing.QuaternionPanel;
  * Editor for quaternion properties.
  */
 public class QuaternionEditor extends PropertyEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        Quaternion value = _panel.getValue();
-        if (!_property.get(_object).equals(value)) {
-            _property.set(_object, value);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    Quaternion value = _panel.getValue();
+    if (!_property.get(_object).equals(value)) {
+      _property.set(_object, value);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _panel.setValue((Quaternion)_property.get(_object));
-    }
+  @Override
+  public void update ()
+  {
+    _panel.setValue((Quaternion)_property.get(_object));
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setTitle(getPropertyLabel());
-        String mstr = getMode();
-        QuaternionPanel.Mode mode = QuaternionPanel.Mode.XYZ;
-        try {
-            mode = Enum.valueOf(QuaternionPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
-        } catch (IllegalArgumentException e) { }
-        add(_panel = new QuaternionPanel(_msgs, mode));
-        _panel.setBackground(getDarkerBackground(_lineage.length));
-        _panel.addChangeListener(this);
-    }
+  @Override
+  protected void didInit ()
+  {
+    setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+    setTitle(getPropertyLabel());
+    String mstr = getMode();
+    QuaternionPanel.Mode mode = QuaternionPanel.Mode.XYZ;
+    try {
+      mode = Enum.valueOf(QuaternionPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+    } catch (IllegalArgumentException e) { }
+    add(_panel = new QuaternionPanel(_msgs, mode));
+    _panel.setBackground(getDarkerBackground(_lineage.length));
+    _panel.addChangeListener(this);
+  }
 
-    /** The quaternion panel. */
-    protected QuaternionPanel _panel;
+  /** The quaternion panel. */
+  protected QuaternionPanel _panel;
 }

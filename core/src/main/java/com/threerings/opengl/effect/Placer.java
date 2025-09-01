@@ -30,8 +30,8 @@ package com.threerings.opengl.effect;
  */
 public interface Placer
 {
-    /**
-     * Configures the supplied particle with an initial position.
-     */
-    public void place (Particle particle);
+  /**
+   * Configures the supplied particle with an initial position.
+   */
+  public void place (Particle particle);
 }

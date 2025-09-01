@@ -35,69 +35,69 @@ import com.threerings.whirled.data.SceneObject;
  */
 public class TudeySceneObject extends SceneObject
 {
-    // AUTO-GENERATED: FIELDS START
-    /** The field name of the <code>tudeySceneService</code> field. */
-    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
-    public static final String TUDEY_SCENE_SERVICE = "tudeySceneService";
-    // AUTO-GENERATED: FIELDS END
+  // AUTO-GENERATED: FIELDS START
+  /** The field name of the <code>tudeySceneService</code> field. */
+  @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
+  public static final String TUDEY_SCENE_SERVICE = "tudeySceneService";
+  // AUTO-GENERATED: FIELDS END
 
-    /** Provides Tudey scene services. */
-    public TudeySceneMarshaller tudeySceneService;
+  /** Provides Tudey scene services. */
+  public TudeySceneMarshaller tudeySceneService;
 
-    /**
-     * Returns the id of the pawn controlled by the client with the provided oid, or 0 if none.
-     */
-    public int getPawnId (int cloid)
-    {
-        TudeyOccupantInfo info = (TudeyOccupantInfo)occupantInfo.get(cloid);
-        return (info == null) ? 0 : info.pawnId;
+  /**
+   * Returns the id of the pawn controlled by the client with the provided oid, or 0 if none.
+   */
+  public int getPawnId (int cloid)
+  {
+    TudeyOccupantInfo info = (TudeyOccupantInfo)occupantInfo.get(cloid);
+    return (info == null) ? 0 : info.pawnId;
+  }
+
+  /**
+   * Returns the id of the first pawn in the occupant list.
+   */
+  public int getFirstPawnId ()
+  {
+    for (OccupantInfo info : occupantInfo) {
+      int pawnId = ((TudeyOccupantInfo)info).pawnId;
+      if (pawnId > 0) {
+        return pawnId;
+      }
     }
+    return 0;
+  }
 
-    /**
-     * Returns the id of the first pawn in the occupant list.
-     */
-    public int getFirstPawnId ()
-    {
-        for (OccupantInfo info : occupantInfo) {
-            int pawnId = ((TudeyOccupantInfo)info).pawnId;
-            if (pawnId > 0) {
-                return pawnId;
-            }
-        }
-        return 0;
+  /**
+   * Returns the occupant info corresponding to the specified pawn, or <code>null</code> if
+   * no such occupant info is registered.
+   */
+  public TudeyOccupantInfo getOccupantInfo (int pawnId)
+  {
+    for (OccupantInfo info : occupantInfo) {
+      TudeyOccupantInfo tinfo = (TudeyOccupantInfo)info;
+      if (tinfo.pawnId == pawnId) {
+        return tinfo;
+      }
     }
+    return null;
+  }
 
-    /**
-     * Returns the occupant info corresponding to the specified pawn, or <code>null</code> if
-     * no such occupant info is registered.
-     */
-    public TudeyOccupantInfo getOccupantInfo (int pawnId)
-    {
-        for (OccupantInfo info : occupantInfo) {
-            TudeyOccupantInfo tinfo = (TudeyOccupantInfo)info;
-            if (tinfo.pawnId == pawnId) {
-                return tinfo;
-            }
-        }
-        return null;
-    }
-
-    // AUTO-GENERATED: METHODS START
-    /**
-     * Requests that the <code>tudeySceneService</code> field be set to the
-     * specified value. The local value will be updated immediately and an
-     * event will be propagated through the system to notify all listeners
-     * that the attribute did change. Proxied copies of this object (on
-     * clients) will apply the value change when they received the
-     * attribute changed notification.
-     */
-    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
-    public void setTudeySceneService (TudeySceneMarshaller value)
-    {
-        TudeySceneMarshaller ovalue = this.tudeySceneService;
-        requestAttributeChange(
-            TUDEY_SCENE_SERVICE, value, ovalue);
-        this.tudeySceneService = value;
-    }
-    // AUTO-GENERATED: METHODS END
+  // AUTO-GENERATED: METHODS START
+  /**
+   * Requests that the <code>tudeySceneService</code> field be set to the
+   * specified value. The local value will be updated immediately and an
+   * event will be propagated through the system to notify all listeners
+   * that the attribute did change. Proxied copies of this object (on
+   * clients) will apply the value change when they received the
+   * attribute changed notification.
+   */
+  @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
+  public void setTudeySceneService (TudeySceneMarshaller value)
+  {
+    TudeySceneMarshaller ovalue = this.tudeySceneService;
+    requestAttributeChange(
+      TUDEY_SCENE_SERVICE, value, ovalue);
+    this.tudeySceneService = value;
+  }
+  // AUTO-GENERATED: METHODS END
 }

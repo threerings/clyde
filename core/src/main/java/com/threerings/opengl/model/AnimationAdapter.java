@@ -29,17 +29,17 @@ package com.threerings.opengl.model;
  * An adapter class for {@link AnimationObserver}.
  */
 public class AnimationAdapter
-    implements AnimationObserver
+  implements AnimationObserver
 {
-    // documentation inherited from interface AnimationObserver
-    public boolean animationStarted (Animation animation)
-    {
-        return true;
-    }
+  // documentation inherited from interface AnimationObserver
+  public boolean animationStarted (Animation animation)
+  {
+    return true;
+  }
 
-    // documentation inherited from interface AnimationObserver
-    public boolean animationStopped (Animation animation, boolean completed)
-    {
-        return true;
-    }
+  // documentation inherited from interface AnimationObserver
+  public boolean animationStopped (Animation animation, boolean completed)
+  {
+    return true;
+  }
 }

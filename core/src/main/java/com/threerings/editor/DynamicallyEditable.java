@@ -30,8 +30,8 @@ package com.threerings.editor;
  */
 public interface DynamicallyEditable
 {
-    /**
-     * Returns an array containing the dynamic properties of this object.
-     */
-    public Property[] getDynamicProperties ();
+  /**
+   * Returns an array containing the dynamic properties of this object.
+   */
+  public Property[] getDynamicProperties ();
 }

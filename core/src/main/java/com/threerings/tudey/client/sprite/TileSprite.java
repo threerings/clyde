@@ -50,320 +50,320 @@ import static com.threerings.tudey.Log.log;
  * Represents a tile.
  */
 public class TileSprite extends EntrySprite
-    implements ConfigUpdateListener<TileConfig>
+  implements ConfigUpdateListener<TileConfig>
 {
+  /**
+   * The actual sprite implementation.
+   */
+  public static abstract class Implementation extends SimpleScope
+  {
     /**
-     * The actual sprite implementation.
+     * Creates a new implementation.
      */
-    public static abstract class Implementation extends SimpleScope
+    public Implementation (Scope parentScope)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Implementation (Scope parentScope)
-        {
-            super(parentScope);
-        }
-
-        /**
-         * Returns the model for this implementation, or <code>null</code> for none.
-         */
-        public Model getModel ()
-        {
-            return null;
-        }
-
-        /**
-         * Returns the sprite's floor flags.
-         */
-        public int getFloorFlags ()
-        {
-            return 0x0;
-        }
-
-        /**
-         * Updates the implementation to match the tile state.
-         */
-        public void update (TileEntry entry)
-        {
-            // nothing by default
-        }
-
-        @Override
-        public String getScopeName ()
-        {
-            return "impl";
-        }
+      super(parentScope);
     }
 
     /**
-     * An original implementation.
+     * Returns the model for this implementation, or <code>null</code> for none.
      */
-    public static class Original extends Implementation
+    public Model getModel ()
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Original (TudeyContext ctx, Scope parentScope, TileConfig.Original config)
-        {
-            super(parentScope);
-            _ctx = ctx;
-            setConfig(config);
-        }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (TileConfig.Original config)
-        {
-            // unmerge, set the config, then remerge/update
-            maybeUnmerge();
-            _config = config;
-            TileSprite parent = (TileSprite)_parentScope;
-            if (parent._entry != null) {
-                updateModel(parent._entry);
-            }
-
-            // update the footprint
-            boolean selected = parent.isSelected();
-            if (selected && _footprint == null) {
-                _footprint = new RectangleElement(_ctx, true);
-                _footprint.getColor().set(SELECTED_COLOR);
-                _scene.add(_footprint);
-            } else if (!selected && _footprint != null) {
-                _scene.remove(_footprint);
-                _footprint = null;
-            }
-        }
-
-        @Override
-        public Model getModel ()
-        {
-            return _model;
-        }
-
-        @Override
-        public int getFloorFlags ()
-        {
-            return _config.floorFlags;
-        }
-
-        @Override
-        public void update (TileEntry entry)
-        {
-            maybeUnmerge();
-            updateModel(entry);
-
-            if (_footprint != null) {
-                entry.getRegion(_config, _footprint.getRegion());
-                _footprint.setElevation(entry.elevation);
-                _footprint.updateBounds();
-            }
-        }
-
-        @Override
-        public void dispose ()
-        {
-            super.dispose();
-            if (!maybeUnmerge()) {
-                _scene.remove(_model);
-            }
-            if (_footprint != null) {
-                _scene.remove(_footprint);
-            }
-        }
-
-        /**
-         * Ensures that the model is added to the scene and up-to-date.
-         */
-        protected void updateModel (TileEntry entry)
-        {
-            if (_model == null) {
-                if (maybeMerge()) {
-                    return;
-                }
-                _scene.add(_model = new Model(_ctx));
-                _model.setUserObject(_parentScope);
-            }
-            entry.getTransform(_config, _model.getLocalTransform());
-            _model.setConfig(_config.model);
-            _model.updateBounds();
-        }
-
-        /**
-         * Merges the model if appropriate.
-         */
-        protected boolean maybeMerge ()
-        {
-            TileSprite parent = (TileSprite)_parentScope;
-            if (!(parent._view.canMerge() && _config.isMergeable(_ctx.getConfigManager()))) {
-                return false;
-            }
-            TileEntry entry = parent._entry;
-            Coord location = entry.getLocation();
-            Transform3D transform = new Transform3D();
-            entry.getTransform(_config, transform);
-            if ((_model = parent._view.maybeMerge(location.x, location.y, _config.model,
-                    transform, _config.floorFlags)) == null) {
-                return false;
-            }
-            _mergeTransform = transform;
-            return true;
-        }
-
-        /**
-         * Unmerges the model if previously merged.
-         */
-        protected boolean maybeUnmerge ()
-        {
-            if (_mergeTransform == null) {
-                return false;
-            }
-            TileSprite parent = (TileSprite)_parentScope;
-            Coord location = parent._entry.getLocation();
-            if (!parent._view.unmerge(location.x, location.y, _config.model, _mergeTransform)) {
-                log.warning("Failed to unmerge static model.", "entry", parent._entry);
-            }
-            _mergeTransform = null;
-            _model = null;
-            return true;
-        }
-
-        /** The renderer context. */
-        protected TudeyContext _ctx;
-
-        /** The tile configuration. */
-        protected TileConfig.Original _config;
-
-        /** The model. */
-        protected Model _model;
-
-        /** The tile footprint. */
-        protected RectangleElement _footprint;
-
-        /** The transform under which we merged, if any. */
-        protected Transform3D _mergeTransform;
-
-        /** The scene to which we add our model. */
-        @Bound
-        protected Scene _scene;
+      return null;
     }
 
     /**
-     * Creates a new tile sprite.
+     * Returns the sprite's floor flags.
      */
-    public TileSprite (TudeyContext ctx, TudeySceneView view, TileEntry entry)
-    {
-        super(ctx, view);
-        update(entry);
-    }
-
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<TileConfig> event)
-    {
-        updateFromConfig();
-        _impl.update(_entry);
-    }
-
-    @Override
     public int getFloorFlags ()
     {
-        return _impl.getFloorFlags();
+      return 0x0;
+    }
+
+    /**
+     * Updates the implementation to match the tile state.
+     */
+    public void update (TileEntry entry)
+    {
+      // nothing by default
     }
 
     @Override
-    public Entry getEntry ()
+    public String getScopeName ()
     {
-        return _entry;
+      return "impl";
+    }
+  }
+
+  /**
+   * An original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /**
+     * Creates a new implementation.
+     */
+    public Original (TudeyContext ctx, Scope parentScope, TileConfig.Original config)
+    {
+      super(parentScope);
+      _ctx = ctx;
+      setConfig(config);
     }
 
-    @Override
-    public void update (Entry entry)
+    /**
+     * (Re)configures the implementation.
+     */
+    public void setConfig (TileConfig.Original config)
     {
-        TileEntry tentry = (TileEntry)entry;
-        setConfig(tentry.tile);
-        _impl.update(_entry = tentry);
+      // unmerge, set the config, then remerge/update
+      maybeUnmerge();
+      _config = config;
+      TileSprite parent = (TileSprite)_parentScope;
+      if (parent._entry != null) {
+        updateModel(parent._entry);
+      }
+
+      // update the footprint
+      boolean selected = parent.isSelected();
+      if (selected && _footprint == null) {
+        _footprint = new RectangleElement(_ctx, true);
+        _footprint.getColor().set(SELECTED_COLOR);
+        _scene.add(_footprint);
+      } else if (!selected && _footprint != null) {
+        _scene.remove(_footprint);
+        _footprint = null;
+      }
     }
 
     @Override
     public Model getModel ()
     {
-        return _impl.getModel();
+      return _model;
     }
 
     @Override
-    public void setSelected (boolean selected)
+    public int getFloorFlags ()
     {
-        super.setSelected(selected);
-        updateFromConfig();
-        _impl.update(_entry);
+      return _config.floorFlags;
+    }
+
+    @Override
+    public void update (TileEntry entry)
+    {
+      maybeUnmerge();
+      updateModel(entry);
+
+      if (_footprint != null) {
+        entry.getRegion(_config, _footprint.getRegion());
+        _footprint.setElevation(entry.elevation);
+        _footprint.updateBounds();
+      }
     }
 
     @Override
     public void dispose ()
     {
-        super.dispose();
-        _impl.dispose();
-        if (_config != null) {
-            _config.removeListener(this);
-        }
+      super.dispose();
+      if (!maybeUnmerge()) {
+        _scene.remove(_model);
+      }
+      if (_footprint != null) {
+        _scene.remove(_footprint);
+      }
     }
 
     /**
-     * Sets the configuration of this tile.
+     * Ensures that the model is added to the scene and up-to-date.
      */
-    protected void setConfig (ConfigReference<TileConfig> ref)
+    protected void updateModel (TileEntry entry)
     {
-        setConfig(_ctx.getConfigManager().getConfig(TileConfig.class, ref));
+      if (_model == null) {
+        if (maybeMerge()) {
+          return;
+        }
+        _scene.add(_model = new Model(_ctx));
+        _model.setUserObject(_parentScope);
+      }
+      entry.getTransform(_config, _model.getLocalTransform());
+      _model.setConfig(_config.model);
+      _model.updateBounds();
     }
 
     /**
-     * Sets the configuration of this tile.
+     * Merges the model if appropriate.
      */
-    protected void setConfig (TileConfig config)
+    protected boolean maybeMerge ()
     {
-        if (_config == config) {
-            return;
-        }
-        if (_config != null) {
-            _config.removeListener(this);
-        }
-        if ((_config = config) != null) {
-            _config.addListener(this);
-        }
-        updateFromConfig();
+      TileSprite parent = (TileSprite)_parentScope;
+      if (!(parent._view.canMerge() && _config.isMergeable(_ctx.getConfigManager()))) {
+        return false;
+      }
+      TileEntry entry = parent._entry;
+      Coord location = entry.getLocation();
+      Transform3D transform = new Transform3D();
+      entry.getTransform(_config, transform);
+      if ((_model = parent._view.maybeMerge(location.x, location.y, _config.model,
+          transform, _config.floorFlags)) == null) {
+        return false;
+      }
+      _mergeTransform = transform;
+      return true;
     }
 
     /**
-     * Updates the tile to match its new or modified configuration.
+     * Unmerges the model if previously merged.
      */
-    protected void updateFromConfig ()
+    protected boolean maybeUnmerge ()
     {
-        Implementation nimpl = (_config == null)
-                ? TileConfig.NULL_ORIGINAL.getSpriteImplementation(_ctx, this, _impl)
-                : _config.getSpriteImplementation(_ctx, this, _impl);
-        if (nimpl == null) {
-            nimpl = NULL_IMPLEMENTATION;
-        }
-        if (_impl != nimpl) {
-            _impl.dispose();
-            _impl = nimpl;
-        }
+      if (_mergeTransform == null) {
+        return false;
+      }
+      TileSprite parent = (TileSprite)_parentScope;
+      Coord location = parent._entry.getLocation();
+      if (!parent._view.unmerge(location.x, location.y, _config.model, _mergeTransform)) {
+        log.warning("Failed to unmerge static model.", "entry", parent._entry);
+      }
+      _mergeTransform = null;
+      _model = null;
+      return true;
     }
 
-    /** The scene entry. */
-    protected TileEntry _entry;
+    /** The renderer context. */
+    protected TudeyContext _ctx;
 
     /** The tile configuration. */
-    protected TileConfig _config = INVALID_CONFIG;
+    protected TileConfig.Original _config;
 
-    /** The tile implementation. */
-    protected Implementation _impl = NULL_IMPLEMENTATION;
+    /** The model. */
+    protected Model _model;
 
-    /** An invalid config used to force an initial update. */
-    protected static TileConfig INVALID_CONFIG = new TileConfig();
+    /** The tile footprint. */
+    protected RectangleElement _footprint;
 
-    /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
-    };
+    /** The transform under which we merged, if any. */
+    protected Transform3D _mergeTransform;
+
+    /** The scene to which we add our model. */
+    @Bound
+    protected Scene _scene;
+  }
+
+  /**
+   * Creates a new tile sprite.
+   */
+  public TileSprite (TudeyContext ctx, TudeySceneView view, TileEntry entry)
+  {
+    super(ctx, view);
+    update(entry);
+  }
+
+  // documentation inherited from interface ConfigUpdateListener
+  public void configUpdated (ConfigEvent<TileConfig> event)
+  {
+    updateFromConfig();
+    _impl.update(_entry);
+  }
+
+  @Override
+  public int getFloorFlags ()
+  {
+    return _impl.getFloorFlags();
+  }
+
+  @Override
+  public Entry getEntry ()
+  {
+    return _entry;
+  }
+
+  @Override
+  public void update (Entry entry)
+  {
+    TileEntry tentry = (TileEntry)entry;
+    setConfig(tentry.tile);
+    _impl.update(_entry = tentry);
+  }
+
+  @Override
+  public Model getModel ()
+  {
+    return _impl.getModel();
+  }
+
+  @Override
+  public void setSelected (boolean selected)
+  {
+    super.setSelected(selected);
+    updateFromConfig();
+    _impl.update(_entry);
+  }
+
+  @Override
+  public void dispose ()
+  {
+    super.dispose();
+    _impl.dispose();
+    if (_config != null) {
+      _config.removeListener(this);
+    }
+  }
+
+  /**
+   * Sets the configuration of this tile.
+   */
+  protected void setConfig (ConfigReference<TileConfig> ref)
+  {
+    setConfig(_ctx.getConfigManager().getConfig(TileConfig.class, ref));
+  }
+
+  /**
+   * Sets the configuration of this tile.
+   */
+  protected void setConfig (TileConfig config)
+  {
+    if (_config == config) {
+      return;
+    }
+    if (_config != null) {
+      _config.removeListener(this);
+    }
+    if ((_config = config) != null) {
+      _config.addListener(this);
+    }
+    updateFromConfig();
+  }
+
+  /**
+   * Updates the tile to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    Implementation nimpl = (_config == null)
+        ? TileConfig.NULL_ORIGINAL.getSpriteImplementation(_ctx, this, _impl)
+        : _config.getSpriteImplementation(_ctx, this, _impl);
+    if (nimpl == null) {
+      nimpl = NULL_IMPLEMENTATION;
+    }
+    if (_impl != nimpl) {
+      _impl.dispose();
+      _impl = nimpl;
+    }
+  }
+
+  /** The scene entry. */
+  protected TileEntry _entry;
+
+  /** The tile configuration. */
+  protected TileConfig _config = INVALID_CONFIG;
+
+  /** The tile implementation. */
+  protected Implementation _impl = NULL_IMPLEMENTATION;
+
+  /** An invalid config used to force an initial update. */
+  protected static TileConfig INVALID_CONFIG = new TileConfig();
+
+  /** An implementation that does nothing. */
+  protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+  };
 }

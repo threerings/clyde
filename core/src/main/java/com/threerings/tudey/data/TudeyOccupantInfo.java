@@ -32,22 +32,22 @@ import com.threerings.crowd.data.OccupantInfo;
  */
 public class TudeyOccupantInfo extends OccupantInfo
 {
-    /** The id of the actor controlled by the occupant, or 0 for none. */
-    public int pawnId;
+  /** The id of the actor controlled by the occupant, or 0 for none. */
+  public int pawnId;
 
-    /**
-     * Creates a new occupant info object.
-     */
-    public TudeyOccupantInfo (TudeyBodyObject body)
-    {
-        super(body);
-        pawnId = body.pawnId;
-    }
+  /**
+   * Creates a new occupant info object.
+   */
+  public TudeyOccupantInfo (TudeyBodyObject body)
+  {
+    super(body);
+    pawnId = body.pawnId;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public TudeyOccupantInfo ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public TudeyOccupantInfo ()
+  {
+  }
 }

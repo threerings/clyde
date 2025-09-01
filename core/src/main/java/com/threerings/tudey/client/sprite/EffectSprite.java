@@ -44,150 +44,150 @@ import com.threerings.tudey.util.TudeyContext;
  * Handles the display of a stateless effect.
  */
 public class EffectSprite extends Sprite
-    implements TudeySceneView.TickParticipant
+  implements TudeySceneView.TickParticipant
 {
+  /**
+   * The actual sprite implementation.
+   */
+  public static abstract class Implementation extends SimpleScope
+  {
     /**
-     * The actual sprite implementation.
+     * Creates a new implementation.
      */
-    public static abstract class Implementation extends SimpleScope
+    public Implementation (Scope parentScope)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Implementation (Scope parentScope)
-        {
-            super(parentScope);
-        }
-
-        /**
-         * Updates the state of the sprite.
-         *
-         * @return true to keep the sprite in the tick list, false to remove it.
-         */
-        public boolean tick (float elapsed)
-        {
-            return false;
-        }
-
-        @Override
-        public String getScopeName ()
-        {
-            return "impl";
-        }
+      super(parentScope);
     }
 
     /**
-     * Superclass of the original implementations.
+     * Updates the state of the sprite.
+     *
+     * @return true to keep the sprite in the tick list, false to remove it.
      */
-    public static class Original extends Implementation
+    public boolean tick (float elapsed)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Original (
-            TudeyContext ctx, Scope parentScope, EffectSpriteConfig config, Effect effect)
-        {
-            super(parentScope);
-
-            // determine the target model, if any
-            Sprite sprite = _view.getSprite(effect.getTarget());
-            _targetModel = (sprite == null) ? null : sprite.getModel();
-
-            // spawn the effect transient, if any
-            if (config.model == null) {
-                return;
-            }
-            if (sprite instanceof ActorSprite && config.attachToTarget) {
-                ((ActorSprite)sprite).spawnAttachedTransientModel(
-                    config.model, config.rotateWithTarget);
-                return;
-            }
-            Transform3D transform;
-            if (_targetModel != null) {
-                transform = _targetModel.getLocalTransform();
-            } else {
-                Vector2f translation = effect.getTranslation();
-                transform = _view.getFloorTransform(
-                    translation.x, translation.y, effect.getRotation(), config.floorMask);
-            }
-            _view.getScene().spawnTransient(config.model, transform);
-        }
-
-        /** The target model, if any. */
-        protected Model _targetModel;
-
-        /** The owning view. */
-        @Bound
-        protected TudeySceneView _view;
+      return false;
     }
 
+    @Override
+    public String getScopeName ()
+    {
+      return "impl";
+    }
+  }
+
+  /**
+   * Superclass of the original implementations.
+   */
+  public static class Original extends Implementation
+  {
     /**
-     * Plays an animation on a target sprite.
+     * Creates a new implementation.
      */
-    public static class Animator extends Original
+    public Original (
+      TudeyContext ctx, Scope parentScope, EffectSpriteConfig config, Effect effect)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Animator (
-            TudeyContext ctx, Scope parentScope, EffectSpriteConfig.Animator config, Effect effect)
-        {
-            super(ctx, parentScope, config, effect);
+      super(parentScope);
 
-            // play the animation, if any
-            if (_targetModel != null && config.animation != null) {
-                Animation anim = _targetModel.createAnimation(config.animation);
-                if (anim != null) {
-                    anim.start();
-                }
-            }
-        }
+      // determine the target model, if any
+      Sprite sprite = _view.getSprite(effect.getTarget());
+      _targetModel = (sprite == null) ? null : sprite.getModel();
+
+      // spawn the effect transient, if any
+      if (config.model == null) {
+        return;
+      }
+      if (sprite instanceof ActorSprite && config.attachToTarget) {
+        ((ActorSprite)sprite).spawnAttachedTransientModel(
+          config.model, config.rotateWithTarget);
+        return;
+      }
+      Transform3D transform;
+      if (_targetModel != null) {
+        transform = _targetModel.getLocalTransform();
+      } else {
+        Vector2f translation = effect.getTranslation();
+        transform = _view.getFloorTransform(
+          translation.x, translation.y, effect.getRotation(), config.floorMask);
+      }
+      _view.getScene().spawnTransient(config.model, transform);
     }
 
+    /** The target model, if any. */
+    protected Model _targetModel;
+
+    /** The owning view. */
+    @Bound
+    protected TudeySceneView _view;
+  }
+
+  /**
+   * Plays an animation on a target sprite.
+   */
+  public static class Animator extends Original
+  {
     /**
-     * Creates a new effect sprite.
+     * Creates a new implementation.
      */
-    public EffectSprite (TudeyContext ctx, TudeySceneView view, Effect effect)
+    public Animator (
+      TudeyContext ctx, Scope parentScope, EffectSpriteConfig.Animator config, Effect effect)
     {
-        super(ctx, view);
-        _effect = effect;
+      super(ctx, parentScope, config, effect);
 
-        // register as tick participant
-        view.addTickParticipant(this);
-    }
-
-    /**
-     * Returns the effect.
-     */
-    public Effect getEffect ()
-    {
-        return _effect;
-    }
-
-    // documentation inherited from interface TudeySceneView.TickParticipant
-    public boolean tick (int delayedTime)
-    {
-        int timestamp = _effect.getTimestamp();
-        if (delayedTime < timestamp) {
-            return true; // not yet fired
+      // play the animation, if any
+      if (_targetModel != null && config.animation != null) {
+        Animation anim = _targetModel.createAnimation(config.animation);
+        if (anim != null) {
+          anim.start();
         }
-        if (_impl == null) {
-            EffectConfig config = _ctx.getConfigManager().getConfig(
-                EffectConfig.class, _effect.getConfig());
-            _impl = (config == null) ? null : config.createSpriteImplementation(
-                _ctx, this, _effect);
-            _impl = (_impl == null) ? NULL_IMPLEMENTATION : _impl;
-        }
-        return _impl.tick((delayedTime - timestamp) / 1000f);
+      }
     }
+  }
 
-    /** The effect object. */
-    protected Effect _effect;
+  /**
+   * Creates a new effect sprite.
+   */
+  public EffectSprite (TudeyContext ctx, TudeySceneView view, Effect effect)
+  {
+    super(ctx, view);
+    _effect = effect;
 
-    /** The effect implementation (<code>null</code> until actually created). */
-    protected Implementation _impl;
+    // register as tick participant
+    view.addTickParticipant(this);
+  }
 
-    /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
-    };
+  /**
+   * Returns the effect.
+   */
+  public Effect getEffect ()
+  {
+    return _effect;
+  }
+
+  // documentation inherited from interface TudeySceneView.TickParticipant
+  public boolean tick (int delayedTime)
+  {
+    int timestamp = _effect.getTimestamp();
+    if (delayedTime < timestamp) {
+      return true; // not yet fired
+    }
+    if (_impl == null) {
+      EffectConfig config = _ctx.getConfigManager().getConfig(
+        EffectConfig.class, _effect.getConfig());
+      _impl = (config == null) ? null : config.createSpriteImplementation(
+        _ctx, this, _effect);
+      _impl = (_impl == null) ? NULL_IMPLEMENTATION : _impl;
+    }
+    return _impl.tick((delayedTime - timestamp) / 1000f);
+  }
+
+  /** The effect object. */
+  protected Effect _effect;
+
+  /** The effect implementation (<code>null</code> until actually created). */
+  protected Implementation _impl;
+
+  /** An implementation that does nothing. */
+  protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+  };
 }

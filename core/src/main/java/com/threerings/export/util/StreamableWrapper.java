@@ -40,53 +40,53 @@ import com.threerings.export.BinaryImporter;
  */
 public class StreamableWrapper extends SimpleStreamableObject
 {
-    /**
-     * Creates a new wrapper for the specified object.
-     */
-    public StreamableWrapper (Object object)
-    {
-        _object = object;
-    }
+  /**
+   * Creates a new wrapper for the specified object.
+   */
+  public StreamableWrapper (Object object)
+  {
+    _object = object;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public StreamableWrapper ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public StreamableWrapper ()
+  {
+  }
 
-    /**
-     * Returns a reference to the wrapped object.
-     */
-    public Object getObject ()
-    {
-        return _object;
-    }
+  /**
+   * Returns a reference to the wrapped object.
+   */
+  public Object getObject ()
+  {
+    return _object;
+  }
 
-    /**
-     * Writes the object to the specified stream.
-     */
-    public void writeObject (ObjectOutputStream out)
-        throws IOException
-    {
-        BinaryExporter exporter = new BinaryExporter(out);
-        try {
-            exporter.writeObject(_object);
-        } finally {
-            exporter.finish();
-        }
+  /**
+   * Writes the object to the specified stream.
+   */
+  public void writeObject (ObjectOutputStream out)
+    throws IOException
+  {
+    BinaryExporter exporter = new BinaryExporter(out);
+    try {
+      exporter.writeObject(_object);
+    } finally {
+      exporter.finish();
     }
+  }
 
-    /**
-     * Reads the object state from the specified stream.
-     */
-    public void readObject (ObjectInputStream in)
-        throws IOException, ClassNotFoundException
-    {
-        BinaryImporter importer = new BinaryImporter(in);
-        _object = importer.readObject();
-    }
+  /**
+   * Reads the object state from the specified stream.
+   */
+  public void readObject (ObjectInputStream in)
+    throws IOException, ClassNotFoundException
+  {
+    BinaryImporter importer = new BinaryImporter(in);
+    _object = importer.readObject();
+  }
 
-    /** The wrapped object. */
-    protected Object _object;
+  /** The wrapped object. */
+  protected Object _object;
 }

@@ -46,65 +46,65 @@ import com.threerings.tudey.util.TudeyContext;
  */
 @EditorTypes({ EffectSpriteConfig.Default.class, EffectSpriteConfig.Animator.class })
 public abstract class EffectSpriteConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * The default sprite.
-     */
-    public static class Default extends EffectSpriteConfig
+  /**
+   * The default sprite.
+   */
+  public static class Default extends EffectSpriteConfig
+  {
+    @Override
+    public EffectSprite.Implementation createImplementation (
+      TudeyContext ctx, Scope scope, Effect effect)
     {
-        @Override
-        public EffectSprite.Implementation createImplementation (
-            TudeyContext ctx, Scope scope, Effect effect)
-        {
-            return new EffectSprite.Original(ctx, scope, this, effect);
-        }
+      return new EffectSprite.Original(ctx, scope, this, effect);
     }
+  }
 
-    /**
-     * A sprite that plays an animation on another sprite.
-     */
-    public static class Animator extends EffectSpriteConfig
-    {
-        /** The animation to play. */
-        @Editable(nullable=true)
-        public ConfigReference<AnimationConfig> animation;
-
-         @Override
-        public EffectSprite.Implementation createImplementation (
-            TudeyContext ctx, Scope scope, Effect effect)
-        {
-            return new EffectSprite.Animator(ctx, scope, this, effect);
-        }
-    }
-
-    /** Determines which floor categories the effect lies over. */
-    @Editable(editor="mask", mode="floor", hgroup="a")
-    public int floorMask = 0x01;
-
-    /** Whether or not to attach the transient to the target (if it has one). */
-    @Editable(hgroup="a")
-    public boolean attachToTarget;
-
-    /** Whether or not to rotate the transient with the target (if attached). */
-    @Editable
-    public boolean rotateWithTarget = true;
-
-    /** The transient to fire off for the effect. */
+  /**
+   * A sprite that plays an animation on another sprite.
+   */
+  public static class Animator extends EffectSpriteConfig
+  {
+    /** The animation to play. */
     @Editable(nullable=true)
-    public ConfigReference<ModelConfig> model;
+    public ConfigReference<AnimationConfig> animation;
 
-    /**
-     * Adds the resources to preload for this sprite into the provided set.
-     */
-    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+     @Override
+    public EffectSprite.Implementation createImplementation (
+      TudeyContext ctx, Scope scope, Effect effect)
     {
-        preloads.addModel(model);
+      return new EffectSprite.Animator(ctx, scope, this, effect);
     }
+  }
 
-    /**
-     * Creates a sprite implementation for this configuration.
-     */
-    public abstract EffectSprite.Implementation createImplementation (
-        TudeyContext ctx, Scope scope, Effect effect);
+  /** Determines which floor categories the effect lies over. */
+  @Editable(editor="mask", mode="floor", hgroup="a")
+  public int floorMask = 0x01;
+
+  /** Whether or not to attach the transient to the target (if it has one). */
+  @Editable(hgroup="a")
+  public boolean attachToTarget;
+
+  /** Whether or not to rotate the transient with the target (if attached). */
+  @Editable
+  public boolean rotateWithTarget = true;
+
+  /** The transient to fire off for the effect. */
+  @Editable(nullable=true)
+  public ConfigReference<ModelConfig> model;
+
+  /**
+   * Adds the resources to preload for this sprite into the provided set.
+   */
+  public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+  {
+    preloads.addModel(model);
+  }
+
+  /**
+   * Creates a sprite implementation for this configuration.
+   */
+  public abstract EffectSprite.Implementation createImplementation (
+    TudeyContext ctx, Scope scope, Effect effect);
 }

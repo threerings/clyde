@@ -35,8 +35,8 @@ import com.threerings.opengl.util.GlContext;
  */
 public interface TudeyContext extends GlContext, WhirledContext
 {
-    /**
-     * Returns a reference to the UI root.
-     */
-    public Root getRoot ();
+  /**
+   * Returns a reference to the UI root.
+   */
+  public Root getRoot ();
 }

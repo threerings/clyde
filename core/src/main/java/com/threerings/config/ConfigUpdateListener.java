@@ -30,8 +30,8 @@ package com.threerings.config;
  */
 public interface ConfigUpdateListener<T extends ManagedConfig>
 {
-    /**
-     * Called when a configuration has been updated.
-     */
-    public void configUpdated (ConfigEvent<T> event);
+  /**
+   * Called when a configuration has been updated.
+   */
+  public void configUpdated (ConfigEvent<T> event);
 }

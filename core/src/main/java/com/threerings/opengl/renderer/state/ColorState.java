@@ -33,74 +33,74 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class ColorState extends RenderState
 {
-    /** An opaque white color state. */
-    public static final ColorState WHITE = new ColorState(Color4f.WHITE);
+  /** An opaque white color state. */
+  public static final ColorState WHITE = new ColorState(Color4f.WHITE);
 
-    /**
-     * If there is a shared instance with the supplied parameters, returns a reference to it;
-     * otherwise, returns a new state with the parameters.
-     */
-    public static ColorState getInstance (Color4f color)
-    {
-        return getInstance(new ColorState(color));
-    }
+  /**
+   * If there is a shared instance with the supplied parameters, returns a reference to it;
+   * otherwise, returns a new state with the parameters.
+   */
+  public static ColorState getInstance (Color4f color)
+  {
+    return getInstance(new ColorState(color));
+  }
 
-    /**
-     * If there is a shared equivalent to the specified state, this method will return the shared
-     * state; otherwise, it will simply return the parameter.
-     */
-    public static ColorState getInstance (ColorState state)
-    {
-        return state.equals(WHITE) ? WHITE : state;
-    }
+  /**
+   * If there is a shared equivalent to the specified state, this method will return the shared
+   * state; otherwise, it will simply return the parameter.
+   */
+  public static ColorState getInstance (ColorState state)
+  {
+    return state.equals(WHITE) ? WHITE : state;
+  }
 
-    /**
-     * Creates a new color state with the values in the supplied color object.
-     */
-    public ColorState (Color4f color)
-    {
-        _color.set(color);
-    }
+  /**
+   * Creates a new color state with the values in the supplied color object.
+   */
+  public ColorState (Color4f color)
+  {
+    _color.set(color);
+  }
 
-    /**
-     * Creates a new color state.
-     */
-    public ColorState ()
-    {
-    }
+  /**
+   * Creates a new color state.
+   */
+  public ColorState ()
+  {
+  }
 
-    /**
-     * Returns a reference to the draw color object.
-     */
-    public Color4f getColor ()
-    {
-        return _color;
-    }
+  /**
+   * Returns a reference to the draw color object.
+   */
+  public Color4f getColor ()
+  {
+    return _color;
+  }
 
-    @Override
-    public int getType ()
-    {
-        return COLOR_STATE;
-    }
+  @Override
+  public int getType ()
+  {
+    return COLOR_STATE;
+  }
 
-    @Override
-    public void apply (Renderer renderer)
-    {
-        renderer.setColorState(_color);
-    }
+  @Override
+  public void apply (Renderer renderer)
+  {
+    renderer.setColorState(_color);
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof ColorState && _color.equals(((ColorState)other)._color);
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof ColorState && _color.equals(((ColorState)other)._color);
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return _color != null ? _color.hashCode() : 0;
-    }
+  @Override
+  public int hashCode ()
+  {
+    return _color != null ? _color.hashCode() : 0;
+  }
 
-    /** The draw color. */
-    protected Color4f _color = new Color4f();
+  /** The draw color. */
+  protected Color4f _color = new Color4f();
 }

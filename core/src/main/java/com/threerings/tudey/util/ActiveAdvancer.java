@@ -37,157 +37,157 @@ import com.threerings.tudey.data.actor.Mobile;
  */
 public class ActiveAdvancer extends MobileAdvancer
 {
+  /**
+   * Creates a new advancer for the supplied active.
+   */
+  public ActiveAdvancer (Environment environment, Active active, int timestamp)
+  {
+    super(environment, active, timestamp);
+  }
+
+  /**
+   * Determines whether the actor can move.
+   */
+  public boolean canMove ()
+  {
+    Activity activity = getActivity();
+    return activity == null || activity.allowsMovement();
+  }
+
+  /**
+   * Determines whether the actor can rotate.
+   */
+  public boolean canRotate ()
+  {
+    Activity activity = getActivity();
+    return activity == null || activity.allowsRotation();
+  }
+
+  @Override
+  public void init (Actor actor, int timestamp)
+  {
+    super.init(actor, timestamp);
+    _active = (Active)actor;
+  }
+
+  @Override
+  protected void step (float elapsed)
+  {
+    // update the current activity
+    Activity activity = getActivity();
+    if (activity != null) {
+      activity.step(elapsed);
+    }
+    super.step(elapsed);
+  }
+
+  @Override
+  protected void mobileStep (float elapsed, int timestamp)
+  {
+    if (!canMove()) {
+      _active.clear(Mobile.MOVING);
+    }
+    super.mobileStep(elapsed, timestamp);
+  }
+
+  /**
+   * Returns a reference to the mapping for the current activity, or <code>null</code> for none.
+   */
+  protected Activity getActivity ()
+  {
+    return _activities.get(_active.getActivity());
+  }
+
+  /**
+   * The mapping for an activity.
+   */
+  protected class Activity
+  {
     /**
-     * Creates a new advancer for the supplied active.
+     * Creates a new activity that does not allow movement or rotation.
+     *
+     * @param clear the interval after which to clear the activity.
      */
-    public ActiveAdvancer (Environment environment, Active active, int timestamp)
+    public Activity (int clear)
     {
-        super(environment, active, timestamp);
+      this(false, clear);
     }
 
     /**
-     * Determines whether the actor can move.
+     * Creates a new activity.
+     *
+     * @param movement whether or not to allow movement and/or rotation during the activity.
+     * @param clear the interval after which to clear the activity.
      */
-    public boolean canMove ()
+    public Activity (boolean movement, int clear)
     {
-        Activity activity = getActivity();
-        return activity == null || activity.allowsMovement();
+      this(movement, movement, clear);
     }
 
     /**
-     * Determines whether the actor can rotate.
+     * Creates a new activity.
+     *
+     * @param movement whether or not to allow movement during the activity.
+     * @param rotation whether or not to allow rotation during the activity.
+     * @param clear the interval after which to clear the activity.
      */
-    public boolean canRotate ()
+    public Activity (boolean movement, boolean rotation, int clear)
     {
-        Activity activity = getActivity();
-        return activity == null || activity.allowsRotation();
-    }
-
-    @Override
-    public void init (Actor actor, int timestamp)
-    {
-        super.init(actor, timestamp);
-        _active = (Active)actor;
-    }
-
-    @Override
-    protected void step (float elapsed)
-    {
-        // update the current activity
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.step(elapsed);
-        }
-        super.step(elapsed);
-    }
-
-    @Override
-    protected void mobileStep (float elapsed, int timestamp)
-    {
-        if (!canMove()) {
-            _active.clear(Mobile.MOVING);
-        }
-        super.mobileStep(elapsed, timestamp);
+      _movement = movement;
+      _rotation = rotation;
+      _clear = clear;
     }
 
     /**
-     * Returns a reference to the mapping for the current activity, or <code>null</code> for none.
+     * Checks whether the activity allows movement.
      */
-    protected Activity getActivity ()
+    public boolean allowsMovement ()
     {
-        return _activities.get(_active.getActivity());
+      return _movement;
     }
 
     /**
-     * The mapping for an activity.
+     * Checks whether the activity allows rotation.
      */
-    protected class Activity
+    public boolean allowsRotation ()
     {
-        /**
-         * Creates a new activity that does not allow movement or rotation.
-         *
-         * @param clear the interval after which to clear the activity.
-         */
-        public Activity (int clear)
-        {
-            this(false, clear);
-        }
-
-        /**
-         * Creates a new activity.
-         *
-         * @param movement whether or not to allow movement and/or rotation during the activity.
-         * @param clear the interval after which to clear the activity.
-         */
-        public Activity (boolean movement, int clear)
-        {
-            this(movement, movement, clear);
-        }
-
-        /**
-         * Creates a new activity.
-         *
-         * @param movement whether or not to allow movement during the activity.
-         * @param rotation whether or not to allow rotation during the activity.
-         * @param clear the interval after which to clear the activity.
-         */
-        public Activity (boolean movement, boolean rotation, int clear)
-        {
-            _movement = movement;
-            _rotation = rotation;
-            _clear = clear;
-        }
-
-        /**
-         * Checks whether the activity allows movement.
-         */
-        public boolean allowsMovement ()
-        {
-            return _movement;
-        }
-
-        /**
-         * Checks whether the activity allows rotation.
-         */
-        public boolean allowsRotation ()
-        {
-            return _rotation;
-        }
-
-        /**
-         * Updates the activity for the current timestamp.
-         */
-        public void step (float elapsed)
-        {
-            int started = _active.getActivityStarted();
-            if (_timestamp - started >= _clear) {
-                _active.setActivity(Active.NONE, started + _clear);
-            } else if (!canMove()) {
-                _active.clear(Mobile.MOVING);
-            }
-        }
-
-        /**
-         * Allows the activity to respond to input.
-         */
-        public void updateInput ()
-        {
-            // nothing by default
-        }
-
-        /** Whether or not the activity allows movement. */
-        protected boolean _movement;
-
-        /** Whether or not the activity allows rotation. */
-        protected boolean _rotation;
-
-        /** The interval after which to clear the activity. */
-        protected int _clear;
+      return _rotation;
     }
 
-    /** A casted reference to the active. */
-    protected Active _active;
+    /**
+     * Updates the activity for the current timestamp.
+     */
+    public void step (float elapsed)
+    {
+      int started = _active.getActivityStarted();
+      if (_timestamp - started >= _clear) {
+        _active.setActivity(Active.NONE, started + _clear);
+      } else if (!canMove()) {
+        _active.clear(Mobile.MOVING);
+      }
+    }
 
-    /** The mappings for the various activities. */
-    protected IntMap<Activity> _activities = IntMaps.newHashIntMap();
+    /**
+     * Allows the activity to respond to input.
+     */
+    public void updateInput ()
+    {
+      // nothing by default
+    }
+
+    /** Whether or not the activity allows movement. */
+    protected boolean _movement;
+
+    /** Whether or not the activity allows rotation. */
+    protected boolean _rotation;
+
+    /** The interval after which to clear the activity. */
+    protected int _clear;
+  }
+
+  /** A casted reference to the active. */
+  protected Active _active;
+
+  /** The mappings for the various activities. */
+  protected IntMap<Activity> _activities = IntMaps.newHashIntMap();
 }

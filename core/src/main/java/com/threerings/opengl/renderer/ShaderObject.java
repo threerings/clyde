@@ -37,71 +37,71 @@ import org.lwjgl.opengl.ARBShaderObjects;
  */
 public abstract class ShaderObject
 {
-    /**
-     * Creates a shader object for the specified renderer.
-     */
-    public ShaderObject (Renderer renderer)
-    {
-        _renderer = renderer;
+  /**
+   * Creates a shader object for the specified renderer.
+   */
+  public ShaderObject (Renderer renderer)
+  {
+    _renderer = renderer;
+  }
+
+  /**
+   * Returns the OpenGL identifier for this object.
+   */
+  public final int getId ()
+  {
+    return _id;
+  }
+
+  /**
+   * Retrieves and returns the shader object info log.
+   */
+  public String getInfoLog ()
+  {
+    // get the length of the log
+    IntBuffer ibuf = BufferUtils.createIntBuffer(1);
+    ARBShaderObjects.glGetObjectParameterARB(
+      _id, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB, ibuf);
+
+    // then the log itself (if the length is greater than zero)
+    int length = ibuf.get(0);
+    if (length <= 0) {
+      return "";
     }
+    ByteBuffer bbuf = BufferUtils.createByteBuffer(length);
+    ARBShaderObjects.glGetInfoLogARB(_id, ibuf, bbuf);
+    bbuf.limit(length);
 
-    /**
-     * Returns the OpenGL identifier for this object.
-     */
-    public final int getId ()
-    {
-        return _id;
+    // convert from ASCII and return
+    return ASCII_CHARSET.decode(bbuf).toString();
+  }
+
+  /**
+   * Deletes this object, rendering it unusable.
+   */
+  public void delete ()
+  {
+    ARBShaderObjects.glDeleteObjectARB(_id);
+    _id = 0;
+    _renderer.shaderObjectDeleted();
+  }
+
+  @Override
+  protected void finalize ()
+    throws Throwable
+  {
+    super.finalize();
+    if (_id > 0) {
+      _renderer.shaderObjectFinalized(_id);
     }
+  }
 
-    /**
-     * Retrieves and returns the shader object info log.
-     */
-    public String getInfoLog ()
-    {
-        // get the length of the log
-        IntBuffer ibuf = BufferUtils.createIntBuffer(1);
-        ARBShaderObjects.glGetObjectParameterARB(
-            _id, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB, ibuf);
+  /** The renderer that loaded this object. */
+  protected Renderer _renderer;
 
-        // then the log itself (if the length is greater than zero)
-        int length = ibuf.get(0);
-        if (length <= 0) {
-            return "";
-        }
-        ByteBuffer bbuf = BufferUtils.createByteBuffer(length);
-        ARBShaderObjects.glGetInfoLogARB(_id, ibuf, bbuf);
-        bbuf.limit(length);
+  /** The OpenGL identifier for this object. */
+  protected int _id;
 
-        // convert from ASCII and return
-        return ASCII_CHARSET.decode(bbuf).toString();
-    }
-
-    /**
-     * Deletes this object, rendering it unusable.
-     */
-    public void delete ()
-    {
-        ARBShaderObjects.glDeleteObjectARB(_id);
-        _id = 0;
-        _renderer.shaderObjectDeleted();
-    }
-
-    @Override
-    protected void finalize ()
-        throws Throwable
-    {
-        super.finalize();
-        if (_id > 0) {
-            _renderer.shaderObjectFinalized(_id);
-        }
-    }
-
-    /** The renderer that loaded this object. */
-    protected Renderer _renderer;
-
-    /** The OpenGL identifier for this object. */
-    protected int _id;
-
-    /** The ASCII charset. */
-    protected static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
+  /** The ASCII charset. */
+  protected static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
 }

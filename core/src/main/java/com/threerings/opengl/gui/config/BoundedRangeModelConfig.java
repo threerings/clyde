@@ -38,45 +38,45 @@ import com.threerings.opengl.gui.BoundedSnappingRangeModel;
  */
 @EditorTypes({ BoundedRangeModelConfig.class, BoundedRangeModelConfig.Snapping.class })
 public class BoundedRangeModelConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * A solid border.
-     */
-    public static class Snapping extends BoundedRangeModelConfig
-    {
-        /** The snap value. */
-        @Editable
-        public int snap;
+  /**
+   * A solid border.
+   */
+  public static class Snapping extends BoundedRangeModelConfig
+  {
+    /** The snap value. */
+    @Editable
+    public int snap;
 
-        @Override
-        public BoundedRangeModel createBoundedRangeModel ()
-        {
-            return new BoundedSnappingRangeModel(min, value, extent, max, snap);
-        }
-    }
-
-    /** The minimum value. */
-    @Editable(hgroup="v")
-    public int min;
-
-    /** The initial value. */
-    @Editable(hgroup="v")
-    public int value;
-
-    /** The covered extent. */
-    @Editable(hgroup="v")
-    public int extent = 10;
-
-    /** The maximum value. */
-    @Editable(hgroup="v")
-    public int max = 100;
-
-    /**
-     * Creates a bounded range model from this config.
-     */
+    @Override
     public BoundedRangeModel createBoundedRangeModel ()
     {
-        return new BoundedRangeModel(min, value, extent, max);
+      return new BoundedSnappingRangeModel(min, value, extent, max, snap);
     }
+  }
+
+  /** The minimum value. */
+  @Editable(hgroup="v")
+  public int min;
+
+  /** The initial value. */
+  @Editable(hgroup="v")
+  public int value;
+
+  /** The covered extent. */
+  @Editable(hgroup="v")
+  public int extent = 10;
+
+  /** The maximum value. */
+  @Editable(hgroup="v")
+  public int max = 100;
+
+  /**
+   * Creates a bounded range model from this config.
+   */
+  public BoundedRangeModel createBoundedRangeModel ()
+  {
+    return new BoundedRangeModel(min, value, extent, max);
+  }
 }

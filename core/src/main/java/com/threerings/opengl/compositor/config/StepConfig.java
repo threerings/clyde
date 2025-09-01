@@ -56,209 +56,209 @@ import com.threerings.opengl.util.GlContext;
  * Represents a single step in the process of updating a target.
  */
 @EditorTypes({
-    StepConfig.Clear.class,
-    StepConfig.RenderQueues.class,
-    StepConfig.RenderQuad.class })
+  StepConfig.Clear.class,
+  StepConfig.RenderQueues.class,
+  StepConfig.RenderQuad.class })
 public abstract class StepConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
+  /**
+   * Clears some or all of the buffers.
+   */
+  public static class Clear extends StepConfig
+  {
     /**
-     * Clears some or all of the buffers.
+     * Color clear parameters.
      */
-    public static class Clear extends StepConfig
+    public static class Color extends DeepObject
+      implements Exportable
     {
-        /**
-         * Color clear parameters.
-         */
-        public static class Color extends DeepObject
-            implements Exportable
-        {
-            /** Whether or not to clear the color buffer. */
-            @Editable(hgroup="c")
-            public boolean clear = true;
+      /** Whether or not to clear the color buffer. */
+      @Editable(hgroup="c")
+      public boolean clear = true;
 
-            /** The color clear value. */
-            @Editable(mode="alpha", hgroup="c")
-            public Color4f value = new Color4f(0f, 0f, 0f, 0f);
-        }
-
-        /**
-         * Depth clear parameters.
-         */
-        public static class Depth extends DeepObject
-            implements Exportable
-        {
-            /** Whether or not to clear the depth buffer. */
-            @Editable(hgroup="c")
-            public boolean clear = true;
-
-            /** The depth clear value. */
-            @Editable(min=0, max=1, step=0.01, hgroup="c")
-            public float value = 1f;
-        }
-
-        /**
-         * Stencil clear parameters.
-         */
-        public static class Stencil extends DeepObject
-            implements Exportable
-        {
-            /** Whether or not to clear the stencil buffer. */
-            @Editable(hgroup="c")
-            public boolean clear = true;
-
-            /** The stencil clear value. */
-            @Editable(min=0, hgroup="c")
-            public int value;
-        }
-
-        /** Color buffer clear parameters. */
-        @Editable
-        public Color color = new Color();
-
-        /** Depth buffer clear parameters. */
-        @Editable
-        public Depth depth = new Depth();
-
-        /** Stencil buffer clear parameters. */
-        @Editable
-        public Stencil stencil = new Stencil();
-
-        @Override
-        public Executor createExecutor (final GlContext ctx, Scope scope)
-        {
-            return new Executor() {
-                public void execute () {
-                    Renderer renderer = ctx.getRenderer();
-                    int bits = 0;
-                    if (color.clear) {
-                        bits |= GL11.GL_COLOR_BUFFER_BIT;
-                        renderer.setClearColor(color.value);
-                        renderer.setState(ColorMaskState.ALL);
-                    }
-                    if (depth.clear) {
-                        bits |= GL11.GL_DEPTH_BUFFER_BIT;
-                        renderer.setClearDepth(depth.value);
-                        renderer.setState(DepthState.TEST_WRITE);
-                    }
-                    if (stencil.clear) {
-                        bits |= GL11.GL_STENCIL_BUFFER_BIT;
-                        renderer.setClearStencil(stencil.value);
-                        renderer.setState(StencilState.DISABLED);
-                    }
-                    if (bits != 0) {
-                        GL11.glClear(bits);
-                    }
-                }
-            };
-        }
+      /** The color clear value. */
+      @Editable(mode="alpha", hgroup="c")
+      public Color4f value = new Color4f(0f, 0f, 0f, 0f);
     }
 
     /**
-     * Renders a set of render queues.
+     * Depth clear parameters.
      */
-    public static class RenderQueues extends StepConfig
+    public static class Depth extends DeepObject
+      implements Exportable
     {
-        /** The type of queues to render. */
-        @Editable
-        public String queueType = RenderQueue.NORMAL_TYPE;
+      /** Whether or not to clear the depth buffer. */
+      @Editable(hgroup="c")
+      public boolean clear = true;
 
-        /** The minimum priority of the queues to render. */
-        @Editable(hgroup="p")
-        public int minPriority = Integer.MIN_VALUE;
-
-        /** The maximum priority of the queues to render. */
-        @Editable(hgroup="p")
-        public int maxPriority = Integer.MAX_VALUE;
-
-        @Override
-        public Executor createExecutor (final GlContext ctx, Scope scope)
-        {
-            return new Executor() {
-                public void execute () {
-                    ctx.getCompositor().getGroup().renderQueues(
-                        queueType, minPriority, maxPriority);
-                }
-            };
-        }
+      /** The depth clear value. */
+      @Editable(min=0, max=1, step=0.01, hgroup="c")
+      public float value = 1f;
     }
 
     /**
-     * Renders a full-screen quad.
+     * Stencil clear parameters.
      */
-    public static class RenderQuad extends StepConfig
+    public static class Stencil extends DeepObject
+      implements Exportable
     {
-        /** The material to use when rendering the quad. */
-        @Editable(nullable=true)
-        public ConfigReference<MaterialConfig> material;
+      /** Whether or not to clear the stencil buffer. */
+      @Editable(hgroup="c")
+      public boolean clear = true;
 
-        /** The level of tesselation in the x direction. */
-        @Editable(min=1, hgroup="d")
-        public int divisionsX = 1;
-
-        /** The level of tesselation in the y direction. */
-        @Editable(min=1, hgroup="d")
-        public int divisionsY = 1;
-
-        @Override
-        public boolean isSupported (GlContext ctx, boolean fallback)
-        {
-            MaterialConfig config = ctx.getConfigManager().getConfig(
-                MaterialConfig.class, material);
-            return config != null && config.getTechnique(ctx, null) != null;
-        }
-
-        @Override
-        public Executor createExecutor (final GlContext ctx, Scope scope)
-        {
-            MaterialConfig config = ctx.getConfigManager().getConfig(
-                MaterialConfig.class, material);
-            final Map<Dependency, Dependency> dependencies = Maps.newHashMap();
-            final RenderQueue.Group group = new RenderQueue.Group(ctx);
-            final Surface surface = new Surface(
-                ctx, scope, GeometryConfig.getQuad(divisionsX, divisionsY), config, group);
-            return new Executor() {
-                public void execute () {
-                    // save the projection matrix and load the identity matrix
-                    Renderer renderer = ctx.getRenderer();
-                    renderer.setMatrixMode(GL11.GL_PROJECTION);
-                    GL11.glPushMatrix();
-                    GL11.glLoadIdentity();
-
-                    // save and replace the dependency map
-                    Compositor compositor = ctx.getCompositor();
-                    Map<Dependency, Dependency> odeps = compositor.getDependencies();
-                    compositor.setDependencies(dependencies);
-
-                    // composite, enqueue, sort, render, clear
-                    surface.composite();
-                    compositor.enqueueEnqueueables();
-                    group.sortQueues();
-                    group.renderQueues();
-                    group.clearQueues();
-
-                    // clear and restore the dependencies
-                    compositor.clearDependencies();
-                    compositor.setDependencies(odeps);
-
-                    // restore the projection matrix
-                    renderer.setMatrixMode(GL11.GL_PROJECTION);
-                    GL11.glPopMatrix();
-                }
-            };
-        }
+      /** The stencil clear value. */
+      @Editable(min=0, hgroup="c")
+      public int value;
     }
 
-    /**
-     * Determines whether this step config is supported by the hardware.
-     */
+    /** Color buffer clear parameters. */
+    @Editable
+    public Color color = new Color();
+
+    /** Depth buffer clear parameters. */
+    @Editable
+    public Depth depth = new Depth();
+
+    /** Stencil buffer clear parameters. */
+    @Editable
+    public Stencil stencil = new Stencil();
+
+    @Override
+    public Executor createExecutor (final GlContext ctx, Scope scope)
+    {
+      return new Executor() {
+        public void execute () {
+          Renderer renderer = ctx.getRenderer();
+          int bits = 0;
+          if (color.clear) {
+            bits |= GL11.GL_COLOR_BUFFER_BIT;
+            renderer.setClearColor(color.value);
+            renderer.setState(ColorMaskState.ALL);
+          }
+          if (depth.clear) {
+            bits |= GL11.GL_DEPTH_BUFFER_BIT;
+            renderer.setClearDepth(depth.value);
+            renderer.setState(DepthState.TEST_WRITE);
+          }
+          if (stencil.clear) {
+            bits |= GL11.GL_STENCIL_BUFFER_BIT;
+            renderer.setClearStencil(stencil.value);
+            renderer.setState(StencilState.DISABLED);
+          }
+          if (bits != 0) {
+            GL11.glClear(bits);
+          }
+        }
+      };
+    }
+  }
+
+  /**
+   * Renders a set of render queues.
+   */
+  public static class RenderQueues extends StepConfig
+  {
+    /** The type of queues to render. */
+    @Editable
+    public String queueType = RenderQueue.NORMAL_TYPE;
+
+    /** The minimum priority of the queues to render. */
+    @Editable(hgroup="p")
+    public int minPriority = Integer.MIN_VALUE;
+
+    /** The maximum priority of the queues to render. */
+    @Editable(hgroup="p")
+    public int maxPriority = Integer.MAX_VALUE;
+
+    @Override
+    public Executor createExecutor (final GlContext ctx, Scope scope)
+    {
+      return new Executor() {
+        public void execute () {
+          ctx.getCompositor().getGroup().renderQueues(
+            queueType, minPriority, maxPriority);
+        }
+      };
+    }
+  }
+
+  /**
+   * Renders a full-screen quad.
+   */
+  public static class RenderQuad extends StepConfig
+  {
+    /** The material to use when rendering the quad. */
+    @Editable(nullable=true)
+    public ConfigReference<MaterialConfig> material;
+
+    /** The level of tesselation in the x direction. */
+    @Editable(min=1, hgroup="d")
+    public int divisionsX = 1;
+
+    /** The level of tesselation in the y direction. */
+    @Editable(min=1, hgroup="d")
+    public int divisionsY = 1;
+
+    @Override
     public boolean isSupported (GlContext ctx, boolean fallback)
     {
-        return true;
+      MaterialConfig config = ctx.getConfigManager().getConfig(
+        MaterialConfig.class, material);
+      return config != null && config.getTechnique(ctx, null) != null;
     }
 
-    /**
-     * Creates the executor that will actually perform the step.
-     */
-    public abstract Executor createExecutor (GlContext ctx, Scope scope);
+    @Override
+    public Executor createExecutor (final GlContext ctx, Scope scope)
+    {
+      MaterialConfig config = ctx.getConfigManager().getConfig(
+        MaterialConfig.class, material);
+      final Map<Dependency, Dependency> dependencies = Maps.newHashMap();
+      final RenderQueue.Group group = new RenderQueue.Group(ctx);
+      final Surface surface = new Surface(
+        ctx, scope, GeometryConfig.getQuad(divisionsX, divisionsY), config, group);
+      return new Executor() {
+        public void execute () {
+          // save the projection matrix and load the identity matrix
+          Renderer renderer = ctx.getRenderer();
+          renderer.setMatrixMode(GL11.GL_PROJECTION);
+          GL11.glPushMatrix();
+          GL11.glLoadIdentity();
+
+          // save and replace the dependency map
+          Compositor compositor = ctx.getCompositor();
+          Map<Dependency, Dependency> odeps = compositor.getDependencies();
+          compositor.setDependencies(dependencies);
+
+          // composite, enqueue, sort, render, clear
+          surface.composite();
+          compositor.enqueueEnqueueables();
+          group.sortQueues();
+          group.renderQueues();
+          group.clearQueues();
+
+          // clear and restore the dependencies
+          compositor.clearDependencies();
+          compositor.setDependencies(odeps);
+
+          // restore the projection matrix
+          renderer.setMatrixMode(GL11.GL_PROJECTION);
+          GL11.glPopMatrix();
+        }
+      };
+    }
+  }
+
+  /**
+   * Determines whether this step config is supported by the hardware.
+   */
+  public boolean isSupported (GlContext ctx, boolean fallback)
+  {
+    return true;
+  }
+
+  /**
+   * Creates the executor that will actually perform the step.
+   */
+  public abstract Executor createExecutor (GlContext ctx, Scope scope);
 }

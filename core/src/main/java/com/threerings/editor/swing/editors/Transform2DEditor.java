@@ -44,41 +44,41 @@ import com.threerings.editor.swing.Transform2DPanel;
  * Editor for transform properties.
  */
 public class Transform2DEditor extends PropertyEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        Transform2D value = _panel.getValue();
-        if (!_property.get(_object).equals(value)) {
-            _property.set(_object, value);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    Transform2D value = _panel.getValue();
+    if (!_property.get(_object).equals(value)) {
+      _property.set(_object, value);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _panel.setValue((Transform2D)_property.get(_object));
-    }
+  @Override
+  public void update ()
+  {
+    _panel.setValue((Transform2D)_property.get(_object));
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setTitle(getPropertyLabel());
-        String mstr = getMode();
-        Transform2DPanel.Mode mode = Transform2DPanel.Mode.UNIFORM;
-        try {
-            mode = Enum.valueOf(Transform2DPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
-        } catch (IllegalArgumentException e) { }
-        add(_panel = new Transform2DPanel(_msgs, mode, (float)getStep(), (float)getScale()));
-        _panel.setBackground(getDarkerBackground(_lineage.length));
-        Color ddarker = getDarkerBackground(_lineage.length + 1);
-        _panel.getTranslationPanel().setBackground(ddarker);
-        _panel.addChangeListener(this);
-    }
+  @Override
+  protected void didInit ()
+  {
+    setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+    setTitle(getPropertyLabel());
+    String mstr = getMode();
+    Transform2DPanel.Mode mode = Transform2DPanel.Mode.UNIFORM;
+    try {
+      mode = Enum.valueOf(Transform2DPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+    } catch (IllegalArgumentException e) { }
+    add(_panel = new Transform2DPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+    _panel.setBackground(getDarkerBackground(_lineage.length));
+    Color ddarker = getDarkerBackground(_lineage.length + 1);
+    _panel.getTranslationPanel().setBackground(ddarker);
+    _panel.addChangeListener(this);
+  }
 
-    /** The transform panel. */
-    protected Transform2DPanel _panel;
+  /** The transform panel. */
+  protected Transform2DPanel _panel;
 }

@@ -39,39 +39,39 @@ import com.threerings.opengl.util.GlContext;
  */
 public class ViewerAffecterConfig extends ModelConfig.Implementation
 {
-    /** The effect that this affecter exerts. */
-    @Editable
-    public ViewerEffectConfig effect = new ViewerEffectConfig.Sound();
+  /** The effect that this affecter exerts. */
+  @Editable
+  public ViewerEffectConfig effect = new ViewerEffectConfig.Sound();
 
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
+  /** The influences allowed to affect this model. */
+  @Editable
+  public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
 
-    /** The extent of the effect. */
-    @Editable
-    public Extent extent = new Extent.Limited();
+  /** The extent of the effect. */
+  @Editable
+  public Extent extent = new Extent.Limited();
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof ViewerAffecter) {
-            ((ViewerAffecter)impl).setConfig(ctx, this);
-        } else {
-            impl = new ViewerAffecter(ctx, scope, this);
-        }
-        return impl;
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof ViewerAffecter) {
+      ((ViewerAffecter)impl).setConfig(ctx, this);
+    } else {
+      impl = new ViewerAffecter(ctx, scope, this);
     }
+    return impl;
+  }
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        effect.preload(ctx);
-    }
+  @Override
+  public void preload (GlContext ctx)
+  {
+    effect.preload(ctx);
+  }
 
-    @Override
-    public void invalidate ()
-    {
-        effect.invalidate();
-    }
+  @Override
+  public void invalidate ()
+  {
+    effect.invalidate();
+  }
 }

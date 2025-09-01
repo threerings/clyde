@@ -38,209 +38,209 @@ import com.threerings.util.DeepObject;
  * API.  TODO: Allow control over the amount/duration of easing?
  */
 @EditorTypes({
-    Easing.None.class,
-    Easing.QuadraticIn.class, Easing.QuadraticOut.class, Easing.QuadraticInAndOut.class,
-    Easing.CubicIn.class, Easing.CubicOut.class, Easing.CubicInAndOut.class,
-    Easing.CubicInOvershoot.class, Easing.CubicOutOvershoot.class })
+  Easing.None.class,
+  Easing.QuadraticIn.class, Easing.QuadraticOut.class, Easing.QuadraticInAndOut.class,
+  Easing.CubicIn.class, Easing.CubicOut.class, Easing.CubicInAndOut.class,
+  Easing.CubicInOvershoot.class, Easing.CubicOutOvershoot.class })
 public abstract class Easing extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /**
-     * Performs no easing.
-     */
-    public static class None extends Easing
+  /**
+   * Performs no easing.
+   */
+  public static class None extends Easing
+  {
+    @Override
+    public float getTime (float t)
     {
-        @Override
-        public float getTime (float t)
-        {
-            return t;
-        }
-
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof None) ? result : new None();
-        }
+      return t;
     }
 
-    /**
-     * Performs a simple quadratic ease-in.
-     */
-    public static class QuadraticIn extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        @Override
-        public float getTime (float t)
-        {
-            return t*t;
-        }
+      return (result instanceof None) ? result : new None();
+    }
+  }
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof QuadraticIn) ? result : new QuadraticIn();
-        }
+  /**
+   * Performs a simple quadratic ease-in.
+   */
+  public static class QuadraticIn extends Easing
+  {
+    @Override
+    public float getTime (float t)
+    {
+      return t*t;
     }
 
-    /**
-     * Performs a simple quadratic ease-out.
-     */
-    public static class QuadraticOut extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        @Override
-        public float getTime (float t)
-        {
-            return t*(2f - t);
-        }
+      return (result instanceof QuadraticIn) ? result : new QuadraticIn();
+    }
+  }
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof QuadraticOut) ? result : new QuadraticOut();
-        }
+  /**
+   * Performs a simple quadratic ease-out.
+   */
+  public static class QuadraticOut extends Easing
+  {
+    @Override
+    public float getTime (float t)
+    {
+      return t*(2f - t);
     }
 
-    /**
-     * Performs a simple ease-in and a simple ease-out.
-     */
-    public static class QuadraticInAndOut extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        @Override
-        public float getTime (float t)
-        {
-            return (t <= .5f) ? (2f*t*t) : (2f*t*(2f - t) - 1f);
-        }
+      return (result instanceof QuadraticOut) ? result : new QuadraticOut();
+    }
+  }
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof QuadraticInAndOut) ? result : new QuadraticInAndOut();
-        }
+  /**
+   * Performs a simple ease-in and a simple ease-out.
+   */
+  public static class QuadraticInAndOut extends Easing
+  {
+    @Override
+    public float getTime (float t)
+    {
+      return (t <= .5f) ? (2f*t*t) : (2f*t*(2f - t) - 1f);
     }
 
-    /**
-     * Performs a simple cubic ease-in.
-     */
-    public static class CubicIn extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        @Override
-        public float getTime (float t)
-        {
-            return t*t*t;
-        }
+      return (result instanceof QuadraticInAndOut) ? result : new QuadraticInAndOut();
+    }
+  }
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof CubicIn) ? result : new CubicIn();
-        }
+  /**
+   * Performs a simple cubic ease-in.
+   */
+  public static class CubicIn extends Easing
+  {
+    @Override
+    public float getTime (float t)
+    {
+      return t*t*t;
     }
 
-    /**
-     * Performs a simple cubic ease-out.
-     */
-    public static class CubicOut extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        @Override
-        public float getTime (float t)
-        {
-            t -= 1f;
-            return t*t*t + 1f;
-        }
+      return (result instanceof CubicIn) ? result : new CubicIn();
+    }
+  }
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof CubicOut) ? result : new CubicOut();
-        }
+  /**
+   * Performs a simple cubic ease-out.
+   */
+  public static class CubicOut extends Easing
+  {
+    @Override
+    public float getTime (float t)
+    {
+      t -= 1f;
+      return t*t*t + 1f;
     }
 
-    /**
-     * Performs a simple cubic ease-in and ease-out.
-     */
-    public static class CubicInAndOut extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        @Override
-        public float getTime (float t)
-        {
-            t *= 2f;
-            if (t < 1f) {
-                return .5f*t*t*t;
-            }
-            t -= 2f;
-            return .5f * (t*t*t + 2f);
-        }
+      return (result instanceof CubicOut) ? result : new CubicOut();
+    }
+  }
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            return (result instanceof CubicInAndOut) ? result : new CubicInAndOut();
-        }
+  /**
+   * Performs a simple cubic ease-in and ease-out.
+   */
+  public static class CubicInAndOut extends Easing
+  {
+    @Override
+    public float getTime (float t)
+    {
+      t *= 2f;
+      if (t < 1f) {
+        return .5f*t*t*t;
+      }
+      t -= 2f;
+      return .5f * (t*t*t + 2f);
     }
 
-    /**
-     * Performs a simple in and back ease.
-     */
-    public static class CubicInOvershoot extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        /** The amount of overshoot: the default value produces about 10 percent overshoot. */
-        @Editable(min=0, step=.00001)
-        public float overshoot = 1.70158f;
+      return (result instanceof CubicInAndOut) ? result : new CubicInAndOut();
+    }
+  }
 
-        @Override
-        public float getTime (float t)
-        {
-            return t*t*((overshoot + 1)*t - overshoot);
-        }
+  /**
+   * Performs a simple in and back ease.
+   */
+  public static class CubicInOvershoot extends Easing
+  {
+    /** The amount of overshoot: the default value produces about 10 percent overshoot. */
+    @Editable(min=0, step=.00001)
+    public float overshoot = 1.70158f;
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            CubicInOvershoot that = (result instanceof CubicInOvershoot)
-                ? (CubicInOvershoot)result
-                : new CubicInOvershoot();
-            that.overshoot = this.overshoot;
-            return that;
-        }
+    @Override
+    public float getTime (float t)
+    {
+      return t*t*((overshoot + 1)*t - overshoot);
     }
 
-    /**
-     * Performs a simple cubic ease out with overshoot.
-     */
-    public static class CubicOutOvershoot extends Easing
+    @Override
+    public Easing copy (Easing result)
     {
-        /** The amount of overshoot: the default value produces about 10 percent overshoot. */
-        @Editable(min=0, step=.00001)
-        public float overshoot = 1.70158f;
+      CubicInOvershoot that = (result instanceof CubicInOvershoot)
+        ? (CubicInOvershoot)result
+        : new CubicInOvershoot();
+      that.overshoot = this.overshoot;
+      return that;
+    }
+  }
 
-        @Override
-        public float getTime (float t)
-        {
-            t -= 1f;
-            return t*t*((overshoot + 1)*t + overshoot) + 1;
-        }
+  /**
+   * Performs a simple cubic ease out with overshoot.
+   */
+  public static class CubicOutOvershoot extends Easing
+  {
+    /** The amount of overshoot: the default value produces about 10 percent overshoot. */
+    @Editable(min=0, step=.00001)
+    public float overshoot = 1.70158f;
 
-        @Override
-        public Easing copy (Easing result)
-        {
-            CubicOutOvershoot that = (result instanceof CubicOutOvershoot)
-                ? (CubicOutOvershoot)result
-                : new CubicOutOvershoot();
-            that.overshoot = this.overshoot;
-            return that;
-        }
+    @Override
+    public float getTime (float t)
+    {
+      t -= 1f;
+      return t*t*((overshoot + 1)*t + overshoot) + 1;
     }
 
-    /**
-     * Computes the eased time based on the provided linear parameter.
-     */
-    public abstract float getTime (float t);
+    @Override
+    public Easing copy (Easing result)
+    {
+      CubicOutOvershoot that = (result instanceof CubicOutOvershoot)
+        ? (CubicOutOvershoot)result
+        : new CubicOutOvershoot();
+      that.overshoot = this.overshoot;
+      return that;
+    }
+  }
 
-    /**
-     * Copies this easing function.
-     *
-     * @param result an object to repopulate, if possible.
-     * @return either the result object, if it could be repopulated, or a new object containing the
-     * result.
-     */
-    public abstract Easing copy (Easing result);
+  /**
+   * Computes the eased time based on the provided linear parameter.
+   */
+  public abstract float getTime (float t);
+
+  /**
+   * Copies this easing function.
+   *
+   * @param result an object to repopulate, if possible.
+   * @return either the result object, if it could be repopulated, or a new object containing the
+   * result.
+   */
+  public abstract Easing copy (Easing result);
 }

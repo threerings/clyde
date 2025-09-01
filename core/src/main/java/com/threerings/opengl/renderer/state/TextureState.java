@@ -33,45 +33,45 @@ import com.threerings.opengl.renderer.TextureUnit;
  */
 public class TextureState extends RenderState
 {
-    /** A state that disables texturing. */
-    public static final TextureState DISABLED = new TextureState(null);
+  /** A state that disables texturing. */
+  public static final TextureState DISABLED = new TextureState(null);
 
-    /**
-     * Creates a new texture state.
-     */
-    public TextureState (TextureUnit[] units)
-    {
-        _units = units;
-    }
+  /**
+   * Creates a new texture state.
+   */
+  public TextureState (TextureUnit[] units)
+  {
+    _units = units;
+  }
 
-    /**
-     * Returns a reference to the array of texture units.
-     */
-    public TextureUnit[] getUnits ()
-    {
-        return _units;
-    }
+  /**
+   * Returns a reference to the array of texture units.
+   */
+  public TextureUnit[] getUnits ()
+  {
+    return _units;
+  }
 
-    /**
-     * Returns the unit at the specified index, if any.
-     */
-    public TextureUnit getUnit (int idx)
-    {
-        return (_units == null || _units.length <= idx) ? null : _units[idx];
-    }
+  /**
+   * Returns the unit at the specified index, if any.
+   */
+  public TextureUnit getUnit (int idx)
+  {
+    return (_units == null || _units.length <= idx) ? null : _units[idx];
+  }
 
-    @Override
-    public int getType ()
-    {
-        return TEXTURE_STATE;
-    }
+  @Override
+  public int getType ()
+  {
+    return TEXTURE_STATE;
+  }
 
-    @Override
-    public void apply (Renderer renderer)
-    {
-        renderer.setTextureState(_units);
-    }
+  @Override
+  public void apply (Renderer renderer)
+  {
+    renderer.setTextureState(_units);
+  }
 
-    /** The states of the texture units. */
-    protected TextureUnit[] _units;
+  /** The states of the texture units. */
+  protected TextureUnit[] _units;
 }

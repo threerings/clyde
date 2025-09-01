@@ -53,288 +53,288 @@ import static com.threerings.opengl.Log.log;
  */
 public abstract class GlDisplayApp extends GlApp
 {
-    public GlDisplayApp ()
-    {
-        // enable vsync unless configured otherwise
-        Display.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
-    }
+  public GlDisplayApp ()
+  {
+    // enable vsync unless configured otherwise
+    Display.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+  }
 
-    /**
-     * Returns an array containing the available display modes.
-     */
-    public DisplayMode[] getAvailableDisplayModes ()
-    {
-        try {
-            return Display.getAvailableDisplayModes();
-        } catch (LWJGLException e) {
-            log.warning("Failed to retrieve available display modes.", e);
-            return new DisplayMode[] { Display.getDisplayMode() };
-        }
+  /**
+   * Returns an array containing the available display modes.
+   */
+  public DisplayMode[] getAvailableDisplayModes ()
+  {
+    try {
+      return Display.getAvailableDisplayModes();
+    } catch (LWJGLException e) {
+      log.warning("Failed to retrieve available display modes.", e);
+      return new DisplayMode[] { Display.getDisplayMode() };
     }
+  }
 
-    /**
-     * Sets the display mode and fullscreen setting at the same time.
-     */
-    public void setDisplayModeAndFullscreen (DisplayMode mode)
-    {
-        try {
-            Display.setDisplayModeAndFullscreen(mode);
-            updateRendererSize();
-        } catch (LWJGLException e) {
-            log.warning("Failed to set display mode/fullscreen.", "mode", mode, e);
-        }
+  /**
+   * Sets the display mode and fullscreen setting at the same time.
+   */
+  public void setDisplayModeAndFullscreen (DisplayMode mode)
+  {
+    try {
+      Display.setDisplayModeAndFullscreen(mode);
+      updateRendererSize();
+    } catch (LWJGLException e) {
+      log.warning("Failed to set display mode/fullscreen.", "mode", mode, e);
     }
+  }
 
-    /**
-     * Sets the display mode and updates the viewport if the display is created.
-     */
-    public void setDisplayMode (DisplayMode mode)
-    {
-        if (Display.getDisplayMode().equals(mode)) {
-            return;
-        }
-        try {
-            Display.setDisplayMode(mode);
-            updateRendererSize();
-        } catch (LWJGLException e) {
-            log.warning("Failed to set display mode.", "mode", mode, e);
-        }
+  /**
+   * Sets the display mode and updates the viewport if the display is created.
+   */
+  public void setDisplayMode (DisplayMode mode)
+  {
+    if (Display.getDisplayMode().equals(mode)) {
+      return;
     }
-
-    /**
-     * Sets the fullscreen mode.
-     */
-    public void setFullscreen (boolean fullscreen)
-    {
-        try {
-            Display.setFullscreen(fullscreen);
-        } catch (LWJGLException e) {
-            log.warning("Failed to set fullscreen mode.", "fullscreen", fullscreen, e);
-        }
+    try {
+      Display.setDisplayMode(mode);
+      updateRendererSize();
+    } catch (LWJGLException e) {
+      log.warning("Failed to set display mode.", "mode", mode, e);
     }
+  }
 
-    /**
-     * Sets the display icon.
-     *
-     * @param paths the resource paths of the icons to set.
-     */
-    public void setIcon (String... paths)
-    {
-        ByteBuffer[] icons = new ByteBuffer[paths.length];
-        for (int ii = 0; ii < paths.length; ii++) {
-            BufferedImage image = _imgcache.getBufferedImage(paths[ii]);
-            int[] argb = image.getRGB(
-                0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-            ByteBuffer buf = BufferUtils.createByteBuffer(argb.length * 4);
-            for (int pixel : argb) {
-                buf.put((byte)((pixel >> 16) & 0xFF));
-                buf.put((byte)((pixel >> 8) & 0xFF));
-                buf.put((byte)(pixel & 0xFF));
-                buf.put((byte)((pixel >> 24) & 0xFF));
-            }
-            buf.rewind();
-            icons[ii] = buf;
-        }
-        Display.setIcon(icons);
+  /**
+   * Sets the fullscreen mode.
+   */
+  public void setFullscreen (boolean fullscreen)
+  {
+    try {
+      Display.setFullscreen(fullscreen);
+    } catch (LWJGLException e) {
+      log.warning("Failed to set fullscreen mode.", "fullscreen", fullscreen, e);
     }
+  }
 
-    // documentation inherited from interface GlContext
-    public void makeCurrent ()
-    {
-        try {
-            Display.makeCurrent();
-        } catch (LWJGLException e) {
-            log.warning("Failed to make context current.", e);
-        }
+  /**
+   * Sets the display icon.
+   *
+   * @param paths the resource paths of the icons to set.
+   */
+  public void setIcon (String... paths)
+  {
+    ByteBuffer[] icons = new ByteBuffer[paths.length];
+    for (int ii = 0; ii < paths.length; ii++) {
+      BufferedImage image = _imgcache.getBufferedImage(paths[ii]);
+      int[] argb = image.getRGB(
+        0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+      ByteBuffer buf = BufferUtils.createByteBuffer(argb.length * 4);
+      for (int pixel : argb) {
+        buf.put((byte)((pixel >> 16) & 0xFF));
+        buf.put((byte)((pixel >> 8) & 0xFF));
+        buf.put((byte)(pixel & 0xFF));
+        buf.put((byte)((pixel >> 24) & 0xFF));
+      }
+      buf.rewind();
+      icons[ii] = buf;
     }
+    Display.setIcon(icons);
+  }
 
-    @Override
-    public RunQueue getRunQueue ()
-    {
-        return RunQueue.AWT;
+  // documentation inherited from interface GlContext
+  public void makeCurrent ()
+  {
+    try {
+      Display.makeCurrent();
+    } catch (LWJGLException e) {
+      log.warning("Failed to make context current.", e);
     }
+  }
 
-    @Override
-    public Root createRoot ()
-    {
-        if (_displayRoot == null) {
-            _displayRoot = new DisplayRoot(this);
-        }
-        return _displayRoot;
+  @Override
+  public RunQueue getRunQueue ()
+  {
+    return RunQueue.AWT;
+  }
+
+  @Override
+  public Root createRoot ()
+  {
+    if (_displayRoot == null) {
+      _displayRoot = new DisplayRoot(this);
     }
+    return _displayRoot;
+  }
 
-    @Override
-    public void startup ()
-    {
-        // all the work happens in the AWT thread
-        EventQueue.invokeLater(new Runnable() {
-            public void run () {
-                init();
-            }
-        });
-    }
+  @Override
+  public void startup ()
+  {
+    // all the work happens in the AWT thread
+    EventQueue.invokeLater(new Runnable() {
+      public void run () {
+        init();
+      }
+    });
+  }
 
-    @Override
-    public void shutdown ()
-    {
-        willShutdown();
-        Keyboard.destroy();
-        Mouse.destroy();
-        Controllers.destroy();
+  @Override
+  public void shutdown ()
+  {
+    willShutdown();
+    Keyboard.destroy();
+    Mouse.destroy();
+    Controllers.destroy();
 //        IME.destroy();
-        Display.destroy();
-        System.exit(0);
-    }
+    Display.destroy();
+    System.exit(0);
+  }
 
-    @Override
-    protected void init ()
-    {
-        if (!createDisplay()) {
-            return;
-        }
-        super.init();
+  @Override
+  protected void init ()
+  {
+    if (!createDisplay()) {
+      return;
     }
+    super.init();
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        // create the input devices
-        try {
-            Keyboard.create();
-        } catch (LWJGLException e) {
-            log.warning("Failed to create keyboard.", e);
-        }
-        try {
-            Mouse.create();
-        } catch (LWJGLException e) {
-            log.warning("Failed to create mouse.", e);
-        }
-        try {
-            Controllers.create();
-        } catch (LWJGLException e) {
-            log.warning("Failed to create controllers.", e);
-        }
+  @Override
+  protected void didInit ()
+  {
+    // create the input devices
+    try {
+      Keyboard.create();
+    } catch (LWJGLException e) {
+      log.warning("Failed to create keyboard.", e);
+    }
+    try {
+      Mouse.create();
+    } catch (LWJGLException e) {
+      log.warning("Failed to create mouse.", e);
+    }
+    try {
+      Controllers.create();
+    } catch (LWJGLException e) {
+      log.warning("Failed to create controllers.", e);
+    }
 //        try {
 //            IME.create();
 //        } catch (LWJGLException e) {
 //            log.warning("Failed to create ime.", e);
 //        }
 
-        // start the updater
-        final Runnable updater = new Runnable() {
-            public void run () {
-                if (Display.isCloseRequested()) {
-                    shutdown();
-                }
-                makeCurrent();
-                updateFrame();
-                EventQueue.invokeLater(this);
-            }
-        };
-        EventQueue.invokeLater(updater);
-    }
-
-    @Override
-    protected void willShutdown ()
-    {
-        if (_displayRoot != null) {
-            _displayRoot.dispose();
-            _displayRoot = null;
+    // start the updater
+    final Runnable updater = new Runnable() {
+      public void run () {
+        if (Display.isCloseRequested()) {
+          shutdown();
         }
-        super.willShutdown();
+        makeCurrent();
+        updateFrame();
+        EventQueue.invokeLater(this);
+      }
+    };
+    EventQueue.invokeLater(updater);
+  }
+
+  @Override
+  protected void willShutdown ()
+  {
+    if (_displayRoot != null) {
+      _displayRoot.dispose();
+      _displayRoot = null;
+    }
+    super.willShutdown();
+  }
+
+  @Override
+  protected void initRenderer ()
+  {
+    Dimension dim = calcRendererSize();
+    _renderer.init(Display.getDrawable(), dim.width, dim.height);
+  }
+
+  /**
+   * Update the renderer size after a mode change.
+   */
+  protected void updateRendererSize ()
+  {
+    if (Display.isCreated()) {
+      Dimension dim = calcRendererSize();
+      _renderer.setSize(dim.width, dim.height);
+    }
+  }
+
+  /**
+   * Return the size to use for rendering the specified display mode.
+   * Single place to perform overrides of rendering alterations.
+   */
+  protected Dimension calcRendererSize ()
+  {
+    return new Dimension(Display.getWidth(), Display.getHeight());
+  }
+
+  /**
+   * Creates the display with one of the supported pixel formats.
+   *
+   * @return true if successful, false if we couldn't find a valid pixel format.
+   */
+  protected boolean createDisplay ()
+  {
+    // try with the current settings
+    if (attemptCreateDisplay()) {
+      return true;
     }
 
-    @Override
-    protected void initRenderer ()
-    {
-        Dimension dim = calcRendererSize();
-        _renderer.init(Display.getDrawable(), dim.width, dim.height);
+    // switch to/from fullscreen mode and try again
+    boolean fullscreen = !Display.isFullscreen();
+    log.info("Couldn't create display; switching fullscreen mode.", "fullscreen", fullscreen);
+    try {
+      Display.setFullscreen(fullscreen);
+    } catch (LWJGLException e) {
+      log.warning("Failed to switch fullscreen mode.", e);
+      return false;
+    }
+    if (attemptCreateDisplay()) {
+      return true;
     }
 
-    /**
-     * Update the renderer size after a mode change.
-     */
-    protected void updateRendererSize ()
-    {
-        if (Display.isCreated()) {
-            Dimension dim = calcRendererSize();
-            _renderer.setSize(dim.width, dim.height);
-        }
+    log.warning("Couldn't find valid pixel format.");
+    return false;
+  }
+
+  /**
+   * Tries each pixel format in sequence until we find one that works.
+   *
+   * @return true if successful, false if we couldn't find a valid pixel format.
+   */
+  protected boolean attemptCreateDisplay ()
+  {
+    for (PixelFormat format : getPixelFormats()) {
+      try {
+        Display.create(format);
+        return true;
+      } catch (LWJGLException e) {
+        // proceed to next format
+      }
     }
+    return false;
+  }
 
-    /**
-     * Return the size to use for rendering the specified display mode.
-     * Single place to perform overrides of rendering alterations.
-     */
-    protected Dimension calcRendererSize ()
-    {
-        return new Dimension(Display.getWidth(), Display.getHeight());
+  /**
+   * Updates and renders a single frame.
+   */
+  protected void updateFrame ()
+  {
+    try {
+      updateView();
+      if (Display.isVisible()) {
+        renderView();
+      }
+      Display.update();
+
+    } catch (Exception e) {
+      log.warning("Caught exception in frame loop.", e);
     }
+  }
 
-    /**
-     * Creates the display with one of the supported pixel formats.
-     *
-     * @return true if successful, false if we couldn't find a valid pixel format.
-     */
-    protected boolean createDisplay ()
-    {
-        // try with the current settings
-        if (attemptCreateDisplay()) {
-            return true;
-        }
-
-        // switch to/from fullscreen mode and try again
-        boolean fullscreen = !Display.isFullscreen();
-        log.info("Couldn't create display; switching fullscreen mode.", "fullscreen", fullscreen);
-        try {
-            Display.setFullscreen(fullscreen);
-        } catch (LWJGLException e) {
-            log.warning("Failed to switch fullscreen mode.", e);
-            return false;
-        }
-        if (attemptCreateDisplay()) {
-            return true;
-        }
-
-        log.warning("Couldn't find valid pixel format.");
-        return false;
-    }
-
-    /**
-     * Tries each pixel format in sequence until we find one that works.
-     *
-     * @return true if successful, false if we couldn't find a valid pixel format.
-     */
-    protected boolean attemptCreateDisplay ()
-    {
-        for (PixelFormat format : getPixelFormats()) {
-            try {
-                Display.create(format);
-                return true;
-            } catch (LWJGLException e) {
-                // proceed to next format
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Updates and renders a single frame.
-     */
-    protected void updateFrame ()
-    {
-        try {
-            updateView();
-            if (Display.isVisible()) {
-                renderView();
-            }
-            Display.update();
-
-        } catch (Exception e) {
-            log.warning("Caught exception in frame loop.", e);
-        }
-    }
-
-    /** Our root. */
-    protected Root _displayRoot;
+  /** Our root. */
+  protected Root _displayRoot;
 }

@@ -58,264 +58,264 @@ import com.threerings.config.ConfigManager;
  * The superclass of {@link ConfigEditor} and {@link ResourceEditor}.
  */
 public abstract class BaseConfigEditor extends JFrame
-    implements EditorContext, ActionListener
+  implements EditorContext, ActionListener
 {
-    /**
-     * Utility method to create an editor for the identified config.
-     */
-    public static BaseConfigEditor createEditor (EditorContext ctx, Class<?> clazz, String name)
-    {
-        if (ctx.getConfigManager().isResourceClass(clazz)) {
-            return new ResourceEditor(
-                ctx.getMessageManager(), ctx.getConfigManager().getRoot(), ctx.getColorPository(),
-                ctx.getResourceManager().getResourceFile(name).toString());
+  /**
+   * Utility method to create an editor for the identified config.
+   */
+  public static BaseConfigEditor createEditor (EditorContext ctx, Class<?> clazz, String name)
+  {
+    if (ctx.getConfigManager().isResourceClass(clazz)) {
+      return new ResourceEditor(
+        ctx.getMessageManager(), ctx.getConfigManager().getRoot(), ctx.getColorPository(),
+        ctx.getResourceManager().getResourceFile(name).toString());
 
-        } else {
-            return ConfigEditor.create(ctx, clazz, name);
-        }
+    } else {
+      return ConfigEditor.create(ctx, clazz, name);
     }
+  }
 
-    /**
-     * Creates a new config editor.
-     */
-    public BaseConfigEditor (
-        MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos, String msgs)
-    {
-        _rsrcmgr = cfgmgr.getResourceManager();
-        _msgmgr = msgmgr;
-        _cfgmgr = cfgmgr;
-        _colorpos = colorpos;
-        _msgs = _msgmgr.getBundle(msgs);
+  /**
+   * Creates a new config editor.
+   */
+  public BaseConfigEditor (
+    MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos, String msgs)
+  {
+    _rsrcmgr = cfgmgr.getResourceManager();
+    _msgmgr = msgmgr;
+    _cfgmgr = cfgmgr;
+    _colorpos = colorpos;
+    _msgs = _msgmgr.getBundle(msgs);
 
-        // configure the log file
-        ToolUtil.configureLog(msgs + ".log");
+    // configure the log file
+    ToolUtil.configureLog(msgs + ".log");
 
-        // initialize the title
-        setTitle(_msgs.get("m.title"));
+    // initialize the title
+    setTitle(_msgs.get("m.title"));
 
-        // dispose when the window is closed
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // dispose when the window is closed
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // create and init the editable prefs, which also (re)sets the resource directory
-        _eprefs = createEditablePrefs(_prefs);
-        _eprefs.init(_rsrcmgr);
+    // create and init the editable prefs, which also (re)sets the resource directory
+    _eprefs = createEditablePrefs(_prefs);
+    _eprefs.init(_rsrcmgr);
 
-        // add the log status panel
-        boolean first = !cfgmgr.isInitialized();
-        add(new LogPanel(_msgmgr, first), BorderLayout.SOUTH);
+    // add the log status panel
+    boolean first = !cfgmgr.isInitialized();
+    add(new LogPanel(_msgmgr, first), BorderLayout.SOUTH);
 
-        // initialize the configuration manager if not yet initialized
-        if (first) {
-            cfgmgr.init();
-        }
+    // initialize the configuration manager if not yet initialized
+    if (first) {
+      cfgmgr.init();
     }
+  }
 
-    // documentation inherited from interface EditorContext
-    public ResourceManager getResourceManager ()
-    {
-        return _rsrcmgr;
+  // documentation inherited from interface EditorContext
+  public ResourceManager getResourceManager ()
+  {
+    return _rsrcmgr;
+  }
+
+  // documentation inherited from interface EditorContext
+  public MessageManager getMessageManager ()
+  {
+    return _msgmgr;
+  }
+
+  // documentation inherited from interface EditorContext
+  public ConfigManager getConfigManager ()
+  {
+    return _cfgmgr;
+  }
+
+  // documentation inherited from interface EditorContext
+  public ColorPository getColorPository ()
+  {
+    return _colorpos;
+  }
+
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    String action = event.getActionCommand();
+    if (action.equals("close")) {
+      dispose();
+    } else if (action.equals("quit")) {
+      System.exit(0);
+    } else if (action.equals("preferences")) {
+      if (_pdialog == null) {
+        _pdialog = EditorPanel.createDialog(
+          this, this, _msgs.get("t.preferences"), _eprefs);
+      }
+      _pdialog.setVisible(true);
+    } else if (action.equals("find")) {
+      if (_fdialog == null) {
+        _fdialog = FindDialog.createDialog(this, this);
+      }
+      _fdialog.show(getFindEditorPanel());
+    } else if (action.equals("find_next")) {
+      if (_fdialog != null) {
+        _fdialog.find(getFindEditorPanel());
+      }
     }
+  }
 
-    // documentation inherited from interface EditorContext
-    public MessageManager getMessageManager ()
-    {
-        return _msgmgr;
-    }
+  @Override
+  public void addNotify ()
+  {
+    super.addNotify();
+    ToolUtil.windowAdded();
+  }
 
-    // documentation inherited from interface EditorContext
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
-    }
+  @Override
+  public void removeNotify ()
+  {
+    super.removeNotify();
+    ToolUtil.windowRemoved();
+  }
 
-    // documentation inherited from interface EditorContext
-    public ColorPository getColorPository ()
-    {
-        return _colorpos;
-    }
+  /**
+   * Create the editable prefs we'll use for this tool.
+   */
+  protected ToolUtil.EditablePrefs createEditablePrefs (Preferences prefs)
+  {
+    return new ToolUtil.EditablePrefs(prefs);
+  }
 
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        String action = event.getActionCommand();
-        if (action.equals("close")) {
-            dispose();
-        } else if (action.equals("quit")) {
-            System.exit(0);
-        } else if (action.equals("preferences")) {
-            if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(
-                    this, this, _msgs.get("t.preferences"), _eprefs);
-            }
-            _pdialog.setVisible(true);
-        } else if (action.equals("find")) {
-            if (_fdialog == null) {
-                _fdialog = FindDialog.createDialog(this, this);
-            }
-            _fdialog.show(getFindEditorPanel());
-        } else if (action.equals("find_next")) {
-            if (_fdialog != null) {
-                _fdialog.find(getFindEditorPanel());
-            }
-        }
-    }
+  /**
+   * Creates a menu with the specified name and mnemonic.
+   */
+  protected JMenu createMenu (String name, int mnemonic)
+  {
+    return ToolUtil.createMenu(_msgs, name, mnemonic);
+  }
 
-    @Override
-    public void addNotify ()
-    {
-        super.addNotify();
-        ToolUtil.windowAdded();
-    }
+  /**
+   * Creates a menu item with the specified action, mnemonic, and (optional) accelerator.
+   */
+  protected JMenuItem createMenuItem (String action, int mnemonic, int accelerator)
+  {
+    return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator);
+  }
 
-    @Override
-    public void removeNotify ()
-    {
-        super.removeNotify();
-        ToolUtil.windowRemoved();
-    }
+  /**
+   * Creates a menu item with the specified action, mnemonic, and (optional) accelerator
+   * key/modifiers.
+   */
+  protected JMenuItem createMenuItem (
+    String action, int mnemonic, int accelerator, int modifiers)
+  {
+    return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator, modifiers);
+  }
 
-    /**
-     * Create the editable prefs we'll use for this tool.
-     */
-    protected ToolUtil.EditablePrefs createEditablePrefs (Preferences prefs)
-    {
-        return new ToolUtil.EditablePrefs(prefs);
-    }
+  /**
+   * Creates an action with the specified command, mnemonic, and (optional) accelerator.
+   */
+  protected Action createAction (String command, int mnemonic, int accelerator)
+  {
+    return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator);
+  }
 
-    /**
-     * Creates a menu with the specified name and mnemonic.
-     */
-    protected JMenu createMenu (String name, int mnemonic)
-    {
-        return ToolUtil.createMenu(_msgs, name, mnemonic);
-    }
+  /**
+   * Creates an action with the specified command, mnemonic, and (optional) accelerator
+   * key/modifiers.
+   */
+  protected Action createAction (String command, int mnemonic, int accelerator, int modifiers)
+  {
+    return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator, modifiers);
+  }
 
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator.
-     */
-    protected JMenuItem createMenuItem (String action, int mnemonic, int accelerator)
-    {
-        return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator);
-    }
+  /**
+   * Creates a button with the specified action.
+   */
+  protected JButton createButton (String action)
+  {
+    return ToolUtil.createButton(this, _msgs, action);
+  }
 
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator
-     * key/modifiers.
-     */
-    protected JMenuItem createMenuItem (
-        String action, int mnemonic, int accelerator, int modifiers)
-    {
-        return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator, modifiers);
-    }
+  /**
+   * Creates a button with the specified action and translation key.
+   */
+  protected JButton createButton (String action, String key)
+  {
+    return ToolUtil.createButton(this, _msgs, action, key);
+  }
 
-    /**
-     * Creates an action with the specified command, mnemonic, and (optional) accelerator.
-     */
-    protected Action createAction (String command, int mnemonic, int accelerator)
-    {
-        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator);
-    }
+  /**
+   * Returns a translated label for the supplied one, if one exists; otherwise, simply returns
+   * the untranslated name.
+   */
+  protected String getLabel (String name)
+  {
+    String key = "m." + name;
+    return _msgs.exists(key) ? _msgs.get(key) : name;
+  }
 
-    /**
-     * Creates an action with the specified command, mnemonic, and (optional) accelerator
-     * key/modifiers.
-     */
-    protected Action createAction (String command, int mnemonic, int accelerator, int modifiers)
-    {
-        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator, modifiers);
-    }
+  /**
+   * Returns the label for the specified class.
+   */
+  protected String getLabel (Class<?> clazz, String type)
+  {
+    MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
+    String key = "m." + type;
+    return msgs.exists(key) ? msgs.get(key) : type;
+  }
 
-    /**
-     * Creates a button with the specified action.
-     */
-    protected JButton createButton (String action)
-    {
-        return ToolUtil.createButton(this, _msgs, action);
-    }
+  /**
+   * Shows a frame slightly offset from this one.
+   */
+  protected void showFrame (JFrame frame)
+  {
+    frame.setLocation(getX() + 16, getY() + 16);
+    frame.setVisible(true);
+  }
 
-    /**
-     * Creates a button with the specified action and translation key.
-     */
-    protected JButton createButton (String action, String key)
-    {
-        return ToolUtil.createButton(this, _msgs, action, key);
-    }
+  /**
+   * Adds the find functionality to a menu.
+   */
+  protected void addFindMenu (JMenu menu)
+  {
+    menu.addSeparator();
+    menu.add(new JMenuItem(_find = createAction("find", KeyEvent.VK_F, KeyEvent.VK_F)));
+    menu.add(new JMenuItem(_findNext = createAction(
+            "find_next", KeyEvent.VK_N, KeyEvent.VK_F3, 0)));
+  }
 
-    /**
-     * Returns a translated label for the supplied one, if one exists; otherwise, simply returns
-     * the untranslated name.
-     */
-    protected String getLabel (String name)
-    {
-        String key = "m." + name;
-        return _msgs.exists(key) ? _msgs.get(key) : name;
-    }
+  /**
+   * Returns the editor panel we'll be finding on.
+   */
+  protected BaseEditorPanel getFindEditorPanel ()
+  {
+    return null;
+  }
 
-    /**
-     * Returns the label for the specified class.
-     */
-    protected String getLabel (Class<?> clazz, String type)
-    {
-        MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
-        String key = "m." + type;
-        return msgs.exists(key) ? msgs.get(key) : type;
-    }
+  /** The resource manager. */
+  protected ResourceManager _rsrcmgr;
 
-    /**
-     * Shows a frame slightly offset from this one.
-     */
-    protected void showFrame (JFrame frame)
-    {
-        frame.setLocation(getX() + 16, getY() + 16);
-        frame.setVisible(true);
-    }
+  /** The message manager. */
+  protected MessageManager _msgmgr;
 
-    /**
-     * Adds the find functionality to a menu.
-     */
-    protected void addFindMenu (JMenu menu)
-    {
-        menu.addSeparator();
-        menu.add(new JMenuItem(_find = createAction("find", KeyEvent.VK_F, KeyEvent.VK_F)));
-        menu.add(new JMenuItem(_findNext = createAction(
-                        "find_next", KeyEvent.VK_N, KeyEvent.VK_F3, 0)));
-    }
+  /** The config manager. */
+  protected ConfigManager _cfgmgr;
 
-    /**
-     * Returns the editor panel we'll be finding on.
-     */
-    protected BaseEditorPanel getFindEditorPanel ()
-    {
-        return null;
-    }
+  /** The color pository. */
+  protected ColorPository _colorpos;
 
-    /** The resource manager. */
-    protected ResourceManager _rsrcmgr;
+  /** The config message bundle. */
+  protected MessageBundle _msgs;
 
-    /** The message manager. */
-    protected MessageManager _msgmgr;
+  /** The editable preferences object. */
+  protected ToolUtil.EditablePrefs _eprefs;
 
-    /** The config manager. */
-    protected ConfigManager _cfgmgr;
+  /** The preferences dialog. */
+  protected JDialog _pdialog;
 
-    /** The color pository. */
-    protected ColorPository _colorpos;
+  /** The find dialog. */
+  protected FindDialog _fdialog;
 
-    /** The config message bundle. */
-    protected MessageBundle _msgs;
+  /** The find menu actions. */
+  protected Action _find, _findNext;
 
-    /** The editable preferences object. */
-    protected ToolUtil.EditablePrefs _eprefs;
-
-    /** The preferences dialog. */
-    protected JDialog _pdialog;
-
-    /** The find dialog. */
-    protected FindDialog _fdialog;
-
-    /** The find menu actions. */
-    protected Action _find, _findNext;
-
-    /** The package preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(BaseConfigEditor.class);
+  /** The package preferences. */
+  protected static Preferences _prefs = Preferences.userNodeForPackage(BaseConfigEditor.class);
 }

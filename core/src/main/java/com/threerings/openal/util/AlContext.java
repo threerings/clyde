@@ -38,28 +38,28 @@ import com.threerings.openal.SoundManager;
  */
 public interface AlContext
 {
-    /**
-     * Returns a reference to the scope.
-     */
-    public DynamicScope getScope ();
+  /**
+   * Returns a reference to the scope.
+   */
+  public DynamicScope getScope ();
 
-    /**
-     * Returns a reference to the resource manager.
-     */
-    public ResourceManager getResourceManager ();
+  /**
+   * Returns a reference to the resource manager.
+   */
+  public ResourceManager getResourceManager ();
 
-    /**
-     * Returns a reference to the configuration manager.
-     */
-    public ConfigManager getConfigManager ();
+  /**
+   * Returns a reference to the configuration manager.
+   */
+  public ConfigManager getConfigManager ();
 
-    /**
-     * Returns a reference to the sound manager.
-     */
-    public SoundManager getSoundManager ();
+  /**
+   * Returns a reference to the sound manager.
+   */
+  public SoundManager getSoundManager ();
 
-    /**
-     * Returns a reference to the clip provider.
-     */
-    public ClipProvider getClipProvider ();
+  /**
+   * Returns a reference to the clip provider.
+   */
+  public ClipProvider getClipProvider ();
 }

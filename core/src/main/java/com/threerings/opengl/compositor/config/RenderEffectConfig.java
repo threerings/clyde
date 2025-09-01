@@ -45,236 +45,236 @@ import com.threerings.opengl.util.GlContext;
  */
 public class RenderEffectConfig extends BoundConfig
 {
-    /**
-     * Contains the actual implementation of the effect.
-     */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Gets the priority of the effect.
-         */
-        public abstract int getPriority (GlContext ctx);
-
-        /**
-         * Returns a technique to use to render this effect.
-         */
-        public abstract Technique getTechnique (GlContext ctx, String scheme);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
-
-    /**
-     * An original implementation.
-     */
-    public static class Original extends Implementation
-    {
-        /** The effect priority. */
-        @Editable
-        public int priority;
-
-        /** The techniques available to render the effect. */
-        @Editable
-        public Technique[] techniques = new Technique[0];
-
-        @Override
-        public int getPriority (GlContext ctx)
-        {
-            return priority;
-        }
-
-        @Override
-        public Technique getTechnique (GlContext ctx, String scheme)
-        {
-            // first look for an exact match for the scheme
-            Technique[] processed = getProcessedTechniques(ctx);
-            for (Technique technique : processed) {
-                if (Objects.equal(technique.scheme, scheme)) {
-                    return technique;
-                }
-            }
-
-            // then look for a compatible match
-            RenderSchemeConfig sconfig = (scheme == null) ?
-                null : ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
-            for (Technique technique : processed) {
-                RenderSchemeConfig tconfig = technique.getSchemeConfig(ctx);
-                if ((sconfig == null) ? (tconfig == null || tconfig.isCompatibleWith(sconfig)) :
-                        sconfig.isCompatibleWith(tconfig)) {
-                    return technique;
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            _processedTechniques = null;
-            for (Technique technique : techniques) {
-                technique.invalidate();
-            }
-        }
-
-        /**
-         * Returns the lazily-constructed list of processed techniques.
-         */
-        protected Technique[] getProcessedTechniques (GlContext ctx)
-        {
-            if (_processedTechniques == null) {
-                ArrayList<Technique> list = new ArrayList<Technique>(techniques.length);
-                ArrayList<Technique> fallbacks = new ArrayList<Technique>(0);
-                for (Technique technique : techniques) {
-                    // first try without fallbacks, then with
-                    Technique processed = technique.process(ctx, false);
-                    if (processed == null) {
-                        Technique fallback = technique.process(ctx, true);
-                        if (fallback != null) {
-                            fallbacks.add(fallback);
-                        }
-                    } else {
-                        list.add(processed);
-                    }
-                }
-                list.addAll(fallbacks);
-                _processedTechniques = list.toArray(new Technique[list.size()]);
-            }
-            return _processedTechniques;
-        }
-
-        /** The cached list of supported techniques. */
-        @DeepOmit
-        protected transient Technique[] _processedTechniques;
-    }
-
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The effect reference. */
-        @Editable(nullable=true)
-        public ConfigReference<RenderEffectConfig> renderEffect;
-
-        @Override
-        public int getPriority (GlContext ctx)
-        {
-            RenderEffectConfig config = ctx.getConfigManager().getConfig(
-                RenderEffectConfig.class, renderEffect);
-            return (config == null) ? 0 : config.getPriority(ctx);
-        }
-
-        @Override
-        public Technique getTechnique (GlContext ctx, String scheme)
-        {
-            RenderEffectConfig config = ctx.getConfigManager().getConfig(
-                RenderEffectConfig.class, renderEffect);
-            return (config == null) ? null : config.getTechnique(ctx, scheme);
-        }
-    }
-
-    /**
-     * A technique available to render the effect.
-     */
-    public static class Technique extends DeepObject
-        implements Exportable
-    {
-        /** The render scheme with which this technique is associated. */
-        @Editable(nullable=true)
-        @Reference(RenderSchemeConfig.class)
-        public String scheme;
-
-        /** The intermediate targets. */
-        @Editable
-        public TargetConfig[] targets = new TargetConfig[0];
-
-        /** The final output target. */
-        @Editable
-        public TargetConfig.Output output = new TargetConfig.Output();
-
-        /**
-         * Processes this technique to accommodate the features of the hardware.
-         *
-         * @return the processed technique, or <code>null</code> if the technique is not supported.
-         */
-        public Technique process (GlContext ctx, boolean fallback)
-        {
-            // for now, we don't do any actual processing; we just check for support
-            return isSupported(ctx, fallback) ? this : null;
-        }
-
-        /**
-         * Determines whether this technique is supported.
-         */
-        public boolean isSupported (GlContext ctx, boolean fallback)
-        {
-            for (TargetConfig target : targets) {
-                if (!target.isSupported(ctx, fallback)) {
-                    return false;
-                }
-            }
-            return output.isSupported(ctx, fallback);
-        }
-
-        /**
-         * Returns the cached configuration for the technique's render scheme.
-         */
-        public RenderSchemeConfig getSchemeConfig (GlContext ctx)
-        {
-            if (_schemeConfig == RenderSchemeConfig.INVALID) {
-                return (scheme == null) ? null :
-                    ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
-            }
-            return _schemeConfig;
-        }
-
-        /**
-         * Invalidates any cached state for this technique.
-         */
-        public void invalidate ()
-        {
-            _schemeConfig = RenderSchemeConfig.INVALID;
-        }
-
-        /** The cached scheme config. */
-        @DeepOmit
-        protected transient RenderSchemeConfig _schemeConfig = RenderSchemeConfig.INVALID;
-    }
-
-    /** The actual effect implementation. */
-    @Editable
-    public Implementation implementation = new Original();
-
+  /**
+   * Contains the actual implementation of the effect.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
      * Gets the priority of the effect.
      */
-    public int getPriority (GlContext ctx)
-    {
-        return implementation.getPriority(ctx);
-    }
+    public abstract int getPriority (GlContext ctx);
 
     /**
-     * Finds a technique to render this effect.
-     *
-     * @param scheme the preferred render scheme to use.
+     * Returns a technique to use to render this effect.
      */
-    public Technique getTechnique (GlContext ctx, String scheme)
+    public abstract Technique getTechnique (GlContext ctx, String scheme);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
-        return implementation.getTechnique(ctx, scheme);
+      // nothing by default
+    }
+  }
+
+  /**
+   * An original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /** The effect priority. */
+    @Editable
+    public int priority;
+
+    /** The techniques available to render the effect. */
+    @Editable
+    public Technique[] techniques = new Technique[0];
+
+    @Override
+    public int getPriority (GlContext ctx)
+    {
+      return priority;
     }
 
     @Override
-    public void wasUpdated ()
+    public Technique getTechnique (GlContext ctx, String scheme)
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.wasUpdated();
+      // first look for an exact match for the scheme
+      Technique[] processed = getProcessedTechniques(ctx);
+      for (Technique technique : processed) {
+        if (Objects.equal(technique.scheme, scheme)) {
+          return technique;
+        }
+      }
+
+      // then look for a compatible match
+      RenderSchemeConfig sconfig = (scheme == null) ?
+        null : ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
+      for (Technique technique : processed) {
+        RenderSchemeConfig tconfig = technique.getSchemeConfig(ctx);
+        if ((sconfig == null) ? (tconfig == null || tconfig.isCompatibleWith(sconfig)) :
+            sconfig.isCompatibleWith(tconfig)) {
+          return technique;
+        }
+      }
+      return null;
     }
+
+    @Override
+    public void invalidate ()
+    {
+      _processedTechniques = null;
+      for (Technique technique : techniques) {
+        technique.invalidate();
+      }
+    }
+
+    /**
+     * Returns the lazily-constructed list of processed techniques.
+     */
+    protected Technique[] getProcessedTechniques (GlContext ctx)
+    {
+      if (_processedTechniques == null) {
+        ArrayList<Technique> list = new ArrayList<Technique>(techniques.length);
+        ArrayList<Technique> fallbacks = new ArrayList<Technique>(0);
+        for (Technique technique : techniques) {
+          // first try without fallbacks, then with
+          Technique processed = technique.process(ctx, false);
+          if (processed == null) {
+            Technique fallback = technique.process(ctx, true);
+            if (fallback != null) {
+              fallbacks.add(fallback);
+            }
+          } else {
+            list.add(processed);
+          }
+        }
+        list.addAll(fallbacks);
+        _processedTechniques = list.toArray(new Technique[list.size()]);
+      }
+      return _processedTechniques;
+    }
+
+    /** The cached list of supported techniques. */
+    @DeepOmit
+    protected transient Technique[] _processedTechniques;
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The effect reference. */
+    @Editable(nullable=true)
+    public ConfigReference<RenderEffectConfig> renderEffect;
+
+    @Override
+    public int getPriority (GlContext ctx)
+    {
+      RenderEffectConfig config = ctx.getConfigManager().getConfig(
+        RenderEffectConfig.class, renderEffect);
+      return (config == null) ? 0 : config.getPriority(ctx);
+    }
+
+    @Override
+    public Technique getTechnique (GlContext ctx, String scheme)
+    {
+      RenderEffectConfig config = ctx.getConfigManager().getConfig(
+        RenderEffectConfig.class, renderEffect);
+      return (config == null) ? null : config.getTechnique(ctx, scheme);
+    }
+  }
+
+  /**
+   * A technique available to render the effect.
+   */
+  public static class Technique extends DeepObject
+    implements Exportable
+  {
+    /** The render scheme with which this technique is associated. */
+    @Editable(nullable=true)
+    @Reference(RenderSchemeConfig.class)
+    public String scheme;
+
+    /** The intermediate targets. */
+    @Editable
+    public TargetConfig[] targets = new TargetConfig[0];
+
+    /** The final output target. */
+    @Editable
+    public TargetConfig.Output output = new TargetConfig.Output();
+
+    /**
+     * Processes this technique to accommodate the features of the hardware.
+     *
+     * @return the processed technique, or <code>null</code> if the technique is not supported.
+     */
+    public Technique process (GlContext ctx, boolean fallback)
+    {
+      // for now, we don't do any actual processing; we just check for support
+      return isSupported(ctx, fallback) ? this : null;
+    }
+
+    /**
+     * Determines whether this technique is supported.
+     */
+    public boolean isSupported (GlContext ctx, boolean fallback)
+    {
+      for (TargetConfig target : targets) {
+        if (!target.isSupported(ctx, fallback)) {
+          return false;
+        }
+      }
+      return output.isSupported(ctx, fallback);
+    }
+
+    /**
+     * Returns the cached configuration for the technique's render scheme.
+     */
+    public RenderSchemeConfig getSchemeConfig (GlContext ctx)
+    {
+      if (_schemeConfig == RenderSchemeConfig.INVALID) {
+        return (scheme == null) ? null :
+          ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
+      }
+      return _schemeConfig;
+    }
+
+    /**
+     * Invalidates any cached state for this technique.
+     */
+    public void invalidate ()
+    {
+      _schemeConfig = RenderSchemeConfig.INVALID;
+    }
+
+    /** The cached scheme config. */
+    @DeepOmit
+    protected transient RenderSchemeConfig _schemeConfig = RenderSchemeConfig.INVALID;
+  }
+
+  /** The actual effect implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Gets the priority of the effect.
+   */
+  public int getPriority (GlContext ctx)
+  {
+    return implementation.getPriority(ctx);
+  }
+
+  /**
+   * Finds a technique to render this effect.
+   *
+   * @param scheme the preferred render scheme to use.
+   */
+  public Technique getTechnique (GlContext ctx, String scheme)
+  {
+    return implementation.getTechnique(ctx, scheme);
+  }
+
+  @Override
+  public void wasUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.wasUpdated();
+  }
 }

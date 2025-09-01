@@ -46,78 +46,78 @@ import com.threerings.editor.swing.PropertyEditor;
  * Editor for string properties.
  */
 public class StringEditor extends PropertyEditor
-    implements DocumentListener
+  implements DocumentListener
 {
-    // documentation inherited from interface DocumentListener
-    public void insertUpdate (DocumentEvent event)
-    {
-        changedUpdate(null);
+  // documentation inherited from interface DocumentListener
+  public void insertUpdate (DocumentEvent event)
+  {
+    changedUpdate(null);
+  }
+
+  // documentation inherited from interface DocumentListener
+  public void removeUpdate (DocumentEvent event)
+  {
+    changedUpdate(null);
+  }
+
+  // documentation inherited from interface DocumentListener
+  public void changedUpdate (DocumentEvent event)
+  {
+    String text = StringUtil.trim(_field.getText());
+    if (!Objects.equal(_property.get(_object), text)) {
+      _property.set(_object, text);
+      fireStateChanged();
     }
+  }
 
-    // documentation inherited from interface DocumentListener
-    public void removeUpdate (DocumentEvent event)
-    {
-        changedUpdate(null);
+  @Override
+  public void update ()
+  {
+    // this generates two documents events: first a remove, then an add.  we don't want to
+    // fire a state change, so we remove ourselves as a document listener when updating
+    _field.getDocument().removeDocumentListener(this);
+    String text = StringUtil.trim((String)_property.get(_object));
+    text = StringUtil.truncate(text, _property.getAnnotation().maxsize());
+    _field.setText(text);
+    _field.getDocument().addDocumentListener(this);
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    JPanel panel = this;
+    if (_property.getAnnotation().collapsible()) {
+      makeCollapsible(_ctx, getPropertyLabel(), false);
+      panel = _content;
+    } else {
+      add(new JLabel(getPropertyLabel() + ":"));
     }
+    int height = _property.getHeight(1);
+    int width = _property.getWidth(10);
+    if (height > 1) {
+      JTextArea area = new JTextArea(height, width);
+      area.setLineWrap(true);
+      panel.add(new JScrollPane(area));
+      _field = area;
 
-    // documentation inherited from interface DocumentListener
-    public void changedUpdate (DocumentEvent event)
-    {
-        String text = StringUtil.trim(_field.getText());
-        if (!Objects.equal(_property.get(_object), text)) {
-            _property.set(_object, text);
-            fireStateChanged();
-        }
+    } else {
+      _field = new JTextField(width);
+      panel.add(_field);
     }
-
-    @Override
-    public void update ()
-    {
-        // this generates two documents events: first a remove, then an add.  we don't want to
-        // fire a state change, so we remove ourselves as a document listener when updating
-        _field.getDocument().removeDocumentListener(this);
-        String text = StringUtil.trim((String)_property.get(_object));
-        text = StringUtil.truncate(text, _property.getAnnotation().maxsize());
-        _field.setText(text);
-        _field.getDocument().addDocumentListener(this);
+    final int maxSize = _property.getMaxSize();
+    if (maxSize < Integer.MAX_VALUE) {
+      SwingUtil.setDocumentHelpers(_field,
+        new SwingUtil.DocumentValidator() {
+          public boolean isValid (String text) {
+            return text.length() <= maxSize;
+          }
+        }, null);
     }
+    _field.setEnabled(!_property.getAnnotation().constant());
+    _field.getDocument().addDocumentListener(this);
+    addUnits(panel);
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        JPanel panel = this;
-        if (_property.getAnnotation().collapsible()) {
-            makeCollapsible(_ctx, getPropertyLabel(), false);
-            panel = _content;
-        } else {
-            add(new JLabel(getPropertyLabel() + ":"));
-        }
-        int height = _property.getHeight(1);
-        int width = _property.getWidth(10);
-        if (height > 1) {
-            JTextArea area = new JTextArea(height, width);
-            area.setLineWrap(true);
-            panel.add(new JScrollPane(area));
-            _field = area;
-
-        } else {
-            _field = new JTextField(width);
-            panel.add(_field);
-        }
-        final int maxSize = _property.getMaxSize();
-        if (maxSize < Integer.MAX_VALUE) {
-            SwingUtil.setDocumentHelpers(_field,
-                new SwingUtil.DocumentValidator() {
-                    public boolean isValid (String text) {
-                        return text.length() <= maxSize;
-                    }
-                }, null);
-        }
-        _field.setEnabled(!_property.getAnnotation().constant());
-        _field.getDocument().addDocumentListener(this);
-        addUnits(panel);
-    }
-
-    /** The text field. */
-    protected JTextComponent _field;
+  /** The text field. */
+  protected JTextComponent _field;
 }

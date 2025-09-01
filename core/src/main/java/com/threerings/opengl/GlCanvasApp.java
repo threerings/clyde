@@ -61,219 +61,219 @@ import static com.threerings.opengl.Log.log;
  */
 public abstract class GlCanvasApp extends GlApp
 {
-    protected static final int WINDOW_WIDTH = 1536;
-    protected static final int WINDOW_HEIGHT = 1152;
-    protected static final int SIDEBAR_WIDTH = 700;
+  protected static final int WINDOW_WIDTH = 1536;
+  protected static final int WINDOW_HEIGHT = 1152;
+  protected static final int SIDEBAR_WIDTH = 700;
 
-    public GlCanvasApp ()
-    {
-        _frame = new JFrame();
-        _frame.setSize(1536, 1152);
-        SwingUtil.centerWindow(_frame);
+  public GlCanvasApp ()
+  {
+    _frame = new JFrame();
+    _frame.setSize(1536, 1152);
+    SwingUtil.centerWindow(_frame);
 
-        // shutdown the application when the window is closed
-        _frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing (WindowEvent event) {
-                shutdown();
-            }
-        });
+    // shutdown the application when the window is closed
+    _frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing (WindowEvent event) {
+        shutdown();
+      }
+    });
 
-        // add the canvas inside a container so that we can use KeyboardManager
-        if ((_canvas = createCanvas()) == null) {
-            return;
+    // add the canvas inside a container so that we can use KeyboardManager
+    if ((_canvas = createCanvas()) == null) {
+      return;
+    }
+    JComponent cont = createCanvasContainer();
+    _frame.add(cont, BorderLayout.CENTER);
+
+    // create the keyboard manager
+    _keymgr = new KeyboardManager();
+    _keymgr.setTarget(cont, new KeyTranslatorImpl());
+
+    // as a hack, add a focus listener that disables the keyboard manager when a text
+    // component is in focus so that we get the native key repeat
+    PropertyChangeListener pcl = new PropertyChangeListener() {
+      public void propertyChange (PropertyChangeEvent event) {
+        _keymgr.setEnabled(!(event.getNewValue() instanceof JTextComponent));
+      }
+    };
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(
+      "focusOwner", pcl);
+  }
+
+  /**
+   * Returns a reference to the containing frame.
+   */
+  public JFrame getFrame ()
+  {
+    return _frame;
+  }
+
+  /**
+   * Returns a reference to the canvas.
+   */
+  public Component getCanvas ()
+  {
+    return _canvas;
+  }
+
+  /**
+   * Gets the ray through the canvas's mouse position.
+   *
+   * @return true if the mouse cursor is on the canvas (in which case the result will be
+   * populated), false if it is not on the canvas.
+   */
+  public boolean getMouseRay (Ray3D result)
+  {
+    Point pt = _canvas.getMousePosition();
+    if (pt == null) {
+      return false;
+    }
+    getPickRay(pt.x, pt.y, result);
+    return true;
+  }
+
+  /**
+   * Finds the ray through the specified canvas coordinates.
+   */
+  public void getPickRay (int x, int y, Ray3D result)
+  {
+    // flip vertically to convert to viewport coordinates
+    _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);
+  }
+
+  // documentation inherited from interface GlContext
+  public void makeCurrent ()
+  {
+    ((GlCanvas)_canvas).makeCurrent();
+  }
+
+  @Override
+  public RunQueue getRunQueue ()
+  {
+    return RunQueue.AWT;
+  }
+
+  @Override
+  public Root createRoot ()
+  {
+    if (_canvasRoot == null) {
+      _canvasRoot = new CanvasRoot(this, _canvas);
+    }
+    return _canvasRoot;
+  }
+
+  @Override
+  public void startup ()
+  {
+    _frame.setVisible(true);
+  }
+
+  @Override
+  public void shutdown ()
+  {
+    willShutdown();
+    ((GlCanvas)_canvas).shutdown();
+    System.exit(0);
+  }
+
+  @Override
+  protected void initRenderer ()
+  {
+    _renderer.init(((GlCanvas)_canvas).getDrawable(), _canvas.getWidth(), _canvas.getHeight());
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    // enable vsync unless configured otherwise
+    ((GlCanvas)_canvas).setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+
+    // notify the renderer on resize
+    _canvas.addComponentListener(new ComponentAdapter() {
+      public void componentResized (ComponentEvent event) {
+        _renderer.setSize(_canvas.getWidth(), _canvas.getHeight());
+      }
+    });
+
+    // request focus for the canvas
+    _canvas.requestFocusInWindow();
+
+    // enable the keyboard manager
+    _keymgr.setEnabled(true);
+  }
+
+  @Override
+  protected void willShutdown ()
+  {
+    if (_canvasRoot != null) {
+      _canvasRoot.dispose();
+      _canvasRoot = null;
+    }
+    super.willShutdown();
+  }
+
+  /**
+   * Creates a canvas using one of our supported pixel formats.
+   */
+  protected Component createCanvas ()
+  {
+    // at least as of Ubuntu 9.10 (Karmic Koala), using the AWTCanvas on Linux results
+    // in frequent crashes.  using it on Windows with the latest Nvidia drivers causes
+    // the window to stop refreshing
+    if (RunAnywhere.isLinux() || RunAnywhere.isWindows()) {
+      return new DisplayCanvas(getAntialiasingLevel()) {
+        @Override protected void didInit () {
+          GlCanvasApp.this.init();
         }
-        JComponent cont = createCanvasContainer();
-        _frame.add(cont, BorderLayout.CENTER);
-
-        // create the keyboard manager
-        _keymgr = new KeyboardManager();
-        _keymgr.setTarget(cont, new KeyTranslatorImpl());
-
-        // as a hack, add a focus listener that disables the keyboard manager when a text
-        // component is in focus so that we get the native key repeat
-        PropertyChangeListener pcl = new PropertyChangeListener() {
-            public void propertyChange (PropertyChangeEvent event) {
-                _keymgr.setEnabled(!(event.getNewValue() instanceof JTextComponent));
-            }
+        @Override protected void updateView () {
+          GlCanvasApp.this.updateView();
+        }
+        @Override protected void renderView () {
+          GlCanvasApp.this.renderView();
+        }
+      };
+    }
+    for (PixelFormat format : getPixelFormats()) {
+      try {
+        return new AWTCanvas(format) {
+          @Override protected void didInit () {
+            GlCanvasApp.this.init();
+          }
+          @Override protected void updateView () {
+            GlCanvasApp.this.updateView();
+          }
+          @Override protected void renderView () {
+            GlCanvasApp.this.renderView();
+          }
         };
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(
-            "focusOwner", pcl);
+      } catch (LWJGLException e) {
+        // proceed to next format
+      }
     }
+    log.warning("Couldn't find valid pixel format.");
+    return null;
+  }
 
-    /**
-     * Returns a reference to the containing frame.
-     */
-    public JFrame getFrame ()
-    {
-        return _frame;
-    }
+  /**
+   * Creates and returns the component that contains the canvas (after the canvas has been
+   * created).
+   */
+  protected JComponent createCanvasContainer ()
+  {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(_canvas, BorderLayout.CENTER);
+    return panel;
+  }
 
-    /**
-     * Returns a reference to the canvas.
-     */
-    public Component getCanvas ()
-    {
-        return _canvas;
-    }
+  /** The frame containing the canvas. */
+  protected JFrame _frame;
 
-    /**
-     * Gets the ray through the canvas's mouse position.
-     *
-     * @return true if the mouse cursor is on the canvas (in which case the result will be
-     * populated), false if it is not on the canvas.
-     */
-    public boolean getMouseRay (Ray3D result)
-    {
-        Point pt = _canvas.getMousePosition();
-        if (pt == null) {
-            return false;
-        }
-        getPickRay(pt.x, pt.y, result);
-        return true;
-    }
+  /** The render canvas. */
+  protected Component _canvas;
 
-    /**
-     * Finds the ray through the specified canvas coordinates.
-     */
-    public void getPickRay (int x, int y, Ray3D result)
-    {
-        // flip vertically to convert to viewport coordinates
-        _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);
-    }
+  /** The root. */
+  protected Root _canvasRoot;
 
-    // documentation inherited from interface GlContext
-    public void makeCurrent ()
-    {
-        ((GlCanvas)_canvas).makeCurrent();
-    }
-
-    @Override
-    public RunQueue getRunQueue ()
-    {
-        return RunQueue.AWT;
-    }
-
-    @Override
-    public Root createRoot ()
-    {
-        if (_canvasRoot == null) {
-            _canvasRoot = new CanvasRoot(this, _canvas);
-        }
-        return _canvasRoot;
-    }
-
-    @Override
-    public void startup ()
-    {
-        _frame.setVisible(true);
-    }
-
-    @Override
-    public void shutdown ()
-    {
-        willShutdown();
-        ((GlCanvas)_canvas).shutdown();
-        System.exit(0);
-    }
-
-    @Override
-    protected void initRenderer ()
-    {
-        _renderer.init(((GlCanvas)_canvas).getDrawable(), _canvas.getWidth(), _canvas.getHeight());
-    }
-
-    @Override
-    protected void didInit ()
-    {
-        // enable vsync unless configured otherwise
-        ((GlCanvas)_canvas).setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
-
-        // notify the renderer on resize
-        _canvas.addComponentListener(new ComponentAdapter() {
-            public void componentResized (ComponentEvent event) {
-                _renderer.setSize(_canvas.getWidth(), _canvas.getHeight());
-            }
-        });
-
-        // request focus for the canvas
-        _canvas.requestFocusInWindow();
-
-        // enable the keyboard manager
-        _keymgr.setEnabled(true);
-    }
-
-    @Override
-    protected void willShutdown ()
-    {
-        if (_canvasRoot != null) {
-            _canvasRoot.dispose();
-            _canvasRoot = null;
-        }
-        super.willShutdown();
-    }
-
-    /**
-     * Creates a canvas using one of our supported pixel formats.
-     */
-    protected Component createCanvas ()
-    {
-        // at least as of Ubuntu 9.10 (Karmic Koala), using the AWTCanvas on Linux results
-        // in frequent crashes.  using it on Windows with the latest Nvidia drivers causes
-        // the window to stop refreshing
-        if (RunAnywhere.isLinux() || RunAnywhere.isWindows()) {
-            return new DisplayCanvas(getAntialiasingLevel()) {
-                @Override protected void didInit () {
-                    GlCanvasApp.this.init();
-                }
-                @Override protected void updateView () {
-                    GlCanvasApp.this.updateView();
-                }
-                @Override protected void renderView () {
-                    GlCanvasApp.this.renderView();
-                }
-            };
-        }
-        for (PixelFormat format : getPixelFormats()) {
-            try {
-                return new AWTCanvas(format) {
-                    @Override protected void didInit () {
-                        GlCanvasApp.this.init();
-                    }
-                    @Override protected void updateView () {
-                        GlCanvasApp.this.updateView();
-                    }
-                    @Override protected void renderView () {
-                        GlCanvasApp.this.renderView();
-                    }
-                };
-            } catch (LWJGLException e) {
-                // proceed to next format
-            }
-        }
-        log.warning("Couldn't find valid pixel format.");
-        return null;
-    }
-
-    /**
-     * Creates and returns the component that contains the canvas (after the canvas has been
-     * created).
-     */
-    protected JComponent createCanvasContainer ()
-    {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(_canvas, BorderLayout.CENTER);
-        return panel;
-    }
-
-    /** The frame containing the canvas. */
-    protected JFrame _frame;
-
-    /** The render canvas. */
-    protected Component _canvas;
-
-    /** The root. */
-    protected Root _canvasRoot;
-
-    /** The keyboard manager for the canvas. */
-    protected KeyboardManager _keymgr;
+  /** The keyboard manager for the canvas. */
+  protected KeyboardManager _keymgr;
 }

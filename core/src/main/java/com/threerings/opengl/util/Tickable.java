@@ -30,8 +30,8 @@ package com.threerings.opengl.util;
  */
 public interface Tickable
 {
-    /**
-     * Updates the state of this object based on the elapsed time in seconds.
-     */
-    public void tick (float elapsed);
+  /**
+   * Updates the state of this object based on the elapsed time in seconds.
+   */
+  public void tick (float elapsed);
 }

@@ -39,133 +39,133 @@ import com.threerings.opengl.gui.util.Dimension;
  */
 public class AnchorLayout extends LayoutManager
 {
-    /** Anchors the lower-left of the component to the lower-left of the container. */
-    public static final Anchor SOUTHWEST = new Anchor(0f, 0f, 0f, 0f, 0, 0, false);
+  /** Anchors the lower-left of the component to the lower-left of the container. */
+  public static final Anchor SOUTHWEST = new Anchor(0f, 0f, 0f, 0f, 0, 0, false);
 
-    /** Anchors the lower-center of the component to the lower-center of the container. */
-    public static final Anchor SOUTH = new Anchor(0.5f, 0f, 0.5f, 0f, 0, 0, false);
+  /** Anchors the lower-center of the component to the lower-center of the container. */
+  public static final Anchor SOUTH = new Anchor(0.5f, 0f, 0.5f, 0f, 0, 0, false);
 
-    /** Anchors the lower-right of the component to the lower-right of the container. */
-    public static final Anchor SOUTHEAST = new Anchor(1f, 0f, 1f, 0f, 0, 0, false);
+  /** Anchors the lower-right of the component to the lower-right of the container. */
+  public static final Anchor SOUTHEAST = new Anchor(1f, 0f, 1f, 0f, 0, 0, false);
 
-    /** Anchors the right-center of the component to the right-center of the container. */
-    public static final Anchor EAST = new Anchor(1f, 0.5f, 1f, 0.5f, 0, 0, false);
+  /** Anchors the right-center of the component to the right-center of the container. */
+  public static final Anchor EAST = new Anchor(1f, 0.5f, 1f, 0.5f, 0, 0, false);
 
-    /** Anchors the upper-right of the component to the upper-right of the container. */
-    public static final Anchor NORTHEAST = new Anchor(1f, 1f, 1f, 1f, 0, 0, false);
+  /** Anchors the upper-right of the component to the upper-right of the container. */
+  public static final Anchor NORTHEAST = new Anchor(1f, 1f, 1f, 1f, 0, 0, false);
 
-    /** Anchors the upper-center of the component to the upper-center of the container. */
-    public static final Anchor NORTH = new Anchor(0.5f, 1f, 0.5f, 1f, 0, 0, false);
+  /** Anchors the upper-center of the component to the upper-center of the container. */
+  public static final Anchor NORTH = new Anchor(0.5f, 1f, 0.5f, 1f, 0, 0, false);
 
-    /** Anchors the upper-left of the component to the upper-left of the container. */
-    public static final Anchor NORTHWEST = new Anchor(0f, 1f, 0f, 1f, 0, 0, false);
+  /** Anchors the upper-left of the component to the upper-left of the container. */
+  public static final Anchor NORTHWEST = new Anchor(0f, 1f, 0f, 1f, 0, 0, false);
 
-    /** Anchors the left-center of the component to the left-center of the container. */
-    public static final Anchor WEST = new Anchor(0f, 0.5f, 0f, 0.5f, 0, 0, false);
+  /** Anchors the left-center of the component to the left-center of the container. */
+  public static final Anchor WEST = new Anchor(0f, 0.5f, 0f, 0.5f, 0, 0, false);
 
-    /** Anchors the center of the component to the center of the container. */
-    public static final Anchor CENTER = new Anchor(0.5f, 0.5f, 0.5f, 0.5f, 0, 0, false);
+  /** Anchors the center of the component to the center of the container. */
+  public static final Anchor CENTER = new Anchor(0.5f, 0.5f, 0.5f, 0.5f, 0, 0, false);
+
+  /**
+   * Represents the location of an anchor binding a point of the child component to a point on
+   * the parent.
+   */
+  public static class Anchor
+  {
+    /** The proportional location of the anchor on the child component. */
+    public float cx, cy;
+
+    /** The proportional location of the anchor on the parent component. */
+    public float px, py;
+
+    /** If we use the container dimensions for sizing. */
+    public boolean fitToContainer;
+
+    /** The fixed offset from the parent anchor to the child anchor. */
+    public int ox, oy;
 
     /**
-     * Represents the location of an anchor binding a point of the child component to a point on
-     * the parent.
+     * Creates a new anchor.
+     *
+     * @param cx the proportional x location of the anchor on the child component.
+     * @param cy the proportional y location of the anchor on the child component.
+     * @param px the proportional x location of the anchor on the parent component.
+     * @param py the proportional y location of the anchor on the parent component.
      */
-    public static class Anchor
+    public Anchor (
+        float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer)
     {
-        /** The proportional location of the anchor on the child component. */
-        public float cx, cy;
-
-        /** The proportional location of the anchor on the parent component. */
-        public float px, py;
-
-        /** If we use the container dimensions for sizing. */
-        public boolean fitToContainer;
-
-        /** The fixed offset from the parent anchor to the child anchor. */
-        public int ox, oy;
-
-        /**
-         * Creates a new anchor.
-         *
-         * @param cx the proportional x location of the anchor on the child component.
-         * @param cy the proportional y location of the anchor on the child component.
-         * @param px the proportional x location of the anchor on the parent component.
-         * @param py the proportional y location of the anchor on the parent component.
-         */
-        public Anchor (
-                float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer)
-        {
-            this.cx = cx;
-            this.cy = cy;
-            this.px = px;
-            this.py = py;
-            this.ox = ox;
-            this.oy = oy;
-            this.fitToContainer = fitToContainer;
-        }
+      this.cx = cx;
+      this.cy = cy;
+      this.px = px;
+      this.py = py;
+      this.ox = ox;
+      this.oy = oy;
+      this.fitToContainer = fitToContainer;
     }
+  }
 
-    @Override
-    public void addLayoutComponent (Component comp, Object constraints)
-    {
-        Anchor anchor;
-        if (constraints instanceof Anchor) {
-            anchor = (Anchor)constraints;
-        } else if (constraints == null) {
-            anchor = CENTER;
-        } else {
-            throw new IllegalArgumentException(
-                "Components must be added to an AnchorLayout with Anchor constraints.");
-        }
-        _anchors.put(comp, anchor);
+  @Override
+  public void addLayoutComponent (Component comp, Object constraints)
+  {
+    Anchor anchor;
+    if (constraints instanceof Anchor) {
+      anchor = (Anchor)constraints;
+    } else if (constraints == null) {
+      anchor = CENTER;
+    } else {
+      throw new IllegalArgumentException(
+        "Components must be added to an AnchorLayout with Anchor constraints.");
     }
+    _anchors.put(comp, anchor);
+  }
 
-    @Override
-    public void removeLayoutComponent (Component comp)
-    {
-        _anchors.remove(comp);
+  @Override
+  public void removeLayoutComponent (Component comp)
+  {
+    _anchors.remove(comp);
+  }
+
+  @Override
+  public Object getConstraints (Component comp)
+  {
+    return _anchors.get(comp);
+  }
+
+  @Override
+  public Dimension computePreferredSize (Container target, int whint, int hhint)
+  {
+    for (int ii = 0, nn = target.getComponentCount(); ii < nn; ii++) {
+      Dimension size = target.getComponent(ii).getPreferredSize(whint, hhint);
+      whint = Math.max(whint, size.width);
+      hhint = Math.max(hhint, size.height);
     }
+    return new Dimension(whint, hhint);
+  }
 
-    @Override
-    public Object getConstraints (Component comp)
-    {
-        return _anchors.get(comp);
+  @Override
+  public void layoutContainer (Container target)
+  {
+    int width = target.getWidth(), height = target.getHeight();
+    for (int ii = 0, nn = target.getComponentCount(); ii < nn; ii++) {
+      Component comp = target.getComponent(ii);
+      if (!comp.isVisible()) {
+        continue;
+      }
+      Anchor anchor = _anchors.get(comp);
+      if (anchor == null) {
+        continue;
+      }
+      int px = Math.round(width * anchor.px);
+      int py = Math.round(height * anchor.py);
+      Dimension size = anchor.fitToContainer ?
+        comp.getPreferredSize(width, height) : comp.getPreferredSize(-1, -1);
+      int cx = Math.round(size.width * anchor.cx);
+      int cy = Math.round(size.height * anchor.cy);
+      comp.setBounds(px - cx + anchor.ox, py - cy + anchor.oy, size.width, size.height);
     }
+  }
 
-    @Override
-    public Dimension computePreferredSize (Container target, int whint, int hhint)
-    {
-        for (int ii = 0, nn = target.getComponentCount(); ii < nn; ii++) {
-            Dimension size = target.getComponent(ii).getPreferredSize(whint, hhint);
-            whint = Math.max(whint, size.width);
-            hhint = Math.max(hhint, size.height);
-        }
-        return new Dimension(whint, hhint);
-    }
-
-    @Override
-    public void layoutContainer (Container target)
-    {
-        int width = target.getWidth(), height = target.getHeight();
-        for (int ii = 0, nn = target.getComponentCount(); ii < nn; ii++) {
-            Component comp = target.getComponent(ii);
-            if (!comp.isVisible()) {
-                continue;
-            }
-            Anchor anchor = _anchors.get(comp);
-            if (anchor == null) {
-                continue;
-            }
-            int px = Math.round(width * anchor.px);
-            int py = Math.round(height * anchor.py);
-            Dimension size = anchor.fitToContainer ?
-                comp.getPreferredSize(width, height) : comp.getPreferredSize(-1, -1);
-            int cx = Math.round(size.width * anchor.cx);
-            int cy = Math.round(size.height * anchor.cy);
-            comp.setBounds(px - cx + anchor.ox, py - cy + anchor.oy, size.width, size.height);
-        }
-    }
-
-    /** The anchors of the components to be layed out. */
-    protected Map<Component, Anchor> _anchors = Maps.newIdentityHashMap();
+  /** The anchors of the components to be layed out. */
+  protected Map<Component, Anchor> _anchors = Maps.newIdentityHashMap();
 }

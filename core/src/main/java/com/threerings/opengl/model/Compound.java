@@ -57,292 +57,292 @@ import com.threerings.opengl.util.GlContext;
  * A compound model implementation.
  */
 public class Compound extends Model.Implementation
-    implements Enqueueable
+  implements Enqueueable
 {
-    /**
-     * Creates a new compound implementation.
-     */
-    public Compound (GlContext ctx, Scope parentScope, CompoundConfig config)
-    {
-        super(parentScope);
-        setConfig(ctx, config);
+  /**
+   * Creates a new compound implementation.
+   */
+  public Compound (GlContext ctx, Scope parentScope, CompoundConfig config)
+  {
+    super(parentScope);
+    setConfig(ctx, config);
+  }
+
+  /**
+   * Sets the configuration of this model.
+   */
+  public void setConfig (GlContext ctx, CompoundConfig config)
+  {
+    _ctx = ctx;
+    _config = config;
+    updateFromConfig();
+  }
+
+  // documentation inherited from interface Enqueueable
+  public void enqueue ()
+  {
+    // update the view transform
+    _parentViewTransform.compose(_localTransform, _viewTransform);
+  }
+
+  @Override
+  public List<Model> getChildren ()
+  {
+    return Collections.unmodifiableList(Arrays.asList(_models));
+  }
+
+  @Override
+  public boolean hasCompleted ()
+  {
+    return _completed;
+  }
+
+  @Override
+  public void setVisible (boolean visible)
+  {
+    for (Model model : _models) {
+      model.setVisible(visible);
+    }
+  }
+
+  @Override
+  public void reset ()
+  {
+    for (Model model : _models) {
+      model.reset();
+    }
+    _completed = false;
+  }
+
+  @Override
+  public int getInfluenceFlags ()
+  {
+    return _influenceFlags;
+  }
+
+  @Override
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  @Override
+  public void updateBounds ()
+  {
+    tick(0f);
+  }
+
+  @Override
+  public void drawBounds ()
+  {
+    DebugBounds.draw(_bounds, Color4f.WHITE);
+    for (Model model : _models) {
+      model.drawBounds();
+    }
+  }
+
+  @Override
+  public void dumpInfo (String prefix)
+  {
+    System.out.println(prefix + "Compound: " + _worldTransform + " " + _bounds);
+    String pprefix = prefix + "  ";
+    for (Model model : _models) {
+      model.dumpInfo(pprefix);
+    }
+  }
+
+  @Override
+  public TickPolicy getTickPolicy ()
+  {
+    return _tickPolicy;
+  }
+
+  @Override
+  public void wasAdded ()
+  {
+    // notify component models
+    Scene scene = ((Model)_parentScope).getScene(this);
+    for (Model model : _models) {
+      model.wasAdded(scene);
+    }
+  }
+
+  @Override
+  public void willBeRemoved ()
+  {
+    // notify component models
+    for (Model model : _models) {
+      model.willBeRemoved();
+    }
+  }
+
+  @Override
+  public void tick (float elapsed)
+  {
+    // return immediately if completed
+    if (_completed) {
+      return;
     }
 
-    /**
-     * Sets the configuration of this model.
-     */
-    public void setConfig (GlContext ctx, CompoundConfig config)
-    {
-        _ctx = ctx;
-        _config = config;
-        updateFromConfig();
+    // update the world transform
+    if (_parentWorldTransform == null) {
+      _worldTransform.set(_localTransform);
+    } else {
+      _parentWorldTransform.compose(_localTransform, _worldTransform);
     }
 
-    // documentation inherited from interface Enqueueable
-    public void enqueue ()
-    {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
+    // tick the component models
+    _nbounds.setToEmpty();
+    _completed = true;
+    for (Model model : _models) {
+      model.tick(elapsed);
+      _nbounds.addLocal(model.getBounds());
+      _completed &= model.hasCompleted();
     }
 
-    @Override
-    public List<Model> getChildren ()
-    {
-        return Collections.unmodifiableList(Arrays.asList(_models));
+    // update the bounds if necessary
+    if (!_bounds.equals(_nbounds)) {
+      ((Model)_parentScope).boundsWillChange(this);
+      _bounds.set(_nbounds);
+      ((Model)_parentScope).boundsDidChange(this);
     }
 
-    @Override
-    public boolean hasCompleted ()
-    {
-        return _completed;
+    // notify containing model if completed
+    if (_completed) {
+      ((Model)_parentScope).completed(this);
     }
+  }
 
-    @Override
-    public void setVisible (boolean visible)
-    {
-        for (Model model : _models) {
-            model.setVisible(visible);
+  @Override
+  public boolean getIntersection (Ray3D ray, Vector3f result)
+  {
+    // exit early if there's no bounds intersection
+    if (!_bounds.intersects(ray)) {
+      return false;
+    }
+    // check the component models
+    Vector3f closest = result;
+    for (Model model : _models) {
+      if (model.getIntersection(ray, result)) {
+        result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
+      }
+    }
+    // if we ever changed the result reference, that means we hit something
+    return (result != closest);
+  }
+
+  @Override
+  public void composite ()
+  {
+    // add an enqueueable to initialize the shared state
+    _ctx.getCompositor().addEnqueueable(this);
+
+    // composite the component models
+    for (Model model : _models) {
+      model.composite();
+    }
+  }
+
+  /**
+   * Updates the model to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    // create the component models
+    Scene scene = ((Model)_parentScope).getScene(this);
+    Model[] omodels = _models;
+    _models = new Model[_config.models.length];
+    Function getNodeFn = ScopeUtil.resolve(this, "getNode", Function.NULL);
+    for (int ii = 0; ii < _models.length; ii++) {
+      boolean create = (omodels == null || omodels.length <= ii);
+      Model model = create ? new Model(_ctx) : omodels[ii];
+      _models[ii] = model;
+      ComponentModel component = _config.models[ii];
+      Scope node = StringUtil.isBlank(component.node) ?
+        null : (Scope)getNodeFn.call(component.node);
+      model.setParentScope(node == null ? this : node);
+      model.setConfig(component.model);
+      model.getLocalTransform().set(component.transform);
+      if (create && scene != null) {
+        model.wasAdded(scene);
+      }
+    }
+    if (omodels != null) {
+      for (int ii = _models.length; ii < omodels.length; ii++) {
+        Model model = omodels[ii];
+        if (scene != null) {
+          model.willBeRemoved();
         }
+        model.dispose();
+      }
     }
 
-    @Override
-    public void reset ()
-    {
-        for (Model model : _models) {
-            model.reset();
+    // update the influence flags
+    _influenceFlags = _config.influences.getFlags();
+
+    // update the tick policy if necessary
+    TickPolicy npolicy = _config.tickPolicy;
+    if (npolicy == TickPolicy.DEFAULT) {
+      npolicy = TickPolicy.NEVER;
+      for (Model model : _models) {
+        TickPolicy mpolicy = model.getTickPolicy();
+        if (mpolicy.ordinal() > npolicy.ordinal()) {
+          npolicy = mpolicy;
         }
-        _completed = false;
+      }
+    }
+    if (_tickPolicy != npolicy) {
+      ((Model)_parentScope).tickPolicyWillChange(this);
+      _tickPolicy = npolicy;
+      ((Model)_parentScope).tickPolicyDidChange(this);
     }
 
-    @Override
-    public int getInfluenceFlags ()
-    {
-        return _influenceFlags;
-    }
+    // update the bounds
+    updateBounds();
+  }
 
-    @Override
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
+  /** The application context. */
+  protected GlContext _ctx;
 
-    @Override
-    public void updateBounds ()
-    {
-        tick(0f);
-    }
+  /** The model config. */
+  protected CompoundConfig _config;
 
-    @Override
-    public void drawBounds ()
-    {
-        DebugBounds.draw(_bounds, Color4f.WHITE);
-        for (Model model : _models) {
-            model.drawBounds();
-        }
-    }
+  /** The component models. */
+  protected Model[] _models;
 
-    @Override
-    public void dumpInfo (String prefix)
-    {
-        System.out.println(prefix + "Compound: " + _worldTransform + " " + _bounds);
-        String pprefix = prefix + "  ";
-        for (Model model : _models) {
-            model.dumpInfo(pprefix);
-        }
-    }
+  /** The parent world transform. */
+  @Bound("worldTransform")
+  protected Transform3D _parentWorldTransform;
 
-    @Override
-    public TickPolicy getTickPolicy ()
-    {
-        return _tickPolicy;
-    }
+  /** The parent view transform. */
+  @Bound("viewTransform")
+  protected Transform3D _parentViewTransform;
 
-    @Override
-    public void wasAdded ()
-    {
-        // notify component models
-        Scene scene = ((Model)_parentScope).getScene(this);
-        for (Model model : _models) {
-            model.wasAdded(scene);
-        }
-    }
+  /** The local transform. */
+  @Bound
+  protected Transform3D _localTransform;
 
-    @Override
-    public void willBeRemoved ()
-    {
-        // notify component models
-        for (Model model : _models) {
-            model.willBeRemoved();
-        }
-    }
+  /** The world transform. */
+  @Scoped
+  protected Transform3D _worldTransform = new Transform3D();
 
-    @Override
-    public void tick (float elapsed)
-    {
-        // return immediately if completed
-        if (_completed) {
-            return;
-        }
+  /** The view transform. */
+  @Scoped
+  protected Transform3D _viewTransform = new Transform3D();
 
-        // update the world transform
-        if (_parentWorldTransform == null) {
-            _worldTransform.set(_localTransform);
-        } else {
-            _parentWorldTransform.compose(_localTransform, _worldTransform);
-        }
+  /** The model's tick policy. */
+  protected TickPolicy _tickPolicy;
 
-        // tick the component models
-        _nbounds.setToEmpty();
-        _completed = true;
-        for (Model model : _models) {
-            model.tick(elapsed);
-            _nbounds.addLocal(model.getBounds());
-            _completed &= model.hasCompleted();
-        }
+  /** Flags indicating which influences can affect the model. */
+  protected int _influenceFlags;
 
-        // update the bounds if necessary
-        if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange(this);
-            _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange(this);
-        }
+  /** The bounds of the model. */
+  @Scoped
+  protected Box _bounds = new Box();
 
-        // notify containing model if completed
-        if (_completed) {
-            ((Model)_parentScope).completed(this);
-        }
-    }
+  /** Holds the bounds of the model when updating. */
+  protected Box _nbounds = new Box();
 
-    @Override
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        // exit early if there's no bounds intersection
-        if (!_bounds.intersects(ray)) {
-            return false;
-        }
-        // check the component models
-        Vector3f closest = result;
-        for (Model model : _models) {
-            if (model.getIntersection(ray, result)) {
-                result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
-            }
-        }
-        // if we ever changed the result reference, that means we hit something
-        return (result != closest);
-    }
-
-    @Override
-    public void composite ()
-    {
-        // add an enqueueable to initialize the shared state
-        _ctx.getCompositor().addEnqueueable(this);
-
-        // composite the component models
-        for (Model model : _models) {
-            model.composite();
-        }
-    }
-
-    /**
-     * Updates the model to match its new or modified configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        // create the component models
-        Scene scene = ((Model)_parentScope).getScene(this);
-        Model[] omodels = _models;
-        _models = new Model[_config.models.length];
-        Function getNodeFn = ScopeUtil.resolve(this, "getNode", Function.NULL);
-        for (int ii = 0; ii < _models.length; ii++) {
-            boolean create = (omodels == null || omodels.length <= ii);
-            Model model = create ? new Model(_ctx) : omodels[ii];
-            _models[ii] = model;
-            ComponentModel component = _config.models[ii];
-            Scope node = StringUtil.isBlank(component.node) ?
-                null : (Scope)getNodeFn.call(component.node);
-            model.setParentScope(node == null ? this : node);
-            model.setConfig(component.model);
-            model.getLocalTransform().set(component.transform);
-            if (create && scene != null) {
-                model.wasAdded(scene);
-            }
-        }
-        if (omodels != null) {
-            for (int ii = _models.length; ii < omodels.length; ii++) {
-                Model model = omodels[ii];
-                if (scene != null) {
-                    model.willBeRemoved();
-                }
-                model.dispose();
-            }
-        }
-
-        // update the influence flags
-        _influenceFlags = _config.influences.getFlags();
-
-        // update the tick policy if necessary
-        TickPolicy npolicy = _config.tickPolicy;
-        if (npolicy == TickPolicy.DEFAULT) {
-            npolicy = TickPolicy.NEVER;
-            for (Model model : _models) {
-                TickPolicy mpolicy = model.getTickPolicy();
-                if (mpolicy.ordinal() > npolicy.ordinal()) {
-                    npolicy = mpolicy;
-                }
-            }
-        }
-        if (_tickPolicy != npolicy) {
-            ((Model)_parentScope).tickPolicyWillChange(this);
-            _tickPolicy = npolicy;
-            ((Model)_parentScope).tickPolicyDidChange(this);
-        }
-
-        // update the bounds
-        updateBounds();
-    }
-
-    /** The application context. */
-    protected GlContext _ctx;
-
-    /** The model config. */
-    protected CompoundConfig _config;
-
-    /** The component models. */
-    protected Model[] _models;
-
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
-
-    /** The parent view transform. */
-    @Bound("viewTransform")
-    protected Transform3D _parentViewTransform;
-
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
-
-    /** The world transform. */
-    @Scoped
-    protected Transform3D _worldTransform = new Transform3D();
-
-    /** The view transform. */
-    @Scoped
-    protected Transform3D _viewTransform = new Transform3D();
-
-    /** The model's tick policy. */
-    protected TickPolicy _tickPolicy;
-
-    /** Flags indicating which influences can affect the model. */
-    protected int _influenceFlags;
-
-    /** The bounds of the model. */
-    @Scoped
-    protected Box _bounds = new Box();
-
-    /** Holds the bounds of the model when updating. */
-    protected Box _nbounds = new Box();
-
-    /** If true, the model has completed. */
-    protected boolean _completed;
+  /** If true, the model has completed. */
+  protected boolean _completed;
 }

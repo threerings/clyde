@@ -32,71 +32,71 @@ import com.threerings.math.Vector2f;
  */
 public class DirectionUtil
 {
-    /**
-     * Alters a step vector based on direction restrictions.
-     *
-     * @return true if the step is non-zero
-     */
-    public static boolean alterStep (Vector2f step, int directions)
-    {
-        if (directions == 0) {
-            return true;
-        }
-        for (int ii = 0; ii < 4; ii++) {
-            if ((directions & (1 << ii)) != 0) {
-                if (step.dot(Direction.CARDINAL_VALUES[ii].getVector2f()) < 0) {
-                    Vector2f vec = Direction.CARDINAL_VALUES[(ii + 3) % 4].getVector2f();
-                    float dot = step.dot(vec);
-                    if (dot > 0) {
-                        step.set(vec.mult(dot));
-                        continue;
-                    }
-                    vec = Direction.CARDINAL_VALUES[(ii + 1) % 4].getVector2f();
-                    dot = step.dot(vec);
-                    if (dot > 0) {
-                        step.set(vec.mult(dot));
-                        continue;
-                    }
-                    step.set(0f, 0f);
-                    return false;
-                }
-            }
-        }
-        return true;
+  /**
+   * Alters a step vector based on direction restrictions.
+   *
+   * @return true if the step is non-zero
+   */
+  public static boolean alterStep (Vector2f step, int directions)
+  {
+    if (directions == 0) {
+      return true;
     }
+    for (int ii = 0; ii < 4; ii++) {
+      if ((directions & (1 << ii)) != 0) {
+        if (step.dot(Direction.CARDINAL_VALUES[ii].getVector2f()) < 0) {
+          Vector2f vec = Direction.CARDINAL_VALUES[(ii + 3) % 4].getVector2f();
+          float dot = step.dot(vec);
+          if (dot > 0) {
+            step.set(vec.mult(dot));
+            continue;
+          }
+          vec = Direction.CARDINAL_VALUES[(ii + 1) % 4].getVector2f();
+          dot = step.dot(vec);
+          if (dot > 0) {
+            step.set(vec.mult(dot));
+            continue;
+          }
+          step.set(0f, 0f);
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
-    /**
-     * Rotates the direction flags by the angle (snapping to the nearest cardinal direction).
-     */
-    public static int rotateDirections (int directions, float angle)
-    {
-        if (directions == 0) {
-            return 0;
-        }
-        Vector2f vec = Vector2f.UNIT_Y.rotate(angle);
-        int offset = 0;
-        float minDist = Float.POSITIVE_INFINITY;
-        for (int ii = 0; ii < 4; ii++) {
-            float dist = Direction.CARDINAL_VALUES[ii].getVector2f().distanceSquared(vec);
-            if (dist < minDist) {
-                minDist = dist;
-                offset = ii;
-            }
-        }
-        if (offset != 0) {
-            return rotateCardinal(directions, offset);
-        }
-        return directions;
+  /**
+   * Rotates the direction flags by the angle (snapping to the nearest cardinal direction).
+   */
+  public static int rotateDirections (int directions, float angle)
+  {
+    if (directions == 0) {
+      return 0;
     }
+    Vector2f vec = Vector2f.UNIT_Y.rotate(angle);
+    int offset = 0;
+    float minDist = Float.POSITIVE_INFINITY;
+    for (int ii = 0; ii < 4; ii++) {
+      float dist = Direction.CARDINAL_VALUES[ii].getVector2f().distanceSquared(vec);
+      if (dist < minDist) {
+        minDist = dist;
+        offset = ii;
+      }
+    }
+    if (offset != 0) {
+      return rotateCardinal(directions, offset);
+    }
+    return directions;
+  }
 
-    /**
-     * Rotates the direction flags by the cardinal direction.
-     */
-    public static int rotateCardinal (int directions, int rotation)
-    {
-        int cardinal = directions & 0xf;
-        int rotCardinal = ((cardinal << rotation) | (cardinal >> (4 - rotation))) & 0xf;
-        directions = directions & ~0xf | rotCardinal;
-        return directions;
-    }
+  /**
+   * Rotates the direction flags by the cardinal direction.
+   */
+  public static int rotateCardinal (int directions, int rotation)
+  {
+    int cardinal = directions & 0xf;
+    int rotCardinal = ((cardinal << rotation) | (cardinal >> (4 - rotation))) & 0xf;
+    directions = directions & ~0xf | rotCardinal;
+    return directions;
+  }
 }

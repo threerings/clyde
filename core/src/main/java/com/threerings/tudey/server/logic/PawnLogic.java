@@ -36,64 +36,64 @@ import com.threerings.tudey.util.PawnAdvancer;
  * Handles the state of a player-controlled actor.
  */
 public class PawnLogic extends ActiveLogic
-    implements NonTransferable
+  implements NonTransferable
 {
-    /**
-     * Notes that the controlling client has entered.
-     */
-    public void bodyEntered (ClientLiaison client)
-    {
-        _client = client;
+  /**
+   * Notes that the controlling client has entered.
+   */
+  public void bodyEntered (ClientLiaison client)
+  {
+    _client = client;
+  }
+
+  /**
+   * Enqueues a single frame of input for processing.
+   */
+  public void enqueueInput (InputFrame frame)
+  {
+    _input.addLast(frame);
+  }
+
+  /**
+   * Computes and returns the difference between the time at which the controlling client depicts
+   * this actor (its advanced time) and the time at which it depicts all other actors (its
+   * delayed time).
+   */
+  public int getControlDelta ()
+  {
+    return (_client == null) ? 0 : _client.getControlDelta();
+  }
+
+  @Override
+  public int getActivityAdvance ()
+  {
+    return getControlDelta()/2; // split the difference
+  }
+
+  @Override
+  public boolean tick (int timestamp)
+  {
+    // process the enqueued input
+    while (!_input.isEmpty() && _input.peekFirst().getTimestamp() <= timestamp) {
+      _advancer.advance(_input.pollFirst());
     }
 
-    /**
-     * Enqueues a single frame of input for processing.
-     */
-    public void enqueueInput (InputFrame frame)
-    {
-        _input.addLast(frame);
-    }
+    // advance to the current timestamp, etc.
+    return super.tick(timestamp);
+  }
 
-    /**
-     * Computes and returns the difference between the time at which the controlling client depicts
-     * this actor (its advanced time) and the time at which it depicts all other actors (its
-     * delayed time).
-     */
-    public int getControlDelta ()
-    {
-        return (_client == null) ? 0 : _client.getControlDelta();
-    }
+  @Override
+  protected ActorAdvancer createAdvancer ()
+  {
+    return (_advancer = (PawnAdvancer)_actor.createAdvancer(this, _actor.getCreated()));
+  }
 
-    @Override
-    public int getActivityAdvance ()
-    {
-        return getControlDelta()/2; // split the difference
-    }
+  /** A casted reference to the advancer. */
+  protected PawnAdvancer _advancer;
 
-    @Override
-    public boolean tick (int timestamp)
-    {
-        // process the enqueued input
-        while (!_input.isEmpty() && _input.peekFirst().getTimestamp() <= timestamp) {
-            _advancer.advance(_input.pollFirst());
-        }
+  /** The liaison for the controlling client. */
+  protected ClientLiaison _client;
 
-        // advance to the current timestamp, etc.
-        return super.tick(timestamp);
-    }
-
-    @Override
-    protected ActorAdvancer createAdvancer ()
-    {
-        return (_advancer = (PawnAdvancer)_actor.createAdvancer(this, _actor.getCreated()));
-    }
-
-    /** A casted reference to the advancer. */
-    protected PawnAdvancer _advancer;
-
-    /** The liaison for the controlling client. */
-    protected ClientLiaison _client;
-
-    /** The list of pending input frames for the pawn. */
-    protected ArrayDeque<InputFrame> _input = new ArrayDeque<InputFrame>(4);
+  /** The list of pending input frames for the pawn. */
+  protected ArrayDeque<InputFrame> _input = new ArrayDeque<InputFrame>(4);
 }

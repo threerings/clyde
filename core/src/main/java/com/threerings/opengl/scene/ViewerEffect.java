@@ -34,85 +34,85 @@ import com.threerings.opengl.renderer.Color4f;
  * Base class for things in the scene that affect the viewer.
  */
 public abstract class ViewerEffect extends ShallowObject
-    implements SceneObject
+  implements SceneObject
 {
-    /**
-     * Returns the background color associated with this effect, or <code>null</code> for
-     * none.
-     */
-    public Color4f getBackgroundColor ()
-    {
-        return null;
+  /**
+   * Returns the background color associated with this effect, or <code>null</code> for
+   * none.
+   */
+  public Color4f getBackgroundColor ()
+  {
+    return null;
+  }
+
+  /**
+   * Notes that the effect is now acting on the viewer.
+   */
+  public void activate (Scene scene)
+  {
+    // nothing by default
+  }
+
+  /**
+   * Notes that the effect is no longer acting on the viewer.
+   */
+  public void deactivate ()
+  {
+    // nothing by default
+  }
+
+  /**
+   * Called once per frame while the effect is active.
+   */
+  public void update ()
+  {
+    // nothing by default
+  }
+
+  /**
+   * Determines whether the effect has completed.
+   */
+  public boolean hasCompleted ()
+  {
+    return false;
+  }
+
+  /**
+   * Resets the effect.
+   */
+  public void reset ()
+  {
+    // nothing by default
+  }
+
+  /**
+   * A hint indicating that we should omit this effect while loading (used for sounds, to prevent
+   * them from playing until we're fully loaded).
+   */
+  public boolean omitWhileLoading ()
+  {
+    return false;
+  }
+
+  // documentation inherited from interface SceneObject
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  // documentation inherited from interface SceneObject
+  public boolean updateLastVisit (int visit)
+  {
+    if (_lastVisit == visit) {
+      return false;
     }
+    _lastVisit = visit;
+    return true;
+  }
 
-    /**
-     * Notes that the effect is now acting on the viewer.
-     */
-    public void activate (Scene scene)
-    {
-        // nothing by default
-    }
+  /** The bounds of the effect. */
+  protected Box _bounds = new Box();
 
-    /**
-     * Notes that the effect is no longer acting on the viewer.
-     */
-    public void deactivate ()
-    {
-        // nothing by default
-    }
-
-    /**
-     * Called once per frame while the effect is active.
-     */
-    public void update ()
-    {
-        // nothing by default
-    }
-
-    /**
-     * Determines whether the effect has completed.
-     */
-    public boolean hasCompleted ()
-    {
-        return false;
-    }
-
-    /**
-     * Resets the effect.
-     */
-    public void reset ()
-    {
-        // nothing by default
-    }
-
-    /**
-     * A hint indicating that we should omit this effect while loading (used for sounds, to prevent
-     * them from playing until we're fully loaded).
-     */
-    public boolean omitWhileLoading ()
-    {
-        return false;
-    }
-
-    // documentation inherited from interface SceneObject
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
-
-    // documentation inherited from interface SceneObject
-    public boolean updateLastVisit (int visit)
-    {
-        if (_lastVisit == visit) {
-            return false;
-        }
-        _lastVisit = visit;
-        return true;
-    }
-
-    /** The bounds of the effect. */
-    protected Box _bounds = new Box();
-
-    /** The visitation id of the last visit. */
-    protected int _lastVisit;
+  /** The visitation id of the last visit. */
+  protected int _lastVisit;
 }

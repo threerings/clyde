@@ -36,15 +36,15 @@ import com.threerings.opengl.gui.util.Insets;
  */
 public abstract class Border
 {
-    /**
-     * Adds the supplied insets to this border's insets and returns adjusted
-     * insets.
-     */
-    public abstract Insets adjustInsets (Insets insets);
+  /**
+   * Adds the supplied insets to this border's insets and returns adjusted
+   * insets.
+   */
+  public abstract Insets adjustInsets (Insets insets);
 
-    /** Renders this border. */
-    public void render (Renderer renderer, int x, int y, int width, int height,
-        float alpha)
-    {
-    }
+  /** Renders this border. */
+  public void render (Renderer renderer, int x, int y, int width, int height,
+    float alpha)
+  {
+  }
 }

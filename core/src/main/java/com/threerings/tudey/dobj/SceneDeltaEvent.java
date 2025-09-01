@@ -43,171 +43,171 @@ import com.threerings.tudey.data.effect.Effect;
  */
 public class SceneDeltaEvent extends DEvent
 {
-    /**
-     * Creates a new delta event.
-     */
-    public SceneDeltaEvent (
-        int targetOid, int sceneOid, int acknowledge, short ping, int reference,
-        int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
-        int[] removedActorIds, Effect[] effectsFired)
-    {
-        super(targetOid);
-        _sceneOid = sceneOid;
-        _acknowledge = acknowledge;
-        _ping = ping;
-        _reference = reference;
-        _timestamp = timestamp;
-        _elapsed = elapsed;
-        _addedActors = addedActors;
-        _updatedActorDeltas = updatedActorDeltas;
-        _removedActorIds = removedActorIds;
-        _effectsFired = effectsFired;
+  /**
+   * Creates a new delta event.
+   */
+  public SceneDeltaEvent (
+    int targetOid, int sceneOid, int acknowledge, short ping, int reference,
+    int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
+    int[] removedActorIds, Effect[] effectsFired)
+  {
+    super(targetOid);
+    _sceneOid = sceneOid;
+    _acknowledge = acknowledge;
+    _ping = ping;
+    _reference = reference;
+    _timestamp = timestamp;
+    _elapsed = elapsed;
+    _addedActors = addedActors;
+    _updatedActorDeltas = updatedActorDeltas;
+    _removedActorIds = removedActorIds;
+    _effectsFired = effectsFired;
+  }
+
+  /**
+   * Returns the oid of the scene to which this delta applies.
+   */
+  public int getSceneOid ()
+  {
+    return _sceneOid;
+  }
+
+  /**
+   * Returns the timestamp of the last input frame received by the server.
+   */
+  public int getAcknowledge ()
+  {
+    return _acknowledge;
+  }
+
+  /**
+   * Returns the ping time estimate.
+   */
+  public short getPing ()
+  {
+    return _ping;
+  }
+
+  /**
+   * Returns the timestamp of the update that serves as a basis of comparison for this delta
+   * (either the last delta known to be acknowledged by the client, or 0 for the baseline).
+   */
+  public int getReference ()
+  {
+    return _reference;
+  }
+
+  /**
+   * Returns the timestamp of the delta.
+   */
+  public int getTimestamp ()
+  {
+    return _timestamp;
+  }
+
+  /**
+   * Returns the time elapsed since the last tick.
+   */
+  public short getElapsed ()
+  {
+    return _elapsed;
+  }
+
+  /**
+   * Returns a reference to the array of actors added to the scene since the last delta, or
+   * <code>null</code> for none.
+   */
+  public Actor[] getAddedActors ()
+  {
+    return _addedActors;
+  }
+
+  /**
+   * Returns a reference to the array of deltas for actors updated since the last delta, or
+   * <code>null</code> for none.
+   */
+  public ActorDelta[] getUpdatedActorDeltas ()
+  {
+    return _updatedActorDeltas;
+  }
+
+  /**
+   * Returns a reference to the array of ids of actors removed from the scene since the last
+   * delta, or <code>null</code> for none.
+   */
+  public int[] getRemovedActorIds ()
+  {
+    return _removedActorIds;
+  }
+
+  /**
+   * Returns the array of effects fired since the last delta, or <code>null</code> for none.
+   */
+  public Effect[] getEffectsFired ()
+  {
+    return _effectsFired;
+  }
+
+  @Override
+  public boolean applyToObject (DObject target)
+    throws ObjectAccessException
+  {
+    return true; // nothing to do here
+  }
+
+  @Override
+  protected void notifyListener (Object listener)
+  {
+    if (listener instanceof SceneDeltaListener) {
+      ((SceneDeltaListener)listener).sceneDeltaReceived(this);
     }
+  }
 
-    /**
-     * Returns the oid of the scene to which this delta applies.
-     */
-    public int getSceneOid ()
-    {
-        return _sceneOid;
-    }
+  @Override
+  protected void toString (StringBuilder buf)
+  {
+    buf.append("DELTA:");
+    super.toString(buf);
+    buf.append(", sceneOid=").append(_sceneOid);
+    buf.append(", acknowledge=").append(_acknowledge);
+    buf.append(", ping=").append(_ping);
+    buf.append(", reference=").append(_reference);
+    buf.append(", timestamp=").append(_timestamp);
+    buf.append(", elapsed=").append(_elapsed);
+    buf.append(", addedActors=").append(StringUtil.toString(_addedActors));
+    buf.append(", updatedActorDeltas=").append(StringUtil.toString(_updatedActorDeltas));
+    buf.append(", removedActorIds=").append(StringUtil.toString(_removedActorIds));
+    buf.append(", effectsFired=").append(StringUtil.toString(_effectsFired));
+  }
 
-    /**
-     * Returns the timestamp of the last input frame received by the server.
-     */
-    public int getAcknowledge ()
-    {
-        return _acknowledge;
-    }
+  /** The oid of the scene to which this event applies. */
+  protected int _sceneOid;
 
-    /**
-     * Returns the ping time estimate.
-     */
-    public short getPing ()
-    {
-        return _ping;
-    }
+  /** The timestamp of the latest input frame received by the server. */
+  protected int _acknowledge;
 
-    /**
-     * Returns the timestamp of the update that serves as a basis of comparison for this delta
-     * (either the last delta known to be acknowledged by the client, or 0 for the baseline).
-     */
-    public int getReference ()
-    {
-        return _reference;
-    }
+  /** The estimated ping time. */
+  protected short _ping;
 
-    /**
-     * Returns the timestamp of the delta.
-     */
-    public int getTimestamp ()
-    {
-        return _timestamp;
-    }
+  /** The timestamp of the update that serves as a basis of comparison for this delta (either
+   * the last delta known to be acknowledged by the client, or 0 for the baseline). */
+  protected int _reference;
 
-    /**
-     * Returns the time elapsed since the last tick.
-     */
-    public short getElapsed ()
-    {
-        return _elapsed;
-    }
+  /** The timestamp of the delta. */
+  protected int _timestamp;
 
-    /**
-     * Returns a reference to the array of actors added to the scene since the last delta, or
-     * <code>null</code> for none.
-     */
-    public Actor[] getAddedActors ()
-    {
-        return _addedActors;
-    }
+  /** The amount of time elapsed since the previous tick. */
+  protected short _elapsed;
 
-    /**
-     * Returns a reference to the array of deltas for actors updated since the last delta, or
-     * <code>null</code> for none.
-     */
-    public ActorDelta[] getUpdatedActorDeltas ()
-    {
-        return _updatedActorDeltas;
-    }
+  /** The actors added to the scene since the referenced update (or <code>null</code>). */
+  protected Actor[] _addedActors;
 
-    /**
-     * Returns a reference to the array of ids of actors removed from the scene since the last
-     * delta, or <code>null</code> for none.
-     */
-    public int[] getRemovedActorIds ()
-    {
-        return _removedActorIds;
-    }
+  /** The deltas of the actors updated since the referenced update (or <code>null</code). */
+  protected ActorDelta[] _updatedActorDeltas;
 
-    /**
-     * Returns the array of effects fired since the last delta, or <code>null</code> for none.
-     */
-    public Effect[] getEffectsFired ()
-    {
-        return _effectsFired;
-    }
+  /** The ids of the actors removed since the referenced update (or <code>null</code>). */
+  protected int[] _removedActorIds;
 
-    @Override
-    public boolean applyToObject (DObject target)
-        throws ObjectAccessException
-    {
-        return true; // nothing to do here
-    }
-
-    @Override
-    protected void notifyListener (Object listener)
-    {
-        if (listener instanceof SceneDeltaListener) {
-            ((SceneDeltaListener)listener).sceneDeltaReceived(this);
-        }
-    }
-
-    @Override
-    protected void toString (StringBuilder buf)
-    {
-        buf.append("DELTA:");
-        super.toString(buf);
-        buf.append(", sceneOid=").append(_sceneOid);
-        buf.append(", acknowledge=").append(_acknowledge);
-        buf.append(", ping=").append(_ping);
-        buf.append(", reference=").append(_reference);
-        buf.append(", timestamp=").append(_timestamp);
-        buf.append(", elapsed=").append(_elapsed);
-        buf.append(", addedActors=").append(StringUtil.toString(_addedActors));
-        buf.append(", updatedActorDeltas=").append(StringUtil.toString(_updatedActorDeltas));
-        buf.append(", removedActorIds=").append(StringUtil.toString(_removedActorIds));
-        buf.append(", effectsFired=").append(StringUtil.toString(_effectsFired));
-    }
-
-    /** The oid of the scene to which this event applies. */
-    protected int _sceneOid;
-
-    /** The timestamp of the latest input frame received by the server. */
-    protected int _acknowledge;
-
-    /** The estimated ping time. */
-    protected short _ping;
-
-    /** The timestamp of the update that serves as a basis of comparison for this delta (either
-     * the last delta known to be acknowledged by the client, or 0 for the baseline). */
-    protected int _reference;
-
-    /** The timestamp of the delta. */
-    protected int _timestamp;
-
-    /** The amount of time elapsed since the previous tick. */
-    protected short _elapsed;
-
-    /** The actors added to the scene since the referenced update (or <code>null</code>). */
-    protected Actor[] _addedActors;
-
-    /** The deltas of the actors updated since the referenced update (or <code>null</code). */
-    protected ActorDelta[] _updatedActorDeltas;
-
-    /** The ids of the actors removed since the referenced update (or <code>null</code>). */
-    protected int[] _removedActorIds;
-
-    /** The effects fired since the last delta (or <code>null</code>). */
-    protected Effect[] _effectsFired;
+  /** The effects fired since the last delta (or <code>null</code>). */
+  protected Effect[] _effectsFired;
 }

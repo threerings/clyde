@@ -53,114 +53,114 @@ import com.threerings.opengl.util.GlContext;
  */
 public class Projection extends ShallowObject
 {
-    /**
-     * Rewrites a technique to include the supplied projections.
-     */
-    public static TechniqueConfig rewrite (TechniqueConfig technique, Projection[] projections)
-    {
-        technique = (TechniqueConfig)technique.clone();
-        CompoundEnqueuer nenqueuer = new CompoundEnqueuer();
-        nenqueuer.enqueuers = new Enqueuer[1 + projections.length];
-        nenqueuer.enqueuers[0] = technique.enqueuer;
-        technique.enqueuer = nenqueuer;
-        for (int ii = 0; ii < projections.length; ii++) {
-            Projection projection = projections[ii];
-            TechniqueConfig ptech = projection.getTechnique();
-            if (ptech.dependencies.length > 0) {
-                technique.dependencies = ArrayUtil.concatenate(
-                    technique.dependencies, ptech.dependencies);
-            }
-            nenqueuer.enqueuers[ii + 1] = ptech.enqueuer;
-        }
-        return technique;
+  /**
+   * Rewrites a technique to include the supplied projections.
+   */
+  public static TechniqueConfig rewrite (TechniqueConfig technique, Projection[] projections)
+  {
+    technique = (TechniqueConfig)technique.clone();
+    CompoundEnqueuer nenqueuer = new CompoundEnqueuer();
+    nenqueuer.enqueuers = new Enqueuer[1 + projections.length];
+    nenqueuer.enqueuers[0] = technique.enqueuer;
+    technique.enqueuer = nenqueuer;
+    for (int ii = 0; ii < projections.length; ii++) {
+      Projection projection = projections[ii];
+      TechniqueConfig ptech = projection.getTechnique();
+      if (ptech.dependencies.length > 0) {
+        technique.dependencies = ArrayUtil.concatenate(
+          technique.dependencies, ptech.dependencies);
+      }
+      nenqueuer.enqueuers[ii + 1] = ptech.enqueuer;
     }
+    return technique;
+  }
 
-    /**
-     * Creates a new projection.
-     *
-     * @param technique the material technique to use to render the projection.
-     */
-    public Projection (TechniqueConfig technique, ColorState colorState)
-    {
-        // wrap the enqueuer up to insert our scope
-        _technique = new TechniqueConfig();
-        _technique.dependencies = technique.dependencies;
-        _technique.enqueuer = new EnqueuerWrapper(technique.enqueuer) {
-            public Enqueueable createEnqueueable (
-                GlContext ctx, Scope scope, Geometry geometry, boolean update,
-                RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx) {
-                SimpleScope wscope = new SimpleScope(scope) {
-                    public <T> T get (String name, Class<T> clazz) {
-                        return ScopeUtil.get(Projection.this, name, clazz);
-                    }
-                };
-                return super.createEnqueueable(
-                    ctx, wscope, geometry, update, group, adders, pidx);
-            }
+  /**
+   * Creates a new projection.
+   *
+   * @param technique the material technique to use to render the projection.
+   */
+  public Projection (TechniqueConfig technique, ColorState colorState)
+  {
+    // wrap the enqueuer up to insert our scope
+    _technique = new TechniqueConfig();
+    _technique.dependencies = technique.dependencies;
+    _technique.enqueuer = new EnqueuerWrapper(technique.enqueuer) {
+      public Enqueueable createEnqueueable (
+        GlContext ctx, Scope scope, Geometry geometry, boolean update,
+        RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx) {
+        SimpleScope wscope = new SimpleScope(scope) {
+          public <T> T get (String name, Class<T> clazz) {
+            return ScopeUtil.get(Projection.this, name, clazz);
+          }
         };
-        _colorState = colorState;
-    }
+        return super.createEnqueueable(
+          ctx, wscope, geometry, update, group, adders, pidx);
+      }
+    };
+    _colorState = colorState;
+  }
 
-    /**
-     * Returns a reference to the technique to use to render this projection.
-     */
-    public TechniqueConfig getTechnique ()
-    {
-        return _technique;
-    }
+  /**
+   * Returns a reference to the technique to use to render this projection.
+   */
+  public TechniqueConfig getTechnique ()
+  {
+    return _technique;
+  }
 
-    /**
-     * Returns a reference to the s texture coordinate generation plane.
-     */
-    public Vector4f getGenPlaneS ()
-    {
-        return _genPlaneS;
-    }
+  /**
+   * Returns a reference to the s texture coordinate generation plane.
+   */
+  public Vector4f getGenPlaneS ()
+  {
+    return _genPlaneS;
+  }
 
-    /**
-     * Returns a reference to the t texture coordinate generation plane.
-     */
-    public Vector4f getGenPlaneT ()
-    {
-        return _genPlaneT;
-    }
+  /**
+   * Returns a reference to the t texture coordinate generation plane.
+   */
+  public Vector4f getGenPlaneT ()
+  {
+    return _genPlaneT;
+  }
 
-    /**
-     * Returns a reference to the r texture coordinate generation plane.
-     */
-    public Vector4f getGenPlaneR ()
-    {
-        return _genPlaneR;
-    }
+  /**
+   * Returns a reference to the r texture coordinate generation plane.
+   */
+  public Vector4f getGenPlaneR ()
+  {
+    return _genPlaneR;
+  }
 
-    /**
-     * Returns a reference to the q texture coordinate generation plane.
-     */
-    public Vector4f getGenPlaneQ ()
-    {
-        return _genPlaneQ;
-    }
+  /**
+   * Returns a reference to the q texture coordinate generation plane.
+   */
+  public Vector4f getGenPlaneQ ()
+  {
+    return _genPlaneQ;
+  }
 
-    /** The technique to use to render the projection. */
-    protected TechniqueConfig _technique;
+  /** The technique to use to render the projection. */
+  protected TechniqueConfig _technique;
 
-    /** The projection's color state. */
-    @Scoped
-    protected ColorState _colorState;
+  /** The projection's color state. */
+  @Scoped
+  protected ColorState _colorState;
 
-    /** The s texture coordinate generation plane. */
-    @Scoped
-    protected Vector4f _genPlaneS = new Vector4f(1f, 0f, 0f, 0f);
+  /** The s texture coordinate generation plane. */
+  @Scoped
+  protected Vector4f _genPlaneS = new Vector4f(1f, 0f, 0f, 0f);
 
-    /** The t texture coordinate generation plane. */
-    @Scoped
-    protected Vector4f _genPlaneT = new Vector4f(0f, 1f, 0f, 0f);
+  /** The t texture coordinate generation plane. */
+  @Scoped
+  protected Vector4f _genPlaneT = new Vector4f(0f, 1f, 0f, 0f);
 
-    /** The r texture coordinate generation plane. */
-    @Scoped
-    protected Vector4f _genPlaneR = new Vector4f(0f, 0f, 0f, 0f);
+  /** The r texture coordinate generation plane. */
+  @Scoped
+  protected Vector4f _genPlaneR = new Vector4f(0f, 0f, 0f, 0f);
 
-    /** The q texture coordinate generation plane. */
-    @Scoped
-    protected Vector4f _genPlaneQ = new Vector4f(0f, 0f, 0f, 0f);
+  /** The q texture coordinate generation plane. */
+  @Scoped
+  protected Vector4f _genPlaneQ = new Vector4f(0f, 0f, 0f, 0f);
 }

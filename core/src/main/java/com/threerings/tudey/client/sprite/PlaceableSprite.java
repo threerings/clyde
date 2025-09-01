@@ -53,532 +53,532 @@ import com.threerings.tudey.util.TudeyContext;
  * Represents a placeable entry.
  */
 public class PlaceableSprite extends EntrySprite
-    implements ConfigUpdateListener<PlaceableConfig>
+  implements ConfigUpdateListener<PlaceableConfig>
 {
+  /**
+   * The actual sprite implementation.
+   */
+  public static abstract class Implementation extends SimpleScope
+  {
     /**
-     * The actual sprite implementation.
+     * Creates a new implementation.
      */
-    public static abstract class Implementation extends SimpleScope
+    public Implementation (Scope parentScope)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Implementation (Scope parentScope)
-        {
-            super(parentScope);
-        }
-
-        /**
-         * Returns the model for this implementation, or <code>null</code> for none.
-         */
-        public Model getModel ()
-        {
-            return null;
-        }
-
-        /**
-         * Returns the sprite's floor flags.
-         */
-        public int getFloorFlags ()
-        {
-            return 0x0;
-        }
-
-        /**
-         * Determines whether the implementation is hoverable.
-         */
-        public boolean isHoverable ()
-        {
-            return false;
-        }
-
-        /**
-         * Determines whether the implementation is clickable.
-         */
-        public boolean isClickable ()
-        {
-            return false;
-        }
-
-        /**
-         * Returns the implementation's tooltip text, or <code>null</code> for none.
-         */
-        public String getTooltipText ()
-        {
-            return null;
-        }
-
-        /**
-         * Returns the implementation's tooltip timeout, or -1 to use the default.
-         */
-        public float getTooltipTimeout ()
-        {
-            return -1f;
-        }
-
-        /**
-         * Returns the implementation's tooltip window style.
-         */
-        public String getTooltipWindowStyle ()
-        {
-            return "Default/TooltipWindow";
-        }
-
-        /**
-         * Creates a tooltip component for the implementation (will only be called if
-         * {@link #getTooltipText} returns true).
-         */
-        public Component createTooltipComponent (String tiptext)
-        {
-            return null;
-        }
-
-        /**
-         * Dispatches an event on the implementation.
-         *
-         * @return true if the implementation handled the event, false if it should be handled
-         * elsewhere.
-         */
-        public boolean dispatchEvent (Event event)
-        {
-            return false;
-        }
-
-        /**
-         * Updates the implementation to match the entry state.
-         */
-        public void update (PlaceableEntry entry)
-        {
-            // nothing by default
-        }
-
-        @Override
-        public String getScopeName ()
-        {
-            return "impl";
-        }
+      super(parentScope);
     }
 
     /**
-     * Superclass of the original implementations.
+     * Returns the model for this implementation, or <code>null</code> for none.
      */
-    public static abstract class Original extends Implementation
+    public Model getModel ()
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Original (TudeyContext ctx, Scope parentScope)
-        {
-            super(parentScope);
-            _ctx = ctx;
-            _scene.add(_model = new Model(ctx));
-            _model.setUserObject(parentScope);
-        }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (PlaceableConfig.Original config)
-        {
-            _model.setConfig(getModelConfig(config));
-
-            // update the footprint
-            boolean selected = ((PlaceableSprite)_parentScope).isSelected();
-            if (selected && _footprint == null) {
-                _footprint = new ShapeConfigElement(_ctx);
-                _footprint.getColor().set(SELECTED_COLOR);
-                _footprint.setConfig(config.shape, true);
-                _scene.add(_footprint);
-            } else if (!selected && _footprint != null) {
-                _scene.remove(_footprint);
-                _footprint = null;
-            }
-        }
-
-        @Override
-        public Component createTooltipComponent (String tiptext)
-        {
-            return Component.createDefaultTooltipComponent(_ctx, tiptext);
-        }
-
-        @Override
-        public Model getModel ()
-        {
-            return _model;
-        }
-
-        @Override
-        public void update (PlaceableEntry entry)
-        {
-            _model.setLocalTransform(entry.transform);
-            if (_footprint != null) {
-                _footprint.setTransform(entry.transform);
-            }
-        }
-
-        @Override
-        public void dispose ()
-        {
-            super.dispose();
-            _scene.remove(_model);
-            if (_footprint != null) {
-                _scene.remove(_footprint);
-            }
-        }
-
-        /**
-         * Retrieves the model config reference from the configuration.
-         */
-        protected ConfigReference<ModelConfig> getModelConfig (PlaceableConfig.Original config)
-        {
-            return config.model;
-        }
-
-        /** The renderer context. */
-        protected TudeyContext _ctx;
-
-        /** The model. */
-        protected Model _model;
-
-        /** The footprint. */
-        protected ShapeConfigElement _footprint;
-
-        /** The scene to which we add our model/footprint. */
-        @Bound
-        protected Scene _scene;
+      return null;
     }
 
     /**
-     * A prop implementation.
+     * Returns the sprite's floor flags.
      */
-    public static class Prop extends Original
-    {
-        /**
-         * Creates a new prop implementation.
-         */
-        public Prop (TudeyContext ctx, Scope parentScope, PlaceableConfig.Prop config)
-        {
-            this(ctx, parentScope);
-            setConfig(config);
-        }
-
-        @Override
-        public void setConfig (PlaceableConfig.Original config)
-        {
-            super.setConfig(config);
-            _config = (PlaceableConfig.Prop)config;
-        }
-
-        @Override
-        public int getFloorFlags ()
-        {
-            return _config.floorFlags;
-        }
-
-        /**
-         * Creates a new prop implementation (for use by subclasses).
-         */
-        protected Prop (TudeyContext ctx, Scope parentScope)
-        {
-            super(ctx, parentScope);
-        }
-
-        /** The prop configuration. */
-        protected PlaceableConfig.Prop _config;
-    }
-
-    /**
-     * A prop that may be clicked to perform some action.
-     */
-    public static class ClickableProp extends Prop
-    {
-        /**
-         * Creates a new clickable prop implementation.
-         */
-        public ClickableProp (
-            TudeyContext ctx, Scope parentScope, PlaceableConfig.ClickableProp config)
-        {
-            super(ctx, parentScope, config);
-            _model.setColorState(_cstate);
-        }
-
-        @Override
-        public void setConfig (PlaceableConfig.Original config)
-        {
-            super.setConfig(config);
-            _config = (PlaceableConfig.ClickableProp)config;
-            if (_cstate == null) {
-                _cstate = new ColorState();
-            }
-            _defaultAnim = (_config.defaultAnimation == null) ?
-                null : _model.createAnimation(_config.defaultAnimation);
-            _hoverAnim = (_config.hoverAnimation == null) ?
-                null : _model.createAnimation(_config.hoverAnimation);
-            setHover(_hover);
-        }
-
-        @Override
-        public boolean isHoverable ()
-        {
-            return true;
-        }
-
-        @Override
-        public boolean isClickable ()
-        {
-            return true;
-        }
-
-        @Override
-        public boolean dispatchEvent (Event event)
-        {
-            if (!(event instanceof MouseEvent)) {
-                return false;
-            }
-            int type = ((MouseEvent)event).getType();
-            if (type == MouseEvent.MOUSE_ENTERED) {
-                setHover(true);
-            } else if (type == MouseEvent.MOUSE_EXITED) {
-                setHover(false);
-            } else if (type == MouseEvent.MOUSE_PRESSED) {
-                _config.action.execute(_ctx, _view, (PlaceableSprite)_parentScope);
-            } else {
-                return false;
-            }
-            return true;
-        }
-
-        /**
-         * Sets the hover state.
-         */
-        protected void setHover (boolean hover)
-        {
-            // update the color
-            _hover = hover;
-            _cstate.getColor().set(hover ? _config.hoverColor : _config.defaultColor);
-            _cstate.setDirty(true);
-
-            // update the animations
-            Animation active, inactive;
-            if (hover) {
-                active = _hoverAnim;
-                inactive = _defaultAnim;
-            } else {
-                active = _defaultAnim;
-                inactive = _hoverAnim;
-            }
-            if (inactive != null && inactive.isPlaying()) {
-                inactive.stop();
-            }
-            if (active != null && !active.isPlaying()) {
-                active.start();
-            }
-        }
-
-        /** The prop configuration. */
-        protected PlaceableConfig.ClickableProp _config;
-
-        /** The color state. */
-        protected ColorState _cstate;
-
-        /** The default and hover animations, if any. */
-        protected Animation _defaultAnim, _hoverAnim;
-
-        /** Whether or not the hover state is active. */
-        protected boolean _hover;
-
-        /** The containing view. */
-        @Bound
-        protected TudeySceneView _view;
-    }
-
-    /**
-     * A marker implementation.
-     */
-    public static class Marker extends Original
-    {
-        /**
-         * Creates a new marker implementation.
-         */
-        public Marker (TudeyContext ctx, Scope parentScope, PlaceableConfig.Original config)
-        {
-            super(ctx, parentScope);
-            setConfig(config);
-        }
-    }
-
-    /**
-     * Creates a new placeable sprite.
-     */
-    public PlaceableSprite (TudeyContext ctx, TudeySceneView view, PlaceableEntry entry)
-    {
-        super(ctx, view);
-        update(entry);
-    }
-
-    /**
-     * Returns a reference to the sprite implementation.
-     */
-    public Implementation getImplementation ()
-    {
-        return _impl;
-    }
-
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<PlaceableConfig> event)
-    {
-        updateFromConfig();
-        _impl.update(_entry);
-    }
-
-    @Override
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
-        _impl.update(_entry);
-    }
-
-    @Override
     public int getFloorFlags ()
     {
-        return _impl.getFloorFlags();
+      return 0x0;
     }
 
-    @Override
+    /**
+     * Determines whether the implementation is hoverable.
+     */
     public boolean isHoverable ()
     {
-        return _impl.isHoverable();
+      return false;
     }
 
-    @Override
+    /**
+     * Determines whether the implementation is clickable.
+     */
     public boolean isClickable ()
     {
-        return _impl.isClickable();
+      return false;
     }
 
-    @Override
+    /**
+     * Returns the implementation's tooltip text, or <code>null</code> for none.
+     */
     public String getTooltipText ()
     {
-        return _impl.getTooltipText();
+      return null;
     }
 
-    @Override
+    /**
+     * Returns the implementation's tooltip timeout, or -1 to use the default.
+     */
     public float getTooltipTimeout ()
     {
-        return _impl.getTooltipTimeout();
+      return -1f;
+    }
+
+    /**
+     * Returns the implementation's tooltip window style.
+     */
+    public String getTooltipWindowStyle ()
+    {
+      return "Default/TooltipWindow";
+    }
+
+    /**
+     * Creates a tooltip component for the implementation (will only be called if
+     * {@link #getTooltipText} returns true).
+     */
+    public Component createTooltipComponent (String tiptext)
+    {
+      return null;
+    }
+
+    /**
+     * Dispatches an event on the implementation.
+     *
+     * @return true if the implementation handled the event, false if it should be handled
+     * elsewhere.
+     */
+    public boolean dispatchEvent (Event event)
+    {
+      return false;
+    }
+
+    /**
+     * Updates the implementation to match the entry state.
+     */
+    public void update (PlaceableEntry entry)
+    {
+      // nothing by default
     }
 
     @Override
-    public String getTooltipWindowStyle ()
+    public String getScopeName ()
     {
-        return _impl.getTooltipWindowStyle();
+      return "impl";
+    }
+  }
+
+  /**
+   * Superclass of the original implementations.
+   */
+  public static abstract class Original extends Implementation
+  {
+    /**
+     * Creates a new implementation.
+     */
+    public Original (TudeyContext ctx, Scope parentScope)
+    {
+      super(parentScope);
+      _ctx = ctx;
+      _scene.add(_model = new Model(ctx));
+      _model.setUserObject(parentScope);
+    }
+
+    /**
+     * (Re)configures the implementation.
+     */
+    public void setConfig (PlaceableConfig.Original config)
+    {
+      _model.setConfig(getModelConfig(config));
+
+      // update the footprint
+      boolean selected = ((PlaceableSprite)_parentScope).isSelected();
+      if (selected && _footprint == null) {
+        _footprint = new ShapeConfigElement(_ctx);
+        _footprint.getColor().set(SELECTED_COLOR);
+        _footprint.setConfig(config.shape, true);
+        _scene.add(_footprint);
+      } else if (!selected && _footprint != null) {
+        _scene.remove(_footprint);
+        _footprint = null;
+      }
     }
 
     @Override
     public Component createTooltipComponent (String tiptext)
     {
-        return _impl.createTooltipComponent(tiptext);
-    }
-
-    @Override
-    public boolean dispatchEvent (Event event)
-    {
-        return _impl.dispatchEvent(event);
-    }
-
-    @Override
-    public Entry getEntry ()
-    {
-        return _entry;
-    }
-
-    @Override
-    public void update (Entry entry)
-    {
-        setConfig((_entry = (PlaceableEntry)entry).placeable);
-        _impl.update(_entry);
+      return Component.createDefaultTooltipComponent(_ctx, tiptext);
     }
 
     @Override
     public Model getModel ()
     {
-        return _impl.getModel();
+      return _model;
     }
 
     @Override
-    public void setSelected (boolean selected)
+    public void update (PlaceableEntry entry)
     {
-        super.setSelected(selected);
-        updateFromConfig();
-        _impl.update(_entry);
+      _model.setLocalTransform(entry.transform);
+      if (_footprint != null) {
+        _footprint.setTransform(entry.transform);
+      }
     }
 
     @Override
     public void dispose ()
     {
-        super.dispose();
-        _impl.dispose();
-        if (_config != null) {
-            _config.removeListener(this);
-        }
+      super.dispose();
+      _scene.remove(_model);
+      if (_footprint != null) {
+        _scene.remove(_footprint);
+      }
     }
 
     /**
-     * Sets the configuration of this placeable.
+     * Retrieves the model config reference from the configuration.
      */
-    protected void setConfig (ConfigReference<PlaceableConfig> ref)
+    protected ConfigReference<ModelConfig> getModelConfig (PlaceableConfig.Original config)
     {
-        setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+      return config.model;
+    }
+
+    /** The renderer context. */
+    protected TudeyContext _ctx;
+
+    /** The model. */
+    protected Model _model;
+
+    /** The footprint. */
+    protected ShapeConfigElement _footprint;
+
+    /** The scene to which we add our model/footprint. */
+    @Bound
+    protected Scene _scene;
+  }
+
+  /**
+   * A prop implementation.
+   */
+  public static class Prop extends Original
+  {
+    /**
+     * Creates a new prop implementation.
+     */
+    public Prop (TudeyContext ctx, Scope parentScope, PlaceableConfig.Prop config)
+    {
+      this(ctx, parentScope);
+      setConfig(config);
+    }
+
+    @Override
+    public void setConfig (PlaceableConfig.Original config)
+    {
+      super.setConfig(config);
+      _config = (PlaceableConfig.Prop)config;
+    }
+
+    @Override
+    public int getFloorFlags ()
+    {
+      return _config.floorFlags;
     }
 
     /**
-     * Sets the configuration of this placeable.
+     * Creates a new prop implementation (for use by subclasses).
      */
-    protected void setConfig (PlaceableConfig config)
+    protected Prop (TudeyContext ctx, Scope parentScope)
     {
-        if (_config == config) {
-            return;
-        }
-        if (_config != null) {
-            _config.removeListener(this);
-        }
-        if ((_config = config) != null) {
-            _config.addListener(this);
-        }
-        updateFromConfig();
+      super(ctx, parentScope);
+    }
+
+    /** The prop configuration. */
+    protected PlaceableConfig.Prop _config;
+  }
+
+  /**
+   * A prop that may be clicked to perform some action.
+   */
+  public static class ClickableProp extends Prop
+  {
+    /**
+     * Creates a new clickable prop implementation.
+     */
+    public ClickableProp (
+      TudeyContext ctx, Scope parentScope, PlaceableConfig.ClickableProp config)
+    {
+      super(ctx, parentScope, config);
+      _model.setColorState(_cstate);
+    }
+
+    @Override
+    public void setConfig (PlaceableConfig.Original config)
+    {
+      super.setConfig(config);
+      _config = (PlaceableConfig.ClickableProp)config;
+      if (_cstate == null) {
+        _cstate = new ColorState();
+      }
+      _defaultAnim = (_config.defaultAnimation == null) ?
+        null : _model.createAnimation(_config.defaultAnimation);
+      _hoverAnim = (_config.hoverAnimation == null) ?
+        null : _model.createAnimation(_config.hoverAnimation);
+      setHover(_hover);
+    }
+
+    @Override
+    public boolean isHoverable ()
+    {
+      return true;
+    }
+
+    @Override
+    public boolean isClickable ()
+    {
+      return true;
+    }
+
+    @Override
+    public boolean dispatchEvent (Event event)
+    {
+      if (!(event instanceof MouseEvent)) {
+        return false;
+      }
+      int type = ((MouseEvent)event).getType();
+      if (type == MouseEvent.MOUSE_ENTERED) {
+        setHover(true);
+      } else if (type == MouseEvent.MOUSE_EXITED) {
+        setHover(false);
+      } else if (type == MouseEvent.MOUSE_PRESSED) {
+        _config.action.execute(_ctx, _view, (PlaceableSprite)_parentScope);
+      } else {
+        return false;
+      }
+      return true;
     }
 
     /**
-     * Updates the placeable to match its new or modified configuration.
+     * Sets the hover state.
      */
-    protected void updateFromConfig ()
+    protected void setHover (boolean hover)
     {
-        Implementation nimpl = (_config == null)
-                ? PlaceableConfig.NULL_ORIGINAL.getSpriteImplementation(_ctx, this, _impl)
-                : _config.getSpriteImplementation(_ctx, this, _impl);
-        if (nimpl == null) {
-            nimpl = NULL_IMPLEMENTATION;
-        }
-        if (_impl != nimpl) {
-            _impl.dispose();
-            _impl = nimpl;
-        }
+      // update the color
+      _hover = hover;
+      _cstate.getColor().set(hover ? _config.hoverColor : _config.defaultColor);
+      _cstate.setDirty(true);
+
+      // update the animations
+      Animation active, inactive;
+      if (hover) {
+        active = _hoverAnim;
+        inactive = _defaultAnim;
+      } else {
+        active = _defaultAnim;
+        inactive = _hoverAnim;
+      }
+      if (inactive != null && inactive.isPlaying()) {
+        inactive.stop();
+      }
+      if (active != null && !active.isPlaying()) {
+        active.start();
+      }
     }
 
-    /** The scene entry. */
-    protected PlaceableEntry _entry;
+    /** The prop configuration. */
+    protected PlaceableConfig.ClickableProp _config;
 
-    /** The placeable configuration. */
-    protected PlaceableConfig _config = INVALID_CONFIG;
+    /** The color state. */
+    protected ColorState _cstate;
 
-    /** The placeable implementation. */
-    protected Implementation _impl = NULL_IMPLEMENTATION;
+    /** The default and hover animations, if any. */
+    protected Animation _defaultAnim, _hoverAnim;
 
-    /** An invalid config used to force an initial update. */
-    protected static PlaceableConfig INVALID_CONFIG = new PlaceableConfig();
+    /** Whether or not the hover state is active. */
+    protected boolean _hover;
 
-    /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
-    };
+    /** The containing view. */
+    @Bound
+    protected TudeySceneView _view;
+  }
+
+  /**
+   * A marker implementation.
+   */
+  public static class Marker extends Original
+  {
+    /**
+     * Creates a new marker implementation.
+     */
+    public Marker (TudeyContext ctx, Scope parentScope, PlaceableConfig.Original config)
+    {
+      super(ctx, parentScope);
+      setConfig(config);
+    }
+  }
+
+  /**
+   * Creates a new placeable sprite.
+   */
+  public PlaceableSprite (TudeyContext ctx, TudeySceneView view, PlaceableEntry entry)
+  {
+    super(ctx, view);
+    update(entry);
+  }
+
+  /**
+   * Returns a reference to the sprite implementation.
+   */
+  public Implementation getImplementation ()
+  {
+    return _impl;
+  }
+
+  // documentation inherited from interface ConfigUpdateListener
+  public void configUpdated (ConfigEvent<PlaceableConfig> event)
+  {
+    updateFromConfig();
+    _impl.update(_entry);
+  }
+
+  @Override
+  public void scopeUpdated (ScopeEvent event)
+  {
+    super.scopeUpdated(event);
+    updateFromConfig();
+    _impl.update(_entry);
+  }
+
+  @Override
+  public int getFloorFlags ()
+  {
+    return _impl.getFloorFlags();
+  }
+
+  @Override
+  public boolean isHoverable ()
+  {
+    return _impl.isHoverable();
+  }
+
+  @Override
+  public boolean isClickable ()
+  {
+    return _impl.isClickable();
+  }
+
+  @Override
+  public String getTooltipText ()
+  {
+    return _impl.getTooltipText();
+  }
+
+  @Override
+  public float getTooltipTimeout ()
+  {
+    return _impl.getTooltipTimeout();
+  }
+
+  @Override
+  public String getTooltipWindowStyle ()
+  {
+    return _impl.getTooltipWindowStyle();
+  }
+
+  @Override
+  public Component createTooltipComponent (String tiptext)
+  {
+    return _impl.createTooltipComponent(tiptext);
+  }
+
+  @Override
+  public boolean dispatchEvent (Event event)
+  {
+    return _impl.dispatchEvent(event);
+  }
+
+  @Override
+  public Entry getEntry ()
+  {
+    return _entry;
+  }
+
+  @Override
+  public void update (Entry entry)
+  {
+    setConfig((_entry = (PlaceableEntry)entry).placeable);
+    _impl.update(_entry);
+  }
+
+  @Override
+  public Model getModel ()
+  {
+    return _impl.getModel();
+  }
+
+  @Override
+  public void setSelected (boolean selected)
+  {
+    super.setSelected(selected);
+    updateFromConfig();
+    _impl.update(_entry);
+  }
+
+  @Override
+  public void dispose ()
+  {
+    super.dispose();
+    _impl.dispose();
+    if (_config != null) {
+      _config.removeListener(this);
+    }
+  }
+
+  /**
+   * Sets the configuration of this placeable.
+   */
+  protected void setConfig (ConfigReference<PlaceableConfig> ref)
+  {
+    setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+  }
+
+  /**
+   * Sets the configuration of this placeable.
+   */
+  protected void setConfig (PlaceableConfig config)
+  {
+    if (_config == config) {
+      return;
+    }
+    if (_config != null) {
+      _config.removeListener(this);
+    }
+    if ((_config = config) != null) {
+      _config.addListener(this);
+    }
+    updateFromConfig();
+  }
+
+  /**
+   * Updates the placeable to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    Implementation nimpl = (_config == null)
+        ? PlaceableConfig.NULL_ORIGINAL.getSpriteImplementation(_ctx, this, _impl)
+        : _config.getSpriteImplementation(_ctx, this, _impl);
+    if (nimpl == null) {
+      nimpl = NULL_IMPLEMENTATION;
+    }
+    if (_impl != nimpl) {
+      _impl.dispose();
+      _impl = nimpl;
+    }
+  }
+
+  /** The scene entry. */
+  protected PlaceableEntry _entry;
+
+  /** The placeable configuration. */
+  protected PlaceableConfig _config = INVALID_CONFIG;
+
+  /** The placeable implementation. */
+  protected Implementation _impl = NULL_IMPLEMENTATION;
+
+  /** An invalid config used to force an initial update. */
+  protected static PlaceableConfig INVALID_CONFIG = new PlaceableConfig();
+
+  /** An implementation that does nothing. */
+  protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+  };
 }

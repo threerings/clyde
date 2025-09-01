@@ -37,77 +37,77 @@ import com.threerings.tudey.shape.Shape;
  */
 public class PawnAdvancer extends ActiveAdvancer
 {
-    /**
-     * Creates a new advancer for the supplied pawn.
-     */
-    public PawnAdvancer (Environment environment, Pawn pawn, int timestamp)
-    {
-        super(environment, pawn, timestamp);
+  /**
+   * Creates a new advancer for the supplied pawn.
+   */
+  public PawnAdvancer (Environment environment, Pawn pawn, int timestamp)
+  {
+    super(environment, pawn, timestamp);
+  }
+
+  /**
+   * Advances to the timestamp of the provided input frame and sets the pawn's current input.
+   */
+  public void advance (InputFrame frame)
+  {
+    // save the input frame and advance
+    _frame = frame;
+    advance(frame.getTimestamp());
+  }
+
+  @Override
+  public void init (Actor actor, int timestamp)
+  {
+    super.init(actor, timestamp);
+    _pawn = (Pawn)actor;
+    _frame = null;
+  }
+
+  @Override
+  protected void step (float elapsed)
+  {
+    super.step(elapsed);
+
+    // update based on most recent input
+    if (_frame != null) {
+      updateInput();
     }
+  }
 
-    /**
-     * Advances to the timestamp of the provided input frame and sets the pawn's current input.
-     */
-    public void advance (InputFrame frame)
-    {
-        // save the input frame and advance
-        _frame = frame;
-        advance(frame.getTimestamp());
+  /**
+   * Updates the pawn's state based on the current input frame.
+   */
+  protected void updateInput ()
+  {
+    Activity activity = getActivity();
+    if (activity != null) {
+      activity.updateInput();
     }
-
-    @Override
-    public void init (Actor actor, int timestamp)
-    {
-        super.init(actor, timestamp);
-        _pawn = (Pawn)actor;
-        _frame = null;
+    if (canRotate()) {
+      updateRotation();
     }
-
-    @Override
-    protected void step (float elapsed)
-    {
-        super.step(elapsed);
-
-        // update based on most recent input
-        if (_frame != null) {
-            updateInput();
-        }
+    if (_frame.isSet(InputFrame.MOVE) && canMove()) {
+      _pawn.setDirection(_frame.getDirection());
+      _pawn.set(Mobile.MOVING);
+    } else {
+      _pawn.clear(Mobile.MOVING);
     }
+  }
 
-    /**
-     * Updates the pawn's state based on the current input frame.
-     */
-    protected void updateInput ()
-    {
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.updateInput();
-        }
-        if (canRotate()) {
-            updateRotation();
-        }
-        if (_frame.isSet(InputFrame.MOVE) && canMove()) {
-            _pawn.setDirection(_frame.getDirection());
-            _pawn.set(Mobile.MOVING);
-        } else {
-            _pawn.clear(Mobile.MOVING);
-        }
-    }
+  /**
+   * Called to update a pawns rotation based on input.
+   */
+  protected void updateRotation ()
+  {
+    _pawn.setRotation(_frame.getRotation());
+  }
 
-    /**
-     * Called to update a pawns rotation based on input.
-     */
-    protected void updateRotation ()
-    {
-        _pawn.setRotation(_frame.getRotation());
-    }
+  /** A casted reference to the pawn. */
+  protected Pawn _pawn;
 
-    /** A casted reference to the pawn. */
-    protected Pawn _pawn;
+  /** The most current input frame. */
+  protected InputFrame _frame;
 
-    /** The most current input frame. */
-    protected InputFrame _frame;
-
-    /** Holds the actor's swept shape. */
-    protected Shape _swept;
+  /** Holds the actor's swept shape. */
+  protected Shape _swept;
 }

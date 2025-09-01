@@ -37,35 +37,35 @@ import com.threerings.tudey.util.TudeyContext;
  * Base class for cursors (representations used when placing objects).
  */
 public abstract class Cursor extends SimpleScope
-    implements Tickable, Compositable
+  implements Tickable, Compositable
 {
-    /**
-     * Creates the cursor.
-     */
-    public Cursor (TudeyContext ctx, TudeySceneView view)
-    {
-        super(view);
-        _ctx = ctx;
-    }
+  /**
+   * Creates the cursor.
+   */
+  public Cursor (TudeyContext ctx, TudeySceneView view)
+  {
+    super(view);
+    _ctx = ctx;
+  }
 
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-        // nothing by default
-    }
+  // documentation inherited from interface Tickable
+  public void tick (float elapsed)
+  {
+    // nothing by default
+  }
 
-    // documentation inherited from interface Compositable
-    public void composite ()
-    {
-        // nothing by default
-    }
+  // documentation inherited from interface Compositable
+  public void composite ()
+  {
+    // nothing by default
+  }
 
-    @Override
-    public String getScopeName ()
-    {
-        return "cursor";
-    }
+  @Override
+  public String getScopeName ()
+  {
+    return "cursor";
+  }
 
-    /** The application context. */
-    protected TudeyContext _ctx;
+  /** The application context. */
+  protected TudeyContext _ctx;
 }

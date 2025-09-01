@@ -44,45 +44,45 @@ import com.threerings.whirled.zone.server.ZoneRegistry;
 @Singleton
 public class TudeyZoneRegistry extends ZoneRegistry
 {
-    /**
-     * Creates a new zone registry.
-     */
-    @Inject public TudeyZoneRegistry (InvocationManager invmgr)
-    {
-        super(invmgr);
-    }
+  /**
+   * Creates a new zone registry.
+   */
+  @Inject public TudeyZoneRegistry (InvocationManager invmgr)
+  {
+    super(invmgr);
+  }
 
-    /**
-     * Forcibly moves a player to a new zoned scene.
-     *
-     * @param portalKey the key of the destination portal.
-     */
-    public String moveBody (ZonedBodyObject source, int zoneId, int sceneId, Object portalKey)
-    {
-        _tscreg.addPortalMapping((BodyObject)source, sceneId, portalKey);
-        return moveBody(source, zoneId, sceneId);
-    }
+  /**
+   * Forcibly moves a player to a new zoned scene.
+   *
+   * @param portalKey the key of the destination portal.
+   */
+  public String moveBody (ZonedBodyObject source, int zoneId, int sceneId, Object portalKey)
+  {
+    _tscreg.addPortalMapping((BodyObject)source, sceneId, portalKey);
+    return moveBody(source, zoneId, sceneId);
+  }
 
-    @Override
-    protected ZoneMoveHandler createZoneMoveHandler (
-        ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
-        ZoneService.ZoneMoveListener listener)
-    {
-        Object portalKey = _tscreg.removePortalMapping(body, sceneId);
-        return createZoneMoveHandler(zmgr, body, sceneId, sceneVer, portalKey, listener);
-    }
+  @Override
+  protected ZoneMoveHandler createZoneMoveHandler (
+    ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
+    ZoneService.ZoneMoveListener listener)
+  {
+    Object portalKey = _tscreg.removePortalMapping(body, sceneId);
+    return createZoneMoveHandler(zmgr, body, sceneId, sceneVer, portalKey, listener);
+  }
 
-    /**
-     * Creates a zone move handler with a portal key.
-     */
-    protected ZoneMoveHandler createZoneMoveHandler (
-        ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
-        Object portalKey, ZoneService.ZoneMoveListener listener)
-    {
-        return new TudeyZoneMoveHandler(
-            _locman, zmgr, _screg, body, sceneId, sceneVer, portalKey, listener);
-    }
+  /**
+   * Creates a zone move handler with a portal key.
+   */
+  protected ZoneMoveHandler createZoneMoveHandler (
+    ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
+    Object portalKey, ZoneService.ZoneMoveListener listener)
+  {
+    return new TudeyZoneMoveHandler(
+      _locman, zmgr, _screg, body, sceneId, sceneVer, portalKey, listener);
+  }
 
-    /** The Tudey scene registry. */
-    @Inject protected TudeySceneRegistry _tscreg;
+  /** The Tudey scene registry. */
+  @Inject protected TudeySceneRegistry _tscreg;
 }

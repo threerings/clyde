@@ -50,98 +50,98 @@ import com.threerings.opengl.util.GlContext;
  */
 public class StaticConfig extends ModelConfig.Imported
 {
-    /**
-     * Contains the resolved derived config bits.
-     */
-    public static class Resolved
+  /**
+   * Contains the resolved derived config bits.
+   */
+  public static class Resolved
+  {
+    /** The merged bounds. */
+    public final Box bounds;
+
+    /** The merged collision mesh. */
+    public final CollisionMesh collision;
+
+    /** The merged geometry/material pairs. */
+    public final GeometryMaterial[] gmats;
+
+    /** The merged influence flags. */
+    public final int influenceFlags;
+
+    public Resolved (
+      Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
     {
-        /** The merged bounds. */
-        public final Box bounds;
-
-        /** The merged collision mesh. */
-        public final CollisionMesh collision;
-
-        /** The merged geometry/material pairs. */
-        public final GeometryMaterial[] gmats;
-
-        /** The merged influence flags. */
-        public final int influenceFlags;
-
-        public Resolved (
-            Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
-        {
-            this.bounds = bounds;
-            this.collision = collision;
-            this.gmats = gmats;
-            this.influenceFlags = influenceFlags;
-        }
+      this.bounds = bounds;
+      this.collision = collision;
+      this.gmats = gmats;
+      this.influenceFlags = influenceFlags;
     }
+  }
 
-    /** The meshes comprising this model. */
-    @Shallow
-    public MeshSet meshes;
+  /** The meshes comprising this model. */
+  @Shallow
+  public MeshSet meshes;
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (meshes == null) {
-            return null;
-        }
-        Resolved resolved = (_resolved == null) ? null : _resolved.get();
-        if (resolved == null) {
-            _resolved = new SoftReference<Resolved>(resolved = new Resolved(
-                meshes.bounds, meshes.collision,
-                getGeometryMaterials(ctx, meshes.visible, materialMappings),
-                influences.getFlags()));
-        }
-        if (impl instanceof Static) {
-            ((Static)impl).setConfig(ctx, resolved);
-        } else {
-            impl = new Static(ctx, scope, resolved);
-        }
-        return impl;
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (meshes == null) {
+      return null;
     }
-
-    @Override
-    public void invalidate ()
-    {
-        _resolved = null;
+    Resolved resolved = (_resolved == null) ? null : _resolved.get();
+    if (resolved == null) {
+      _resolved = new SoftReference<Resolved>(resolved = new Resolved(
+        meshes.bounds, meshes.collision,
+        getGeometryMaterials(ctx, meshes.visible, materialMappings),
+        influences.getFlags()));
     }
-
-    @Override
-    protected VisibleMesh getParticleMesh ()
-    {
-        return (meshes == null || meshes.visible.length == 0) ? null : meshes.visible[0];
+    if (impl instanceof Static) {
+      ((Static)impl).setConfig(ctx, resolved);
+    } else {
+      impl = new Static(ctx, scope, resolved);
     }
+    return impl;
+  }
 
-    @Override
-    protected void updateFromSource (ModelDef def)
-    {
-        if (def == null) {
-            meshes = null;
-        } else {
-            def.update(this);
-        }
+  @Override
+  public void invalidate ()
+  {
+    _resolved = null;
+  }
+
+  @Override
+  protected VisibleMesh getParticleMesh ()
+  {
+    return (meshes == null || meshes.visible.length == 0) ? null : meshes.visible[0];
+  }
+
+  @Override
+  protected void updateFromSource (ModelDef def)
+  {
+    if (def == null) {
+      meshes = null;
+    } else {
+      def.update(this);
     }
+  }
 
-    @Override
-    protected void getTextures (TreeSet<String> textures)
-    {
-        if (meshes != null) {
-            meshes.getTextures(textures);
-        }
+  @Override
+  protected void getTextures (TreeSet<String> textures)
+  {
+    if (meshes != null) {
+      meshes.getTextures(textures);
     }
+  }
 
-    @Override
-    protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
-    {
-        if (meshes != null) {
-            meshes.getTextureTagPairs(pairs);
-        }
+  @Override
+  protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+  {
+    if (meshes != null) {
+      meshes.getTextureTagPairs(pairs);
     }
+  }
 
-    /** The cached resolved config bits. */
-    @DeepOmit
-    protected transient SoftReference<Resolved> _resolved;
+  /** The cached resolved config bits. */
+  @DeepOmit
+  protected transient SoftReference<Resolved> _resolved;
 }

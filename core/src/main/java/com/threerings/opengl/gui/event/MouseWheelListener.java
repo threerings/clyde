@@ -30,9 +30,9 @@ package com.threerings.opengl.gui.event;
  */
 public interface MouseWheelListener extends ComponentListener
 {
-    /**
-     * Dispatched when the mouse wheel is rotated within the bounds of the
-     * target component.
-     */
-    public void mouseWheeled (MouseEvent event);
+  /**
+   * Dispatched when the mouse wheel is rotated within the bounds of the
+   * target component.
+   */
+  public void mouseWheeled (MouseEvent event);
 }

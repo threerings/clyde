@@ -34,52 +34,52 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class RotatedIcon extends Icon
 {
-    /**
-     * Creates a new rotated icon.
-     *
-     * @param rotation the rotation amount in degrees.
-     */
-    public RotatedIcon (Icon icon, float rotation)
-    {
-        _icon = icon;
-        _rotation = rotation;
+  /**
+   * Creates a new rotated icon.
+   *
+   * @param rotation the rotation amount in degrees.
+   */
+  public RotatedIcon (Icon icon, float rotation)
+  {
+    _icon = icon;
+    _rotation = rotation;
+  }
+
+  /**
+   * Returns the width of this icon.
+   */
+  public int getWidth ()
+  {
+    return _icon.getWidth();
+  }
+
+  /**
+   * Returns the height of this icon.
+   */
+  public int getHeight ()
+  {
+    return _icon.getHeight();
+  }
+
+  /**
+   * Renders this icon.
+   */
+  public void render (Renderer renderer, int x, int y, float alpha)
+  {
+    int hwidth = _icon.getWidth()/2, hheight = _icon.getHeight()/2;
+    GL11.glPushMatrix();
+    GL11.glTranslatef(x + hwidth, y + hheight, 0f);
+    GL11.glRotatef(_rotation, 0f, 0f, 1f);
+    try {
+      _icon.render(renderer, -hwidth, -hheight, alpha);
+    } finally {
+      GL11.glPopMatrix();
     }
+  }
 
-    /**
-     * Returns the width of this icon.
-     */
-    public int getWidth ()
-    {
-        return _icon.getWidth();
-    }
+  /** The sub-icon to rotate. */
+  protected Icon _icon;
 
-    /**
-     * Returns the height of this icon.
-     */
-    public int getHeight ()
-    {
-        return _icon.getHeight();
-    }
-
-    /**
-     * Renders this icon.
-     */
-    public void render (Renderer renderer, int x, int y, float alpha)
-    {
-        int hwidth = _icon.getWidth()/2, hheight = _icon.getHeight()/2;
-        GL11.glPushMatrix();
-        GL11.glTranslatef(x + hwidth, y + hheight, 0f);
-        GL11.glRotatef(_rotation, 0f, 0f, 1f);
-        try {
-            _icon.render(renderer, -hwidth, -hheight, alpha);
-        } finally {
-            GL11.glPopMatrix();
-        }
-    }
-
-    /** The sub-icon to rotate. */
-    protected Icon _icon;
-
-    /** The rotation amount in degrees. */
-    protected float _rotation;
+  /** The rotation amount in degrees. */
+  protected float _rotation;
 }

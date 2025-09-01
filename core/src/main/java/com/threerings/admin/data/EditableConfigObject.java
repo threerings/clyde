@@ -40,13 +40,13 @@ import com.threerings.admin.client.EditableFieldEditor;
  */
 public class EditableConfigObject extends ConfigObject
 {
-    @Override
-    public JPanel getEditor (PresentsContext ctx, Field field)
-    {
-        if (field.isAnnotationPresent(Editable.class)) {
-            return new EditableFieldEditor(ctx, field, this);
-        } else {
-            return super.getEditor(ctx, field);
-        }
+  @Override
+  public JPanel getEditor (PresentsContext ctx, Field field)
+  {
+    if (field.isAnnotationPresent(Editable.class)) {
+      return new EditableFieldEditor(ctx, field, this);
+    } else {
+      return super.getEditor(ctx, field);
     }
+  }
 }

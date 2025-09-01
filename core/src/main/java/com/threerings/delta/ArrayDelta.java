@@ -46,205 +46,205 @@ import com.threerings.io.Streamer;
  */
 public class ArrayDelta extends Delta
 {
-    /**
-     * Creates a new array delta that transforms the original object into the revised object
-     * (both of which must be instances of the same class).
-     */
-    public ArrayDelta (Object original, Object revised)
-    {
-        // compare the elements
-        _clazz = original.getClass();
-        _length = Array.getLength(revised);
-        _mask = new BareArrayMask(_length);
-        List<Object> values = Lists.newArrayList();
-        int olen = Array.getLength(original);
-        Object defvalue = Array.get(Array.newInstance(_clazz.getComponentType(), 1), 0);
-        Object[] oarray = new Object[1], narray = new Object[1];
-        for (int ii = 0; ii < _length; ii++) {
-            Object ovalue = oarray[0] = (ii < olen) ? Array.get(original, ii) : defvalue;
-            Object nvalue = narray[0] = Array.get(revised, ii);
-            if (Arrays.deepEquals(oarray, narray)) {
-                continue; // no change
-            }
-            if (Delta.checkDeltable(ovalue, nvalue)) {
-                nvalue = Delta.createDelta(ovalue, nvalue);
-            }
-            _mask.set(ii);
-            values.add(nvalue);
-        }
-        _values = values.toArray();
+  /**
+   * Creates a new array delta that transforms the original object into the revised object
+   * (both of which must be instances of the same class).
+   */
+  public ArrayDelta (Object original, Object revised)
+  {
+    // compare the elements
+    _clazz = original.getClass();
+    _length = Array.getLength(revised);
+    _mask = new BareArrayMask(_length);
+    List<Object> values = Lists.newArrayList();
+    int olen = Array.getLength(original);
+    Object defvalue = Array.get(Array.newInstance(_clazz.getComponentType(), 1), 0);
+    Object[] oarray = new Object[1], narray = new Object[1];
+    for (int ii = 0; ii < _length; ii++) {
+      Object ovalue = oarray[0] = (ii < olen) ? Array.get(original, ii) : defvalue;
+      Object nvalue = narray[0] = Array.get(revised, ii);
+      if (Arrays.deepEquals(oarray, narray)) {
+        continue; // no change
+      }
+      if (Delta.checkDeltable(ovalue, nvalue)) {
+        nvalue = Delta.createDelta(ovalue, nvalue);
+      }
+      _mask.set(ii);
+      values.add(nvalue);
+    }
+    _values = values.toArray();
+  }
+
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public ArrayDelta ()
+  {
+  }
+
+  /**
+   * Custom write method.
+   */
+  public void writeObject (ObjectOutputStream out)
+    throws IOException
+  {
+    // write the class reference
+    _classStreamer.writeObject(_clazz, out, true);
+
+    // write the array length
+    out.writeInt(_length);
+
+    // write the bitmask indicating which fields are changed
+    _mask.writeTo(out);
+
+    // write the changed elements
+    boolean primitive = _clazz.getComponentType().isPrimitive();
+    for (int ii = 0, idx = 0; ii < _length; ii++) {
+      if (!_mask.isSet(ii)) {
+        continue;
+      }
+      Object value = _values[idx++];
+      if (primitive) {
+        out.writeBareObject(value);
+      } else {
+        out.writeObject(value);
+      }
+    }
+  }
+
+  /**
+   * Custom read method.
+   */
+  public void readObject (ObjectInputStream in)
+    throws IOException, ClassNotFoundException
+  {
+    // read the class reference
+    _clazz = (Class<?>)_classStreamer.createObject(in);
+
+    // read the length
+    _length = in.readInt();
+
+    // read the bitmask
+    _mask = new BareArrayMask(_length);
+    _mask.readFrom(in);
+
+    // read the changed elements
+    Class<?> ctype = _clazz.getComponentType();
+    Streamer streamer = ctype.isPrimitive()
+      ? Streamer.getStreamer(Primitives.wrap(ctype))
+      : null;
+    List<Object> values = Lists.newArrayList();
+    for (int ii = 0; ii < _length; ii++) {
+      if (!_mask.isSet(ii)) {
+        continue;
+      }
+      if (streamer != null) {
+        values.add(streamer.createObject(in));
+      } else {
+        values.add(in.readObject());
+      }
+    }
+    _values = values.toArray();
+  }
+
+  @Override
+  public Object apply (Object original)
+  {
+    // make sure it's the right class
+    if (original.getClass() != _clazz) {
+      throw new IllegalArgumentException("Delta class mismatch: original is " +
+        original.getClass() + ", expected " + _clazz);
     }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public ArrayDelta ()
-    {
+    // create the new instance
+    Object revised = Array.newInstance(_clazz.getComponentType(), _length);
+
+    // set the entries
+    int olen = Array.getLength(original);
+    for (int ii = 0, idx = 0; ii < _length; ii++) {
+      Object value;
+      if (_mask.isSet(ii)) {
+        value = _values[idx++];
+        if (value instanceof Delta) {
+          value = ((Delta)value).apply(Array.get(original, ii));
+        }
+      } else {
+        if (ii < olen) {
+          value = Array.get(original, ii);
+        } else {
+          continue; // leave the entry at the default
+        }
+      }
+      Array.set(revised, ii, value);
     }
+    return revised;
+  }
 
-    /**
-     * Custom write method.
-     */
-    public void writeObject (ObjectOutputStream out)
-        throws IOException
-    {
-        // write the class reference
-        _classStreamer.writeObject(_clazz, out, true);
-
-        // write the array length
-        out.writeInt(_length);
-
-        // write the bitmask indicating which fields are changed
-        _mask.writeTo(out);
-
-        // write the changed elements
-        boolean primitive = _clazz.getComponentType().isPrimitive();
-        for (int ii = 0, idx = 0; ii < _length; ii++) {
-            if (!_mask.isSet(ii)) {
-                continue;
-            }
-            Object value = _values[idx++];
-            if (primitive) {
-                out.writeBareObject(value);
-            } else {
-                out.writeObject(value);
-            }
-        }
+  @Override
+  public Delta merge (Delta other)
+  {
+    ArrayDelta aother;
+    if (!(other instanceof ArrayDelta && (aother = (ArrayDelta)other)._clazz == _clazz)) {
+      throw new IllegalArgumentException("Cannot merge delta " + other);
     }
-
-    /**
-     * Custom read method.
-     */
-    public void readObject (ObjectInputStream in)
-        throws IOException, ClassNotFoundException
-    {
-        // read the class reference
-        _clazz = (Class<?>)_classStreamer.createObject(in);
-
-        // read the length
-        _length = in.readInt();
-
-        // read the bitmask
-        _mask = new BareArrayMask(_length);
-        _mask.readFrom(in);
-
-        // read the changed elements
-        Class<?> ctype = _clazz.getComponentType();
-        Streamer streamer = ctype.isPrimitive()
-            ? Streamer.getStreamer(Primitives.wrap(ctype))
-            : null;
-        List<Object> values = Lists.newArrayList();
-        for (int ii = 0; ii < _length; ii++) {
-            if (!_mask.isSet(ii)) {
-                continue;
-            }
-            if (streamer != null) {
-                values.add(streamer.createObject(in));
-            } else {
-                values.add(in.readObject());
-            }
+    ArrayDelta merged = new ArrayDelta();
+    merged._clazz = _clazz;
+    int mlength = aother._length;
+    merged._length = mlength;
+    merged._mask = new BareArrayMask(mlength);
+    List<Object> values = Lists.newArrayList();
+    for (int ii = 0, oidx = 0, nidx = 0; ii < mlength; ii++) {
+      Object value;
+      if (ii < _length && _mask.isSet(ii)) {
+        Object ovalue = _values[oidx++];
+        if (aother._mask.isSet(ii)) {
+          Object nvalue = aother._values[nidx++];
+          if (nvalue instanceof Delta) {
+            Delta ndelta = (Delta)nvalue;
+            value = (ovalue instanceof Delta) ?
+              ((Delta)ovalue).merge(ndelta) : ndelta.apply(ovalue);
+          } else {
+            value = nvalue;
+          }
+        } else {
+          value = ovalue;
         }
-        _values = values.toArray();
+      } else {
+        if (aother._mask.isSet(ii)) {
+          value = aother._values[nidx++];
+        } else {
+          continue;
+        }
+      }
+      merged._mask.set(ii);
+      values.add(value);
     }
+    merged._values = values.toArray();
+    return merged;
+  }
 
-    @Override
-    public Object apply (Object original)
-    {
-        // make sure it's the right class
-        if (original.getClass() != _clazz) {
-            throw new IllegalArgumentException("Delta class mismatch: original is " +
-                original.getClass() + ", expected " + _clazz);
-        }
-
-        // create the new instance
-        Object revised = Array.newInstance(_clazz.getComponentType(), _length);
-
-        // set the entries
-        int olen = Array.getLength(original);
-        for (int ii = 0, idx = 0; ii < _length; ii++) {
-            Object value;
-            if (_mask.isSet(ii)) {
-                value = _values[idx++];
-                if (value instanceof Delta) {
-                    value = ((Delta)value).apply(Array.get(original, ii));
-                }
-            } else {
-                if (ii < olen) {
-                    value = Array.get(original, ii);
-                } else {
-                    continue; // leave the entry at the default
-                }
-            }
-            Array.set(revised, ii, value);
-        }
-        return revised;
+  @Override
+  public String toString ()
+  {
+    StringBuilder buf = new StringBuilder();
+    buf.append("[class=" + _clazz.getName());
+    for (int ii = 0, idx = 0; ii < _length; ii++) {
+      if (_mask.isSet(ii)) {
+        buf.append(", " + ii + ":" + _values[idx++]);
+      }
     }
+    return buf.append("]").toString();
+  }
 
-    @Override
-    public Delta merge (Delta other)
-    {
-        ArrayDelta aother;
-        if (!(other instanceof ArrayDelta && (aother = (ArrayDelta)other)._clazz == _clazz)) {
-            throw new IllegalArgumentException("Cannot merge delta " + other);
-        }
-        ArrayDelta merged = new ArrayDelta();
-        merged._clazz = _clazz;
-        int mlength = aother._length;
-        merged._length = mlength;
-        merged._mask = new BareArrayMask(mlength);
-        List<Object> values = Lists.newArrayList();
-        for (int ii = 0, oidx = 0, nidx = 0; ii < mlength; ii++) {
-            Object value;
-            if (ii < _length && _mask.isSet(ii)) {
-                Object ovalue = _values[oidx++];
-                if (aother._mask.isSet(ii)) {
-                    Object nvalue = aother._values[nidx++];
-                    if (nvalue instanceof Delta) {
-                        Delta ndelta = (Delta)nvalue;
-                        value = (ovalue instanceof Delta) ?
-                            ((Delta)ovalue).merge(ndelta) : ndelta.apply(ovalue);
-                    } else {
-                        value = nvalue;
-                    }
-                } else {
-                    value = ovalue;
-                }
-            } else {
-                if (aother._mask.isSet(ii)) {
-                    value = aother._values[nidx++];
-                } else {
-                    continue;
-                }
-            }
-            merged._mask.set(ii);
-            values.add(value);
-        }
-        merged._values = values.toArray();
-        return merged;
-    }
+  /** The object class. */
+  protected Class<?> _clazz;
 
-    @Override
-    public String toString ()
-    {
-        StringBuilder buf = new StringBuilder();
-        buf.append("[class=" + _clazz.getName());
-        for (int ii = 0, idx = 0; ii < _length; ii++) {
-            if (_mask.isSet(ii)) {
-                buf.append(", " + ii + ":" + _values[idx++]);
-            }
-        }
-        return buf.append("]").toString();
-    }
+  /** The length of the array. */
+  protected int _length;
 
-    /** The object class. */
-    protected Class<?> _clazz;
+  /** The mask indicating which fields have changed. */
+  protected BareArrayMask _mask;
 
-    /** The length of the array. */
-    protected int _length;
-
-    /** The mask indicating which fields have changed. */
-    protected BareArrayMask _mask;
-
-    /** The array values. */
-    protected Object[] _values;
+  /** The array values. */
+  protected Object[] _values;
 }

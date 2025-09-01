@@ -37,66 +37,66 @@ import com.threerings.tudey.data.actor.Active;
  */
 public class ActiveLogic extends MobileLogic
 {
-    /**
-     * Returns the amount of time to advance activities to compensate for control latency.
-     */
-    public int getActivityAdvance ()
-    {
-        return 0;
+  /**
+   * Returns the amount of time to advance activities to compensate for control latency.
+   */
+  public int getActivityAdvance ()
+  {
+    return 0;
+  }
+
+  @Override
+  public void transfer (Logic source, Map<Object, Object> refs)
+  {
+    super.transfer(source, refs);
+
+    ActiveLogic asource = (ActiveLogic)source;
+    for (IntMap.IntEntry<ActivityLogic> entry : asource._activities.intEntrySet()) {
+      if (_activities.get(entry.getIntKey()) != null) {
+        _activities.get(entry.getIntKey()).transfer(entry.getValue(), refs);
+      }
+    }
+    _lastActivityStarted = asource._lastActivityStarted;
+  }
+
+  @Override
+  public boolean tick (int timestamp)
+  {
+    super.tick(timestamp);
+
+    updateActivities(timestamp);
+
+    // update the activity
+    Active active = (Active)_actor;
+    ActivityLogic activity = _activities.get(active.getActivity());
+    if (_lastTickedActivity != activity && _lastTickedActivity != null) {
+      _lastTickedActivity.stop(timestamp);
+    }
+    _lastTickedActivity = activity;
+    if (activity != null) {
+      int started = active.getActivityStarted();
+      if (started > _lastActivityStarted) {
+        activity.start(_lastActivityStarted = started);
+      }
+      activity.tick(timestamp);
     }
 
-    @Override
-    public void transfer (Logic source, Map<Object, Object> refs)
-    {
-        super.transfer(source, refs);
+    return true;
+  }
 
-        ActiveLogic asource = (ActiveLogic)source;
-        for (IntMap.IntEntry<ActivityLogic> entry : asource._activities.intEntrySet()) {
-            if (_activities.get(entry.getIntKey()) != null) {
-                _activities.get(entry.getIntKey()).transfer(entry.getValue(), refs);
-            }
-        }
-        _lastActivityStarted = asource._lastActivityStarted;
-    }
+  /**
+   * Called to update any activities before they are ticked.
+   */
+  protected void updateActivities (int timestamp)
+  {
+  }
 
-    @Override
-    public boolean tick (int timestamp)
-    {
-        super.tick(timestamp);
+  /** Activity logic mappings. */
+  protected IntMap<ActivityLogic> _activities = IntMaps.newHashIntMap();
 
-        updateActivities(timestamp);
+  /** The time at which the last activity started. */
+  protected int _lastActivityStarted;
 
-        // update the activity
-        Active active = (Active)_actor;
-        ActivityLogic activity = _activities.get(active.getActivity());
-        if (_lastTickedActivity != activity && _lastTickedActivity != null) {
-            _lastTickedActivity.stop(timestamp);
-        }
-        _lastTickedActivity = activity;
-        if (activity != null) {
-            int started = active.getActivityStarted();
-            if (started > _lastActivityStarted) {
-                activity.start(_lastActivityStarted = started);
-            }
-            activity.tick(timestamp);
-        }
-
-        return true;
-    }
-
-    /**
-     * Called to update any activities before they are ticked.
-     */
-    protected void updateActivities (int timestamp)
-    {
-    }
-
-    /** Activity logic mappings. */
-    protected IntMap<ActivityLogic> _activities = IntMaps.newHashIntMap();
-
-    /** The time at which the last activity started. */
-    protected int _lastActivityStarted;
-
-    /** The last activity we ticked. */
-    protected ActivityLogic _lastTickedActivity;
+  /** The last activity we ticked. */
+  protected ActivityLogic _lastTickedActivity;
 }

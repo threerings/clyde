@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD })
 public @interface Bound
 {
-    /** The symbol to which this field is bound, or the empty string if the name is the same as
-     * the field name. */
-    String value () default "";
+  /** The symbol to which this field is bound, or the empty string if the name is the same as
+   * the field name. */
+  String value () default "";
 }

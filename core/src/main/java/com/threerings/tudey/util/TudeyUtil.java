@@ -30,13 +30,13 @@ package com.threerings.tudey.util;
  */
 public class TudeyUtil
 {
-    /**
-     * Given the interval between ticks, returns the delay with which the clients display
-     * information received from the server in order to compensate for network jitter and
-     * dropped packets.
-     */
-    public static int getBufferDelay (int tickInterval)
-    {
-        return tickInterval * 2;
-    }
+  /**
+   * Given the interval between ticks, returns the delay with which the clients display
+   * information received from the server in order to compensate for network jitter and
+   * dropped packets.
+   */
+  public static int getBufferDelay (int tickInterval)
+  {
+    return tickInterval * 2;
+  }
 }

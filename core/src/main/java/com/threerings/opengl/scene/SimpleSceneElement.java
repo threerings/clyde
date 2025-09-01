@@ -39,224 +39,224 @@ import com.threerings.opengl.util.SimpleTransformable;
  * {@link SceneElement} interface.
  */
 public abstract class SimpleSceneElement extends SimpleTransformable
-    implements SceneElement
+  implements SceneElement
 {
-    /**
-     * Creates a new scene element.
-     */
-    public SimpleSceneElement (GlContext ctx)
-    {
-        this(ctx, RenderQueue.OPAQUE);
+  /**
+   * Creates a new scene element.
+   */
+  public SimpleSceneElement (GlContext ctx)
+  {
+    this(ctx, RenderQueue.OPAQUE);
+  }
+
+  /**
+   * Creates a new simple scene element.
+   *
+   * @param queue the name of the queue into which we place the batch.
+   */
+  public SimpleSceneElement (GlContext ctx, String queue)
+  {
+    this(ctx, queue, 0);
+  }
+
+  /**
+   * Creates a new simple scene element.
+   *
+   * @param queue the name of the queue into which we place the batch.
+   * @param priority the priority level at which to enqueue the batch.
+   */
+  public SimpleSceneElement (GlContext ctx, String queue, int priority)
+  {
+    this(ctx, queue, priority, false, 0);
+  }
+
+  /**
+   * Creates a new simple scene element.
+   *
+   * @param queue the name of the queue into which we place the batch.
+   * @param priority the priority level at which to enqueue the batch.
+   * @param modifiesColorState if true, invalidate the color state after calling the
+   * {@link #draw} method.
+   * @param primitiveCount the primitive count to report to the renderer.
+   */
+  public SimpleSceneElement (
+    GlContext ctx, String queue, int priority, boolean modifiesColorState, int primitiveCount)
+  {
+    super(ctx, queue, priority, modifiesColorState, primitiveCount);
+  }
+
+  /**
+   * Sets the element's tick policy.
+   */
+  public void setTickPolicy (TickPolicy policy)
+  {
+    if (_tickPolicy == policy) {
+      return;
     }
-
-    /**
-     * Creates a new simple scene element.
-     *
-     * @param queue the name of the queue into which we place the batch.
-     */
-    public SimpleSceneElement (GlContext ctx, String queue)
-    {
-        this(ctx, queue, 0);
+    if (_scene != null) {
+      _scene.tickPolicyWillChange(this);
     }
-
-    /**
-     * Creates a new simple scene element.
-     *
-     * @param queue the name of the queue into which we place the batch.
-     * @param priority the priority level at which to enqueue the batch.
-     */
-    public SimpleSceneElement (GlContext ctx, String queue, int priority)
-    {
-        this(ctx, queue, priority, false, 0);
+    _tickPolicy = policy;
+    if (_scene != null) {
+      _scene.tickPolicyDidChange(this);
     }
+  }
 
-    /**
-     * Creates a new simple scene element.
-     *
-     * @param queue the name of the queue into which we place the batch.
-     * @param priority the priority level at which to enqueue the batch.
-     * @param modifiesColorState if true, invalidate the color state after calling the
-     * {@link #draw} method.
-     * @param primitiveCount the primitive count to report to the renderer.
-     */
-    public SimpleSceneElement (
-        GlContext ctx, String queue, int priority, boolean modifiesColorState, int primitiveCount)
-    {
-        super(ctx, queue, priority, modifiesColorState, primitiveCount);
+  /**
+   * Sets the element's user object reference.
+   */
+  public void setUserObject (Object object)
+  {
+    _userObject = object;
+  }
+
+  /**
+   * Sets the transform to the specified value and promotes it to {@link Transform3D#UNIFORM},
+   * then updates the bounds of the element.
+   */
+  public void setTransform (Transform3D transform)
+  {
+    _transform.set(transform);
+    _transform.promote(Transform3D.UNIFORM);
+    updateBounds();
+  }
+
+  /**
+   * Updates the bounds of the element.  The default implementation transforms the bounds
+   * returned by {@link #getLocalBounds}.
+   */
+  public void updateBounds ()
+  {
+    // and the world bounds
+    computeBounds(_nbounds);
+    if (!_bounds.equals(_nbounds)) {
+      boundsWillChange();
+      _bounds.set(_nbounds);
+      boundsDidChange();
     }
+  }
 
-    /**
-     * Sets the element's tick policy.
-     */
-    public void setTickPolicy (TickPolicy policy)
-    {
-        if (_tickPolicy == policy) {
-            return;
-        }
-        if (_scene != null) {
-            _scene.tickPolicyWillChange(this);
-        }
-        _tickPolicy = policy;
-        if (_scene != null) {
-            _scene.tickPolicyDidChange(this);
-        }
+  // documentation inherited from interface SceneElement
+  public TickPolicy getTickPolicy ()
+  {
+    return _tickPolicy;
+  }
+
+  // documentation inherited from interface SceneElement
+  public Object getUserObject ()
+  {
+    return _userObject;
+  }
+
+  // documentation inherited from interface SceneElement
+  public void wasAdded (Scene scene)
+  {
+    _scene = scene;
+  }
+
+  // documentation inherited from interface SceneElement
+  public void willBeRemoved ()
+  {
+    _scene = null;
+  }
+
+  // documentation inherited from interface SceneElement
+  public void setInfluences (SceneInfluenceSet influences)
+  {
+    _influences.clear();
+    _influences.addAll(influences);
+  }
+
+  // documentation inherited from interface SceneElement
+  public boolean isInfluenceable ()
+  {
+    return true;
+  }
+
+  // documentation inherited from interface SceneObject
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  // documentation inherited from interface SceneObject
+  public boolean updateLastVisit (int visit)
+  {
+    if (_lastVisit == visit) {
+      return false;
     }
+    _lastVisit = visit;
+    return true;
+  }
 
-    /**
-     * Sets the element's user object reference.
-     */
-    public void setUserObject (Object object)
-    {
-        _userObject = object;
+  // documentation inherited from interface Tickable
+  public void tick (float elapsed)
+  {
+    updateBounds();
+  }
+
+  // documentation inherited from interface Intersectable
+  public boolean getIntersection (Ray3D ray, Vector3f result)
+  {
+    return false;
+  }
+
+  /**
+   * Computes the bounds of the element and places them in the provided result object.  The
+   * default implementation simply transforms the bounds returned by {@link #getLocalBounds}.
+   */
+  protected void computeBounds (Box result)
+  {
+    getLocalBounds().transform(_transform, result);
+  }
+
+  /**
+   * Returns the local bounds of the element.  Default implementation returns {@link Box#ZERO};
+   * override to return actual local bounds.
+   */
+  protected Box getLocalBounds ()
+  {
+    return Box.ZERO;
+  }
+
+  /**
+   * Notes that the bounds are about to change.
+   */
+  protected void boundsWillChange ()
+  {
+    if (_scene != null) {
+      _scene.boundsWillChange(this);
     }
+  }
 
-    /**
-     * Sets the transform to the specified value and promotes it to {@link Transform3D#UNIFORM},
-     * then updates the bounds of the element.
-     */
-    public void setTransform (Transform3D transform)
-    {
-        _transform.set(transform);
-        _transform.promote(Transform3D.UNIFORM);
-        updateBounds();
+  /**
+   * Notes that the bounds have changed.
+   */
+  protected void boundsDidChange ()
+  {
+    if (_scene != null) {
+      _scene.boundsDidChange(this);
     }
+  }
 
-    /**
-     * Updates the bounds of the element.  The default implementation transforms the bounds
-     * returned by {@link #getLocalBounds}.
-     */
-    public void updateBounds ()
-    {
-        // and the world bounds
-        computeBounds(_nbounds);
-        if (!_bounds.equals(_nbounds)) {
-            boundsWillChange();
-            _bounds.set(_nbounds);
-            boundsDidChange();
-        }
-    }
+  /** The bounds of the element. */
+  protected Box _bounds = new Box();
 
-    // documentation inherited from interface SceneElement
-    public TickPolicy getTickPolicy ()
-    {
-        return _tickPolicy;
-    }
+  /** Holds the new bounds of the element when updating. */
+  protected Box _nbounds = new Box();
 
-    // documentation inherited from interface SceneElement
-    public Object getUserObject ()
-    {
-        return _userObject;
-    }
+  /** The element's tick policy. */
+  protected TickPolicy _tickPolicy = TickPolicy.NEVER;
 
-    // documentation inherited from interface SceneElement
-    public void wasAdded (Scene scene)
-    {
-        _scene = scene;
-    }
+  /** The element's user object. */
+  protected Object _userObject;
 
-    // documentation inherited from interface SceneElement
-    public void willBeRemoved ()
-    {
-        _scene = null;
-    }
+  /** The scene to which this element has been added. */
+  protected Scene _scene;
 
-    // documentation inherited from interface SceneElement
-    public void setInfluences (SceneInfluenceSet influences)
-    {
-        _influences.clear();
-        _influences.addAll(influences);
-    }
+  /** The influences affecting the element. */
+  protected SceneInfluenceSet _influences = new SceneInfluenceSet();
 
-    // documentation inherited from interface SceneElement
-    public boolean isInfluenceable ()
-    {
-        return true;
-    }
-
-    // documentation inherited from interface SceneObject
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
-
-    // documentation inherited from interface SceneObject
-    public boolean updateLastVisit (int visit)
-    {
-        if (_lastVisit == visit) {
-            return false;
-        }
-        _lastVisit = visit;
-        return true;
-    }
-
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-        updateBounds();
-    }
-
-    // documentation inherited from interface Intersectable
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        return false;
-    }
-
-    /**
-     * Computes the bounds of the element and places them in the provided result object.  The
-     * default implementation simply transforms the bounds returned by {@link #getLocalBounds}.
-     */
-    protected void computeBounds (Box result)
-    {
-        getLocalBounds().transform(_transform, result);
-    }
-
-    /**
-     * Returns the local bounds of the element.  Default implementation returns {@link Box#ZERO};
-     * override to return actual local bounds.
-     */
-    protected Box getLocalBounds ()
-    {
-        return Box.ZERO;
-    }
-
-    /**
-     * Notes that the bounds are about to change.
-     */
-    protected void boundsWillChange ()
-    {
-        if (_scene != null) {
-            _scene.boundsWillChange(this);
-        }
-    }
-
-    /**
-     * Notes that the bounds have changed.
-     */
-    protected void boundsDidChange ()
-    {
-        if (_scene != null) {
-            _scene.boundsDidChange(this);
-        }
-    }
-
-    /** The bounds of the element. */
-    protected Box _bounds = new Box();
-
-    /** Holds the new bounds of the element when updating. */
-    protected Box _nbounds = new Box();
-
-    /** The element's tick policy. */
-    protected TickPolicy _tickPolicy = TickPolicy.NEVER;
-
-    /** The element's user object. */
-    protected Object _userObject;
-
-    /** The scene to which this element has been added. */
-    protected Scene _scene;
-
-    /** The influences affecting the element. */
-    protected SceneInfluenceSet _influences = new SceneInfluenceSet();
-
-    /** The visitation id of the last visit. */
-    protected int _lastVisit;
+  /** The visitation id of the last visit. */
+  protected int _lastVisit;
 }

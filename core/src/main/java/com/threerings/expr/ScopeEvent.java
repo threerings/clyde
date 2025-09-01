@@ -32,11 +32,11 @@ import java.util.EventObject;
  */
 public class ScopeEvent extends EventObject
 {
-    /**
-     * Creates a new scope event.
-     */
-    public ScopeEvent (Object source)
-    {
-        super(source);
-    }
+  /**
+   * Creates a new scope event.
+   */
+  public ScopeEvent (Object source)
+  {
+    super(source);
+  }
 }

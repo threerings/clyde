@@ -30,28 +30,28 @@ package com.threerings.opengl.gui.event;
  */
 public interface ControllerListener extends ComponentListener
 {
-    /**
-     * Dispatched when a controller button is pressed.
-     */
-    public void controllerPressed (ControllerEvent event);
+  /**
+   * Dispatched when a controller button is pressed.
+   */
+  public void controllerPressed (ControllerEvent event);
 
-    /**
-     * Dispatched when a controller button is released.
-     */
-    public void controllerReleased (ControllerEvent event);
+  /**
+   * Dispatched when a controller button is released.
+   */
+  public void controllerReleased (ControllerEvent event);
 
-    /**
-     * Dispatched when the controller is moved on an axis.
-     */
-    public void controllerMoved (ControllerEvent event);
+  /**
+   * Dispatched when the controller is moved on an axis.
+   */
+  public void controllerMoved (ControllerEvent event);
 
-    /**
-     * Dispatched when the controller's pov has moved on the x axis.
-     */
-    public void controllerPovXMoved (ControllerEvent event);
+  /**
+   * Dispatched when the controller's pov has moved on the x axis.
+   */
+  public void controllerPovXMoved (ControllerEvent event);
 
-    /**
-     * Dispatched when the controller's pov has moved on the y axis.
-     */
-    public void controllerPovYMoved (ControllerEvent event);
+  /**
+   * Dispatched when the controller's pov has moved on the y axis.
+   */
+  public void controllerPovYMoved (ControllerEvent event);
 }

@@ -42,70 +42,70 @@ import static com.threerings.tudey.Log.log;
  * Configurations for client-side actions.
  */
 @EditorTypes({
-    ClientActionConfig.ControllerAction.class,
-    ClientActionConfig.ServerRequest.class,
-    ClientActionConfig.Compound.class })
+  ClientActionConfig.ControllerAction.class,
+  ClientActionConfig.ServerRequest.class,
+  ClientActionConfig.Compound.class })
 public abstract class ClientActionConfig extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /**
-     * Fires an action on the scene controller.
-     */
-    public static class ControllerAction extends ClientActionConfig
+  /**
+   * Fires an action on the scene controller.
+   */
+  public static class ControllerAction extends ClientActionConfig
+  {
+    /** The name of the command to fire. */
+    @Editable
+    public String command = "";
+
+    /** The argument to pass. */
+    @Editable
+    public String argument = "";
+
+    @Override
+    public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
     {
-        /** The name of the command to fire. */
-        @Editable
-        public String command = "";
-
-        /** The argument to pass. */
-        @Editable
-        public String argument = "";
-
-        @Override
-        public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
-        {
-            if (!view.getController().handleAction(source, command, argument)) {
-                log.warning("Controller didn't handle action.", "command", command);
-            }
-        }
+      if (!view.getController().handleAction(source, command, argument)) {
+        log.warning("Controller didn't handle action.", "command", command);
+      }
     }
+  }
 
-    /**
-     * Sends a request to the server.
-     */
-    public static class ServerRequest extends ClientActionConfig
+  /**
+   * Sends a request to the server.
+   */
+  public static class ServerRequest extends ClientActionConfig
+  {
+    /** The name of the request. */
+    @Editable
+    public String name = "";
+
+    @Override
+    public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
     {
-        /** The name of the request. */
-        @Editable
-        public String name = "";
-
-        @Override
-        public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
-        {
-            view.getController().submitRequest(source, name);
-        }
+      view.getController().submitRequest(source, name);
     }
+  }
 
-    /**
-     * Executes multiple actions simultaneously.
-     */
-    public static class Compound extends ClientActionConfig
+  /**
+   * Executes multiple actions simultaneously.
+   */
+  public static class Compound extends ClientActionConfig
+  {
+    /** The actions to execute. */
+    @Editable
+    public ClientActionConfig[] actions = new ClientActionConfig[0];
+
+    @Override
+    public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
     {
-        /** The actions to execute. */
-        @Editable
-        public ClientActionConfig[] actions = new ClientActionConfig[0];
-
-        @Override
-        public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
-        {
-            for (ClientActionConfig action : actions) {
-                action.execute(ctx, view, source);
-            }
-        }
+      for (ClientActionConfig action : actions) {
+        action.execute(ctx, view, source);
+      }
     }
+  }
 
-    /**
-     * Executes the action.
-     */
-    public abstract void execute (TudeyContext ctx, TudeySceneView view, Sprite source);
+  /**
+   * Executes the action.
+   */
+  public abstract void execute (TudeyContext ctx, TudeySceneView view, Sprite source);
 }

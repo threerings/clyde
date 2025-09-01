@@ -48,147 +48,147 @@ import com.threerings.editor.swing.editors.util.RecentDirectoryList;
  * Edits file properties.
  */
 public class FileEditor extends PropertyEditor
-    implements ActionListener
+  implements ActionListener
 {
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        File value;
-        Object source = event.getSource();
-        if (source == _file) {
-            final FileConstraints constraints = _property.getAnnotation(FileConstraints.class);
-            String key = (constraints == null || constraints.directory().isEmpty()) ?
-                null : constraints.directory();
-            if (_chooser == null) {
-                String ddir = getDefaultDirectory();
-                _chooser = new JFileChooser(key == null ? ddir : _prefs.get(key, ddir));
-                if (getMode().equals("directory")) {
-                    _chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    File value;
+    Object source = event.getSource();
+    if (source == _file) {
+      final FileConstraints constraints = _property.getAnnotation(FileConstraints.class);
+      String key = (constraints == null || constraints.directory().isEmpty()) ?
+        null : constraints.directory();
+      if (_chooser == null) {
+        String ddir = getDefaultDirectory();
+        _chooser = new JFileChooser(key == null ? ddir : _prefs.get(key, ddir));
+        if (getMode().equals("directory")) {
+          _chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-                } else if (constraints != null) {
-                    final MessageBundle msgs = _msgmgr.getBundle(_property.getMessageBundle());
-                    _chooser.setFileFilter(new FileFilter() {
-                        public boolean accept (File file) {
-                            if (file.isDirectory()) {
-                                return true;
-                            }
-                            String name = file.getName();
-                            for (String extension : constraints.extensions()) {
-                                if (name.endsWith(extension)) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        }
-                        public String getDescription () {
-                            return msgs.xlate(constraints.description());
-                        }
-                    });
+        } else if (constraints != null) {
+          final MessageBundle msgs = _msgmgr.getBundle(_property.getMessageBundle());
+          _chooser.setFileFilter(new FileFilter() {
+            public boolean accept (File file) {
+              if (file.isDirectory()) {
+                return true;
+              }
+              String name = file.getName();
+              for (String extension : constraints.extensions()) {
+                if (name.endsWith(extension)) {
+                  return true;
                 }
+              }
+              return false;
             }
-            _chooser.setSelectedFile(getPropertyFile());
-            _chooser.setAccessory(new RecentDirectoryList("files:" + getClass().getName()));
-            int result = _chooser.showOpenDialog(this);
-            if (key != null) {
-                _prefs.put(key, _chooser.getCurrentDirectory().toString());
+            public String getDescription () {
+              return msgs.xlate(constraints.description());
             }
-            if (result != JFileChooser.APPROVE_OPTION) {
-                return;
-            }
-            value = _chooser.getSelectedFile();
-            // possibly strip the extension
-            if (constraints != null && constraints.stripExtension()) {
-                String filename = value.toString();
-                int dot = filename.lastIndexOf('.');
-                if (dot > -1 && dot > filename.lastIndexOf(File.pathSeparatorChar)) {
-                    value = new File(filename.substring(0, dot));
-                }
-            }
-
-        } else { // source == _clear
-            value = null;
+          });
         }
-        try {
-            setPropertyFile(value);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(
-                this, e.getMessage(), _msgs.get("t.invalid_value"), JOptionPane.ERROR_MESSAGE);
+      }
+      _chooser.setSelectedFile(getPropertyFile());
+      _chooser.setAccessory(new RecentDirectoryList("files:" + getClass().getName()));
+      int result = _chooser.showOpenDialog(this);
+      if (key != null) {
+        _prefs.put(key, _chooser.getCurrentDirectory().toString());
+      }
+      if (result != JFileChooser.APPROVE_OPTION) {
+        return;
+      }
+      value = _chooser.getSelectedFile();
+      // possibly strip the extension
+      if (constraints != null && constraints.stripExtension()) {
+        String filename = value.toString();
+        int dot = filename.lastIndexOf('.');
+        if (dot > -1 && dot > filename.lastIndexOf(File.pathSeparatorChar)) {
+          value = new File(filename.substring(0, dot));
         }
-        update();
-        fireStateChanged();
+      }
+
+    } else { // source == _clear
+      value = null;
     }
-
-    @Override
-    public void update ()
-    {
-        updateButtons(getPropertyFile());
+    try {
+      setPropertyFile(value);
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(
+        this, e.getMessage(), _msgs.get("t.invalid_value"), JOptionPane.ERROR_MESSAGE);
     }
+    update();
+    fireStateChanged();
+  }
 
-    @Override
-    public String getEditedFilePath ()
-    {
-        File file = getPropertyFile();
-        return (file == null) ? null : file.getAbsolutePath();
+  @Override
+  public void update ()
+  {
+    updateButtons(getPropertyFile());
+  }
+
+  @Override
+  public String getEditedFilePath ()
+  {
+    File file = getPropertyFile();
+    return (file == null) ? null : file.getAbsolutePath();
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    add(new JLabel(getPropertyLabel() + ":"));
+    add(_file = new JButton(" "));
+    _file.addActionListener(this);
+    if (_property.nullable()) {
+      add(_clear = new JButton(_msgs.get("m.clear")));
+      _clear.addActionListener(this);
     }
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        add(new JLabel(getPropertyLabel() + ":"));
-        add(_file = new JButton(" "));
-        _file.addActionListener(this);
-        if (_property.nullable()) {
-            add(_clear = new JButton(_msgs.get("m.clear")));
-            _clear.addActionListener(this);
-        }
+  /**
+   * Updates the state of the buttons.
+   */
+  protected void updateButtons (File value)
+  {
+    boolean enable = (value != null);
+    _file.setToolTipText(enable ? value.getAbsolutePath() : null);
+    _file.setText(enable ? value.getName() : _msgs.get("m.null_value"));
+    if (_clear != null) {
+      _clear.setEnabled(enable);
     }
+  }
 
-    /**
-     * Updates the state of the buttons.
-     */
-    protected void updateButtons (File value)
-    {
-        boolean enable = (value != null);
-        _file.setToolTipText(enable ? value.getAbsolutePath() : null);
-        _file.setText(enable ? value.getName() : _msgs.get("m.null_value"));
-        if (_clear != null) {
-            _clear.setEnabled(enable);
-        }
-    }
+  /**
+   * Returns the default directory to start in, if there is no stored preference.
+   */
+  protected String getDefaultDirectory ()
+  {
+    return null;
+  }
 
-    /**
-     * Returns the default directory to start in, if there is no stored preference.
-     */
-    protected String getDefaultDirectory ()
-    {
-        return null;
-    }
+  /**
+   * Returns the value of the property as a {@link File}.
+   */
+  protected File getPropertyFile ()
+  {
+    return (File)_property.get(_object);
+  }
 
-    /**
-     * Returns the value of the property as a {@link File}.
-     */
-    protected File getPropertyFile ()
-    {
-        return (File)_property.get(_object);
-    }
+  /**
+   * Sets the value of the property as a {@link File}.
+   */
+  protected void setPropertyFile (File file)
+  {
+    _property.set(_object, file);
+  }
 
-    /**
-     * Sets the value of the property as a {@link File}.
-     */
-    protected void setPropertyFile (File file)
-    {
-        _property.set(_object, file);
-    }
+  /** The file button. */
+  protected JButton _file;
 
-    /** The file button. */
-    protected JButton _file;
+  /** The clear button. */
+  protected JButton _clear;
 
-    /** The clear button. */
-    protected JButton _clear;
+  /** The file chooser. */
+  protected JFileChooser _chooser;
 
-    /** The file chooser. */
-    protected JFileChooser _chooser;
-
-    /** User preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(FileEditor.class);
+  /** User preferences. */
+  protected static Preferences _prefs = Preferences.userNodeForPackage(FileEditor.class);
 }

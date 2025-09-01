@@ -44,86 +44,86 @@ import com.threerings.tudey.client.TudeySceneView;
 @EditorTypes({ TudeyViewerEffectConfig.Camera.class })
 public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
 {
-    /**
-     * Adds a camera to the view.
-     */
-    public static class Camera extends TudeyViewerEffectConfig
+  /**
+   * Adds a camera to the view.
+   */
+  public static class Camera extends TudeyViewerEffectConfig
+  {
+    /** The transition to use when switching to or from the camera. */
+    @Editable(min=0.0, step=0.01)
+    public float transition;
+
+    /** The easing to use for the transition. */
+    @Editable
+    public Easing easing = new Easing.None();
+
+    /** The camera configuration. */
+    @Editable
+    public CameraConfig camera = new CameraConfig();
+
+    /** More camera configurations!  For backwards compatibility we keep the original. */
+    @Editable
+    public CameraConfig[] cameras = new CameraConfig[0];
+
+    @Override
+    public void preload (GlContext ctx)
     {
-        /** The transition to use when switching to or from the camera. */
-        @Editable(min=0.0, step=0.01)
-        public float transition;
-
-        /** The easing to use for the transition. */
-        @Editable
-        public Easing easing = new Easing.None();
-
-        /** The camera configuration. */
-        @Editable
-        public CameraConfig camera = new CameraConfig();
-
-        /** More camera configurations!  For backwards compatibility we keep the original. */
-        @Editable
-        public CameraConfig[] cameras = new CameraConfig[0];
-
-        @Override
-        public void preload (GlContext ctx)
-        {
-            // Do nothing
-        }
-
-        @Override
-        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
-        {
-            final TudeySceneView view = ScopeUtil.resolve(
-                scope, "view:this", null, TudeySceneView.class);
-            if (view == null || !ScopeUtil.resolve(scope, "cameraEnabled", true)) {
-                return getNoopEffect(effect);
-            }
-            class CameraEffect extends ViewerEffect {
-                public void setConfig (Camera camera) {
-                    if (_activated) {
-                        view.removeCameraConfig(_camcfg, 0f, null);
-                        for (CameraConfig cc : _camcfgs) {
-                            view.removeCameraConfig(cc, 0f, null);
-                        }
-                    }
-                    _transition = camera.transition;
-                    _easing = camera.easing;
-                    _camcfg = camera.camera;
-                    _camcfgs = camera.cameras;
-                    if (_activated) {
-                        view.addCameraConfig(_camcfg, 0f, null);
-                        for (CameraConfig cc : _camcfgs) {
-                            view.addCameraConfig(cc, 0f, null);
-                        }
-                    }
-                }
-                public void activate (Scene scene) {
-                    _activated = true;
-                    view.addCameraConfig(_camcfg, _transition, _easing);
-                    for (CameraConfig cc : _camcfgs) {
-                        view.addCameraConfig(cc, 0f, null);
-                    }
-                }
-                public void deactivate () {
-                    view.removeCameraConfig(_camcfg, _transition, _easing);
-                    for (CameraConfig cc : _camcfgs) {
-                        view.removeCameraConfig(cc, 0f, null);
-                    }
-                    _activated = false;
-                }
-                protected float _transition = transition;
-                protected Easing _easing = easing;
-                protected CameraConfig _camcfg = camera;
-                protected CameraConfig[] _camcfgs = cameras;
-                protected boolean _activated;
-            }
-            if (effect instanceof CameraEffect) {
-                ((CameraEffect)effect).setConfig(this);
-            } else {
-                effect = new CameraEffect();
-            }
-            return effect;
-        }
+      // Do nothing
     }
+
+    @Override
+    public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
+    {
+      final TudeySceneView view = ScopeUtil.resolve(
+        scope, "view:this", null, TudeySceneView.class);
+      if (view == null || !ScopeUtil.resolve(scope, "cameraEnabled", true)) {
+        return getNoopEffect(effect);
+      }
+      class CameraEffect extends ViewerEffect {
+        public void setConfig (Camera camera) {
+          if (_activated) {
+            view.removeCameraConfig(_camcfg, 0f, null);
+            for (CameraConfig cc : _camcfgs) {
+              view.removeCameraConfig(cc, 0f, null);
+            }
+          }
+          _transition = camera.transition;
+          _easing = camera.easing;
+          _camcfg = camera.camera;
+          _camcfgs = camera.cameras;
+          if (_activated) {
+            view.addCameraConfig(_camcfg, 0f, null);
+            for (CameraConfig cc : _camcfgs) {
+              view.addCameraConfig(cc, 0f, null);
+            }
+          }
+        }
+        public void activate (Scene scene) {
+          _activated = true;
+          view.addCameraConfig(_camcfg, _transition, _easing);
+          for (CameraConfig cc : _camcfgs) {
+            view.addCameraConfig(cc, 0f, null);
+          }
+        }
+        public void deactivate () {
+          view.removeCameraConfig(_camcfg, _transition, _easing);
+          for (CameraConfig cc : _camcfgs) {
+            view.removeCameraConfig(cc, 0f, null);
+          }
+          _activated = false;
+        }
+        protected float _transition = transition;
+        protected Easing _easing = easing;
+        protected CameraConfig _camcfg = camera;
+        protected CameraConfig[] _camcfgs = cameras;
+        protected boolean _activated;
+      }
+      if (effect instanceof CameraEffect) {
+        ((CameraEffect)effect).setConfig(this);
+      } else {
+        effect = new CameraEffect();
+      }
+      return effect;
+    }
+  }
 }

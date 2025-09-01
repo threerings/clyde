@@ -41,93 +41,93 @@ import com.threerings.export.util.ExportUtil;
  * Represents an added or updated configuration.
  */
 public class ConfigEntry extends SimpleStreamableObject
-    implements DSet.Entry
+  implements DSet.Entry
 {
-    /**
-     * Creates a new config entry.
-     */
-    public ConfigEntry (ManagedConfig config)
-    {
-        _key = new ConfigKey(config.getClass(), config.getName());
-        _bytes = ExportUtil.toBytes(_config = config);
-    }
+  /**
+   * Creates a new config entry.
+   */
+  public ConfigEntry (ManagedConfig config)
+  {
+    _key = new ConfigKey(config.getClass(), config.getName());
+    _bytes = ExportUtil.toBytes(_config = config);
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public ConfigEntry ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public ConfigEntry ()
+  {
+  }
 
-    /**
-     * Returns the config class.
-     */
-    public Class<? extends ManagedConfig> getConfigClass ()
-    {
-        return _key.getConfigClass();
-    }
+  /**
+   * Returns the config class.
+   */
+  public Class<? extends ManagedConfig> getConfigClass ()
+  {
+    return _key.getConfigClass();
+  }
 
-    /**
-     * Returns the name of the config.
-     */
-    public String getName ()
-    {
-        return _key.getName();
-    }
+  /**
+   * Returns the name of the config.
+   */
+  public String getName ()
+  {
+    return _key.getName();
+  }
 
-    /**
-     * Returns a reference to the config object.
-     */
-    public ManagedConfig getConfig ()
-    {
-        return _config;
-    }
+  /**
+   * Returns a reference to the config object.
+   */
+  public ManagedConfig getConfig ()
+  {
+    return _config;
+  }
 
-    /**
-     * Custom read method for streaming.
-     */
-    public void readObject (ObjectInputStream in)
-        throws IOException, ClassNotFoundException
-    {
-        in.defaultReadObject();
-        _config = (ManagedConfig)ExportUtil.fromBytes(_bytes);
-    }
+  /**
+   * Custom read method for streaming.
+   */
+  public void readObject (ObjectInputStream in)
+    throws IOException, ClassNotFoundException
+  {
+    in.defaultReadObject();
+    _config = (ManagedConfig)ExportUtil.fromBytes(_bytes);
+  }
 
-    // documentation inherited from interface DSet.Entry
-    public Comparable<?> getKey ()
-    {
-        return _key;
-    }
+  // documentation inherited from interface DSet.Entry
+  public Comparable<?> getKey ()
+  {
+    return _key;
+  }
 
-    @Override
-    public String toString ()
-    {
-        return "[key=" + _key + ", config=" + _config + "]";
-    }
+  @Override
+  public String toString ()
+  {
+    return "[key=" + _key + ", config=" + _config + "]";
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        ConfigEntry oentry;
-        return other instanceof ConfigEntry && (oentry = (ConfigEntry)other)._key.equals(_key) &&
-            Arrays.equals(oentry._bytes, _bytes);
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    ConfigEntry oentry;
+    return other instanceof ConfigEntry && (oentry = (ConfigEntry)other)._key.equals(_key) &&
+      Arrays.equals(oentry._bytes, _bytes);
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        int result = _key != null ? _key.hashCode() : 0;
-        result = 31 * result + (_bytes != null ? Arrays.hashCode(_bytes) : 0);
-        result = 31 * result + (_config != null ? _config.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode ()
+  {
+    int result = _key != null ? _key.hashCode() : 0;
+    result = 31 * result + (_bytes != null ? Arrays.hashCode(_bytes) : 0);
+    result = 31 * result + (_config != null ? _config.hashCode() : 0);
+    return result;
+  }
 
-    /** The config key. */
-    protected ConfigKey _key;
+  /** The config key. */
+  protected ConfigKey _key;
 
-    /** The exported config. */
-    protected byte[] _bytes;
+  /** The exported config. */
+  protected byte[] _bytes;
 
-    /** The config object. */
-    protected transient ManagedConfig _config;
+  /** The config object. */
+  protected transient ManagedConfig _config;
 }

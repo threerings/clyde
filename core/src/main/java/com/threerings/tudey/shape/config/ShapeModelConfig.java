@@ -39,35 +39,35 @@ import com.threerings.tudey.shape.ShapeModel;
  */
 public class ShapeModelConfig extends ModelConfig.Implementation
 {
-    /** Whether or not to render the shape as an outline. */
-    @Editable
-    public boolean outline;
+  /** Whether or not to render the shape as an outline. */
+  @Editable
+  public boolean outline;
 
-    /** The shape to depict. */
-    @Editable
-    public ShapeConfig shape = new ShapeConfig.Point();
+  /** The shape to depict. */
+  @Editable
+  public ShapeConfig shape = new ShapeConfig.Point();
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        // Do nothing
+  @Override
+  public void preload (GlContext ctx)
+  {
+    // Do nothing
+  }
+
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof ShapeModel) {
+      ((ShapeModel)impl).setConfig(ctx, this);
+    } else {
+      impl = new ShapeModel(ctx, scope, this);
     }
+    return impl;
+  }
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof ShapeModel) {
-            ((ShapeModel)impl).setConfig(ctx, this);
-        } else {
-            impl = new ShapeModel(ctx, scope, this);
-        }
-        return impl;
-    }
-
-    @Override
-    public void invalidate ()
-    {
-        shape.invalidate();
-    }
+  @Override
+  public void invalidate ()
+  {
+    shape.invalidate();
+  }
 }

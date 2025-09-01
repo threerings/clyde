@@ -64,454 +64,454 @@ import static com.threerings.export.Log.log;
  */
 public class XMLImporter extends Importer
 {
-    /**
-     * Creates an importer to read from the specified stream.
-     */
-    public XMLImporter (InputStream in)
-    {
-        _in = in;
+  /**
+   * Creates an importer to read from the specified stream.
+   */
+  public XMLImporter (InputStream in)
+  {
+    _in = in;
+  }
+
+  @Override
+  public Object readObject ()
+    throws IOException
+  {
+    Node first;
+    if (_document == null) {
+      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      try {
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        _document = builder.parse(_in);
+      } catch (Exception e) {
+        throw new IOException("Failed to parse input [error=" + e + "].");
+      }
+      Element top = _document.getDocumentElement();
+      if (!top.getTagName().equals("java")) {
+        throw new IOException("Invalid top-level element [name=" +
+          top.getTagName() + "].");
+      }
+      String vstr = top.getAttribute("version");
+      if (!vstr.equals(XMLExporter.VERSION)) {
+        throw new IOException("Invalid version [version=" + vstr + ", expected=" +
+          XMLExporter.VERSION + "].");
+      }
+      String cstr = top.getAttribute("class");
+      if (!cstr.equals(getClass().getName())) {
+        throw new IOException("Invalid importer class [class=" + cstr + ", expected=" +
+          getClass().getName() + "].");
+      }
+      first = top.getFirstChild();
+    } else {
+      first = (_element == null) ? null : _element.getNextSibling();
     }
-
-    @Override
-    public Object readObject ()
-        throws IOException
-    {
-        Node first;
-        if (_document == null) {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            try {
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                _document = builder.parse(_in);
-            } catch (Exception e) {
-                throw new IOException("Failed to parse input [error=" + e + "].");
-            }
-            Element top = _document.getDocumentElement();
-            if (!top.getTagName().equals("java")) {
-                throw new IOException("Invalid top-level element [name=" +
-                    top.getTagName() + "].");
-            }
-            String vstr = top.getAttribute("version");
-            if (!vstr.equals(XMLExporter.VERSION)) {
-                throw new IOException("Invalid version [version=" + vstr + ", expected=" +
-                    XMLExporter.VERSION + "].");
-            }
-            String cstr = top.getAttribute("class");
-            if (!cstr.equals(getClass().getName())) {
-                throw new IOException("Invalid importer class [class=" + cstr + ", expected=" +
-                    getClass().getName() + "].");
-            }
-            first = top.getFirstChild();
-        } else {
-            first = (_element == null) ? null : _element.getNextSibling();
-        }
-        if ((_element = findElement(first, "object")) == null) {
-            throw new EOFException();
-        }
-        return read(_element, Object.class);
+    if ((_element = findElement(first, "object")) == null) {
+      throw new EOFException();
     }
+    return read(_element, Object.class);
+  }
 
-    @Override
-    public boolean read (String name, boolean defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        return (value == null) ? defvalue : Boolean.parseBoolean(value);
+  @Override
+  public boolean read (String name, boolean defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    return (value == null) ? defvalue : Boolean.parseBoolean(value);
+  }
+
+  @Override
+  public byte read (String name, byte defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    try {
+      return (value == null) ? defvalue : Byte.parseByte(value);
+    } catch (NumberFormatException e) {
+      log.warning("Couldn't parse value as byte [value=" + value + "].", e);
+      return defvalue;
     }
+  }
 
-    @Override
-    public byte read (String name, byte defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        try {
-            return (value == null) ? defvalue : Byte.parseByte(value);
-        } catch (NumberFormatException e) {
-            log.warning("Couldn't parse value as byte [value=" + value + "].", e);
-            return defvalue;
-        }
+  @Override
+  public char read (String name, char defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    return (value == null) ? defvalue : value.charAt(0);
+  }
+
+  @Override
+  public double read (String name, double defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    try {
+      return (value == null) ? defvalue : Double.parseDouble(value);
+    } catch (NumberFormatException e) {
+      log.warning("Couldn't parse value as double [value=" + value + "].", e);
+      return defvalue;
     }
+  }
 
-    @Override
-    public char read (String name, char defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        return (value == null) ? defvalue : value.charAt(0);
+  @Override
+  public float read (String name, float defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    try {
+      return (value == null) ? defvalue : Float.parseFloat(value);
+    } catch (NumberFormatException e) {
+      log.warning("Couldn't parse value as float [value=" + value + "].", e);
+      return defvalue;
     }
+  }
 
-    @Override
-    public double read (String name, double defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        try {
-            return (value == null) ? defvalue : Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            log.warning("Couldn't parse value as double [value=" + value + "].", e);
-            return defvalue;
-        }
+  @Override
+  public int read (String name, int defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    try {
+      return (value == null) ? defvalue : Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+      log.warning("Couldn't parse value as int [value=" + value + "].", e);
+      return defvalue;
     }
+  }
 
-    @Override
-    public float read (String name, float defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        try {
-            return (value == null) ? defvalue : Float.parseFloat(value);
-        } catch (NumberFormatException e) {
-            log.warning("Couldn't parse value as float [value=" + value + "].", e);
-            return defvalue;
-        }
+  @Override
+  public long read (String name, long defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    try {
+      return (value == null) ? defvalue : Long.parseLong(value);
+    } catch (NumberFormatException e) {
+      log.warning("Couldn't parse value as long [value=" + value + "].", e);
+      return defvalue;
     }
+  }
 
-    @Override
-    public int read (String name, int defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        try {
-            return (value == null) ? defvalue : Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            log.warning("Couldn't parse value as int [value=" + value + "].", e);
-            return defvalue;
-        }
+  @Override
+  public short read (String name, short defvalue)
+    throws IOException
+  {
+    String value = getValue(name);
+    try {
+      return (value == null) ? defvalue : Short.parseShort(value);
+    } catch (NumberFormatException e) {
+      log.warning("Couldn't parse value as short [value=" + value + "].", e);
+      return defvalue;
     }
+  }
 
-    @Override
-    public long read (String name, long defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        try {
-            return (value == null) ? defvalue : Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            log.warning("Couldn't parse value as long [value=" + value + "].", e);
-            return defvalue;
-        }
+  @Override
+  public <T> T read (String name, T defvalue, Class<T> clazz)
+    throws IOException
+  {
+    Element child = findElement(_element.getFirstChild(), name);
+    if (child == null) {
+      return defvalue;
     }
+    return clazz.cast(read(child, clazz));
+  }
 
-    @Override
-    public short read (String name, short defvalue)
-        throws IOException
-    {
-        String value = getValue(name);
-        try {
-            return (value == null) ? defvalue : Short.parseShort(value);
-        } catch (NumberFormatException e) {
-            log.warning("Couldn't parse value as short [value=" + value + "].", e);
-            return defvalue;
-        }
+  @Override
+  public void close ()
+    throws IOException
+  {
+    _in.close();
+  }
+
+  /**
+   * Reads an object of the supplied type from the given element.
+   */
+  protected Object read (Element element, Class<?> clazz)
+    throws IOException
+  {
+    String ref = element.getAttribute("ref");
+    String rdepth = element.getAttribute("rdepth");
+    if (rdepth.length() > 0) {
+      return _depths.get(rdepth);
+    } else if (ref.length() > 0) {
+      return _objects.get(ref);
+    } else if (element.getFirstChild() == null) {
+      return null;
+    } else {
+      return readValue(element, clazz);
     }
+  }
 
-    @Override
-    public <T> T read (String name, T defvalue, Class<T> clazz)
-        throws IOException
-    {
-        Element child = findElement(_element.getFirstChild(), name);
-        if (child == null) {
-            return defvalue;
-        }
-        return clazz.cast(read(child, clazz));
-    }
-
-    @Override
-    public void close ()
-        throws IOException
-    {
-        _in.close();
-    }
-
-    /**
-     * Reads an object of the supplied type from the given element.
-     */
-    protected Object read (Element element, Class<?> clazz)
-        throws IOException
-    {
-        String ref = element.getAttribute("ref");
-        String rdepth = element.getAttribute("rdepth");
-        if (rdepth.length() > 0) {
-            return _depths.get(rdepth);
-        } else if (ref.length() > 0) {
-            return _objects.get(ref);
-        } else if (element.getFirstChild() == null) {
-            return null;
-        } else {
-            return readValue(element, clazz);
-        }
-    }
-
-    /**
-     * Returns the named class, or null if not found.
-     */
-    protected Class<?> getClassByName (String cstr, Class<?> defval)
-    {
-        if (cstr.length() > 0) {
-            try {
-                return Class.forName(cstr);
-            } catch (ClassNotFoundException e) {
-                log.warning("Class not found.", e);
-                return null;
-            }
-        }
-        return defval;
-    }
-
-    /**
-     * Reads an object value of the specified class from the given element.
-     */
-    protected Object readValue (Element element, Class<?> clazz)
-        throws IOException
-    {
-        // see if we can read the value from a string
-        String id = element.getAttribute("id");
-        String depth = element.getAttribute("depth");
-        Class<?> cclazz = getClassByName(element.getAttribute("class"), clazz);
-        @SuppressWarnings("unchecked")
-        Stringifier<Object> stringifier = (Stringifier<Object>)Stringifier.getStringifier(cclazz);
-        if (stringifier != null) {
-            String string = element.getTextContent();
-            Object value = null;
-            try {
-                if ((value = stringifier.fromString(string)) == null) {
-                    log.warning("Failed to parse string.", "string", string, "class", cclazz);
-                }
-            } catch (Exception e) {
-                log.warning("Failed to parse string.", "string", string, "class", cclazz, e);
-            }
-            if (value != null) {
-                if (depth.length() > 0) {
-                    putObjectDepth(depth, value);
-                }
-                if (id.length() > 0) {
-                    putObject(id, value);
-                }
-            }
-            return value;
-        }
-        // otherwise, process the element
-        Element oelement = _element;
-        _element = element;
-        try {
-            Object value;
-            boolean wasRead = false;
-            if (cclazz.isArray()) {
-                value = Array.newInstance(cclazz.getComponentType(), countEntries());
-
-            } else if (cclazz == ImmutableList.class) {
-                value = ImmutableList.copyOf(readEntries(Lists.newArrayList()));
-                wasRead = true;
-
-            } else if (cclazz == ImmutableSet.class) {
-                value = ImmutableSet.copyOf(readEntries(Lists.newArrayList()));
-                wasRead = true;
-
-            } else if (cclazz == ImmutableMap.class) {
-                value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
-                wasRead = true;
-
-            } else if (cclazz == ImmutableMultiset.class) {
-                value = ImmutableMultiset.copyOf(readEntries(HashMultiset.create()));
-                wasRead = true;
-
-            } else if (EnumSet.class.isAssignableFrom(cclazz)) {
-                @SuppressWarnings("unchecked") Class<Exporter.DummyEnum> eclazz =
-                    (Class<Exporter.DummyEnum>)getClassByName(element.getAttribute("eclass"), null);
-                value = EnumSet.noneOf(eclazz);
-
-            } else {
-                value = ReflectionUtil.newInstance(cclazz,
-                    ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
-            }
-            if (depth.length() > 0 && value != null) {
-                putObjectDepth(depth, value);
-            }
-            if (id.length() > 0) {
-                putObject(id, value);
-            }
-            if (wasRead) {
-                return value;
-            }
-            if (value instanceof Exportable) {
-                readFields((Exportable)value);
-            } else if (value instanceof Object[]) {
-                readEntries((Object[])value, cclazz.getComponentType());
-            } else if (value instanceof Collection) {
-                if (value instanceof Multiset) {
-                    @SuppressWarnings("unchecked") Multiset<Object> multiset =
-                        (Multiset<Object>)value;
-                    readEntries(multiset);
-                } else {
-                    @SuppressWarnings("unchecked") Collection<Object> collection =
-                        (Collection<Object>)value;
-                    readEntries(collection);
-                }
-            } else if (value instanceof Map) {
-                @SuppressWarnings("unchecked") Map<Object, Object> map =
-                    (Map<Object, Object>)value;
-                readEntries(map);
-            }
-            return value;
-
-        } finally {
-            _element = oelement;
-            if (depth.length() > 0) {
-                _depths.remove(depth);
-            }
-        }
-    }
-
-    /**
-     * Stores an object in the map, logging a warning if we overwrite an existing entry.
-     */
-    protected void putObject (String id, Object value)
-    {
-        Object ovalue = _objects.put(id, value);
-        if (ovalue != null) {
-            log.warning("Duplicate id detected.", "id", id, "ovalue", ovalue, "nvalue", value);
-        }
-    }
-
-    /**
-     * Stores an object in the map, logging a warning if we overwrite an existing entry.
-     */
-    protected void putObjectDepth (String depth, Object value)
-    {
-        Object ovalue = _depths.put(depth, value);
-        if (ovalue != null) {
-            log.warning("Duplicate depth detected.",
-                    "depth", depth, "ovalue", ovalue, "nvalue", value);
-        }
-    }
-
-    /**
-     * Returns the number of entries under the current element.
-     */
-    protected int countEntries ()
-    {
-        int count = 0;
-        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Element && node.getNodeName().equals("entry")) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Populates the supplied array with the entries under the current element.
-     */
-    protected void readEntries (Object[] array, Class<?> cclazz)
-        throws IOException
-    {
-        int idx = 0;
-        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Element && node.getNodeName().equals("entry")) {
-                array[idx++] = read((Element)node, cclazz);
-            }
-        }
-    }
-
-    /**
-     * Populates the supplied collection with the entries under the current element.
-     *
-     * @return a reference to the collection passed, for chaining.
-     */
-    protected Collection<Object> readEntries (Collection<Object> collection)
-        throws IOException
-    {
-        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Element && node.getNodeName().equals("entry")) {
-                collection.add(read((Element)node, Object.class));
-            }
-        }
-        return collection;
-    }
-
-    /**
-     * Populates the supplied multiset with the entries under the current element.
-     *
-     * @return a reference to the multiset passed, for chaining.
-     */
-    protected Multiset<Object> readEntries (Multiset<Object> multiset)
-        throws IOException
-    {
-        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Element && node.getNodeName().equals("element")) {
-                Object element = read((Element)node, Object.class);
-                for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
-                    if (node instanceof Element && node.getNodeName().equals("count")) {
-                        multiset.setCount(element, (Integer)read((Element)node, Integer.class));
-                        break;
-                    }
-                }
-            }
-        }
-        return multiset;
-    }
-
-    /**
-     * Populates the supplied map with the entries under the current element.
-     *
-     * @return a reference to the map passed, for chaining.
-     */
-    protected Map<Object, Object> readEntries (Map<Object, Object> map)
-        throws IOException
-    {
-        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Element && node.getNodeName().equals("key")) {
-                Object key = read((Element)node, Object.class);
-                for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
-                    if (node instanceof Element && node.getNodeName().equals("value")) {
-                        map.put(key, read((Element)node, Object.class));
-                        break;
-                    }
-                }
-            }
-        }
-        return map;
-    }
-
-    /**
-     * For simple text fields, retrieves the value from a child element.
-     */
-    protected String getValue (String name)
-    {
-        Element child = findElement(_element.getFirstChild(), name);
-        if (child == null) {
-            return null;
-        }
-        for (Node node = child.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Text) {
-                return node.getNodeValue();
-            }
-        }
+  /**
+   * Returns the named class, or null if not found.
+   */
+  protected Class<?> getClassByName (String cstr, Class<?> defval)
+  {
+    if (cstr.length() > 0) {
+      try {
+        return Class.forName(cstr);
+      } catch (ClassNotFoundException e) {
+        log.warning("Class not found.", e);
         return null;
+      }
     }
+    return defval;
+  }
 
-    /**
-     * Finds the first element in the sibling chain with the given name.
-     */
-    protected static Element findElement (Node first, String name)
-    {
-        for (Node node = first; node != null; node = node.getNextSibling()) {
-            if (node instanceof Element && node.getNodeName().equals(name)) {
-                return (Element)node;
-            }
+  /**
+   * Reads an object value of the specified class from the given element.
+   */
+  protected Object readValue (Element element, Class<?> clazz)
+    throws IOException
+  {
+    // see if we can read the value from a string
+    String id = element.getAttribute("id");
+    String depth = element.getAttribute("depth");
+    Class<?> cclazz = getClassByName(element.getAttribute("class"), clazz);
+    @SuppressWarnings("unchecked")
+    Stringifier<Object> stringifier = (Stringifier<Object>)Stringifier.getStringifier(cclazz);
+    if (stringifier != null) {
+      String string = element.getTextContent();
+      Object value = null;
+      try {
+        if ((value = stringifier.fromString(string)) == null) {
+          log.warning("Failed to parse string.", "string", string, "class", cclazz);
         }
-        return null;
+      } catch (Exception e) {
+        log.warning("Failed to parse string.", "string", string, "class", cclazz, e);
+      }
+      if (value != null) {
+        if (depth.length() > 0) {
+          putObjectDepth(depth, value);
+        }
+        if (id.length() > 0) {
+          putObject(id, value);
+        }
+      }
+      return value;
     }
+    // otherwise, process the element
+    Element oelement = _element;
+    _element = element;
+    try {
+      Object value;
+      boolean wasRead = false;
+      if (cclazz.isArray()) {
+        value = Array.newInstance(cclazz.getComponentType(), countEntries());
 
-    /** The source stream. */
-    protected InputStream _in;
+      } else if (cclazz == ImmutableList.class) {
+        value = ImmutableList.copyOf(readEntries(Lists.newArrayList()));
+        wasRead = true;
 
-    /** The parsed XML document. */
-    protected Document _document;
+      } else if (cclazz == ImmutableSet.class) {
+        value = ImmutableSet.copyOf(readEntries(Lists.newArrayList()));
+        wasRead = true;
 
-    /** The element associated with the current object. */
-    protected Element _element;
+      } else if (cclazz == ImmutableMap.class) {
+        value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
+        wasRead = true;
 
-    /** Mappings from ids to referenced objects. */
-    protected HashMap<String, Object> _objects = new HashMap<String, Object>();
-    protected HashMap<String, Object> _depths = new HashMap<String, Object>();
+      } else if (cclazz == ImmutableMultiset.class) {
+        value = ImmutableMultiset.copyOf(readEntries(HashMultiset.create()));
+        wasRead = true;
+
+      } else if (EnumSet.class.isAssignableFrom(cclazz)) {
+        @SuppressWarnings("unchecked") Class<Exporter.DummyEnum> eclazz =
+          (Class<Exporter.DummyEnum>)getClassByName(element.getAttribute("eclass"), null);
+        value = EnumSet.noneOf(eclazz);
+
+      } else {
+        value = ReflectionUtil.newInstance(cclazz,
+          ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
+      }
+      if (depth.length() > 0 && value != null) {
+        putObjectDepth(depth, value);
+      }
+      if (id.length() > 0) {
+        putObject(id, value);
+      }
+      if (wasRead) {
+        return value;
+      }
+      if (value instanceof Exportable) {
+        readFields((Exportable)value);
+      } else if (value instanceof Object[]) {
+        readEntries((Object[])value, cclazz.getComponentType());
+      } else if (value instanceof Collection) {
+        if (value instanceof Multiset) {
+          @SuppressWarnings("unchecked") Multiset<Object> multiset =
+            (Multiset<Object>)value;
+          readEntries(multiset);
+        } else {
+          @SuppressWarnings("unchecked") Collection<Object> collection =
+            (Collection<Object>)value;
+          readEntries(collection);
+        }
+      } else if (value instanceof Map) {
+        @SuppressWarnings("unchecked") Map<Object, Object> map =
+          (Map<Object, Object>)value;
+        readEntries(map);
+      }
+      return value;
+
+    } finally {
+      _element = oelement;
+      if (depth.length() > 0) {
+        _depths.remove(depth);
+      }
+    }
+  }
+
+  /**
+   * Stores an object in the map, logging a warning if we overwrite an existing entry.
+   */
+  protected void putObject (String id, Object value)
+  {
+    Object ovalue = _objects.put(id, value);
+    if (ovalue != null) {
+      log.warning("Duplicate id detected.", "id", id, "ovalue", ovalue, "nvalue", value);
+    }
+  }
+
+  /**
+   * Stores an object in the map, logging a warning if we overwrite an existing entry.
+   */
+  protected void putObjectDepth (String depth, Object value)
+  {
+    Object ovalue = _depths.put(depth, value);
+    if (ovalue != null) {
+      log.warning("Duplicate depth detected.",
+          "depth", depth, "ovalue", ovalue, "nvalue", value);
+    }
+  }
+
+  /**
+   * Returns the number of entries under the current element.
+   */
+  protected int countEntries ()
+  {
+    int count = 0;
+    for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (node instanceof Element && node.getNodeName().equals("entry")) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Populates the supplied array with the entries under the current element.
+   */
+  protected void readEntries (Object[] array, Class<?> cclazz)
+    throws IOException
+  {
+    int idx = 0;
+    for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (node instanceof Element && node.getNodeName().equals("entry")) {
+        array[idx++] = read((Element)node, cclazz);
+      }
+    }
+  }
+
+  /**
+   * Populates the supplied collection with the entries under the current element.
+   *
+   * @return a reference to the collection passed, for chaining.
+   */
+  protected Collection<Object> readEntries (Collection<Object> collection)
+    throws IOException
+  {
+    for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (node instanceof Element && node.getNodeName().equals("entry")) {
+        collection.add(read((Element)node, Object.class));
+      }
+    }
+    return collection;
+  }
+
+  /**
+   * Populates the supplied multiset with the entries under the current element.
+   *
+   * @return a reference to the multiset passed, for chaining.
+   */
+  protected Multiset<Object> readEntries (Multiset<Object> multiset)
+    throws IOException
+  {
+    for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (node instanceof Element && node.getNodeName().equals("element")) {
+        Object element = read((Element)node, Object.class);
+        for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
+          if (node instanceof Element && node.getNodeName().equals("count")) {
+            multiset.setCount(element, (Integer)read((Element)node, Integer.class));
+            break;
+          }
+        }
+      }
+    }
+    return multiset;
+  }
+
+  /**
+   * Populates the supplied map with the entries under the current element.
+   *
+   * @return a reference to the map passed, for chaining.
+   */
+  protected Map<Object, Object> readEntries (Map<Object, Object> map)
+    throws IOException
+  {
+    for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (node instanceof Element && node.getNodeName().equals("key")) {
+        Object key = read((Element)node, Object.class);
+        for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
+          if (node instanceof Element && node.getNodeName().equals("value")) {
+            map.put(key, read((Element)node, Object.class));
+            break;
+          }
+        }
+      }
+    }
+    return map;
+  }
+
+  /**
+   * For simple text fields, retrieves the value from a child element.
+   */
+  protected String getValue (String name)
+  {
+    Element child = findElement(_element.getFirstChild(), name);
+    if (child == null) {
+      return null;
+    }
+    for (Node node = child.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (node instanceof Text) {
+        return node.getNodeValue();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Finds the first element in the sibling chain with the given name.
+   */
+  protected static Element findElement (Node first, String name)
+  {
+    for (Node node = first; node != null; node = node.getNextSibling()) {
+      if (node instanceof Element && node.getNodeName().equals(name)) {
+        return (Element)node;
+      }
+    }
+    return null;
+  }
+
+  /** The source stream. */
+  protected InputStream _in;
+
+  /** The parsed XML document. */
+  protected Document _document;
+
+  /** The element associated with the current object. */
+  protected Element _element;
+
+  /** Mappings from ids to referenced objects. */
+  protected HashMap<String, Object> _objects = new HashMap<String, Object>();
+  protected HashMap<String, Object> _depths = new HashMap<String, Object>();
 }

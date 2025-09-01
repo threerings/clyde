@@ -44,100 +44,100 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({ TargetConfig.Texture.class })
 public abstract class TargetConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /** The available target inputs: either nothing or the result of the previous post effect. */
-    public enum Input { NONE, PREVIOUS };
+  /** The available target inputs: either nothing or the result of the previous post effect. */
+  public enum Input { NONE, PREVIOUS };
+
+  /**
+   * Renders to a (color and/or depth) texture.
+   */
+  public static class Texture extends TargetConfig
+  {
+    /** The color texture to which we render. */
+    @Editable(weight=-1, nullable=true)
+    public ConfigReference<TextureConfig> color;
+
+    /** The depth texture to which we render. */
+    @Editable(weight=-1, nullable=true)
+    public ConfigReference<TextureConfig> depth;
+
+    /** The number of depth bits to request. */
+    @Editable(min=0, weight=-1, hgroup="b")
+    public int depthBits;
+
+    /** The number of stencil bits to request. */
+    @Editable(min=0, weight=-1, hgroup="b")
+    public int stencilBits;
 
     /**
-     * Renders to a (color and/or depth) texture.
+     * Retrieves the texture renderer for this config.
      */
-    public static class Texture extends TargetConfig
+    public TextureRenderer getTextureRenderer (GlContext ctx)
     {
-        /** The color texture to which we render. */
-        @Editable(weight=-1, nullable=true)
-        public ConfigReference<TextureConfig> color;
-
-        /** The depth texture to which we render. */
-        @Editable(weight=-1, nullable=true)
-        public ConfigReference<TextureConfig> depth;
-
-        /** The number of depth bits to request. */
-        @Editable(min=0, weight=-1, hgroup="b")
-        public int depthBits;
-
-        /** The number of stencil bits to request. */
-        @Editable(min=0, weight=-1, hgroup="b")
-        public int stencilBits;
-
-        /**
-         * Retrieves the texture renderer for this config.
-         */
-        public TextureRenderer getTextureRenderer (GlContext ctx)
-        {
-            TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
-            com.threerings.opengl.renderer.Texture ctex =
-                (cconfig == null) ? null : cconfig.getTexture(ctx);
-            TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
-            com.threerings.opengl.renderer.Texture dtex =
-                (dconfig == null) ? null : dconfig.getTexture(ctx);
-            int alphaBits = (ctex != null && ctex.hasAlpha()) ? 1 : 0;
-            return TextureRenderer.getInstance(
-                ctx, ctex, dtex, new PixelFormat(alphaBits, depthBits, stencilBits));
-        }
-
-        @Override
-        public boolean isSupported (GlContext ctx, boolean fallback)
-        {
-            TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
-            TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
-            return (cconfig != null || dconfig != null) &&
-                (cconfig == null || cconfig.isSupported(ctx, fallback)) &&
-                (dconfig == null || dconfig.isSupported(ctx, fallback));
-        }
-
-        @Override
-        public RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope)
-        {
-            return new RenderEffect.TextureTarget(ctx, scope, this);
-        }
+      TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
+      com.threerings.opengl.renderer.Texture ctex =
+        (cconfig == null) ? null : cconfig.getTexture(ctx);
+      TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
+      com.threerings.opengl.renderer.Texture dtex =
+        (dconfig == null) ? null : dconfig.getTexture(ctx);
+      int alphaBits = (ctex != null && ctex.hasAlpha()) ? 1 : 0;
+      return TextureRenderer.getInstance(
+        ctx, ctex, dtex, new PixelFormat(alphaBits, depthBits, stencilBits));
     }
 
-    /**
-     * Renders to the effect output.
-     */
-    public static class Output extends TargetConfig
-    {
-        @Override
-        public RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope)
-        {
-            return new RenderEffect.OutputTarget(ctx, scope, this);
-        }
-    }
-
-    /** The input to the target. */
-    @Editable
-    public Input input = Input.PREVIOUS;
-
-    /** The steps required to update the target. */
-    @Editable
-    public StepConfig[] steps = new StepConfig[0];
-
-    /**
-     * Determines whether this target config is supported by the hardware.
-     */
+    @Override
     public boolean isSupported (GlContext ctx, boolean fallback)
     {
-        for (StepConfig step : steps) {
-            if (!step.isSupported(ctx, fallback)) {
-                return false;
-            }
-        }
-        return true;
+      TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
+      TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
+      return (cconfig != null || dconfig != null) &&
+        (cconfig == null || cconfig.isSupported(ctx, fallback)) &&
+        (dconfig == null || dconfig.isSupported(ctx, fallback));
     }
 
-    /**
-     * Creates the effect target for this config.
-     */
-    public abstract RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope);
+    @Override
+    public RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope)
+    {
+      return new RenderEffect.TextureTarget(ctx, scope, this);
+    }
+  }
+
+  /**
+   * Renders to the effect output.
+   */
+  public static class Output extends TargetConfig
+  {
+    @Override
+    public RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope)
+    {
+      return new RenderEffect.OutputTarget(ctx, scope, this);
+    }
+  }
+
+  /** The input to the target. */
+  @Editable
+  public Input input = Input.PREVIOUS;
+
+  /** The steps required to update the target. */
+  @Editable
+  public StepConfig[] steps = new StepConfig[0];
+
+  /**
+   * Determines whether this target config is supported by the hardware.
+   */
+  public boolean isSupported (GlContext ctx, boolean fallback)
+  {
+    for (StepConfig step : steps) {
+      if (!step.isSupported(ctx, fallback)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Creates the effect target for this config.
+   */
+  public abstract RenderEffect.Target createEffectTarget (GlContext ctx, Scope scope);
 }

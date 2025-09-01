@@ -45,114 +45,114 @@ import static com.threerings.opengl.Log.log;
  */
 public class ImageCache extends ResourceCache
 {
-    /**
-     * Creates a new image cache.
-     *
-     * @param checkTimestamps if true, check the last-modified timestamp of each resource file
-     * when we retrieve it from the cache, reloading the resource if the file has been modified
-     * externally.
-     */
-    public ImageCache (GlContext ctx, boolean checkTimestamps)
+  /**
+   * Creates a new image cache.
+   *
+   * @param checkTimestamps if true, check the last-modified timestamp of each resource file
+   * when we retrieve it from the cache, reloading the resource if the file has been modified
+   * externally.
+   */
+  public ImageCache (GlContext ctx, boolean checkTimestamps)
+  {
+    super(ctx, checkTimestamps);
+  }
+
+  /**
+   * Retrieves a GUI image from the cache.
+   */
+  public Image getImage (String path, Colorization... zations)
+  {
+    return _images.getResource(new ImageKey(path, zations));
+  }
+
+  /**
+   * Retrieves a buffered image from the cache.
+   */
+  public BufferedImage getBufferedImage (String path, Colorization... zations)
+  {
+    return _buffered.getResource(new ImageKey(path, zations));
+  }
+
+  /**
+   * Clears the cache, forcing resources to be reloaded.
+   */
+  public void clear ()
+  {
+    _images.clear();
+    _buffered.clear();
+  }
+
+  /**
+   * Identifies a cached image.
+   */
+  protected static class ImageKey
+  {
+    /** The path of the image resource. */
+    public String path;
+
+    /** The colorizations to apply to the image. */
+    public Colorization[] zations;
+
+    public ImageKey (String path, Colorization[] zations)
     {
-        super(ctx, checkTimestamps);
+      this.path = path;
+      this.zations = zations;
     }
 
-    /**
-     * Retrieves a GUI image from the cache.
-     */
-    public Image getImage (String path, Colorization... zations)
+    @Override
+    public int hashCode ()
     {
-        return _images.getResource(new ImageKey(path, zations));
+      return path.hashCode() ^ Arrays.hashCode(zations);
     }
 
-    /**
-     * Retrieves a buffered image from the cache.
-     */
-    public BufferedImage getBufferedImage (String path, Colorization... zations)
+    @Override
+    public boolean equals (Object other)
     {
-        return _buffered.getResource(new ImageKey(path, zations));
+      ImageKey okey = (ImageKey)other;
+      return path.equals(okey.path) && Arrays.equals(zations, okey.zations);
     }
+  }
 
-    /**
-     * Clears the cache, forcing resources to be reloaded.
-     */
-    public void clear ()
-    {
-        _images.clear();
-        _buffered.clear();
+  /** The GUI image subcache. */
+  protected Subcache<ImageKey, Image> _images = new Subcache<ImageKey, Image>() {
+    protected Image loadResource (ImageKey key) {
+      if (key.path.endsWith(".dds")) {
+        Texture2D texture = new Texture2D(_ctx.getRenderer());
+        try {
+          DDSLoader.load(_ctx.getResourceManager().getResourceFile(key.path),
+            texture, false);
+          Image.configureTexture(texture);
+          return new Image(texture);
+        } catch (IOException e) {
+          // fall through to buffered image loader
+        }
+      }
+      return new Image(_buffered.getResource(key));
     }
-
-    /**
-     * Identifies a cached image.
-     */
-    protected static class ImageKey
-    {
-        /** The path of the image resource. */
-        public String path;
-
-        /** The colorizations to apply to the image. */
-        public Colorization[] zations;
-
-        public ImageKey (String path, Colorization[] zations)
-        {
-            this.path = path;
-            this.zations = zations;
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return path.hashCode() ^ Arrays.hashCode(zations);
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            ImageKey okey = (ImageKey)other;
-            return path.equals(okey.path) && Arrays.equals(zations, okey.zations);
-        }
+    protected String getResourcePath (ImageKey key) {
+      return key.path;
     }
+  };
 
-    /** The GUI image subcache. */
-    protected Subcache<ImageKey, Image> _images = new Subcache<ImageKey, Image>() {
-        protected Image loadResource (ImageKey key) {
-            if (key.path.endsWith(".dds")) {
-                Texture2D texture = new Texture2D(_ctx.getRenderer());
-                try {
-                    DDSLoader.load(_ctx.getResourceManager().getResourceFile(key.path),
-                        texture, false);
-                    Image.configureTexture(texture);
-                    return new Image(texture);
-                } catch (IOException e) {
-                    // fall through to buffered image loader
-                }
-            }
-            return new Image(_buffered.getResource(key));
+  /** The buffered image subcache. */
+  protected Subcache<ImageKey, BufferedImage> _buffered =
+    new Subcache<ImageKey, BufferedImage>() {
+    protected BufferedImage loadResource (ImageKey key) {
+      if (key.zations.length > 0) {
+        return ImageUtil.recolorImage(getBufferedImage(key.path), key.zations);
+      }
+      BufferedImage image = null;
+      try {
+        if ((image = _ctx.getResourceManager().getImageResource(key.path)) == null) {
+          log.warning("Unknown image format.", "path", key.path);
         }
-        protected String getResourcePath (ImageKey key) {
-            return key.path;
-        }
-    };
-
-    /** The buffered image subcache. */
-    protected Subcache<ImageKey, BufferedImage> _buffered =
-        new Subcache<ImageKey, BufferedImage>() {
-        protected BufferedImage loadResource (ImageKey key) {
-            if (key.zations.length > 0) {
-                return ImageUtil.recolorImage(getBufferedImage(key.path), key.zations);
-            }
-            BufferedImage image = null;
-            try {
-                if ((image = _ctx.getResourceManager().getImageResource(key.path)) == null) {
-                    log.warning("Unknown image format.", "path", key.path);
-                }
-            } catch (IOException e) {
-                log.warning("Failed to read image.", "path", key.path, e);
-            }
-            return (image == null) ? ImageUtil.createErrorImage(64, 64) : image;
-        }
-        protected String getResourcePath (ImageKey key) {
-            return key.path;
-        }
-    };
+      } catch (IOException e) {
+        log.warning("Failed to read image.", "path", key.path, e);
+      }
+      return (image == null) ? ImageUtil.createErrorImage(64, 64) : image;
+    }
+    protected String getResourcePath (ImageKey key) {
+      return key.path;
+    }
+  };
 }

@@ -30,8 +30,8 @@ package com.threerings.opengl.compositor;
  */
 public interface Enqueueable
 {
-    /**
-     * Enqueues this object for rendering.
-     */
-    public void enqueue ();
+  /**
+   * Enqueues this object for rendering.
+   */
+  public void enqueue ();
 }

@@ -49,62 +49,62 @@ import static com.threerings.editor.Log.log;
  * Editor for simple string config references.
  */
 public class ConfigEditor extends PropertyEditor
-    implements ActionListener
+  implements ActionListener
 {
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        Object value = _box.getSelectedConfig();
-        if (!Objects.equal(_property.get(_object), value)) {
-            _property.set(_object, value);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    Object value = _box.getSelectedConfig();
+    if (!Objects.equal(_property.get(_object), value)) {
+      _property.set(_object, value);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _box.setSelectedConfig((String)_property.get(_object));
+  @Override
+  public void update ()
+  {
+    _box.setSelectedConfig((String)_property.get(_object));
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    add(new JLabel(getPropertyLabel() + ":"));
+
+    // look for a @Reference annotation
+    Reference ref = _property.getAnnotation(Reference.class);
+    ConfigGroup<?>[] groups = (ref != null)
+        ? _ctx.getConfigManager().getGroups(ref.value()) // new way
+        : _ctx.getConfigManager().getGroups(getMode()); // old way
+    if (groups.length == 0) {
+      log.warning("Missing groups for config editor.",
+          "type", (ref != null) ? ref.value() : getMode());
+      return;
     }
+    _box = new ConfigBox(
+        _msgs, groups, _property.nullable(),
+        _property.getAnnotation(ReferenceConstraints.class),
+        new Supplier<Predicate<? super ManagedConfig>>() {
+              public Predicate<? super ManagedConfig> get () {
+                // if we're not editing a ManagedConfig, anything goes
+                if (!(_object instanceof ManagedConfig)) {
+                  return Predicates.alwaysTrue();
+                }
+                // if we are, don't let ourselves be referenced
+                final ManagedConfig ourCfg = (ManagedConfig)_object;
+                return new Predicate<ManagedConfig>() {
+                  public boolean apply (ManagedConfig cfg) {
+                    return (ourCfg.getName() != cfg.getName()) ||
+                        (ourCfg.getConfigGroup() != cfg.getConfigGroup());
+                  }
+                };
+              }
+            });
+    _box.addActionListener(this);
+    add(_box);
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        add(new JLabel(getPropertyLabel() + ":"));
-
-        // look for a @Reference annotation
-        Reference ref = _property.getAnnotation(Reference.class);
-        ConfigGroup<?>[] groups = (ref != null)
-                ? _ctx.getConfigManager().getGroups(ref.value()) // new way
-                : _ctx.getConfigManager().getGroups(getMode()); // old way
-        if (groups.length == 0) {
-            log.warning("Missing groups for config editor.",
-                    "type", (ref != null) ? ref.value() : getMode());
-            return;
-        }
-        _box = new ConfigBox(
-                _msgs, groups, _property.nullable(),
-                _property.getAnnotation(ReferenceConstraints.class),
-                new Supplier<Predicate<? super ManagedConfig>>() {
-                            public Predicate<? super ManagedConfig> get () {
-                                // if we're not editing a ManagedConfig, anything goes
-                                if (!(_object instanceof ManagedConfig)) {
-                                    return Predicates.alwaysTrue();
-                                }
-                                // if we are, don't let ourselves be referenced
-                                final ManagedConfig ourCfg = (ManagedConfig)_object;
-                                return new Predicate<ManagedConfig>() {
-                                    public boolean apply (ManagedConfig cfg) {
-                                        return (ourCfg.getName() != cfg.getName()) ||
-                                                (ourCfg.getConfigGroup() != cfg.getConfigGroup());
-                                    }
-                                };
-                            }
-                        });
-        _box.addActionListener(this);
-        add(_box);
-    }
-
-    /** The combo box. */
-    protected ConfigBox _box;
+  /** The combo box. */
+  protected ConfigBox _box;
 }

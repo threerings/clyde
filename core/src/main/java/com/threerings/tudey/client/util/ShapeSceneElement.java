@@ -44,76 +44,76 @@ import com.threerings.tudey.shape.Shape;
  */
 public class ShapeSceneElement extends SimpleSceneElement
 {
-    /**
-     * Creates a new shape scene element.
-     */
-    public ShapeSceneElement (GlContext ctx, boolean outline)
-    {
-        super(ctx);
-        _outline = outline;
+  /**
+   * Creates a new shape scene element.
+   */
+  public ShapeSceneElement (GlContext ctx, boolean outline)
+  {
+    super(ctx);
+    _outline = outline;
+  }
+
+  /**
+   * Sets the shape to draw.
+   */
+  public void setShape (Shape shape)
+  {
+    _shape = shape;
+    updateBounds();
+  }
+
+  /**
+   * Returns a reference to the shape being drawn.
+   */
+  public Shape getShape ()
+  {
+    return _shape;
+  }
+
+  /**
+   * Returns a reference to the color.
+   */
+  public Color4f getColor ()
+  {
+    ColorState cstate = (ColorState)_batch.getStates()[RenderState.COLOR_STATE];
+    return cstate.getColor();
+  }
+
+  @Override
+  protected RenderState[] createStates ()
+  {
+    RenderState[] states = super.createStates();
+    states[RenderState.COLOR_STATE] = new ColorState();
+    states[RenderState.LINE_STATE] = LineState.getInstance(3f);
+    states[RenderState.POINT_STATE] = PointState.getInstance(3f);
+    return states;
+  }
+
+  @Override
+  protected void computeBounds (Box result)
+  {
+    if (_shape == null) {
+      result.setToEmpty();
+      return;
     }
+    Rect bounds = _shape.getBounds();
+    Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+    result.getMinimumExtent().set(min.x, min.y, 0f);
+    result.getMaximumExtent().set(max.x, max.y, 0f);
+    result.transformLocal(_transform);
+  }
 
-    /**
-     * Sets the shape to draw.
-     */
-    public void setShape (Shape shape)
-    {
-        _shape = shape;
-        updateBounds();
+  @Override
+  protected void draw ()
+  {
+    if (_shape != null) {
+      _shape.draw(_outline);
     }
+  }
 
-    /**
-     * Returns a reference to the shape being drawn.
-     */
-    public Shape getShape ()
-    {
-        return _shape;
-    }
+  /** The shape to draw, or <code>null</code> for none. */
+  protected Shape _shape;
 
-    /**
-     * Returns a reference to the color.
-     */
-    public Color4f getColor ()
-    {
-        ColorState cstate = (ColorState)_batch.getStates()[RenderState.COLOR_STATE];
-        return cstate.getColor();
-    }
-
-    @Override
-    protected RenderState[] createStates ()
-    {
-        RenderState[] states = super.createStates();
-        states[RenderState.COLOR_STATE] = new ColorState();
-        states[RenderState.LINE_STATE] = LineState.getInstance(3f);
-        states[RenderState.POINT_STATE] = PointState.getInstance(3f);
-        return states;
-    }
-
-    @Override
-    protected void computeBounds (Box result)
-    {
-        if (_shape == null) {
-            result.setToEmpty();
-            return;
-        }
-        Rect bounds = _shape.getBounds();
-        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        result.getMinimumExtent().set(min.x, min.y, 0f);
-        result.getMaximumExtent().set(max.x, max.y, 0f);
-        result.transformLocal(_transform);
-    }
-
-    @Override
-    protected void draw ()
-    {
-        if (_shape != null) {
-            _shape.draw(_outline);
-        }
-    }
-
-    /** The shape to draw, or <code>null</code> for none. */
-    protected Shape _shape;
-
-    /** Whether or not to draw the shape in outline mode. */
-    protected boolean _outline;
+  /** Whether or not to draw the shape in outline mode. */
+  protected boolean _outline;
 }

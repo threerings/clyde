@@ -64,146 +64,146 @@ import static com.threerings.tudey.Log.log;
 @Singleton
 public class ToolServer extends TudeyServer
 {
-    /** Configures dependencies needed by the local server. */
-    public static class ToolModule extends TudeyModule
+  /** Configures dependencies needed by the local server. */
+  public static class ToolModule extends TudeyModule
+  {
+    public ToolModule (Client client)
     {
-        public ToolModule (Client client)
-        {
-            _client = client;
+      _client = client;
+    }
+
+    @Override protected void configure ()
+    {
+      super.configure();
+      bind(TudeyServer.class).to(ToolServer.class);
+      bind(PresentsDObjectMgr.class).to(LocalDObjectMgr.class);
+      bind(Client.class).toInstance(_client);
+      bind(SceneRepository.class).to(ToolSceneRepository.class);
+      bind(SceneRegistry.ConfigFactory.class).toInstance(new SceneRegistry.ConfigFactory() {
+        public PlaceConfig createPlaceConfig (SceneModel model) {
+          return new ToolSceneConfig();
         }
-
-        @Override protected void configure ()
-        {
-            super.configure();
-            bind(TudeyServer.class).to(ToolServer.class);
-            bind(PresentsDObjectMgr.class).to(LocalDObjectMgr.class);
-            bind(Client.class).toInstance(_client);
-            bind(SceneRepository.class).to(ToolSceneRepository.class);
-            bind(SceneRegistry.ConfigFactory.class).toInstance(new SceneRegistry.ConfigFactory() {
-                public PlaceConfig createPlaceConfig (SceneModel model) {
-                    return new ToolSceneConfig();
-                }
-            });
-        }
-
-        @Override
-        protected boolean shouldInitConfigManager ()
-        {
-            return false; // will be configured on application init
-        }
-
-        protected Client _client;
-    }
-
-    /**
-     * Returns a reference to the server resource manager.
-     */
-    public ResourceManager getResourceManager ()
-    {
-        return _rsrcmgr;
-    }
-
-    /**
-     * Returns a reference to the server config manager.
-     */
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
-    }
-
-    /**
-     * Returns a reference to the server color pository.
-     */
-    public ColorPository getColorPository ()
-    {
-        return _colorpos;
-    }
-
-    /**
-     * Returns a reference to the scene repository.
-     */
-    public ToolSceneRepository getSceneRepository ()
-    {
-        return _scenerepo;
+      });
     }
 
     @Override
-    public void init (Injector injector)
-        throws Exception
+    protected boolean shouldInitConfigManager ()
     {
-        super.init(injector);
-
-        // configure the client manager to use the appropriate client object class
-        _clmgr.setDefaultSessionFactory(new SessionFactory() {
-            public Class<? extends PresentsSession> getSessionClass (AuthRequest areq) {
-                return WhirledSession.class;
-            }
-            public Class<? extends ClientResolver> getClientResolverClass (Name username) {
-                return ToolClientResolver.class;
-            }
-        });
+      return false; // will be configured on application init
     }
 
-    /**
-     * Called to cause the standalone client to "logon."
-     */
-    public void startStandaloneClient (Name username)
+    protected Client _client;
+  }
+
+  /**
+   * Returns a reference to the server resource manager.
+   */
+  public ResourceManager getResourceManager ()
+  {
+    return _rsrcmgr;
+  }
+
+  /**
+   * Returns a reference to the server config manager.
+   */
+  public ConfigManager getConfigManager ()
+  {
+    return _cfgmgr;
+  }
+
+  /**
+   * Returns a reference to the server color pository.
+   */
+  public ColorPository getColorPository ()
+  {
+    return _colorpos;
+  }
+
+  /**
+   * Returns a reference to the scene repository.
+   */
+  public ToolSceneRepository getSceneRepository ()
+  {
+    return _scenerepo;
+  }
+
+  @Override
+  public void init (Injector injector)
+    throws Exception
+  {
+    super.init(injector);
+
+    // configure the client manager to use the appropriate client object class
+    _clmgr.setDefaultSessionFactory(new SessionFactory() {
+      public Class<? extends PresentsSession> getSessionClass (AuthRequest areq) {
+        return WhirledSession.class;
+      }
+      public Class<? extends ClientResolver> getClientResolverClass (Name username) {
+        return ToolClientResolver.class;
+      }
+    });
+  }
+
+  /**
+   * Called to cause the standalone client to "logon."
+   */
+  public void startStandaloneClient (Name username)
+  {
+    // create our client object
+    ClientResolutionListener clr = new ClientResolutionListener() {
+      public void clientResolved (Name username, ClientObject clobj) {
+        // flag the client as standalone
+        String[] groups = _client.prepareStandaloneLogon();
+
+        // fake up a bootstrap; I need to expose the mechanisms in Presents that create it
+        // in a network environment
+        BootstrapData data = new BootstrapData();
+        data.clientOid = clobj.getOid();
+        data.services = _invmgr.getBootstrapServices(groups);
+
+        // and configure the client to use the server's distributed object manager
+        _client.standaloneLogon(
+          data, ((LocalDObjectMgr)_omgr).getClientDObjectMgr(clobj.getOid()));
+      }
+      public void resolutionFailed (Name username, Exception cause) {
+        log.warning("Failed to resolve client.", "who", username, cause);
+      }
+    };
+    _clmgr.resolveClientObject(username, clr);
+  }
+
+  /**
+   * Called to cause the standalone client to "logoff."
+   */
+  public void stopStandaloneClient ()
+  {
+    _client.standaloneLogoff();
+  }
+
+  /**
+   * Client resolver class.
+   */
+  protected static class ToolClientResolver extends CrowdClientResolver
+  {
+    @Override
+    public ClientObject createClientObject ()
     {
-        // create our client object
-        ClientResolutionListener clr = new ClientResolutionListener() {
-            public void clientResolved (Name username, ClientObject clobj) {
-                // flag the client as standalone
-                String[] groups = _client.prepareStandaloneLogon();
-
-                // fake up a bootstrap; I need to expose the mechanisms in Presents that create it
-                // in a network environment
-                BootstrapData data = new BootstrapData();
-                data.clientOid = clobj.getOid();
-                data.services = _invmgr.getBootstrapServices(groups);
-
-                // and configure the client to use the server's distributed object manager
-                _client.standaloneLogon(
-                    data, ((LocalDObjectMgr)_omgr).getClientDObjectMgr(clobj.getOid()));
-            }
-            public void resolutionFailed (Name username, Exception cause) {
-                log.warning("Failed to resolve client.", "who", username, cause);
-            }
-        };
-        _clmgr.resolveClientObject(username, clr);
+      return new TudeyBodyObject();
     }
+  }
 
-    /**
-     * Called to cause the standalone client to "logoff."
-     */
-    public void stopStandaloneClient ()
-    {
-        _client.standaloneLogoff();
-    }
+  /** The standalone client. */
+  @Inject protected Client _client;
 
-    /**
-     * Client resolver class.
-     */
-    protected static class ToolClientResolver extends CrowdClientResolver
-    {
-        @Override
-        public ClientObject createClientObject ()
-        {
-            return new TudeyBodyObject();
-        }
-    }
+  /** The server's resource manager. */
+  @Inject protected ResourceManager _rsrcmgr;
 
-    /** The standalone client. */
-    @Inject protected Client _client;
+  /** The server's config manager. */
+  @Inject protected ConfigManager _cfgmgr;
 
-    /** The server's resource manager. */
-    @Inject protected ResourceManager _rsrcmgr;
+  /** The server's color pository. */
+  @Inject protected ColorPository _colorpos;
 
-    /** The server's config manager. */
-    @Inject protected ConfigManager _cfgmgr;
-
-    /** The server's color pository. */
-    @Inject protected ColorPository _colorpos;
-
-    /** The scene repository. */
-    @Inject protected ToolSceneRepository _scenerepo;
+  /** The scene repository. */
+  @Inject protected ToolSceneRepository _scenerepo;
 }

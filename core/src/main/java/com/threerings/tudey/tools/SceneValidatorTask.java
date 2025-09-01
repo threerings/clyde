@@ -42,28 +42,28 @@ import static com.threerings.tudey.Log.log;
  */
 public class SceneValidatorTask extends AbstractValidatorTask
 {
-    @Override
-    protected boolean validate (ConfigManager cfgmgr, Iterable<File> files, Validator validator)
-    {
-        boolean valid = true;
+  @Override
+  protected boolean validate (ConfigManager cfgmgr, Iterable<File> files, Validator validator)
+  {
+    boolean valid = true;
 
-        for (File source : files) {
-            try {
-                TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
-                        new FileInputStream(source)).readObject();
-                model.getConfigManager().init("scene", cfgmgr);
-                validator.pushWhere("Scene: " + source);
-                try {
-                    valid &= model.validateReferences(validator);
-                } finally {
-                    validator.popWhere();
-                }
-
-            } catch (Exception e) { // IOException, ClassCastException
-                log.warning("Failed to read scene.", "file", source, e);
-            }
+    for (File source : files) {
+      try {
+        TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
+            new FileInputStream(source)).readObject();
+        model.getConfigManager().init("scene", cfgmgr);
+        validator.pushWhere("Scene: " + source);
+        try {
+          valid &= model.validateReferences(validator);
+        } finally {
+          validator.popWhere();
         }
 
-        return valid;
+      } catch (Exception e) { // IOException, ClassCastException
+        log.warning("Failed to read scene.", "file", source, e);
+      }
     }
+
+    return valid;
+  }
 }

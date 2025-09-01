@@ -41,39 +41,39 @@ import com.threerings.editor.swing.Vector3fPanel;
  * Editor for vector properties.
  */
 public class Vector3fEditor extends PropertyEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        Vector3f value = _panel.getValue();
-        if (!_property.get(_object).equals(value)) {
-            _property.set(_object, value);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    Vector3f value = _panel.getValue();
+    if (!_property.get(_object).equals(value)) {
+      _property.set(_object, value);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _panel.setValue((Vector3f)_property.get(_object));
-    }
+  @Override
+  public void update ()
+  {
+    _panel.setValue((Vector3f)_property.get(_object));
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setTitle(getPropertyLabel());
-        String mstr = getMode();
-        Vector3fPanel.Mode mode = Vector3fPanel.Mode.CARTESIAN;
-        try {
-            mode = Enum.valueOf(Vector3fPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
-        } catch (IllegalArgumentException e) { }
-        add(_panel = new Vector3fPanel(_msgs, mode, (float)getStep(), (float)getScale()));
-        _panel.setBackground(getDarkerBackground(_lineage.length));
-        _panel.addChangeListener(this);
-    }
+  @Override
+  protected void didInit ()
+  {
+    setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+    setTitle(getPropertyLabel());
+    String mstr = getMode();
+    Vector3fPanel.Mode mode = Vector3fPanel.Mode.CARTESIAN;
+    try {
+      mode = Enum.valueOf(Vector3fPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+    } catch (IllegalArgumentException e) { }
+    add(_panel = new Vector3fPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+    _panel.setBackground(getDarkerBackground(_lineage.length));
+    _panel.addChangeListener(this);
+  }
 
-    /** The vector panel. */
-    protected Vector3fPanel _panel;
+  /** The vector panel. */
+  protected Vector3fPanel _panel;
 }

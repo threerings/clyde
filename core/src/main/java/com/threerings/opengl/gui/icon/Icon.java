@@ -32,14 +32,14 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public abstract class Icon
 {
-    /** Returns the width of this icon. */
-    public abstract int getWidth ();
+  /** Returns the width of this icon. */
+  public abstract int getWidth ();
 
-    /** Returns the height of this icon. */
-    public abstract int getHeight ();
+  /** Returns the height of this icon. */
+  public abstract int getHeight ();
 
-    /** Renders this icon. */
-    public void render (Renderer renderer, int x, int y, float alpha)
-    {
-    }
+  /** Renders this icon. */
+  public void render (Renderer renderer, int x, int y, float alpha)
+  {
+  }
 }

@@ -35,128 +35,128 @@ import com.threerings.util.DeepObject;
  * A reference to a configuration that can be embedded in, for example, other configurations.
  */
 public class ConfigReference<T extends ManagedConfig> extends DeepObject
-    implements Exportable, Streamable
+  implements Exportable, Streamable
 {
-    /**
-     * Creates a new reference to the named configuration.
-     */
-    public ConfigReference (String name)
-    {
-        _name = name;
+  /**
+   * Creates a new reference to the named configuration.
+   */
+  public ConfigReference (String name)
+  {
+    _name = name;
+  }
+
+  /**
+   * Creates a new reference to the named configuration with the specified arguments.
+   */
+  public ConfigReference (String name, String firstKey, Object firstValue, Object... otherArgs)
+  {
+    _name = name;
+    _arguments.put(firstKey, firstValue);
+    for (int ii = 0; ii < otherArgs.length; ii += 2) {
+      _arguments.put((String)otherArgs[ii], otherArgs[ii + 1]);
     }
+  }
 
-    /**
-     * Creates a new reference to the named configuration with the specified arguments.
-     */
-    public ConfigReference (String name, String firstKey, Object firstValue, Object... otherArgs)
-    {
-        _name = name;
-        _arguments.put(firstKey, firstValue);
-        for (int ii = 0; ii < otherArgs.length; ii += 2) {
-            _arguments.put((String)otherArgs[ii], otherArgs[ii + 1]);
-        }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public ConfigReference ()
+  {
+  }
+
+  /**
+   * Returns the name of the referenced config.
+   */
+  public String getName ()
+  {
+    return _name;
+  }
+
+  /**
+   * Returns a reference to the argument map.
+   */
+  public ArgumentMap getArguments ()
+  {
+    return _arguments;
+  }
+
+  /**
+   * Fluent method to get the config.
+   */
+  public T getConfig (ConfigManager cfgMgr, Class<T> token)
+  {
+    return cfgMgr.getConfig(token, this);
+  }
+
+  @Override
+  public Object copy (Object dest)
+  {
+    ConfigReference<?> cref;
+    if (dest instanceof ConfigReference) {
+      cref = (ConfigReference<?>)dest;
+      cref._name = _name;
+    } else {
+      cref = new ConfigReference<T>(_name);
     }
+    _arguments.copy(cref.getArguments());
+    return cref;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public ConfigReference ()
-    {
+  @Override
+  public boolean equals (Object other)
+  {
+    if (!(other instanceof ConfigReference)) {
+      return false;
     }
+    ConfigReference<?> oref = (ConfigReference<?>)other;
+    return _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
+  }
 
-    /**
-     * Returns the name of the referenced config.
-     */
-    public String getName ()
-    {
-        return _name;
+  @Override
+  public int hashCode ()
+  {
+    return 31*_name.hashCode() + _arguments.hashCode();
+  }
+
+  @Override
+  public String toString ()
+  {
+    return "[name=" + _name + ", arguments=" + _arguments + "]";
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public ConfigReference<T> clone ()
+  {
+    return (ConfigReference<T>)super.clone();
+  }
+
+  /**
+   * Clone this reference, and add the specified argument to the cloned instance.
+   */
+  public ConfigReference<T> clone (String arg, Object value)
+  {
+    ConfigReference<T> that = clone();
+    that.getArguments().put(arg, value);
+    return that;
+  }
+
+  /**
+   * Clone this reference, and add the specified arguments to the cloned instance.
+   */
+  public ConfigReference<T> clone (String arg, Object value, Object... moreArgs)
+  {
+    ConfigReference<T> that = clone(arg, value);
+    for (int ii = 0, nn = moreArgs.length; ii < nn; ii += 2) {
+      that.getArguments().put((String)moreArgs[ii], moreArgs[ii + 1]);
     }
+    return that;
+  }
 
-    /**
-     * Returns a reference to the argument map.
-     */
-    public ArgumentMap getArguments ()
-    {
-        return _arguments;
-    }
+  /** The name of the referenced configuration. */
+  @Intern
+  protected String _name;
 
-    /**
-     * Fluent method to get the config.
-     */
-    public T getConfig (ConfigManager cfgMgr, Class<T> token)
-    {
-        return cfgMgr.getConfig(token, this);
-    }
-
-    @Override
-    public Object copy (Object dest)
-    {
-        ConfigReference<?> cref;
-        if (dest instanceof ConfigReference) {
-            cref = (ConfigReference<?>)dest;
-            cref._name = _name;
-        } else {
-            cref = new ConfigReference<T>(_name);
-        }
-        _arguments.copy(cref.getArguments());
-        return cref;
-    }
-
-    @Override
-    public boolean equals (Object other)
-    {
-        if (!(other instanceof ConfigReference)) {
-            return false;
-        }
-        ConfigReference<?> oref = (ConfigReference<?>)other;
-        return _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
-    }
-
-    @Override
-    public int hashCode ()
-    {
-        return 31*_name.hashCode() + _arguments.hashCode();
-    }
-
-    @Override
-    public String toString ()
-    {
-        return "[name=" + _name + ", arguments=" + _arguments + "]";
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public ConfigReference<T> clone ()
-    {
-        return (ConfigReference<T>)super.clone();
-    }
-
-    /**
-     * Clone this reference, and add the specified argument to the cloned instance.
-     */
-    public ConfigReference<T> clone (String arg, Object value)
-    {
-        ConfigReference<T> that = clone();
-        that.getArguments().put(arg, value);
-        return that;
-    }
-
-    /**
-     * Clone this reference, and add the specified arguments to the cloned instance.
-     */
-    public ConfigReference<T> clone (String arg, Object value, Object... moreArgs)
-    {
-        ConfigReference<T> that = clone(arg, value);
-        for (int ii = 0, nn = moreArgs.length; ii < nn; ii += 2) {
-            that.getArguments().put((String)moreArgs[ii], moreArgs[ii + 1]);
-        }
-        return that;
-    }
-
-    /** The name of the referenced configuration. */
-    @Intern
-    protected String _name;
-
-    /** The arguments of the reference, mapped by name. */
-    protected ArgumentMap _arguments = new ArgumentMap();
+  /** The arguments of the reference, mapped by name. */
+  protected ArgumentMap _arguments = new ArgumentMap();
 }

@@ -10,16 +10,16 @@ import java.util.List;
  */
 public interface Groupable<E>
 {
-    /**
-     * Access any grouped instances of the "same type" that are contained within this instance.
-     * Return null, a internal collection (it won't be modified), or view / copy of the instances.
-     */
-    public List<E> getGrouped ();
+  /**
+   * Access any grouped instances of the "same type" that are contained within this instance.
+   * Return null, a internal collection (it won't be modified), or view / copy of the instances.
+   */
+  public List<E> getGrouped ();
 
-    /**
-     * Set the contained instances to the values specified, or throw if unable to do so for
-     * any reason. The supplied List will never be null and will always have at least 1 element.
-     */
-    public void setGrouped (List<E> values)
-        throws UnsupportedOperationException;
+  /**
+   * Set the contained instances to the values specified, or throw if unable to do so for
+   * any reason. The supplied List will never be null and will always have at least 1 element.
+   */
+  public void setGrouped (List<E> values)
+    throws UnsupportedOperationException;
 }

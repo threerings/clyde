@@ -42,83 +42,83 @@ import com.threerings.tudey.config.CameraConfig;
  * to the requesting client.
  */
 @Generated(value={"com.threerings.presents.tools.GenServiceTask"},
-           comments="Derived from TudeySceneService.java.")
+      comments="Derived from TudeySceneService.java.")
 public class TudeySceneMarshaller extends InvocationMarshaller<ClientObject>
-    implements TudeySceneService
+  implements TudeySceneService
 {
-    /** The method id used to dispatch {@link #enqueueInputReliable} requests. */
-    public static final int ENQUEUE_INPUT_RELIABLE = 1;
+  /** The method id used to dispatch {@link #enqueueInputReliable} requests. */
+  public static final int ENQUEUE_INPUT_RELIABLE = 1;
 
-    // from interface TudeySceneService
-    public void enqueueInputReliable (int arg1, int arg2, InputFrame[] arg3)
-    {
-        sendRequest(ENQUEUE_INPUT_RELIABLE, new Object[] {
-            Integer.valueOf(arg1), Integer.valueOf(arg2), arg3
-        });
-    }
+  // from interface TudeySceneService
+  public void enqueueInputReliable (int arg1, int arg2, InputFrame[] arg3)
+  {
+    sendRequest(ENQUEUE_INPUT_RELIABLE, new Object[] {
+      Integer.valueOf(arg1), Integer.valueOf(arg2), arg3
+    });
+  }
 
-    /** The method id used to dispatch {@link #enqueueInputUnreliable} requests. */
-    public static final int ENQUEUE_INPUT_UNRELIABLE = 2;
+  /** The method id used to dispatch {@link #enqueueInputUnreliable} requests. */
+  public static final int ENQUEUE_INPUT_UNRELIABLE = 2;
 
-    // from interface TudeySceneService
-    public void enqueueInputUnreliable (int arg1, int arg2, InputFrame[] arg3)
-    {
-        sendRequest(ENQUEUE_INPUT_UNRELIABLE, new Object[] {
-            Integer.valueOf(arg1), Integer.valueOf(arg2), arg3
-        }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
-    }
+  // from interface TudeySceneService
+  public void enqueueInputUnreliable (int arg1, int arg2, InputFrame[] arg3)
+  {
+    sendRequest(ENQUEUE_INPUT_UNRELIABLE, new Object[] {
+      Integer.valueOf(arg1), Integer.valueOf(arg2), arg3
+    }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
+  }
 
-    /** The method id used to dispatch {@link #enteredPlace} requests. */
-    public static final int ENTERED_PLACE = 3;
+  /** The method id used to dispatch {@link #enteredPlace} requests. */
+  public static final int ENTERED_PLACE = 3;
 
-    // from interface TudeySceneService
-    public void enteredPlace ()
-    {
-        sendRequest(ENTERED_PLACE, new Object[] {
-        });
-    }
+  // from interface TudeySceneService
+  public void enteredPlace ()
+  {
+    sendRequest(ENTERED_PLACE, new Object[] {
+    });
+  }
 
-    /** The method id used to dispatch {@link #setCameraParams} requests. */
-    public static final int SET_CAMERA_PARAMS = 4;
+  /** The method id used to dispatch {@link #setCameraParams} requests. */
+  public static final int SET_CAMERA_PARAMS = 4;
 
-    // from interface TudeySceneService
-    public void setCameraParams (CameraConfig arg1, float arg2)
-    {
-        sendRequest(SET_CAMERA_PARAMS, new Object[] {
-            arg1, Float.valueOf(arg2)
-        });
-    }
+  // from interface TudeySceneService
+  public void setCameraParams (CameraConfig arg1, float arg2)
+  {
+    sendRequest(SET_CAMERA_PARAMS, new Object[] {
+      arg1, Float.valueOf(arg2)
+    });
+  }
 
-    /** The method id used to dispatch {@link #setTarget} requests. */
-    public static final int SET_TARGET = 5;
+  /** The method id used to dispatch {@link #setTarget} requests. */
+  public static final int SET_TARGET = 5;
 
-    // from interface TudeySceneService
-    public void setTarget (int arg1)
-    {
-        sendRequest(SET_TARGET, new Object[] {
-            Integer.valueOf(arg1)
-        });
-    }
+  // from interface TudeySceneService
+  public void setTarget (int arg1)
+  {
+    sendRequest(SET_TARGET, new Object[] {
+      Integer.valueOf(arg1)
+    });
+  }
 
-    /** The method id used to dispatch {@link #submitActorRequest} requests. */
-    public static final int SUBMIT_ACTOR_REQUEST = 6;
+  /** The method id used to dispatch {@link #submitActorRequest} requests. */
+  public static final int SUBMIT_ACTOR_REQUEST = 6;
 
-    // from interface TudeySceneService
-    public void submitActorRequest (int arg1, String arg2)
-    {
-        sendRequest(SUBMIT_ACTOR_REQUEST, new Object[] {
-            Integer.valueOf(arg1), arg2
-        });
-    }
+  // from interface TudeySceneService
+  public void submitActorRequest (int arg1, String arg2)
+  {
+    sendRequest(SUBMIT_ACTOR_REQUEST, new Object[] {
+      Integer.valueOf(arg1), arg2
+    });
+  }
 
-    /** The method id used to dispatch {@link #submitEntryRequest} requests. */
-    public static final int SUBMIT_ENTRY_REQUEST = 7;
+  /** The method id used to dispatch {@link #submitEntryRequest} requests. */
+  public static final int SUBMIT_ENTRY_REQUEST = 7;
 
-    // from interface TudeySceneService
-    public void submitEntryRequest (Object arg1, String arg2)
-    {
-        sendRequest(SUBMIT_ENTRY_REQUEST, new Object[] {
-            arg1, arg2
-        });
-    }
+  // from interface TudeySceneService
+  public void submitEntryRequest (Object arg1, String arg2)
+  {
+    sendRequest(SUBMIT_ENTRY_REQUEST, new Object[] {
+      arg1, arg2
+    });
+  }
 }

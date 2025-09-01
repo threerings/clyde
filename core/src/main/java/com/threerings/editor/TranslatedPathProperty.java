@@ -34,34 +34,34 @@ import com.threerings.util.MessageManager;
  */
 public class TranslatedPathProperty extends PathProperty
 {
-    /**
-     * Creates a new path property.
-     *
-     * @param cfgmgr the config manager to use when resolving references.
-     * @param name the name of the property.
-     * @param reference the reference object from which we derive our property chains.
-     * @param paths the list of paths.
-     * @throws InvalidPathsException if none of the supplied paths are valid.
-     */
-    public TranslatedPathProperty (
-        ConfigManager cfgmgr, String name, String bundle, Object reference, String... paths)
-            throws InvalidPathsException
-    {
-        super(cfgmgr, name, reference, paths);
-        MessageManager msgmgr = cfgmgr.getMessageManager();
-        _msgs = msgmgr == null ? new MessageBundle() : msgmgr.getBundle(bundle);
-    }
+  /**
+   * Creates a new path property.
+   *
+   * @param cfgmgr the config manager to use when resolving references.
+   * @param name the name of the property.
+   * @param reference the reference object from which we derive our property chains.
+   * @param paths the list of paths.
+   * @throws InvalidPathsException if none of the supplied paths are valid.
+   */
+  public TranslatedPathProperty (
+    ConfigManager cfgmgr, String name, String bundle, Object reference, String... paths)
+      throws InvalidPathsException
+  {
+    super(cfgmgr, name, reference, paths);
+    MessageManager msgmgr = cfgmgr.getMessageManager();
+    _msgs = msgmgr == null ? new MessageBundle() : msgmgr.getBundle(bundle);
+  }
 
-    @Override
-    protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
-    {
-        if (value instanceof String && _msgs.exists((String)value)) {
-            value = _msgs.xlate((String)value);
-        }
-        super.setProperty(obj, value, prop, coerce);
+  @Override
+  protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
+  {
+    if (value instanceof String && _msgs.exists((String)value)) {
+      value = _msgs.xlate((String)value);
     }
+    super.setProperty(obj, value, prop, coerce);
+  }
 
-    /** Our message bundle. */
-    protected MessageBundle _msgs;
+  /** Our message bundle. */
+  protected MessageBundle _msgs;
 
 }

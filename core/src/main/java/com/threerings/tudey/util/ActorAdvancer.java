@@ -38,139 +38,139 @@ import com.threerings.tudey.shape.Shape;
  */
 public class ActorAdvancer
 {
+  /**
+   * Provides a callback mechanism to allow the advancer to query the actor's environment while
+   * advancing it.
+   */
+  public interface Environment
+  {
     /**
-     * Provides a callback mechanism to allow the advancer to query the actor's environment while
-     * advancing it.
+     * Returns a reference to the scene model.
      */
-    public interface Environment
-    {
-        /**
-         * Returns a reference to the scene model.
-         */
-        public TudeySceneModel getSceneModel ();
-
-        /**
-         * Checks whether the actor is colliding with anything and, if it is, populates the
-         * provided object with the penetration vector (the minimum translation required to
-         * cancel the penetration).
-         *
-         * @return true if a collision was detected (in which case the result vector will be
-         * populated), false otherwise.
-         */
-        public boolean getPenetration (Actor actor, Shape shape, Vector2f result);
-
-        /**
-         * Checks whether the actor is colliding with anything.
-         */
-        public boolean collides (Actor actor, Shape shape);
-
-        /**
-         * Checks the specified mask for a collision.
-         */
-        public boolean collides (int mask, Shape shape);
-
-        /**
-         * Returns the direction flags affecting the actor.
-         */
-        public int getDirections (Actor actor, Shape shape);
-    }
+    public TudeySceneModel getSceneModel ();
 
     /**
-     * Creates a new advancer for the supplied actor.
+     * Checks whether the actor is colliding with anything and, if it is, populates the
+     * provided object with the penetration vector (the minimum translation required to
+     * cancel the penetration).
+     *
+     * @return true if a collision was detected (in which case the result vector will be
+     * populated), false otherwise.
      */
-    public ActorAdvancer (Environment environment, Actor actor, int timestamp)
-    {
-        _environment = environment;
-        init(actor, timestamp);
-    }
+    public boolean getPenetration (Actor actor, Shape shape, Vector2f result);
 
     /**
-     * Returns a reference to the advancer actor.
+     * Checks whether the actor is colliding with anything.
      */
-    public Actor getActor ()
-    {
-        return _actor;
-    }
+    public boolean collides (Actor actor, Shape shape);
 
     /**
-     * Returns the advancer timestamp.
+     * Checks the specified mask for a collision.
      */
-    public int getTimestamp ()
-    {
-        return _timestamp;
-    }
+    public boolean collides (int mask, Shape shape);
 
     /**
-     * (Re)initializes the advancer.
+     * Returns the direction flags affecting the actor.
      */
-    public void init (Actor actor, int timestamp)
-    {
-        _actor = actor;
-        _timestamp = timestamp;
-        updateShape();
+    public int getDirections (Actor actor, Shape shape);
+  }
+
+  /**
+   * Creates a new advancer for the supplied actor.
+   */
+  public ActorAdvancer (Environment environment, Actor actor, int timestamp)
+  {
+    _environment = environment;
+    init(actor, timestamp);
+  }
+
+  /**
+   * Returns a reference to the advancer actor.
+   */
+  public Actor getActor ()
+  {
+    return _actor;
+  }
+
+  /**
+   * Returns the advancer timestamp.
+   */
+  public int getTimestamp ()
+  {
+    return _timestamp;
+  }
+
+  /**
+   * (Re)initializes the advancer.
+   */
+  public void init (Actor actor, int timestamp)
+  {
+    _actor = actor;
+    _timestamp = timestamp;
+    updateShape();
+  }
+
+  /**
+   * Transfers state from the specified source advancer.
+   */
+  public void transfer (ActorAdvancer source)
+  {
+    _timestamp = source._timestamp;
+  }
+
+  /**
+   * Advances the actor to the specified timestamp.
+   */
+  public void advance (int timestamp)
+  {
+    if (timestamp <= _timestamp) {
+      return;
     }
+    float elapsed = (timestamp - _timestamp) / 1000f;
+    _timestamp = timestamp;
 
-    /**
-     * Transfers state from the specified source advancer.
-     */
-    public void transfer (ActorAdvancer source)
-    {
-        _timestamp = source._timestamp;
-    }
+    // take a step
+    step(elapsed);
+  }
 
-    /**
-     * Advances the actor to the specified timestamp.
-     */
-    public void advance (int timestamp)
-    {
-        if (timestamp <= _timestamp) {
-            return;
-        }
-        float elapsed = (timestamp - _timestamp) / 1000f;
-        _timestamp = timestamp;
+  /**
+   * Jumps to the specified timestamp without actually taking a step.
+   */
+  public void jump (int timestamp)
+  {
+    _timestamp = Math.max(_timestamp, timestamp);
+  }
 
-        // take a step
-        step(elapsed);
-    }
+  /**
+   * Takes an Euler step of the specified length.
+   */
+  protected void step (float elapsed)
+  {
+    // nothing by default
+  }
 
-    /**
-     * Jumps to the specified timestamp without actually taking a step.
-     */
-    public void jump (int timestamp)
-    {
-        _timestamp = Math.max(_timestamp, timestamp);
-    }
+  /**
+   * Updates the stored shape.
+   */
+  protected void updateShape ()
+  {
+    _transform.set(_actor.getTranslation(), _actor.getRotation(), 1f);
+    _shape = _actor.getOriginal().getShape(_environment.getSceneModel().getConfigManager())
+      .getShape().transform(_transform, _shape);
+  }
 
-    /**
-     * Takes an Euler step of the specified length.
-     */
-    protected void step (float elapsed)
-    {
-        // nothing by default
-    }
+  /** The actor's environment. */
+  protected Environment _environment;
 
-    /**
-     * Updates the stored shape.
-     */
-    protected void updateShape ()
-    {
-        _transform.set(_actor.getTranslation(), _actor.getRotation(), 1f);
-        _shape = _actor.getOriginal().getShape(_environment.getSceneModel().getConfigManager())
-            .getShape().transform(_transform, _shape);
-    }
+  /** The current actor state. */
+  protected Actor _actor;
 
-    /** The actor's environment. */
-    protected Environment _environment;
+  /** The timestamp at which the state is valid. */
+  protected int _timestamp;
 
-    /** The current actor state. */
-    protected Actor _actor;
+  /** The shape of the actor. */
+  protected Shape _shape;
 
-    /** The timestamp at which the state is valid. */
-    protected int _timestamp;
-
-    /** The shape of the actor. */
-    protected Shape _shape;
-
-    /** Used to store the actor's transform. */
-    protected Transform2D _transform = new Transform2D(Transform2D.UNIFORM);
+  /** Used to store the actor's transform. */
+  protected Transform2D _transform = new Transform2D(Transform2D.UNIFORM);
 }

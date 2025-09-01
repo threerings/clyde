@@ -46,235 +46,235 @@ import com.threerings.tudey.util.TudeyContext;
  * Represents a global entry.
  */
 public class GlobalSprite extends EntrySprite
-    implements ConfigUpdateListener<SceneGlobalConfig>
+  implements ConfigUpdateListener<SceneGlobalConfig>
 {
+  /**
+   * The actual sprite implementation.
+   */
+  public static abstract class Implementation extends SimpleScope
+  {
     /**
-     * The actual sprite implementation.
+     * Creates a new implementation.
      */
-    public static abstract class Implementation extends SimpleScope
+    public Implementation (TudeyContext ctx, Scope parentScope)
     {
-        /**
-         * Creates a new implementation.
-         */
-        public Implementation (TudeyContext ctx, Scope parentScope)
-        {
-            super(parentScope);
-            _ctx = ctx;
-        }
-
-        /**
-         * Returns the model for this implementation, or <code>null</code> for none.
-         */
-        public Model getModel ()
-        {
-            return null;
-        }
-
-        @Override
-        public String getScopeName ()
-        {
-            return "impl";
-        }
-
-        /** The renderer context. */
-        protected TudeyContext _ctx;
+      super(parentScope);
+      _ctx = ctx;
     }
 
     /**
-     * An environment model implementation.
+     * Returns the model for this implementation, or <code>null</code> for none.
      */
-    public static class EnvironmentModel extends Implementation
+    public Model getModel ()
     {
-        /**
-         * Creates a new environment model implementation.
-         */
-        public EnvironmentModel (
-            TudeyContext ctx, Scope parentScope, SceneGlobalConfig.EnvironmentModel config)
-        {
-            super(ctx, parentScope);
-            _scene.add(_model = new Model(ctx));
-            _model.setUserObject(parentScope);
-            setConfig(config);
-        }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (SceneGlobalConfig.EnvironmentModel config)
-        {
-            _model.setConfig(config.model);
-            _model.setLocalTransform(config.transform);
-        }
-
-        @Override
-        public Model getModel ()
-        {
-            return _model;
-        }
-
-        @Override
-        public void dispose ()
-        {
-            super.dispose();
-            _scene.remove(_model);
-        }
-
-        /** The model. */
-        protected Model _model;
-
-        /** The scene to which we add our model. */
-        @Bound
-        protected Scene _scene;
-    }
-
-    /**
-     * A camera implementation.
-     */
-    public static class Camera extends Implementation
-    {
-        /**
-         * Creates a new environment model implementation.
-         */
-        public Camera (TudeyContext ctx, Scope parentScope, SceneGlobalConfig.Camera config)
-        {
-            super(ctx, parentScope);
-            setConfig(config);
-        }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (SceneGlobalConfig.Camera config)
-        {
-            if (_camcfg != null) {
-                _view.removeCameraConfig(_camcfg);
-            }
-            if (_camcfgs != null) {
-                for (CameraConfig cc : _camcfgs) {
-                    _view.removeCameraConfig(cc, 0f, null);
-                }
-            }
-            _view.addCameraConfig(_camcfg = config.camera);
-            _camcfgs = config.cameras;
-            for (CameraConfig cc : _camcfgs) {
-                _view.addCameraConfig(cc, 0f, null);
-            }
-        }
-
-        @Override
-        public void dispose ()
-        {
-            super.dispose();
-            _view.removeCameraConfig(_camcfg);
-            for (CameraConfig cc : _camcfgs) {
-                _view.removeCameraConfig(cc, 0f, null);
-            }
-        }
-
-        /** The added camera, if any. */
-        protected CameraConfig _camcfg;
-
-        /** The added cameras. */
-        protected CameraConfig[] _camcfgs;
-
-        /** The scene view. */
-        @Bound
-        protected TudeySceneView _view;
-    }
-
-    /**
-     * Creates a new global sprite.
-     */
-    public GlobalSprite (TudeyContext ctx, TudeySceneView view, GlobalEntry entry)
-    {
-        super(ctx, view);
-        update(entry);
-    }
-
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<SceneGlobalConfig> event)
-    {
-        updateFromConfig();
+      return null;
     }
 
     @Override
-    public Entry getEntry ()
+    public String getScopeName ()
     {
-        return _entry;
+      return "impl";
     }
 
-    @Override
-    public void update (Entry entry)
+    /** The renderer context. */
+    protected TudeyContext _ctx;
+  }
+
+  /**
+   * An environment model implementation.
+   */
+  public static class EnvironmentModel extends Implementation
+  {
+    /**
+     * Creates a new environment model implementation.
+     */
+    public EnvironmentModel (
+      TudeyContext ctx, Scope parentScope, SceneGlobalConfig.EnvironmentModel config)
     {
-        _entry = (GlobalEntry)entry;
-        setConfig(_entry.sceneGlobal);
+      super(ctx, parentScope);
+      _scene.add(_model = new Model(ctx));
+      _model.setUserObject(parentScope);
+      setConfig(config);
+    }
+
+    /**
+     * (Re)configures the implementation.
+     */
+    public void setConfig (SceneGlobalConfig.EnvironmentModel config)
+    {
+      _model.setConfig(config.model);
+      _model.setLocalTransform(config.transform);
     }
 
     @Override
     public Model getModel ()
     {
-        return _impl.getModel();
+      return _model;
     }
 
     @Override
     public void dispose ()
     {
-        super.dispose();
-        _impl.dispose();
-        if (_config != null) {
-            _config.removeListener(this);
-        }
+      super.dispose();
+      _scene.remove(_model);
+    }
+
+    /** The model. */
+    protected Model _model;
+
+    /** The scene to which we add our model. */
+    @Bound
+    protected Scene _scene;
+  }
+
+  /**
+   * A camera implementation.
+   */
+  public static class Camera extends Implementation
+  {
+    /**
+     * Creates a new environment model implementation.
+     */
+    public Camera (TudeyContext ctx, Scope parentScope, SceneGlobalConfig.Camera config)
+    {
+      super(ctx, parentScope);
+      setConfig(config);
     }
 
     /**
-     * Sets the configuration of this global.
+     * (Re)configures the implementation.
      */
-    protected void setConfig (ConfigReference<SceneGlobalConfig> ref)
+    public void setConfig (SceneGlobalConfig.Camera config)
     {
-        setConfig(_ctx.getConfigManager().getConfig(SceneGlobalConfig.class, ref));
+      if (_camcfg != null) {
+        _view.removeCameraConfig(_camcfg);
+      }
+      if (_camcfgs != null) {
+        for (CameraConfig cc : _camcfgs) {
+          _view.removeCameraConfig(cc, 0f, null);
+        }
+      }
+      _view.addCameraConfig(_camcfg = config.camera);
+      _camcfgs = config.cameras;
+      for (CameraConfig cc : _camcfgs) {
+        _view.addCameraConfig(cc, 0f, null);
+      }
     }
 
-    /**
-     * Sets the configuration of this global.
-     */
-    protected void setConfig (SceneGlobalConfig config)
+    @Override
+    public void dispose ()
     {
-        if (_config == config) {
-            return;
-        }
-        if (_config != null) {
-            _config.removeListener(this);
-        }
-        if ((_config = config) != null) {
-            _config.addListener(this);
-        }
-        updateFromConfig();
+      super.dispose();
+      _view.removeCameraConfig(_camcfg);
+      for (CameraConfig cc : _camcfgs) {
+        _view.removeCameraConfig(cc, 0f, null);
+      }
     }
 
-    /**
-     * Updates the global to match its new or modified configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        Implementation nimpl = (_config == null) ?
-            null : _config.getSpriteImplementation(_ctx, this, _impl);
-        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
-        if (_impl != nimpl) {
-            _impl.dispose();
-            _impl = nimpl;
-        }
+    /** The added camera, if any. */
+    protected CameraConfig _camcfg;
+
+    /** The added cameras. */
+    protected CameraConfig[] _camcfgs;
+
+    /** The scene view. */
+    @Bound
+    protected TudeySceneView _view;
+  }
+
+  /**
+   * Creates a new global sprite.
+   */
+  public GlobalSprite (TudeyContext ctx, TudeySceneView view, GlobalEntry entry)
+  {
+    super(ctx, view);
+    update(entry);
+  }
+
+  // documentation inherited from interface ConfigUpdateListener
+  public void configUpdated (ConfigEvent<SceneGlobalConfig> event)
+  {
+    updateFromConfig();
+  }
+
+  @Override
+  public Entry getEntry ()
+  {
+    return _entry;
+  }
+
+  @Override
+  public void update (Entry entry)
+  {
+    _entry = (GlobalEntry)entry;
+    setConfig(_entry.sceneGlobal);
+  }
+
+  @Override
+  public Model getModel ()
+  {
+    return _impl.getModel();
+  }
+
+  @Override
+  public void dispose ()
+  {
+    super.dispose();
+    _impl.dispose();
+    if (_config != null) {
+      _config.removeListener(this);
     }
+  }
 
-    /** The scene entry. */
-    protected GlobalEntry _entry;
+  /**
+   * Sets the configuration of this global.
+   */
+  protected void setConfig (ConfigReference<SceneGlobalConfig> ref)
+  {
+    setConfig(_ctx.getConfigManager().getConfig(SceneGlobalConfig.class, ref));
+  }
 
-    /** The global configuration. */
-    protected SceneGlobalConfig _config;
+  /**
+   * Sets the configuration of this global.
+   */
+  protected void setConfig (SceneGlobalConfig config)
+  {
+    if (_config == config) {
+      return;
+    }
+    if (_config != null) {
+      _config.removeListener(this);
+    }
+    if ((_config = config) != null) {
+      _config.addListener(this);
+    }
+    updateFromConfig();
+  }
 
-    /** The global implementation. */
-    protected Implementation _impl = NULL_IMPLEMENTATION;
+  /**
+   * Updates the global to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    Implementation nimpl = (_config == null) ?
+      null : _config.getSpriteImplementation(_ctx, this, _impl);
+    nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+    if (_impl != nimpl) {
+      _impl.dispose();
+      _impl = nimpl;
+    }
+  }
 
-    /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null, null) {
-    };
+  /** The scene entry. */
+  protected GlobalEntry _entry;
+
+  /** The global configuration. */
+  protected SceneGlobalConfig _config;
+
+  /** The global implementation. */
+  protected Implementation _impl = NULL_IMPLEMENTATION;
+
+  /** An implementation that does nothing. */
+  protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null, null) {
+  };
 }

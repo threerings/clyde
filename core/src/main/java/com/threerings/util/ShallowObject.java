@@ -31,15 +31,15 @@ package com.threerings.util;
  */
 public abstract class ShallowObject
 {
-    @Override
-    public final boolean equals (Object other)
-    {
-        return super.equals(other);
-    }
+  @Override
+  public final boolean equals (Object other)
+  {
+    return super.equals(other);
+  }
 
-    @Override
-    public final int hashCode ()
-    {
-        return super.hashCode();
-    }
+  @Override
+  public final int hashCode ()
+  {
+    return super.hashCode();
+  }
 }

@@ -30,14 +30,14 @@ package com.threerings.opengl.gui.event;
  */
 public class ChangeEvent extends Event
 {
-    public ChangeEvent (Object source)
-    {
-        super(source, -1L);
-    }
+  public ChangeEvent (Object source)
+  {
+    super(source, -1L);
+  }
 
-    // documentation inherited
-    public boolean propagateUpHierarchy ()
-    {
-        return false;
-    }
+  // documentation inherited
+  public boolean propagateUpHierarchy ()
+  {
+    return false;
+  }
 }

@@ -37,51 +37,51 @@ import com.threerings.util.DeepObject;
  */
 public class PassSummary extends DeepObject
 {
-    /** The names of all vertex attributes used by the passes. */
-    public HashSet<String> vertexAttribs = new HashSet<String>();
+  /** The names of all vertex attributes used by the passes. */
+  public HashSet<String> vertexAttribs = new HashSet<String>();
 
-    /** All of the texture coordinate sets used by the passes. */
-    public ArrayIntSet texCoordSets = new ArrayIntSet();
+  /** All of the texture coordinate sets used by the passes. */
+  public ArrayIntSet texCoordSets = new ArrayIntSet();
 
-    /** Whether or not any of the passes use vertex colors. */
-    public boolean colors;
+  /** Whether or not any of the passes use vertex colors. */
+  public boolean colors;
 
-    /** Whether or not any of the passes use vertex normals. */
-    public boolean normals;
+  /** Whether or not any of the passes use vertex normals. */
+  public boolean normals;
 
-    /**
-     * Creates a new summary for the described passes.
-     */
-    public PassSummary (PassDescriptor... passes)
-    {
-        for (PassDescriptor pass : passes) {
-            Collections.addAll(vertexAttribs, pass.vertexAttribs);
-            texCoordSets.add(pass.texCoordSets);
-            colors |= pass.colors;
-            normals |= pass.normals;
-        }
+  /**
+   * Creates a new summary for the described passes.
+   */
+  public PassSummary (PassDescriptor... passes)
+  {
+    for (PassDescriptor pass : passes) {
+      Collections.addAll(vertexAttribs, pass.vertexAttribs);
+      texCoordSets.add(pass.texCoordSets);
+      colors |= pass.colors;
+      normals |= pass.normals;
     }
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        int hash = 1;
-        hash = 31*hash + vertexAttribs.hashCode();
-        hash = 31*hash + texCoordSets.hashCode();
-        hash = 31*hash + (colors ? 1231 : 1237);
-        hash = 31*hash + (normals ? 1231 : 1237);
-        return hash;
-    }
+  @Override
+  public int hashCode ()
+  {
+    int hash = 1;
+    hash = 31*hash + vertexAttribs.hashCode();
+    hash = 31*hash + texCoordSets.hashCode();
+    hash = 31*hash + (colors ? 1231 : 1237);
+    hash = 31*hash + (normals ? 1231 : 1237);
+    return hash;
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        if (!(other instanceof PassSummary)) {
-            return false;
-        }
-        PassSummary osummary = (PassSummary)other;
-        return vertexAttribs.equals(osummary.vertexAttribs) &&
-            texCoordSets.equals(osummary.texCoordSets) &&
-            colors == osummary.colors && normals == osummary.normals;
+  @Override
+  public boolean equals (Object other)
+  {
+    if (!(other instanceof PassSummary)) {
+      return false;
     }
+    PassSummary osummary = (PassSummary)other;
+    return vertexAttribs.equals(osummary.vertexAttribs) &&
+      texCoordSets.equals(osummary.texCoordSets) &&
+      colors == osummary.colors && normals == osummary.normals;
+  }
 }

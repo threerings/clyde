@@ -39,169 +39,169 @@ import com.threerings.opengl.scene.SceneElement.TickPolicy;
  */
 public class Wrapper extends Model.Implementation
 {
-    public Wrapper (Scope parentScope, Model.Implementation impl)
-    {
-        super(parentScope);
-        _impl = impl;
-    }
+  public Wrapper (Scope parentScope, Model.Implementation impl)
+  {
+    super(parentScope);
+    _impl = impl;
+  }
 
-    @Override
-    public List<Model> getChildren ()
-    {
-        return _impl.getChildren();
-    }
+  @Override
+  public List<Model> getChildren ()
+  {
+    return _impl.getChildren();
+  }
 
-    @Override
-    public Transform3D getPointWorldTransform (String point)
-    {
-        return _impl.getPointWorldTransform(point);
-    }
+  @Override
+  public Transform3D getPointWorldTransform (String point)
+  {
+    return _impl.getPointWorldTransform(point);
+  }
 
 
-    @Override
-    public void attach (String point, Model model, boolean replace)
-    {
-        _impl.attach(point, model, replace);
-    }
+  @Override
+  public void attach (String point, Model model, boolean replace)
+  {
+    _impl.attach(point, model, replace);
+  }
 
-    @Override
-    public void detach (Model model)
-    {
-        _impl.detach(model);
-    }
+  @Override
+  public void detach (Model model)
+  {
+    _impl.detach(model);
+  }
 
-    @Override
-    public void detachAll (String point)
-    {
-        _impl.detachAll(point);
-    }
+  @Override
+  public void detachAll (String point)
+  {
+    _impl.detachAll(point);
+  }
 
-    @Override
-    public List<Animation> getPlayingAnimations ()
-    {
-        return _impl.getPlayingAnimations();
-    }
+  @Override
+  public List<Animation> getPlayingAnimations ()
+  {
+    return _impl.getPlayingAnimations();
+  }
 
-    @Override
-    public Animation getAnimation (String name)
-    {
-        return _impl.getAnimation(name);
-    }
+  @Override
+  public Animation getAnimation (String name)
+  {
+    return _impl.getAnimation(name);
+  }
 
-    @Override
-    public Animation[] getAnimations ()
-    {
-        return _impl.getAnimations();
-    }
+  @Override
+  public Animation[] getAnimations ()
+  {
+    return _impl.getAnimations();
+  }
 
-    @Override
-    public Animation createAnimation ()
-    {
-        return _impl.createAnimation();
-    }
+  @Override
+  public Animation createAnimation ()
+  {
+    return _impl.createAnimation();
+  }
 
-    @Override
-    public boolean hasCompleted ()
-    {
-        return _impl.hasCompleted();
-    }
+  @Override
+  public boolean hasCompleted ()
+  {
+    return _impl.hasCompleted();
+  }
 
-    @Override
-    public void setVisible (boolean visible)
-    {
-        _impl.setVisible(visible);
-    }
+  @Override
+  public void setVisible (boolean visible)
+  {
+    _impl.setVisible(visible);
+  }
 
-    @Override
-    public void visibilityWasSet ()
-    {
-        _impl.visibilityWasSet();
-    }
+  @Override
+  public void visibilityWasSet ()
+  {
+    _impl.visibilityWasSet();
+  }
 
-    @Override
-    public void reset ()
-    {
-        _impl.reset();
-    }
+  @Override
+  public void reset ()
+  {
+    _impl.reset();
+  }
 
-    @Override
-    public int getInfluenceFlags ()
-    {
-        return _impl.getInfluenceFlags();
-    }
+  @Override
+  public int getInfluenceFlags ()
+  {
+    return _impl.getInfluenceFlags();
+  }
 
-    @Override
-    public Box getBounds ()
-    {
-        return _impl.getBounds();
-    }
+  @Override
+  public Box getBounds ()
+  {
+    return _impl.getBounds();
+  }
 
-    @Override
-    public void updateBounds ()
-    {
-        _impl.updateBounds();
-    }
+  @Override
+  public void updateBounds ()
+  {
+    _impl.updateBounds();
+  }
 
-    @Override
-    public void drawBounds ()
-    {
-        _impl.drawBounds();
-    }
+  @Override
+  public void drawBounds ()
+  {
+    _impl.drawBounds();
+  }
 
-    @Override
-    public void setTickPolicy (TickPolicy policy)
-    {
-        _impl.setTickPolicy(policy);
-    }
+  @Override
+  public void setTickPolicy (TickPolicy policy)
+  {
+    _impl.setTickPolicy(policy);
+  }
 
-    @Override
-    public TickPolicy getTickPolicy ()
-    {
-        return _impl.getTickPolicy();
-    }
+  @Override
+  public TickPolicy getTickPolicy ()
+  {
+    return _impl.getTickPolicy();
+  }
 
-    @Override
-    public void wasAdded ()
-    {
-        _impl.wasAdded();
-    }
+  @Override
+  public void wasAdded ()
+  {
+    _impl.wasAdded();
+  }
 
-    @Override
-    public void willBeRemoved ()
-    {
-        _impl.willBeRemoved();
-    }
+  @Override
+  public void willBeRemoved ()
+  {
+    _impl.willBeRemoved();
+  }
 
-    @Override
-    public boolean isImplementation (Model.Implementation impl)
-    {
-        return _impl == impl;
-    }
+  @Override
+  public boolean isImplementation (Model.Implementation impl)
+  {
+    return _impl == impl;
+  }
 
-    @Override
-    public void tick (float elapsed)
-    {
-        _impl.tick(elapsed);
-    }
+  @Override
+  public void tick (float elapsed)
+  {
+    _impl.tick(elapsed);
+  }
 
-    @Override
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        return _impl.getIntersection(ray, result);
-    }
+  @Override
+  public boolean getIntersection (Ray3D ray, Vector3f result)
+  {
+    return _impl.getIntersection(ray, result);
+  }
 
-    @Override
-    public void composite ()
-    {
-        _impl.composite();
-    }
+  @Override
+  public void composite ()
+  {
+    _impl.composite();
+  }
 
-    @Override
-    public String getScopeName ()
-    {
-        return _impl.getScopeName();
-    }
+  @Override
+  public String getScopeName ()
+  {
+    return _impl.getScopeName();
+  }
 
-    /** The implementation we're wrapping. */
-    protected Model.Implementation _impl;
+  /** The implementation we're wrapping. */
+  protected Model.Implementation _impl;
 }

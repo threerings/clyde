@@ -32,20 +32,20 @@ import com.threerings.opengl.material.Projection;
  */
 public class ProjectorInfluence extends SceneInfluence
 {
-    /**
-     * Creates a new projector influence.
-     */
-    public ProjectorInfluence (Projection projection)
-    {
-        _projection = projection;
-    }
+  /**
+   * Creates a new projector influence.
+   */
+  public ProjectorInfluence (Projection projection)
+  {
+    _projection = projection;
+  }
 
-    @Override
-    public Projection getProjection ()
-    {
-        return _projection;
-    }
+  @Override
+  public Projection getProjection ()
+  {
+    return _projection;
+  }
 
-    /** The projection . */
-    protected Projection _projection;
+  /** The projection . */
+  protected Projection _projection;
 }

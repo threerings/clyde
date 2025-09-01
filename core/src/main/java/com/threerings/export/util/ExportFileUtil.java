@@ -39,24 +39,24 @@ import com.threerings.export.BinaryImporter;
  */
 public class ExportFileUtil
 {
-    /**
-     * Read a single object of the specified type from the file.
-     */
-    public static <T> T readObject (File file, Class<T> clazz)
-        throws IOException
-    {
-        Closer closer = Closer.create();
-        try {
-            BinaryImporter in = closer.register(
-                new BinaryImporter(new BufferedInputStream(new FileInputStream(file))));
-            return clazz.cast(in.readObject());
+  /**
+   * Read a single object of the specified type from the file.
+   */
+  public static <T> T readObject (File file, Class<T> clazz)
+    throws IOException
+  {
+    Closer closer = Closer.create();
+    try {
+      BinaryImporter in = closer.register(
+        new BinaryImporter(new BufferedInputStream(new FileInputStream(file))));
+      return clazz.cast(in.readObject());
 
-        } catch (ClassCastException cce) {
-            String msg = "File " + file + " doesn't contain a " + clazz;
-            throw closer.rethrow((IOException)new IOException(msg).initCause(cce));
+    } catch (ClassCastException cce) {
+      String msg = "File " + file + " doesn't contain a " + clazz;
+      throw closer.rethrow((IOException)new IOException(msg).initCause(cce));
 
-        } finally {
-            closer.close();
-        }
+    } finally {
+      closer.close();
     }
+  }
 }

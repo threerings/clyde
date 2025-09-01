@@ -35,94 +35,94 @@ import com.threerings.expr.util.ScopeUtil;
  * A color-valued expression.
  */
 @EditorTypes({
-    QuaternionExpression.Constant.class,
-    QuaternionExpression.Reference.class,
-    QuaternionExpression.Angles.class })
+  QuaternionExpression.Constant.class,
+  QuaternionExpression.Reference.class,
+  QuaternionExpression.Angles.class })
 public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
 {
-    /**
-     * A constant expression.
-     */
-    public static class Constant extends QuaternionExpression
-    {
-        /** The value of the constant. */
-        @Editable
-        public Quaternion value = new Quaternion();
+  /**
+   * A constant expression.
+   */
+  public static class Constant extends QuaternionExpression
+  {
+    /** The value of the constant. */
+    @Editable
+    public Quaternion value = new Quaternion();
 
-        @Override
-        public Evaluator<Quaternion> createEvaluator (Scope scope)
-        {
-            return new Evaluator<Quaternion>() {
-                public Quaternion evaluate () {
-                    return value;
-                }
-            };
+    @Override
+    public Evaluator<Quaternion> createEvaluator (Scope scope)
+    {
+      return new Evaluator<Quaternion>() {
+        public Quaternion evaluate () {
+          return value;
         }
+      };
+    }
+  }
+
+  /**
+   * A reference expression.
+   */
+  public static class Reference extends QuaternionExpression
+  {
+    /** The name of the variable. */
+    @Editable
+    public String name = "";
+
+    /** The default value of the variable. */
+    @Editable
+    public Quaternion defvalue = new Quaternion();
+
+    @Override
+    public Evaluator<Quaternion> createEvaluator (Scope scope)
+    {
+      final Quaternion value = ScopeUtil.resolve(scope, name, defvalue);
+      return new Evaluator<Quaternion>() {
+        public Quaternion evaluate () {
+          return value;
+        }
+      };
+    }
+  }
+
+  /**
+   * Contains the angles of rotation as separate expressions.
+   */
+  public static class Angles extends QuaternionExpression
+  {
+    /** The rotation about the x axis. */
+    @Editable
+    public FloatExpression x = new FloatExpression.Constant();
+
+    /** The rotation about the y axis. */
+    @Editable
+    public FloatExpression y = new FloatExpression.Constant();
+
+    /** The rotation about the z axis. */
+    @Editable
+    public FloatExpression z = new FloatExpression.Constant();
+
+    @Override
+    public Evaluator<Quaternion> createEvaluator (Scope scope)
+    {
+      final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
+      final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
+      final FloatExpression.Evaluator zeval = z.createEvaluator(scope);
+      return new Evaluator<Quaternion>() {
+        public Quaternion evaluate () {
+          return _result.fromAngles(
+            xeval.evaluate(), yeval.evaluate(), zeval.evaluate());
+        }
+        protected Quaternion _result = new Quaternion();
+      };
     }
 
-    /**
-     * A reference expression.
-     */
-    public static class Reference extends QuaternionExpression
+    @Override
+    public void invalidate ()
     {
-        /** The name of the variable. */
-        @Editable
-        public String name = "";
-
-        /** The default value of the variable. */
-        @Editable
-        public Quaternion defvalue = new Quaternion();
-
-        @Override
-        public Evaluator<Quaternion> createEvaluator (Scope scope)
-        {
-            final Quaternion value = ScopeUtil.resolve(scope, name, defvalue);
-            return new Evaluator<Quaternion>() {
-                public Quaternion evaluate () {
-                    return value;
-                }
-            };
-        }
+      x.invalidate();
+      y.invalidate();
+      z.invalidate();
     }
-
-    /**
-     * Contains the angles of rotation as separate expressions.
-     */
-    public static class Angles extends QuaternionExpression
-    {
-        /** The rotation about the x axis. */
-        @Editable
-        public FloatExpression x = new FloatExpression.Constant();
-
-        /** The rotation about the y axis. */
-        @Editable
-        public FloatExpression y = new FloatExpression.Constant();
-
-        /** The rotation about the z axis. */
-        @Editable
-        public FloatExpression z = new FloatExpression.Constant();
-
-        @Override
-        public Evaluator<Quaternion> createEvaluator (Scope scope)
-        {
-            final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
-            final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
-            final FloatExpression.Evaluator zeval = z.createEvaluator(scope);
-            return new Evaluator<Quaternion>() {
-                public Quaternion evaluate () {
-                    return _result.fromAngles(
-                        xeval.evaluate(), yeval.evaluate(), zeval.evaluate());
-                }
-                protected Quaternion _result = new Quaternion();
-            };
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            x.invalidate();
-            y.invalidate();
-            z.invalidate();
-        }
-    }
+  }
 }

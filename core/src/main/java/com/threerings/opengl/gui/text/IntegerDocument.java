@@ -36,60 +36,60 @@ import com.threerings.opengl.gui.TextField;
  */
 public class IntegerDocument extends Document
 {
-    /**
-     * Creates a new document that allows any integer value.
-     */
-    public IntegerDocument ()
-    {
-        this(false);
+  /**
+   * Creates a new document that allows any integer value.
+   */
+  public IntegerDocument ()
+  {
+    this(false);
+  }
+
+  /**
+   * Creates a new integer document.
+   *
+   * @param positive if true, only accept positive values
+   */
+  public IntegerDocument (boolean positive)
+  {
+    _positive = positive;
+  }
+
+  @Override
+  public Object getValue ()
+  {
+    try {
+      return Integer.valueOf(getText());
+
+    } catch (NumberFormatException e) {
+      return 0;
+    }
+  }
+
+  // documentation inherited
+  protected boolean validateEdit (String oldText, String newText)
+  {
+    if (!super.validateEdit(oldText, newText)) {
+      return false;
     }
 
-    /**
-     * Creates a new integer document.
-     *
-     * @param positive if true, only accept positive values
-     */
-    public IntegerDocument (boolean positive)
-    {
-        _positive = positive;
+    // some special cases
+    if (newText.isEmpty()) {
+      return true;
     }
-
-    @Override
-    public Object getValue ()
-    {
-        try {
-            return Integer.valueOf(getText());
-
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+    if (newText.startsWith("-") && _positive) {
+      return false;
     }
-
-    // documentation inherited
-    protected boolean validateEdit (String oldText, String newText)
-    {
-        if (!super.validateEdit(oldText, newText)) {
-            return false;
-        }
-
-        // some special cases
-        if (newText.isEmpty()) {
-            return true;
-        }
-        if (newText.startsWith("-") && _positive) {
-            return false;
-        }
-        if (newText.equals("-")) {
-            return true;
-        }
-        try {
-            Integer.parseInt(newText);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
+    if (newText.equals("-")) {
+      return true;
     }
+    try {
+      Integer.parseInt(newText);
+      return true;
+    } catch (NumberFormatException e) {
+      return false;
+    }
+  }
 
-    /** If true, only positive values are allowed. */
-    protected boolean _positive;
+  /** If true, only positive values are allowed. */
+  protected boolean _positive;
 }

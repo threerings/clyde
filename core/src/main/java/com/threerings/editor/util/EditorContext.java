@@ -34,8 +34,8 @@ import com.threerings.media.image.ColorPository;
  */
 public interface EditorContext extends ResourceContext
 {
-    /**
-     * Returns a reference to the color pository.
-     */
-    public ColorPository getColorPository ();
+  /**
+   * Returns a reference to the color pository.
+   */
+  public ColorPository getColorPository ();
 }

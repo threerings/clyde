@@ -27,184 +27,184 @@ import com.threerings.config.ManagedConfig;
  */
 public abstract class AbstractRecentList extends JPanel
 {
-    /**
-     * @param prefKey a unique String to identify the context in which this is being used,
-     * or null to not persist.
-     * @param prefs or null.
-     */
-    public AbstractRecentList (String prefKey, Preferences prefs)
-    {
-        super(new BorderLayout());
-        _prefKey = prefKey;
-        _prefs = prefs;
-        readPrefs();
+  /**
+   * @param prefKey a unique String to identify the context in which this is being used,
+   * or null to not persist.
+   * @param prefs or null.
+   */
+  public AbstractRecentList (String prefKey, Preferences prefs)
+  {
+    super(new BorderLayout());
+    _prefKey = prefKey;
+    _prefs = prefs;
+    readPrefs();
 
-        // create the list and add it to the hierarchy
-        _list = new JList(_listModel);
-        _list.setVisibleRowCount(4);
+    // create the list and add it to the hierarchy
+    _list = new JList(_listModel);
+    _list.setVisibleRowCount(4);
 
-        JScrollPane pane = new JScrollPane(
-            _list,
-            JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        add(pane, BorderLayout.CENTER);
+    JScrollPane pane = new JScrollPane(
+      _list,
+      JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    add(pane, BorderLayout.CENTER);
 
-        _list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        _list.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged (ListSelectionEvent event) {
-                if (_block) {
-                    return;
-                }
-                Object selected = _list.getSelectedValue();
-                if (selected != null) {
-                    valueSelected((String)selected);
-                }
-            }
-        });
-        _list.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent (
-                JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-            {
-                // first, transform the ConfigReference into a nice String
-                String fullString = String.valueOf(value);
-                super.getListCellRendererComponent(
-                    list, fullString, index, isSelected, cellHasFocus);
+    _list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    _list.addListSelectionListener(new ListSelectionListener() {
+      public void valueChanged (ListSelectionEvent event) {
+        if (_block) {
+          return;
+        }
+        Object selected = _list.getSelectedValue();
+        if (selected != null) {
+          valueSelected((String)selected);
+        }
+      }
+    });
+    _list.setCellRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent (
+        JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+      {
+        // first, transform the ConfigReference into a nice String
+        String fullString = String.valueOf(value);
+        super.getListCellRendererComponent(
+          list, fullString, index, isSelected, cellHasFocus);
 
-                // then see if we should try to shrink the String to display ellipses
-                // at the beginning rather than the end
-                int maxWidth = list.getSize().width;
-                for (int chop = 1, maxChop = getMaximumChop(fullString);
-                        (chop <= maxChop) && (getPreferredSize().width > maxWidth);
-                        chop++) {
-                    setText("..." + fullString.substring(chop));
-                }
-                return this;
-            }
-        });
+        // then see if we should try to shrink the String to display ellipses
+        // at the beginning rather than the end
+        int maxWidth = list.getSize().width;
+        for (int chop = 1, maxChop = getMaximumChop(fullString);
+            (chop <= maxChop) && (getPreferredSize().width > maxWidth);
+            chop++) {
+          setText("..." + fullString.substring(chop));
+        }
+        return this;
+      }
+    });
+  }
+
+  @Override
+  public Dimension getMinimumSize ()
+  {
+    Dimension d = super.getMinimumSize();
+    d.height = Math.max(d.height, _list.getPreferredScrollableViewportSize().height);
+    return d;
+  }
+
+  /**
+   * Called when a value is actually selected.
+   */
+  protected abstract void valueSelected (String value);
+
+  /**
+   * Get the position into the string that represents the maximum prefix that can be chopped,
+   * for display in the list.
+   */
+  protected int getMaximumChop (String value)
+  {
+    // just say we need to keep the last 10 characters
+    return Math.max(0, value.length() - 10);
+  }
+
+  /**
+   * Add a value that's been used recently.
+   */
+  protected void addRecent (String value)
+  {
+    int size = _listModel.getSize();
+    int curIdx = -1;
+    // first see where it is in the current model
+    for (int ii = 0; ii < size; ii++) {
+      if (value.equals(_listModel.getElementAt(ii))) {
+        curIdx = ii;
+        break;
+      }
     }
 
-    @Override
-    public Dimension getMinimumSize ()
-    {
-        Dimension d = super.getMinimumSize();
-        d.height = Math.max(d.height, _list.getPreferredScrollableViewportSize().height);
-        return d;
+    if (curIdx == 0) {
+      // nothing to do
+      return;
     }
 
-    /**
-     * Called when a value is actually selected.
-     */
-    protected abstract void valueSelected (String value);
+    _block = true;
+    try {
+      // maybe remove it, or the last one.
+      if (curIdx > 0) {
+        _listModel.removeElementAt(curIdx);
 
-    /**
-     * Get the position into the string that represents the maximum prefix that can be chopped,
-     * for display in the list.
-     */
-    protected int getMaximumChop (String value)
-    {
-        // just say we need to keep the last 10 characters
-        return Math.max(0, value.length() - 10);
+      } else if (size == MAX_SIZE) {
+        _listModel.removeElementAt(size - 1);
+      }
+
+      // add it in
+      _listModel.insertElementAt(value, 0);
+      _list.setSelectedIndex(0);
+
+    } finally {
+      _block = false;
     }
 
-    /**
-     * Add a value that's been used recently.
-     */
-    protected void addRecent (String value)
-    {
-        int size = _listModel.getSize();
-        int curIdx = -1;
-        // first see where it is in the current model
-        for (int ii = 0; ii < size; ii++) {
-            if (value.equals(_listModel.getElementAt(ii))) {
-                curIdx = ii;
-                break;
-            }
-        }
+    // and save out these values
+    writePrefs();
+  }
 
-        if (curIdx == 0) {
-            // nothing to do
-            return;
-        }
+  /**
+   * Read the values we've saved.
+   */
+  protected void readPrefs ()
+  {
+    if (_prefKey == null) {
+      return;
+    }
+    _block = true;
+    try {
+      String encoded = _prefs.get(_prefKey, "");
+      _listModel.removeAllElements();
+      for (String piece : Splitter.on('|').omitEmptyStrings().split(encoded)) {
+        _listModel.addElement(piece.replace("%BAR%", "|"));
+      }
+    } finally {
+      _block = false;
+    }
+  }
 
-        _block = true;
-        try {
-            // maybe remove it, or the last one.
-            if (curIdx > 0) {
-                _listModel.removeElementAt(curIdx);
-
-            } else if (size == MAX_SIZE) {
-                _listModel.removeElementAt(size - 1);
-            }
-
-            // add it in
-            _listModel.insertElementAt(value, 0);
-            _list.setSelectedIndex(0);
-
-        } finally {
-            _block = false;
-        }
-
-        // and save out these values
-        writePrefs();
+  /**
+   * Save the current state of the list to preferences.
+   */
+  protected void writePrefs ()
+  {
+    if (_prefKey == null) {
+      return;
+    }
+    StringBuilder builder = new StringBuilder();
+    for (int ii = 0, nn = _listModel.getSize(); ii < nn; ii++) {
+      String value = (String)_listModel.getElementAt(ii);
+      value = value.replace("|", "%BAR%");
+      if (builder.length() + value.length() + 1 > Preferences.MAX_VALUE_LENGTH) {
+        break;
+      }
+      builder.append(value).append('|'); // terminate, don't separate!
     }
 
-    /**
-     * Read the values we've saved.
-     */
-    protected void readPrefs ()
-    {
-        if (_prefKey == null) {
-            return;
-        }
-        _block = true;
-        try {
-            String encoded = _prefs.get(_prefKey, "");
-            _listModel.removeAllElements();
-            for (String piece : Splitter.on('|').omitEmptyStrings().split(encoded)) {
-                _listModel.addElement(piece.replace("%BAR%", "|"));
-            }
-        } finally {
-            _block = false;
-        }
-    }
+    _prefs.put(_prefKey, builder.toString());
+  }
 
-    /**
-     * Save the current state of the list to preferences.
-     */
-    protected void writePrefs ()
-    {
-        if (_prefKey == null) {
-            return;
-        }
-        StringBuilder builder = new StringBuilder();
-        for (int ii = 0, nn = _listModel.getSize(); ii < nn; ii++) {
-            String value = (String)_listModel.getElementAt(ii);
-            value = value.replace("|", "%BAR%");
-            if (builder.length() + value.length() + 1 > Preferences.MAX_VALUE_LENGTH) {
-                break;
-            }
-            builder.append(value).append('|'); // terminate, don't separate!
-        }
+  /** The actual list widget. */
+  protected JList _list;
 
-        _prefs.put(_prefKey, builder.toString());
-    }
+  /** Our list model. */
+  protected DefaultListModel _listModel = new DefaultListModel();
 
-    /** The actual list widget. */
-    protected JList _list;
+  /** The preferences key. */
+  protected String _prefKey;
 
-    /** Our list model. */
-    protected DefaultListModel _listModel = new DefaultListModel();
+  /** Our preferences. */
+  protected Preferences _prefs;
 
-    /** The preferences key. */
-    protected String _prefKey;
+  /** Do we block selection changes? */
+  protected boolean _block;
 
-    /** Our preferences. */
-    protected Preferences _prefs;
-
-    /** Do we block selection changes? */
-    protected boolean _block;
-
-    /** The absolute maximum number of recents we'll display. */
-    protected static final int MAX_SIZE = 50;
+  /** The absolute maximum number of recents we'll display. */
+  protected static final int MAX_SIZE = 50;
 }

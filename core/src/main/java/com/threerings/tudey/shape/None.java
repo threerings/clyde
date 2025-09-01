@@ -40,194 +40,194 @@ import com.threerings.tudey.space.SpaceElement;
  */
 public class None extends Shape
 {
-    /**
-     * Creates a point at the specified location.
-     */
-    public None (Vector2f location)
-    {
-        _location.set(location);
-        updateBounds();
-    }
+  /**
+   * Creates a point at the specified location.
+   */
+  public None (Vector2f location)
+  {
+    _location.set(location);
+    updateBounds();
+  }
 
-    /**
-     * Creates an uninitialized point.
-     */
-    public None ()
-    {
-    }
+  /**
+   * Creates an uninitialized point.
+   */
+  public None ()
+  {
+  }
 
-    @Override
-    public void updateBounds ()
-    {
-        _bounds.getMinimumExtent().set(_location);
-        _bounds.getMaximumExtent().set(_location);
-    }
+  @Override
+  public void updateBounds ()
+  {
+    _bounds.getMinimumExtent().set(_location);
+    _bounds.getMaximumExtent().set(_location);
+  }
 
-    @Override
-    public Vector2f getCenter (Vector2f result)
-    {
-        return result.set(_location);
-    }
+  @Override
+  public Vector2f getCenter (Vector2f result)
+  {
+    return result.set(_location);
+  }
 
-    @Override
-    public Shape transform (Transform2D transform, Shape result)
-    {
-        None nresult = (result instanceof None) ? ((None)result) : new None();
-        transform.transformPoint(_location, nresult._location);
-        nresult.updateBounds();
-        return nresult;
-    }
+  @Override
+  public Shape transform (Transform2D transform, Shape result)
+  {
+    None nresult = (result instanceof None) ? ((None)result) : new None();
+    transform.transformPoint(_location, nresult._location);
+    nresult.updateBounds();
+    return nresult;
+  }
 
-    @Override
-    public Shape expand (float amount, Shape result)
-    {
-        None nresult = (result instanceof None) ? ((None)result) : new None();
-        nresult.getCenter().set(_location);
-        nresult.updateBounds();
-        return nresult;
-    }
+  @Override
+  public Shape expand (float amount, Shape result)
+  {
+    None nresult = (result instanceof None) ? ((None)result) : new None();
+    nresult.getCenter().set(_location);
+    nresult.updateBounds();
+    return nresult;
+  }
 
-    @Override
-    public Shape sweep (Vector2f translation, Shape result)
-    {
-        None nresult = (result instanceof None) ? ((None)result) : new None();
-        _location.add(translation, nresult.getCenter());
-        nresult.updateBounds();
-        return nresult;
-    }
+  @Override
+  public Shape sweep (Vector2f translation, Shape result)
+  {
+    None nresult = (result instanceof None) ? ((None)result) : new None();
+    _location.add(translation, nresult.getCenter());
+    nresult.updateBounds();
+    return nresult;
+  }
 
-    @Override
-    public Vector2f[] getPerimeterPath ()
-    {
-        return new Vector2f[] { new Vector2f(_location) };
-    }
+  @Override
+  public Vector2f[] getPerimeterPath ()
+  {
+    return new Vector2f[] { new Vector2f(_location) };
+  }
 
-    @Override
-    public boolean getIntersection (Ray2D ray, Vector2f result)
-    {
-        return false;
-    }
+  @Override
+  public boolean getIntersection (Ray2D ray, Vector2f result)
+  {
+    return false;
+  }
 
-    @Override
-    public void getNearestPoint (Vector2f point, Vector2f result)
-    {
-        result.set(_location);
-    }
+  @Override
+  public void getNearestPoint (Vector2f point, Vector2f result)
+  {
+    result.set(_location);
+  }
 
-    @Override
-    public IntersectionType getIntersectionType (Rect rect)
-    {
-        return IntersectionType.NONE;
-    }
+  @Override
+  public IntersectionType getIntersectionType (Rect rect)
+  {
+    return IntersectionType.NONE;
+  }
 
-    @Override
-    public boolean intersects (SpaceElement element)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (SpaceElement element)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Shape shape)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Shape shape)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Point point)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Point point)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Segment segment)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Segment segment)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Circle circle)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Circle circle)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Capsule capsule)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Capsule capsule)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Polygon polygon)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Polygon polygon)
+  {
+    return false;
+  }
 
-    @Override
-    public boolean intersects (Compound compound)
-    {
-        return false;
-    }
+  @Override
+  public boolean intersects (Compound compound)
+  {
+    return false;
+  }
 
-    @Override
-    public Vector2f getPenetration (Shape shape, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Shape shape, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Point point, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Point point, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Segment segment, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Segment segment, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Circle circle, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Circle circle, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Capsule capsule, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Capsule capsule, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Polygon polygon, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Polygon polygon, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public Vector2f getPenetration (Compound compound, Vector2f result)
-    {
-        return result.set(Vector2f.ZERO);
-    }
+  @Override
+  public Vector2f getPenetration (Compound compound, Vector2f result)
+  {
+    return result.set(Vector2f.ZERO);
+  }
 
-    @Override
-    public void draw (boolean outline)
-    {
-        GL11.glBegin(GL11.GL_POINTS);
-        GL11.glVertex2f(_location.x, _location.y);
-        GL11.glEnd();
-    }
+  @Override
+  public void draw (boolean outline)
+  {
+    GL11.glBegin(GL11.GL_POINTS);
+    GL11.glVertex2f(_location.x, _location.y);
+    GL11.glEnd();
+  }
 
-    @Override
-    public ShapeConfig createConfig ()
-    {
-        ShapeConfig.None none = new ShapeConfig.None();
-        ShapeConfig.Transformed shape = new ShapeConfig.Transformed();
-        shape.shape = none;
-        shape.transform.set(_location, 0f);
-        return shape;
-    }
+  @Override
+  public ShapeConfig createConfig ()
+  {
+    ShapeConfig.None none = new ShapeConfig.None();
+    ShapeConfig.Transformed shape = new ShapeConfig.Transformed();
+    shape.shape = none;
+    shape.transform.set(_location, 0f);
+    return shape;
+  }
 
-    /** The location of the none. */
-    protected Vector2f _location = new Vector2f();
+  /** The location of the none. */
+  protected Vector2f _location = new Vector2f();
 }

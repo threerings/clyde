@@ -41,55 +41,55 @@ import com.threerings.opengl.util.Preloadable;
  */
 public class MetaParticleSystemConfig extends BaseParticleSystemConfig
 {
-    /** The different alignment modes. */
-    public enum Alignment { FIXED, BILLBOARD, VELOCITY };
+  /** The different alignment modes. */
+  public enum Alignment { FIXED, BILLBOARD, VELOCITY };
 
-    /**
-     * A single layer of the system.
-     */
-    public static class Layer extends BaseParticleSystemConfig.Layer
-    {
-        /** The model to use for the particles. */
-        @Editable(category="appearance", weight=-0.5, nullable=true)
-        public ConfigReference<ModelConfig> model;
+  /**
+   * A single layer of the system.
+   */
+  public static class Layer extends BaseParticleSystemConfig.Layer
+  {
+    /** The model to use for the particles. */
+    @Editable(category="appearance", weight=-0.5, nullable=true)
+    public ConfigReference<ModelConfig> model;
 
-        /** The alignment mode to use for the particles. */
-        @Editable(category="appearance", weight=-0.5)
-        public Alignment alignment = Alignment.FIXED;
-
-        @Override
-        public boolean shouldRotateOrientations ()
-        {
-            return alignment == Alignment.FIXED;
-        }
-
-        @Override
-        public void preload (GlContext ctx)
-        {
-            super.preload(ctx);
-            new Preloadable.Config(ModelConfig.class, model).preload(ctx);
-        }
-    }
-
-    /** The layers comprising the system. */
-    @Editable(editor="table")
-    public Layer[] layers = new Layer[0];
+    /** The alignment mode to use for the particles. */
+    @Editable(category="appearance", weight=-0.5)
+    public Alignment alignment = Alignment.FIXED;
 
     @Override
-    public BaseParticleSystemConfig.Layer[] getLayers ()
+    public boolean shouldRotateOrientations ()
     {
-        return layers;
+      return alignment == Alignment.FIXED;
     }
 
     @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
+    public void preload (GlContext ctx)
     {
-        if (impl instanceof MetaParticleSystem) {
-            ((MetaParticleSystem)impl).setConfig(ctx, this);
-        } else {
-            impl = new MetaParticleSystem(ctx, scope, this);
-        }
-        return impl;
+      super.preload(ctx);
+      new Preloadable.Config(ModelConfig.class, model).preload(ctx);
     }
+  }
+
+  /** The layers comprising the system. */
+  @Editable(editor="table")
+  public Layer[] layers = new Layer[0];
+
+  @Override
+  public BaseParticleSystemConfig.Layer[] getLayers ()
+  {
+    return layers;
+  }
+
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof MetaParticleSystem) {
+      ((MetaParticleSystem)impl).setConfig(ctx, this);
+    } else {
+      impl = new MetaParticleSystem(ctx, scope, this);
+    }
+    return impl;
+  }
 }

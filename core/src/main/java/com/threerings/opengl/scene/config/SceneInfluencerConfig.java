@@ -39,39 +39,39 @@ import com.threerings.opengl.util.GlContext;
  */
 public class SceneInfluencerConfig extends ModelConfig.Implementation
 {
-    /** The influence that this influencer exerts. */
-    @Editable
-    public SceneInfluenceConfig influence = new SceneInfluenceConfig.AmbientLight();
+  /** The influence that this influencer exerts. */
+  @Editable
+  public SceneInfluenceConfig influence = new SceneInfluenceConfig.AmbientLight();
 
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
+  /** The influences allowed to affect this model. */
+  @Editable
+  public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
 
-    /** The extent of the influence. */
-    @Editable
-    public Extent extent = new Extent.Limited();
+  /** The extent of the influence. */
+  @Editable
+  public Extent extent = new Extent.Limited();
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        if (impl instanceof SceneInfluencer) {
-            ((SceneInfluencer)impl).setConfig(ctx, this);
-        } else {
-            impl = new SceneInfluencer(ctx, scope, this);
-        }
-        return impl;
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    if (impl instanceof SceneInfluencer) {
+      ((SceneInfluencer)impl).setConfig(ctx, this);
+    } else {
+      impl = new SceneInfluencer(ctx, scope, this);
     }
+    return impl;
+  }
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        // Do nothing
-    }
+  @Override
+  public void preload (GlContext ctx)
+  {
+    // Do nothing
+  }
 
-    @Override
-    public void invalidate ()
-    {
-        influence.invalidate();
-    }
+  @Override
+  public void invalidate ()
+  {
+    influence.invalidate();
+  }
 }

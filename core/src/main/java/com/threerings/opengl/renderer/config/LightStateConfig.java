@@ -44,46 +44,46 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({ LightStateConfig.Disabled.class, LightStateConfig.Enabled.class })
 public abstract class LightStateConfig extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * Explicitly disables lighting.
-     */
-    public static class Disabled extends LightStateConfig
+  /**
+   * Explicitly disables lighting.
+   */
+  public static class Disabled extends LightStateConfig
+  {
+    @Override
+    public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
     {
-        @Override
-        public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
-        {
-            return LightState.DISABLED;
-        }
+      return LightState.DISABLED;
     }
+  }
 
-    /**
-     * Enables lighting.
-     */
-    public static class Enabled extends LightStateConfig
+  /**
+   * Enables lighting.
+   */
+  public static class Enabled extends LightStateConfig
+  {
+    /** The global ambient light intensity. */
+    @Editable
+    public Color4f globalAmbient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
+
+    /** The individual light configurations. */
+    @Editable
+    public LightConfig[] lights = new LightConfig[0];
+
+    @Override
+    public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
     {
-        /** The global ambient light intensity. */
-        @Editable
-        public Color4f globalAmbient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
-
-        /** The individual light configurations. */
-        @Editable
-        public LightConfig[] lights = new LightConfig[0];
-
-        @Override
-        public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
-        {
-            Light[] slights = new Light[lights.length];
-            for (int ii = 0; ii < lights.length; ii++) {
-                slights[ii] = lights[ii].createLight(ctx, scope, false, updaters);
-            }
-            return new LightState(slights, globalAmbient);
-        }
+      Light[] slights = new Light[lights.length];
+      for (int ii = 0; ii < lights.length; ii++) {
+        slights[ii] = lights[ii].createLight(ctx, scope, false, updaters);
+      }
+      return new LightState(slights, globalAmbient);
     }
+  }
 
-    /**
-     * Returns the corresponding light state.
-     */
-    public abstract LightState getState (GlContext ctx, Scope scope, List<Updater> updaters);
+  /**
+   * Returns the corresponding light state.
+   */
+  public abstract LightState getState (GlContext ctx, Scope scope, List<Updater> updaters);
 }

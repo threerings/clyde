@@ -56,62 +56,62 @@ import static com.threerings.tudey.Log.log;
  */
 public class SceneResourcesTask extends Task
 {
-    /**
-     * Sets the pattern set id.
-     */
-    public void setId (String id)
-    {
-        _id = id;
-    }
+  /**
+   * Sets the pattern set id.
+   */
+  public void setId (String id)
+  {
+    _id = id;
+  }
 
-    /**
-     * Adds a fileset to the list of sets to process.
-     */
-    public void addFileset (FileSet set)
-    {
-        _filesets.add(set);
-    }
+  /**
+   * Adds a fileset to the list of sets to process.
+   */
+  public void addFileset (FileSet set)
+  {
+    _filesets.add(set);
+  }
 
-    @Override
-    public void execute ()
-        throws BuildException
-    {
-        ResourceManager rsrcmgr = new ResourceManager("rsrc/");
-        MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        rsrcmgr.initResourceDir("rsrc/");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
-        cfgmgr.init();
+  @Override
+  public void execute ()
+    throws BuildException
+  {
+    ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+    MessageManager msgmgr = new MessageManager("rsrc.i18n");
+    rsrcmgr.initResourceDir("rsrc/");
+    ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
+    cfgmgr.init();
 
-        // get all scene resources
-        Set<String> resources = Sets.newHashSet();
-        for (FileSet fs : _filesets) {
-            DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-            File fromDir = fs.getDir(getProject());
-            for (String file : ds.getIncludedFiles()) {
-                File source = new File(fromDir, file);
-                try {
-                    TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
-                        new FileInputStream(source)).readObject();
-                    model.init(cfgmgr);
-                    model.getResources(resources);
+    // get all scene resources
+    Set<String> resources = Sets.newHashSet();
+    for (FileSet fs : _filesets) {
+      DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+      File fromDir = fs.getDir(getProject());
+      for (String file : ds.getIncludedFiles()) {
+        File source = new File(fromDir, file);
+        try {
+          TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
+            new FileInputStream(source)).readObject();
+          model.init(cfgmgr);
+          model.getResources(resources);
 
-                } catch (Exception e) { // IOException, ClassCastException
-                    log.warning("Failed to read scene.", "file", source, e);
-                }
-            }
+        } catch (Exception e) { // IOException, ClassCastException
+          log.warning("Failed to read scene.", "file", source, e);
         }
-
-        // create a pattern set with the resources and assign it to the specified id
-        PatternSet set = (PatternSet)getProject().createDataType("patternset");
-        for (String resource : resources) {
-            set.createInclude().setName(resource);
-        }
-        getProject().addReference(_id, set);
+      }
     }
 
-    /** The id under which we'll store the resource pattern set. */
-    protected String _id;
+    // create a pattern set with the resources and assign it to the specified id
+    PatternSet set = (PatternSet)getProject().createDataType("patternset");
+    for (String resource : resources) {
+      set.createInclude().setName(resource);
+    }
+    getProject().addReference(_id, set);
+  }
 
-    /** A list of filesets that contain scenes. */
-    protected List<FileSet> _filesets = Lists.newArrayList();
+  /** The id under which we'll store the resource pattern set. */
+  protected String _id;
+
+  /** A list of filesets that contain scenes. */
+  protected List<FileSet> _filesets = Lists.newArrayList();
 }

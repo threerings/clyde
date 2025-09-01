@@ -30,57 +30,57 @@ package com.threerings.opengl.gui.text;
  */
 public interface EditCommands
 {
-    /** A text editing command. */
-    public static final int ACTION = 0;
+  /** A text editing command. */
+  public static final int ACTION = 0;
 
-    /** A text editing command. */
-    public static final int BACKSPACE = 1;
+  /** A text editing command. */
+  public static final int BACKSPACE = 1;
 
-    /** A text editing command. */
-    public static final int DELETE = 2;
+  /** A text editing command. */
+  public static final int DELETE = 2;
 
-    /** A text editing command. */
-    public static final int CURSOR_LEFT = 3;
+  /** A text editing command. */
+  public static final int CURSOR_LEFT = 3;
 
-    /** A text editing command. */
-    public static final int CURSOR_RIGHT = 4;
+  /** A text editing command. */
+  public static final int CURSOR_RIGHT = 4;
 
-    /** A text editing command. */
-    public static final int CURSOR_UP = 5;
+  /** A text editing command. */
+  public static final int CURSOR_UP = 5;
 
-    /** A text editing command. */
-    public static final int CURSOR_DOWN = 6;
+  /** A text editing command. */
+  public static final int CURSOR_DOWN = 6;
 
-    /** A text editing command. */
-    public static final int WORD_LEFT = 7;
+  /** A text editing command. */
+  public static final int WORD_LEFT = 7;
 
-    /** A text editing command. */
-    public static final int WORD_RIGHT = 8;
+  /** A text editing command. */
+  public static final int WORD_RIGHT = 8;
 
-    /** A text editing command. */
-    public static final int START_OF_LINE = 9;
+  /** A text editing command. */
+  public static final int START_OF_LINE = 9;
 
-    /** A text editing command. */
-    public static final int END_OF_LINE = 10;
+  /** A text editing command. */
+  public static final int END_OF_LINE = 10;
 
-    /** A text editing command. */
-    public static final int RELEASE_FOCUS = 11;
+  /** A text editing command. */
+  public static final int RELEASE_FOCUS = 11;
 
-    /** A text editing command. */
-    public static final int CLEAR = 12;
+  /** A text editing command. */
+  public static final int CLEAR = 12;
 
-    /** A text editing command. */
-    public static final int CUT = 13;
+  /** A text editing command. */
+  public static final int CUT = 13;
 
-    /** A text editing command. */
-    public static final int COPY = 14;
+  /** A text editing command. */
+  public static final int COPY = 14;
 
-    /** A text editing command. */
-    public static final int PASTE = 15;
+  /** A text editing command. */
+  public static final int PASTE = 15;
 
-    /** A text editing command. */
-    public static final int UNDO = 16;
+  /** A text editing command. */
+  public static final int UNDO = 16;
 
-    /** A text editing command. */
-    public static final int REDO = 17;
+  /** A text editing command. */
+  public static final int REDO = 17;
 }

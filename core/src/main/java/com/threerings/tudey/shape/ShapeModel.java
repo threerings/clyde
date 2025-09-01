@@ -51,119 +51,119 @@ import com.threerings.tudey.shape.config.ShapeModelConfig;
  */
 public class ShapeModel extends Model.Implementation
 {
-    /**
-     * Creates a new shape model implementation.
-     */
-    public ShapeModel (GlContext ctx, Scope parentScope, ShapeModelConfig config)
-    {
-        super(parentScope);
-        _ctx = ctx;
-        _element = new ShapeConfigElement(ctx) { {
-                _queue = _ctx.getCompositor().getQueue(RenderQueue.TRANSPARENT);
-                _batch.getStates()[RenderState.ALPHA_STATE] = AlphaState.PREMULTIPLIED;
-                _batch.getStates()[RenderState.DEPTH_STATE] = DepthState.TEST;
-            }
-            @Override public void enqueue () {
-                TransformState tstate =
-                    (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-                Transform3D modelview = tstate.getModelview();
-                _parentViewTransform.compose(_localTransform, modelview);
-                tstate.setDirty(true);
+  /**
+   * Creates a new shape model implementation.
+   */
+  public ShapeModel (GlContext ctx, Scope parentScope, ShapeModelConfig config)
+  {
+    super(parentScope);
+    _ctx = ctx;
+    _element = new ShapeConfigElement(ctx) { {
+        _queue = _ctx.getCompositor().getQueue(RenderQueue.TRANSPARENT);
+        _batch.getStates()[RenderState.ALPHA_STATE] = AlphaState.PREMULTIPLIED;
+        _batch.getStates()[RenderState.DEPTH_STATE] = DepthState.TEST;
+      }
+      @Override public void enqueue () {
+        TransformState tstate =
+          (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
+        Transform3D modelview = tstate.getModelview();
+        _parentViewTransform.compose(_localTransform, modelview);
+        tstate.setDirty(true);
 
-                _batch.depth = modelview.transformPointZ(getCenter());
-                _queue.add(_batch, _priority);
-            }
-            @Override protected void boundsWillChange () {
-                ((Model)_parentScope).boundsWillChange(ShapeModel.this);
-            }
-            @Override protected void boundsDidChange () {
-                ((Model)_parentScope).boundsDidChange(ShapeModel.this);
-            }
-        };
-        setConfig(ctx, config);
+        _batch.depth = modelview.transformPointZ(getCenter());
+        _queue.add(_batch, _priority);
+      }
+      @Override protected void boundsWillChange () {
+        ((Model)_parentScope).boundsWillChange(ShapeModel.this);
+      }
+      @Override protected void boundsDidChange () {
+        ((Model)_parentScope).boundsDidChange(ShapeModel.this);
+      }
+    };
+    setConfig(ctx, config);
+  }
+
+  /**
+   * Sets the configuration of this model.
+   */
+  public void setConfig (GlContext ctx, ShapeModelConfig config)
+  {
+    _ctx = ctx;
+    _config = config;
+    updateFromConfig();
+  }
+
+  @Override
+  public Box getBounds ()
+  {
+    return _element.getBounds();
+  }
+
+  @Override
+  public void updateBounds ()
+  {
+    // update the world transform
+    if (_parentWorldTransform == null) {
+      _element.getTransform().set(_localTransform);
+    } else {
+      _parentWorldTransform.compose(_localTransform, _element.getTransform());
     }
 
-    /**
-     * Sets the configuration of this model.
-     */
-    public void setConfig (GlContext ctx, ShapeModelConfig config)
-    {
-        _ctx = ctx;
-        _config = config;
-        updateFromConfig();
-    }
+    // and the world bounds
+    _element.updateBounds();
+  }
 
-    @Override
-    public Box getBounds ()
-    {
-        return _element.getBounds();
-    }
+  @Override
+  public void drawBounds ()
+  {
+    DebugBounds.draw(_element.getBounds(), Color4f.WHITE);
+  }
 
-    @Override
-    public void updateBounds ()
-    {
-        // update the world transform
-        if (_parentWorldTransform == null) {
-            _element.getTransform().set(_localTransform);
-        } else {
-            _parentWorldTransform.compose(_localTransform, _element.getTransform());
-        }
+  @Override
+  public boolean getIntersection (Ray3D ray, Vector3f result)
+  {
+    return _element.getIntersection(ray, result);
+  }
 
-        // and the world bounds
-        _element.updateBounds();
-    }
+  @Override
+  public void composite ()
+  {
+    _element.composite();
+  }
 
-    @Override
-    public void drawBounds ()
-    {
-        DebugBounds.draw(_element.getBounds(), Color4f.WHITE);
-    }
+  /**
+   * Updates the model to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    _element.setConfig(_config.shape, _config.outline);
+    _element.getStates()[RenderState.COLOR_STATE] =
+      (_colorState == null) ? ColorState.WHITE : _colorState;
+    updateBounds();
+  }
 
-    @Override
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        return _element.getIntersection(ray, result);
-    }
+  /** The application context. */
+  protected GlContext _ctx;
 
-    @Override
-    public void composite ()
-    {
-        _element.composite();
-    }
+  /** The model config. */
+  protected ShapeModelConfig _config;
 
-    /**
-     * Updates the model to match its new or modified configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        _element.setConfig(_config.shape, _config.outline);
-        _element.getStates()[RenderState.COLOR_STATE] =
-            (_colorState == null) ? ColorState.WHITE : _colorState;
-        updateBounds();
-    }
+  /** The element used to render the shape. */
+  protected ShapeConfigElement _element;
 
-    /** The application context. */
-    protected GlContext _ctx;
+  /** The parent world transform. */
+  @Bound("worldTransform")
+  protected Transform3D _parentWorldTransform;
 
-    /** The model config. */
-    protected ShapeModelConfig _config;
+  /** The parent view transform. */
+  @Bound("viewTransform")
+  protected Transform3D _parentViewTransform;
 
-    /** The element used to render the shape. */
-    protected ShapeConfigElement _element;
+  /** The local transform. */
+  @Bound
+  protected Transform3D _localTransform;
 
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
-
-    /** The parent view transform. */
-    @Bound("viewTransform")
-    protected Transform3D _parentViewTransform;
-
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
-
-    /** The model's color state. */
-    @Bound
-    protected ColorState _colorState;
+  /** The model's color state. */
+  @Bound
+  protected ColorState _colorState;
 }

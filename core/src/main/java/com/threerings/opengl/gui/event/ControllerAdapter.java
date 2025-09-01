@@ -29,30 +29,30 @@ package com.threerings.opengl.gui.event;
  * A convenience class for partially implementing the {@link ControllerListener} interface.
  */
 public class ControllerAdapter
-    implements ControllerListener
+  implements ControllerListener
 {
-    // documentation inherited from interface ControllerListener
-    public void controllerPressed (ControllerEvent event)
-    {
-    }
+  // documentation inherited from interface ControllerListener
+  public void controllerPressed (ControllerEvent event)
+  {
+  }
 
-    // documentation inherited from interface ControllerListener
-    public void controllerReleased (ControllerEvent event)
-    {
-    }
+  // documentation inherited from interface ControllerListener
+  public void controllerReleased (ControllerEvent event)
+  {
+  }
 
-    // documentation inherited from interface ControllerListener
-    public void controllerMoved (ControllerEvent event)
-    {
-    }
+  // documentation inherited from interface ControllerListener
+  public void controllerMoved (ControllerEvent event)
+  {
+  }
 
-    // documentation inherited from interface ControllerListener
-    public void controllerPovXMoved (ControllerEvent event)
-    {
-    }
+  // documentation inherited from interface ControllerListener
+  public void controllerPovXMoved (ControllerEvent event)
+  {
+  }
 
-    // documentation inherited from interface ControllerListener
-    public void controllerPovYMoved (ControllerEvent event)
-    {
-    }
+  // documentation inherited from interface ControllerListener
+  public void controllerPovYMoved (ControllerEvent event)
+  {
+  }
 }

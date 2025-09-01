@@ -46,164 +46,164 @@ import com.threerings.tudey.util.TudeySceneMetrics;
  */
 public class GroundBrush extends ConfigTool<GroundConfig>
 {
-    /**
-     * Creates the ground brush tool.
-     */
-    public GroundBrush (SceneEditor editor)
+  /**
+   * Creates the ground brush tool.
+   */
+  public GroundBrush (SceneEditor editor)
+  {
+    super(editor, GroundConfig.class, new GroundReference());
+  }
+
+  @Override
+  public void init ()
+  {
+    _inner = new RectangleElement(_editor, true);
+    _inner.getColor().set(0f, 1f, 0f, 1f);
+    _outer = new RectangleElement(_editor, true);
+    _outer.getColor().set(0f, 0.5f, 0f, 1f);
+  }
+
+  @Override
+  public void tick (float elapsed)
+  {
+    updateCursor();
+  }
+
+  @Override
+  public void composite ()
+  {
+    if (_cursorVisible) {
+      _inner.composite();
+      _outer.composite();
+    }
+  }
+
+  @Override
+  public void mousePressed (MouseEvent event)
+  {
+    int button = event.getButton();
+    boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
+    if ((paint || erase) && _cursorVisible) {
+      paintGround(erase, true);
+    }
+  }
+
+  @Override
+  public void mouseWheelMoved (MouseWheelEvent event)
+  {
+    if (_cursorVisible) {
+      _rotation = (_rotation + event.getWheelRotation()) & 0x03;
+    }
+  }
+
+  /**
+   * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
+   */
+  protected void updateCursor ()
+  {
+    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+      return;
+    }
+    GroundReference gref = (GroundReference)_eref;
+    int iwidth = TudeySceneMetrics.getTileWidth(gref.width, gref.height, _rotation);
+    int iheight = TudeySceneMetrics.getTileHeight(gref.width, gref.height, _rotation);
+    int owidth = iwidth + 2, oheight = iheight + 2;
+
+    int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
+    if (_editor.isShiftDown()) {
+      if (_constraint == DirectionalConstraint.HORIZONTAL) {
+        y = _location.y;
+      } else if (_constraint == DirectionalConstraint.VERTICAL) {
+        x = _location.x;
+      } else { // _constraint == null
+        if (x != _location.x && y == _location.y) {
+          _constraint = DirectionalConstraint.HORIZONTAL;
+        } else if (x == _location.x && y != _location.y) {
+          _constraint = DirectionalConstraint.VERTICAL;
+        }
+      }
+    } else {
+      _constraint = null;
+    }
+    _location.set(x, y);
+    _inner.getRegion().set(x, y, iwidth, iheight);
+    _outer.getRegion().set(x - 1, y - 1, owidth, oheight);
+
+    int elevation = _editor.getGrid().getElevation();
+    _inner.setElevation(elevation);
+    _outer.setElevation(elevation);
+
+    // if we are dragging, consider performing another paint operation
+    boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
+    if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
+      paintGround(erase, false);
+    }
+  }
+
+  /**
+   * Paints the cursor region with ground.
+   *
+   * @param erase if true, erase the region by painting with the null ground type.
+   * @param revise if true, replace existing ground tiles with different variants.
+   */
+  protected void paintGround (boolean erase, boolean revise)
+  {
+    TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene, _editor);
+    Rectangle region = _inner.getRegion();
+    painter.paintGround(
+      new CoordSet(region), _eref.getReference(),
+      _editor.getGrid().getElevation(), erase, revise);
+    _lastPainted.set(region);
+  }
+
+  /**
+   * Allows us to edit the ground reference.
+   */
+  protected static class GroundReference extends EditableReference<GroundConfig>
+  {
+    /** The ground reference. */
+    @Editable(nullable=true)
+    public ConfigReference<GroundConfig> ground;
+
+    /** The width of the brush. */
+    @Editable(min=1, hgroup="d")
+    public int width = 1;
+
+    /** The height of the brush. */
+    @Editable(min=1, hgroup="d")
+    public int height = 1;
+
+    @Override
+    public ConfigReference<GroundConfig> getReference ()
     {
-        super(editor, GroundConfig.class, new GroundReference());
+      return ground;
     }
 
     @Override
-    public void init ()
+    public void setReference (ConfigReference<GroundConfig> ref)
     {
-        _inner = new RectangleElement(_editor, true);
-        _inner.getColor().set(0f, 1f, 0f, 1f);
-        _outer = new RectangleElement(_editor, true);
-        _outer.getColor().set(0f, 0.5f, 0f, 1f);
+      ground = ref;
     }
+  }
 
-    @Override
-    public void tick (float elapsed)
-    {
-        updateCursor();
-    }
+  /** The inner and outer cursors. */
+  protected RectangleElement _inner, _outer;
 
-    @Override
-    public void composite ()
-    {
-        if (_cursorVisible) {
-            _inner.composite();
-            _outer.composite();
-        }
-    }
+  /** Whether or not the cursor is in the window. */
+  protected boolean _cursorVisible;
 
-    @Override
-    public void mousePressed (MouseEvent event)
-    {
-        int button = event.getButton();
-        boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
-        if ((paint || erase) && _cursorVisible) {
-            paintGround(erase, true);
-        }
-    }
+  /** The directional constraint, if any. */
+  protected DirectionalConstraint _constraint;
 
-    @Override
-    public void mouseWheelMoved (MouseWheelEvent event)
-    {
-        if (_cursorVisible) {
-            _rotation = (_rotation + event.getWheelRotation()) & 0x03;
-        }
-    }
+  /** The location of the cursor. */
+  protected Coord _location = new Coord();
 
-    /**
-     * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
-     */
-    protected void updateCursor ()
-    {
-        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
-            return;
-        }
-        GroundReference gref = (GroundReference)_eref;
-        int iwidth = TudeySceneMetrics.getTileWidth(gref.width, gref.height, _rotation);
-        int iheight = TudeySceneMetrics.getTileHeight(gref.width, gref.height, _rotation);
-        int owidth = iwidth + 2, oheight = iheight + 2;
+  /** The rotation of the cursor. */
+  protected int _rotation;
 
-        int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
-        if (_editor.isShiftDown()) {
-            if (_constraint == DirectionalConstraint.HORIZONTAL) {
-                y = _location.y;
-            } else if (_constraint == DirectionalConstraint.VERTICAL) {
-                x = _location.x;
-            } else { // _constraint == null
-                if (x != _location.x && y == _location.y) {
-                    _constraint = DirectionalConstraint.HORIZONTAL;
-                } else if (x == _location.x && y != _location.y) {
-                    _constraint = DirectionalConstraint.VERTICAL;
-                }
-            }
-        } else {
-            _constraint = null;
-        }
-        _location.set(x, y);
-        _inner.getRegion().set(x, y, iwidth, iheight);
-        _outer.getRegion().set(x - 1, y - 1, owidth, oheight);
+  /** The last painted region. */
+  protected Rectangle _lastPainted = new Rectangle();
 
-        int elevation = _editor.getGrid().getElevation();
-        _inner.setElevation(elevation);
-        _outer.setElevation(elevation);
-
-        // if we are dragging, consider performing another paint operation
-        boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-        if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
-            paintGround(erase, false);
-        }
-    }
-
-    /**
-     * Paints the cursor region with ground.
-     *
-     * @param erase if true, erase the region by painting with the null ground type.
-     * @param revise if true, replace existing ground tiles with different variants.
-     */
-    protected void paintGround (boolean erase, boolean revise)
-    {
-        TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene, _editor);
-        Rectangle region = _inner.getRegion();
-        painter.paintGround(
-            new CoordSet(region), _eref.getReference(),
-            _editor.getGrid().getElevation(), erase, revise);
-        _lastPainted.set(region);
-    }
-
-    /**
-     * Allows us to edit the ground reference.
-     */
-    protected static class GroundReference extends EditableReference<GroundConfig>
-    {
-        /** The ground reference. */
-        @Editable(nullable=true)
-        public ConfigReference<GroundConfig> ground;
-
-        /** The width of the brush. */
-        @Editable(min=1, hgroup="d")
-        public int width = 1;
-
-        /** The height of the brush. */
-        @Editable(min=1, hgroup="d")
-        public int height = 1;
-
-        @Override
-        public ConfigReference<GroundConfig> getReference ()
-        {
-            return ground;
-        }
-
-        @Override
-        public void setReference (ConfigReference<GroundConfig> ref)
-        {
-            ground = ref;
-        }
-    }
-
-    /** The inner and outer cursors. */
-    protected RectangleElement _inner, _outer;
-
-    /** Whether or not the cursor is in the window. */
-    protected boolean _cursorVisible;
-
-    /** The directional constraint, if any. */
-    protected DirectionalConstraint _constraint;
-
-    /** The location of the cursor. */
-    protected Coord _location = new Coord();
-
-    /** The rotation of the cursor. */
-    protected int _rotation;
-
-    /** The last painted region. */
-    protected Rectangle _lastPainted = new Rectangle();
-
-    /** Holds the result on an intersection test. */
-    protected Vector3f _isect = new Vector3f();
+  /** Holds the result on an intersection test. */
+  protected Vector3f _isect = new Vector3f();
 }

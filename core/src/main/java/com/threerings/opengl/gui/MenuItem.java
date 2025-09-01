@@ -37,65 +37,65 @@ import com.threerings.opengl.gui.icon.Icon;
  */
 public class MenuItem extends AbstractButton
 {
-    /**
-     * Creates a menu item with the specified text that will generate an
-     * {@link ActionEvent} with the specified action when selected.
-     */
-    public MenuItem (GlContext ctx, String text, String action)
-    {
-        this(ctx, text, null, action);
-    }
+  /**
+   * Creates a menu item with the specified text that will generate an
+   * {@link ActionEvent} with the specified action when selected.
+   */
+  public MenuItem (GlContext ctx, String text, String action)
+  {
+    this(ctx, text, null, action);
+  }
 
-    /**
-     * Creates a menu item with the specified icon that will generate an
-     * {@link ActionEvent} with the specified action when selected.
-     */
-    public MenuItem (GlContext ctx, Icon icon, String action)
-    {
-        this(ctx, null, icon, action);
-    }
+  /**
+   * Creates a menu item with the specified icon that will generate an
+   * {@link ActionEvent} with the specified action when selected.
+   */
+  public MenuItem (GlContext ctx, Icon icon, String action)
+  {
+    this(ctx, null, icon, action);
+  }
 
-    /**
-     * Creates a menu item with the specified text and icon that will generate
-     * an {@link ActionEvent} with the specified action when selected.
-     */
-    public MenuItem (GlContext ctx, String text, Icon icon, String action)
-    {
-        this(ctx, text, icon, action, null);
-    }
+  /**
+   * Creates a menu item with the specified text and icon that will generate
+   * an {@link ActionEvent} with the specified action when selected.
+   */
+  public MenuItem (GlContext ctx, String text, Icon icon, String action)
+  {
+    this(ctx, text, icon, action, null);
+  }
 
-    /**
-     * Creates a menu item with the specified text and icon that will generate
-     * an {@link ActionEvent} with the specified action and argument when selected.
-     */
-    public MenuItem (GlContext ctx, String text, Icon icon, String action, Object argument)
-    {
-        super(ctx, icon, text, action, argument);
-    }
+  /**
+   * Creates a menu item with the specified text and icon that will generate
+   * an {@link ActionEvent} with the specified action and argument when selected.
+   */
+  public MenuItem (GlContext ctx, String text, Icon icon, String action, Object argument)
+  {
+    super(ctx, icon, text, action, argument);
+  }
 
-    @Override
-    public int getState ()
-    {
-        int state = super.getState();
-        return ((state == HOVER) && _pressed && !_armed)
-            ? DEFAULT
-            : state;
-    }
+  @Override
+  public int getState ()
+  {
+    int state = super.getState();
+    return ((state == HOVER) && _pressed && !_armed)
+      ? DEFAULT
+      : state;
+  }
 
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/MenuItem";
-    }
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/MenuItem";
+  }
 
-    @Override
-    protected void fireAction (long when, int modifiers)
-    {
-        for (Component ancestor = _parent; ancestor != null; ancestor = ancestor.getParent()) {
-            if (ancestor instanceof PopupMenu) {
-                ((PopupMenu)ancestor).itemSelected(this, when, modifiers);
-                return;
-            }
-        }
+  @Override
+  protected void fireAction (long when, int modifiers)
+  {
+    for (Component ancestor = _parent; ancestor != null; ancestor = ancestor.getParent()) {
+      if (ancestor instanceof PopupMenu) {
+        ((PopupMenu)ancestor).itemSelected(this, when, modifiers);
+        return;
+      }
     }
+  }
 }

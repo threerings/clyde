@@ -33,96 +33,96 @@ import com.threerings.util.DeepObject;
  * Represents a single frame of user input.
  */
 public class InputFrame extends DeepObject
-    implements Streamable
+  implements Streamable
 {
-    /** Indicates that the user wants to move. */
-    public static final int MOVE = (1 << 0);
+  /** Indicates that the user wants to move. */
+  public static final int MOVE = (1 << 0);
 
-    /** The value of the last flag defined in this class. */
-    public static final int LAST_FLAG = MOVE;
+  /** The value of the last flag defined in this class. */
+  public static final int LAST_FLAG = MOVE;
 
-    /**
-     * Creates a new input frame.
-     */
-    public InputFrame (int timestamp, float rotation, float direction, int flags)
-    {
-        _timestamp = timestamp;
-        _rotation = rotation;
-        _direction = direction;
-        _flags = flags;
-    }
+  /**
+   * Creates a new input frame.
+   */
+  public InputFrame (int timestamp, float rotation, float direction, int flags)
+  {
+    _timestamp = timestamp;
+    _rotation = rotation;
+    _direction = direction;
+    _flags = flags;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public InputFrame ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public InputFrame ()
+  {
+  }
 
-    /**
-     * Returns the timestamp of this frame.
-     */
-    public int getTimestamp ()
-    {
-        return _timestamp;
-    }
+  /**
+   * Returns the timestamp of this frame.
+   */
+  public int getTimestamp ()
+  {
+    return _timestamp;
+  }
 
-    /**
-     * Returns the rotation requested by the user.
-     */
-    public float getRotation ()
-    {
-        return _rotation;
-    }
+  /**
+   * Returns the rotation requested by the user.
+   */
+  public float getRotation ()
+  {
+    return _rotation;
+  }
 
-    /**
-     * Returns the direction of movement requested by the user.
-     */
-    public float getDirection ()
-    {
-        return _direction;
-    }
+  /**
+   * Returns the direction of movement requested by the user.
+   */
+  public float getDirection ()
+  {
+    return _direction;
+  }
 
-    /**
-     * Returns the user's input flags.
-     */
-    public int getFlags ()
-    {
-        return _flags;
-    }
+  /**
+   * Returns the user's input flags.
+   */
+  public int getFlags ()
+  {
+    return _flags;
+  }
 
-    /**
-     * Determines whether a flag is set.
-     */
-    public boolean isSet (int flag)
-    {
-        return (_flags & flag) != 0;
-    }
+  /**
+   * Determines whether a flag is set.
+   */
+  public boolean isSet (int flag)
+  {
+    return (_flags & flag) != 0;
+  }
 
-    /**
-     * Returns the approximate size of the frame in bytes (including its two-byte class code).
-     */
-    public int getApproximateSize ()
-    {
-        return 18;
-    }
+  /**
+   * Returns the approximate size of the frame in bytes (including its two-byte class code).
+   */
+  public int getApproximateSize ()
+  {
+    return 18;
+  }
 
-    @Override
-    public String toString ()
-    {
-        return "[timestamp=" + _timestamp + ", rotation=" + _rotation +
-            ", direction=" + _direction + ", flags=" + _flags + "]";
-    }
+  @Override
+  public String toString ()
+  {
+    return "[timestamp=" + _timestamp + ", rotation=" + _rotation +
+      ", direction=" + _direction + ", flags=" + _flags + "]";
+  }
 
-    /** The timestamp of the input frame. */
-    protected int _timestamp;
+  /** The timestamp of the input frame. */
+  protected int _timestamp;
 
-    /** The rotation requested by the user. */
-    protected float _rotation;
+  /** The rotation requested by the user. */
+  protected float _rotation;
 
-    /** The direction of movement requested by the user. */
-    protected float _direction;
+  /** The direction of movement requested by the user. */
+  protected float _direction;
 
-    /** The user's input flags. */
-    protected int _flags;
+  /** The user's input flags. */
+  protected int _flags;
 }

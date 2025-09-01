@@ -36,104 +36,104 @@ import com.threerings.tudey.data.actor.Mobile;
  */
 public class MobileAdvancer extends ActorAdvancer
 {
-    /**
-     * Creates a new advancer for the supplied mobile.
-     */
-    public MobileAdvancer (Environment environment, Mobile mobile, int timestamp)
-    {
-        super(environment, mobile, timestamp);
+  /**
+   * Creates a new advancer for the supplied mobile.
+   */
+  public MobileAdvancer (Environment environment, Mobile mobile, int timestamp)
+  {
+    super(environment, mobile, timestamp);
+  }
+
+  @Override
+  public void init (Actor actor, int timestamp)
+  {
+    super.init(actor, timestamp);
+    _mobile = (Mobile)actor;
+
+    // set the mobile in motion if just created and so configured
+    if (timestamp == _mobile.getCreated() &&
+        ((ActorConfig.Mobile)_mobile.getOriginal()).startMoving) {
+      _mobile.setDirection(_mobile.getRotation());
+      _mobile.set(Mobile.MOVING);
+    }
+  }
+
+  @Override
+  protected void step (float elapsed)
+  {
+    takeSubsteps(elapsed);
+  }
+
+  /**
+   * Executes the substeps required for the current step.
+   */
+  protected void takeSubsteps (float elapsed)
+  {
+    while (elapsed > 0f) {
+      float nelapsed = Math.max(elapsed - MAX_SUBSTEP, 0f);
+      substep(elapsed - nelapsed, _timestamp - (int)(nelapsed*1000f));
+      elapsed = nelapsed;
+    }
+  }
+
+  /**
+   * Executes a substep of the specified duration.
+   *
+   * @param timestamp the timestamp at the end of the substep.
+   */
+  protected void substep (float elapsed, int timestamp)
+  {
+    // save the mobile's translation
+    _otrans.set(_mobile.getTranslation());
+
+    // take a step
+    mobileStep(elapsed, timestamp);
+
+    // make sure we actually moved
+    Vector2f translation = _mobile.getTranslation();
+    if (translation.equals(_otrans)) {
+      return;
+
+    // make sure we didn't move too far
+    } else if (translation.distanceSquared(_otrans) > _mobile.getMaxStepSquared()) {
+      Vector2f step = translation.subtract(_otrans).normalizeLocal().
+        multLocal(_mobile.getMaxStep());
+      _otrans.add(step, translation);
+    }
+    _mobile.setDirty(true);
+
+    // in several attempts, compute the penetration vector and use it to separate the mobile
+    // from whatever it's penetrating
+    for (int ii = 0; ii < 3; ii++) {
+      updateShape();
+      if (!_environment.getPenetration(_mobile, _shape, _penetration)) {
+        return;
+      }
+      // add a little more than we need, to be safe
+      _mobile.getTranslation().addScaledLocal(_penetration, 1.001f);
     }
 
-    @Override
-    public void init (Actor actor, int timestamp)
-    {
-        super.init(actor, timestamp);
-        _mobile = (Mobile)actor;
+    // if the mobile is still penetrating, just revert to the original translation
+    _mobile.getTranslation().set(_otrans);
+  }
 
-        // set the mobile in motion if just created and so configured
-        if (timestamp == _mobile.getCreated() &&
-                ((ActorConfig.Mobile)_mobile.getOriginal()).startMoving) {
-            _mobile.setDirection(_mobile.getRotation());
-            _mobile.set(Mobile.MOVING);
-        }
-    }
+  /**
+   * Executes a step on the mobile.
+   */
+  protected void mobileStep (float elapsed, int timestamp)
+  {
+    _mobile.step(elapsed, timestamp, _environment.getDirections(_mobile, _shape));
+  }
 
-    @Override
-    protected void step (float elapsed)
-    {
-        takeSubsteps(elapsed);
-    }
+  /** A casted reference to the mobile. */
+  protected Mobile _mobile;
 
-    /**
-     * Executes the substeps required for the current step.
-     */
-    protected void takeSubsteps (float elapsed)
-    {
-        while (elapsed > 0f) {
-            float nelapsed = Math.max(elapsed - MAX_SUBSTEP, 0f);
-            substep(elapsed - nelapsed, _timestamp - (int)(nelapsed*1000f));
-            elapsed = nelapsed;
-        }
-    }
+  /** Stores the penetration vector. */
+  protected Vector2f _penetration = new Vector2f();
 
-    /**
-     * Executes a substep of the specified duration.
-     *
-     * @param timestamp the timestamp at the end of the substep.
-     */
-    protected void substep (float elapsed, int timestamp)
-    {
-        // save the mobile's translation
-        _otrans.set(_mobile.getTranslation());
+  /** Used to store the mobile's original translation. */
+  protected Vector2f _otrans = new Vector2f();
 
-        // take a step
-        mobileStep(elapsed, timestamp);
-
-        // make sure we actually moved
-        Vector2f translation = _mobile.getTranslation();
-        if (translation.equals(_otrans)) {
-            return;
-
-        // make sure we didn't move too far
-        } else if (translation.distanceSquared(_otrans) > _mobile.getMaxStepSquared()) {
-            Vector2f step = translation.subtract(_otrans).normalizeLocal().
-                multLocal(_mobile.getMaxStep());
-            _otrans.add(step, translation);
-        }
-        _mobile.setDirty(true);
-
-        // in several attempts, compute the penetration vector and use it to separate the mobile
-        // from whatever it's penetrating
-        for (int ii = 0; ii < 3; ii++) {
-            updateShape();
-            if (!_environment.getPenetration(_mobile, _shape, _penetration)) {
-                return;
-            }
-            // add a little more than we need, to be safe
-            _mobile.getTranslation().addScaledLocal(_penetration, 1.001f);
-        }
-
-        // if the mobile is still penetrating, just revert to the original translation
-        _mobile.getTranslation().set(_otrans);
-    }
-
-    /**
-     * Executes a step on the mobile.
-     */
-    protected void mobileStep (float elapsed, int timestamp)
-    {
-        _mobile.step(elapsed, timestamp, _environment.getDirections(_mobile, _shape));
-    }
-
-    /** A casted reference to the mobile. */
-    protected Mobile _mobile;
-
-    /** Stores the penetration vector. */
-    protected Vector2f _penetration = new Vector2f();
-
-    /** Used to store the mobile's original translation. */
-    protected Vector2f _otrans = new Vector2f();
-
-    /** The length, in seconds, of the longest substep we're willing to take. */
-    protected static final float MAX_SUBSTEP = 1f / 60f;
+  /** The length, in seconds, of the longest substep we're willing to take. */
+  protected static final float MAX_SUBSTEP = 1f / 60f;
 }

@@ -34,18 +34,18 @@ import com.threerings.util.MessageManager;
  */
 public interface ResourceContext
 {
-    /**
-     * Returns a reference to the resource manager.
-     */
-    public ResourceManager getResourceManager ();
+  /**
+   * Returns a reference to the resource manager.
+   */
+  public ResourceManager getResourceManager ();
 
-    /**
-     * Returns a reference to the message manager.
-     */
-    public MessageManager getMessageManager ();
+  /**
+   * Returns a reference to the message manager.
+   */
+  public MessageManager getMessageManager ();
 
-    /**
-     * Returns a reference to the configuration manager.
-     */
-    public ConfigManager getConfigManager ();
+  /**
+   * Returns a reference to the configuration manager.
+   */
+  public ConfigManager getConfigManager ();
 }

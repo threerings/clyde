@@ -45,113 +45,113 @@ import static com.threerings.ClydeLog.log;
  * object to the set of managed configs.
  */
 public class ConfigUpdater
-    implements SetListener<DSet.Entry>
+  implements SetListener<DSet.Entry>
 {
-    /**
-     * Creates a new updater.
-     */
-    public ConfigUpdater (ConfigManager cfgmgr)
-    {
-        _cfgmgr = cfgmgr;
+  /**
+   * Creates a new updater.
+   */
+  public ConfigUpdater (ConfigManager cfgmgr)
+  {
+    _cfgmgr = cfgmgr;
+  }
+
+  /**
+   * Initializes the updater with a reference to the config object.
+   */
+  public void init (DConfigObject cfgobj)
+  {
+    // apply all changes made to date
+    for (ConfigEntry entry : cfgobj.added) {
+      addConfig(entry.getConfig());
+    }
+    for (ConfigEntry entry : cfgobj.updated) {
+      updateConfig(entry.getConfig());
+    }
+    for (ConfigKey key : cfgobj.removed) {
+      removeConfig(key);
     }
 
-    /**
-     * Initializes the updater with a reference to the config object.
-     */
-    public void init (DConfigObject cfgobj)
-    {
-        // apply all changes made to date
-        for (ConfigEntry entry : cfgobj.added) {
-            addConfig(entry.getConfig());
-        }
-        for (ConfigEntry entry : cfgobj.updated) {
-            updateConfig(entry.getConfig());
-        }
-        for (ConfigKey key : cfgobj.removed) {
-            removeConfig(key);
-        }
+    // register as a listener for further updates
+    cfgobj.addListener(this);
+  }
 
-        // register as a listener for further updates
-        cfgobj.addListener(this);
+  // documentation inherited from interface SetListener
+  public void entryAdded (EntryAddedEvent<DSet.Entry> event)
+  {
+    String name = event.getName();
+    if (name.equals(DConfigObject.ADDED)) {
+      ConfigEntry entry = (ConfigEntry)event.getEntry();
+      addConfig(entry.getConfig());
+
+    } else if (name.equals(DConfigObject.UPDATED)) {
+      ConfigEntry entry = (ConfigEntry)event.getEntry();
+      updateConfig(entry.getConfig());
+
+    } else if (name.equals(DConfigObject.REMOVED)) {
+      removeConfig((ConfigKey)event.getEntry());
     }
+  }
 
-    // documentation inherited from interface SetListener
-    public void entryAdded (EntryAddedEvent<DSet.Entry> event)
-    {
-        String name = event.getName();
-        if (name.equals(DConfigObject.ADDED)) {
-            ConfigEntry entry = (ConfigEntry)event.getEntry();
-            addConfig(entry.getConfig());
-
-        } else if (name.equals(DConfigObject.UPDATED)) {
-            ConfigEntry entry = (ConfigEntry)event.getEntry();
-            updateConfig(entry.getConfig());
-
-        } else if (name.equals(DConfigObject.REMOVED)) {
-            removeConfig((ConfigKey)event.getEntry());
-        }
+  // documentation inherited from interface SetListener
+  public void entryRemoved (EntryRemovedEvent<DSet.Entry> event)
+  {
+    if (event.getName().equals(DConfigObject.ADDED)) {
+      removeConfig((ConfigKey)event.getKey());
     }
+  }
 
-    // documentation inherited from interface SetListener
-    public void entryRemoved (EntryRemovedEvent<DSet.Entry> event)
-    {
-        if (event.getName().equals(DConfigObject.ADDED)) {
-            removeConfig((ConfigKey)event.getKey());
-        }
+  // documentation inherited from interface SetListener
+  public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event)
+  {
+    String name = event.getName();
+    if (name.equals(DConfigObject.ADDED) || name.equals(DConfigObject.UPDATED)) {
+      ConfigEntry entry = (ConfigEntry)event.getEntry();
+      updateConfig(entry.getConfig());
     }
+  }
 
-    // documentation inherited from interface SetListener
-    public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event)
-    {
-        String name = event.getName();
-        if (name.equals(DConfigObject.ADDED) || name.equals(DConfigObject.UPDATED)) {
-            ConfigEntry entry = (ConfigEntry)event.getEntry();
-            updateConfig(entry.getConfig());
-        }
+  /**
+   * Attempts to add a config.
+   */
+  protected void addConfig (ManagedConfig config)
+  {
+    @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> group =
+      (ConfigGroup<ManagedConfig>)_cfgmgr.getGroup(config.getClass());
+    group.addConfig(config);
+  }
+
+  /**
+   * Attempts to remove a config.
+   */
+  protected void removeConfig (ConfigKey key)
+  {
+    @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
+      (Class<ManagedConfig>)key.getConfigClass();
+    ConfigGroup<ManagedConfig> group = _cfgmgr.getGroup(mclass);
+    ManagedConfig config = group.getRawConfig(key.getName());
+    if (config != null) {
+      group.removeConfig(config);
+    } else {
+      log.warning("Missing config to remove.", "key", key);
     }
+  }
 
-    /**
-     * Attempts to add a config.
-     */
-    protected void addConfig (ManagedConfig config)
-    {
-        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> group =
-            (ConfigGroup<ManagedConfig>)_cfgmgr.getGroup(config.getClass());
-        group.addConfig(config);
+  /**
+   * Attempts to update a config.
+   */
+  protected void updateConfig (ManagedConfig nconfig)
+  {
+    ManagedConfig oconfig = _cfgmgr.getConfig(nconfig.getClass(), nconfig.getName());
+    if (oconfig != null) {
+      nconfig.copy(oconfig);
+      oconfig.wasUpdated();
+    } else if (!_cfgmgr.isResourceClass(nconfig.getClass())) {
+      addConfig(nconfig);
+    } else {
+      log.warning("Attempted to update unknown resource.", "name", nconfig.getName());
     }
+  }
 
-    /**
-     * Attempts to remove a config.
-     */
-    protected void removeConfig (ConfigKey key)
-    {
-        @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
-            (Class<ManagedConfig>)key.getConfigClass();
-        ConfigGroup<ManagedConfig> group = _cfgmgr.getGroup(mclass);
-        ManagedConfig config = group.getRawConfig(key.getName());
-        if (config != null) {
-            group.removeConfig(config);
-        } else {
-            log.warning("Missing config to remove.", "key", key);
-        }
-    }
-
-    /**
-     * Attempts to update a config.
-     */
-    protected void updateConfig (ManagedConfig nconfig)
-    {
-        ManagedConfig oconfig = _cfgmgr.getConfig(nconfig.getClass(), nconfig.getName());
-        if (oconfig != null) {
-            nconfig.copy(oconfig);
-            oconfig.wasUpdated();
-        } else if (!_cfgmgr.isResourceClass(nconfig.getClass())) {
-            addConfig(nconfig);
-        } else {
-            log.warning("Attempted to update unknown resource.", "name", nconfig.getName());
-        }
-    }
-
-    /** The config manager. */
-    protected ConfigManager _cfgmgr;
+  /** The config manager. */
+  protected ConfigManager _cfgmgr;
 }

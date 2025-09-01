@@ -39,24 +39,24 @@ import com.threerings.tudey.server.TudeySceneManager;
  */
 public class ToolSceneManager extends TudeySceneManager
 {
-    @Override
-    public boolean getDebugRegions ()
-    {
-        return _prefs.getBoolean("debug_regions", false);
-    }
+  @Override
+  public boolean getDebugRegions ()
+  {
+    return _prefs.getBoolean("debug_regions", false);
+  }
 
-    @Override
-    protected ConfigReference<ActorConfig> getPawnConfig (BodyObject body)
-    {
-        return new ConfigReference<ActorConfig>("Character/PC/Editor");
-    }
+  @Override
+  protected ConfigReference<ActorConfig> getPawnConfig (BodyObject body)
+  {
+    return new ConfigReference<ActorConfig>("Character/PC/Editor");
+  }
 
-    @Override
-    protected void placeBecameEmpty ()
-    {
-        shutdown();
-    }
+  @Override
+  protected void placeBecameEmpty ()
+  {
+    shutdown();
+  }
 
-    /** The application preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(ToolSceneManager.class);
+  /** The application preferences. */
+  protected static Preferences _prefs = Preferences.userNodeForPackage(ToolSceneManager.class);
 }

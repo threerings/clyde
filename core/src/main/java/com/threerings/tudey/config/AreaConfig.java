@@ -48,205 +48,20 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class AreaConfig extends ParameterizedConfig
 {
-    /** Used when we can't resolve the area's underlying original implementation. */
-    public static final Original NULL_ORIGINAL = new Original(Color4f.RED);
+  /** Used when we can't resolve the area's underlying original implementation. */
+  public static final Original NULL_ORIGINAL = new Original(Color4f.RED);
 
-    /**
-     * Contains the actual implementation of the area.
-     */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config's underlying original implementation.
-         */
-        public abstract Original getOriginal (ConfigManager cfgmgr);
-
-        /**
-         * Creates or updates a cursor implementation for this configuration.
-         *
-         * @param scope the area's expression scope.
-         * @param impl an existing implementation to reuse, if possible.
-         * @return either a reference to the existing implementation (if reused), a new
-         * implementation, or <code>null</code> if no implementation could be created.
-         */
-        public abstract AreaCursor.Implementation getCursorImplementation (
-            TudeyContext ctx, Scope scope, AreaCursor.Implementation impl);
-
-        /**
-         * Creates or updates a sprite implementation for this configuration.
-         *
-         * @param scope the area's expression scope.
-         * @param impl an existing implementation to reuse, if possible.
-         * @return either a reference to the existing implementation (if reused), a new
-         * implementation, or <code>null</code> if no implementation could be created.
-         */
-        public abstract AreaSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, AreaSprite.Implementation impl);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
-
-    /**
-     * An original implementation.
-     */
-    public static class Original extends Implementation
-    {
-        /** The color to use when showing this path in the scene editor. */
-        @Editable(mode="alpha", hgroup="c")
-        @Strippable
-        public Color4f color = new Color4f();
-
-        /** Whether or not the area should be used as a default entrance. */
-        @Editable(hgroup="c")
-        @Strippable
-        public boolean defaultEntrance;
-
-        /** Tags used to identify the area within the scene. */
-        @Editable
-        @Strippable
-        public TagConfig tags = new TagConfig();
-
-        /** The area's event handlers. */
-        @Editable
-        public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
-
-        /**
-         * Default constructor.
-         */
-        public Original ()
-        {
-        }
-
-        /**
-         * Creates an implementation with the specified color.
-         */
-        public Original (Color4f color)
-        {
-            this.color.set(color);
-        }
-
-        /**
-         * Returns the name of the server-side logic class to use for the area, or
-         * <code>null</code> for none.
-         */
-        public String getLogicClassName ()
-        {
-            return (getTags().getLength() == 0 && handlers.length == 0 && !defaultEntrance) ? null :
-                "com.threerings.tudey.server.logic.EntryLogic";
-        }
-
-        /**
-         * Adds the resources to preload for this area into the provided set.
-         */
-        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
-        {
-            for (HandlerConfig handler : handlers) {
-                handler.getPreloads(cfgmgr, preloads);
-            }
-        }
-
-        /**
-         * Get the tags, overrideable.
-         */
-        public TagConfig getTags ()
-        {
-            return tags;
-        }
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            return this;
-        }
-
-        @Override
-        public AreaCursor.Implementation getCursorImplementation (
-            TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
-        {
-            if (impl instanceof AreaCursor.Original) {
-                ((AreaCursor.Original)impl).setConfig(this);
-            } else {
-                impl = new AreaCursor.Original(ctx, scope, this);
-            }
-            return impl;
-        }
-
-        @Override
-        public AreaSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
-        {
-            if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
-                return null;
-            }
-            if (impl instanceof AreaSprite.Original) {
-                ((AreaSprite.Original)impl).setConfig(this);
-            } else {
-                impl = new AreaSprite.Original(ctx, scope, this);
-            }
-            return impl;
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            for (HandlerConfig handler : handlers) {
-                handler.invalidate();
-            }
-        }
-    }
-
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The area reference. */
-        @Editable(nullable=true)
-        public ConfigReference<AreaConfig> area;
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
-            return (config == null) ? null : config.getOriginal(cfgmgr);
-        }
-
-        @Override
-        public AreaCursor.Implementation getCursorImplementation (
-            TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
-        {
-            AreaConfig config = ctx.getConfigManager().getConfig(AreaConfig.class, area);
-            return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
-        }
-
-        @Override
-        public AreaSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
-        {
-            AreaConfig config = ctx.getConfigManager().getConfig(AreaConfig.class, area);
-            return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
-        }
-    }
-
-    /** The actual area implementation. */
-    @Editable
-    public Implementation implementation = new Original();
-
+  /**
+   * Contains the actual implementation of the area.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
      * Returns a reference to the config's underlying original implementation.
      */
-    public Original getOriginal (ConfigManager cfgmgr)
-    {
-        return implementation.getOriginal(cfgmgr);
-    }
+    public abstract Original getOriginal (ConfigManager cfgmgr);
 
     /**
      * Creates or updates a cursor implementation for this configuration.
@@ -256,11 +71,8 @@ public class AreaConfig extends ParameterizedConfig
      * @return either a reference to the existing implementation (if reused), a new
      * implementation, or <code>null</code> if no implementation could be created.
      */
-    public AreaCursor.Implementation getCursorImplementation (
-        TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
-    {
-        return implementation.getCursorImplementation(ctx, scope, impl);
-    }
+    public abstract AreaCursor.Implementation getCursorImplementation (
+      TudeyContext ctx, Scope scope, AreaCursor.Implementation impl);
 
     /**
      * Creates or updates a sprite implementation for this configuration.
@@ -270,17 +82,205 @@ public class AreaConfig extends ParameterizedConfig
      * @return either a reference to the existing implementation (if reused), a new
      * implementation, or <code>null</code> if no implementation could be created.
      */
-    public AreaSprite.Implementation getSpriteImplementation (
-        TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
+    public abstract AreaSprite.Implementation getSpriteImplementation (
+      TudeyContext ctx, Scope scope, AreaSprite.Implementation impl);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
-        return implementation.getSpriteImplementation(ctx, scope, impl);
+      // nothing by default
+    }
+  }
+
+  /**
+   * An original implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /** The color to use when showing this path in the scene editor. */
+    @Editable(mode="alpha", hgroup="c")
+    @Strippable
+    public Color4f color = new Color4f();
+
+    /** Whether or not the area should be used as a default entrance. */
+    @Editable(hgroup="c")
+    @Strippable
+    public boolean defaultEntrance;
+
+    /** Tags used to identify the area within the scene. */
+    @Editable
+    @Strippable
+    public TagConfig tags = new TagConfig();
+
+    /** The area's event handlers. */
+    @Editable
+    public HandlerConfig[] handlers = HandlerConfig.EMPTY_ARRAY;
+
+    /**
+     * Default constructor.
+     */
+    public Original ()
+    {
+    }
+
+    /**
+     * Creates an implementation with the specified color.
+     */
+    public Original (Color4f color)
+    {
+      this.color.set(color);
+    }
+
+    /**
+     * Returns the name of the server-side logic class to use for the area, or
+     * <code>null</code> for none.
+     */
+    public String getLogicClassName ()
+    {
+      return (getTags().getLength() == 0 && handlers.length == 0 && !defaultEntrance) ? null :
+        "com.threerings.tudey.server.logic.EntryLogic";
+    }
+
+    /**
+     * Adds the resources to preload for this area into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+      for (HandlerConfig handler : handlers) {
+        handler.getPreloads(cfgmgr, preloads);
+      }
+    }
+
+    /**
+     * Get the tags, overrideable.
+     */
+    public TagConfig getTags ()
+    {
+      return tags;
     }
 
     @Override
-    protected void fireConfigUpdated ()
+    public Original getOriginal (ConfigManager cfgmgr)
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.fireConfigUpdated();
+      return this;
     }
+
+    @Override
+    public AreaCursor.Implementation getCursorImplementation (
+      TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
+    {
+      if (impl instanceof AreaCursor.Original) {
+        ((AreaCursor.Original)impl).setConfig(this);
+      } else {
+        impl = new AreaCursor.Original(ctx, scope, this);
+      }
+      return impl;
+    }
+
+    @Override
+    public AreaSprite.Implementation getSpriteImplementation (
+      TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
+    {
+      if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
+        return null;
+      }
+      if (impl instanceof AreaSprite.Original) {
+        ((AreaSprite.Original)impl).setConfig(this);
+      } else {
+        impl = new AreaSprite.Original(ctx, scope, this);
+      }
+      return impl;
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      for (HandlerConfig handler : handlers) {
+        handler.invalidate();
+      }
+    }
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The area reference. */
+    @Editable(nullable=true)
+    public ConfigReference<AreaConfig> area;
+
+    @Override
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+      AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
+      return (config == null) ? null : config.getOriginal(cfgmgr);
+    }
+
+    @Override
+    public AreaCursor.Implementation getCursorImplementation (
+      TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
+    {
+      AreaConfig config = ctx.getConfigManager().getConfig(AreaConfig.class, area);
+      return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
+    }
+
+    @Override
+    public AreaSprite.Implementation getSpriteImplementation (
+      TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
+    {
+      AreaConfig config = ctx.getConfigManager().getConfig(AreaConfig.class, area);
+      return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
+    }
+  }
+
+  /** The actual area implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Returns a reference to the config's underlying original implementation.
+   */
+  public Original getOriginal (ConfigManager cfgmgr)
+  {
+    return implementation.getOriginal(cfgmgr);
+  }
+
+  /**
+   * Creates or updates a cursor implementation for this configuration.
+   *
+   * @param scope the area's expression scope.
+   * @param impl an existing implementation to reuse, if possible.
+   * @return either a reference to the existing implementation (if reused), a new
+   * implementation, or <code>null</code> if no implementation could be created.
+   */
+  public AreaCursor.Implementation getCursorImplementation (
+    TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
+  {
+    return implementation.getCursorImplementation(ctx, scope, impl);
+  }
+
+  /**
+   * Creates or updates a sprite implementation for this configuration.
+   *
+   * @param scope the area's expression scope.
+   * @param impl an existing implementation to reuse, if possible.
+   * @return either a reference to the existing implementation (if reused), a new
+   * implementation, or <code>null</code> if no implementation could be created.
+   */
+  public AreaSprite.Implementation getSpriteImplementation (
+    TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
+  {
+    return implementation.getSpriteImplementation(ctx, scope, impl);
+  }
+
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.fireConfigUpdated();
+  }
 }

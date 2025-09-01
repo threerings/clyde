@@ -32,103 +32,103 @@ import com.threerings.io.SimpleStreamableObject;
  */
 public abstract class EntityKey extends SimpleStreamableObject
 {
+  /**
+   * Identifies an entry.
+   */
+  public static class Entry extends EntityKey
+  {
     /**
-     * Identifies an entry.
+     * Creates a new entry key.
      */
-    public static class Entry extends EntityKey
+    public Entry (Object key)
     {
-        /**
-         * Creates a new entry key.
-         */
-        public Entry (Object key)
-        {
-            _key = key;
-        }
-
-        /**
-         * No-arg constructor for deserialization.
-         */
-        public Entry ()
-        {
-        }
-
-        /**
-         * Returns the entry key.
-         */
-        public Object getKey ()
-        {
-            return _key;
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return _key.hashCode();
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof Entry && ((Entry)other)._key.equals(_key);
-        }
-
-        @Override
-        public String toString ()
-        {
-            return "[entryKey=" + _key + "]";
-        }
-
-        /** The entry key. */
-        protected Object _key;
+      _key = key;
     }
 
     /**
-     * Identifies an actor.
+     * No-arg constructor for deserialization.
      */
-    public static class Actor extends EntityKey
+    public Entry ()
     {
-        /**
-         * Creates a new actor key.
-         */
-        public Actor (int id)
-        {
-            _id = id;
-        }
-
-        /**
-         * No-arg constructor for deserialization.
-         */
-        public Actor ()
-        {
-        }
-
-        /**
-         * Returns the actor's unique identifier.
-         */
-        public int getId ()
-        {
-            return _id;
-        }
-
-        @Override
-        public int hashCode ()
-        {
-            return _id;
-        }
-
-        @Override
-        public boolean equals (Object other)
-        {
-            return other instanceof Actor && ((Actor)other)._id == _id;
-        }
-
-        @Override
-        public String toString ()
-        {
-            return "[actorId=" + _id + "]";
-        }
-
-        /** The actor's unique identifier. */
-        protected int _id;
     }
+
+    /**
+     * Returns the entry key.
+     */
+    public Object getKey ()
+    {
+      return _key;
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return _key.hashCode();
+    }
+
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof Entry && ((Entry)other)._key.equals(_key);
+    }
+
+    @Override
+    public String toString ()
+    {
+      return "[entryKey=" + _key + "]";
+    }
+
+    /** The entry key. */
+    protected Object _key;
+  }
+
+  /**
+   * Identifies an actor.
+   */
+  public static class Actor extends EntityKey
+  {
+    /**
+     * Creates a new actor key.
+     */
+    public Actor (int id)
+    {
+      _id = id;
+    }
+
+    /**
+     * No-arg constructor for deserialization.
+     */
+    public Actor ()
+    {
+    }
+
+    /**
+     * Returns the actor's unique identifier.
+     */
+    public int getId ()
+    {
+      return _id;
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return _id;
+    }
+
+    @Override
+    public boolean equals (Object other)
+    {
+      return other instanceof Actor && ((Actor)other)._id == _id;
+    }
+
+    @Override
+    public String toString ()
+    {
+      return "[actorId=" + _id + "]";
+    }
+
+    /** The actor's unique identifier. */
+    protected int _id;
+  }
 }

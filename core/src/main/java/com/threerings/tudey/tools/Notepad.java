@@ -36,45 +36,45 @@ import com.threerings.tudey.data.TudeySceneModel;
  * The notepad tool.
  */
 public class Notepad extends EditorTool
-    implements DocumentListener
+  implements DocumentListener
 {
-    /**
-     * Creates the notepad tool.
-     */
-    public Notepad (SceneEditor editor)
-    {
-        super(editor);
-        add(new JScrollPane(_area = new JTextArea()));
-        _area.getDocument().addDocumentListener(this);
-        _area.setLineWrap(true);
-        _area.setWrapStyleWord(true);
-    }
+  /**
+   * Creates the notepad tool.
+   */
+  public Notepad (SceneEditor editor)
+  {
+    super(editor);
+    add(new JScrollPane(_area = new JTextArea()));
+    _area.getDocument().addDocumentListener(this);
+    _area.setLineWrap(true);
+    _area.setWrapStyleWord(true);
+  }
 
-    // documentation inherited from interface DocumentListener
-    public void insertUpdate (DocumentEvent event)
-    {
-        _scene.setNotes(_area.getText());
-    }
+  // documentation inherited from interface DocumentListener
+  public void insertUpdate (DocumentEvent event)
+  {
+    _scene.setNotes(_area.getText());
+  }
 
-    // documentation inherited from interface DocumentListener
-    public void removeUpdate (DocumentEvent event)
-    {
-        _scene.setNotes(_area.getText());
-    }
+  // documentation inherited from interface DocumentListener
+  public void removeUpdate (DocumentEvent event)
+  {
+    _scene.setNotes(_area.getText());
+  }
 
-    // documentation inherited from interface DocumentListener
-    public void changedUpdate (DocumentEvent event)
-    {
-        _scene.setNotes(_area.getText());
-    }
+  // documentation inherited from interface DocumentListener
+  public void changedUpdate (DocumentEvent event)
+  {
+    _scene.setNotes(_area.getText());
+  }
 
-    @Override
-    public void sceneChanged (TudeySceneModel scene)
-    {
-        super.sceneChanged(scene);
-        _area.setText(scene.getNotes());
-    }
+  @Override
+  public void sceneChanged (TudeySceneModel scene)
+  {
+    super.sceneChanged(scene);
+    _area.setText(scene.getNotes());
+  }
 
-    /** The text area. */
-    protected JTextArea _area;
+  /** The text area. */
+  protected JTextArea _area;
 }

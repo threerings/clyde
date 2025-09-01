@@ -39,133 +39,133 @@ import com.threerings.opengl.gui.layout.GroupLayout;
  * supplied values.
  */
 public class List extends Container
-    implements Selectable<Object>
+  implements Selectable<Object>
 {
-    /**
-     * Creates an empty list.
-     */
-    public List (GlContext ctx)
-    {
-        this(ctx, null);
-    }
+  /**
+   * Creates an empty list.
+   */
+  public List (GlContext ctx)
+  {
+    this(ctx, null);
+  }
 
-    /**
-     * Creates a list and populates it with the supplied values.
-     */
-    public List (GlContext ctx, Object[] values)
-    {
-        super(ctx, GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
-        setValues(values);
-    }
+  /**
+   * Creates a list and populates it with the supplied values.
+   */
+  public List (GlContext ctx, Object[] values)
+  {
+    super(ctx, GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
+    setValues(values);
+  }
 
-    /**
-     * Sets the list's values.
-     */
-    public void setValues (Object[] values)
-    {
-        _selidx = -1;
-        removeAll();
-        _values.clear();
-        if (values != null) {
-            for (Object value : values) {
-                addValue(value);
-            }
+  /**
+   * Sets the list's values.
+   */
+  public void setValues (Object[] values)
+  {
+    _selidx = -1;
+    removeAll();
+    _values.clear();
+    if (values != null) {
+      for (Object value : values) {
+        addValue(value);
+      }
+    }
+  }
+
+  /**
+   * Adds a value to the list.
+   */
+  public void addValue (Object value)
+  {
+    // list entries can be selected by clicking on them, but unselected
+    // only by clicking another entry
+    ToggleButton button = new ToggleButton(_ctx, String.valueOf(value)) {
+      protected void fireAction (long when, int modifiers) {
+        if (!_selected) {
+          super.fireAction(when, modifiers);
         }
-    }
-
-    /**
-     * Adds a value to the list.
-     */
-    public void addValue (Object value)
-    {
-        // list entries can be selected by clicking on them, but unselected
-        // only by clicking another entry
-        ToggleButton button = new ToggleButton(_ctx, String.valueOf(value)) {
-            protected void fireAction (long when, int modifiers) {
-                if (!_selected) {
-                    super.fireAction(when, modifiers);
-                }
-            }
-        };
-        button.setStyleConfig("Default/ListEntry");
-        button.addListener(_slistener);
-        add(button);
-        _values.add(value);
-    }
-
-    /**
-     * Removes a value from the list, if it is present.
-     *
-     * @return true if the value was removed, false if it was not in the list
-     */
-    public boolean removeValue (Object value)
-    {
-        int idx = _values.indexOf(value);
-        if (idx == -1) {
-            return false;
-        }
-        if (idx == _selidx) {
-            _selidx = -1;
-        }
-        remove(_children.get(idx));
-        _values.remove(idx);
-        return true;
-    }
-
-    // from Selectable<Object>
-    public Object getSelected ()
-    {
-        return (_selidx == -1) ? null : _values.get(_selidx);
-    }
-
-    // from Selectable<Object>
-    public void setSelected (Object value)
-    {
-        setSelectedIndex(_values.indexOf(value));
-    }
-
-    // from Selectable<Object>
-    public int getSelectedIndex ()
-    {
-        return _selidx;
-    }
-
-    // from Selectable<Object>
-    public void setSelectedIndex (int index)
-    {
-        if (index == _selidx) {
-            return;
-        }
-        if (_selidx != -1) {
-            ((ToggleButton)_children.get(_selidx)).setSelected(false);
-        }
-        if (index != -1) {
-            ((ToggleButton)_children.get(index)).setSelected(true);
-        }
-        _selidx = index;
-    }
-
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/List";
-    }
-
-    /** The values contained in the list. */
-    protected ArrayList<Object> _values = new ArrayList<Object>();
-
-    /** The index of the current selection (or -1 for none). */
-    protected int _selidx = -1;
-
-    /** Listens for button selections. */
-    protected ActionListener _slistener = new ActionListener() {
-        public void actionPerformed (ActionEvent e) {
-            if (_selidx != -1) {
-                ((ToggleButton)_children.get(_selidx)).setSelected(false);
-            }
-            _selidx = getComponentIndex((ToggleButton)e.getSource());
-            emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
-                SELECT, getSelected()));
-        }
+      }
     };
+    button.setStyleConfig("Default/ListEntry");
+    button.addListener(_slistener);
+    add(button);
+    _values.add(value);
+  }
+
+  /**
+   * Removes a value from the list, if it is present.
+   *
+   * @return true if the value was removed, false if it was not in the list
+   */
+  public boolean removeValue (Object value)
+  {
+    int idx = _values.indexOf(value);
+    if (idx == -1) {
+      return false;
+    }
+    if (idx == _selidx) {
+      _selidx = -1;
+    }
+    remove(_children.get(idx));
+    _values.remove(idx);
+    return true;
+  }
+
+  // from Selectable<Object>
+  public Object getSelected ()
+  {
+    return (_selidx == -1) ? null : _values.get(_selidx);
+  }
+
+  // from Selectable<Object>
+  public void setSelected (Object value)
+  {
+    setSelectedIndex(_values.indexOf(value));
+  }
+
+  // from Selectable<Object>
+  public int getSelectedIndex ()
+  {
+    return _selidx;
+  }
+
+  // from Selectable<Object>
+  public void setSelectedIndex (int index)
+  {
+    if (index == _selidx) {
+      return;
+    }
+    if (_selidx != -1) {
+      ((ToggleButton)_children.get(_selidx)).setSelected(false);
+    }
+    if (index != -1) {
+      ((ToggleButton)_children.get(index)).setSelected(true);
+    }
+    _selidx = index;
+  }
+
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/List";
+  }
+
+  /** The values contained in the list. */
+  protected ArrayList<Object> _values = new ArrayList<Object>();
+
+  /** The index of the current selection (or -1 for none). */
+  protected int _selidx = -1;
+
+  /** Listens for button selections. */
+  protected ActionListener _slistener = new ActionListener() {
+    public void actionPerformed (ActionEvent e) {
+      if (_selidx != -1) {
+        ((ToggleButton)_children.get(_selidx)).setSelected(false);
+      }
+      _selidx = getComponentIndex((ToggleButton)e.getSource());
+      emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
+        SELECT, getSelected()));
+    }
+  };
 }

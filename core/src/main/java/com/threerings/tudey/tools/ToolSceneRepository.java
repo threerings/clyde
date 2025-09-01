@@ -36,20 +36,20 @@ import com.threerings.whirled.server.persist.DummySceneRepository;
 @Singleton
 public class ToolSceneRepository extends DummySceneRepository
 {
-    /**
-     * Sets the scene model to return.
-     */
-    public void setSceneModel (SceneModel model)
-    {
-        _sceneModel = model;
-    }
+  /**
+   * Sets the scene model to return.
+   */
+  public void setSceneModel (SceneModel model)
+  {
+    _sceneModel = model;
+  }
 
-    @Override
-    public SceneModel loadSceneModel (int sceneId)
-    {
-        return _sceneModel;
-    }
+  @Override
+  public SceneModel loadSceneModel (int sceneId)
+  {
+    return _sceneModel;
+  }
 
-    /** The scene model to return. */
-    protected SceneModel _sceneModel;
+  /** The scene model to return. */
+  protected SceneModel _sceneModel;
 }

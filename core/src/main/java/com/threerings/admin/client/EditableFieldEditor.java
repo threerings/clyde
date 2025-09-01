@@ -56,110 +56,110 @@ import com.threerings.editor.util.EditorContext;
  * A field editor for {@link Editable} properties.
  */
 public class EditableFieldEditor extends FieldEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    /**
-     * Creates a new field editor.
-     */
-    public EditableFieldEditor (PresentsContext ctx, Field field, DObject object)
-    {
-        super(ctx, field, object);
-        removeAll();
-        setLayout(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+  /**
+   * Creates a new field editor.
+   */
+  public EditableFieldEditor (PresentsContext ctx, Field field, DObject object)
+  {
+    super(ctx, field, object);
+    removeAll();
+    setLayout(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
 
-        // create the dummy object that we'll actually edit
-        try {
-            _dummy = object.getClass().newInstance();
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-
-        // find the actual property corresponding to the field
-        EditorContext ectx = (EditorContext)ctx;
-        for (Property prop : Introspector.getProperties(object)) {
-            if (prop.getMember().equals(field)) {
-                _editor = PropertyEditor.createEditor(ectx, prop, null);
-                break;
-            }
-        }
-        if (_editor == null) {
-            throw new AssertionError("Missing property for field " + field);
-        }
-        add(_editor);
-        _editor.setObject(_dummy);
-        _editor.addChangeListener(this);
-
-        JPanel bpanel = new JPanel();
-        add(bpanel, GroupLayout.FIXED);
-
-        MessageBundle msgs = ectx.getMessageManager().getBundle(EditorMessageBundle.DEFAULT);
-        bpanel.add(_revert = new JButton(new AbstractAction(msgs.get("m.revert")) {
-            public void actionPerformed (ActionEvent event) {
-                noteUpdatedExternally();
-            }
-        }));
-        _revert.setEnabled(false);
-
-        bpanel.add(_commit = new JButton(msgs.get("m.commit")));
-        _commit.addActionListener(this);
-        _commit.setEnabled(false);
+    // create the dummy object that we'll actually edit
+    try {
+      _dummy = object.getClass().newInstance();
+    } catch (Exception e) {
+      throw new AssertionError(e);
     }
 
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        boolean modified = !valueMatches(getDisplayValue());
-        updateBorder(modified);
-        _revert.setEnabled(modified);
-        _commit.setEnabled(modified);
+    // find the actual property corresponding to the field
+    EditorContext ectx = (EditorContext)ctx;
+    for (Property prop : Introspector.getProperties(object)) {
+      if (prop.getMember().equals(field)) {
+        _editor = PropertyEditor.createEditor(ectx, prop, null);
+        break;
+      }
     }
-
-    @Override
-    public void noteUpdatedExternally ()
-    {
-        super.noteUpdatedExternally();
-        _revert.setEnabled(false);
-        _commit.setEnabled(false);
+    if (_editor == null) {
+      throw new AssertionError("Missing property for field " + field);
     }
+    add(_editor);
+    _editor.setObject(_dummy);
+    _editor.addChangeListener(this);
 
-    @Override
-    protected Object getDisplayValue ()
-    {
-        try {
-            return DeepUtil.copy(_field.get(_dummy));
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
+    JPanel bpanel = new JPanel();
+    add(bpanel, GroupLayout.FIXED);
+
+    MessageBundle msgs = ectx.getMessageManager().getBundle(EditorMessageBundle.DEFAULT);
+    bpanel.add(_revert = new JButton(new AbstractAction(msgs.get("m.revert")) {
+      public void actionPerformed (ActionEvent event) {
+        noteUpdatedExternally();
+      }
+    }));
+    _revert.setEnabled(false);
+
+    bpanel.add(_commit = new JButton(msgs.get("m.commit")));
+    _commit.addActionListener(this);
+    _commit.setEnabled(false);
+  }
+
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    boolean modified = !valueMatches(getDisplayValue());
+    updateBorder(modified);
+    _revert.setEnabled(modified);
+    _commit.setEnabled(modified);
+  }
+
+  @Override
+  public void noteUpdatedExternally ()
+  {
+    super.noteUpdatedExternally();
+    _revert.setEnabled(false);
+    _commit.setEnabled(false);
+  }
+
+  @Override
+  protected Object getDisplayValue ()
+  {
+    try {
+      return DeepUtil.copy(_field.get(_dummy));
+    } catch (Exception e) {
+      throw new AssertionError(e);
     }
+  }
 
-    @Override
-    protected void displayValue (Object value)
-    {
-        try {
-            _field.set(_dummy, DeepUtil.copy(value));
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-        _editor.update();
+  @Override
+  protected void displayValue (Object value)
+  {
+    try {
+      _field.set(_dummy, DeepUtil.copy(value));
+    } catch (Exception e) {
+      throw new AssertionError(e);
     }
+    _editor.update();
+  }
 
-    @Override
-    protected boolean valueMatches (Object dvalue)
-    {
-        _a1[0] = dvalue;
-        _a2[0] = getValue();
-        return Arrays.deepEquals(_a1, _a2);
-    }
+  @Override
+  protected boolean valueMatches (Object dvalue)
+  {
+    _a1[0] = dvalue;
+    _a2[0] = getValue();
+    return Arrays.deepEquals(_a1, _a2);
+  }
 
-    /** The dummy object that we actually edit. */
-    protected Object _dummy;
+  /** The dummy object that we actually edit. */
+  protected Object _dummy;
 
-    /** The contained property editor. */
-    protected PropertyEditor _editor;
+  /** The contained property editor. */
+  protected PropertyEditor _editor;
 
-    /** The revert and commit buttons. */
-    protected JButton _revert, _commit;
+  /** The revert and commit buttons. */
+  protected JButton _revert, _commit;
 
-    /** Used for deep-comparing objects. */
-    protected Object[] _a1 = new Object[1], _a2 = new Object[1];
+  /** Used for deep-comparing objects. */
+  protected Object[] _a1 = new Object[1], _a2 = new Object[1];
 }

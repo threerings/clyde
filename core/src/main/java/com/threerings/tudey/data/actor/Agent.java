@@ -35,67 +35,67 @@ import com.threerings.tudey.config.ActorConfig;
  */
 public class Agent extends Active
 {
-    /** A flag indicating that the actor is turning left. */
-    public static final int TURNING_LEFT = (Active.LAST_FLAG << 1);
+  /** A flag indicating that the actor is turning left. */
+  public static final int TURNING_LEFT = (Active.LAST_FLAG << 1);
 
-    /** A flag indicating that the actor is turning right. */
-    public static final int TURNING_RIGHT = (Active.LAST_FLAG << 2);
+  /** A flag indicating that the actor is turning right. */
+  public static final int TURNING_RIGHT = (Active.LAST_FLAG << 2);
 
-    /** The value of the last flag defined in this class. */
-    public static final int LAST_FLAG = TURNING_RIGHT;
+  /** The value of the last flag defined in this class. */
+  public static final int LAST_FLAG = TURNING_RIGHT;
 
-    /**
-     * Creates a new agent.
-     */
-    public Agent (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
-    {
-        super(config, id, created, translation, rotation);
-    }
+  /**
+   * Creates a new agent.
+   */
+  public Agent (
+    ConfigReference<ActorConfig> config, int id, int created,
+    Vector2f translation, float rotation)
+  {
+    super(config, id, created, translation, rotation);
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public Agent ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public Agent ()
+  {
+  }
 
-    /**
-     * Sets the turn direction.
-     */
-    public void setTurnDirection (int dir)
-    {
-        set(TURNING_LEFT, dir == +1);
-        set(TURNING_RIGHT, dir == -1);
-    }
+  /**
+   * Sets the turn direction.
+   */
+  public void setTurnDirection (int dir)
+  {
+    set(TURNING_LEFT, dir == +1);
+    set(TURNING_RIGHT, dir == -1);
+  }
 
-    @Override
-    public float getSpeed ()
-    {
-        return _speed;
-    }
+  @Override
+  public float getSpeed ()
+  {
+    return _speed;
+  }
 
-    /**
-     * Set the speed.
-     */
-    public void setSpeed (float speed)
-    {
-        _speed = speed;
-    }
+  /**
+   * Set the speed.
+   */
+  public void setSpeed (float speed)
+  {
+    _speed = speed;
+  }
 
-    @Override
-    public int getTurnDirection ()
-    {
-        return isSet(TURNING_LEFT) ? +1 : (isSet(TURNING_RIGHT) ? -1 : 0);
-    }
+  @Override
+  public int getTurnDirection ()
+  {
+    return isSet(TURNING_LEFT) ? +1 : (isSet(TURNING_RIGHT) ? -1 : 0);
+  }
 
-    @Override
-    public float getTurnRate ()
-    {
-        return ((ActorConfig.Agent)_original).turnRate;
-    }
+  @Override
+  public float getTurnRate ()
+  {
+    return ((ActorConfig.Agent)_original).turnRate;
+  }
 
-    /** The agent speed. */
-    protected float _speed;
+  /** The agent speed. */
+  protected float _speed;
 }

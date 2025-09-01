@@ -32,15 +32,15 @@ import com.threerings.opengl.geometry.config.GeometryConfig;
  */
 public class GeometryMaterial
 {
-    /** The geometry config. */
-    public final GeometryConfig geometry;
+  /** The geometry config. */
+  public final GeometryConfig geometry;
 
-    /** The material config. */
-    public final MaterialConfig material;
+  /** The material config. */
+  public final MaterialConfig material;
 
-    public GeometryMaterial (GeometryConfig geometry, MaterialConfig material)
-    {
-        this.geometry = geometry;
-        this.material = material;
-    }
+  public GeometryMaterial (GeometryConfig geometry, MaterialConfig material)
+  {
+    this.geometry = geometry;
+    this.material = material;
+  }
 }

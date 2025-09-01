@@ -37,49 +37,49 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({ Extent.Limited.class, Extent.Unlimited.class })
 public abstract class Extent extends DeepObject
-    implements Exportable
+  implements Exportable
 {
-    /**
-     * Limited extent.
-     */
-    public static class Limited extends Extent
+  /**
+   * Limited extent.
+   */
+  public static class Limited extends Extent
+  {
+    /** The size in the x direction. */
+    @Editable(min=0, step=0.01, hgroup="s")
+    public float sizeX = 1f;
+
+    /** The size in the y direction. */
+    @Editable(min=0, step=0.01, hgroup="s")
+    public float sizeY = 1f;
+
+    /** The size in the z direction. */
+    @Editable(min=0, step=0.01, hgroup="s")
+    public float sizeZ = 1f;
+
+    @Override
+    public void transformBounds (Transform3D transform, Box result)
     {
-        /** The size in the x direction. */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float sizeX = 1f;
-
-        /** The size in the y direction. */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float sizeY = 1f;
-
-        /** The size in the z direction. */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float sizeZ = 1f;
-
-        @Override
-        public void transformBounds (Transform3D transform, Box result)
-        {
-            float hx = sizeX * 0.5f, hy = sizeY * 0.5f, hz = sizeZ * 0.5f;
-            result.getMinimumExtent().set(-hx, -hy, -hz);
-            result.getMaximumExtent().set(+hx, +hy, +hz);
-            result.transformLocal(transform);
-        }
+      float hx = sizeX * 0.5f, hy = sizeY * 0.5f, hz = sizeZ * 0.5f;
+      result.getMinimumExtent().set(-hx, -hy, -hz);
+      result.getMaximumExtent().set(+hx, +hy, +hz);
+      result.transformLocal(transform);
     }
+  }
 
-    /**
-     * Unlimited extent.
-     */
-    public static class Unlimited extends Extent
+  /**
+   * Unlimited extent.
+   */
+  public static class Unlimited extends Extent
+  {
+    @Override
+    public void transformBounds (Transform3D transform, Box result)
     {
-        @Override
-        public void transformBounds (Transform3D transform, Box result)
-        {
-            result.set(Box.MAX_VALUE);
-        }
+      result.set(Box.MAX_VALUE);
     }
+  }
 
-    /**
-     * Retrieves the bounds of the extent under the specified transform.
-     */
-    public abstract void transformBounds (Transform3D transform, Box result);
+  /**
+   * Retrieves the bounds of the extent under the specified transform.
+   */
+  public abstract void transformBounds (Transform3D transform, Box result);
 }

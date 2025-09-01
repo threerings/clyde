@@ -30,8 +30,8 @@ package com.threerings.opengl.gui.event;
  */
 public interface EventListener extends ComponentListener
 {
-    /**
-     * Indicates that an event was dispatched on the target component.
-     */
-    public void eventDispatched (Event event);
+  /**
+   * Indicates that an event was dispatched on the target component.
+   */
+  public void eventDispatched (Event event);
 }

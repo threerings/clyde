@@ -42,207 +42,207 @@ import com.threerings.opengl.util.GlContext;
  */
 public class ViewerAffecter extends Model.Implementation
 {
-    /**
-     * Creates a new affecter implementation.
-     */
-    public ViewerAffecter (GlContext ctx, Scope parentScope, ViewerAffecterConfig config)
-    {
-        super(parentScope);
-        setConfig(ctx, config);
+  /**
+   * Creates a new affecter implementation.
+   */
+  public ViewerAffecter (GlContext ctx, Scope parentScope, ViewerAffecterConfig config)
+  {
+    super(parentScope);
+    setConfig(ctx, config);
+  }
+
+  /**
+   * Sets the configuration of this model.
+   */
+  public void setConfig (GlContext ctx, ViewerAffecterConfig config)
+  {
+    _ctx = ctx;
+    _config = config;
+    updateFromConfig();
+  }
+
+  @Override
+  public boolean hasCompleted ()
+  {
+    return _effect.hasCompleted();
+  }
+
+  @Override
+  public void setVisible (boolean visible)
+  {
+    if (_visible == visible) {
+      return;
     }
 
-    /**
-     * Sets the configuration of this model.
-     */
-    public void setConfig (GlContext ctx, ViewerAffecterConfig config)
-    {
-        _ctx = ctx;
-        _config = config;
-        updateFromConfig();
+    _visible = visible;
+    updateVis();
+  }
+
+  @Override
+  public void visibilityWasSet ()
+  {
+    boolean parentVis = ((Model)_parentScope).isShowing();
+    if (_parentVis == parentVis) {
+      return;
     }
 
-    @Override
-    public boolean hasCompleted ()
-    {
-        return _effect.hasCompleted();
+    _parentVis = parentVis;
+    updateVis();
+  }
+
+  @Override
+  public void reset ()
+  {
+    _effect.reset();
+  }
+
+  @Override
+  public int getInfluenceFlags ()
+  {
+    return _influenceFlags;
+  }
+
+  @Override
+  public Box getBounds ()
+  {
+    return _bounds;
+  }
+
+  @Override
+  public void updateBounds ()
+  {
+    // update the world transform
+    if (_parentWorldTransform == null) {
+      _worldTransform.set(_localTransform);
+    } else {
+      _parentWorldTransform.compose(_localTransform, _worldTransform);
     }
 
-    @Override
-    public void setVisible (boolean visible)
-    {
-        if (_visible == visible) {
-            return;
-        }
+    // and the world bounds
+    _config.extent.transformBounds(_worldTransform, _nbounds);
+    if (!_bounds.equals(_nbounds)) {
+      ((Model)_parentScope).boundsWillChange(this);
+      _bounds.set(_nbounds);
+      ((Model)_parentScope).boundsDidChange(this);
 
-        _visible = visible;
-        updateVis();
+      // update the effect bounds if we're in a scene
+      Scene scene = ((Model)_parentScope).getScene(this);
+      if (scene != null && _added) {
+        scene.boundsWillChange(_effect);
+      }
+      _effect.getBounds().set(_nbounds);
+      if (scene != null && _added) {
+        scene.boundsDidChange(_effect);
+      }
+    }
+  }
+
+  @Override
+  public void drawBounds ()
+  {
+    DebugBounds.draw(_bounds, Color4f.WHITE);
+  }
+
+  @Override
+  public void wasAdded ()
+  {
+    Scene scene = ((Model)_parentScope).getScene(this);
+    if (_visible && _parentVis && !_added && scene != null) {
+      scene.add(_effect);
+      _added = true;
+    }
+  }
+
+  @Override
+  public void willBeRemoved ()
+  {
+    Scene scene = ((Model)_parentScope).getScene(this);
+    if (_added && scene != null) {
+      scene.remove(_effect);
+      _added = false;
+    }
+  }
+
+  protected void updateVis ()
+  {
+    Scene scene = ((Model)_parentScope).getScene(this);
+    if (scene != null) {
+      if (_visible && _parentVis && !_added) {
+        scene.add(_effect);
+        _added = true;
+      } else if (!(_visible && _parentVis) && _added) {
+        scene.remove(_effect);
+        _added = false;
+      }
+    }
+  }
+
+  /**
+   * Updates the model to match its new or modified configuration.
+   */
+  protected void updateFromConfig ()
+  {
+    // remove the old effect, if any
+    Scene scene = ((Model)_parentScope).getScene(this);
+    if (_added && scene != null && _effect != null) {
+      scene.remove(_effect);
+      _added = false;
     }
 
-    @Override
-    public void visibilityWasSet ()
-    {
-        boolean parentVis = ((Model)_parentScope).isShowing();
-        if (_parentVis == parentVis) {
-            return;
-        }
+    // update the influence flags
+    _influenceFlags = _config.influences.getFlags();
 
-        _parentVis = parentVis;
-        updateVis();
+    // create the effect
+    _effect = _config.effect.getViewerEffect(_ctx, this, _effect);
+    _effect.getBounds().set(_bounds);
+
+    // add to scene if we're in one
+    if (_visible && _parentVis && !_added && scene != null) {
+      scene.add(_effect);
+      _added = true;
     }
 
-    @Override
-    public void reset ()
-    {
-        _effect.reset();
-    }
+    // update the bounds
+    updateBounds();
+  }
 
-    @Override
-    public int getInfluenceFlags ()
-    {
-        return _influenceFlags;
-    }
+  /** The application context. */
+  protected GlContext _ctx;
 
-    @Override
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
+  /** The model configuration. */
+  protected ViewerAffecterConfig _config;
 
-    @Override
-    public void updateBounds ()
-    {
-        // update the world transform
-        if (_parentWorldTransform == null) {
-            _worldTransform.set(_localTransform);
-        } else {
-            _parentWorldTransform.compose(_localTransform, _worldTransform);
-        }
+  /** The effect. */
+  protected ViewerEffect _effect;
 
-        // and the world bounds
-        _config.extent.transformBounds(_worldTransform, _nbounds);
-        if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange(this);
-            _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange(this);
+  /** The parent world transform. */
+  @Bound("worldTransform")
+  protected Transform3D _parentWorldTransform;
 
-            // update the effect bounds if we're in a scene
-            Scene scene = ((Model)_parentScope).getScene(this);
-            if (scene != null && _added) {
-                scene.boundsWillChange(_effect);
-            }
-            _effect.getBounds().set(_nbounds);
-            if (scene != null && _added) {
-                scene.boundsDidChange(_effect);
-            }
-        }
-    }
+  /** The local transform. */
+  @Bound
+  protected Transform3D _localTransform;
 
-    @Override
-    public void drawBounds ()
-    {
-        DebugBounds.draw(_bounds, Color4f.WHITE);
-    }
+  /** The world transform. */
+  @Scoped
+  protected Transform3D _worldTransform = new Transform3D();
 
-    @Override
-    public void wasAdded ()
-    {
-        Scene scene = ((Model)_parentScope).getScene(this);
-        if (_visible && _parentVis && !_added && scene != null) {
-            scene.add(_effect);
-            _added = true;
-        }
-    }
+  /** Flags indicating which influences can affect the model. */
+  protected int _influenceFlags;
 
-    @Override
-    public void willBeRemoved ()
-    {
-        Scene scene = ((Model)_parentScope).getScene(this);
-        if (_added && scene != null) {
-            scene.remove(_effect);
-            _added = false;
-        }
-    }
+  /** The bounds of the system. */
+  @Scoped
+  protected Box _bounds = new Box();
 
-    protected void updateVis ()
-    {
-        Scene scene = ((Model)_parentScope).getScene(this);
-        if (scene != null) {
-            if (_visible && _parentVis && !_added) {
-                scene.add(_effect);
-                _added = true;
-            } else if (!(_visible && _parentVis) && _added) {
-                scene.remove(_effect);
-                _added = false;
-            }
-        }
-    }
+  /** Holds the bounds of the model when updating. */
+  protected Box _nbounds = new Box();
 
-    /**
-     * Updates the model to match its new or modified configuration.
-     */
-    protected void updateFromConfig ()
-    {
-        // remove the old effect, if any
-        Scene scene = ((Model)_parentScope).getScene(this);
-        if (_added && scene != null && _effect != null) {
-            scene.remove(_effect);
-            _added = false;
-        }
+  /** Are we visible? */
+  protected boolean _visible = true;
 
-        // update the influence flags
-        _influenceFlags = _config.influences.getFlags();
+  /** Is our parent visible? */
+  protected boolean _parentVis = true;
 
-        // create the effect
-        _effect = _config.effect.getViewerEffect(_ctx, this, _effect);
-        _effect.getBounds().set(_bounds);
-
-        // add to scene if we're in one
-        if (_visible && _parentVis && !_added && scene != null) {
-            scene.add(_effect);
-            _added = true;
-        }
-
-        // update the bounds
-        updateBounds();
-    }
-
-    /** The application context. */
-    protected GlContext _ctx;
-
-    /** The model configuration. */
-    protected ViewerAffecterConfig _config;
-
-    /** The effect. */
-    protected ViewerEffect _effect;
-
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
-
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
-
-    /** The world transform. */
-    @Scoped
-    protected Transform3D _worldTransform = new Transform3D();
-
-    /** Flags indicating which influences can affect the model. */
-    protected int _influenceFlags;
-
-    /** The bounds of the system. */
-    @Scoped
-    protected Box _bounds = new Box();
-
-    /** Holds the bounds of the model when updating. */
-    protected Box _nbounds = new Box();
-
-    /** Are we visible? */
-    protected boolean _visible = true;
-
-    /** Is our parent visible? */
-    protected boolean _parentVis = true;
-
-    /** Whether or not we've been added (to prevent adding multiple times). */
-    protected boolean _added = false;
+  /** Whether or not we've been added (to prevent adding multiple times). */
+  protected boolean _added = false;
 }

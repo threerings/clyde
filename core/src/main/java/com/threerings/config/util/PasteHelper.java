@@ -8,11 +8,11 @@ package com.threerings.config.util;
  */
 public class PasteHelper
 {
-    /**
-     * Called when the paste is done.
-     */
-    public void didPaste ()
-    {
-        // nothing
-    }
+  /**
+   * Called when the paste is done.
+   */
+  public void didPaste ()
+  {
+    // nothing
+  }
 }

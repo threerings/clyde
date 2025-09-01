@@ -44,38 +44,38 @@ import com.threerings.tudey.util.TudeySceneFactory;
  */
 public abstract class TudeyServer extends WhirledServer
 {
-    /** Configures dependencies needed by the Tudey services. */
-    public static class TudeyModule extends WhirledModule
-    {
-        @Override protected void configure () {
-            super.configure();
-            bind(PresentsServer.class).to(TudeyServer.class);
-            ResourceManager rsrcmgr = new ResourceManager("rsrc/");
-            rsrcmgr.activateResourceProtocol();
-            bind(ResourceManager.class).toInstance(rsrcmgr);
-            MessageManager msgmgr = new MessageManager("rsrc.i18n");
-            bind(MessageManager.class).toInstance(msgmgr);
-            ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
-            if (shouldInitConfigManager()) {
-                cfgmgr.init();
-            }
-            bind(ConfigManager.class).toInstance(cfgmgr);
-            bind(ColorPository.class).toInstance(ColorPository.loadColorPository(rsrcmgr));
-            bind(SceneFactory.class).to(TudeySceneFactory.class);
-            bind(SceneRegistry.class).to(TudeySceneRegistry.class);
-            bind(ZoneRegistry.class).to(TudeyZoneRegistry.class);
-        }
-
-        /**
-         * Checks whether we should initialize the config manager duration configuration (or
-         * whether it will be initialized later, when we have some extra piece of information).
-         */
-        protected boolean shouldInitConfigManager ()
-        {
-            return true;
-        }
+  /** Configures dependencies needed by the Tudey services. */
+  public static class TudeyModule extends WhirledModule
+  {
+    @Override protected void configure () {
+      super.configure();
+      bind(PresentsServer.class).to(TudeyServer.class);
+      ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+      rsrcmgr.activateResourceProtocol();
+      bind(ResourceManager.class).toInstance(rsrcmgr);
+      MessageManager msgmgr = new MessageManager("rsrc.i18n");
+      bind(MessageManager.class).toInstance(msgmgr);
+      ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
+      if (shouldInitConfigManager()) {
+        cfgmgr.init();
+      }
+      bind(ConfigManager.class).toInstance(cfgmgr);
+      bind(ColorPository.class).toInstance(ColorPository.loadColorPository(rsrcmgr));
+      bind(SceneFactory.class).to(TudeySceneFactory.class);
+      bind(SceneRegistry.class).to(TudeySceneRegistry.class);
+      bind(ZoneRegistry.class).to(TudeyZoneRegistry.class);
     }
 
-    /** The scene registry. */
-    @Inject protected SceneRegistry _scenereg;
+    /**
+     * Checks whether we should initialize the config manager duration configuration (or
+     * whether it will be initialized later, when we have some extra piece of information).
+     */
+    protected boolean shouldInitConfigManager ()
+    {
+      return true;
+    }
+  }
+
+  /** The scene registry. */
+  @Inject protected SceneRegistry _scenereg;
 }

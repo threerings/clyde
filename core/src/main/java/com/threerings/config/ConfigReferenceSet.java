@@ -54,19 +54,19 @@ import com.google.common.collect.SetMultimap;
 @Deprecated
 public abstract class ConfigReferenceSet
 {
-    /**
-     * Adds a reference to the set.
-     */
-    public abstract <T extends ManagedConfig> boolean add (
-            Class<T> clazz, @Nullable ConfigReference<T> ref);
+  /**
+   * Adds a reference to the set.
+   */
+  public abstract <T extends ManagedConfig> boolean add (
+      Class<T> clazz, @Nullable ConfigReference<T> ref);
 
-    /**
-     * Adds a reference to the set, by name only.
-     */
-    public <T extends ManagedConfig> boolean add (Class<T> clazz, @Nullable String name)
-    {
-        return name != null && add(clazz, new ConfigReference<T>(name));
-    }
+  /**
+   * Adds a reference to the set, by name only.
+   */
+  public <T extends ManagedConfig> boolean add (Class<T> clazz, @Nullable String name)
+  {
+    return name != null && add(clazz, new ConfigReference<T>(name));
+  }
 
 //    /**
 //     * Adds a list of references to the set, by name only.
@@ -84,53 +84,53 @@ public abstract class ConfigReferenceSet
 //        return anyAdded;
 //    }
 
+  /**
+   * Convenience method for adding an entire list of refs.
+   */
+  public <T extends ManagedConfig> boolean addAll (
+      Class<T> clazz, @Nullable List<ConfigReference<T>> list)
+  {
+    if (list == null) {
+      return false;
+    }
+    boolean anyAdded = false;
+    for (ConfigReference<T> ref : list) {
+      anyAdded |= add(clazz, ref);
+    }
+    return anyAdded;
+  }
+
+  /**
+   * Convenience method for adding an entire array of refs.
+   */
+  public <T extends ManagedConfig> boolean addAll (
+      Class<T> clazz, @Nullable ConfigReference<T>[] array)
+  {
+    return (array != null) && addAll(clazz, Arrays.asList(array));
+  }
+
+  /**
+   * A default implementation.
+   */
+  public static class Default extends ConfigReferenceSet
+  {
     /**
-     * Convenience method for adding an entire list of refs.
+     * Get the gathered config references.
      */
-    public <T extends ManagedConfig> boolean addAll (
-            Class<T> clazz, @Nullable List<ConfigReference<T>> list)
+    public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
     {
-        if (list == null) {
-            return false;
-        }
-        boolean anyAdded = false;
-        for (ConfigReference<T> ref : list) {
-            anyAdded |= add(clazz, ref);
-        }
-        return anyAdded;
+      return _refs;
     }
 
-    /**
-     * Convenience method for adding an entire array of refs.
-     */
-    public <T extends ManagedConfig> boolean addAll (
-            Class<T> clazz, @Nullable ConfigReference<T>[] array)
+    @Override
+    public <T extends ManagedConfig> boolean add (
+        Class<T> clazz, @Nullable ConfigReference<T> ref)
     {
-        return (array != null) && addAll(clazz, Arrays.asList(array));
+      return (ref != null) && _refs.put(clazz, ref);
     }
 
-    /**
-     * A default implementation.
-     */
-    public static class Default extends ConfigReferenceSet
-    {
-        /**
-         * Get the gathered config references.
-         */
-        public SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getGathered ()
-        {
-            return _refs;
-        }
-
-        @Override
-        public <T extends ManagedConfig> boolean add (
-                Class<T> clazz, @Nullable ConfigReference<T> ref)
-        {
-            return (ref != null) && _refs.put(clazz, ref);
-        }
-
-        /** The gathered references. */
-        protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
-                HashMultimap.create();
-    }
+    /** The gathered references. */
+    protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> _refs =
+        HashMultimap.create();
+  }
 }

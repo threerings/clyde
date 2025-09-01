@@ -41,131 +41,131 @@ import com.threerings.tudey.data.TudeySceneModel.TileEntry;
  */
 public class WallConfig extends PaintableConfig
 {
-    /**
-     * Contains the actual implementation of the wall type.
-     */
-    @EditorTypes({ Original.class, Derived.class })
-    public static abstract class Implementation extends DeepObject
-        implements Exportable
-    {
-        /**
-         * Returns a reference to the config's underlying original implementation.
-         */
-        public abstract Original getOriginal (ConfigManager cfgmgr);
-
-        /**
-         * Invalidates any cached data.
-         */
-        public void invalidate ()
-        {
-            // nothing by default
-        }
-    }
-
-    /**
-     * An original wall implementation.
-     */
-    public static class Original extends Implementation
-    {
-        /** The ground underlying the wall. */
-        @Editable(nullable=true)
-        public ConfigReference<GroundConfig> ground;
-
-        /** The wall cases. */
-        @Editable
-        public Case[] cases = new Case[0];
-
-        /**
-         * Checks whether the specified entry matches any wall case.
-         */
-        public boolean isWall (TileEntry entry, int elevation)
-        {
-            for (Case caze : cases) {
-                if (matchesAny(caze.tiles, entry, elevation)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Determines the case and allowed rotations of the wall tile that matches the specified
-         * pattern.
-         */
-        public IntTuple getWallCaseRotations (int pattern)
-        {
-            return getCaseRotations(cases, pattern);
-        }
-
-        /**
-         * Checks whether the specified entry qualifies as a wall tile.
-         */
-        public boolean isWall (TileEntry entry, IntTuple caseRotations, int elevation)
-        {
-            return matchesAny(cases, entry, caseRotations, elevation);
-        }
-
-        /**
-         * Creates a new wall tile with the supplied case/rotations and maximum dimensions.
-         */
-        public TileEntry createWall (
-            ConfigManager cfgmgr, IntTuple caseRotations,
-            int maxWidth, int maxHeight, int elevation)
-        {
-            return createRandomEntry(
-                cfgmgr, cases[caseRotations.left].tiles,
-                caseRotations.right, maxWidth, maxHeight, elevation);
-        }
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            return this;
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            for (Case caze : cases) {
-                caze.invalidate();
-            }
-        }
-    }
-
-    /**
-     * A derived implementation.
-     */
-    public static class Derived extends Implementation
-    {
-        /** The wall reference. */
-        @Editable(nullable=true)
-        public ConfigReference<WallConfig> wall;
-
-        @Override
-        public Original getOriginal (ConfigManager cfgmgr)
-        {
-            WallConfig config = cfgmgr.getConfig(WallConfig.class, wall);
-            return (config == null) ? null : config.getOriginal(cfgmgr);
-        }
-    }
-
-    /** The actual wall implementation. */
-    @Editable
-    public Implementation implementation = new Original();
-
+  /**
+   * Contains the actual implementation of the wall type.
+   */
+  @EditorTypes({ Original.class, Derived.class })
+  public static abstract class Implementation extends DeepObject
+    implements Exportable
+  {
     /**
      * Returns a reference to the config's underlying original implementation.
      */
-    public Original getOriginal (ConfigManager cfgmgr)
+    public abstract Original getOriginal (ConfigManager cfgmgr);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
-        return implementation.getOriginal(cfgmgr);
+      // nothing by default
+    }
+  }
+
+  /**
+   * An original wall implementation.
+   */
+  public static class Original extends Implementation
+  {
+    /** The ground underlying the wall. */
+    @Editable(nullable=true)
+    public ConfigReference<GroundConfig> ground;
+
+    /** The wall cases. */
+    @Editable
+    public Case[] cases = new Case[0];
+
+    /**
+     * Checks whether the specified entry matches any wall case.
+     */
+    public boolean isWall (TileEntry entry, int elevation)
+    {
+      for (Case caze : cases) {
+        if (matchesAny(caze.tiles, entry, elevation)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Determines the case and allowed rotations of the wall tile that matches the specified
+     * pattern.
+     */
+    public IntTuple getWallCaseRotations (int pattern)
+    {
+      return getCaseRotations(cases, pattern);
+    }
+
+    /**
+     * Checks whether the specified entry qualifies as a wall tile.
+     */
+    public boolean isWall (TileEntry entry, IntTuple caseRotations, int elevation)
+    {
+      return matchesAny(cases, entry, caseRotations, elevation);
+    }
+
+    /**
+     * Creates a new wall tile with the supplied case/rotations and maximum dimensions.
+     */
+    public TileEntry createWall (
+      ConfigManager cfgmgr, IntTuple caseRotations,
+      int maxWidth, int maxHeight, int elevation)
+    {
+      return createRandomEntry(
+        cfgmgr, cases[caseRotations.left].tiles,
+        caseRotations.right, maxWidth, maxHeight, elevation);
     }
 
     @Override
-    protected void fireConfigUpdated ()
+    public Original getOriginal (ConfigManager cfgmgr)
     {
-        // invalidate the implementation
-        implementation.invalidate();
-        super.fireConfigUpdated();
+      return this;
     }
+
+    @Override
+    public void invalidate ()
+    {
+      for (Case caze : cases) {
+        caze.invalidate();
+      }
+    }
+  }
+
+  /**
+   * A derived implementation.
+   */
+  public static class Derived extends Implementation
+  {
+    /** The wall reference. */
+    @Editable(nullable=true)
+    public ConfigReference<WallConfig> wall;
+
+    @Override
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+      WallConfig config = cfgmgr.getConfig(WallConfig.class, wall);
+      return (config == null) ? null : config.getOriginal(cfgmgr);
+    }
+  }
+
+  /** The actual wall implementation. */
+  @Editable
+  public Implementation implementation = new Original();
+
+  /**
+   * Returns a reference to the config's underlying original implementation.
+   */
+  public Original getOriginal (ConfigManager cfgmgr)
+  {
+    return implementation.getOriginal(cfgmgr);
+  }
+
+  @Override
+  protected void fireConfigUpdated ()
+  {
+    // invalidate the implementation
+    implementation.invalidate();
+    super.fireConfigUpdated();
+  }
 }

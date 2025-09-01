@@ -32,8 +32,8 @@ import com.threerings.presents.dobj.ChangeListener;
  */
 public interface SceneDeltaListener extends ChangeListener
 {
-    /**
-     * Called when a scene delta has been received.
-     */
-    public void sceneDeltaReceived (SceneDeltaEvent event);
+  /**
+   * Called when a scene delta has been received.
+   */
+  public void sceneDeltaReceived (SceneDeltaEvent event);
 }

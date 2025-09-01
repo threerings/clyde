@@ -38,11 +38,11 @@ import com.threerings.config.dist.data.ConfigKey;
  * Defines the server-side of the {@link DConfigService}.
  */
 @Generated(value={"com.threerings.presents.tools.GenServiceTask"},
-           comments="Derived from DConfigService.java.")
+      comments="Derived from DConfigService.java.")
 public interface DConfigProvider extends InvocationProvider
 {
-    /**
-     * Handles a {@link DConfigService#updateConfigs} request.
-     */
-    void updateConfigs (ClientObject caller, ConfigEntry[] arg1, ConfigEntry[] arg2, ConfigKey[] arg3);
+  /**
+   * Handles a {@link DConfigService#updateConfigs} request.
+   */
+  void updateConfigs (ClientObject caller, ConfigEntry[] arg1, ConfigEntry[] arg2, ConfigKey[] arg3);
 }

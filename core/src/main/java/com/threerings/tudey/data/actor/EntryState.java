@@ -37,73 +37,73 @@ import com.threerings.tudey.config.ActorConfig;
  */
 public class EntryState extends Actor
 {
-    /**
-     * Creates a new entry state actor.
-     */
-    public EntryState (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
-    {
-        super(config, id, created, translation, rotation);
-        _stateEntered = created;
-    }
+  /**
+   * Creates a new entry state actor.
+   */
+  public EntryState (
+    ConfigReference<ActorConfig> config, int id, int created,
+    Vector2f translation, float rotation)
+  {
+    super(config, id, created, translation, rotation);
+    _stateEntered = created;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public EntryState ()
-    {
-    }
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public EntryState ()
+  {
+  }
 
-    /**
-     * Sets the key of the entry to which this actor corresponds.
-     */
-    public void setKey (Object key)
-    {
-        _key = key;
-        setDirty(true);
-    }
+  /**
+   * Sets the key of the entry to which this actor corresponds.
+   */
+  public void setKey (Object key)
+  {
+    _key = key;
+    setDirty(true);
+  }
 
-    /**
-     * Returns the key of the entry to which this actor corresponds.
-     */
-    public Object getKey ()
-    {
-        return _key;
-    }
+  /**
+   * Returns the key of the entry to which this actor corresponds.
+   */
+  public Object getKey ()
+  {
+    return _key;
+  }
 
-    /**
-     * Sets the state that the entry is in.
-     */
-    public void setState (int state, int entered)
-    {
-        _state = state;
-        _stateEntered = entered;
-        setDirty(true);
-    }
+  /**
+   * Sets the state that the entry is in.
+   */
+  public void setState (int state, int entered)
+  {
+    _state = state;
+    _stateEntered = entered;
+    setDirty(true);
+  }
 
-    /**
-     * Returns the state that the entry is in.
-     */
-    public int getState ()
-    {
-        return _state;
-    }
+  /**
+   * Returns the state that the entry is in.
+   */
+  public int getState ()
+  {
+    return _state;
+  }
 
-    /**
-     * Returns the time at which the entry entered its current state.
-     */
-    public int getStateEntered ()
-    {
-        return _stateEntered;
-    }
+  /**
+   * Returns the time at which the entry entered its current state.
+   */
+  public int getStateEntered ()
+  {
+    return _stateEntered;
+  }
 
-    /** The key identifying the entry to which this actor corresponds. */
-    protected Object _key;
+  /** The key identifying the entry to which this actor corresponds. */
+  protected Object _key;
 
-    /** The state of the entry. */
-    protected int _state;
+  /** The state of the entry. */
+  protected int _state;
 
-    /** The time at which the entry entered its current state. */
-    protected int _stateEntered;
+  /** The time at which the entry entered its current state. */
+  protected int _stateEntered;
 }

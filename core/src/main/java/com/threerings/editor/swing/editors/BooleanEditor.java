@@ -37,39 +37,39 @@ import com.threerings.editor.swing.PropertyEditor;
  * Editor for boolean properties.
  */
 public class BooleanEditor extends PropertyEditor
-    implements ActionListener
+  implements ActionListener
 {
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        Boolean selected = _box.isSelected();
-        if (!_property.get(_object).equals(selected)) {
-            _property.set(_object, selected);
-            fireStateChanged();
-        }
+  // documentation inherited from interface ActionListener
+  public void actionPerformed (ActionEvent event)
+  {
+    Boolean selected = _box.isSelected();
+    if (!_property.get(_object).equals(selected)) {
+      _property.set(_object, selected);
+      fireStateChanged();
     }
+  }
 
-    @Override
-    public void update ()
-    {
-        _box.setSelected((Boolean)_property.get(_object));
+  @Override
+  public void update ()
+  {
+    _box.setSelected((Boolean)_property.get(_object));
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    add(_box = new JCheckBox(getPropertyLabel()));
+    _box.setBackground(null);
+    Dimension size = _box.getPreferredSize();
+    _box.setPreferredSize(new Dimension(size.width, 16));
+    if (_property.getAnnotation().constant()) {
+      _box.setEnabled(false);
+    } else {
+      _box.addActionListener(this);
     }
+    addUnits(this);
+  }
 
-    @Override
-    protected void didInit ()
-    {
-        add(_box = new JCheckBox(getPropertyLabel()));
-        _box.setBackground(null);
-        Dimension size = _box.getPreferredSize();
-        _box.setPreferredSize(new Dimension(size.width, 16));
-        if (_property.getAnnotation().constant()) {
-            _box.setEnabled(false);
-        } else {
-            _box.addActionListener(this);
-        }
-        addUnits(this);
-    }
-
-    /** The check box. */
-    protected JCheckBox _box;
+  /** The check box. */
+  protected JCheckBox _box;
 }

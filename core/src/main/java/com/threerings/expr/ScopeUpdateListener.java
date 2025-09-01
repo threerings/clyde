@@ -30,8 +30,8 @@ package com.threerings.expr;
  */
 public interface ScopeUpdateListener
 {
-    /**
-     * Called when the scope has been updated.
-     */
-    public void scopeUpdated (ScopeEvent event);
+  /**
+   * Called when the scope has been updated.
+   */
+  public void scopeUpdated (ScopeEvent event);
 }

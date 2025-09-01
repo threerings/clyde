@@ -37,60 +37,60 @@ import com.threerings.opengl.renderer.state.ArrayState;
  */
 public abstract class Geometry
 {
-    /** A "geometry" object that draws nothing. */
-    public static final Geometry EMPTY = new SimpleGeometry() {
-        protected void draw () {
-            // no-op
-        }
-    };
-
-    /**
-     * Returns the geometry's bone matrices, if any.
-     */
-    public Matrix4f[] getBoneMatrices ()
-    {
-        return null;
+  /** A "geometry" object that draws nothing. */
+  public static final Geometry EMPTY = new SimpleGeometry() {
+    protected void draw () {
+      // no-op
     }
+  };
 
-    /**
-     * Returns the coordinate space in which the specified pass is given.
-     */
-    public CoordSpace getCoordSpace (int pass)
-    {
-        return CoordSpace.OBJECT;
-    }
+  /**
+   * Returns the geometry's bone matrices, if any.
+   */
+  public Matrix4f[] getBoneMatrices ()
+  {
+    return null;
+  }
 
-    /**
-     * Returns a reference to the location of the center of the geometry (used for depth sorting).
-     */
-    public Vector3f getCenter ()
-    {
-        return Vector3f.ZERO;
-    }
+  /**
+   * Returns the coordinate space in which the specified pass is given.
+   */
+  public CoordSpace getCoordSpace (int pass)
+  {
+    return CoordSpace.OBJECT;
+  }
 
-    /**
-     * Returns the array state for the specified pass.
-     */
-    public abstract ArrayState getArrayState (int pass);
+  /**
+   * Returns a reference to the location of the center of the geometry (used for depth sorting).
+   */
+  public Vector3f getCenter ()
+  {
+    return Vector3f.ZERO;
+  }
 
-    /**
-     * Returns the draw command for the specified pass.
-     */
-    public abstract DrawCommand getDrawCommand (int pass);
+  /**
+   * Returns the array state for the specified pass.
+   */
+  public abstract ArrayState getArrayState (int pass);
 
-    /**
-     * Checks whether this geometry requires a call to its {@link #update} method before rendering.
-     */
-    public boolean requiresUpdate ()
-    {
-        return false;
-    }
+  /**
+   * Returns the draw command for the specified pass.
+   */
+  public abstract DrawCommand getDrawCommand (int pass);
 
-    /**
-     * Updates the state of the geometry.
-     */
-    public void update ()
-    {
-        // nothing by default
-    }
+  /**
+   * Checks whether this geometry requires a call to its {@link #update} method before rendering.
+   */
+  public boolean requiresUpdate ()
+  {
+    return false;
+  }
+
+  /**
+   * Updates the state of the geometry.
+   */
+  public void update ()
+  {
+    // nothing by default
+  }
 }

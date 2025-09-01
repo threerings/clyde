@@ -36,79 +36,79 @@ import com.threerings.opengl.util.GlContext;
  */
 public class Tooltip
 {
-    /**
-     * Configures the tooltip text for this component. If the text starts with &lt;html&gt; then
-     * the tooltip will be displayed with an {@link HTMLView} otherwise it will be displayed with a
-     * {@link Label}.
-     */
-    public void setText (String text)
-    {
-        _tiptext = text;
-    }
+  /**
+   * Configures the tooltip text for this component. If the text starts with &lt;html&gt; then
+   * the tooltip will be displayed with an {@link HTMLView} otherwise it will be displayed with a
+   * {@link Label}.
+   */
+  public void setText (String text)
+  {
+    _tiptext = text;
+  }
 
-    /**
-     * Returns the tooltip text configured for this component.
-     */
-    public String getText ()
-    {
-        return _tiptext;
-    }
+  /**
+   * Returns the tooltip text configured for this component.
+   */
+  public String getText ()
+  {
+    return _tiptext;
+  }
 
-    /**
-     * Sets where to position the tooltip window.
-     *
-     * @param mouse if true, the window will appear relative to the mouse position, if false, the
-     * window will appear relative to the component bounds.
-     */
-    public void setRelativeToMouse (boolean mouse)
-    {
-        _tipmouse = mouse;
-    }
+  /**
+   * Sets where to position the tooltip window.
+   *
+   * @param mouse if true, the window will appear relative to the mouse position, if false, the
+   * window will appear relative to the component bounds.
+   */
+  public void setRelativeToMouse (boolean mouse)
+  {
+    _tipmouse = mouse;
+  }
 
-    /**
-     * Returns true if the tooltip window should be position relative to the mouse.
-     */
-    public boolean isRelativeToMouse ()
-    {
-        return _tipmouse;
-    }
+  /**
+   * Returns true if the tooltip window should be position relative to the mouse.
+   */
+  public boolean isRelativeToMouse ()
+  {
+    return _tipmouse;
+  }
 
-    /**
-     * Returns the component's tooltip timeout, or -1 to use the default.
-     */
-    public float getTimeout ()
-    {
-        return -1f;
-    }
+  /**
+   * Returns the component's tooltip timeout, or -1 to use the default.
+   */
+  public float getTimeout ()
+  {
+    return -1f;
+  }
 
-    /**
-     * Returns a reference to the component's tooltip window style config.
-     */
-    public String getWindowStyle ()
-    {
-        return "Default/TooltipWindow";
-    }
+  /**
+   * Returns a reference to the component's tooltip window style config.
+   */
+  public String getWindowStyle ()
+  {
+    return "Default/TooltipWindow";
+  }
 
-    public void setStyle (ConfigReference<StyleConfig> style)
-    {
-        _style = style;
-    }
+  public void setStyle (ConfigReference<StyleConfig> style)
+  {
+    _style = style;
+  }
 
-    /**
-     * Creates the component that will be used to display our tooltip. This method will only be
-     * called if {@link Component#getTooltipText} returns non-null text.
-     */
-    protected Component createComponent (GlContext ctx, String tiptext)
-    {
-        return Component.createDefaultTooltipComponent(ctx, tiptext, _style);
-    }
+  /**
+   * Creates the component that will be used to display our tooltip. This method will only be
+   * called if {@link Component#getTooltipText} returns non-null text.
+   */
+  protected Component createComponent (GlContext ctx, String tiptext)
+  {
+    return Component.createDefaultTooltipComponent(ctx, tiptext, _style);
+  }
 
-    /** The style to use for tooltips. */
-    protected ConfigReference<StyleConfig> _style;
+  /** The style to use for tooltips. */
+  protected ConfigReference<StyleConfig> _style;
 
-    /** The tip text. */
-    protected String _tiptext;
+  /** The tip text. */
+  protected String _tiptext;
 
-    /** Tip relative to mouse. */
-    protected boolean _tipmouse;
+  /** Tip relative to mouse. */
+  protected boolean _tipmouse;
 }

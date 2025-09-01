@@ -52,131 +52,131 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * The eraser tool.
  */
 public class Eraser extends EditorTool
-    implements ChangeListener
+  implements ChangeListener
 {
-    /**
-     * Creates the eraser tool.
-     */
-    public Eraser (SceneEditor editor)
-    {
-        super(editor);
+  /**
+   * Creates the eraser tool.
+   */
+  public Eraser (SceneEditor editor)
+  {
+    super(editor);
 
-        // make the rectangle non-obnoxious
-        ShapeConfig.Rectangle rect = (ShapeConfig.Rectangle)_options.shape;
-        rect.width = .99f;
-        rect.height = .99f;
+    // make the rectangle non-obnoxious
+    ShapeConfig.Rectangle rect = (ShapeConfig.Rectangle)_options.shape;
+    rect.width = .99f;
+    rect.height = .99f;
 
-        // create and add the editor panel
-        EditorPanel epanel = new EditorPanel(editor);
-        add(epanel);
-        epanel.setObject(_options);
-        epanel.addChangeListener(this);
+    // create and add the editor panel
+    EditorPanel epanel = new EditorPanel(editor);
+    add(epanel);
+    epanel.setObject(_options);
+    epanel.addChangeListener(this);
+  }
+
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    _options.shape.invalidate();
+    _cursor.setConfig(_options.shape, true);
+  }
+
+  @Override
+  public void init ()
+  {
+    _cursor = new ShapeConfigElement(_editor);
+    _cursor.setConfig(_options.shape, true);
+    _cursor.getColor().set(1f, 0.75f, 0.75f, 1f);
+  }
+
+  @Override
+  public void tick (float elapsed)
+  {
+    updateCursor();
+  }
+
+  @Override
+  public void composite ()
+  {
+    if (_cursorVisible) {
+      _cursor.composite();
     }
+  }
 
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        _options.shape.invalidate();
-        _cursor.setConfig(_options.shape, true);
+  @Override
+  public void mouseWheelMoved (MouseWheelEvent event)
+  {
+    // adjust in terms of coarse (ninety degree) or fine increments
+    if (_cursorVisible) {
+      float increment = event.isShiftDown() ? FINE_ROTATION_INCREMENT : FloatMath.HALF_PI;
+      _angle = (Math.round(_angle / increment) + event.getWheelRotation()) * increment;
     }
+  }
 
-    @Override
-    public void init ()
-    {
-        _cursor = new ShapeConfigElement(_editor);
-        _cursor.setConfig(_options.shape, true);
-        _cursor.getColor().set(1f, 0.75f, 0.75f, 1f);
+  /**
+   * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
+   */
+  protected void updateCursor ()
+  {
+    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+      return;
     }
-
-    @Override
-    public void tick (float elapsed)
-    {
-        updateCursor();
+    // snap to tile grid if shift not held down
+    if (!_editor.isShiftDown()) {
+      _isect.x = FloatMath.floor(_isect.x) + 0.5f;
+      _isect.y = FloatMath.floor(_isect.y) + 0.5f;
     }
+    Transform3D transform = _cursor.getTransform();
+    transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
+    transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
 
-    @Override
-    public void composite ()
-    {
-        if (_cursorVisible) {
-            _cursor.composite();
-        }
+    // if the button is down, erase
+    if (_editor.isFirstButtonDown()) {
+      _transform.getTranslation().set(_isect.x, _isect.y);
+      _transform.setRotation(_angle);
+      _shape = _options.shape.getShape().transform(_transform, _shape);
+      _scene.getEntries(
+        _shape, Predicates.and(_options.filter, _editor.getLayerPredicate()), _entries);
+      _editor.removeEntries(_entries);
+      _entries.clear();
     }
+  }
 
-    @Override
-    public void mouseWheelMoved (MouseWheelEvent event)
-    {
-        // adjust in terms of coarse (ninety degree) or fine increments
-        if (_cursorVisible) {
-            float increment = event.isShiftDown() ? FINE_ROTATION_INCREMENT : FloatMath.HALF_PI;
-            _angle = (Math.round(_angle / increment) + event.getWheelRotation()) * increment;
-        }
-    }
+  /**
+   * Allows us to edit the tool options.
+   */
+  protected static class Options extends DeepObject
+    implements Exportable
+  {
+    /** The shape of the eraser. */
+    @Editable
+    public ShapeConfig shape = new ShapeConfig.Rectangle();
 
-    /**
-     * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
-     */
-    protected void updateCursor ()
-    {
-        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
-            return;
-        }
-        // snap to tile grid if shift not held down
-        if (!_editor.isShiftDown()) {
-            _isect.x = FloatMath.floor(_isect.x) + 0.5f;
-            _isect.y = FloatMath.floor(_isect.y) + 0.5f;
-        }
-        Transform3D transform = _cursor.getTransform();
-        transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
-        transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
+    /** The filter that determines what we want to erase. */
+    @Editable
+    public Filter filter = new Filter();
+  }
 
-        // if the button is down, erase
-        if (_editor.isFirstButtonDown()) {
-            _transform.getTranslation().set(_isect.x, _isect.y);
-            _transform.setRotation(_angle);
-            _shape = _options.shape.getShape().transform(_transform, _shape);
-            _scene.getEntries(
-                _shape, Predicates.and(_options.filter, _editor.getLayerPredicate()), _entries);
-            _editor.removeEntries(_entries);
-            _entries.clear();
-        }
-    }
+  /** The eraser options. */
+  protected Options _options = new Options();
 
-    /**
-     * Allows us to edit the tool options.
-     */
-    protected static class Options extends DeepObject
-        implements Exportable
-    {
-        /** The shape of the eraser. */
-        @Editable
-        public ShapeConfig shape = new ShapeConfig.Rectangle();
+  /** The cursor. */
+  protected ShapeConfigElement _cursor;
 
-        /** The filter that determines what we want to erase. */
-        @Editable
-        public Filter filter = new Filter();
-    }
+  /** Whether or not the cursor is in the window. */
+  protected boolean _cursorVisible;
 
-    /** The eraser options. */
-    protected Options _options = new Options();
+  /** The angle about the z axis. */
+  protected float _angle;
 
-    /** The cursor. */
-    protected ShapeConfigElement _cursor;
+  /** The shape transform. */
+  protected Transform2D _transform = new Transform2D(Transform2D.RIGID);
 
-    /** Whether or not the cursor is in the window. */
-    protected boolean _cursorVisible;
+  /** The transformed shape. */
+  protected Shape _shape;
 
-    /** The angle about the z axis. */
-    protected float _angle;
+  /** Holds the result of an intersection test. */
+  protected Vector3f _isect = new Vector3f();
 
-    /** The shape transform. */
-    protected Transform2D _transform = new Transform2D(Transform2D.RIGID);
-
-    /** The transformed shape. */
-    protected Shape _shape;
-
-    /** Holds the result of an intersection test. */
-    protected Vector3f _isect = new Vector3f();
-
-    /** Holds the entries intersecting the cursor. */
-    protected ArrayList<Entry> _entries = new ArrayList<Entry>();
+  /** Holds the entries intersecting the cursor. */
+  protected ArrayList<Entry> _entries = new ArrayList<Entry>();
 }

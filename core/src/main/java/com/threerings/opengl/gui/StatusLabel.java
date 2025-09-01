@@ -38,86 +38,86 @@ import com.threerings.opengl.util.GlContext;
  */
 public class StatusLabel extends Label
 {
-    /**
-     * Creates a new status label.
-     */
-    public StatusLabel (GlContext ctx)
-    {
-        super(ctx, "");
-    }
+  /**
+   * Creates a new status label.
+   */
+  public StatusLabel (GlContext ctx)
+  {
+    super(ctx, "");
+  }
 
-    /**
-     * Translates and displays the specified status message.
-     *
-     * @param flash if true, an icon will be flashed three times next to the
-     * status message to grab the users attention.
-     */
-    public void setStatus (String bundle, String message, boolean flash)
-    {
-        setStatus(_ctx.getApp().xlate(bundle, message), flash);
-    }
+  /**
+   * Translates and displays the specified status message.
+   *
+   * @param flash if true, an icon will be flashed three times next to the
+   * status message to grab the users attention.
+   */
+  public void setStatus (String bundle, String message, boolean flash)
+  {
+    setStatus(_ctx.getApp().xlate(bundle, message), flash);
+  }
 
-    /**
-     * Displays an <em>already translated</em> status message.
-     *
-     * @param flash if true, an icon will be flashed three times next to the
-     * status message to grab the users attention.
-     */
-    public void setStatus (String message, boolean flash)
-    {
-        super.setText(message);
-        if (_flashAlert != null) {
-            _flashAlert.cancel();
+  /**
+   * Displays an <em>already translated</em> status message.
+   *
+   * @param flash if true, an icon will be flashed three times next to the
+   * status message to grab the users attention.
+   */
+  public void setStatus (String message, boolean flash)
+  {
+    super.setText(message);
+    if (_flashAlert != null) {
+      _flashAlert.cancel();
+    }
+    final Icon alert = _icons[getState()];
+    final BlankIcon blank = (alert == null) ?
+      null : new BlankIcon(alert.getWidth(), alert.getHeight());
+    setIcon(flash ? alert : blank);
+    if (flash) {
+      (_flashAlert = new Interval(_ctx.getApp().getRunQueue()) {
+        public void expired () {
+          _flashCount++;
+          setIcon(_flashCount % 2 == 0 ? alert : blank);
+          if (_flashCount == 5) {
+            cancel();
+          }
         }
-        final Icon alert = _icons[getState()];
-        final BlankIcon blank = (alert == null) ?
-            null : new BlankIcon(alert.getWidth(), alert.getHeight());
-        setIcon(flash ? alert : blank);
-        if (flash) {
-            (_flashAlert = new Interval(_ctx.getApp().getRunQueue()) {
-                public void expired () {
-                    _flashCount++;
-                    setIcon(_flashCount % 2 == 0 ? alert : blank);
-                    if (_flashCount == 5) {
-                        cancel();
-                    }
-                }
-                protected int _flashCount = 0;
-            }).schedule(FLASH_DELAY, true);
-        }
+        protected int _flashCount = 0;
+      }).schedule(FLASH_DELAY, true);
     }
+  }
 
-    @Override
-    public void setText (String text)
-    {
-        if (_icons == null) {
-            // not yet initialized
-            super.setText(text);
+  @Override
+  public void setText (String text)
+  {
+    if (_icons == null) {
+      // not yet initialized
+      super.setText(text);
 
-        } else {
-            setStatus(text, false);
-        }
+    } else {
+      setStatus(text, false);
     }
+  }
 
-    @Override
-    protected String getDefaultStyleConfig ()
-    {
-        return "Default/StatusLabel";
-    }
+  @Override
+  protected String getDefaultStyleConfig ()
+  {
+    return "Default/StatusLabel";
+  }
 
-    @Override
-    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
-    {
-        super.updateFromStyleConfig(state, config);
-        _icons[state] = (config.icon == null) ? null : config.icon.getIcon(_ctx);
-    }
+  @Override
+  protected void updateFromStyleConfig (int state, StyleConfig.Original config)
+  {
+    super.updateFromStyleConfig(state, config);
+    _icons[state] = (config.icon == null) ? null : config.icon.getIcon(_ctx);
+  }
 
-    /** The icons for each state. */
-    protected Icon[] _icons = new Icon[getStateCount()];
+  /** The icons for each state. */
+  protected Icon[] _icons = new Icon[getStateCount()];
 
-    /** The flash interval, if any. */
-    protected Interval _flashAlert;
+  /** The flash interval, if any. */
+  protected Interval _flashAlert;
 
-    /** The delay between flashes. */
-    protected static final long FLASH_DELAY = 300L;
+  /** The delay between flashes. */
+  protected static final long FLASH_DELAY = 300L;
 }

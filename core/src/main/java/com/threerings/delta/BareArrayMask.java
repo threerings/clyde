@@ -36,25 +36,25 @@ import com.threerings.io.ObjectOutputStream;
  */
 public class BareArrayMask extends ArrayMask
 {
-    /**
-     * Creates a new array mask with the supplied length.
-     */
-    public BareArrayMask (int length)
-    {
-        super(length);
-    }
+  /**
+   * Creates a new array mask with the supplied length.
+   */
+  public BareArrayMask (int length)
+  {
+    super(length);
+  }
 
-    @Override
-    public void writeTo (ObjectOutputStream out)
-        throws IOException
-    {
-        out.write(_mask);
-    }
+  @Override
+  public void writeTo (ObjectOutputStream out)
+    throws IOException
+  {
+    out.write(_mask);
+  }
 
-    @Override
-    public void readFrom (ObjectInputStream in)
-        throws IOException
-    {
-        in.read(_mask);
-    }
+  @Override
+  public void readFrom (ObjectInputStream in)
+    throws IOException
+  {
+    in.read(_mask);
+  }
 }

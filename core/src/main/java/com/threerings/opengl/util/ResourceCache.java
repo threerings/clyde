@@ -38,102 +38,102 @@ import com.google.common.collect.Maps;
  */
 public abstract class ResourceCache
 {
+  /**
+   * Creates a new resource cache.
+   *
+   * @param checkTimestamps if true, check the last-modified timestamp of each resource file
+   * when we retrieve it from the cache, reloading the resource if the file has been modified
+   * externally.
+   */
+  public ResourceCache (GlContext ctx, boolean checkTimestamps)
+  {
+    _ctx = ctx;
+    _checkTimestamps = checkTimestamps;
+  }
+
+  /**
+   * A cache for a single type of resource.
+   */
+  protected abstract class Subcache<K, V>
+  {
     /**
-     * Creates a new resource cache.
-     *
-     * @param checkTimestamps if true, check the last-modified timestamp of each resource file
-     * when we retrieve it from the cache, reloading the resource if the file has been modified
-     * externally.
+     * Retrieves the resource corresponding to the specified key.
      */
-    public ResourceCache (GlContext ctx, boolean checkTimestamps)
+    public V getResource (K key)
     {
-        _ctx = ctx;
-        _checkTimestamps = checkTimestamps;
+      CachedResource<V> cached = _resources.get(key);
+      if (cached != null) {
+        V resource = cached.get();
+        if (!(resource == null || (_checkTimestamps && cached.wasModified()))) {
+          return resource;
+        }
+      }
+      V resource = loadResource(key);
+      _resources.put(key, new CachedResource<V>(resource, getResourceFile(key)));
+      return resource;
     }
 
     /**
-     * A cache for a single type of resource.
+     * Clears the subcache, forcing all resources to be reloaded.
      */
-    protected abstract class Subcache<K, V>
+    public void clear ()
     {
-        /**
-         * Retrieves the resource corresponding to the specified key.
-         */
-        public V getResource (K key)
-        {
-            CachedResource<V> cached = _resources.get(key);
-            if (cached != null) {
-                V resource = cached.get();
-                if (!(resource == null || (_checkTimestamps && cached.wasModified()))) {
-                    return resource;
-                }
-            }
-            V resource = loadResource(key);
-            _resources.put(key, new CachedResource<V>(resource, getResourceFile(key)));
-            return resource;
-        }
-
-        /**
-         * Clears the subcache, forcing all resources to be reloaded.
-         */
-        public void clear ()
-        {
-            _resources.clear();
-        }
-
-        /**
-         * Loads the resource corresponding to the specified key.
-         */
-        protected abstract V loadResource (K key);
-
-        /**
-         * Returns the file corresponding to the specified key.
-         */
-        protected File getResourceFile (K key)
-        {
-            return _ctx.getResourceManager().getResourceFile(getResourcePath(key));
-        }
-
-        /**
-         * Returns the resource path corresponding to the specified key.
-         */
-        protected abstract String getResourcePath (K key);
-
-        /** The cached resources. */
-        protected HashMap<K, CachedResource<V>> _resources = Maps.newHashMap();
+      _resources.clear();
     }
 
     /**
-     * Contains a cached resource.
+     * Loads the resource corresponding to the specified key.
      */
-    protected static class CachedResource<T> extends SoftReference<T>
+    protected abstract V loadResource (K key);
+
+    /**
+     * Returns the file corresponding to the specified key.
+     */
+    protected File getResourceFile (K key)
     {
-        public CachedResource (T resource, File file)
-        {
-            super(resource);
-            _file = file;
-            _lastModified = file.lastModified();
-        }
-
-        /**
-         * Determines whether the resource file has been modified since this reference
-         * was created.
-         */
-        public boolean wasModified ()
-        {
-            return _file.lastModified() > _lastModified;
-        }
-
-        /** The file corresponding to the resource. */
-        protected File _file;
-
-        /** The recorded last-modified timestamp. */
-        protected long _lastModified;
+      return _ctx.getResourceManager().getResourceFile(getResourcePath(key));
     }
 
-    /** The renderer context. */
-    protected GlContext _ctx;
+    /**
+     * Returns the resource path corresponding to the specified key.
+     */
+    protected abstract String getResourcePath (K key);
 
-    /** Whether or not to check resource file timestamps. */
-    protected boolean _checkTimestamps;
+    /** The cached resources. */
+    protected HashMap<K, CachedResource<V>> _resources = Maps.newHashMap();
+  }
+
+  /**
+   * Contains a cached resource.
+   */
+  protected static class CachedResource<T> extends SoftReference<T>
+  {
+    public CachedResource (T resource, File file)
+    {
+      super(resource);
+      _file = file;
+      _lastModified = file.lastModified();
+    }
+
+    /**
+     * Determines whether the resource file has been modified since this reference
+     * was created.
+     */
+    public boolean wasModified ()
+    {
+      return _file.lastModified() > _lastModified;
+    }
+
+    /** The file corresponding to the resource. */
+    protected File _file;
+
+    /** The recorded last-modified timestamp. */
+    protected long _lastModified;
+  }
+
+  /** The renderer context. */
+  protected GlContext _ctx;
+
+  /** Whether or not to check resource file timestamps. */
+  protected boolean _checkTimestamps;
 }

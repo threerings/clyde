@@ -36,75 +36,75 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class CullState extends RenderState
 {
-    /** A state that disables back-face culling. */
-    public static final CullState DISABLED = getInstance(-1);
+  /** A state that disables back-face culling. */
+  public static final CullState DISABLED = getInstance(-1);
 
-    /** A state that enables back-face culling. */
-    public static final CullState BACK_FACE = getInstance(GL11.GL_BACK);
+  /** A state that enables back-face culling. */
+  public static final CullState BACK_FACE = getInstance(GL11.GL_BACK);
 
-    /** A state that enabled front-face culling. */
-    public static final CullState FRONT_FACE = getInstance(GL11.GL_FRONT);
+  /** A state that enabled front-face culling. */
+  public static final CullState FRONT_FACE = getInstance(GL11.GL_FRONT);
 
-    /**
-     * If there is a shared instance with the supplied parameters, returns a reference to it;
-     * otherwise, returns a new state with the parameters.
-     */
-    public static CullState getInstance (int cullFace)
-    {
-        if (_instances == null) {
-            _instances = new HashIntMap<CullState>();
-        }
-        CullState instance = _instances.get(cullFace);
-        if (instance == null) {
-            _instances.put(cullFace, instance = new CullState(cullFace));
-        }
-        return instance;
+  /**
+   * If there is a shared instance with the supplied parameters, returns a reference to it;
+   * otherwise, returns a new state with the parameters.
+   */
+  public static CullState getInstance (int cullFace)
+  {
+    if (_instances == null) {
+      _instances = new HashIntMap<CullState>();
     }
-
-    /**
-     * Creates a new back-face culling state.
-     */
-    public CullState (int cullFace)
-    {
-        _cullFace = cullFace;
+    CullState instance = _instances.get(cullFace);
+    if (instance == null) {
+      _instances.put(cullFace, instance = new CullState(cullFace));
     }
+    return instance;
+  }
 
-    /**
-     * Returns the cull face constant.
-     */
-    public int getCullFace ()
-    {
-        return _cullFace;
-    }
+  /**
+   * Creates a new back-face culling state.
+   */
+  public CullState (int cullFace)
+  {
+    _cullFace = cullFace;
+  }
 
-    @Override
-    public int getType ()
-    {
-        return CULL_STATE;
-    }
+  /**
+   * Returns the cull face constant.
+   */
+  public int getCullFace ()
+  {
+    return _cullFace;
+  }
 
-    @Override
-    public void apply (Renderer renderer)
-    {
-        renderer.setCullState(_cullFace);
-    }
+  @Override
+  public int getType ()
+  {
+    return CULL_STATE;
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof CullState &&
-            _cullFace == ((CullState)other)._cullFace;
-    }
+  @Override
+  public void apply (Renderer renderer)
+  {
+    renderer.setCullState(_cullFace);
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return _cullFace;
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof CullState &&
+      _cullFace == ((CullState)other)._cullFace;
+  }
 
-    /** The cull face (or -1 if disabled). */
-    protected int _cullFace = -1;
+  @Override
+  public int hashCode ()
+  {
+    return _cullFace;
+  }
 
-    /** Shared instances. */
-    protected static HashIntMap<CullState> _instances;
+  /** The cull face (or -1 if disabled). */
+  protected int _cullFace = -1;
+
+  /** Shared instances. */
+  protected static HashIntMap<CullState> _instances;
 }

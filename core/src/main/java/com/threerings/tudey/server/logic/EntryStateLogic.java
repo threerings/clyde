@@ -34,35 +34,35 @@ import com.threerings.tudey.data.actor.EntryState;
  */
 public class EntryStateLogic extends ActorLogic
 {
-    /**
-     * Sets the reference to the corresponding entry.
-     */
-    public void setEntry (EntryLogic entry)
-    {
-        _entry = entry;
-        ((EntryState)_actor).setKey(entry.getEntry().getKey());
+  /**
+   * Sets the reference to the corresponding entry.
+   */
+  public void setEntry (EntryLogic entry)
+  {
+    _entry = entry;
+    ((EntryState)_actor).setKey(entry.getEntry().getKey());
+  }
+
+  @Override
+  public void transfer (Logic source, Map<Object, Object> refs)
+  {
+    super.transfer(source, refs);
+
+    EntryLogic entry = (EntryLogic)refs.get(((EntryStateLogic)source)._entry);
+    if (entry != null) {
+      setEntry(entry);
     }
+  }
 
-    @Override
-    public void transfer (Logic source, Map<Object, Object> refs)
-    {
-        super.transfer(source, refs);
+  /**
+   * Sets the actor state and calls {@link #wasUpdated}.
+   */
+  protected void setState (int state, int entered)
+  {
+    ((EntryState)_actor).setState(state, entered);
+    wasUpdated();
+  }
 
-        EntryLogic entry = (EntryLogic)refs.get(((EntryStateLogic)source)._entry);
-        if (entry != null) {
-            setEntry(entry);
-        }
-    }
-
-    /**
-     * Sets the actor state and calls {@link #wasUpdated}.
-     */
-    protected void setState (int state, int entered)
-    {
-        ((EntryState)_actor).setState(state, entered);
-        wasUpdated();
-    }
-
-    /** The logic of the corresponding entry, if known. */
-    protected EntryLogic _entry;
+  /** The logic of the corresponding entry, if known. */
+  protected EntryLogic _entry;
 }

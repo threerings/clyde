@@ -32,6 +32,6 @@ import com.threerings.presents.net.BootstrapData;
  */
 public class DConfigBootstrapData extends BootstrapData
 {
-    /** The oid of the distributed config object. */
-    public int dconfigOid;
+  /** The oid of the distributed config object. */
+  public int dconfigOid;
 }

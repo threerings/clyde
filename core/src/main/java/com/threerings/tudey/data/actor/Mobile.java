@@ -42,164 +42,164 @@ import com.threerings.tudey.util.MobileAdvancer;
  */
 public class Mobile extends Actor
 {
-    /** A flag indicating that the actor is in motion. */
-    public static final int MOVING = (Actor.LAST_FLAG << 1);
+  /** A flag indicating that the actor is in motion. */
+  public static final int MOVING = (Actor.LAST_FLAG << 1);
 
-    /** The value of the last flag defined in this class. */
-    public static final int LAST_FLAG = MOVING;
+  /** The value of the last flag defined in this class. */
+  public static final int LAST_FLAG = MOVING;
 
-    /**
-     * Creates a new mobile actor.
-     */
-    public Mobile (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
-    {
-        super(config, id, created, translation, rotation);
+  /**
+   * Creates a new mobile actor.
+   */
+  public Mobile (
+    ConfigReference<ActorConfig> config, int id, int created,
+    Vector2f translation, float rotation)
+  {
+    super(config, id, created, translation, rotation);
+  }
+
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public Mobile ()
+  {
+  }
+
+  /**
+   * Sets the direction of motion.
+   */
+  public void setDirection (float direction)
+  {
+    _direction = direction;
+    setDirty(true);
+  }
+
+  /**
+   * Returns the direction of motion.
+   */
+  public float getDirection ()
+  {
+    return _direction;
+  }
+
+  /**
+   * Sets the max step amount.
+   */
+  public void setMaxStep (float maxStep)
+  {
+    if (maxStep != _maxStep) {
+      _maxStep = maxStep;
+      setDirty(true);
     }
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public Mobile ()
-    {
-    }
+  /**
+   * Returns the max translation amount.
+   */
+  public float getMaxStep ()
+  {
+    return _maxStep;
+  }
 
-    /**
-     * Sets the direction of motion.
-     */
-    public void setDirection (float direction)
-    {
-        _direction = direction;
+  /**
+   * Returns the max translation amount squared.
+   */
+  public float getMaxStepSquared ()
+  {
+    return _maxStep * _maxStep;
+  }
+
+  /**
+   * Returns the direction of rotation (+1 if counterclockwise, -1 if clockwise, 0 if none).
+   */
+  public int getTurnDirection ()
+  {
+    return 0;
+  }
+
+  /**
+   * Returns the rate of turning (radians per second).
+   */
+  public float getTurnRate ()
+  {
+    return 0f;
+  }
+
+  /**
+   * Returns the (base) speed of the actor.
+   */
+  public float getSpeed ()
+  {
+    return ((ActorConfig.Mobile)_original).speed;
+  }
+
+  /**
+   * Takes an Euler step of the specified duration.
+   *
+   * @param timestamp the timestamp at the end of the step.
+   * @param directions the restricted directions of travel.
+   */
+  public void step (float elapsed, int timestamp, int directions)
+  {
+    if (isSet(MOVING)) {
+      float length = getSpeed() * elapsed;
+      Vector2f step = new Vector2f(
+        length * FloatMath.cos(_direction),
+        length * FloatMath.sin(_direction));
+      if (DirectionUtil.alterStep(step, directions)) {
+        _translation.addLocal(step);
         setDirty(true);
+      }
     }
+  }
 
-    /**
-     * Returns the direction of motion.
-     */
-    public float getDirection ()
-    {
-        return _direction;
+  @Override
+  public Actor extrapolate (float elapsed, int timestamp, Actor result)
+  {
+    super.extrapolate(elapsed, timestamp, result);
+
+    // take a step of the indicated duration
+    ((Mobile)result).step(elapsed, timestamp, 0);
+
+    return result;
+  }
+
+  @Override
+  public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+  {
+    return new MobileAdvancer(environment, this, timestamp);
+  }
+
+  @Override
+  public Object copy (Object dest)
+  {
+    Mobile result = (Mobile)super.copy(dest);
+    result._direction = _direction;
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object other)
+  {
+    if (!super.equals(other)) {
+      return false;
     }
+    Mobile omobile = (Mobile)other;
+    return _direction == omobile._direction;
+  }
 
-    /**
-     * Sets the max step amount.
-     */
-    public void setMaxStep (float maxStep)
-    {
-        if (maxStep != _maxStep) {
-            _maxStep = maxStep;
-            setDirty(true);
-        }
-    }
+  @Override
+  public int hashCode ()
+  {
+    int hash = super.hashCode();
+    hash = 31*hash + Float.floatToIntBits(_direction);
+    return hash;
+  }
 
-    /**
-     * Returns the max translation amount.
-     */
-    public float getMaxStep ()
-    {
-        return _maxStep;
-    }
+  /** The maximum translation we allow in a substep. */
+  protected float _maxStep;
 
-    /**
-     * Returns the max translation amount squared.
-     */
-    public float getMaxStepSquared ()
-    {
-        return _maxStep * _maxStep;
-    }
-
-    /**
-     * Returns the direction of rotation (+1 if counterclockwise, -1 if clockwise, 0 if none).
-     */
-    public int getTurnDirection ()
-    {
-        return 0;
-    }
-
-    /**
-     * Returns the rate of turning (radians per second).
-     */
-    public float getTurnRate ()
-    {
-        return 0f;
-    }
-
-    /**
-     * Returns the (base) speed of the actor.
-     */
-    public float getSpeed ()
-    {
-        return ((ActorConfig.Mobile)_original).speed;
-    }
-
-    /**
-     * Takes an Euler step of the specified duration.
-     *
-     * @param timestamp the timestamp at the end of the step.
-     * @param directions the restricted directions of travel.
-     */
-    public void step (float elapsed, int timestamp, int directions)
-    {
-        if (isSet(MOVING)) {
-            float length = getSpeed() * elapsed;
-            Vector2f step = new Vector2f(
-                length * FloatMath.cos(_direction),
-                length * FloatMath.sin(_direction));
-            if (DirectionUtil.alterStep(step, directions)) {
-                _translation.addLocal(step);
-                setDirty(true);
-            }
-        }
-    }
-
-    @Override
-    public Actor extrapolate (float elapsed, int timestamp, Actor result)
-    {
-        super.extrapolate(elapsed, timestamp, result);
-
-        // take a step of the indicated duration
-        ((Mobile)result).step(elapsed, timestamp, 0);
-
-        return result;
-    }
-
-    @Override
-    public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
-    {
-        return new MobileAdvancer(environment, this, timestamp);
-    }
-
-    @Override
-    public Object copy (Object dest)
-    {
-        Mobile result = (Mobile)super.copy(dest);
-        result._direction = _direction;
-        return result;
-    }
-
-    @Override
-    public boolean equals (Object other)
-    {
-        if (!super.equals(other)) {
-            return false;
-        }
-        Mobile omobile = (Mobile)other;
-        return _direction == omobile._direction;
-    }
-
-    @Override
-    public int hashCode ()
-    {
-        int hash = super.hashCode();
-        hash = 31*hash + Float.floatToIntBits(_direction);
-        return hash;
-    }
-
-    /** The maximum translation we allow in a substep. */
-    protected float _maxStep;
-
-    /** The direction of motion. */
-    @DeepOmit
-    protected float _direction;
+  /** The direction of motion. */
+  @DeepOmit
+  protected float _direction;
 }

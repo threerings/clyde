@@ -30,7 +30,7 @@ package com.threerings.opengl.gui.background;
  */
 public class BlankBackground extends Background
 {
-    public BlankBackground ()
-    {
-    }
+  public BlankBackground ()
+  {
+  }
 }

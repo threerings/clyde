@@ -32,6 +32,6 @@ import com.samskivert.util.Logger;
  */
 public class Log
 {
-    /** We dispatch our log messages through this logger. */
-    public static final Logger log = Logger.getLogger("com.threerings.export");
+  /** We dispatch our log messages through this logger. */
+  public static final Logger log = Logger.getLogger("com.threerings.export");
 }

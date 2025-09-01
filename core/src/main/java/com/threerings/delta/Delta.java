@@ -42,112 +42,112 @@ import com.threerings.io.Streamer;
  * the entire new object).
  */
 public abstract class Delta
-    implements Streamable
+  implements Streamable
 {
-    /**
-     * Determines whether it is possible to create a {@link Delta} converting the original
-     * object to the revised object.
-     */
-    public static boolean checkDeltable (Object original, Object revised)
-    {
-        Class<?> oclazz = (original == null) ? null : original.getClass();
-        Class<?> rclazz = (revised == null) ? null : revised.getClass();
-        return oclazz == rclazz && (original instanceof Deltable || oclazz.isArray());
+  /**
+   * Determines whether it is possible to create a {@link Delta} converting the original
+   * object to the revised object.
+   */
+  public static boolean checkDeltable (Object original, Object revised)
+  {
+    Class<?> oclazz = (original == null) ? null : original.getClass();
+    Class<?> rclazz = (revised == null) ? null : revised.getClass();
+    return oclazz == rclazz && (original instanceof Deltable || oclazz.isArray());
+  }
+
+  /**
+   * Creates and returns a new {@link Delta} that will convert the original object to the
+   * revised object.
+   */
+  public static Delta createDelta (Object original, Object revised)
+  {
+    Class<?> clazz = original.getClass();
+    DeltaCreator dc = _creators.get(clazz);
+    if (dc == null) {
+      dc = DeltaCreator.create(clazz);
+      _creators.put(clazz, dc);
     }
+    return dc.createDelta(original, revised);
+  }
 
+  /**
+   * Applies this delta to the specified object.
+   *
+   * @return a new object incorporating the changes represented by this delta.
+   */
+  public abstract Object apply (Object original);
+
+  /**
+   * Merges this delta with another.
+   *
+   * @return a new delta containing the changes included in both.
+   */
+  public abstract Delta merge (Delta other);
+
+  /**
+   * Abstracts the different ways that a Delta can be created.
+   */
+  protected static abstract class DeltaCreator
+  {
     /**
-     * Creates and returns a new {@link Delta} that will convert the original object to the
-     * revised object.
+     * Create a DeltaCreator for the specified Class.
      */
-    public static Delta createDelta (Object original, Object revised)
+    public static DeltaCreator create (Class<?> clazz)
     {
-        Class<?> clazz = original.getClass();
-        DeltaCreator dc = _creators.get(clazz);
-        if (dc == null) {
-            dc = DeltaCreator.create(clazz);
-            _creators.put(clazz, dc);
-        }
-        return dc.createDelta(original, revised);
-    }
+      if (clazz.isArray()) {
+        return ARRAY;
 
-    /**
-     * Applies this delta to the specified object.
-     *
-     * @return a new object incorporating the changes represented by this delta.
-     */
-    public abstract Object apply (Object original);
-
-    /**
-     * Merges this delta with another.
-     *
-     * @return a new delta containing the changes included in both.
-     */
-    public abstract Delta merge (Delta other);
-
-    /**
-     * Abstracts the different ways that a Delta can be created.
-     */
-    protected static abstract class DeltaCreator
-    {
-        /**
-         * Create a DeltaCreator for the specified Class.
-         */
-        public static DeltaCreator create (Class<?> clazz)
-        {
-            if (clazz.isArray()) {
-                return ARRAY;
-
-            } else if (Deltable.class.isAssignableFrom(clazz)) {
-                try {
-                    final Method creator = clazz.getMethod("createDelta", Object.class);
-                    return new DeltaCreator() {
-                        public Delta createDelta (Object original, Object revised) {
-                            try {
-                                return (Delta)creator.invoke(original, revised);
-                            } catch (Exception e) {
-                                throw new RuntimeException(
-                                        "Error invoking custom delta method " + creator, e);
-                            }
-                        }
-                    };
-
-                } catch (NoSuchMethodException e) {
-                    return REFLECTIVE;
-                }
-            }
-            throw new RuntimeException("Cannot create delta for " + clazz);
-        }
-
-        /** A sharable DeltaCreator that creates ReflectiveDelta instances. */
-        protected static final DeltaCreator REFLECTIVE = new DeltaCreator() {
-            public Delta createDelta (Object original, Object revised) {
-                return new ReflectiveDelta(original, revised);
-            }
-        };
-
-        /** A sharable DeltaCreator that creates ArrayDelta instances. */
-        protected static final DeltaCreator ARRAY = new DeltaCreator() {
-            public Delta createDelta (Object original, Object revised) {
-                return new ArrayDelta(original, revised);
-            }
-        };
-
-        /**
-         * Create a delta for the specified objects.
-         */
-        public abstract Delta createDelta (Object original, Object revised);
-    }
-
-    /** Custom creator methods mapped by class. */
-    protected static Map<Class<?>, DeltaCreator> _creators = Maps.newIdentityHashMap();
-
-    /** Streamer for raw class references. */
-    protected static Streamer _classStreamer;
-    static {
+      } else if (Deltable.class.isAssignableFrom(clazz)) {
         try {
-            _classStreamer = Streamer.getStreamer(Class.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize ReflectiveDelta class", e);
+          final Method creator = clazz.getMethod("createDelta", Object.class);
+          return new DeltaCreator() {
+            public Delta createDelta (Object original, Object revised) {
+              try {
+                return (Delta)creator.invoke(original, revised);
+              } catch (Exception e) {
+                throw new RuntimeException(
+                    "Error invoking custom delta method " + creator, e);
+              }
+            }
+          };
+
+        } catch (NoSuchMethodException e) {
+          return REFLECTIVE;
         }
+      }
+      throw new RuntimeException("Cannot create delta for " + clazz);
     }
+
+    /** A sharable DeltaCreator that creates ReflectiveDelta instances. */
+    protected static final DeltaCreator REFLECTIVE = new DeltaCreator() {
+      public Delta createDelta (Object original, Object revised) {
+        return new ReflectiveDelta(original, revised);
+      }
+    };
+
+    /** A sharable DeltaCreator that creates ArrayDelta instances. */
+    protected static final DeltaCreator ARRAY = new DeltaCreator() {
+      public Delta createDelta (Object original, Object revised) {
+        return new ArrayDelta(original, revised);
+      }
+    };
+
+    /**
+     * Create a delta for the specified objects.
+     */
+    public abstract Delta createDelta (Object original, Object revised);
+  }
+
+  /** Custom creator methods mapped by class. */
+  protected static Map<Class<?>, DeltaCreator> _creators = Maps.newIdentityHashMap();
+
+  /** Streamer for raw class references. */
+  protected static Streamer _classStreamer;
+  static {
+    try {
+      _classStreamer = Streamer.getStreamer(Class.class);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to initialize ReflectiveDelta class", e);
+    }
+  }
 }

@@ -39,30 +39,30 @@ import com.threerings.opengl.model.config.ModelConfig;
  */
 public abstract class ActorModelConfig extends ModelConfig
 {
-    /**
-     * An actor model config wrapper.
-     */
-    public static class Wrapper extends BaseWrapper
+  /**
+   * An actor model config wrapper.
+   */
+  public static class Wrapper extends BaseWrapper
+  {
+    /** The actor reference. */
+    @Editable(nullable=true)
+    public ConfigReference<ActorConfig> actor;
+
+    @Override
+    public void preload (GlContext ctx)
     {
-        /** The actor reference. */
-        @Editable(nullable=true)
-        public ConfigReference<ActorConfig> actor;
-
-        @Override
-        public void preload (GlContext ctx)
-        {
-            new Preloadable.Config(ActorConfig.class, actor).preload(ctx);
-        }
-
-        @Override
-        protected ModelConfig getModelConfig (ConfigManager cfgmgr)
-        {
-            ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
-            if (config != null) {
-                ActorConfig.Original original = config.getOriginal(cfgmgr);
-                return cfgmgr.getConfig(ModelConfig.class, original.sprite.model);
-            }
-            return null;
-        }
+      new Preloadable.Config(ActorConfig.class, actor).preload(ctx);
     }
+
+    @Override
+    protected ModelConfig getModelConfig (ConfigManager cfgmgr)
+    {
+      ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
+      if (config != null) {
+        ActorConfig.Original original = config.getOriginal(cfgmgr);
+        return cfgmgr.getConfig(ModelConfig.class, original.sprite.model);
+      }
+      return null;
+    }
+  }
 }

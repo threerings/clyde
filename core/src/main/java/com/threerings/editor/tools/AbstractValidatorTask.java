@@ -44,107 +44,107 @@ import com.threerings.config.ConfigManager;
  */
 public abstract class AbstractValidatorTask extends FileSetTask
 {
-    @Override
-    public void execute ()
-        throws BuildException
+  @Override
+  public void execute ()
+    throws BuildException
+  {
+    ValidatorContext context = createContext();
+
+    Validator validator = createValidator();
+    Iterable<File> files = getFiles();
+
+    if (!validate(context.getConfigManager(), files, validator)) {
+      throw new BuildException();
+    }
+  }
+
+  /**
+   * Do the actual validation.
+   */
+  protected abstract boolean validate (
+      ConfigManager cfgmgr, Iterable<File> files, Validator validator);
+
+  /**
+   * Create the validator to use for this task.
+   */
+  protected Validator createValidator ()
+  {
+    return new Validator(System.err);
+  }
+
+  /**
+   * Create the context for this task.
+   */
+  protected ValidatorContext createContext ()
+  {
+    return new ValidatorContext();
+  }
+
+  /**
+   * The context for this validator.
+   */
+  protected static class ValidatorContext
+    implements ResourceContext
+  {
+    /** Default constructor. */
+    public ValidatorContext ()
     {
-        ValidatorContext context = createContext();
+      _rsrcmgr = createResourceManager();
+      _rsrcmgr.initResourceDir("rsrc/");
+      _msgmgr = createMessageManager();
+      _cfgmgr = createConfigManager(_rsrcmgr, _msgmgr);
+      _cfgmgr.init();
+    }
 
-        Validator validator = createValidator();
-        Iterable<File> files = getFiles();
+    // from ResourceContext
+    public ResourceManager getResourceManager ()
+    {
+      return _rsrcmgr;
+    }
 
-        if (!validate(context.getConfigManager(), files, validator)) {
-            throw new BuildException();
-        }
+    // from ResourceContext
+    public MessageManager getMessageManager ()
+    {
+      return _msgmgr;
+    }
+
+    // from ResourceContext
+    public ConfigManager getConfigManager ()
+    {
+      return _cfgmgr;
     }
 
     /**
-     * Do the actual validation.
+     * Create and return a resource manager.
      */
-    protected abstract boolean validate (
-            ConfigManager cfgmgr, Iterable<File> files, Validator validator);
-
-    /**
-     * Create the validator to use for this task.
-     */
-    protected Validator createValidator ()
+    protected ResourceManager createResourceManager ()
     {
-        return new Validator(System.err);
+      return new ResourceManager("rsrc/");
     }
 
     /**
-     * Create the context for this task.
+     * Create and return a message manager.
      */
-    protected ValidatorContext createContext ()
+    public MessageManager createMessageManager ()
     {
-        return new ValidatorContext();
+      return new MessageManager("rsrc.i18n");
     }
 
     /**
-     * The context for this validator.
+     * Create an return a config manager based on the passed in message and resource manager.
      */
-    protected static class ValidatorContext
-        implements ResourceContext
+    public ConfigManager createConfigManager (ResourceManager rsrcmgr, MessageManager msgmgr)
     {
-        /** Default constructor. */
-        public ValidatorContext ()
-        {
-            _rsrcmgr = createResourceManager();
-            _rsrcmgr.initResourceDir("rsrc/");
-            _msgmgr = createMessageManager();
-            _cfgmgr = createConfigManager(_rsrcmgr, _msgmgr);
-            _cfgmgr.init();
-        }
-
-        // from ResourceContext
-        public ResourceManager getResourceManager ()
-        {
-            return _rsrcmgr;
-        }
-
-        // from ResourceContext
-        public MessageManager getMessageManager ()
-        {
-            return _msgmgr;
-        }
-
-        // from ResourceContext
-        public ConfigManager getConfigManager ()
-        {
-            return _cfgmgr;
-        }
-
-        /**
-         * Create and return a resource manager.
-         */
-        protected ResourceManager createResourceManager ()
-        {
-            return new ResourceManager("rsrc/");
-        }
-
-        /**
-         * Create and return a message manager.
-         */
-        public MessageManager createMessageManager ()
-        {
-            return new MessageManager("rsrc.i18n");
-        }
-
-        /**
-         * Create an return a config manager based on the passed in message and resource manager.
-         */
-        public ConfigManager createConfigManager (ResourceManager rsrcmgr, MessageManager msgmgr)
-        {
-            return new ConfigManager(rsrcmgr, msgmgr, "config/");
-        }
-
-        /** The resource manager. */
-        protected ResourceManager _rsrcmgr;
-
-        /** The message manager. */
-        protected MessageManager _msgmgr;
-
-        /** The config manager. */
-        protected ConfigManager _cfgmgr;
+      return new ConfigManager(rsrcmgr, msgmgr, "config/");
     }
+
+    /** The resource manager. */
+    protected ResourceManager _rsrcmgr;
+
+    /** The message manager. */
+    protected MessageManager _msgmgr;
+
+    /** The config manager. */
+    protected ConfigManager _cfgmgr;
+  }
 }

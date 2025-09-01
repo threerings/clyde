@@ -8,8 +8,8 @@ package com.threerings.tudey.server.logic;
  */
 public interface Activated
 {
-    /**
-     * Returns the logic that activated this logic.
-     */
-    public Logic getActivator();
+  /**
+   * Returns the logic that activated this logic.
+   */
+  public Logic getActivator();
 }

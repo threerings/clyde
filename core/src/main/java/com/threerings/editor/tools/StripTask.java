@@ -52,117 +52,117 @@ import com.threerings.export.BinaryImporter;
  */
 public class StripTask extends Task
 {
-    /**
-     * Sets the destination directory to which generated files will be written.
-     */
-    public void setDest (File dest)
-    {
-        _dest = dest;
-    }
+  /**
+   * Sets the destination directory to which generated files will be written.
+   */
+  public void setDest (File dest)
+  {
+    _dest = dest;
+  }
 
-    /**
-     * Sets whether or not to compress the resulting files.
-     */
-    public void setCompress (boolean compress)
-    {
-        _compress = compress;
-    }
+  /**
+   * Sets whether or not to compress the resulting files.
+   */
+  public void setCompress (boolean compress)
+  {
+    _compress = compress;
+  }
 
-    /**
-     * Adds a fileset to the list of sets to process.
-     */
-    public void addFileset (FileSet set)
-    {
-        _filesets.add(set);
-    }
+  /**
+   * Adds a fileset to the list of sets to process.
+   */
+  public void addFileset (FileSet set)
+  {
+    _filesets.add(set);
+  }
 
-    @Override
-    public void init ()
-        throws BuildException
-    {
-        super.init();
+  @Override
+  public void init ()
+    throws BuildException
+  {
+    super.init();
 
-        ResourceManager rsrcmgr = new ResourceManager("rsrc/");
-        rsrcmgr.initResourceDir("rsrc/");
-        _cfgmgr = new ConfigManager(rsrcmgr, null, "config/");
-        _cfgmgr.init();
-    }
+    ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+    rsrcmgr.initResourceDir("rsrc/");
+    _cfgmgr = new ConfigManager(rsrcmgr, null, "config/");
+    _cfgmgr.init();
+  }
 
-    @Override
-    public void execute ()
-        throws BuildException
-    {
-        for (FileSet fs : _filesets) {
-            DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-            File fromDir = fs.getDir(getProject());
-            for (String file : ds.getIncludedFiles()) {
-                try {
-                    strip(fromDir, file);
-                } catch (Exception e) {
-                    System.err.println("Error stripping " + new File(fromDir, file) + ": " + e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Strips a single file.
-     */
-    protected void strip (File sourceDir, String sourceName)
-        throws IOException
-    {
-        // find the path of the target file
-        int didx = sourceName.lastIndexOf('.');
-        String root = (didx == -1) ? sourceName : sourceName.substring(0, didx);
-        File target = new File(_dest == null ? sourceDir : _dest, root + ".dat");
-
-        // no need to strip if nothing has been modified
-        File source = new File(sourceDir, sourceName);
-        long lastmod = target.lastModified();
-        if (source.lastModified() < lastmod) {
-            return;
-        }
-        System.out.println("Stripping " + source + " to " + target + "...");
-
-        // make sure the parent exists
-        File parent = target.getParentFile();
-        if (!parent.exists()) {
-            parent.mkdirs();
-        }
-
-        // perform the strip
-        BinaryImporter in = new BinaryImporter(new FileInputStream(source));
-        BinaryExporter out = new BinaryExporter(new FileOutputStream(target), _compress);
+  @Override
+  public void execute ()
+    throws BuildException
+  {
+    for (FileSet fs : _filesets) {
+      DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+      File fromDir = fs.getDir(getProject());
+      for (String file : ds.getIncludedFiles()) {
         try {
-            while (true) {
-                out.writeObject(strip(in.readObject()));
-            }
-        } catch (EOFException e) {
-            // no problem
-        } finally {
-            in.close();
-            out.close();
+          strip(fromDir, file);
+        } catch (Exception e) {
+          System.err.println("Error stripping " + new File(fromDir, file) + ": " + e);
         }
+      }
+    }
+  }
+
+  /**
+   * Strips a single file.
+   */
+  protected void strip (File sourceDir, String sourceName)
+    throws IOException
+  {
+    // find the path of the target file
+    int didx = sourceName.lastIndexOf('.');
+    String root = (didx == -1) ? sourceName : sourceName.substring(0, didx);
+    File target = new File(_dest == null ? sourceDir : _dest, root + ".dat");
+
+    // no need to strip if nothing has been modified
+    File source = new File(sourceDir, sourceName);
+    long lastmod = target.lastModified();
+    if (source.lastModified() < lastmod) {
+      return;
+    }
+    System.out.println("Stripping " + source + " to " + target + "...");
+
+    // make sure the parent exists
+    File parent = target.getParentFile();
+    if (!parent.exists()) {
+      parent.mkdirs();
     }
 
-    /**
-     * Do the stripping.
-     */
-    protected Object strip (Object object)
-    {
-        return PropertyUtil.strip(_cfgmgr, object);
+    // perform the strip
+    BinaryImporter in = new BinaryImporter(new FileInputStream(source));
+    BinaryExporter out = new BinaryExporter(new FileOutputStream(target), _compress);
+    try {
+      while (true) {
+        out.writeObject(strip(in.readObject()));
+      }
+    } catch (EOFException e) {
+      // no problem
+    } finally {
+      in.close();
+      out.close();
     }
+  }
 
-    /** The config manager. */
-    protected ConfigManager _cfgmgr;
+  /**
+   * Do the stripping.
+   */
+  protected Object strip (Object object)
+  {
+    return PropertyUtil.strip(_cfgmgr, object);
+  }
 
-    /** The directory in which we will generate our output (in a directory tree mirroring the
-     * source files. */
-    protected File _dest;
+  /** The config manager. */
+  protected ConfigManager _cfgmgr;
 
-    /** Whether or not to compress the output files. */
-    protected boolean _compress = true;
+  /** The directory in which we will generate our output (in a directory tree mirroring the
+   * source files. */
+  protected File _dest;
 
-    /** A list of filesets that contain XML exports. */
-    protected List<FileSet> _filesets = Lists.newArrayList();
+  /** Whether or not to compress the output files. */
+  protected boolean _compress = true;
+
+  /** A list of filesets that contain XML exports. */
+  protected List<FileSet> _filesets = Lists.newArrayList();
 }

@@ -65,161 +65,161 @@ import static com.threerings.editor.Log.log;
  */
 public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
 {
-    @Override
-    protected void updatePanel (EntryPanel panel, Object value)
-    {
-        ((WrappedEditorEntryPanel)panel).getEditor().setObject(value);
-    }
+  @Override
+  protected void updatePanel (EntryPanel panel, Object value)
+  {
+    ((WrappedEditorEntryPanel)panel).getEditor().setObject(value);
+  }
 
-    @Override
-    protected void addPanel (Object value)
+  @Override
+  protected void addPanel (Object value)
+  {
+    // create and add the panel first, THEN update so that the panel has an index...
+    WrappedEditorEntryPanel pan = new WrappedEditorEntryPanel(value);
+    _panels.add(pan);
+    pan.getEditor().update();
+  }
+
+  /**
+   * A panel for a config reference entry.
+   */
+  protected class WrappedEditorEntryPanel extends EntryPanel
+  {
+    /** Constructor. */
+    public WrappedEditorEntryPanel (Object value)
     {
-        // create and add the panel first, THEN update so that the panel has an index...
-        WrappedEditorEntryPanel pan = new WrappedEditorEntryPanel(value);
-        _panels.add(pan);
-        pan.getEditor().update();
+      super(value);
     }
 
     /**
-     * A panel for a config reference entry.
+     * Get the actual property editor we're wrapping.
      */
-    protected class WrappedEditorEntryPanel extends EntryPanel
+    public PropertyEditor getEditor ()
     {
-        /** Constructor. */
-        public WrappedEditorEntryPanel (Object value)
-        {
-            super(value);
-        }
-
-        /**
-         * Get the actual property editor we're wrapping.
-         */
-        public PropertyEditor getEditor ()
-        {
-            return _editor;
-        }
-
-        @Override
-        public String getComponentPath (Component comp, boolean mouse)
-        {
-            PropertyEditor pe = getNextChildComponent(PropertyEditor.class, comp);
-            return (pe == null)
-                ? ""
-                : "[\"" + pe.getProperty().getName().replace("\"", "\\\"") + "\"]" +
-                        pe.getComponentPath(comp, mouse);
-        }
-
-        @Override
-        protected JPanel createPanel (Object ignoredValue)
-        {
-            Object val = _property.get(_object);
-            // this object should never be null: our superclass ArrayListEditor will create it
-
-            Property prop;
-            if (val instanceof List) {
-                prop = new IndexedProperty() {
-                    @Override protected Object getAtIndex (int idx) {
-                        return getList().get(idx);
-                    }
-                    @Override protected void setAtIndex (int idx, Object value) {
-                        getList().set(idx, value);
-                        fireStateChanged();
-                    }
-                    protected List<Object> getList () {
-                        @SuppressWarnings("unchecked")
-                        List<Object> list = (List<Object>)_property.get(_object);
-                        return list;
-                    }
-                };
-
-            } else if (val instanceof Object[]) {
-                prop = new IndexedProperty() {
-                    @Override protected Object getAtIndex (int idx) {
-                        return getArray()[idx];
-                    }
-                    @Override protected void setAtIndex (int idx, Object value) {
-                        getArray()[idx] = value;
-                        fireStateChanged();
-                    }
-                    protected Object[] getArray () {
-                        return (Object[])_property.get(_object);
-                    }
-                };
-
-            } else {
-                throw new RuntimeException("What is this: " + val);
-            }
-
-            _editor = PropertyEditor.createEditor(_ctx, prop, _lineage);
-            return _editor.getContent();
-        }
-
-        /** Our wrapped property editor. */
-        protected PropertyEditor _editor;
-
-        /**
-         * Base property for accessing elements of the array or List.
-         */
-        protected abstract class IndexedProperty extends Property
-        {
-            { // initializer
-                _name = "";
-            }
-
-            @Override
-            public boolean shouldTranslateName ()
-            {
-                return false;
-            }
-
-            @Override
-            public Member getMember ()
-            {
-                return _property.getMember();
-            }
-
-            @Override
-            public Class<?> getType ()
-            {
-                return _property.getComponentType();
-            }
-
-            @Override
-            public Type getGenericType ()
-            {
-                return _property.getGenericComponentType();
-            }
-
-            @Override
-            public boolean nullable ()
-            {
-                return false; // do not permit null cfgrefs in a List or array
-            }
-
-            @Override
-            public Object get (Object object)
-            {
-                int idx = getIndex();
-                return (idx == -1) // this happens when this panel is removed.
-                    ? null
-                    : getAtIndex(idx);
-            }
-
-            @Override
-            public void set (Object object, Object value)
-            {
-                setAtIndex(getIndex(), value);
-            }
-
-            /**
-             * Get the value at the specified index.
-             */
-            protected abstract Object getAtIndex (int idx);
-
-            /**
-             * Set the value at the specified index.
-             */
-            protected abstract void setAtIndex (int idx, Object value);
-        }
+      return _editor;
     }
+
+    @Override
+    public String getComponentPath (Component comp, boolean mouse)
+    {
+      PropertyEditor pe = getNextChildComponent(PropertyEditor.class, comp);
+      return (pe == null)
+        ? ""
+        : "[\"" + pe.getProperty().getName().replace("\"", "\\\"") + "\"]" +
+            pe.getComponentPath(comp, mouse);
+    }
+
+    @Override
+    protected JPanel createPanel (Object ignoredValue)
+    {
+      Object val = _property.get(_object);
+      // this object should never be null: our superclass ArrayListEditor will create it
+
+      Property prop;
+      if (val instanceof List) {
+        prop = new IndexedProperty() {
+          @Override protected Object getAtIndex (int idx) {
+            return getList().get(idx);
+          }
+          @Override protected void setAtIndex (int idx, Object value) {
+            getList().set(idx, value);
+            fireStateChanged();
+          }
+          protected List<Object> getList () {
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>)_property.get(_object);
+            return list;
+          }
+        };
+
+      } else if (val instanceof Object[]) {
+        prop = new IndexedProperty() {
+          @Override protected Object getAtIndex (int idx) {
+            return getArray()[idx];
+          }
+          @Override protected void setAtIndex (int idx, Object value) {
+            getArray()[idx] = value;
+            fireStateChanged();
+          }
+          protected Object[] getArray () {
+            return (Object[])_property.get(_object);
+          }
+        };
+
+      } else {
+        throw new RuntimeException("What is this: " + val);
+      }
+
+      _editor = PropertyEditor.createEditor(_ctx, prop, _lineage);
+      return _editor.getContent();
+    }
+
+    /** Our wrapped property editor. */
+    protected PropertyEditor _editor;
+
+    /**
+     * Base property for accessing elements of the array or List.
+     */
+    protected abstract class IndexedProperty extends Property
+    {
+      { // initializer
+        _name = "";
+      }
+
+      @Override
+      public boolean shouldTranslateName ()
+      {
+        return false;
+      }
+
+      @Override
+      public Member getMember ()
+      {
+        return _property.getMember();
+      }
+
+      @Override
+      public Class<?> getType ()
+      {
+        return _property.getComponentType();
+      }
+
+      @Override
+      public Type getGenericType ()
+      {
+        return _property.getGenericComponentType();
+      }
+
+      @Override
+      public boolean nullable ()
+      {
+        return false; // do not permit null cfgrefs in a List or array
+      }
+
+      @Override
+      public Object get (Object object)
+      {
+        int idx = getIndex();
+        return (idx == -1) // this happens when this panel is removed.
+          ? null
+          : getAtIndex(idx);
+      }
+
+      @Override
+      public void set (Object object, Object value)
+      {
+        setAtIndex(getIndex(), value);
+      }
+
+      /**
+       * Get the value at the specified index.
+       */
+      protected abstract Object getAtIndex (int idx);
+
+      /**
+       * Set the value at the specified index.
+       */
+      protected abstract void setAtIndex (int idx, Object value);
+    }
+  }
 }

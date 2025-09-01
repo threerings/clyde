@@ -36,56 +36,56 @@ import com.threerings.editor.swing.ObjectPanel;
  * An editor for arrays or lists of objects. Uses embedded panels.
  */
 public class ObjectPanelArrayListEditor extends PanelArrayListEditor
-    implements ChangeListener
+  implements ChangeListener
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    ObjectPanel panel = (ObjectPanel)event.getSource();
+    int idx = ((EntryPanel)panel.getParent()).getIndex();
+    setValue(idx, panel.getValue());
+    fireStateChanged(true);
+  }
+
+  @Override
+  protected void updatePanel (EntryPanel panel, Object value)
+  {
+    ObjectPanel opanel = (ObjectPanel)panel.getContent();
+    opanel.setOuter(_object);
+    opanel.setValue(value);
+  }
+
+  @Override
+  protected void addPanel (Object value)
+  {
+    _panels.add(new ObjectEntryPanel(value));
+  }
+
+  /**
+   * A panel for an object entry.
+   */
+  protected class ObjectEntryPanel extends EntryPanel
+  {
+    public ObjectEntryPanel (Object value)
     {
-        ObjectPanel panel = (ObjectPanel)event.getSource();
-        int idx = ((EntryPanel)panel.getParent()).getIndex();
-        setValue(idx, panel.getValue());
-        fireStateChanged(true);
+      super(value);
     }
 
     @Override
-    protected void updatePanel (EntryPanel panel, Object value)
+    public String getComponentPath (Component comp, boolean mouse)
     {
-        ObjectPanel opanel = (ObjectPanel)panel.getContent();
-        opanel.setOuter(_object);
-        opanel.setValue(value);
+      return ((ObjectPanel)_content).getComponentPath(comp, mouse);
     }
 
     @Override
-    protected void addPanel (Object value)
+    protected JPanel createPanel (Object value)
     {
-        _panels.add(new ObjectEntryPanel(value));
+      ObjectPanel opanel = new ObjectPanel(
+        _ctx, _property.getComponentTypeLabel(),
+        _property.getComponentSubtypes(), _lineage, _object);
+      opanel.setValue(value);
+      opanel.addChangeListener(ObjectPanelArrayListEditor.this);
+      return opanel;
     }
-
-    /**
-     * A panel for an object entry.
-     */
-    protected class ObjectEntryPanel extends EntryPanel
-    {
-        public ObjectEntryPanel (Object value)
-        {
-            super(value);
-        }
-
-        @Override
-        public String getComponentPath (Component comp, boolean mouse)
-        {
-            return ((ObjectPanel)_content).getComponentPath(comp, mouse);
-        }
-
-        @Override
-        protected JPanel createPanel (Object value)
-        {
-            ObjectPanel opanel = new ObjectPanel(
-                _ctx, _property.getComponentTypeLabel(),
-                _property.getComponentSubtypes(), _lineage, _object);
-            opanel.setValue(value);
-            opanel.addChangeListener(ObjectPanelArrayListEditor.this);
-            return opanel;
-        }
-    }
+  }
 }

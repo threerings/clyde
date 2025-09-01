@@ -30,8 +30,8 @@ package com.threerings.expr;
  */
 public interface Updater
 {
-    /**
-     * Performs the update.
-     */
-    public void update ();
+  /**
+   * Performs the update.
+   */
+  public void update ();
 }

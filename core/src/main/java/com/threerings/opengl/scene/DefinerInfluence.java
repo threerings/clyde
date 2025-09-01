@@ -32,20 +32,20 @@ import com.samskivert.util.Tuple;
  */
 public class DefinerInfluence extends SceneInfluence
 {
-    /**
-     * Creates a new definer influence object.
-     */
-    public DefinerInfluence (Tuple<String, Object>[] definitions)
-    {
-        _definitions = definitions;
-    }
+  /**
+   * Creates a new definer influence object.
+   */
+  public DefinerInfluence (Tuple<String, Object>[] definitions)
+  {
+    _definitions = definitions;
+  }
 
-    @Override
-    public Tuple<String, Object>[] getDefinitions ()
-    {
-        return _definitions;
-    }
+  @Override
+  public Tuple<String, Object>[] getDefinitions ()
+  {
+    return _definitions;
+  }
 
-    /** The definer's definitions. */
-    protected Tuple<String, Object>[] _definitions;
+  /** The definer's definitions. */
+  protected Tuple<String, Object>[] _definitions;
 }

@@ -39,100 +39,100 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
  * The arrow tool.
  */
 public class Arrow extends EditorTool
-    implements ChangeListener
+  implements ChangeListener
 {
-    /**
-     * Creates the arrow tool.
-     */
-    public Arrow (SceneEditor editor)
-    {
-        super(editor);
-        add(_epanel = new EditorPanel(editor));
-        _epanel.addChangeListener(this);
-    }
+  /**
+   * Creates the arrow tool.
+   */
+  public Arrow (SceneEditor editor)
+  {
+    super(editor);
+    add(_epanel = new EditorPanel(editor));
+    _epanel.addChangeListener(this);
+  }
 
-    /**
-     * Requests to start editing the specified entry.
-     */
-    public void edit (Entry entry)
-    {
-        _editor.setSelection(entry);
-        _editor.setSelectionAsRecent();
-        _epanel.setObject(entry.clone());
-    }
+  /**
+   * Requests to start editing the specified entry.
+   */
+  public void edit (Entry entry)
+  {
+    _editor.setSelection(entry);
+    _editor.setSelectionAsRecent();
+    _epanel.setObject(entry.clone());
+  }
 
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        _editor.incrementEditId();
-        _ignoreUpdate = true;
-        try {
-            Entry entry = (Entry)_epanel.getObject();
-            if (entry != null) {
-                _editor.updateEntries((Entry)entry.clone());
-            }
-        } finally {
-            _ignoreUpdate = false;
+  // documentation inherited from interface ChangeListener
+  public void stateChanged (ChangeEvent event)
+  {
+    _editor.incrementEditId();
+    _ignoreUpdate = true;
+    try {
+      Entry entry = (Entry)_epanel.getObject();
+      if (entry != null) {
+        _editor.updateEntries((Entry)entry.clone());
+      }
+    } finally {
+      _ignoreUpdate = false;
+    }
+  }
+
+  @Override
+  public void sceneChanged (TudeySceneModel scene)
+  {
+    super.sceneChanged(scene);
+    _epanel.setObject(null);
+  }
+
+  @Override
+  public void entryUpdated (Entry oentry, Entry nentry)
+  {
+    if (_ignoreUpdate) {
+      return;
+    }
+    Entry entry = (Entry)_epanel.getObject();
+    if (entry != null && entry.getKey().equals(oentry.getKey())) {
+      _epanel.setObject(nentry.clone());
+    }
+  }
+
+  @Override
+  public void entryRemoved (Entry oentry)
+  {
+    Entry entry = (Entry)_epanel.getObject();
+    if (entry != null && entry.getKey().equals(oentry.getKey())) {
+      _epanel.setObject(null);
+    }
+  }
+
+  @Override
+  public void tick (float elapsed)
+  {
+    if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
+      _editor.deleteMouseEntry();
+    }
+  }
+
+  @Override
+  public void mousePressed (MouseEvent event)
+  {
+    if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {
+      Entry entry = _editor.getMouseEntry();
+      if (entry != null) {
+        if (_editor.isSelected(entry)) {
+          _editor.moveSelection();
+        } else {
+          _editor.select(entry);
         }
-    }
-
-    @Override
-    public void sceneChanged (TudeySceneModel scene)
-    {
-        super.sceneChanged(scene);
+      } else {
+        _editor.clearSelection();
         _epanel.setObject(null);
+      }
     }
+  }
 
-    @Override
-    public void entryUpdated (Entry oentry, Entry nentry)
-    {
-        if (_ignoreUpdate) {
-            return;
-        }
-        Entry entry = (Entry)_epanel.getObject();
-        if (entry != null && entry.getKey().equals(oentry.getKey())) {
-            _epanel.setObject(nentry.clone());
-        }
-    }
+  /** The editor panel that we use to edit things. */
+  protected EditorPanel _epanel;
 
-    @Override
-    public void entryRemoved (Entry oentry)
-    {
-        Entry entry = (Entry)_epanel.getObject();
-        if (entry != null && entry.getKey().equals(oentry.getKey())) {
-            _epanel.setObject(null);
-        }
-    }
-
-    @Override
-    public void tick (float elapsed)
-    {
-        if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
-            _editor.deleteMouseEntry();
-        }
-    }
-
-    @Override
-    public void mousePressed (MouseEvent event)
-    {
-        if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {
-            Entry entry = _editor.getMouseEntry();
-            if (entry != null) {
-                if (_editor.isSelected(entry)) {
-                    _editor.moveSelection();
-                } else {
-                    _editor.select(entry);
-                }
-            } else {
-                _editor.clearSelection();
-                _epanel.setObject(null);
-            }
-        }
-    }
-
-    /** The editor panel that we use to edit things. */
-    protected EditorPanel _epanel;
-
-    /** Notes that we should ignore an update because we're the one effecting it. */
-    protected boolean _ignoreUpdate;
+  /** Notes that we should ignore an update because we're the one effecting it. */
+  protected boolean _ignoreUpdate;
 }

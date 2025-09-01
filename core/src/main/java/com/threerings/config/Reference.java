@@ -17,8 +17,8 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Reference
 {
-    /**
-     * The type of the reference.
-     */
-    Class<? extends ManagedConfig> value ();
+  /**
+   * The type of the reference.
+   */
+  Class<? extends ManagedConfig> value ();
 }

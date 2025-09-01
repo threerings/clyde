@@ -39,64 +39,64 @@ import static com.threerings.editor.Log.log;
  */
 public class MethodProperty extends Property
 {
-    /**
-     * Creates a new method property.
-     */
-    public MethodProperty (Method getter, Method setter)
-    {
-        _getter = getter;
-        _setter = setter;
-        _name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(_setter.getName().substring(3)));
+  /**
+   * Creates a new method property.
+   */
+  public MethodProperty (Method getter, Method setter)
+  {
+    _getter = getter;
+    _setter = setter;
+    _name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(_setter.getName().substring(3)));
+  }
+
+  @Override
+  public Member getMember ()
+  {
+    return _setter;
+  }
+
+  @Override
+  public Class<?> getType ()
+  {
+    return _getter.getReturnType();
+  }
+
+  @Override
+  public Type getGenericType ()
+  {
+    return _getter.getGenericReturnType();
+  }
+
+  @Override
+  public Object get (Object object)
+  {
+    try {
+      return _getter.invoke(object);
+    } catch (Exception e) {
+      log.warning("Failed to get property [getter=" + _getter + "].", e);
+      return null;
     }
+  }
 
-    @Override
-    public Member getMember ()
-    {
-        return _setter;
+  @Override
+  public void set (Object object, Object value)
+  {
+    try {
+      _setter.invoke(object, value);
+
+    } catch (InvocationTargetException ite) {
+      // if the source is a runtime exception, rethrow it
+      Throwable cause = ite.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException)cause;
+      }
+      log.warning("Failed to set property [setter=" + _setter + "].", ite);
+
+    } catch (Exception e) {
+      log.warning("Failed to set property [setter=" + _setter + "].", e);
     }
+  }
 
-    @Override
-    public Class<?> getType ()
-    {
-        return _getter.getReturnType();
-    }
-
-    @Override
-    public Type getGenericType ()
-    {
-        return _getter.getGenericReturnType();
-    }
-
-    @Override
-    public Object get (Object object)
-    {
-        try {
-            return _getter.invoke(object);
-        } catch (Exception e) {
-            log.warning("Failed to get property [getter=" + _getter + "].", e);
-            return null;
-        }
-    }
-
-    @Override
-    public void set (Object object, Object value)
-    {
-        try {
-            _setter.invoke(object, value);
-
-        } catch (InvocationTargetException ite) {
-            // if the source is a runtime exception, rethrow it
-            Throwable cause = ite.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException)cause;
-            }
-            log.warning("Failed to set property [setter=" + _setter + "].", ite);
-
-        } catch (Exception e) {
-            log.warning("Failed to set property [setter=" + _setter + "].", e);
-        }
-    }
-
-    /** The getter and setter methods. */
-    protected Method _getter, _setter;
+  /** The getter and setter methods. */
+  protected Method _getter, _setter;
 }

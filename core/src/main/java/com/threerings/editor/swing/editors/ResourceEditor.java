@@ -33,23 +33,23 @@ import java.io.File;
  */
 public class ResourceEditor extends FileEditor
 {
-    @Override
-    protected String getDefaultDirectory ()
-    {
-        return _ctx.getResourceManager().getResourceFile("").toString();
-    }
+  @Override
+  protected String getDefaultDirectory ()
+  {
+    return _ctx.getResourceManager().getResourceFile("").toString();
+  }
 
-    @Override
-    protected File getPropertyFile ()
-    {
-        String path = (String)_property.get(_object);
-        return (path == null) ? null : _ctx.getResourceManager().getResourceFile(path);
-    }
+  @Override
+  protected File getPropertyFile ()
+  {
+    String path = (String)_property.get(_object);
+    return (path == null) ? null : _ctx.getResourceManager().getResourceFile(path);
+  }
 
-    @Override
-    protected void setPropertyFile (File file)
-    {
-        _property.set(_object, (file == null) ?
-            null : _ctx.getResourceManager().getResourcePath(file));
-    }
+  @Override
+  protected void setPropertyFile (File file)
+  {
+    _property.set(_object, (file == null) ?
+      null : _ctx.getResourceManager().getResourcePath(file));
+  }
 }

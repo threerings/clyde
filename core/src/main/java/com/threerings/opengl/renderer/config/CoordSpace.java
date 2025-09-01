@@ -30,12 +30,12 @@ package com.threerings.opengl.renderer.config;
  */
 public enum CoordSpace
 {
-    /** Object space: must be transformed by the modelview matrix. */
-    OBJECT,
+  /** Object space: must be transformed by the modelview matrix. */
+  OBJECT,
 
-    /** World space: must be transformed by the view matrix. */
-    WORLD,
+  /** World space: must be transformed by the view matrix. */
+  WORLD,
 
-    /** Eye space: must be transformed by the identity matrix. */
-    EYE;
+  /** Eye space: must be transformed by the identity matrix. */
+  EYE;
 }

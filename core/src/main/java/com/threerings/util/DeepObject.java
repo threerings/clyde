@@ -32,41 +32,41 @@ import com.samskivert.util.StringUtil;
  * {@link #equals}, and {@link #hashCode} reflectively.
  */
 public abstract class DeepObject
-    implements Cloneable, Copyable
+  implements Cloneable, Copyable
 {
-    // documentation inherited from interface Copyable
-    public Object copy (Object dest)
-    {
-        return copy(dest, null);
-    }
+  // documentation inherited from interface Copyable
+  public Object copy (Object dest)
+  {
+    return copy(dest, null);
+  }
 
-    // documentation inherited from interface Copyable
-    public Object copy (Object dest, Object outer)
-    {
-        return DeepUtil.copy(this, dest, outer);
-    }
+  // documentation inherited from interface Copyable
+  public Object copy (Object dest, Object outer)
+  {
+    return DeepUtil.copy(this, dest, outer);
+  }
 
-    @Override
-    public DeepObject clone ()
-    {
-        return (DeepObject) copy(null);
-    }
+  @Override
+  public DeepObject clone ()
+  {
+    return (DeepObject) copy(null);
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return DeepUtil.equals(this, other);
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return DeepUtil.equals(this, other);
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return DeepUtil.hashCode(this);
-    }
+  @Override
+  public int hashCode ()
+  {
+    return DeepUtil.hashCode(this);
+  }
 
-    @Override
-    public String toString ()
-    {
-        return StringUtil.fieldsToString(this);
-    }
+  @Override
+  public String toString ()
+  {
+    return StringUtil.fieldsToString(this);
+  }
 }

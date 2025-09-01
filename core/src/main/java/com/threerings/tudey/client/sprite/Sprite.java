@@ -40,120 +40,120 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public abstract class Sprite extends SimpleScope
 {
-    /**
-     * Creates a new sprite.
-     */
-    public Sprite (TudeyContext ctx, TudeySceneView view)
-    {
-        super(view);
-        _ctx = ctx;
-        _view = view;
+  /**
+   * Creates a new sprite.
+   */
+  public Sprite (TudeyContext ctx, TudeySceneView view)
+  {
+    super(view);
+    _ctx = ctx;
+    _view = view;
+  }
+
+  /**
+   * Returns the sprite's floor flags.
+   */
+  public int getFloorFlags ()
+  {
+    return 0x0;
+  }
+
+  /**
+   * Returns the sprite's floor mask.
+   */
+  public int getFloorMask ()
+  {
+    return 0x255;
+  }
+
+  /**
+   * Determines whether the sprite is hoverable (for purposes of in-game user interaction).
+   */
+  public boolean isHoverable ()
+  {
+    return false;
+  }
+
+  /**
+   * Determines whether the sprite is clickable.
+   */
+  public boolean isClickable ()
+  {
+    return false;
+  }
+
+  /**
+   * Returns the sprite's tooltip text, or <code>null</code> for none.
+   */
+  public String getTooltipText ()
+  {
+    return null;
+  }
+
+  /**
+   * Returns the sprite's tooltip timeout, or -1 to use the default.
+   */
+  public float getTooltipTimeout ()
+  {
+    return -1f;
+  }
+
+  /**
+   * Returns the sprite's tooltip window style.
+   */
+  public String getTooltipWindowStyle ()
+  {
+    return "Default/TooltipWindow";
+  }
+
+  /**
+   * Creates a tooltip component for the sprite (will only be called if {@link #getTooltipText}
+   * returns true).
+   */
+  public Component createTooltipComponent (String tiptext)
+  {
+    return Component.createDefaultTooltipComponent(_ctx, tiptext);
+  }
+
+  /**
+   * Returns the model associated with the sprite (if any).
+   */
+  public Model getModel ()
+  {
+    return null;
+  }
+
+  /**
+   * Attempt to set the visibility of this sprite. No guarantees are made.
+   */
+  public void setVisible (boolean visible)
+  {
+    Model model = getModel();
+    if (model != null) {
+      model.setVisible(visible);
     }
+  }
 
-    /**
-     * Returns the sprite's floor flags.
-     */
-    public int getFloorFlags ()
-    {
-        return 0x0;
-    }
+  /**
+   * Dispatches an event on the sprite.
+   *
+   * @return true if the sprite handled the event, false if it should be handled elsewhere.
+   */
+  public boolean dispatchEvent (Event event)
+  {
+    return false;
+  }
 
-    /**
-     * Returns the sprite's floor mask.
-     */
-    public int getFloorMask ()
-    {
-        return 0x255;
-    }
+  @Override
+  public String getScopeName ()
+  {
+    return "sprite";
+  }
 
-    /**
-     * Determines whether the sprite is hoverable (for purposes of in-game user interaction).
-     */
-    public boolean isHoverable ()
-    {
-        return false;
-    }
+  /** The application context. */
+  protected TudeyContext _ctx;
 
-    /**
-     * Determines whether the sprite is clickable.
-     */
-    public boolean isClickable ()
-    {
-        return false;
-    }
-
-    /**
-     * Returns the sprite's tooltip text, or <code>null</code> for none.
-     */
-    public String getTooltipText ()
-    {
-        return null;
-    }
-
-    /**
-     * Returns the sprite's tooltip timeout, or -1 to use the default.
-     */
-    public float getTooltipTimeout ()
-    {
-        return -1f;
-    }
-
-    /**
-     * Returns the sprite's tooltip window style.
-     */
-    public String getTooltipWindowStyle ()
-    {
-        return "Default/TooltipWindow";
-    }
-
-    /**
-     * Creates a tooltip component for the sprite (will only be called if {@link #getTooltipText}
-     * returns true).
-     */
-    public Component createTooltipComponent (String tiptext)
-    {
-        return Component.createDefaultTooltipComponent(_ctx, tiptext);
-    }
-
-    /**
-     * Returns the model associated with the sprite (if any).
-     */
-    public Model getModel ()
-    {
-        return null;
-    }
-
-    /**
-     * Attempt to set the visibility of this sprite. No guarantees are made.
-     */
-    public void setVisible (boolean visible)
-    {
-        Model model = getModel();
-        if (model != null) {
-            model.setVisible(visible);
-        }
-    }
-
-    /**
-     * Dispatches an event on the sprite.
-     *
-     * @return true if the sprite handled the event, false if it should be handled elsewhere.
-     */
-    public boolean dispatchEvent (Event event)
-    {
-        return false;
-    }
-
-    @Override
-    public String getScopeName ()
-    {
-        return "sprite";
-    }
-
-    /** The application context. */
-    protected TudeyContext _ctx;
-
-    /** The parent view. */
-    @Scoped
-    protected TudeySceneView _view;
+  /** The parent view. */
+  @Scoped
+  protected TudeySceneView _view;
 }

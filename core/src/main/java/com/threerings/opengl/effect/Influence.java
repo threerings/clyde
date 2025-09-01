@@ -30,13 +30,13 @@ package com.threerings.opengl.effect;
  */
 public interface Influence
 {
-    /**
-     * Updates the influence for the current frame.
-     */
-    public void tick (float elapsed);
+  /**
+   * Updates the influence for the current frame.
+   */
+  public void tick (float elapsed);
 
-    /**
-     * Applies this influence to the specified particle.
-     */
-    public void apply (Particle particle);
+  /**
+   * Applies this influence to the specified particle.
+   */
+  public void apply (Particle particle);
 }

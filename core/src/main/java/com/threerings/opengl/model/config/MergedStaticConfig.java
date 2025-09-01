@@ -65,174 +65,174 @@ import static com.threerings.opengl.Log.log;
  */
 public class MergedStaticConfig extends ModelConfig.Implementation
 {
-    /** The component models. */
-    @Editable
-    public ComponentModel[] models;
+  /** The component models. */
+  @Editable
+  public ComponentModel[] models;
 
-    /**
-     * Default constructor.
-     */
-    public MergedStaticConfig ()
-    {
-        models = new ComponentModel[0];
+  /**
+   * Default constructor.
+   */
+  public MergedStaticConfig ()
+  {
+    models = new ComponentModel[0];
+  }
+
+  /**
+   * Constructor that takes a precreated array of component models.
+   */
+  public MergedStaticConfig (ComponentModel[] models)
+  {
+    this.models = models;
+  }
+
+  @Override
+  public void preload (GlContext ctx)
+  {
+    for (ComponentModel model : models) {
+      new Preloadable.Model(model.model).preload(ctx);
     }
+  }
 
-    /**
-     * Constructor that takes a precreated array of component models.
-     */
-    public MergedStaticConfig (ComponentModel[] models)
-    {
-        this.models = models;
+  @Override
+  public Model.Implementation getModelImplementation (
+    GlContext ctx, Scope scope, Model.Implementation impl)
+  {
+    Resolved resolved = (_resolved == null) ? null : _resolved.get();
+    if (resolved == null) {
+      _resolved = new SoftReference<Resolved>(resolved = resolve(ctx));
     }
+    if (impl instanceof Static) {
+      ((Static)impl).setConfig(ctx, resolved);
+    } else {
+      impl = new Static(ctx, scope, resolved);
+    }
+    return impl;
+  }
 
-    @Override
-    public void preload (GlContext ctx)
-    {
-        for (ComponentModel model : models) {
-            new Preloadable.Model(model.model).preload(ctx);
+  @Override
+  public void invalidate ()
+  {
+    _resolved = null;
+  }
+
+  /**
+   * (Re)resolves the data.
+   */
+  protected Resolved resolve (GlContext ctx)
+  {
+    // process the component models, mapping geometry by material
+    ConfigManager cfgmgr = ctx.getConfigManager();
+    IdentityHashMap<MaterialConfig, List<TransformedGeometry>> glists =
+      Maps.newIdentityHashMap();
+    Map<String, MaterialConfig> mmap = Maps.newHashMap();
+    List<TransformedCollision> cmeshes = Lists.newArrayList();
+    final Box bounds = new Box();
+    int influenceFlags = 0;
+    for (ComponentModel cmodel : models) {
+      ModelConfig config = cfgmgr.getConfig(ModelConfig.class, cmodel.model);
+      ModelConfig.Implementation original = (config == null) ? null : config.getOriginal();
+      MeshSet mset = null;
+      if (original instanceof StaticConfig) {
+        mset = ((StaticConfig)original).meshes;
+
+      } else if (original instanceof StaticSetConfig) {
+        StaticSetConfig ssconfig = (StaticSetConfig)original;
+        if (ssconfig.model != null && ssconfig.meshes != null) {
+          mset = ssconfig.meshes.get(ssconfig.model);
         }
+      } else if (original != null) {
+        log.warning("Merged model not of static type.", "model", cmodel.model,
+          "class", original.getClass());
+      }
+      if (mset == null) {
+        continue;
+      }
+      bounds.addLocal(mset.bounds.transform(cmodel.transform));
+      if (mset.collision != null) {
+        cmeshes.add(new TransformedCollision(mset.collision, cmodel.transform));
+      }
+      ModelConfig.Imported imported = (ModelConfig.Imported)original;
+      for (VisibleMesh mesh : mset.visible) {
+        MaterialConfig material = Model.getMaterialConfig(
+          ctx, mesh.texture, mesh.tag, imported.materialMappings, mmap);
+        List<TransformedGeometry> glist = glists.get(material);
+        if (glist == null) {
+          glists.put(material, glist = Lists.newArrayList());
+        }
+        glist.add(new TransformedGeometry(mesh.geometry, cmodel.transform));
+      }
+      mmap.clear();
+      influenceFlags |= imported.influences.getFlags();
     }
 
-    @Override
-    public Model.Implementation getModelImplementation (
-        GlContext ctx, Scope scope, Model.Implementation impl)
-    {
-        Resolved resolved = (_resolved == null) ? null : _resolved.get();
-        if (resolved == null) {
-            _resolved = new SoftReference<Resolved>(resolved = resolve(ctx));
-        }
-        if (impl instanceof Static) {
-            ((Static)impl).setConfig(ctx, resolved);
+    // merge geometry of the same material
+    List<GeometryMaterial> gmats = Lists.newArrayList();
+    for (Map.Entry<MaterialConfig, List<TransformedGeometry>> entry : glists.entrySet()) {
+      MaterialConfig material = entry.getKey();
+      List<TransformedGeometry> glist = entry.getValue();
+      while (!glist.isEmpty()) {
+        GeometryConfig merged = glist.get(0).geometry.merge(glist);
+        if (merged != null) {
+          gmats.add(new GeometryMaterial(merged, material));
         } else {
-            impl = new Static(ctx, scope, resolved);
+          glist.remove(0);
         }
-        return impl;
+      }
     }
 
-    @Override
-    public void invalidate ()
+    // create the combined collision mesh
+    final TransformedCollision[] tcollisions = cmeshes.toArray(
+      new TransformedCollision[cmeshes.size()]);
+    CollisionMesh collision = new CollisionMesh() {
+      @Override public Box getBounds () {
+        return bounds;
+      }
+      @Override public boolean getIntersection (Ray3D ray, Vector3f result) {
+        // check the component meshes (transforming the ray into their space and back out
+        // again if we detect a hit)
+        Vector3f closest = result;
+        for (TransformedCollision tcoll : tcollisions) {
+          if (tcoll.bounds.intersects(ray) && tcoll.collision.getIntersection(
+              ray.transform(tcoll.invTransform), result)) {
+            tcoll.transform.transformPointLocal(result);
+            result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
+          }
+        }
+        // if we ever changed the result reference, that means we hit something
+        return (result != closest);
+      }
+    };
+    return new Resolved(bounds, collision,
+      gmats.toArray(new GeometryMaterial[gmats.size()]), influenceFlags);
+  }
+
+  /**
+   * Holds a collision mesh and associated transform.
+   */
+  protected static class TransformedCollision
+  {
+    /** The collision mesh. */
+    public final CollisionMesh collision;
+
+    /** The transform to apply to the mesh. */
+    public final Transform3D transform;
+
+    /** The inverse of the mesh transform. */
+    public final Transform3D invTransform;
+
+    /** The transformed bounds. */
+    public final Box bounds;
+
+    public TransformedCollision (CollisionMesh collision, Transform3D transform)
     {
-        _resolved = null;
+      this.collision = collision;
+      this.transform = transform;
+      invTransform = transform.invert();
+      bounds = collision.getBounds().transform(transform);
     }
+  }
 
-    /**
-     * (Re)resolves the data.
-     */
-    protected Resolved resolve (GlContext ctx)
-    {
-        // process the component models, mapping geometry by material
-        ConfigManager cfgmgr = ctx.getConfigManager();
-        IdentityHashMap<MaterialConfig, List<TransformedGeometry>> glists =
-            Maps.newIdentityHashMap();
-        Map<String, MaterialConfig> mmap = Maps.newHashMap();
-        List<TransformedCollision> cmeshes = Lists.newArrayList();
-        final Box bounds = new Box();
-        int influenceFlags = 0;
-        for (ComponentModel cmodel : models) {
-            ModelConfig config = cfgmgr.getConfig(ModelConfig.class, cmodel.model);
-            ModelConfig.Implementation original = (config == null) ? null : config.getOriginal();
-            MeshSet mset = null;
-            if (original instanceof StaticConfig) {
-                mset = ((StaticConfig)original).meshes;
-
-            } else if (original instanceof StaticSetConfig) {
-                StaticSetConfig ssconfig = (StaticSetConfig)original;
-                if (ssconfig.model != null && ssconfig.meshes != null) {
-                    mset = ssconfig.meshes.get(ssconfig.model);
-                }
-            } else if (original != null) {
-                log.warning("Merged model not of static type.", "model", cmodel.model,
-                    "class", original.getClass());
-            }
-            if (mset == null) {
-                continue;
-            }
-            bounds.addLocal(mset.bounds.transform(cmodel.transform));
-            if (mset.collision != null) {
-                cmeshes.add(new TransformedCollision(mset.collision, cmodel.transform));
-            }
-            ModelConfig.Imported imported = (ModelConfig.Imported)original;
-            for (VisibleMesh mesh : mset.visible) {
-                MaterialConfig material = Model.getMaterialConfig(
-                    ctx, mesh.texture, mesh.tag, imported.materialMappings, mmap);
-                List<TransformedGeometry> glist = glists.get(material);
-                if (glist == null) {
-                    glists.put(material, glist = Lists.newArrayList());
-                }
-                glist.add(new TransformedGeometry(mesh.geometry, cmodel.transform));
-            }
-            mmap.clear();
-            influenceFlags |= imported.influences.getFlags();
-        }
-
-        // merge geometry of the same material
-        List<GeometryMaterial> gmats = Lists.newArrayList();
-        for (Map.Entry<MaterialConfig, List<TransformedGeometry>> entry : glists.entrySet()) {
-            MaterialConfig material = entry.getKey();
-            List<TransformedGeometry> glist = entry.getValue();
-            while (!glist.isEmpty()) {
-                GeometryConfig merged = glist.get(0).geometry.merge(glist);
-                if (merged != null) {
-                    gmats.add(new GeometryMaterial(merged, material));
-                } else {
-                    glist.remove(0);
-                }
-            }
-        }
-
-        // create the combined collision mesh
-        final TransformedCollision[] tcollisions = cmeshes.toArray(
-            new TransformedCollision[cmeshes.size()]);
-        CollisionMesh collision = new CollisionMesh() {
-            @Override public Box getBounds () {
-                return bounds;
-            }
-            @Override public boolean getIntersection (Ray3D ray, Vector3f result) {
-                // check the component meshes (transforming the ray into their space and back out
-                // again if we detect a hit)
-                Vector3f closest = result;
-                for (TransformedCollision tcoll : tcollisions) {
-                    if (tcoll.bounds.intersects(ray) && tcoll.collision.getIntersection(
-                            ray.transform(tcoll.invTransform), result)) {
-                        tcoll.transform.transformPointLocal(result);
-                        result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
-                    }
-                }
-                // if we ever changed the result reference, that means we hit something
-                return (result != closest);
-            }
-        };
-        return new Resolved(bounds, collision,
-            gmats.toArray(new GeometryMaterial[gmats.size()]), influenceFlags);
-    }
-
-    /**
-     * Holds a collision mesh and associated transform.
-     */
-    protected static class TransformedCollision
-    {
-        /** The collision mesh. */
-        public final CollisionMesh collision;
-
-        /** The transform to apply to the mesh. */
-        public final Transform3D transform;
-
-        /** The inverse of the mesh transform. */
-        public final Transform3D invTransform;
-
-        /** The transformed bounds. */
-        public final Box bounds;
-
-        public TransformedCollision (CollisionMesh collision, Transform3D transform)
-        {
-            this.collision = collision;
-            this.transform = transform;
-            invTransform = transform.invert();
-            bounds = collision.getBounds().transform(transform);
-        }
-    }
-
-    /** The cached resolved config bits. */
-    @DeepOmit
-    protected transient SoftReference<Resolved> _resolved;
+  /** The cached resolved config bits. */
+  @DeepOmit
+  protected transient SoftReference<Resolved> _resolved;
 }

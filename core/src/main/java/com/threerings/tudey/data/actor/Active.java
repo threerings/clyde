@@ -38,125 +38,125 @@ import com.threerings.tudey.util.ActorAdvancer;
  */
 public class Active extends Mobile
 {
-    /** Indicates that no activity is being performed. */
-    public static final int NONE = 0;
+  /** Indicates that no activity is being performed. */
+  public static final int NONE = 0;
 
-    /** The last activity defined in this class. */
-    public static final int LAST_ACTIVITY = NONE;
+  /** The last activity defined in this class. */
+  public static final int LAST_ACTIVITY = NONE;
 
-    /**
-     * Creates a new active actor.
-     */
-    public Active (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
-    {
-        super(config, id, created, translation, rotation);
+  /**
+   * Creates a new active actor.
+   */
+  public Active (
+    ConfigReference<ActorConfig> config, int id, int created,
+    Vector2f translation, float rotation)
+  {
+    super(config, id, created, translation, rotation);
+  }
+
+  /**
+   * No-arg constructor for deserialization.
+   */
+  public Active ()
+  {
+  }
+
+  /**
+   * Sets both the activity and the start timestamp.
+   */
+  public void setActivity (int activity, int started)
+  {
+    setActivity(activity);
+    setActivityStarted(started);
+  }
+
+  /**
+   * Sets the activity identifier.
+   */
+  public void setActivity (int activity)
+  {
+    _activity = activity;
+    setDirty(true);
+  }
+
+  /**
+   * Returns the activity identifier.
+   */
+  public int getActivity ()
+  {
+    return _activity;
+  }
+
+  /**
+   * Sets the activity timestamp.
+   */
+  public void setActivityStarted (int started)
+  {
+    _activityStarted = started;
+    setDirty(true);
+  }
+
+  /**
+   * Returns the activity timestamp.
+   */
+  public int getActivityStarted ()
+  {
+    return _activityStarted;
+  }
+
+  @Override
+  public Actor interpolate (Actor other, int start, int end, int timestamp, Actor result)
+  {
+    // apply the activity if the time has come
+    Active aresult = (Active)super.interpolate(other, start, end, timestamp, result);
+    Active oactive = (Active)other;
+    int activityStarted = oactive.getActivityStarted();
+    if (timestamp >= activityStarted) {
+      aresult.setActivity(oactive.getActivity(), activityStarted);
     }
+    return aresult;
+  }
 
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public Active ()
-    {
+  @Override
+  public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+  {
+    return new ActiveAdvancer(environment, this, timestamp);
+  }
+
+  @Override
+  public Object copy (Object dest)
+  {
+    Active result = (Active)super.copy(dest);
+    result._activity = _activity;
+    result._activityStarted = _activityStarted;
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object other)
+  {
+    if (!super.equals(other)) {
+      return false;
     }
+    Active oactive = (Active)other;
+    return _activity == oactive._activity &&
+      _activityStarted == oactive._activityStarted;
+  }
 
-    /**
-     * Sets both the activity and the start timestamp.
-     */
-    public void setActivity (int activity, int started)
-    {
-        setActivity(activity);
-        setActivityStarted(started);
-    }
+  @Override
+  public int hashCode ()
+  {
+    int hash = super.hashCode();
+    hash = 31*hash + _activity;
+    hash = 31*hash + _activityStarted;
+    return hash;
+  }
 
-    /**
-     * Sets the activity identifier.
-     */
-    public void setActivity (int activity)
-    {
-        _activity = activity;
-        setDirty(true);
-    }
+  /** Identifies the activity being performed by the actor. */
+  @DeepOmit
+  protected int _activity;
 
-    /**
-     * Returns the activity identifier.
-     */
-    public int getActivity ()
-    {
-        return _activity;
-    }
-
-    /**
-     * Sets the activity timestamp.
-     */
-    public void setActivityStarted (int started)
-    {
-        _activityStarted = started;
-        setDirty(true);
-    }
-
-    /**
-     * Returns the activity timestamp.
-     */
-    public int getActivityStarted ()
-    {
-        return _activityStarted;
-    }
-
-    @Override
-    public Actor interpolate (Actor other, int start, int end, int timestamp, Actor result)
-    {
-        // apply the activity if the time has come
-        Active aresult = (Active)super.interpolate(other, start, end, timestamp, result);
-        Active oactive = (Active)other;
-        int activityStarted = oactive.getActivityStarted();
-        if (timestamp >= activityStarted) {
-            aresult.setActivity(oactive.getActivity(), activityStarted);
-        }
-        return aresult;
-    }
-
-    @Override
-    public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
-    {
-        return new ActiveAdvancer(environment, this, timestamp);
-    }
-
-    @Override
-    public Object copy (Object dest)
-    {
-        Active result = (Active)super.copy(dest);
-        result._activity = _activity;
-        result._activityStarted = _activityStarted;
-        return result;
-    }
-
-    @Override
-    public boolean equals (Object other)
-    {
-        if (!super.equals(other)) {
-            return false;
-        }
-        Active oactive = (Active)other;
-        return _activity == oactive._activity &&
-            _activityStarted == oactive._activityStarted;
-    }
-
-    @Override
-    public int hashCode ()
-    {
-        int hash = super.hashCode();
-        hash = 31*hash + _activity;
-        hash = 31*hash + _activityStarted;
-        return hash;
-    }
-
-    /** Identifies the activity being performed by the actor. */
-    @DeepOmit
-    protected int _activity;
-
-    /** The time at which the current activity started. */
-    @DeepOmit
-    protected int _activityStarted;
+  /** The time at which the current activity started. */
+  @DeepOmit
+  protected int _activityStarted;
 }

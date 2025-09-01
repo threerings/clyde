@@ -33,33 +33,33 @@ import java.util.Arrays;
  */
 public class ArrayKey
 {
-    /**
-     * Creates a new key with the supplied elements.
-     */
-    public ArrayKey (Object... elements)
-    {
-        _elements = elements;
-    }
+  /**
+   * Creates a new key with the supplied elements.
+   */
+  public ArrayKey (Object... elements)
+  {
+    _elements = elements;
+  }
 
-    @Override
-    public int hashCode ()
-    {
-        return Arrays.deepHashCode(_elements);
-    }
+  @Override
+  public int hashCode ()
+  {
+    return Arrays.deepHashCode(_elements);
+  }
 
-    @Override
-    public boolean equals (Object other)
-    {
-        return other instanceof ArrayKey &&
-            Arrays.deepEquals(_elements, ((ArrayKey)other)._elements);
-    }
+  @Override
+  public boolean equals (Object other)
+  {
+    return other instanceof ArrayKey &&
+      Arrays.deepEquals(_elements, ((ArrayKey)other)._elements);
+  }
 
-    @Override
-    public String toString ()
-    {
-        return "ArrayKey" + Arrays.deepToString(_elements);
-    }
+  @Override
+  public String toString ()
+  {
+    return "ArrayKey" + Arrays.deepToString(_elements);
+  }
 
-    /** The elements to compare. */
-    protected Object[] _elements;
+  /** The elements to compare. */
+  protected Object[] _elements;
 }

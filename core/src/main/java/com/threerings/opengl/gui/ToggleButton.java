@@ -36,120 +36,120 @@ import com.threerings.opengl.gui.icon.Icon;
  */
 public class ToggleButton extends Button
 {
-    /** Indicates that this button is in the selected state. */
-    public static final int SELECTED = Button.STATE_COUNT + 0;
+  /** Indicates that this button is in the selected state. */
+  public static final int SELECTED = Button.STATE_COUNT + 0;
 
-    /** Indicates that this button is in the selected state and hovered. */
-    public static final int HOVER_SELECTED = Button.STATE_COUNT + 1;
+  /** Indicates that this button is in the selected state and hovered. */
+  public static final int HOVER_SELECTED = Button.STATE_COUNT + 1;
 
-    /** Indicates that this button is in the selected state and pressed. */
-    public static final int DOWN_SELECTED = Button.STATE_COUNT + 2;
+  /** Indicates that this button is in the selected state and pressed. */
+  public static final int DOWN_SELECTED = Button.STATE_COUNT + 2;
 
-    /** Indicates that this button is in the selected state and is disabled. */
-    public static final int DISABLED_SELECTED = Button.STATE_COUNT + 3;
+  /** Indicates that this button is in the selected state and is disabled. */
+  public static final int DISABLED_SELECTED = Button.STATE_COUNT + 3;
 
-    /**
-     * Creates a button with the specified textual label.
-     */
-    public ToggleButton (GlContext ctx, String text)
-    {
-        super(ctx, text);
+  /**
+   * Creates a button with the specified textual label.
+   */
+  public ToggleButton (GlContext ctx, String text)
+  {
+    super(ctx, text);
+  }
+
+  /**
+   * Creates a button with the specified label and action. The action
+   * will be dispatched via an {@link ActionEvent} when the button
+   * changes state.
+   */
+  public ToggleButton (GlContext ctx, String text, String action)
+  {
+    super(ctx, text, action);
+  }
+
+  /**
+   * Creates a button with the specified icon and action. The action
+   * will be dispatched via an {@link ActionEvent} when the button
+   * changes state.
+   */
+  public ToggleButton (GlContext ctx, Icon icon, String action)
+  {
+    super(ctx, icon, action);
+  }
+
+  /**
+   * Returns whether or not this button is in the selected state.
+   */
+  public boolean isSelected ()
+  {
+    return _selected;
+  }
+
+  /**
+   * Configures the selected state of this button.
+   */
+  public void setSelected (boolean selected)
+  {
+    if (_selected != selected) {
+      _selected = selected;
+      stateDidChange();
     }
+  }
 
-    /**
-     * Creates a button with the specified label and action. The action
-     * will be dispatched via an {@link ActionEvent} when the button
-     * changes state.
-     */
-    public ToggleButton (GlContext ctx, String text, String action)
-    {
-        super(ctx, text, action);
+  // documentation inherited
+  public int getState ()
+  {
+    int state = super.getState();
+    if (!_selected) {
+      return state;
+    } else if (state == DISABLED) {
+      return DISABLED_SELECTED;
+    } else if (state == HOVER) {
+      return HOVER_SELECTED;
+    } else if (_armed) {
+      return DOWN_SELECTED;
+    } else {
+      return SELECTED;
     }
+  }
 
-    /**
-     * Creates a button with the specified icon and action. The action
-     * will be dispatched via an {@link ActionEvent} when the button
-     * changes state.
-     */
-    public ToggleButton (GlContext ctx, Icon icon, String action)
-    {
-        super(ctx, icon, action);
+  // documentation inherited
+  protected int getStateCount ()
+  {
+    return STATE_COUNT;
+  }
+
+  // documentation inherited
+  protected String getStatePseudoClass (int state)
+  {
+    if (state >= Button.STATE_COUNT) {
+      return STATE_PCLASSES[state-Button.STATE_COUNT];
+    } else {
+      return super.getStatePseudoClass(state);
     }
+  }
 
-    /**
-     * Returns whether or not this button is in the selected state.
-     */
-    public boolean isSelected ()
-    {
-        return _selected;
-    }
+  // documentation inherited
+  protected int getFallbackState (int state)
+  {
+    return (state == HOVER_SELECTED ||
+        state == DOWN_SELECTED ||
+        state == DISABLED_SELECTED) ?
+        SELECTED : DEFAULT;
+  }
 
-    /**
-     * Configures the selected state of this button.
-     */
-    public void setSelected (boolean selected)
-    {
-        if (_selected != selected) {
-            _selected = selected;
-            stateDidChange();
-        }
-    }
+  // documentation inherited
+  protected void fireAction (long when, int modifiers)
+  {
+    // when the button fires its action (it was clicked) we know that it's
+    // time to change state from selected to deselected or vice versa
+    _selected = !_selected;
+    super.fireAction(when, modifiers);
+  }
 
-    // documentation inherited
-    public int getState ()
-    {
-        int state = super.getState();
-        if (!_selected) {
-            return state;
-        } else if (state == DISABLED) {
-            return DISABLED_SELECTED;
-        } else if (state == HOVER) {
-            return HOVER_SELECTED;
-        } else if (_armed) {
-            return DOWN_SELECTED;
-        } else {
-            return SELECTED;
-        }
-    }
+  /** Used to track whether we are selected or not. */
+  protected boolean _selected;
 
-    // documentation inherited
-    protected int getStateCount ()
-    {
-        return STATE_COUNT;
-    }
-
-    // documentation inherited
-    protected String getStatePseudoClass (int state)
-    {
-        if (state >= Button.STATE_COUNT) {
-            return STATE_PCLASSES[state-Button.STATE_COUNT];
-        } else {
-            return super.getStatePseudoClass(state);
-        }
-    }
-
-    // documentation inherited
-    protected int getFallbackState (int state)
-    {
-        return (state == HOVER_SELECTED ||
-                state == DOWN_SELECTED ||
-                state == DISABLED_SELECTED) ?
-                SELECTED : DEFAULT;
-    }
-
-    // documentation inherited
-    protected void fireAction (long when, int modifiers)
-    {
-        // when the button fires its action (it was clicked) we know that it's
-        // time to change state from selected to deselected or vice versa
-        _selected = !_selected;
-        super.fireAction(when, modifiers);
-    }
-
-    /** Used to track whether we are selected or not. */
-    protected boolean _selected;
-
-    protected static final int STATE_COUNT = Button.STATE_COUNT + 4;
-    protected static final String[] STATE_PCLASSES = {
-        "Selected", "HoverSelected", "DownSelected", "DisabledSelected" };
+  protected static final int STATE_COUNT = Button.STATE_COUNT + 4;
+  protected static final String[] STATE_PCLASSES = {
+    "Selected", "HoverSelected", "DownSelected", "DisabledSelected" };
 }

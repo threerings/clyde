@@ -55,197 +55,197 @@ import com.threerings.tudey.util.TudeySceneFactory;
  * Base class for Tudey tools.
  */
 public abstract class TudeyTool extends GlCanvasTool
-    implements TudeyContext
+  implements TudeyContext
 {
-    /**
-     * Creates a new tool.
-     */
-    public TudeyTool (String msgs)
-    {
-        super(msgs);
+  /**
+   * Creates a new tool.
+   */
+  public TudeyTool (String msgs)
+  {
+    super(msgs);
 
-        // create the various directors
-        _locdir = new LocationDirector(this);
-        _occdir = new OccupantDirector(this);
-        _chatdir = new ChatDirector(this, "chat");
+    // create the various directors
+    _locdir = new LocationDirector(this);
+    _occdir = new OccupantDirector(this);
+    _chatdir = new ChatDirector(this, "chat");
 
-        // create a fake repository that stores nothing
-        SceneRepository screp = new SceneRepository() {
-            public SceneModel loadSceneModel (int sceneId) throws NoSuchSceneException {
-                throw new NoSuchSceneException(sceneId);
-            }
-            public void storeSceneModel (SceneModel model) {
-                // no-op
-            }
-            public void deleteSceneModel (int sceneId) {
-                // no-op
-            }
-        };
-        _scenedir = new SceneDirector(this, _locdir, screp, new TudeySceneFactory());
+    // create a fake repository that stores nothing
+    SceneRepository screp = new SceneRepository() {
+      public SceneModel loadSceneModel (int sceneId) throws NoSuchSceneException {
+        throw new NoSuchSceneException(sceneId);
+      }
+      public void storeSceneModel (SceneModel model) {
+        // no-op
+      }
+      public void deleteSceneModel (int sceneId) {
+        // no-op
+      }
+    };
+    _scenedir = new SceneDirector(this, _locdir, screp, new TudeySceneFactory());
 
-        // create the ui root
-        _root = createRoot();
-        _root.setModalShade(new Color4f(0f, 0f, 0f, 0.5f));
+    // create the ui root
+    _root = createRoot();
+    _root.setModalShade(new Color4f(0f, 0f, 0f, 0.5f));
+  }
+
+  // documentation inherited from interface PresentsContext
+  public Config getConfig ()
+  {
+    return _config;
+  }
+
+  // documentation inherited from interface PresentsContext
+  public Client getClient ()
+  {
+    return _client;
+  }
+
+  // documentation inherited from interface PresentsContext
+  public DObjectManager getDObjectManager ()
+  {
+    return _client.getDObjectManager();
+  }
+
+  // documentation inherited from interface CrowdContext
+  public LocationDirector getLocationDirector ()
+  {
+    return _locdir;
+  }
+
+  // documentation inherited from interface CrowdContext
+  public OccupantDirector getOccupantDirector ()
+  {
+    return _occdir;
+  }
+
+  // documentation inherited from interface CrowdContext
+  public ChatDirector getChatDirector ()
+  {
+    return _chatdir;
+  }
+
+  // documentation inherited from interface CrowdContext
+  public void setPlaceView (PlaceView view)
+  {
+    setView((GlView)view);
+  }
+
+  // documentation inherited from interface CrowdContext
+  public void clearPlaceView (PlaceView view)
+  {
+    setView(null);
+  }
+
+  // documentation inherited from interface CrowdContext
+  public SceneDirector getSceneDirector ()
+  {
+    return _scenedir;
+  }
+
+  // documentation inherited from interface TudeyContext
+  public Root getRoot ()
+  {
+    return _root;
+  }
+
+  @Override
+  protected void initSharedManagers ()
+  {
+    // create the Presents client
+    _client = new Client(null, getRunQueue());
+
+    // create the tool server
+    Injector injector = Guice.createInjector(new ToolServer.ToolModule(_client));
+    _server = injector.getInstance(ToolServer.class);
+    try {
+      _server.init(injector);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to initialize server.", e);
     }
 
-    // documentation inherited from interface PresentsContext
-    public Config getConfig ()
-    {
-        return _config;
+    // get references to the server managers
+    _rsrcmgr = _server.getResourceManager();
+    _cfgmgr = _server.getConfigManager();
+    _colorpos = _server.getColorPository();
+  }
+
+  @Override
+  protected void didInit ()
+  {
+    super.didInit();
+
+    // log on to our local server
+    _server.startStandaloneClient(new Name("editor"));
+  }
+
+  @Override
+  protected void willShutdown ()
+  {
+    super.willShutdown();
+
+    // log off of our local server
+    _server.stopStandaloneClient();
+  }
+
+  @Override
+  protected void updateView (float elapsed)
+  {
+    if (_view != null) {
+      _view.tick(elapsed);
     }
+    _root.tick(elapsed);
 
-    // documentation inherited from interface PresentsContext
-    public Client getClient ()
-    {
-        return _client;
+    // call super.updateView afterwards so that the camera position will be up-to-date
+    super.updateView(elapsed);
+  }
+
+  @Override
+  protected void compositeView ()
+  {
+    super.compositeView();
+    if (_view != null) {
+      _view.composite();
     }
+    _root.composite();
+  }
 
-    // documentation inherited from interface PresentsContext
-    public DObjectManager getDObjectManager ()
-    {
-        return _client.getDObjectManager();
+  /**
+   * Sets the current view.
+   */
+  protected void setView (GlView view)
+  {
+    if (_view != null) {
+      _view.wasRemoved();
     }
-
-    // documentation inherited from interface CrowdContext
-    public LocationDirector getLocationDirector ()
-    {
-        return _locdir;
+    if ((_view = view) != null) {
+      _view.wasAdded();
     }
+  }
 
-    // documentation inherited from interface CrowdContext
-    public OccupantDirector getOccupantDirector ()
-    {
-        return _occdir;
-    }
+  /** The tool configuration. */
+  protected Config _config = new Config("tool");
 
-    // documentation inherited from interface CrowdContext
-    public ChatDirector getChatDirector ()
-    {
-        return _chatdir;
-    }
+  /** The Presents client. */
+  protected Client _client;
 
-    // documentation inherited from interface CrowdContext
-    public void setPlaceView (PlaceView view)
-    {
-        setView((GlView)view);
-    }
+  /** The tool server. */
+  protected ToolServer _server;
 
-    // documentation inherited from interface CrowdContext
-    public void clearPlaceView (PlaceView view)
-    {
-        setView(null);
-    }
+  /** Handles requests to change location. */
+  protected LocationDirector _locdir;
 
-    // documentation inherited from interface CrowdContext
-    public SceneDirector getSceneDirector ()
-    {
-        return _scenedir;
-    }
+  /** Provides access to occupant lists. */
+  protected OccupantDirector _occdir;
 
-    // documentation inherited from interface TudeyContext
-    public Root getRoot ()
-    {
-        return _root;
-    }
+  /** Handles chat requests. */
+  protected ChatDirector _chatdir;
 
-    @Override
-    protected void initSharedManagers ()
-    {
-        // create the Presents client
-        _client = new Client(null, getRunQueue());
+  /** Handles scene access. */
+  protected SceneDirector _scenedir;
 
-        // create the tool server
-        Injector injector = Guice.createInjector(new ToolServer.ToolModule(_client));
-        _server = injector.getInstance(ToolServer.class);
-        try {
-            _server.init(injector);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize server.", e);
-        }
+  /** The user interface root. */
+  protected Root _root;
 
-        // get references to the server managers
-        _rsrcmgr = _server.getResourceManager();
-        _cfgmgr = _server.getConfigManager();
-        _colorpos = _server.getColorPository();
-    }
-
-    @Override
-    protected void didInit ()
-    {
-        super.didInit();
-
-        // log on to our local server
-        _server.startStandaloneClient(new Name("editor"));
-    }
-
-    @Override
-    protected void willShutdown ()
-    {
-        super.willShutdown();
-
-        // log off of our local server
-        _server.stopStandaloneClient();
-    }
-
-    @Override
-    protected void updateView (float elapsed)
-    {
-        if (_view != null) {
-            _view.tick(elapsed);
-        }
-        _root.tick(elapsed);
-
-        // call super.updateView afterwards so that the camera position will be up-to-date
-        super.updateView(elapsed);
-    }
-
-    @Override
-    protected void compositeView ()
-    {
-        super.compositeView();
-        if (_view != null) {
-            _view.composite();
-        }
-        _root.composite();
-    }
-
-    /**
-     * Sets the current view.
-     */
-    protected void setView (GlView view)
-    {
-        if (_view != null) {
-            _view.wasRemoved();
-        }
-        if ((_view = view) != null) {
-            _view.wasAdded();
-        }
-    }
-
-    /** The tool configuration. */
-    protected Config _config = new Config("tool");
-
-    /** The Presents client. */
-    protected Client _client;
-
-    /** The tool server. */
-    protected ToolServer _server;
-
-    /** Handles requests to change location. */
-    protected LocationDirector _locdir;
-
-    /** Provides access to occupant lists. */
-    protected OccupantDirector _occdir;
-
-    /** Handles chat requests. */
-    protected ChatDirector _chatdir;
-
-    /** Handles scene access. */
-    protected SceneDirector _scenedir;
-
-    /** The user interface root. */
-    protected Root _root;
-
-    /** The current view, if any. */
-    protected GlView _view;
+  /** The current view, if any. */
+  protected GlView _view;
 }

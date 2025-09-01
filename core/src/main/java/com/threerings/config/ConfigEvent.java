@@ -32,23 +32,23 @@ import java.util.EventObject;
  */
 public class ConfigEvent<T extends ManagedConfig> extends EventObject
 {
-    /**
-     * Creates a new config event.
-     */
-    public ConfigEvent (Object source, T config)
-    {
-        super(source);
-        _config = config;
-    }
+  /**
+   * Creates a new config event.
+   */
+  public ConfigEvent (Object source, T config)
+  {
+    super(source);
+    _config = config;
+  }
 
-    /**
-     * Returns a reference to the affected configuration.
-     */
-    public T getConfig ()
-    {
-        return _config;
-    }
+  /**
+   * Returns a reference to the affected configuration.
+   */
+  public T getConfig ()
+  {
+    return _config;
+  }
 
-    /** The affected configuration. */
-    protected T _config;
+  /** The affected configuration. */
+  protected T _config;
 }

@@ -36,92 +36,92 @@ import com.threerings.expr.util.ScopeUtil;
  * A 2D transform-valued expression.
  */
 @EditorTypes({
-    Transform2DExpression.Constant.class, Transform2DExpression.Reference.class,
-    Transform2DExpression.Uniform.class })
+  Transform2DExpression.Constant.class, Transform2DExpression.Reference.class,
+  Transform2DExpression.Uniform.class })
 public abstract class Transform2DExpression extends ObjectExpression<Transform2D>
 {
-    /**
-     * A constant expression.
-     */
-    public static class Constant extends Transform2DExpression
-    {
-        /** The value of the constant. */
-        @Editable(step=0.01)
-        public Transform2D value = new Transform2D();
+  /**
+   * A constant expression.
+   */
+  public static class Constant extends Transform2DExpression
+  {
+    /** The value of the constant. */
+    @Editable(step=0.01)
+    public Transform2D value = new Transform2D();
 
-        @Override
-        public Evaluator<Transform2D> createEvaluator (Scope scope)
-        {
-            return new Evaluator<Transform2D>() {
-                public Transform2D evaluate () {
-                    return value;
-                }
-            };
+    @Override
+    public Evaluator<Transform2D> createEvaluator (Scope scope)
+    {
+      return new Evaluator<Transform2D>() {
+        public Transform2D evaluate () {
+          return value;
         }
+      };
+    }
+  }
+
+  /**
+   * A reference expression.
+   */
+  public static class Reference extends Transform2DExpression
+  {
+    /** The name of the variable. */
+    @Editable
+    public String name = "";
+
+    /** The default value of the variable. */
+    @Editable(step=0.01)
+    public Transform2D defvalue = new Transform2D();
+
+    @Override
+    public Evaluator<Transform2D> createEvaluator (Scope scope)
+    {
+      final Transform2D value = ScopeUtil.resolve(scope, name, defvalue);
+      return new Evaluator<Transform2D>() {
+        public Transform2D evaluate () {
+          return value;
+        }
+      };
+    }
+  }
+
+  /**
+   * An expression consisting of separate expressions for translation, rotation, and scale.
+   */
+  public static class Uniform extends Transform2DExpression
+  {
+    /** The translation component. */
+    @Editable
+    public Vector2fExpression translation = new Vector2fExpression.Constant();
+
+    /** The rotation component. */
+    @Editable
+    public FloatExpression rotation = new FloatExpression.Constant();
+
+    /** The scale component. */
+    @Editable
+    public FloatExpression scale = new FloatExpression.Constant(1f);
+
+    @Override
+    public Evaluator<Transform2D> createEvaluator (Scope scope)
+    {
+      final Evaluator<Vector2f> teval = translation.createEvaluator(scope);
+      final FloatExpression.Evaluator reval = rotation.createEvaluator(scope);
+      final FloatExpression.Evaluator seval = scale.createEvaluator(scope);
+      return new Evaluator<Transform2D>() {
+        public Transform2D evaluate () {
+          return _result.set(teval.evaluate(), reval.evaluate(), seval.evaluate());
+        }
+        protected Transform2D _result = new Transform2D();
+      };
     }
 
-    /**
-     * A reference expression.
-     */
-    public static class Reference extends Transform2DExpression
+    @Override
+    public void invalidate ()
     {
-        /** The name of the variable. */
-        @Editable
-        public String name = "";
-
-        /** The default value of the variable. */
-        @Editable(step=0.01)
-        public Transform2D defvalue = new Transform2D();
-
-        @Override
-        public Evaluator<Transform2D> createEvaluator (Scope scope)
-        {
-            final Transform2D value = ScopeUtil.resolve(scope, name, defvalue);
-            return new Evaluator<Transform2D>() {
-                public Transform2D evaluate () {
-                    return value;
-                }
-            };
-        }
+      translation.invalidate();
+      rotation.invalidate();
+      scale.invalidate();
     }
-
-    /**
-     * An expression consisting of separate expressions for translation, rotation, and scale.
-     */
-    public static class Uniform extends Transform2DExpression
-    {
-        /** The translation component. */
-        @Editable
-        public Vector2fExpression translation = new Vector2fExpression.Constant();
-
-        /** The rotation component. */
-        @Editable
-        public FloatExpression rotation = new FloatExpression.Constant();
-
-        /** The scale component. */
-        @Editable
-        public FloatExpression scale = new FloatExpression.Constant(1f);
-
-        @Override
-        public Evaluator<Transform2D> createEvaluator (Scope scope)
-        {
-            final Evaluator<Vector2f> teval = translation.createEvaluator(scope);
-            final FloatExpression.Evaluator reval = rotation.createEvaluator(scope);
-            final FloatExpression.Evaluator seval = scale.createEvaluator(scope);
-            return new Evaluator<Transform2D>() {
-                public Transform2D evaluate () {
-                    return _result.set(teval.evaluate(), reval.evaluate(), seval.evaluate());
-                }
-                protected Transform2D _result = new Transform2D();
-            };
-        }
-
-        @Override
-        public void invalidate ()
-        {
-            translation.invalidate();
-            rotation.invalidate();
-            scale.invalidate();
-        }
-    }
+  }
 }

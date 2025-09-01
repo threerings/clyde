@@ -34,26 +34,26 @@ import java.io.IOException;
  */
 public interface Encodable extends Exportable
 {
-    /**
-     * Returns a string representation of this object.
-     */
-    public String encodeToString ();
+  /**
+   * Returns a string representation of this object.
+   */
+  public String encodeToString ();
 
-    /**
-     * Initializes this object with the contents of the specified string.
-     */
-    public void decodeFromString (String string)
-        throws Exception;
+  /**
+   * Initializes this object with the contents of the specified string.
+   */
+  public void decodeFromString (String string)
+    throws Exception;
 
-    /**
-     * Encodes this object to the specified stream.
-     */
-    public void encodeToStream (DataOutputStream out)
-        throws IOException;
+  /**
+   * Encodes this object to the specified stream.
+   */
+  public void encodeToStream (DataOutputStream out)
+    throws IOException;
 
-    /**
-     * Initializes this object with data read from the specified stream.
-     */
-    public void decodeFromStream (DataInputStream in)
-        throws IOException;
+  /**
+   * Initializes this object with data read from the specified stream.
+   */
+  public void decodeFromStream (DataInputStream in)
+    throws IOException;
 }
