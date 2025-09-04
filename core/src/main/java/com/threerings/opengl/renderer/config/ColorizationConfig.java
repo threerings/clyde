@@ -95,6 +95,16 @@ public abstract class ColorizationConfig extends DeepObject
     {
       return colorpos.getColorization(colorization);
     }
+
+    /** Basic constructor needed explicitly when there are others, thanks Java. */
+    public Normal () {}
+
+    /** Convenience for editor use: convert transnormal. */
+    public Normal (TransNormal trans)
+    {
+      this.colorization = (trans.clazz == trans.colorization >> 8) ? trans.colorization
+        : (trans.clazz << 8) + 1;
+    }
   }
 
   /**
