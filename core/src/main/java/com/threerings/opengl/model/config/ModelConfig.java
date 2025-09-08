@@ -233,28 +233,24 @@ public class ModelConfig extends ParameterizedConfig
     }
 
     /** Messages to display after import. Editor only! */
-    @Editable(constant=true, depends="source")
+    @Editable(constant=true, depends="source", weight=-1)
     @DeepOmit
     public transient String[] importMessages;
 
     /** The model scale. */
-    @Editable(min=0, step=0.01, hgroup="s",
-         units="~(MXML import parameter)")
+    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(MXML import parameter)")
     public float scale = 0.01f;
 
     /** A fixed amount by which to expand the bounds (to account for skinning). */
-    @Editable(min=0, step=0.01, hgroup="s",
-         units="~(MXML import parameter)")
+    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(MXML import parameter)")
     public float boundsExpansion;
 
     /** If true, ignore the transforms of the top-level children. */
-    @Editable(hgroup="i",
-         units="~(MXML import parameter)")
+    @Editable(hgroup="i", weight=-3, units="~(MXML import parameter)")
     public boolean ignoreRootTransforms;
 
     /** If true, generate tangent attributes for meshes. */
-    @Editable(hgroup="i",
-         units="~(MXML import parameter)")
+    @Editable(hgroup="i", weight=-3, units="~(MXML import parameter)")
     public boolean generateTangents;
 
     /** The influences allowed to affect this model. */
@@ -268,7 +264,7 @@ public class ModelConfig extends ParameterizedConfig
     /**
      * Sets the source file from which to load the animation data.
      */
-    @Editable(editor="resource", nullable=true)
+    @Editable(editor="resource", nullable=true, weight=-2)
     @FileConstraints(
       description="m.exported_models",
       extensions={".mxml", ".fbx"},

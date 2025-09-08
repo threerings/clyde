@@ -132,7 +132,7 @@ public class AnimationConfig extends ParameterizedConfig
   public static class Imported extends Original
   {
     /** Messages to display after import. Editor only! */
-    @Editable(constant=true, depends="source")
+    @Editable(constant=true, depends="source", weight=-1)
     @DeepOmit
     public transient String[] importMessages;
 
@@ -145,18 +145,16 @@ public class AnimationConfig extends ParameterizedConfig
     public float speed = 1f;
 
     /** The global animation scale. */
-    @Editable(min=0, step=0.01, hgroup="t",
-         units="~(MXML import parameter)")
+    @Editable(min=0, step=0.01, hgroup="l", weight=-3, units="~(MXML import parameter)")
     public float scale = 0.01f;
 
     /** Whether or not the animation loops. */
-    @Editable(hgroup="l")
+    @Editable(hgroup="t")
     public boolean loop;
 
     /** Whether or not to skip the last frame when looping (because it's the same as the
      * first). */
-    @Editable(hgroup="l",
-         units="~(MXML import parameter)")
+    @Editable(hgroup="l", weight=-3, units="~(MXML import parameter)")
     public boolean skipLastFrame = true;
 
     /** A (possibly random) offset to apply when the animation starts. */
@@ -185,7 +183,7 @@ public class AnimationConfig extends ParameterizedConfig
     /**
      * Sets the source file from which to load the animation data.
      */
-    @Editable(editor="resource", weight=-1, nullable=true)
+    @Editable(editor="resource", weight=-2, nullable=true)
     @FileConstraints(
       description="m.exported_anims",
       extensions={".mxml", ".fbx"},
