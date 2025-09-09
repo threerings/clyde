@@ -106,23 +106,26 @@ public class AnimationConfig extends ParameterizedConfig
   public static abstract class Original extends Implementation
   {
     /** The priority level of this animation. */
-    @Editable(hgroup="p")
+    @Editable(hgroup="p", tip="~The priority level of this animation.")
     public int priority;
 
     /** Whether or not to override other animations at the same priority level. */
-    @Editable(hgroup="p")
+    @Editable(hgroup="p",
+              tip="~Whether or not to override other animations at the same priority level.")
     public boolean override = true;
 
     /** The blend weight of the animation. */
-    @Editable(min=0, max=1, step=0.01, hgroup="w")
+    @Editable(min=0, max=1, step=0.01, hgroup="w", tip="~The blend weight of the animation.")
     public float weight = 1f;
 
     /** The amount of time to spend blending in the animation. */
-    @Editable(min=0, step=0.01, hgroup="w")
+    @Editable(min=0, step=0.01, hgroup="w",
+              tip="~The amount of time to spend blending in the animation.")
     public float blendIn;
 
     /** The amount of time to spend blending out the animation. */
-    @Editable(min=0, step=0.01, hgroup="w")
+    @Editable(min=0, step=0.01, hgroup="w",
+              tip="~The amount of time to spend blending out the animation.")
     public float blendOut;
   }
 
@@ -132,41 +135,46 @@ public class AnimationConfig extends ParameterizedConfig
   public static class Imported extends Original
   {
     /** Messages to display after import. Editor only! */
-    @Editable(constant=true, depends="source", weight=-1)
+    @Editable(constant=true, depends="source", weight=-1, tip="~Important import messages!")
     @DeepOmit
     public transient String[] importMessages;
 
     /** The interval over which to transition into the first frame. */
-    @Editable(min=0, step=0.01, hgroup="t")
+    @Editable(min=0, step=0.01, hgroup="t",
+              tip="~The interval over which to transition into the first frame.")
     public float transition;
 
     /** The speed of the animation. */
-    @Editable(min=0, step=0.01, hgroup="t")
+    @Editable(min=0, step=0.01, hgroup="t", tip="~The speed of the animation.")
     public float speed = 1f;
 
     /** The global animation scale. */
-    @Editable(min=0, step=0.01, hgroup="t", units="~(Import parameter)")
+    @Editable(min=0, step=0.01, hgroup="t", units="~(Import parameter)",
+              tip="~The global animation scale.")
     public float scale = 0.01f;
 
     /** Whether or not the animation loops. */
-    @Editable(hgroup="l")
+    @Editable(hgroup="l", tip="~Whether or not the animation loops.")
     public boolean loop;
 
     /** Whether or not to skip the last frame when looping (because it's the same as the
      * first). */
-    @Editable(hgroup="l", units="~(Import parameter, only valid if loop also set!)")
+    @Editable(hgroup="l", units="~(Import parameter, only valid if loop also set!)",
+              tip="~Whether or not to skip the last frame when looping " +
+                  "(because it's the same as the first).")
     public boolean skipLastFrame = true;
 
     /** A (possibly random) offset to apply when the animation starts. */
-    @Editable(min=0, step=0.01, weight=2)
+    @Editable(min=0, step=0.01, weight=2,
+              tip="~A (possibly random) offset to apply when the animation starts.")
     public FloatVariable offset = new FloatVariable.Constant(0f);
 
     /** Actions to perform at specific times within the animation. */
-    @Editable(weight=2)
+    @Editable(weight=2, tip="~Actions to perform at specific times within the animation.")
     public FrameAction[] actions = new FrameAction[0];
 
     /** A set of targets that will be modified. */
-    @Editable
+    @Editable(tip="~A set of targets that will be modified.")
     public TargetModifier[] modifiers = new TargetModifier[0];
 
     /** The base animation frame rate. */
@@ -206,7 +214,8 @@ public class AnimationConfig extends ParameterizedConfig
     /**
      * Included in order to make duration appear as an editable property.
      */
-    @Editable(step=0.01, hgroup="l", weight=1,
+    @Editable(step=0.01, hgroup="l", weight=1, constant=true,
+      tip="~A calculated display of the duration.",
       depends={"transition", "source", "speed", "duration"})
     public void setDuration (float duration)
     {
@@ -337,15 +346,16 @@ public class AnimationConfig extends ParameterizedConfig
   public static class Procedural extends Original
   {
     /** The duration of the animation, or zero for unlimited. */
-    @Editable(min=0, step=0.01)
+    @Editable(min=0, step=0.01, tip="~The duration of the animation, or zero for unlimited.")
     public float duration;
 
     /** A (possibly random) offset to apply when the animation starts. */
-    @Editable(min=0, step=0.01)
+    @Editable(min=0, step=0.01,
+              tip="~A (possibly random) offset to apply when the animation starts.")
     public FloatVariable offset = new FloatVariable.Constant(0f);
 
     /** The list of target transforms. */
-    @Editable
+    @Editable(tip="~The list of target transforms.")
     public TargetTransform[] transforms = new TargetTransform[0];
 
     @Override
@@ -381,11 +391,11 @@ public class AnimationConfig extends ParameterizedConfig
   public static class Sequential extends Original
   {
     /** Whether or not the animation loops. */
-    @Editable
+    @Editable(tip="~Whether or not the animation loops.")
     public boolean loop;
 
     /** The component animations. */
-    @Editable
+    @Editable(tip="~The component animations.")
     public ComponentAnimation[] animations = new ComponentAnimation[0];
 
     @Override

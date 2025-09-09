@@ -242,23 +242,26 @@ public class ModelConfig extends ParameterizedConfig
     public float scale = 0.01f;
 
     /** A fixed amount by which to expand the bounds (to account for skinning). */
-    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(Import parameter)")
+    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(Import parameter)",
+              tip="~A fixed amount by which to expand the bounds (to account for skinning).")
     public float boundsExpansion;
 
     /** If true, ignore the transforms of the top-level children. */
-    @Editable(hgroup="i", weight=-3, units="~(Import parameter)")
+    @Editable(hgroup="i", weight=-3, units="~(Import parameter)",
+              tip="~If true, ignore the transforms of the top-level children.")
     public boolean ignoreRootTransforms;
 
     /** If true, generate tangent attributes for meshes. */
-    @Editable(hgroup="i", weight=-3, units="~(Import parameter)")
+    @Editable(hgroup="i", weight=-3, units="~(Import parameter)",
+              tip="~If true, generate tangent attributes for meshes.")
     public boolean generateTangents;
 
     /** The influences allowed to affect this model. */
-    @Editable
+    @Editable(tip="~The influences allowed to affect this model.")
     public InfluenceFlagConfig influences = new InfluenceFlagConfig();
 
     /** The mappings from texture name to material. */
-    @Editable(depends={"source"})
+    @Editable(depends={"source"}, tip="~The mappings from texture name to material.")
     public MaterialMapping[] materialMappings = new MaterialMapping[0];
 
     /**
