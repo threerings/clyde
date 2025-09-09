@@ -77,6 +77,9 @@ public @interface Editable
   /** A translatable string describing the units of the property, if any. */
   String units () default "";
 
+  /** A translatable string with more detailed information, that may be revealed by hovering. */
+  String tip () default "";
+
   /** A width hint for the editor of this property.
    * Typically this is the width (in text columns) of the editor for this property, although
    * the editors are free to interpret this in a way that makes sense for them, or disregard it.

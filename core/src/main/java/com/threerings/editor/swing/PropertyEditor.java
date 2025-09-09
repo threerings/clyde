@@ -31,19 +31,23 @@ import java.awt.Component;
 
 import java.io.File;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Iterables;
 
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.Reference;
+import com.threerings.util.MessageBundle;
 import com.threerings.util.ReflectionUtil;
 
 import com.threerings.math.Quaternion;
@@ -54,6 +58,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Color4f;
 
+import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.PreparedEditable;
 import com.threerings.editor.Property;
@@ -197,6 +202,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
     // give subclasses a chance to initialize themselves
     didInit();
+    addTooltips();
   }
 
   /**
@@ -276,8 +282,62 @@ public abstract class PropertyEditor extends BasePropertyEditor
   {
     String units = getUnits();
     if (units.length() > 0) {
-      panel.add(new JLabel(_msgmgr.getBundle(_property.getMessageBundle()).xlate(units)));
+      panel.add(new JLabel(getMsgs().xlate(units)));
     }
+  }
+
+  /**
+   * Add tooltips to any appropriate components.
+   */
+  protected void addTooltips ()
+  {
+    // TODO: use a tooltip manager and do JIT tooltip creation?
+    String tip = null;
+    for (JComponent comp : getTippable()) {
+      if (null == comp.getToolTipText()) {
+        if (tip == null) tip = "<html>" + makeTooltip().toString() + "</html>";
+        comp.setToolTipText(tip);
+      }
+    }
+  }
+
+  /**
+   * Make the tooltip. Override and append your own stuff!
+   */
+  protected StringBuilder makeTooltip ()
+  {
+    StringBuilder tt = new StringBuilder();
+    String constant = "", nullable = "";
+    Editable ed = _property.getAnnotation();
+    if (ed != null) {
+      if (ed.constant()) constant = "Constant ";
+      if (ed.nullable()) nullable = "Nullable ";
+    }
+    String typeLabel = _property.getType().toString(); // TODO
+    tt.append(constant).append(nullable).append(typeLabel);
+    if (ed != null) {
+      String tip = ed.tip();
+      if (!"".equals(tip)) tt.append("<br>").append(getMsgs().xlate(tip));
+      for (String dep : ed.depends()) {
+        tt.append("<br>Depends on: ").append(dep); // TODO: format better
+      }
+    }
+    return tt;
+  }
+
+  /**
+   * Get the components to which we should add tooltips. May be overridden.
+   */
+  protected Iterable<JComponent> getTippable ()
+  {
+    return Iterables.filter(Arrays.asList(getComponents()), JComponent.class);
+  }
+
+  /**
+   * Get the message bundle used by the property.
+   */
+  protected MessageBundle getMsgs () {
+    return _msgmgr.getBundle(_property.getMessageBundle());
   }
 
   /**

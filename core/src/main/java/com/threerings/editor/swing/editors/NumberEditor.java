@@ -108,6 +108,20 @@ public class NumberEditor extends PropertyEditor
     addUnits(this);
   }
 
+  @Override
+  protected StringBuilder makeTooltip ()
+  {
+    StringBuilder tt = super.makeTooltip();
+    double min = getMinimum();
+    if (min != getTypeMinimum()) tt.append("<br>Min: ").append(min);
+    double max = getMaximum();
+    if (max != getTypeMaximum()) tt.append("<br>Max: ").append(max);
+    if (_step != 1 && (_slider != null || _spinner != null)) {
+      tt.append("<br>Step: ").append(_step);
+    }
+    return tt;
+  }
+
   /**
    * Converts a double value to a value of the property's type.
    */
