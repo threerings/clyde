@@ -31,6 +31,8 @@ import java.util.HashSet;
 import com.threerings.math.Transform3D;
 import com.threerings.opengl.model.config.AnimationConfig;
 
+import static com.threerings.opengl.Log.log;
+
 /**
  * An intermediate representation for animations used to store data parsed from XML.
  */

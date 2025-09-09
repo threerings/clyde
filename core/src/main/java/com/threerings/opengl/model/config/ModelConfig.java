@@ -238,19 +238,19 @@ public class ModelConfig extends ParameterizedConfig
     public transient String[] importMessages;
 
     /** The model scale. */
-    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(MXML import parameter)")
+    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(Import parameter)")
     public float scale = 0.01f;
 
     /** A fixed amount by which to expand the bounds (to account for skinning). */
-    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(MXML import parameter)")
+    @Editable(min=0, step=0.01, hgroup="s", weight=-4, units="~(Import parameter)")
     public float boundsExpansion;
 
     /** If true, ignore the transforms of the top-level children. */
-    @Editable(hgroup="i", weight=-3, units="~(MXML import parameter)")
+    @Editable(hgroup="i", weight=-3, units="~(Import parameter)")
     public boolean ignoreRootTransforms;
 
     /** If true, generate tangent attributes for meshes. */
-    @Editable(hgroup="i", weight=-3, units="~(MXML import parameter)")
+    @Editable(hgroup="i", weight=-3, units="~(Import parameter)")
     public boolean generateTangents;
 
     /** The influences allowed to affect this model. */
