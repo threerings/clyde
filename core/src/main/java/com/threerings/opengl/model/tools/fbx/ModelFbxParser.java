@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 import com.lukaseichberg.fbxloader.FBXFile;
@@ -90,7 +89,6 @@ public class ModelFbxParser extends AbstractFbxParser
 
     // parse nodes
     Map<FBXNode, String> textures = Maps.newHashMap();
-    Set<String> texturesSeen = Sets.newHashSet();
     for (FBXNode node : models) {
       // see what kind of model it is
       Long id = node.getData(0);
@@ -141,8 +139,6 @@ public class ModelFbxParser extends AbstractFbxParser
             if (filename != null) mesh.texture = filename;
           }
         }
-        // If we've already seen this texture on another mesh, give it a distinguishing tag.
-        if (!texturesSeen.add(mesh.texture)) mesh.tag = cleanMeshyTag(name);
         if (messages != null) {
           messages.add(Logger.format("Added mesh",
             "type", mesh.getClass().getSimpleName(),
@@ -361,13 +357,6 @@ public class ModelFbxParser extends AbstractFbxParser
     }
 
     return mesh;
-  }
-
-  protected String cleanMeshyTag (String tag)
-  {
-    if (tag.startsWith("mesh ")) tag = tag.substring(5, tag.length());
-    if (tag.endsWith(" mesh")) tag = tag.substring(0, tag.length() - 5);
-    return tag;
   }
 
   protected String extractTexture (FBXNode node, File dir)
