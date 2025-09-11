@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -21,6 +22,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 import com.lukaseichberg.fbxloader.FBXFile;
@@ -30,7 +32,6 @@ import com.lukaseichberg.fbxloader.FBXNode;
 import com.threerings.util.XmlFormatter;
 import com.threerings.math.Quaternion;
 
-import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.tools.ModelDef;
 
 import static com.threerings.opengl.Log.log;
@@ -89,6 +90,7 @@ public class ModelFbxParser extends AbstractFbxParser
 
     // parse nodes
     Map<FBXNode, String> textures = Maps.newHashMap();
+    Set<String> texturesSeen = Sets.newHashSet();
     for (FBXNode node : models) {
       // see what kind of model it is
       Long id = node.getData(0);
@@ -139,9 +141,12 @@ public class ModelFbxParser extends AbstractFbxParser
             if (filename != null) mesh.texture = filename;
           }
         }
-        mesh.tag = assignMeshTag(mesh, name);
+        // If we've already seen this texture on another mesh, give it a distinguishing tag.
+        if (!texturesSeen.add(mesh.texture)) mesh.tag = cleanMeshyTag(name);
         if (messages != null) {
-          messages.add(Logger.format("Added mesh", "name", name, "tag", mesh.tag));
+          messages.add(Logger.format("Added mesh",
+            "type", mesh.getClass().getSimpleName(),
+            "texture", mesh.texture, "tag", mesh.tag, "name", name));
         }
 
       } else {
@@ -358,31 +363,12 @@ public class ModelFbxParser extends AbstractFbxParser
     return mesh;
   }
 
-  protected String assignMeshTag (ModelDef.TriMeshDef mesh, String name)
+  protected String cleanMeshyTag (String tag)
   {
-    // if we have a texture, assign the default name to the first seen and any other
-    // meshes that match that, otherwise give it a name based on the texture or the name
-    if (!StringUtil.isBlank(mesh.texture)) {
-      if (firstTexture == null) firstTexture = mesh.texture;
-      else if (!firstTexture.equals(mesh.texture)) {
-        int lastDot = mesh.texture.lastIndexOf('.');
-        return lastDot == -1 ? mesh.texture : mesh.texture.substring(0, lastDot);
-      }
-      return (mesh instanceof ModelDef.SkinMeshDef) ? ModelConfig.SKINNED_TAG
-        : ModelConfig.DEFAULT_TAG;
-    }
-    String tag = name;
-    if (tag.endsWith(" mesh")) {
-      tag = tag.substring(0, tag.length() - 5);
-    }
-    if (tag.startsWith("mesh ")) {
-      tag = tag.substring(5, tag.length());
-    }
+    if (tag.startsWith("mesh ")) tag = tag.substring(5, tag.length());
+    if (tag.endsWith(" mesh")) tag = tag.substring(0, tag.length() - 5);
     return tag;
   }
-
-  // track the name of the first seen texture
-  protected String firstTexture;
 
   protected String extractTexture (FBXNode node, File dir)
     throws IOException
