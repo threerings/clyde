@@ -306,18 +306,19 @@ public abstract class PropertyEditor extends BasePropertyEditor
    */
   protected StringBuilder makeTooltip ()
   {
+    String typeDesc = _property.getType().getTypeName();
+    typeDesc = typeDesc.replace("java.lang.", "").replace("com.threerings.config.", "");
+
     StringBuilder tt = new StringBuilder();
-    String constant = "", nullable = "";
     Editable ed = _property.getAnnotation();
     if (ed != null) {
-      if (ed.constant()) constant = "Constant ";
-      if (ed.nullable()) nullable = "Nullable ";
-    }
-    String typeLabel = _property.getType().toString(); // TODO
-    tt.append(constant).append(nullable).append(typeLabel);
-    if (ed != null) {
       String tip = ed.tip();
-      if (!"".equals(tip)) tt.append("<br>").append(getMsgs().xlate(tip));
+      if (!"".equals(tip)) tt.append('"').append(getMsgs().xlate(tip)).append("\"<br>");
+      if (ed.nullable()) tt.append("Nullable ");
+      if (ed.constant()) tt.append("Constant ");
+    }
+    tt.append(typeDesc);
+    if (ed != null) {
       for (String dep : ed.depends()) {
         tt.append("<br>Depends on: ").append(dep); // TODO: format better
       }
