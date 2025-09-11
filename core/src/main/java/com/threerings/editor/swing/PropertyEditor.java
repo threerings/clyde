@@ -306,7 +306,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
    */
   protected StringBuilder makeTooltip ()
   {
-    String typeDesc = _property.getType().getTypeName();
+    String typeDesc = _property.getType().getName(); // TODO: getTypeName, jdk8.
     typeDesc = typeDesc.replace("java.lang.", "").replace("com.threerings.config.", "");
 
     StringBuilder tt = new StringBuilder();
