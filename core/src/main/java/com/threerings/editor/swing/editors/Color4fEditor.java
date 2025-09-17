@@ -118,6 +118,13 @@ public class Color4fEditor extends PropertyEditor
     }
   }
 
+  @Override
+  protected StringBuilder makeTooltip ()
+  {
+    return super.makeTooltip()
+      .append("<br>A color plus a 0-1 alpha value.");
+  }
+
   /** The button that brings up the color selection dialog. */
   protected JButton _button;
 
