@@ -456,8 +456,8 @@ public class ModelConfig extends ParameterizedConfig
             for (ConfigReference<MaterialConfig> mref = mapping.material; true; ) {
               MaterialConfig matcfg = cfgmgr.getConfig(MaterialConfig.class, mref);
               if (matcfg == null) {
-                valid = false;
                 validator.output("Missing valid material");
+                valid = false;
               } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
                 mref = ((MaterialConfig.Derived)matcfg.implementation).material;
                 continue;
@@ -471,8 +471,8 @@ public class ModelConfig extends ParameterizedConfig
                   validator.output("Non-skinned mesh is using a skinned material! " +
                     "[texture=" + vm.texture +
                     ", tag=" + vm.tag +
-                    ", mat=" + mapping.material + "]");
-                  valid = false;
+                    ", mat=" + mapping.material.getName() + "]");
+// TEMP                  valid = false;
                 }
               } else {
                 validator.output("WHAT'S THIS?");
