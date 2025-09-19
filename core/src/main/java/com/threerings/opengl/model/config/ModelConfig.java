@@ -66,10 +66,12 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
+import com.threerings.opengl.geometry.config.DeformerConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.gui.config.ComponentBillboardConfig;
 import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
@@ -178,6 +180,14 @@ public class ModelConfig extends ParameterizedConfig
     public void invalidate ()
     {
       // nothing by default
+    }
+
+    /**
+     * Validate the model.
+     */
+    public boolean validate (ConfigManager cfgmgr, Validator validator)
+    {
+      return true;
     }
   }
 
@@ -420,6 +430,65 @@ public class ModelConfig extends ParameterizedConfig
     }
 
     /**
+     * Get the meshes, for validation.
+     */
+    protected void getMeshes (List<VisibleMesh> meshes)
+    {
+      // nothing by default
+    }
+
+    @Override
+    public boolean validate (ConfigManager cfgmgr, Validator validator)
+    {
+      boolean valid = super.validate(cfgmgr, validator);
+      validator.pushWhere("ModelConfig.visibleMeshes");
+      try {
+        List<VisibleMesh> meshes = Lists.newArrayList();
+        getMeshes(meshes);
+        for (VisibleMesh vm : meshes) {
+          boolean skinnedMesh = vm.geometry instanceof GeometryConfig.SkinnedIndexedStored;
+          MaterialMapping mapping = getMaterialMapping(vm.texture, vm.tag);
+          if (mapping == null || mapping.material == null) {
+            //validator.output("Missing material for geometry " + vm.texture + "|" + vm.tag);
+            // but, we don't fail validation
+            //valid = false;
+          } else {
+            for (ConfigReference<MaterialConfig> mref = mapping.material; true; ) {
+              MaterialConfig matcfg = cfgmgr.getConfig(MaterialConfig.class, mref);
+              if (matcfg == null) {
+                valid = false;
+                validator.output("Missing valid material");
+              } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
+                mref = ((MaterialConfig.Derived)matcfg.implementation).material;
+                continue;
+              } else if (matcfg.implementation instanceof MaterialConfig.Original) {
+                MaterialConfig.Original orig = (MaterialConfig.Original)matcfg.implementation;
+                boolean sawSkin = false;
+                for (TechniqueConfig tc : orig.techniques) {
+                  sawSkin = tc.deformer instanceof DeformerConfig.Skin;
+                }
+                if (!skinnedMesh && sawSkin) {
+                  validator.output("Non-skinned mesh is using a skinned material! " +
+                    "[texture=" + vm.texture +
+                    ", tag=" + vm.tag +
+                    ", mat=" + mapping.material + "]");
+                  valid = false;
+                }
+              } else {
+                validator.output("WHAT'S THIS?");
+                valid = false;
+              }
+              break; // note: weird loop
+            }
+          }
+        }
+      } finally {
+        validator.popWhere();
+      }
+      return valid;
+    }
+
+    /**
      * Creates the array of resolved geometry/material pairs.
      */
     protected static GeometryMaterial[] getGeometryMaterials (
@@ -646,6 +715,14 @@ public class ModelConfig extends ParameterizedConfig
         pairs.add(new ComparableTuple<String, String>(mesh.texture, mesh.tag));
       }
     }
+
+    /**
+     * Populate the list with our visible meshes.
+     */
+    public void getMeshes (List<VisibleMesh> toPop)
+    {
+      for (VisibleMesh mesh : visible) toPop.add(mesh);
+    }
   }
 
   /**
@@ -765,10 +842,12 @@ public class ModelConfig extends ParameterizedConfig
     boolean valid = super.validateReferences(validator);
     validator.pushWhere("model.cfgmgr");
     try {
-      return _configs.validateReferences(validator) & valid;
+      valid &= _configs.validateReferences(validator);
     } finally {
       validator.popWhere();
     }
+    valid &= implementation.validate(_configs, validator);
+    return valid;
   }
 
   @Override

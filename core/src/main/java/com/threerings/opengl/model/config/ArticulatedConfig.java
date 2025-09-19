@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.TreeSet;
 
 import proguard.annotation.Keep;
@@ -123,6 +124,13 @@ public class ArticulatedConfig extends ModelConfig.Imported
     {
       for (Node child : children) {
         child.getTextures(textures);
+      }
+    }
+
+    public void getMeshes (List<VisibleMesh> meshes)
+    {
+      for (Node child : children) {
+        child.getMeshes(meshes);
       }
     }
 
@@ -226,6 +234,13 @@ public class ArticulatedConfig extends ModelConfig.Imported
       if (visible != null) {
         textures.add(visible.texture);
       }
+    }
+
+    @Override
+    public void getMeshes (List<VisibleMesh> meshes)
+    {
+      super.getMeshes(meshes);
+      if (visible != null) meshes.add(visible);
     }
 
     @Override
@@ -611,6 +626,14 @@ public class ArticulatedConfig extends ModelConfig.Imported
     if (skin != null) {
       skin.getTextureTagPairs(pairs);
     }
+  }
+
+  @Override
+  protected void getMeshes (List<VisibleMesh> meshes)
+  {
+    super.getMeshes(meshes);
+    if (root != null) root.getMeshes(meshes);
+    if (skin != null) skin.getMeshes(meshes);
   }
 
   /**

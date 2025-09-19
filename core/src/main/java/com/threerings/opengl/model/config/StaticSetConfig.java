@@ -27,6 +27,7 @@ package com.threerings.opengl.model.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -135,6 +136,15 @@ public class StaticSetConfig extends ModelConfig.Imported
       for (MeshSet set : meshes.values()) {
         set.getTextureTagPairs(pairs);
       }
+    }
+  }
+
+  @Override
+  protected void getMeshes (List<VisibleMesh> toPop)
+  {
+    super.getMeshes(toPop);
+    if (meshes != null) {
+      for (MeshSet set : meshes.values()) set.getMeshes(toPop);
     }
   }
 

@@ -27,14 +27,19 @@ package com.threerings.opengl.model.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.TreeSet;
 
 import com.samskivert.util.ComparableTuple;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.expr.Scope;
 import com.threerings.math.Box;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
+
+import com.threerings.editor.util.Validator;
 
 import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.model.CollisionMesh;
@@ -139,6 +144,13 @@ public class StaticConfig extends ModelConfig.Imported
     if (meshes != null) {
       meshes.getTextureTagPairs(pairs);
     }
+  }
+
+  @Override
+  protected void getMeshes (List<VisibleMesh> toPop)
+  {
+    super.getMeshes(toPop);
+    if (meshes != null) meshes.getMeshes(toPop);
   }
 
   /** The cached resolved config bits. */
