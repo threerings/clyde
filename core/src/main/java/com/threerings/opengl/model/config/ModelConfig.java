@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +38,9 @@ import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -71,6 +74,7 @@ import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.gui.config.ComponentBillboardConfig;
 import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.PassConfig;
 import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.CollisionMesh;
@@ -441,6 +445,14 @@ public class ModelConfig extends ParameterizedConfig
     public boolean validate (ConfigManager cfgmgr, Validator validator)
     {
       boolean valid = super.validate(cfgmgr, validator);
+      boolean meshes = validateMeshes(cfgmgr, validator);
+      boolean influences = validateInfluences(cfgmgr, validator);
+      return valid && meshes && influences;
+    }
+
+    protected boolean validateMeshes (ConfigManager cfgmgr, Validator validator)
+    {
+      boolean valid = true;
       validator.pushWhere("ModelConfig.visibleMeshes");
       try {
         List<VisibleMesh> meshes = Lists.newArrayList();
@@ -453,32 +465,20 @@ public class ModelConfig extends ParameterizedConfig
             // but, we don't fail validation
             //valid = false;
           } else {
-            for (ConfigReference<MaterialConfig> mref = mapping.material; true; ) {
-              MaterialConfig matcfg = cfgmgr.getConfig(MaterialConfig.class, mref);
-              if (matcfg == null) {
-                validator.output("Missing valid material");
-                valid = false;
-              } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
-                mref = ((MaterialConfig.Derived)matcfg.implementation).material;
-                continue;
-              } else if (matcfg.implementation instanceof MaterialConfig.Original) {
-                MaterialConfig.Original orig = (MaterialConfig.Original)matcfg.implementation;
-                boolean sawSkin = false;
-                for (TechniqueConfig tc : orig.techniques) {
-                  sawSkin = tc.deformer instanceof DeformerConfig.Skin;
-                }
-                if (!skinnedMesh && sawSkin) {
-                  validator.output("Non-skinned mesh is using a skinned material! " +
-                    "[texture=" + vm.texture +
-                    ", tag=" + vm.tag +
-                    ", mat=" + mapping.material.getName() + "]");
-// TEMP                  valid = false;
-                }
-              } else {
-                validator.output("WHAT'S THIS?");
-                valid = false;
+            TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
+            if (techs == null) valid = false;
+            else {
+              boolean sawSkin = false;
+              for (TechniqueConfig tc : techs) {
+                sawSkin = tc.deformer instanceof DeformerConfig.Skin;
               }
-              break; // note: weird loop
+              if (!skinnedMesh && sawSkin) {
+                validator.output("Non-skinned mesh is using a skinned material! " +
+                  "[texture=" + vm.texture +
+                  ", tag=" + vm.tag +
+                  ", mat=" + mapping.material.getName() + "]");
+// TEMP                valid = false;
+              }
             }
           }
         }
@@ -486,6 +486,70 @@ public class ModelConfig extends ParameterizedConfig
         validator.popWhere();
       }
       return valid;
+    }
+
+    protected boolean validateInfluences (ConfigManager cfgmgr, Validator validator)
+    {
+      int flags = 0;
+      validator.pushWhere("ModelConfig.influences");
+      try {
+        for (MaterialMapping mapping : materialMappings) {
+          TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
+          if (techs == null) continue;
+          for (TechniqueConfig tech : techs) {
+            if (tech.receivesProjections) flags |= Model.PROJECTION_INFLUENCE;
+            for (PassConfig pass : getPasses(tech.enqueuer)) {
+              if (pass.fogStateOverride != null) flags |= Model.FOG_INFLUENCE;
+              if (pass.lightStateOverride != null) flags |= Model.LIGHT_INFLUENCE;
+            }
+          }
+        }
+      } finally {
+        validator.popWhere();
+      }
+      boolean valid = (this.influences.getFlags() == flags);
+      if (!valid) {
+        validator.output("Influence flags: declared." + influences.getFlags() +
+            " != materials." + flags + ".");
+      }
+// TEMP return valid;
+      return true;
+    }
+
+    protected Iterable<PassConfig> getPasses (TechniqueConfig.Enqueuer enqueuer)
+    {
+      if (enqueuer instanceof TechniqueConfig.NormalEnqueuer) {
+        return Arrays.asList(((TechniqueConfig.NormalEnqueuer)enqueuer).passes);
+      } else if (enqueuer instanceof TechniqueConfig.CompoundEnqueuer) {
+        return Iterables.concat(Iterables.transform(
+          Arrays.asList(((TechniqueConfig.CompoundEnqueuer)enqueuer).enqueuers),
+          new Function<TechniqueConfig.Enqueuer, Iterable<PassConfig>>() {
+            public Iterable<PassConfig> apply (TechniqueConfig.Enqueuer enqueuer) {
+              return getPasses(enqueuer);
+            }
+          }));
+      }
+      return Collections.emptyList();
+    }
+
+    /**
+     * Used during validation.
+     */
+    protected static TechniqueConfig[] getTechniques (
+      ConfigManager cfgmgr, ConfigReference<MaterialConfig> material)
+    {
+      MaterialConfig matcfg = cfgmgr.getConfig(MaterialConfig.class, material);
+      if (matcfg == null) {
+        log.warning("Missing valid material", "config", material);
+        return null;
+      } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
+        return getTechniques(cfgmgr, ((MaterialConfig.Derived)matcfg.implementation).material);
+      } else if (matcfg.implementation instanceof MaterialConfig.Original) {
+        return ((MaterialConfig.Original)matcfg.implementation).techniques;
+      } else {
+        log.warning("Unknown mat impl", "config", material);
+        return null;
+      }
     }
 
     /**
