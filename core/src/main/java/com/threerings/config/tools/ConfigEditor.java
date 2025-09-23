@@ -133,6 +133,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.util.ConfigId;
 import com.threerings.config.util.PasteHelper;
 import com.threerings.config.swing.ConfigTree;
 import com.threerings.config.swing.ConfigTreeFilterPanel;
@@ -538,6 +539,18 @@ public class ConfigEditor extends BaseConfigEditor
         return;
       }
     }
+  }
+
+  /**
+   * Get the currently-selected configuration.
+   */
+  protected ConfigId getSelected ()
+  {
+    ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+    String name = panel.getSelected();
+    if (name == null) return null;
+    ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
+    return new ConfigId(item.group.getConfigClass(), name);
   }
 
   /**
