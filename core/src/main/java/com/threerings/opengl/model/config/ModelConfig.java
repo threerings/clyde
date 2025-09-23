@@ -359,6 +359,26 @@ public class ModelConfig extends ParameterizedConfig
       return (mapping == null) ? null : mapping.material;
     }
 
+    /**
+     * In the editor, get the influence flags suggested for this model implementation.
+     */
+    public int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+    {
+      int flags = 0;
+      for (MaterialMapping mapping : materialMappings) {
+        TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
+        if (techs == null) continue;
+        for (TechniqueConfig tech : techs) {
+          if (tech.receivesProjections) flags |= Model.PROJECTION_INFLUENCE;
+          for (PassConfig pass : getPasses(tech.enqueuer)) {
+            if (pass.fogStateOverride != null) flags |= Model.FOG_INFLUENCE;
+            if (pass.lightStateOverride != null) flags |= Model.LIGHT_INFLUENCE;
+          }
+        }
+      }
+      return flags;
+    }
+
     @Override
     public void preload (GlContext ctx)
     {
@@ -490,27 +510,11 @@ public class ModelConfig extends ParameterizedConfig
 
     protected boolean validateInfluences (ConfigManager cfgmgr, Validator validator)
     {
-      int flags = 0;
-      validator.pushWhere("ModelConfig.influences");
-      try {
-        for (MaterialMapping mapping : materialMappings) {
-          TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
-          if (techs == null) continue;
-          for (TechniqueConfig tech : techs) {
-            if (tech.receivesProjections) flags |= Model.PROJECTION_INFLUENCE;
-            for (PassConfig pass : getPasses(tech.enqueuer)) {
-              if (pass.fogStateOverride != null) flags |= Model.FOG_INFLUENCE;
-              if (pass.lightStateOverride != null) flags |= Model.LIGHT_INFLUENCE;
-            }
-          }
-        }
-      } finally {
-        validator.popWhere();
-      }
-      boolean valid = (this.influences.getFlags() == flags);
+      int suggFlags = getSuggestedInfluenceFlags(cfgmgr);
+      boolean valid = (this.influences.getFlags() == suggFlags);
       if (!valid) {
         validator.output("Influence flags: declared." + influences.getFlags() +
-            " != materials." + flags + ".");
+            " != materials." + suggFlags + ".");
       }
 // TEMP return valid;
       return true;
