@@ -25,6 +25,7 @@
 
 package com.threerings.opengl.model.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
@@ -110,6 +111,22 @@ public class CompoundConfig extends ModelConfig.Implementation
       impl = new Compound(ctx, scope, this);
     }
     return impl;
+  }
+
+  @Override
+  protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+  {
+    int flags = super.getSuggestedInfluenceFlags(cfgmgr);
+    for (ComponentModel cm : models) {
+      ModelConfig cfg = cfgmgr.getConfig(ModelConfig.class, cm.model);
+      if (cfg != null) flags |= cfg.getSuggestedInfluenceFlags(cfgmgr);
+    }
+    return flags;
+  }
+
+  @Override
+  protected InfluenceFlagConfig getInfluences () {
+    return influences;
   }
 }
 

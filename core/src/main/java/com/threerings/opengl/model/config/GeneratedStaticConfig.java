@@ -27,6 +27,7 @@ package com.threerings.opengl.model.config;
 
 import java.lang.ref.SoftReference;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -150,6 +151,21 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
   public void invalidate ()
   {
     _resolved = null;
+  }
+
+  @Override
+  protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+  {
+    int flags = super.getSuggestedInfluenceFlags(cfgmgr);
+    if (generator instanceof Quad) {
+      flags |= ModelConfig.getSuggestedInfluenceFlags(cfgmgr, ((Quad)generator).material);
+    }
+    return flags;
+  }
+
+  @Override
+  protected InfluenceFlagConfig getInfluences () {
+    return influences;
   }
 
   /** The cached resolved config bits. */

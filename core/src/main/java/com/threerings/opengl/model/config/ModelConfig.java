@@ -192,6 +192,42 @@ public class ModelConfig extends ParameterizedConfig
     public boolean validate (ConfigManager cfgmgr, Validator validator)
     {
       return true;
+      //return validateInfluences(cfgmgr, validator);
+    }
+
+    /**
+     * Check the influence flags we detect might be needed versus those declared.
+     * BETA
+     */
+    protected boolean validateInfluences (ConfigManager cfgmgr, Validator validator)
+    {
+      InfluenceFlagConfig influences = getInfluences();
+      if (influences != null) {
+        int suggFlags = getSuggestedInfluenceFlags(cfgmgr);
+        boolean valid = (influences.getFlags() == suggFlags);
+        if (!valid) {
+          validator.output("Influence flags: declared." + influences.getFlags() +
+              " != materials." + suggFlags + ".");
+        }
+// TEMP return valid;
+      }
+      return true;
+    }
+
+    /**
+     * Examine materials and determine if we can figure out which influence flags we should
+     * have. BETA. This is used in the tools.
+     */
+    protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr) {
+      return 0;
+    }
+
+    /**
+     * Get *this implementation's* InfluenceFlag declarations.
+     * Do not dive-into a derived base model reference.
+     */
+    protected InfluenceFlagConfig getInfluences () {
+      return null;
     }
   }
 
@@ -359,24 +395,19 @@ public class ModelConfig extends ParameterizedConfig
       return (mapping == null) ? null : mapping.material;
     }
 
-    /**
-     * In the editor, get the influence flags suggested for this model implementation.
-     */
-    public int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+    @Override
+    protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
     {
-      int flags = 0;
+      int flags = super.getSuggestedInfluenceFlags(cfgmgr);
       for (MaterialMapping mapping : materialMappings) {
-        TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
-        if (techs == null) continue;
-        for (TechniqueConfig tech : techs) {
-          if (tech.receivesProjections) flags |= Model.PROJECTION_INFLUENCE;
-          for (PassConfig pass : getPasses(tech.enqueuer)) {
-            if (pass.fogStateOverride != null) flags |= Model.FOG_INFLUENCE;
-            if (pass.lightStateOverride != null) flags |= Model.LIGHT_INFLUENCE;
-          }
-        }
+        flags |= ModelConfig.getSuggestedInfluenceFlags(cfgmgr, mapping.material);
       }
       return flags;
+    }
+
+    @Override
+    protected InfluenceFlagConfig getInfluences () {
+      return influences;
     }
 
     @Override
@@ -466,8 +497,7 @@ public class ModelConfig extends ParameterizedConfig
     {
       boolean valid = super.validate(cfgmgr, validator);
       boolean meshes = validateMeshes(cfgmgr, validator);
-      boolean influences = validateInfluences(cfgmgr, validator);
-      return valid && meshes && influences;
+      return valid && meshes;
     }
 
     protected boolean validateMeshes (ConfigManager cfgmgr, Validator validator)
@@ -506,54 +536,6 @@ public class ModelConfig extends ParameterizedConfig
         validator.popWhere();
       }
       return valid;
-    }
-
-    protected boolean validateInfluences (ConfigManager cfgmgr, Validator validator)
-    {
-      int suggFlags = getSuggestedInfluenceFlags(cfgmgr);
-      boolean valid = (this.influences.getFlags() == suggFlags);
-      if (!valid) {
-        validator.output("Influence flags: declared." + influences.getFlags() +
-            " != materials." + suggFlags + ".");
-      }
-// TEMP return valid;
-      return true;
-    }
-
-    protected Iterable<PassConfig> getPasses (TechniqueConfig.Enqueuer enqueuer)
-    {
-      if (enqueuer instanceof TechniqueConfig.NormalEnqueuer) {
-        return Arrays.asList(((TechniqueConfig.NormalEnqueuer)enqueuer).passes);
-      } else if (enqueuer instanceof TechniqueConfig.CompoundEnqueuer) {
-        return Iterables.concat(Iterables.transform(
-          Arrays.asList(((TechniqueConfig.CompoundEnqueuer)enqueuer).enqueuers),
-          new Function<TechniqueConfig.Enqueuer, Iterable<PassConfig>>() {
-            public Iterable<PassConfig> apply (TechniqueConfig.Enqueuer enqueuer) {
-              return getPasses(enqueuer);
-            }
-          }));
-      }
-      return Collections.emptyList();
-    }
-
-    /**
-     * Used during validation.
-     */
-    protected static TechniqueConfig[] getTechniques (
-      ConfigManager cfgmgr, ConfigReference<MaterialConfig> material)
-    {
-      MaterialConfig matcfg = cfgmgr.getConfig(MaterialConfig.class, material);
-      if (matcfg == null) {
-        log.warning("Missing valid material", "config", material);
-        return null;
-      } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
-        return getTechniques(cfgmgr, ((MaterialConfig.Derived)matcfg.implementation).material);
-      } else if (matcfg.implementation instanceof MaterialConfig.Original) {
-        return ((MaterialConfig.Original)matcfg.implementation).techniques;
-      } else {
-        log.warning("Unknown mat impl", "config", material);
-        return null;
-      }
     }
 
     /**
@@ -631,6 +613,15 @@ public class ModelConfig extends ParameterizedConfig
       ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
       return (config == null) ? null : config.getParticleMaterial(ctx);
     }
+
+    @Override
+    protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+    {
+      ModelConfig base = cfgmgr.getConfig(ModelConfig.class, model);
+      return base == null ? 0 : base.getSuggestedInfluenceFlags(cfgmgr);
+    }
+
+    // Do not implement getInfluenceFlags() here!!
   }
 
   /**
@@ -674,6 +665,17 @@ public class ModelConfig extends ParameterizedConfig
       }
       // then return whatever's at the top of the list
       return (models.length > 0) ? models[0].model : null;
+    }
+
+    @Override
+    protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+    {
+      int flags = super.getSuggestedInfluenceFlags(cfgmgr);
+      for (SchemedModel sm : models) {
+        ModelConfig cfg = cfgmgr.getConfig(ModelConfig.class, sm.model);
+        if (cfg != null) flags |= cfg.getSuggestedInfluenceFlags(cfgmgr);
+      }
+      return flags;
     }
   }
 
@@ -918,6 +920,22 @@ public class ModelConfig extends ParameterizedConfig
     return valid;
   }
 
+  /**
+   * Examine materials and determine if we can figure out which influence flags we should
+   * have. BETA. This is used in the tools.
+   */
+  public int getSuggestedInfluenceFlags (ConfigManager cfgmgr) {
+    return implementation.getSuggestedInfluenceFlags(cfgmgr);
+  }
+
+  /**
+   * Get the model's declared influence flags.
+   * Note that if we are a derived implementation, we do NOT have top-level declarations.
+   */
+  public InfluenceFlagConfig getInfluences () {
+    return implementation.getInfluences();
+  }
+
   @Override
   protected void fireConfigUpdated ()
   {
@@ -936,6 +954,59 @@ public class ModelConfig extends ParameterizedConfig
         return config.getConfigManager();
       }
     };
+  }
+
+  /**
+   * Utility for the editor.
+   */
+  protected static int getSuggestedInfluenceFlags (
+    ConfigManager cfgmgr, ConfigReference<MaterialConfig> material)
+  {
+    TechniqueConfig[] techs = getTechniques(cfgmgr, material);
+    int flags = 0;
+    if (techs != null) {
+      for (TechniqueConfig tech : techs) {
+        if (tech.receivesProjections) flags |= Model.PROJECTION_INFLUENCE;
+        for (PassConfig pass : getPasses(tech.enqueuer)) {
+          if (pass.fogStateOverride != null) flags |= Model.FOG_INFLUENCE;
+          if (pass.lightStateOverride != null) flags |= Model.LIGHT_INFLUENCE;
+        }
+      }
+    }
+    return flags;
+  }
+
+  private static TechniqueConfig[] getTechniques (
+    ConfigManager cfgmgr, ConfigReference<MaterialConfig> material)
+  {
+    MaterialConfig matcfg = cfgmgr.getConfig(MaterialConfig.class, material);
+    if (matcfg == null) {
+      log.warning("Missing valid material", "config", material);
+      return null;
+    } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
+      return getTechniques(cfgmgr, ((MaterialConfig.Derived)matcfg.implementation).material);
+    } else if (matcfg.implementation instanceof MaterialConfig.Original) {
+      return ((MaterialConfig.Original)matcfg.implementation).techniques;
+    } else {
+      log.warning("Unknown mat impl", "config", material);
+      return null;
+    }
+  }
+
+  private static Iterable<PassConfig> getPasses (TechniqueConfig.Enqueuer enqueuer)
+  {
+    if (enqueuer instanceof TechniqueConfig.NormalEnqueuer) {
+      return Arrays.asList(((TechniqueConfig.NormalEnqueuer)enqueuer).passes);
+    } else if (enqueuer instanceof TechniqueConfig.CompoundEnqueuer) {
+      return Iterables.concat(Iterables.transform(
+        Arrays.asList(((TechniqueConfig.CompoundEnqueuer)enqueuer).enqueuers),
+        new Function<TechniqueConfig.Enqueuer, Iterable<PassConfig>>() {
+          public Iterable<PassConfig> apply (TechniqueConfig.Enqueuer enqueuer) {
+            return getPasses(enqueuer);
+          }
+        }));
+    }
+    return Collections.emptyList();
   }
 
   /** The model's local config library. */

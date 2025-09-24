@@ -99,4 +99,9 @@ public class ScriptedConfig extends ModelConfig.Implementation
     }
     return impl;
   }
+
+  @Override
+  protected InfluenceFlagConfig getInfluences () {
+    return influences;
+  }
 }

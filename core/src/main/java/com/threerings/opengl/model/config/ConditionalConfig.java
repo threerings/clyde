@@ -25,6 +25,7 @@
 
 package com.threerings.opengl.model.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
@@ -110,5 +111,23 @@ public class ConditionalConfig extends ModelConfig.Implementation
     for (Case caze : cases) {
       caze.condition.invalidate();
     }
+  }
+
+  @Override
+  protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
+  {
+    int flags = super.getSuggestedInfluenceFlags(cfgmgr);
+    for (Case cs : cases) {
+      ModelConfig cfg = cfgmgr.getConfig(ModelConfig.class, cs.model);
+      if (cfg != null) flags |= cfg.getSuggestedInfluenceFlags(cfgmgr);
+    }
+    ModelConfig def = cfgmgr.getConfig(ModelConfig.class, defaultModel);
+    if (def != null) flags |= def.getSuggestedInfluenceFlags(cfgmgr);
+    return flags;
+  }
+
+  @Override
+  protected InfluenceFlagConfig getInfluences () {
+    return influences;
   }
 }

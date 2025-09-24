@@ -38,6 +38,8 @@ import java.io.PrintStream;
 
 import java.util.Set;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -77,6 +79,10 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
+
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.InfluenceFlagConfig;
+import com.threerings.opengl.model.config.ModelConfig;
 
 import static com.threerings.ClydeLog.log;
 
@@ -151,6 +157,13 @@ public class ResourceEditor extends BaseConfigEditor
     edit.addSeparator();
     edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
     edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
+    _suggestInfluences = new AbstractAction(_msgs.get("~Suggest influences"), null) {
+      public void actionPerformed (ActionEvent event) {
+        suggestInfluences();
+      }
+    };
+    _suggestInfluences.setEnabled(false);
+    edit.add(new JMenuItem(_suggestInfluences));
 
     JMenu view = createMenu("view", KeyEvent.VK_V);
     menubar.add(view);
@@ -465,6 +478,7 @@ public class ResourceEditor extends BaseConfigEditor
     if (enable) {
       config.addListener(this);
     }
+    _suggestInfluences.setEnabled(config instanceof ModelConfig);
     _file = file;
     _save.setEnabled(enable);
     _saveAs.setEnabled(enable);
@@ -489,6 +503,28 @@ public class ResourceEditor extends BaseConfigEditor
     return _epanel;
   }
 
+  protected void suggestInfluences ()
+  {
+    ModelConfig model = (ModelConfig)_epanel.getObject();
+    if (model != null) {
+      InfluenceFlagConfig inf = model.getInfluences();
+      if (inf != null) {
+        int flags = model.getSuggestedInfluenceFlags(_cfgmgr);
+        int oflags = inf.getFlags();
+        if (flags != oflags) {
+          inf.fog = (flags & Model.FOG_INFLUENCE) != 0;
+          inf.lights = (flags & Model.LIGHT_INFLUENCE) != 0;
+          inf.projections = (flags & Model.PROJECTION_INFLUENCE) != 0;
+          inf.definitions = (flags & Model.DEFINITION_INFLUENCE) != 0;
+          model.wasUpdated();
+        }
+        log.info("Influence flags updated", "oflags", oflags, "flags", flags);
+        return;
+      }
+    }
+    log.info("Not applicable?");
+  }
+
   /** The file menu items. */
   protected JMenuItem _save, _saveAs, _revert, _export;
 
@@ -500,6 +536,8 @@ public class ResourceEditor extends BaseConfigEditor
 
   /** The file chooser for opening and saving export files. */
   protected JFileChooser _exportChooser;
+
+  protected Action _suggestInfluences;
 
   /** The editor panel. */
   protected BaseEditorPanel _epanel;
