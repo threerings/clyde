@@ -79,6 +79,7 @@ public class SceneValidatorTask extends AbstractValidatorTask
 
       } catch (Exception e) { // IOException, ClassCastException
         log.warning("Failed to read scene.", "file", source, e);
+        valid = false;
       }
     }
 
