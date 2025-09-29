@@ -27,6 +27,9 @@ package com.threerings.tudey.tools;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+
+import com.google.common.io.CountingInputStream;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.editor.tools.AbstractValidatorTask;
@@ -47,14 +50,29 @@ public class SceneValidatorTask extends AbstractValidatorTask
   {
     boolean valid = true;
 
+    final CountingInputStream[] counter = new CountingInputStream[1];
     for (File source : files) {
       try {
-        TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
-            new FileInputStream(source)).readObject();
-        model.getConfigManager().init("scene", cfgmgr);
+        final long maxSize = getMaxUncompressedSize(source);
+        TudeySceneModel model = (TudeySceneModel)new BinaryImporter(new FileInputStream(source)) {
+          @Override protected InputStream createInflaterStream () {
+            InputStream base = super.createInflaterStream();
+            return maxSize == Long.MAX_VALUE ? base : (counter[0] = new CountingInputStream(base));
+          }
+        }.readObject();
+        try {
+          if (counter[0] != null && counter[0].getCount() > maxSize) {
+            valid = false;
+            validator.output("Uncompressed size too large " + source + ": " +
+              "(" + counter[0].getCount() + " > " + maxSize + ")");
+            continue;
+          }
+        } finally {
+          counter[0] = null;
+        }
         validator.pushWhere("Scene: " + source);
         try {
-          valid &= model.validateReferences(validator);
+          valid &= checkModel(cfgmgr, validator, model);
         } finally {
           validator.popWhere();
         }
@@ -65,5 +83,21 @@ public class SceneValidatorTask extends AbstractValidatorTask
     }
 
     return valid;
+  }
+
+  /**
+   * Get the maximum uncompressed size of a scene data file.
+   */
+  protected long getMaxUncompressedSize (File file) {
+    return Long.MAX_VALUE;
+  }
+
+  /**
+   * Do any further model checking.
+   */
+  protected boolean checkModel (ConfigManager cfgmgr, Validator validator, TudeySceneModel model)
+  {
+    model.getConfigManager().init("scene", cfgmgr);
+    return model.validateReferences(validator);
   }
 }

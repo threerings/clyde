@@ -134,9 +134,7 @@ public class BinaryImporter extends Importer
       boolean compressed = (flags & BinaryExporter.COMPRESSED_FORMAT_FLAG) != 0;
 
       // the rest of the stream may be compressed
-      if (compressed) {
-        _in = new DataInputStream(new InflaterInputStream(_base));
-      }
+      if (compressed) _in = new DataInputStream(createInflaterStream());
 
       _objectIdReader = _idReaderSupplier.get();
       _classIdReader = _idReaderSupplier.get();
@@ -486,6 +484,14 @@ public class BinaryImporter extends Importer
       map.put(read(_objectClass), read(_objectClass));
     }
     return map;
+  }
+
+  /**
+   * Create the inflater stream, overrideable.
+   */
+  protected InputStream createInflaterStream ()
+  {
+    return new InflaterInputStream(_base);
   }
 
   /**
