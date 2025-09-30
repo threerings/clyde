@@ -59,6 +59,7 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.ObjectPanel;
+import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.editor.swing.editors.ObjectEditor;
 import com.threerings.expr.Scoped;
 import com.threerings.util.ChangeBlock;
@@ -150,6 +151,7 @@ public class InterfaceTester extends GlCanvasTool
       }
     }
     _epanel.setObject(impl);
+    ((ConfigReferenceEditor)_epanel.getPropertyEditor("user_interface")).setNoTransfer(true);
     _epanel.addChangeListener(this);
   }
 

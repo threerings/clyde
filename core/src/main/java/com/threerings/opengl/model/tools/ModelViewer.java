@@ -66,6 +66,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.util.ChangeBlock;
 
 import com.threerings.opengl.model.Animation;
@@ -176,6 +177,7 @@ public class ModelViewer extends ModelTool
       }
     }
     _epanel.setObject(impl);
+    ((ConfigReferenceEditor)_epanel.getPropertyEditor("model")).setNoTransfer(true);
     _epanel.addChangeListener(this);
   }
 

@@ -62,12 +62,22 @@ import com.threerings.editor.Property;
 import com.threerings.editor.util.PropertyUtil;
 import com.threerings.editor.swing.PropertyEditor;
 
+import static com.threerings.editor.Log.log;
+
 /**
  * An editor for configuration references.
  */
 public class ConfigReferenceEditor extends PropertyEditor
   implements ActionListener, ChangeListener, ConfigUpdateListener<ManagedConfig>
 {
+  /**
+   * Set this instance to not try to transfer arguments if a new config is selected.
+   */
+  public void setNoTransfer (boolean noTransfer)
+  {
+    _noTransfer = noTransfer;
+  }
+
   // documentation inherited from interface ActionListener
   public void actionPerformed (ActionEvent event)
   {
@@ -275,7 +285,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     // store the existing editors mapped by name in case we want to reuse their values
     int ocount = _arguments.getComponentCount();
     HashMap<String, PropertyEditor> oeditors = new HashMap<String, PropertyEditor>();
-    if (transfer) {
+    if (transfer && !_noTransfer) {
       for (int ii = 0; ii < ocount; ii++) {
         PropertyEditor editor = (PropertyEditor)_arguments.getComponent(ii);
         oeditors.put(editor.getProperty().getName(), editor);
@@ -370,4 +380,7 @@ public class ConfigReferenceEditor extends PropertyEditor
 
   /** The config that we're listening to, if any. */
   protected ParameterizedConfig _listenee;
+
+  /** Should we suppress transferring arguments? */
+  protected boolean _noTransfer;
 }
