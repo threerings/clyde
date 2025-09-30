@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -51,7 +52,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import com.samskivert.swing.util.SwingUtil;
@@ -164,7 +167,13 @@ public class ResourceEditor extends BaseConfigEditor
     };
     _suggestInfluences.setEnabled(false);
     edit.add(new JMenuItem(_suggestInfluences));
-
+    _checkMaterials = new AbstractAction(_msgs.get("~Check materials"), null) {
+      public void actionPerformed (ActionEvent event) {
+        checkMaterials();
+      }
+    };
+    _checkMaterials.setEnabled(false);
+    edit.add(new JMenuItem(_checkMaterials));
     JMenu view = createMenu("view", KeyEvent.VK_V);
     menubar.add(view);
     view.add(_treeMode = ToolUtil.createCheckBoxMenuItem(
@@ -479,6 +488,7 @@ public class ResourceEditor extends BaseConfigEditor
       config.addListener(this);
     }
     _suggestInfluences.setEnabled(config instanceof ModelConfig);
+    _checkMaterials.setEnabled(config instanceof ModelConfig);
     _file = file;
     _save.setEnabled(enable);
     _saveAs.setEnabled(enable);
@@ -525,6 +535,18 @@ public class ResourceEditor extends BaseConfigEditor
     log.info("Not applicable?");
   }
 
+  protected void checkMaterials ()
+  {
+    ModelConfig model = (ModelConfig)_epanel.getObject();
+    if (model != null) {
+      List<String> messages = Lists.newArrayList();
+      model.checkMaterials(_cfgmgr, messages);
+      if (messages.isEmpty()) messages.add("<seems ok>");
+      JOptionPane.showMessageDialog(this, Joiner.on("\n").join(messages), "Checked Materials",
+        JOptionPane.OK_OPTION, null);
+    }
+  }
+
   /** The file menu items. */
   protected JMenuItem _save, _saveAs, _revert, _export;
 
@@ -537,7 +559,7 @@ public class ResourceEditor extends BaseConfigEditor
   /** The file chooser for opening and saving export files. */
   protected JFileChooser _exportChooser;
 
-  protected Action _suggestInfluences;
+  protected Action _suggestInfluences, _checkMaterials;
 
   /** The editor panel. */
   protected BaseEditorPanel _epanel;

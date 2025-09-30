@@ -229,6 +229,10 @@ public class ModelConfig extends ParameterizedConfig
     protected InfluenceFlagConfig getInfluences () {
       return null;
     }
+
+    protected void checkMaterials (ConfigManager cfgmgr, List<String> messages) {
+      // nada
+    }
   }
 
   /**
@@ -496,8 +500,39 @@ public class ModelConfig extends ParameterizedConfig
     public boolean validate (ConfigManager cfgmgr, Validator validator)
     {
       boolean valid = super.validate(cfgmgr, validator);
-      boolean meshes = validateMeshes(cfgmgr, validator);
-      return valid && meshes;
+      //boolean meshes = validateMeshes(cfgmgr, validator);
+      return valid /* && meshes*/;
+    }
+
+    @Override
+    protected void checkMaterials (ConfigManager cfgmgr, List<String> messages)
+    {
+      List<VisibleMesh> meshes = Lists.newArrayList();
+      getMeshes(meshes);
+      for (VisibleMesh vm : meshes) {
+        boolean skinnedMesh = vm.geometry instanceof GeometryConfig.SkinnedIndexedStored;
+        MaterialMapping mapping = getMaterialMapping(vm.texture, vm.tag);
+        if (mapping == null || mapping.material == null) {
+          //validator.output("Missing material for geometry " + vm.texture + "|" + vm.tag);
+          // but, we don't fail validation
+          //valid = false;
+        } else {
+          TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
+          if (techs == null) messages.add("No techniques for material " + mapping.material);
+          else {
+            boolean sawSkin = false;
+            for (TechniqueConfig tc : techs) {
+              sawSkin = tc.deformer instanceof DeformerConfig.Skin;
+            }
+            if (!skinnedMesh && sawSkin) {
+              messages.add("Non-skinned mesh is using a skinned material! " +
+                "[texture=" + vm.texture +
+                ", tag=" + vm.tag +
+                ", mat=" + mapping.material.getName() + "]");
+            }
+          }
+        }
+      }
     }
 
     protected boolean validateMeshes (ConfigManager cfgmgr, Validator validator)
@@ -505,32 +540,11 @@ public class ModelConfig extends ParameterizedConfig
       boolean valid = true;
       validator.pushWhere("ModelConfig.visibleMeshes");
       try {
-        List<VisibleMesh> meshes = Lists.newArrayList();
-        getMeshes(meshes);
-        for (VisibleMesh vm : meshes) {
-          boolean skinnedMesh = vm.geometry instanceof GeometryConfig.SkinnedIndexedStored;
-          MaterialMapping mapping = getMaterialMapping(vm.texture, vm.tag);
-          if (mapping == null || mapping.material == null) {
-            //validator.output("Missing material for geometry " + vm.texture + "|" + vm.tag);
-            // but, we don't fail validation
-            //valid = false;
-          } else {
-            TechniqueConfig[] techs = getTechniques(cfgmgr, mapping.material);
-            if (techs == null) valid = false;
-            else {
-              boolean sawSkin = false;
-              for (TechniqueConfig tc : techs) {
-                sawSkin = tc.deformer instanceof DeformerConfig.Skin;
-              }
-              if (!skinnedMesh && sawSkin) {
-                validator.output("Non-skinned mesh is using a skinned material! " +
-                  "[texture=" + vm.texture +
-                  ", tag=" + vm.tag +
-                  ", mat=" + mapping.material.getName() + "]");
-// TEMP                valid = false;
-              }
-            }
-          }
+        List<String> messages = Lists.newArrayList();
+        checkMaterials(cfgmgr, messages);
+        for (String message : messages) {
+          validator.output(message);
+// TODO          valid = false;
         }
       } finally {
         validator.popWhere();
@@ -934,6 +948,14 @@ public class ModelConfig extends ParameterizedConfig
    */
   public InfluenceFlagConfig getInfluences () {
     return implementation.getInfluences();
+  }
+
+  /**
+   * BETA. Used in the editor.
+   */
+  public void checkMaterials (ConfigManager cfgmgr, List<String> messages)
+  {
+    implementation.checkMaterials(cfgmgr, messages);
   }
 
   @Override
