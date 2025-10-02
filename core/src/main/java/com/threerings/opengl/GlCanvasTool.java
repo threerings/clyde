@@ -335,7 +335,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     @Editable
     public boolean isAutoRefreshEnabled ()
     {
-      return _prefs.getBoolean("auto_refresh_enabled", false);
+      return _prefs.getBoolean("auto_refresh_enabled", true);
     }
 
     /**
@@ -354,7 +354,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     @Editable
     public float getRefreshInterval ()
     {
-      return _prefs.getFloat("refresh_interval", 0.5f);
+      return _prefs.getFloat("refresh_interval", 2f);
     }
 
     /**
