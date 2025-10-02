@@ -248,7 +248,7 @@ public class ScrollBar extends Container
         }
       }
       if (dv != 0) {
-        dv *= Math.max(1, _model.getExtent());
+        dv *= Math.max(_model.getExtent(), _model.getScrollIncrement());
         _model.setValue(_model.getValue() + dv);
       }
       event.consume();
