@@ -203,7 +203,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     cpanel.add(_config = new JButton(" "));
     cpanel.setBackground(null);
     _config.addActionListener(this);
-    if (!getMode().equals("compact")) {
+    if (!(_noEdit || getMode().equals("compact"))) {
       cpanel.add(_edit = new JButton(_msgs.get("m.edit")));
       _edit.addActionListener(this);
     }
@@ -383,4 +383,7 @@ public class ConfigReferenceEditor extends PropertyEditor
 
   /** Should we suppress transferring arguments? */
   protected boolean _noTransfer;
+
+  /** Should we omit the edit button? */
+  protected static final boolean _noEdit = Boolean.getBoolean("com.threerings.tool.no_edit");
 }
