@@ -1159,7 +1159,10 @@ public class SceneEditor extends TudeyTool
   protected JMenu createToolMenu ()
   {
     JMenu tools = createMenu("tools", KeyEvent.VK_T);
-    tools.add(createMenuItem("batch_validate", KeyEvent.VK_B, -1));
+
+    if (!Boolean.getBoolean("com.threerings.tool.no_edit")) {
+      tools.add(createMenuItem("batch_validate", KeyEvent.VK_B, -1));
+    }
 
     return tools;
   }
