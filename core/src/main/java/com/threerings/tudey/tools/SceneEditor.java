@@ -281,6 +281,7 @@ public class SceneEditor extends TudeyTool
     _sound.setSelected(!_soundEnabled);
     _toolbar.add(_camera = createToggleButton("camera"), GroupLayout.FIXED);
     _camera.setSelected(!_cameraEnabled);
+    addAdditionalTools();
     _toolbar.add(new Spacer(1, 1));
     _toolbar.add(createIconButton("raise_grid"), GroupLayout.FIXED);
     _toolbar.add(createIconButton("lower_grid"), GroupLayout.FIXED);
@@ -1306,6 +1307,14 @@ public class SceneEditor extends TudeyTool
     if (!_testing) {
       _activeTool.composite();
     }
+  }
+
+  /**
+   * A spot for subclasses to add more tools to the toolbar.
+   */
+  protected void addAdditionalTools ()
+  {
+    // nada
   }
 
   /**
