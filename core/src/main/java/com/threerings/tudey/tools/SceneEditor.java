@@ -1116,10 +1116,10 @@ public class SceneEditor extends TudeyTool
     edit.add(_saveToPalette = createMenuItem("save_to_palette", KeyEvent.VK_V, KeyEvent.VK_L));
     _saveToPalette.setEnabled(false);
     edit.addSeparator();
-    edit.add(createMenuItem("validate_refs", KeyEvent.VK_I, -1));
-    edit.add(createMenuItem("delete_errors", KeyEvent.VK_E, -1));
-    edit.addSeparator();
     if (!Boolean.getBoolean("com.threerings.tool.no_edit")) {
+      edit.add(createMenuItem("validate_refs", KeyEvent.VK_I, -1));
+      edit.add(createMenuItem("delete_errors", KeyEvent.VK_E, -1));
+      edit.addSeparator();
       edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
       edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
     }
