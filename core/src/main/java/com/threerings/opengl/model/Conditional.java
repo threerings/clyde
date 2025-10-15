@@ -70,11 +70,6 @@ public class Conditional extends Model.Implementation
    */
   public void setConfig (GlContext ctx, ConditionalConfig config)
   {
-    if (_parentScope instanceof Scene.Transient &&
-        (config.tickPolicy == TickPolicy.WHEN_VISIBLE || config.defaultModel == null)) {
-      log.warning("Conditional possibly dangerously configured inside a SpawnTransient",
-          "config", config);
-    }
     _ctx = ctx;
     _config = config;
     updateFromConfig();
