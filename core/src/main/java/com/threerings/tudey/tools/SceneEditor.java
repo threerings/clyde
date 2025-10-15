@@ -222,7 +222,8 @@ public class SceneEditor extends TudeyTool
     menubar.add(_fileMenu = createFileMenu());
     menubar.add(_editMenu = createEditMenu());
     menubar.add(_viewMenu = createViewMenu());
-    menubar.add(_toolMenu = createToolMenu());
+    _toolMenu = createToolMenu();
+    if (_toolMenu.getItemCount() > 0) menubar.add(_toolMenu);
 
     final String dirPrefKey = "files:scenes";
 
