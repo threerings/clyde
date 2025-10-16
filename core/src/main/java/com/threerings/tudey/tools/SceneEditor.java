@@ -1642,11 +1642,17 @@ public class SceneEditor extends TudeyTool
    */
   protected void updateTitle ()
   {
-    String title = _msgs.get("m.title");
-    if (_file != null) {
-      title = title + ": " + _file;
-    }
+    String title = getEditorTitle();
+    if (_file != null) title = title + ": " + _file;
     _frame.setTitle(title);
+  }
+
+  /**
+   * Allow customizing the title.
+   */
+  protected String getEditorTitle ()
+  {
+    return _msgs.get("m.title");
   }
 
   /**
