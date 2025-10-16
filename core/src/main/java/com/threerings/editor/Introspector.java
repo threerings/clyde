@@ -250,7 +250,7 @@ public class Introspector
             break;
           }
         }
-        properties.add(methProp);
+        if (!methProp.getAnnotation().hidden()) properties.add(methProp);
       } else {
         unpaired.put(name, method);
       }

@@ -123,4 +123,7 @@ public @interface Editable
 
   /** Specify if the property should not actually be editable. */
   boolean constant () default false;
+
+  /** Hide this property, used for overridden method properties. */
+  boolean hidden () default false;
 }
