@@ -245,7 +245,6 @@ public class Introspector
         for (int ii = properties.size() - 1; ii >= 0; --ii) {
           Property oprop = properties.get(ii);
           if (methProp.getName().equals(oprop.getName()) && oprop instanceof MethodProperty) {
-            log.info("Oh shit we found an old one? " + methProp.getName());
             properties.remove(ii);
             break;
           }
