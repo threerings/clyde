@@ -189,7 +189,7 @@ public class ConfigReferenceEditor extends PropertyEditor
   @Override
   protected void didInit ()
   {
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       add(new JLabel(getPropertyLabel() + ":"));
       add(_name = new JLabel(" "));
       return;
@@ -238,7 +238,7 @@ public class ConfigReferenceEditor extends PropertyEditor
       _listenee = null;
     }
 
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       _name.setText(value == null ? _msgs.get("m.null_value") : value.getName());
       return;
     }

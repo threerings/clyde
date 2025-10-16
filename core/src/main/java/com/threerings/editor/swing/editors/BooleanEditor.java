@@ -62,7 +62,7 @@ public class BooleanEditor extends PropertyEditor
     _box.setBackground(null);
     Dimension size = _box.getPreferredSize();
     _box.setPreferredSize(new Dimension(size.width, 16));
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       _box.setEnabled(false);
     } else {
       _box.addActionListener(this);

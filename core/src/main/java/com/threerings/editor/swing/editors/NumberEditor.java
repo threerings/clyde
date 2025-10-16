@@ -66,7 +66,7 @@ public class NumberEditor extends PropertyEditor
   public void update ()
   {
     double value = ((Number)_property.get(_object)).doubleValue() / _scale;
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       _value.setText(String.valueOf(fromDouble(value)));
       return;
     }
@@ -84,7 +84,7 @@ public class NumberEditor extends PropertyEditor
     double max = getMaximum();
     _step = getStep();
     _scale = getScale();
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       add(_value = new JLabel(" "));
 
     } else {

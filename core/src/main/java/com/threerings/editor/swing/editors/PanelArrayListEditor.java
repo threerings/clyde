@@ -112,7 +112,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
       GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
     _panels.setBackground(null);
 
-    if (!_property.getAnnotation().constant()) {
+    if (!_property.isConstant()) {
       JPanel bpanel = new JPanel();
       bpanel.setBackground(null);
       _content.add(bpanel);
@@ -299,7 +299,7 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
       tcont.add(expand);
       tcont.add(_highlight = createButton(_highlightIcon));
       _highlight.addActionListener(this);
-      if (!_property.getAnnotation().constant()) {
+      if (!_property.isConstant()) {
         tcont.add(_insert = createButton(_insertIcon));
         _insert.addActionListener(this);
         tcont.add(_raise = createButton(_raiseIcon));

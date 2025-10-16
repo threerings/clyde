@@ -228,7 +228,7 @@ public class DateTimeEditor extends PropertyEditor
     addUnits(this);
 
     // disable the field if we're in constant mode
-    _field.setEnabled(!_property.getAnnotation().constant());
+    _field.setEnabled(!_property.isConstant());
   }
 
   @Override

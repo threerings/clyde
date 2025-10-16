@@ -55,7 +55,7 @@ public class LongEditor extends PropertyEditor
   public void update ()
   {
     Long value = (Long)_property.get(_object);
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       _value.setText(String.valueOf(value));
       return;
     }
@@ -69,7 +69,7 @@ public class LongEditor extends PropertyEditor
     long min = getLongMinimum();
     long max = getLongMaximum();
 
-    if (_property.getAnnotation().constant()) {
+    if (_property.isConstant()) {
       add(_value = new JLabel(" "));
 
     } else {

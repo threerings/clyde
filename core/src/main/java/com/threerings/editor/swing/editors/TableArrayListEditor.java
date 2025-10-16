@@ -435,7 +435,7 @@ public class TableArrayListEditor extends ArrayListEditor
       }
     });
 
-    if (!_property.getAnnotation().constant()) {
+    if (!_property.isConstant()) {
       JPanel bpanel = new JPanel();
       bpanel.setBackground(null);
       _content.add(bpanel);

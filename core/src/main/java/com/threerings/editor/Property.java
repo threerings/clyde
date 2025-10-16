@@ -374,6 +374,14 @@ public abstract class Property extends DeepObject
   }
 
   /**
+   * Returns if this should be a constant property.
+   */
+  public boolean isConstant ()
+  {
+    return getAnnotation().constant();
+  }
+
+  /**
    * Returns a reference to the {@link Editable} annotation, which contains simple constraints.
    */
   public Editable getAnnotation ()

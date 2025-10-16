@@ -113,7 +113,7 @@ public class StringEditor extends PropertyEditor
           }
         }, null);
     }
-    _field.setEnabled(!_property.getAnnotation().constant());
+    _field.setEnabled(!_property.isConstant());
     _field.getDocument().addDocumentListener(this);
     addUnits(panel);
   }
