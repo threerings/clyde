@@ -240,7 +240,17 @@ public class Introspector
             ", getter=" + gmethod + ", setter=" + smethod + "].");
           continue;
         }
-        properties.add(new MethodProperty(gmethod, smethod));
+        // remove any previous property for the same method
+        MethodProperty methProp = new MethodProperty(gmethod, smethod);
+        for (int ii = properties.size() - 1; ii >= 0; --ii) {
+          Property oprop = properties.get(ii);
+          if (methProp.getName().equals(oprop.getName()) && oprop instanceof MethodProperty) {
+            log.info("Oh shit we found an old one? " + methProp.getName());
+            properties.remove(ii);
+            break;
+          }
+        }
+        properties.add(methProp);
       } else {
         unpaired.put(name, method);
       }
