@@ -207,7 +207,7 @@ public class ConfigReferenceEditor extends PropertyEditor
       cpanel.add(_edit = new JButton(_msgs.get("m.edit")));
       _edit.addActionListener(this);
     }
-    if (_property.nullable()) {
+    if (!_noEdit && _property.nullable()) {
       cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
       _clear.addActionListener(this);
     }
