@@ -64,24 +64,27 @@ public abstract class TudeyTool extends GlCanvasTool
   {
     super(msgs);
 
-    // create the various directors
-    _locdir = new LocationDirector(this);
-    _occdir = new OccupantDirector(this);
-    _chatdir = new ChatDirector(this, "chat");
+    if (!suppressTool()) {
 
-    // create a fake repository that stores nothing
-    SceneRepository screp = new SceneRepository() {
-      public SceneModel loadSceneModel (int sceneId) throws NoSuchSceneException {
-        throw new NoSuchSceneException(sceneId);
-      }
-      public void storeSceneModel (SceneModel model) {
-        // no-op
-      }
-      public void deleteSceneModel (int sceneId) {
-        // no-op
-      }
-    };
-    _scenedir = new SceneDirector(this, _locdir, screp, new TudeySceneFactory());
+      // create the various directors
+      _locdir = new LocationDirector(this);
+      _occdir = new OccupantDirector(this);
+      _chatdir = new ChatDirector(this, "chat");
+
+      // create a fake repository that stores nothing
+      SceneRepository screp = new SceneRepository() {
+        public SceneModel loadSceneModel (int sceneId) throws NoSuchSceneException {
+          throw new NoSuchSceneException(sceneId);
+        }
+        public void storeSceneModel (SceneModel model) {
+          // no-op
+        }
+        public void deleteSceneModel (int sceneId) {
+          // no-op
+        }
+      };
+      _scenedir = new SceneDirector(this, _locdir, screp, new TudeySceneFactory());
+    }
 
     // create the ui root
     _root = createRoot();
@@ -151,6 +154,11 @@ public abstract class TudeyTool extends GlCanvasTool
   @Override
   protected void initSharedManagers ()
   {
+    if (suppressTool()) {
+      super.initSharedManagers();
+      return;
+    }
+
     // create the Presents client
     _client = new Client(null, getRunQueue());
 
@@ -175,7 +183,7 @@ public abstract class TudeyTool extends GlCanvasTool
     super.didInit();
 
     // log on to our local server
-    _server.startStandaloneClient(new Name("editor"));
+    if (_server != null) _server.startStandaloneClient(new Name("editor"));
   }
 
   @Override
@@ -184,7 +192,7 @@ public abstract class TudeyTool extends GlCanvasTool
     super.willShutdown();
 
     // log off of our local server
-    _server.stopStandaloneClient();
+    if (_server != null) _server.stopStandaloneClient();
   }
 
   @Override
@@ -220,6 +228,14 @@ public abstract class TudeyTool extends GlCanvasTool
     if ((_view = view) != null) {
       _view.wasAdded();
     }
+  }
+
+  /**
+   * Hack to allow subclasses to disable all the tudey parts. Thanks Java inheritance.
+   */
+  protected boolean suppressTool ()
+  {
+    return false;
   }
 
   /** The tool configuration. */

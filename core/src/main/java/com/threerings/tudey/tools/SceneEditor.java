@@ -1076,8 +1076,10 @@ public class SceneEditor extends TudeyTool
     file.add(_exportSelection = createMenuItem("export_selection", KeyEvent.VK_X, -1));
     _exportSelection.setEnabled(false);
     file.addSeparator();
-    file.add(createMenuItem("test", KeyEvent.VK_T, KeyEvent.VK_B));
-    file.addSeparator();
+    if (!suppressTool()) {
+      file.add(createMenuItem("test", KeyEvent.VK_T, KeyEvent.VK_B));
+      file.addSeparator();
+    }
     file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
     return file;
