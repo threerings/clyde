@@ -370,6 +370,15 @@ public class TudeySceneModel extends SceneModel
       return _location;
     }
 
+    @Editable // see fake setter I guess
+    public String getTileLoc ()
+    {
+      return _location.encodeToString();
+    }
+
+    @Editable(constant=true)
+    public void setTileLoc (String s) {}
+
     /**
      * Returns the encoded form of this tile entry.
      *
