@@ -1326,6 +1326,7 @@ public class SceneEditor extends TudeyTool
   protected void addTool (JPanel tpanel, ButtonGroup tgroup, String name, EditorTool tool)
   {
     JToggleButton button = createToggleButton(name);
+    button.setToolTipText(_msgs.get("i." + name));
     tpanel.add(button);
     tgroup.add(button);
 
@@ -1344,6 +1345,7 @@ public class SceneEditor extends TudeyTool
     button.setPreferredSize(TOOL_BUTTON_SIZE);
     button.setActionCommand(name);
     button.addActionListener(this);
+    button.setToolTipText(_msgs.xlate("i." + name));
     return button;
   }
 
@@ -1359,6 +1361,7 @@ public class SceneEditor extends TudeyTool
     button.setPreferredSize(TOOL_BUTTON_SIZE);
     button.setActionCommand(name);
     button.addActionListener(this);
+    button.setToolTipText(_msgs.xlate("i." + name));
     return button;
   }
 
