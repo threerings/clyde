@@ -34,6 +34,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -60,8 +61,10 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -284,6 +287,7 @@ public class SceneEditor extends TudeyTool
     _camera.setSelected(!_cameraEnabled);
     addAdditionalTools();
     _toolbar.add(new Spacer(1, 1));
+    _toolbar.add(_mouseLoc = new JLabel(""), GroupLayout.FIXED);
     _toolbar.add(createIconButton("raise_grid"), GroupLayout.FIXED);
     _toolbar.add(createIconButton("lower_grid"), GroupLayout.FIXED);
 
@@ -1137,6 +1141,15 @@ public class SceneEditor extends TudeyTool
 
     view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
     _showGrid.setSelected(true);
+    final JCheckBoxMenuItem showGridCoord = createCheckBoxMenuItem("grid_ray", KeyEvent.VK_R, 0);
+    view.add(showGridCoord);
+    showGridCoord.setSelected(true);
+    showGridCoord.addActionListener(new ActionListener() {
+      public void actionPerformed (ActionEvent evt) {
+        _mouseLoc.setVisible(showGridCoord.isSelected());
+        _mouseLoc.setText("");
+      }
+    });
     view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
     _showCompass.setSelected(true);
     view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
@@ -1297,6 +1310,10 @@ public class SceneEditor extends TudeyTool
     if (!_testing) {
       _activeTool.tick(elapsed);
       _grid.tick(elapsed);
+      if (_mouseLoc.isVisible() &&
+          getMouseRay(_pick) && _grid.getPlane().getIntersection(_pick, _pt)) {
+        _mouseLoc.setText(String.format("[%.2f, %.2f, %.2f]", _pt.x, _pt.y, _pt.z));
+      }
     }
   }
 
@@ -2089,6 +2106,8 @@ public class SceneEditor extends TudeyTool
 
   /** The layer display tool. */
   protected Layers _layers = new Layers(this);
+
+  protected JLabel _mouseLoc;
 
   /** The active tool. */
   protected EditorTool _activeTool;
