@@ -39,6 +39,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Predicate;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -170,6 +171,14 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     _eref.setReference(ref);
     _epanel.update();
     referenceChanged(ref);
+  }
+
+  /**
+   * Add a hidden constraint on the configs that we display.
+   */
+  public void addHiddenConstraint (Predicate<? super ManagedConfig> filter)
+  {
+    _filterPanel.addHiddenConstraint(filter);
   }
 
   // documentation inherited from interface TreeSelectionListener

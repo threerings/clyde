@@ -58,11 +58,7 @@ public class ConfigTreeFilterPanel extends JPanel
   public ConfigTreeFilterPanel addConstraint (
       String description, final Predicate<? super ManagedConfig> filter, boolean removable)
   {
-    if (_predicates == null) {
-      _predicates = Lists.newArrayList();
-    }
-
-    _predicates.add(filter);
+    addHiddenConstraint(filter);
     final JPanel box = GroupLayout.makeHBox(HGroupLayout.STRETCH);
     final Action clear = new AbstractAction("", UIManager.getIcon("InternalFrame.closeIcon")) {
       @Override
@@ -77,6 +73,17 @@ public class ConfigTreeFilterPanel extends JPanel
     box.add(new JLabel(description));
     box.add(new JButton(clear), HGroupLayout.FIXED);
     add(box, getComponentCount() - 1); // always add it just before the text filter
+    return this;
+  }
+
+  /**
+   * Add a constraint that's unlabeled.
+   */
+  public ConfigTreeFilterPanel addHiddenConstraint (Predicate<? super ManagedConfig> filter)
+  {
+    if (_predicates == null) _predicates = Lists.newArrayList();
+    _predicates.add(filter);
+    setFilter();
     return this;
   }
 
