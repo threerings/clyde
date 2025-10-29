@@ -232,38 +232,17 @@ public class SceneEditor extends TudeyTool
 
     // create the file chooser
     _chooser = new JFileChooser(_prefs.get("scene_dir", null));
-    _chooser.setFileFilter(new FileFilter() {
-      public boolean accept (File file) {
-        return file.isDirectory() || file.toString().toLowerCase().endsWith(".dat");
-      }
-      public String getDescription () {
-        return _msgs.get("m.scene_files");
-      }
-    });
+    _chooser.setFileFilter(createSceneFileFilter());
     _chooser.setAccessory(new RecentDirectoryList(dirPrefKey));
 
     // and the export chooser
     _exportChooser = new JFileChooser(_prefs.get("scene_export_dir", null));
-    _exportChooser.setFileFilter(new FileFilter() {
-      public boolean accept (File file) {
-        return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
-      }
-      public String getDescription () {
-        return _msgs.get("m.xml_files");
-      }
-    });
+    _exportChooser.setFileFilter(createExportFileFilter());
     _exportChooser.setAccessory(new RecentDirectoryList(dirPrefKey));
 
     // and the selection chooser
     _selectionChooser = new JFileChooser(_prefs.get("selection_dir", null));
-    _selectionChooser.setFileFilter(new FileFilter() {
-      public boolean accept (File file) {
-        return file.isDirectory() || file.toString().toLowerCase().endsWith(".dat");
-      }
-      public String getDescription () {
-        return _msgs.get("m.selection_files");
-      }
-    });
+    _selectionChooser.setFileFilter(createSelectionFileFilter());
     _selectionChooser.setAccessory(new RecentDirectoryList(dirPrefKey));
 
     // populate the tool bar
@@ -1182,6 +1161,42 @@ public class SceneEditor extends TudeyTool
     }
 
     return tools;
+  }
+
+  protected FileFilter createSceneFileFilter ()
+  {
+    return new FileFilter() {
+      public boolean accept (File file) {
+        return file.isDirectory() || file.toString().toLowerCase().endsWith(".dat");
+      }
+      public String getDescription () {
+        return _msgs.get("m.scene_files");
+      }
+    };
+  }
+
+  protected FileFilter createExportFileFilter ()
+  {
+    return new FileFilter() {
+      public boolean accept (File file) {
+        return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
+      }
+      public String getDescription () {
+        return _msgs.get("m.xml_files");
+      }
+    };
+  }
+
+  protected FileFilter createSelectionFileFilter ()
+  {
+    return new FileFilter() {
+      public boolean accept (File file) {
+        return file.isDirectory() || file.toString().toLowerCase().endsWith(".dat");
+      }
+      public String getDescription () {
+        return _msgs.get("m.selection_files");
+      }
+    };
   }
 
   @Override
