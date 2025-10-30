@@ -139,8 +139,6 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
 
     // add the filter panel for configs
     _filterPanel = new ConfigTreeFilterPanel(editor.getMessageManager());
-    Predicate<? super ManagedConfig> filter = editor.getChoosingFilter(clazz);
-    if (filter != null) _filterPanel.addHiddenConstraint(filter);
     panel.add(_filterPanel, GroupLayout.FIXED);
 
     // create and add the split pane

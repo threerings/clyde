@@ -25,11 +25,7 @@
 
 package com.threerings.editor.util;
 
-import com.google.common.base.Predicate;
-
 import com.threerings.util.ResourceContext;
-
-import com.threerings.config.ManagedConfig;
 
 import com.threerings.media.image.ColorPository;
 
@@ -42,9 +38,4 @@ public interface EditorContext extends ResourceContext
    * Returns a reference to the color pository.
    */
   public ColorPository getColorPository ();
-
-  /**
-   * Get a filter for choosable configs, or null for all.
-   */
-  public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz);
 }

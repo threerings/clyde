@@ -39,8 +39,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import com.google.common.base.Predicate;
-
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
@@ -55,7 +53,6 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.swing.LogPanel;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.config.ManagedConfig;
 
 /**
  * The superclass of {@link ConfigEditor} and {@link ResourceEditor}.
@@ -135,12 +132,6 @@ public abstract class BaseConfigEditor extends JFrame
   public ColorPository getColorPository ()
   {
     return _colorpos;
-  }
-
-  // from EditorContext
-  public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
-  {
-    return null;
   }
 
   // documentation inherited from interface ActionListener

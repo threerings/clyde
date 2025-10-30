@@ -43,8 +43,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.google.common.base.Predicate;
-
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
@@ -88,12 +86,9 @@ public class ConfigReferenceEditor extends PropertyEditor
     Object source = event.getSource();
     if (source == _config) {
       if (_chooser == null) {
-        @SuppressWarnings("unchecked")
-        Class<ManagedConfig> clazz = (Class<ManagedConfig>)getArgumentType();
-        _chooser = ConfigChooser.createInstance(_msgmgr, _ctx.getConfigManager(), clazz,
+        _chooser = ConfigChooser.createInstance(
+          _msgmgr, _ctx.getConfigManager(), getArgumentType(),
           getProperty().getAnnotation(ReferenceConstraints.class));
-        Predicate<? super ManagedConfig> filter = _ctx.getChoosingFilter(clazz);
-        if (filter != null) _chooser.addHiddenConstraint(filter);
       }
       _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
       if (!_chooser.showDialog(this)) {

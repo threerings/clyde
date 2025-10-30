@@ -40,13 +40,11 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
 
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.config.ManagedConfig;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableFloat;
@@ -311,12 +309,6 @@ public abstract class GlApp extends DynamicScope
   public ColorPository getColorPository ()
   {
     return _colorpos;
-  }
-
-  // from EditorContext
-  public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
-  {
-    return null;
   }
 
   // documentation inherited from interface GlContext
