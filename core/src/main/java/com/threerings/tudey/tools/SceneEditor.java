@@ -1120,7 +1120,7 @@ public class SceneEditor extends TudeyTool
 
     view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
     _showGrid.setSelected(true);
-    final JCheckBoxMenuItem showGridCoord = createCheckBoxMenuItem("grid_ray", KeyEvent.VK_R, 0);
+    final JCheckBoxMenuItem showGridCoord = createCheckBoxMenuItem("grid_ray", KeyEvent.VK_M, -1);
     view.add(showGridCoord);
     showGridCoord.setSelected(true);
     showGridCoord.addActionListener(new ActionListener() {
