@@ -362,7 +362,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     in.defaultReadFields();
     userObject = in.read("name", (String)null);
     parent = in.read("parent", null, MutableTreeNode.class);
-    children = (Vector)in.read("children", null, Vector.class);
+    children = in.read("children", null, Vector.class);
     if (children != null) {
       _childrenByName = new HashMap<String, ConfigTreeNode>(children.size());
       for (Object child : children) {

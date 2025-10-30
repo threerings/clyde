@@ -868,10 +868,8 @@ public class ConfigEditor extends BaseConfigEditor
 //                log.info("Config changed " + _tree.getSelectedNode().getConfig(),
 //                        "lastValue", _lastValue);
         ManagedConfig oldLastValue = _lastValue;
-        _lastValue = (ManagedConfig)
-          ((ManagedConfig)_tree.getSelectedNode().getConfig()).clone();
-        maybePostUndo(
-            new ConfigEdit(ConfigEdit.Type.CHANGE, group, _lastValue, oldLastValue));
+        _lastValue = (ManagedConfig)_tree.getSelectedNode().getConfig().clone();
+        maybePostUndo(new ConfigEdit(ConfigEdit.Type.CHANGE, group, _lastValue, oldLastValue));
 
         DirtyGroupManager.setDirty(group, true);
         _tree.selectedConfigChanged();
