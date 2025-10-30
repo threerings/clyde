@@ -43,8 +43,6 @@ import java.util.EnumSet;
 
 import java.util.zip.DeflaterOutputStream;
 
-import proguard.annotation.Keep;
-
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -63,7 +61,6 @@ import static com.threerings.export.Log.log;
 /**
  * Exports to a compact binary format.
  */
-@Keep
 public class BinaryExporter extends Exporter
 {
   /** Identifies the file type. */
