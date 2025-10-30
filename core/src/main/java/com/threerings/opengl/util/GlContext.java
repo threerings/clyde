@@ -26,11 +26,11 @@
 package com.threerings.opengl.util;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.editor.util.EditorContext;
 import com.threerings.expr.DynamicScope;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
+import com.threerings.util.ResourceColorContext;
 
 import com.threerings.openal.util.AlContext;
 import com.threerings.opengl.GlApp;
@@ -42,7 +42,7 @@ import com.threerings.opengl.renderer.Renderer;
  * Provides access to the various components of the OpenGL rendering system.  Not to be confused
  * with LWJGL's {@link org.lwjgl.opengl.GLContext}.
  */
-public interface GlContext extends AlContext, EditorContext
+public interface GlContext extends AlContext, ResourceColorContext
 {
   /**
    * Returns a reference to the application object.

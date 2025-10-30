@@ -30,7 +30,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 /**
- * Provides access to the services required by the editor.
+ * Provides access to the services required by things that need resources.
  */
 public interface ResourceContext
 {

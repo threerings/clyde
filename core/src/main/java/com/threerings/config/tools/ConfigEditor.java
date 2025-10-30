@@ -1145,6 +1145,12 @@ public class ConfigEditor extends BaseConfigEditor
       return _colorpos;
     }
 
+    // from EditorContext
+    public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
+    {
+      return ConfigEditor.this.getChoosingFilter(clazz);
+    }
+
     // documentation inherited from interface ItemListener
     public void itemStateChanged (ItemEvent event)
     {
