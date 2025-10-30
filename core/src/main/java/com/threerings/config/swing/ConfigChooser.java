@@ -52,6 +52,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -157,6 +158,14 @@ public abstract class ConfigChooser extends JPanel
   public abstract String getSelectedConfig ();
 
   /**
+   * Add a constraint that the user can't see in the chooser.
+   */
+  public void addHiddenConstraint (Predicate<? super ManagedConfig> filter)
+  {
+    throw new UnsupportedOperationException("Constraints can't yet be used with resources");
+  }
+
+  /**
    * Returns the label for the specified class.
    */
   protected String getLabel (MessageManager msgmgr, Class<?> clazz, String type)
@@ -248,6 +257,12 @@ public abstract class ConfigChooser extends JPanel
       add(bpanel, BorderLayout.SOUTH);
       bpanel.add(_ok = new JButton(_msgs.get("b.ok")));
       bpanel.add(_cancel = new JButton(_msgs.get("b.cancel")));
+    }
+
+    @Override
+    public void addHiddenConstraint (Predicate<? super ManagedConfig> filter)
+    {
+      _filterPanel.addHiddenConstraint(filter);
     }
 
     @Override
