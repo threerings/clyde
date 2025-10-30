@@ -138,12 +138,13 @@ public abstract class GlCanvasTool extends GlCanvasApp
   {
     super.didInit();
 
-    // notify the prefs
+    // create the grid
+    _grid = createGrid();
+
+    // with the grid being something prefs can now affect, let's notify 'em
     _eprefs.didInit();
 
-    // create the various renderables
-    _grid = createGrid();
-    _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);
+    // now let's create all other renderables
     _bounds = createBounds();
     _compass = new Compass(this);
     _stats = new Stats(this);
@@ -317,6 +318,10 @@ public abstract class GlCanvasTool extends GlCanvasApp
       // initialize vertical synchronization
       ((GlCanvas)_canvas).setVSyncEnabled(getVSyncEnabled());
       _sync60 = getSync60();
+
+      // set the grid color
+      Color4f gridColor = getPref("grid_color", Color4f.BLACK);
+      _grid.getColor().set(gridColor.r, gridColor.g, gridColor.b, 1f);
     }
 
     /**
@@ -360,7 +365,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     /**
      * Sets the background color.
      */
-    @Editable(weight=3)
+    @Editable(weight=3, hgroup="colors")
     public void setBackgroundColor (Color4f color)
     {
       _compositor.getDefaultBackgroundColor().set(color.r, color.g, color.b, 0f);
@@ -378,9 +383,29 @@ public abstract class GlCanvasTool extends GlCanvasApp
     }
 
     /**
+     * Sets the grid color.
+     */
+    @Editable(weight=4, hgroup="colors")
+    public void setGridColor (Color4f color)
+    {
+      _grid.getColor().set(color.r, color.g, color.b, 0f);
+      putPref("grid_color", color);
+    }
+
+    /**
+     * Returns the grid color.
+     */
+    @Editable
+    public Color4f getGridColor ()
+    {
+      Color4f color = _grid.getColor();
+      return new Color4f(color.r, color.g, color.b, 1f);
+    }
+
+    /**
      * Enables or disables vertical synchronization.
      */
-    @Editable(weight=4)
+    @Editable(weight=5)
     public void setVSyncEnabled (boolean enabled)
     {
       ((GlCanvas)_canvas).setVSyncEnabled(enabled);
@@ -399,7 +424,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     /**
      * Sets the render scheme to use.
      */
-    @Editable(nullable=true, weight=5)
+    @Editable(nullable=true, weight=6)
     @Reference(RenderSchemeConfig.class)
     public void setRenderScheme (String scheme)
     {
@@ -424,7 +449,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     /**
      * Sets whether or not to enable compatibility mode.
      */
-    @Editable(weight=6)
+    @Editable(weight=7)
     public void setCompatibilityMode (boolean enabled)
     {
       GlCanvasTool.this.setCompatibilityMode(enabled);
@@ -443,7 +468,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     /**
      * Sets whether or not to enable render effects.
      */
-    @Editable(weight=7)
+    @Editable(weight=8)
     public void setRenderEffects (boolean enabled)
     {
       GlCanvasTool.this.setRenderEffects(enabled);
@@ -459,7 +484,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
       return _renderEffects;
     }
 
-    @Editable(weight=8)
+    @Editable(weight=9)
     public void setSync60 (boolean sync)
     {
       _prefs.putBoolean(SYNC_60FPS_PREF, sync);
