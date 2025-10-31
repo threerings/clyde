@@ -31,6 +31,8 @@ import java.io.InputStream;
 
 import com.google.common.io.CountingInputStream;
 
+import com.threerings.util.ReflectionUtil;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.editor.tools.AbstractValidatorTask;
 import com.threerings.editor.util.Validator;
@@ -55,6 +57,9 @@ public class SceneValidatorTask extends AbstractValidatorTask
       try {
         final long maxSize = getMaxUncompressedSize(source);
         TudeySceneModel model = (TudeySceneModel)new BinaryImporter(new FileInputStream(source)) {
+          @Override protected Object newInstance (Class<?> clazz, Object outer) {
+            return SceneValidatorTask.this.newInstance(clazz, outer);
+          }
           @Override protected InputStream createInflaterStream () {
             InputStream base = super.createInflaterStream();
             return maxSize == Long.MAX_VALUE ? base : (counter[0] = new CountingInputStream(base));
@@ -100,5 +105,13 @@ public class SceneValidatorTask extends AbstractValidatorTask
   {
     model.getConfigManager().init("scene", cfgmgr);
     return model.validateReferences(validator);
+  }
+
+  /**
+   * We defer importer newInstance to here.
+   */
+  protected Object newInstance (Class<?> clazz, Object outer)
+  {
+    return ReflectionUtil.newInstance(clazz, outer);
   }
 }
