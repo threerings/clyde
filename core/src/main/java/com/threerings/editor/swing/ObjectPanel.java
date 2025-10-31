@@ -62,6 +62,7 @@ import com.threerings.editor.Groupable;
 import com.threerings.editor.PreparedEditable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.editor.util.EditorUtil;
 
 import static com.threerings.editor.Log.log;
 
@@ -102,7 +103,7 @@ public class ObjectPanel extends BasePropertyEditor
     _msgmgr = ctx.getMessageManager();
     _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
     _outer = outer;
-    _types = types;
+    _types = EditorUtil.filterTypes(ctx, types);
 
     //setBackground(getDarkerBackground(ancestors.length));
     setBackground(getBackgroundColor(ancestors));

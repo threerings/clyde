@@ -36,7 +36,6 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.editor.swing.ObjectPanel;
 import com.threerings.editor.swing.PropertyEditor;
-import com.threerings.editor.util.EditorUtil;
 
 import com.threerings.opengl.gui.config.ComponentConfig;
 
@@ -76,8 +75,7 @@ public class ObjectEditor extends PropertyEditor
   {
     makeCollapsible(_ctx, getPropertyLabel(), true);
     _content.add(_panel = new ObjectPanel(
-      _ctx, _property.getTypeLabel(), EditorUtil.filterTypes(_ctx, _property.getSubtypes()),
-      _lineage, _object));
+      _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
     addUnits(this);
     _panel.addChangeListener(this);
   }
