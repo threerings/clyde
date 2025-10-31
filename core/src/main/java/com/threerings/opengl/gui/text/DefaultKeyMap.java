@@ -49,7 +49,7 @@ public class DefaultKeyMap extends KeyMap
     addMapping(ANY_MODIFIER, Keyboard.KEY_DOWN, EditCommands.CURSOR_DOWN);
 
     addMapping(ANY_MODIFIER, Keyboard.KEY_HOME, EditCommands.START_OF_LINE);
-    addMapping(ANY_MODIFIER, Keyboard.KEY_END, EditCommands.END_OF_LINE); 
+    addMapping(ANY_MODIFIER, Keyboard.KEY_END, EditCommands.END_OF_LINE);
 
     int wordMoveMask = mac ? InputEvent.ALT_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
     addMapping(wordMoveMask, Keyboard.KEY_LEFT, EditCommands.WORD_LEFT);
@@ -70,8 +70,11 @@ public class DefaultKeyMap extends KeyMap
     }
 
     // some emacs commands, which are fairly standard actually
-    addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_E, EditCommands.END_OF_LINE);
-    addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_D, EditCommands.DELETE);
-    addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_K, EditCommands.CLEAR);
+    if (mac) {
+      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_A, EditCommands.START_OF_LINE);
+      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_E, EditCommands.END_OF_LINE);
+      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_D, EditCommands.DELETE);
+      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_K, EditCommands.CLEAR);
+    }
   }
 }
