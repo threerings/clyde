@@ -182,6 +182,7 @@ public class DeepUtilTest extends TestCase
       v3 = other.v3;
     }
 
+    @Override
     public boolean equals (Object other)
     {
       if (!(other instanceof Child)) {
@@ -189,6 +190,12 @@ public class DeepUtilTest extends TestCase
       }
       Child ochild = (Child)other;
       return v1 == ochild.v1 && v2 == ochild.v2 && Arrays.deepEquals(v3, ochild.v3);
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return v1 * (v2 ? 231 : 7) + v3.length;
     }
   }
 
@@ -209,6 +216,7 @@ public class DeepUtilTest extends TestCase
       v2 = other.v2;
     }
 
+    @Override
     public boolean equals (Object other)
     {
       if (!(other instanceof Other)) {
@@ -216,6 +224,12 @@ public class DeepUtilTest extends TestCase
       }
       Other oother = (Other)other;
       return v1 == oother.v1 && v2 == oother.v2;
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return Float.floatToIntBits(v1) ^ (int)v2;
     }
   }
 }
