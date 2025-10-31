@@ -40,4 +40,9 @@ public interface EditorContext extends ResourceColorContext
    * Get a filter for choosable configs, or null for all.
    */
   public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz);
+
+  /**
+   * Get a type filter for general selectable types, or null for all.
+   */
+  public Predicate<Class<?>> getTypeFilter ();
 }

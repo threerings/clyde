@@ -1149,6 +1149,12 @@ public class ConfigEditor extends BaseConfigEditor
       return ConfigEditor.this.getChoosingFilter(clazz);
     }
 
+    // from EditorContext
+    public Predicate<Class<?>> getTypeFilter ()
+    {
+      return ConfigEditor.this.getTypeFilter();
+    }
+
     // documentation inherited from interface ItemListener
     public void itemStateChanged (ItemEvent event)
     {

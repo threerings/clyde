@@ -143,6 +143,12 @@ public abstract class BaseConfigEditor extends JFrame
     return null;
   }
 
+  // from EditorContext
+  public Predicate<Class<?>> getTypeFilter ()
+  {
+    return null;
+  }
+
   // documentation inherited from interface ActionListener
   public void actionPerformed (ActionEvent event)
   {

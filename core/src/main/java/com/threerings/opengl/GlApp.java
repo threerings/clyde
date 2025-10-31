@@ -319,6 +319,12 @@ public abstract class GlApp extends DynamicScope
     return null;
   }
 
+  // from EditorContext
+  public Predicate<Class<?>> getTypeFilter ()
+  {
+    return null;
+  }
+
   // documentation inherited from interface GlContext
   public ImageCache getImageCache ()
   {
