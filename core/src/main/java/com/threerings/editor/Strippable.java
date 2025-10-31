@@ -32,7 +32,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Flags a class or property as being strippable.
+ * Flags a class or property as being strippable, which means that those properties could
+ * be stripped-out of serialized configs for sending to the client.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
