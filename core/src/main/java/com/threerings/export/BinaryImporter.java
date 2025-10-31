@@ -52,8 +52,6 @@ import com.google.common.collect.Multiset;
 
 import com.samskivert.util.HashIntMap;
 
-import com.threerings.util.ReflectionUtil;
-
 import static com.threerings.export.Log.log;
 
 /**
@@ -375,7 +373,7 @@ public class BinaryImporter extends Importer
           value = EnumSet.noneOf(eclazz);
 
         } else {
-          value = ReflectionUtil.newInstance(wclazz, outer);
+          value = newInstance(wclazz, outer);
         }
       }
     }

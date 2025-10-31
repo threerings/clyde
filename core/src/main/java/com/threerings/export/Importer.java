@@ -38,6 +38,8 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
+import com.threerings.util.ReflectionUtil;
+
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Quaternion;
@@ -366,6 +368,15 @@ public abstract class Importer
       _object = oobject;
       _marshaller = omarshaller;
     }
+  }
+
+  /**
+   * Create a new instance of the specifed class (with the provided outer.
+   * Provided as an overrideable extension point.
+   */
+  protected Object newInstance (Class<?> clazz, Object outer)
+  {
+    return ReflectionUtil.newInstance(clazz, outer);
   }
 
   /** The object whose fields are being read. */

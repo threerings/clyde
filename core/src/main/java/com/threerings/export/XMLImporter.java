@@ -320,7 +320,7 @@ public class XMLImporter extends Importer
         value = EnumSet.noneOf(eclazz);
 
       } else {
-        value = ReflectionUtil.newInstance(cclazz,
+        value = newInstance(cclazz,
           ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
       }
       if (depth.length() > 0 && value != null) {
