@@ -83,4 +83,7 @@ public interface EditCommands
 
   /** A text editing command. */
   public static final int REDO = 17;
+
+  /** A text editing command. */
+  public static final int SELECT_ALL = 18;
 }

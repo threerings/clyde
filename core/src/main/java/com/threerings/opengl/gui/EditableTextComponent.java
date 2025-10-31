@@ -442,6 +442,10 @@ public abstract class EditableTextComponent extends TextComponent
         _undomgr.redo();
       }
       break;
+
+    case SELECT_ALL:
+      setSelection(_text.getLength(), 0);
+      break;
     }
 
     clearPending();

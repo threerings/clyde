@@ -59,6 +59,7 @@ public class DefaultKeyMap extends KeyMap
     addMapping(editMask, Keyboard.KEY_X, EditCommands.CUT);
     addMapping(editMask, Keyboard.KEY_C, EditCommands.COPY);
     addMapping(editMask, Keyboard.KEY_V, EditCommands.PASTE);
+    addMapping(editMask, Keyboard.KEY_A, EditCommands.SELECT_ALL);
 
     addMapping(editMask, Keyboard.KEY_Z, EditCommands.UNDO);
     if (mac) {
@@ -69,7 +70,6 @@ public class DefaultKeyMap extends KeyMap
     }
 
     // some emacs commands, which are fairly standard actually
-    addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_A, EditCommands.START_OF_LINE);
     addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_E, EditCommands.END_OF_LINE);
     addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_D, EditCommands.DELETE);
     addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_K, EditCommands.CLEAR);
