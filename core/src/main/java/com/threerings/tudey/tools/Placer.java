@@ -165,7 +165,8 @@ public class Placer extends ConfigTool<PlaceableConfig>
 
     // if META is not held down, block any placements that are the same config and close
     // even if an alternate rotation.
-    if (!_editor.isMetaDown()) {
+    boolean allowDupes = _editor.newKeys() ? _editor.isControlDown() : _editor.isMetaDown();
+    if (!allowDupes)  {
       Vector3f trans = entry.transform.extractTranslation();
       Shape shape = _cursor.getShape();
       if (shape != null) {

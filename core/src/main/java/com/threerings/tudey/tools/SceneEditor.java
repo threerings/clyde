@@ -335,6 +335,14 @@ public class SceneEditor extends TudeyTool
   }
 
   /**
+   * Shortcut: are we using new keybindings?
+   */
+  public boolean newKeys () // TODO?
+  {
+    return ((SceneEditorPrefs)_eprefs).getNewKeyBindings();
+  }
+
+  /**
    * Checks whether the shift key is being held down.
    */
   public boolean isShiftDown ()
@@ -368,6 +376,7 @@ public class SceneEditor extends TudeyTool
 
   /**
    * Is the meta key being held down?
+   * COMMAND
    */
   public boolean isMetaDown ()
   {
@@ -1252,9 +1261,7 @@ public class SceneEditor extends TudeyTool
           _ctx.getRoot().removeWindow(_loadingWindow);
           _loadingWindow = null;
         }
-        if (_ctrl != null) {
-          _ctrl.wasRemoved();
-        }
+        if (_ctrl != null) _ctrl.wasRemoved();
         _scene.clearEffects();
       }
       @Override protected OrbitCameraHandler createCameraHandler () {
@@ -1268,17 +1275,14 @@ public class SceneEditor extends TudeyTool
         // mouse movement is enabled when the tool allows it or control is held down
         new MouseOrbiter(camhand, true) {
           public void mouseDragged (MouseEvent event) {
-            if (mouseCameraEnabled()) {
-              super.mouseDragged(event);
-            } else {
-              super.mouseMoved(event);
-            }
+            if (mouseCameraEnabled()) super.mouseDragged(event);
+            else super.mouseMoved(event);
           }
           public void mouseWheelMoved (MouseWheelEvent event) {
             if (mouseCameraEnabled()) {
               super.mouseWheelMoved(event);
 
-            } else if (isAltDown()) {
+            } else if (newKeys() ? isControlDown() : isMetaDown()) {
               _grid.setElevation(_grid.getElevation() + event.getWheelRotation());
             }
           }
@@ -1470,7 +1474,8 @@ public class SceneEditor extends TudeyTool
    */
   protected boolean mouseCameraEnabled ()
   {
-    return !_testing && (_activeTool.allowsMouseCamera() || isControlDown());
+    return !_testing &&
+        (_activeTool.allowsMouseCamera() || (newKeys() ? isMetaDown() : isControlDown()));
   }
 
   /**
@@ -1972,6 +1977,18 @@ public class SceneEditor extends TudeyTool
     public SceneEditorPrefs (Preferences prefs)
     {
       super(prefs);
+    }
+
+    @Editable
+    public void setNewKeyBindings (boolean newkeys)
+    {
+      _prefs.putBoolean("new_keybindings", newkeys);
+    }
+
+    @Editable
+    public boolean getNewKeyBindings ()
+    {
+      return _prefs.getBoolean("new_keybindings", true); // TODO false???
     }
 
     /**
