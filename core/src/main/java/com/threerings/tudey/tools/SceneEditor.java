@@ -1020,7 +1020,11 @@ public class SceneEditor extends TudeyTool
       _prefs.putBoolean("fogEnabled", _fogEnabled = !_fog.isSelected());
       wasUpdated();
     } else if (action.equals("sound")) {
+      // Notify the viewer effect assembly
       _prefs.putBoolean("soundEnabled", _soundEnabled = !_sound.isSelected());
+
+      // Set base gain to 0 (OFF) or 1 (ON) for all the places that play sounds directly (like models)
+      _soundmgr.setBaseGain(_sound.isSelected() ? 0f : 1f);
       wasUpdated();
     } else if (action.equals("camera")) {
       _prefs.putBoolean("cameraEnabled", _cameraEnabled = !_camera.isSelected());
