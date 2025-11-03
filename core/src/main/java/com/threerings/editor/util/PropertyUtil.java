@@ -388,10 +388,6 @@ public class PropertyUtil
   protected static boolean isStrippable (Property property)
   {
     Class<?> type = property.getType();
-    if (type == com.threerings.tudey.config.TagConfig.class &&
-        Boolean.getBoolean("com.threerings.tool.no_strip_tags")) {
-      return false;
-    }
     return property.isAnnotationPresent(Strippable.class) ||
       isStrippable(type) || isStrippable(property.getComponentType()) ||
       ConfigReference.class.isAssignableFrom(type) &&
@@ -412,10 +408,6 @@ public class PropertyUtil
    */
   protected static boolean isStrippable (Class<?> clazz)
   {
-    if (clazz == com.threerings.tudey.config.TagConfig.class &&
-        Boolean.getBoolean("com.threerings.tool.no_strip_tags")) {
-      return false;
-    }
     return clazz != null && (clazz.isAnnotationPresent(Strippable.class) ||
       isStrippable(clazz.getComponentType()) || isStrippable(clazz.getSuperclass()));
   }
