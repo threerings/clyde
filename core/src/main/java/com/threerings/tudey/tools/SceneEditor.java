@@ -355,7 +355,7 @@ public class SceneEditor extends TudeyTool
    */
   public boolean isSpecialDown ()
   {
-    return isControlDown() || isAltDown();
+    return isControlDown() || isAltDown() || (newKeys() && isMetaDown());
   }
 
   /**
