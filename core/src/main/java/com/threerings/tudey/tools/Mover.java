@@ -53,9 +53,8 @@ public class Mover extends BaseMover
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {
-      return;
-    }
+    if (!_editor.isMainAction(event) || !_editor.isSpecialDown()) return;
+
     if (_cursorVisible) {
       // place the transformed entries and clear the tool
       _editor.select(placeEntries());

@@ -342,8 +342,32 @@ public class SceneEditor extends TudeyTool
     return ((SceneEditorPrefs)_eprefs).getNewKeyBindings();
   }
 
+  public boolean isMainAction (MouseEvent event)
+  {
+    return event.getButton() == MouseEvent.BUTTON1 && (!newKeys() || !_controlDown);
+  }
+
+  public boolean isDeleteAction (MouseEvent event)
+  {
+    int button = event.getButton();
+    // new: ctrl-button1 // old: button3
+    return newKeys() ? (button == MouseEvent.BUTTON1 && _controlDown)
+      : button == MouseEvent.BUTTON3;
+  }
+
+  public boolean isMainButtonDown ()
+  {
+    return _firstButtonDown && !_controlDown;
+  }
+
+  public boolean isDeleteButtonDown ()
+  {
+    return newKeys() ? _firstButtonDown && _controlDown : _thirdButtonDown;
+  }
+
   /**
    * Checks whether the shift key is being held down.
+   * "Shift" the behavior of a tool by doing something slightly differently.
    */
   public boolean isShiftDown ()
   {
@@ -351,60 +375,34 @@ public class SceneEditor extends TudeyTool
   }
 
   /**
-   * Checks whether either of the special modifiers (control or alt) is down.
+   * Checks whether the override key is being held down.
    */
+  public boolean isOverrideDown ()
+  {
+    return newKeys() ? (_altDown && _metaDown) : _metaDown;
+  }
+
+  /**
+   * Is the camera modification key being held down.
+   */
+  public boolean isCameraDown ()
+  {
+    return newKeys() ? (RunAnywhere.isMacOS() ? _metaDown && !_altDown : _altDown && !_metaDown)
+      : _controlDown;
+  }
+
+  /**
+   * Is the grid adjustment key being held down.
+   */
+  public boolean isGridAdjustDown ()
+  {
+    return newKeys() ? (RunAnywhere.isMacOS() ? _altDown && !_metaDown : _metaDown && !_altDown)
+      : _altDown;
+  }
+
   public boolean isSpecialDown ()
   {
-    return isControlDown() || isAltDown() || (newKeys() && isMetaDown());
-  }
-
-  /**
-   * Checks whether the control key is being held down.
-   */
-  public boolean isControlDown ()
-  {
-    return _controlDown;
-  }
-
-  /**
-   * Checks whether the alt key is being held down.
-   */
-  public boolean isAltDown ()
-  {
-    return _altDown;
-  }
-
-  /**
-   * Is the meta key being held down?
-   * COMMAND
-   */
-  public boolean isMetaDown ()
-  {
-    return _metaDown;
-  }
-
-  /**
-   * Checks whether the first mouse button is being held down on the canvas.
-   */
-  public boolean isFirstButtonDown ()
-  {
-    return _firstButtonDown;
-  }
-
-  /**
-   * Checks whether the second mouse button is being held down on the canvas.
-   */
-  public boolean isSecondButtonDown ()
-  {
-    return _secondButtonDown;
-  }
-
-  /**
-   * Checks whether the third mouse button is being held down on the canvas.
-   */
-  public boolean isThirdButtonDown ()
-  {
-    return _thirdButtonDown;
+    return isCameraDown() || isGridAdjustDown();
   }
 
   /**
@@ -797,8 +795,7 @@ public class SceneEditor extends TudeyTool
   // documentation inherited from interface MouseListener
   public void mouseClicked (MouseEvent event)
   {
-    if (mouseCameraEnabled() && event.getButton() == MouseEvent.BUTTON1 &&
-        event.getClickCount() == 2) {
+    if (mouseCameraEnabled() && isMainAction(event) && event.getClickCount() == 2) {
       editMouseEntry();
     }
   }
@@ -1286,7 +1283,7 @@ public class SceneEditor extends TudeyTool
             if (mouseCameraEnabled()) {
               super.mouseWheelMoved(event);
 
-            } else if (newKeys() ? isControlDown() : isMetaDown()) {
+            } else if (isGridAdjustDown()) {
               _grid.setElevation(_grid.getElevation() + event.getWheelRotation());
             }
           }
@@ -1478,8 +1475,7 @@ public class SceneEditor extends TudeyTool
    */
   protected boolean mouseCameraEnabled ()
   {
-    return !_testing &&
-        (_activeTool.allowsMouseCamera() || (newKeys() ? isMetaDown() : isControlDown()));
+    return !_testing && (_activeTool.allowsMouseCamera() || isCameraDown());
   }
 
   /**

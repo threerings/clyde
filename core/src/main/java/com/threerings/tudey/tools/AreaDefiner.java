@@ -80,14 +80,14 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) {
-      return;
-    }
-    int button = event.getButton();
+    if (_editor.isSpecialDown()) return;
+
+    boolean addOrInsert = _editor.isMainAction(event);
+    if (!addOrInsert && !_editor.isDeleteAction(event)) return;
     if (_entry != null) {
-      if (button == MouseEvent.BUTTON1) { // continue placing
+      if (addOrInsert) { // continue placing
         insertVertex(_entry, _idx + 1);
-      } else if (button == MouseEvent.BUTTON3) { // remove the vertex
+      } else { // remove the vertex
         release();
       }
       return;
@@ -101,19 +101,19 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         AreaEntry entry = (AreaEntry)sprite.getEntry();
         int idx = sprite.getVertexIndex(model);
         if (idx != -1) {
-          if (button == MouseEvent.BUTTON1) { // start moving the vertex
+          if (addOrInsert) { // start moving the vertex
             _entry = entry;
             _idx = idx;
-          } else if (button == MouseEvent.BUTTON3) {
+          } else {
             removeVertices(entry, idx, 1);
           }
           return;
         }
         idx = sprite.getEdgeIndex(model);
 
-        if (button == MouseEvent.BUTTON1) { // insert in between
+        if (addOrInsert) { // insert in between
           insertVertex(entry, idx + 1);
-        } else if (button == MouseEvent.BUTTON3) {
+        } else {
           if (idx == entry.vertices.length - 1) { // last edge
             removeVertices(entry, idx, 1);
             removeVertices(entry, 0, 1);
@@ -123,14 +123,14 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         }
         return;
 
-      } else if (element != null && button == MouseEvent.BUTTON3) {
+      } else if (element != null && !addOrInsert) {
         // delete the entire area
         AreaSprite sprite = (AreaSprite)element.getUserObject();
         _editor.removeEntries(sprite.getEntry().getKey());
       }
     }
     ConfigReference<AreaConfig> area = _eref.getReference();
-    if (button == MouseEvent.BUTTON1 && area != null && getMousePlaneIntersection(_isect)) {
+    if (addOrInsert && area != null && getMousePlaneIntersection(_isect)) {
       // start a new area
       _entry = new AreaEntry();
       _idx = 1;
@@ -144,9 +144,8 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
   @Override
   public void tick (float elapsed)
   {
-    if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isSpecialDown()) {
-      return;
-    }
+    if (_entry == null || _editor.isSpecialDown() || !getMousePlaneIntersection(_isect)) return;
+
     _entry = (AreaEntry)_entry.clone();
     setMouseLocation(_entry.vertices[_idx]);
     _editor.updateEntries(_entry);

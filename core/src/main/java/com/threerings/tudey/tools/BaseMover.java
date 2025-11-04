@@ -130,8 +130,7 @@ public abstract class BaseMover extends EditorTool
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_cursorVisible && event.getButton() == MouseEvent.BUTTON1 &&
-        !_editor.isSpecialDown()) {
+    if (_cursorVisible && _editor.isMainAction(event) && !_editor.isSpecialDown()) {
       placeEntries();
     }
   }
@@ -152,10 +151,9 @@ public abstract class BaseMover extends EditorTool
    */
   protected void updateCursor ()
   {
-    if (!(_cursorVisible = (_entries.length > 0) && getMousePlaneIntersection(_isect) &&
-        !_editor.isSpecialDown())) {
-      return;
-    }
+    _cursorVisible = _entries.length > 0;
+    if (!_cursorVisible || _editor.isSpecialDown() || !getMousePlaneIntersection(_isect)) return;
+
     Vector2f rcenter = _center.rotate(_angle);
     _isect.x -= rcenter.x;
     _isect.y -= rcenter.y;
@@ -171,7 +169,7 @@ public abstract class BaseMover extends EditorTool
     _cursor.update(_tentries = transform(_entries, _transform));
 
     // erase if the third button is down
-    if (_editor.isThirdButtonDown()) {
+    if (_editor.isDeleteButtonDown()) {
       _scene.getEntries(_cursor.getShape(), _editor.getLayerPredicate(), _underneath);
       _editor.removeEntries(_underneath);
       _underneath.clear();

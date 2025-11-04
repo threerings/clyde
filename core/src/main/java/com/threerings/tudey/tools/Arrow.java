@@ -107,15 +107,13 @@ public class Arrow extends EditorTool
   @Override
   public void tick (float elapsed)
   {
-    if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
-      _editor.deleteMouseEntry();
-    }
+    if (_editor.isDeleteButtonDown() && !_editor.isSpecialDown()) _editor.deleteMouseEntry();
   }
 
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {
+    if (_editor.isMainAction(event) && !_editor.isSpecialDown()) {
       Entry entry = _editor.getMouseEntry();
       if (entry != null) {
         if (_editor.isSelected(entry)) {

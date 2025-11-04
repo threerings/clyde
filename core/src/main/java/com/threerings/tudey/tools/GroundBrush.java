@@ -81,10 +81,10 @@ public class GroundBrush extends ConfigTool<GroundConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    int button = event.getButton();
-    boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
-    if ((paint || erase) && _cursorVisible) {
-      paintGround(erase, true);
+    if (_editor.isSpecialDown()) return;
+    boolean paint = _editor.isMainAction(event);
+    if (_cursorVisible && (paint || _editor.isDeleteAction(event))) {
+      paintGround(paint, true);
     }
   }
 
@@ -134,25 +134,25 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     _outer.setElevation(elevation);
 
     // if we are dragging, consider performing another paint operation
-    boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-    if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
-      paintGround(erase, false);
+    boolean paint = _editor.isMainButtonDown();
+    if (!_inner.getRegion().equals(_lastPainted) && (paint || _editor.isDeleteButtonDown())) {
+      paintGround(paint, false);
     }
   }
 
   /**
    * Paints the cursor region with ground.
    *
-   * @param erase if true, erase the region by painting with the null ground type.
+   * @param paint if false, erase the region by painting with the null ground type.
    * @param revise if true, replace existing ground tiles with different variants.
    */
-  protected void paintGround (boolean erase, boolean revise)
+  protected void paintGround (boolean paint, boolean revise)
   {
     TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene, _editor);
     Rectangle region = _inner.getRegion();
     painter.paintGround(
       new CoordSet(region), _eref.getReference(),
-      _editor.getGrid().getElevation(), erase, revise);
+      _editor.getGrid().getElevation(), !paint, revise);
     _lastPainted.set(region);
   }
 

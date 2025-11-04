@@ -130,7 +130,7 @@ public class Eraser extends EditorTool
     transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
 
     // if the button is down, erase
-    if (_editor.isFirstButtonDown()) {
+    if (_editor.isMainButtonDown()) {
       _transform.getTranslation().set(_isect.x, _isect.y);
       _transform.setRotation(_angle);
       _shape = _options.shape.getShape().transform(_transform, _shape);

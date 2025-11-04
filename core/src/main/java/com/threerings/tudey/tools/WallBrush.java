@@ -81,10 +81,10 @@ public class WallBrush extends ConfigTool<WallConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    int button = event.getButton();
-    boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
-    if ((paint || erase) && _cursorVisible) {
-      paintWall(erase, true);
+    if (_editor.isSpecialDown()) return;
+    boolean paint = _editor.isMainAction(event);
+    if (_cursorVisible && (paint || _editor.isDeleteAction(event))) {
+      paintWall(paint, true);
     }
   }
 
@@ -134,25 +134,25 @@ public class WallBrush extends ConfigTool<WallConfig>
     _outer.setElevation(elevation);
 
     // if we are dragging, consider performing another paint operation
-    boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-    if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
-      paintWall(erase, false);
+    boolean paint = _editor.isMainButtonDown();
+    if (!_inner.getRegion().equals(_lastPainted) && (paint || _editor.isDeleteButtonDown())) {
+      paintWall(paint, false);
     }
   }
 
   /**
    * Paints the cursor region with wall.
    *
-   * @param erase if true, erase the region by painting with the null wall type.
+   * @param paint if false, erase the region by painting with the null wall type.
    * @param revise if true, replace existing wall tiles with different variants.
    */
-  protected void paintWall (boolean erase, boolean revise)
+  protected void paintWall (boolean paint, boolean revise)
   {
     TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene, _editor);
     Rectangle region = _inner.getRegion();
     painter.paintWall(
       new CoordSet(region), _eref.getReference(),
-      _editor.getGrid().getElevation(), erase, revise);
+      _editor.getGrid().getElevation(), !paint, revise);
     _lastPainted.set(region);
   }
 

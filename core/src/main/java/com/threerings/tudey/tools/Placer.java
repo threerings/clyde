@@ -88,7 +88,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     updateCursor();
     if (_cursorVisible) {
       _cursor.tick(elapsed);
-    } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
+    } else if (_editor.isDeleteButtonDown() && !_editor.isSpecialDown()) {
       _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
     }
   }
@@ -104,7 +104,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
+    if (_cursorVisible && _editor.isMainAction(event)) {
       placeEntry();
     }
   }
@@ -138,7 +138,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     _cursor.update(_entry);
 
     // if we are dragging, consider performing another placement
-    if (_editor.isThirdButtonDown()) {
+    if (_editor.isDeleteButtonDown()) {
       Shape shape = _cursor.getShape();
       if (shape != null) {
         _scene.getEntries(shape,
@@ -147,7 +147,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         _editor.removeEntries(_entries);
         _entries.clear();
       }
-    } else if (_editor.isFirstButtonDown() &&
+    } else if (_editor.isMainButtonDown() &&
         transform.getTranslation().distance(_lastPlacement) >= MIN_SPACING) {
       placeEntry();
     }
@@ -163,10 +163,9 @@ public class Placer extends ConfigTool<PlaceableConfig>
     PlaceableConfig.Original config = entry.getConfig(_editor.getConfigManager());
     entry.transform.getRotation().multLocal(config.rotationOffset.getValue(new Quaternion()));
 
-    // if META is not held down, block any placements that are the same config and close
-    // even if an alternate rotation.
-    boolean allowDupes = _editor.newKeys() ? _editor.isControlDown() : _editor.isMetaDown();
-    if (!allowDupes)  {
+    // unless we're in "special action" mode, block any very close placements
+    // that are the same config even if an alternate rotation.
+    if (!_editor.isOverrideDown())  {
       Vector3f trans = entry.transform.extractTranslation();
       Shape shape = _cursor.getShape();
       if (shape != null) {

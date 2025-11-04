@@ -86,9 +86,7 @@ public class Selector extends EditorTool
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {
-      return;
-    }
+    if (!_editor.isMainAction(event) || _editor.isSpecialDown()) return;
     Entry entry = _editor.getMouseEntry();
     if (entry != null && _editor.isSelected(entry)) {
       _editor.moveSelection();
@@ -110,8 +108,8 @@ public class Selector extends EditorTool
    */
   protected void updateSelection ()
   {
-    if (!(_cursorVisible = _dragging && _editor.isFirstButtonDown() &&
-        getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+    if (!(_cursorVisible = _dragging && _editor.isMainButtonDown() && !_editor.isSpecialDown() &&
+        getMousePlaneIntersection(_isect))) {
       _dragging = false;
       return;
     }

@@ -79,14 +79,16 @@ public class PathDefiner extends ConfigTool<PathConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) {
-      return;
-    }
+    if (_editor.isSpecialDown()) return;
+
+    boolean addOrInsert = _editor.isMainAction(event);
+    if (!addOrInsert && !_editor.isDeleteAction(event)) return;
+
     int button = event.getButton();
     if (_entry != null) {
-      if (button == MouseEvent.BUTTON1) { // continue placing
+      if (addOrInsert) { // continue placing
         insertVertex(_entry, (_idx == 0) ? 0 : _idx + 1);
-      } else if (button == MouseEvent.BUTTON3) { // remove the vertex
+      } else { // remove the vertex
         release();
       }
       return;
@@ -99,7 +101,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
         PathEntry entry = (PathEntry)sprite.getEntry();
         int idx = sprite.getVertexIndex(model);
         if (idx != -1) {
-          if (button == MouseEvent.BUTTON1) {
+          if (addOrInsert) {
             if (idx == 0) { // insert at start
               insertVertex(entry, 0);
             } else if (idx == entry.vertices.length - 1) { // insert at end
@@ -108,15 +110,15 @@ public class PathDefiner extends ConfigTool<PathConfig>
               _entry = entry;
               _idx = idx;
             }
-          } else if (button == MouseEvent.BUTTON3) {
+          } else {
             removeVertices(entry, idx, 1);
           }
           return;
         }
         idx = sprite.getEdgeIndex(model);
-        if (button == MouseEvent.BUTTON1) { // insert in between
+        if (addOrInsert) { // insert in between
           insertVertex(entry, idx + 1);
-        } else if (button == MouseEvent.BUTTON3) {
+        } else {
           if (idx == 0) { // first edge
             removeVertices(entry, 0, 1);
           } else if (idx == entry.vertices.length - 2) { // last edge
@@ -129,7 +131,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
       }
     }
     ConfigReference<PathConfig> path = _eref.getReference();
-    if (button == MouseEvent.BUTTON1 && path != null && getMousePlaneIntersection(_isect)) {
+    if (addOrInsert && path != null && getMousePlaneIntersection(_isect)) {
       // start a new path
       _entry = new PathEntry();
       _idx = 1;
