@@ -334,24 +334,22 @@ public class SceneEditor extends TudeyTool
     return _grid;
   }
 
-  /**
-   * Shortcut: are we using new keybindings?
-   */
-  public boolean newKeys () // TODO?
-  {
-    return ((SceneEditorPrefs)_eprefs).getNewKeyBindings();
-  }
+  // TODO
+//  public boolean isMainAction (MouseEvent event, boolean noSpecial)
+//  {
+//    return isMainAction(event) && !(noSpecial && isSpecialDown());
+//  }
 
   public boolean isMainAction (MouseEvent event)
   {
-    return event.getButton() == MouseEvent.BUTTON1 && (!newKeys() || !_controlDown);
+    return event.getButton() == MouseEvent.BUTTON1 && (!_newKeys || !_controlDown);
   }
 
   public boolean isDeleteAction (MouseEvent event)
   {
     int button = event.getButton();
     // new: ctrl-button1 // old: button3
-    return newKeys() ? (button == MouseEvent.BUTTON1 && _controlDown)
+    return _newKeys ? (button == MouseEvent.BUTTON1 && _controlDown)
       : button == MouseEvent.BUTTON3;
   }
 
@@ -362,7 +360,7 @@ public class SceneEditor extends TudeyTool
 
   public boolean isDeleteButtonDown ()
   {
-    return newKeys() ? _firstButtonDown && _controlDown : _thirdButtonDown;
+    return _newKeys ? _firstButtonDown && _controlDown : _thirdButtonDown;
   }
 
   /**
@@ -379,7 +377,7 @@ public class SceneEditor extends TudeyTool
    */
   public boolean isOverrideDown ()
   {
-    return newKeys() ? (_altDown && _metaDown) : _metaDown;
+    return _newKeys ? (_altDown && _metaDown) : _metaDown;
   }
 
   /**
@@ -387,7 +385,7 @@ public class SceneEditor extends TudeyTool
    */
   public boolean isCameraDown ()
   {
-    return newKeys() ? (RunAnywhere.isMacOS() ? _metaDown && !_altDown : _altDown && !_metaDown)
+    return _newKeys ? (RunAnywhere.isMacOS() ? _metaDown && !_altDown : _altDown && !_metaDown)
       : _controlDown;
   }
 
@@ -396,7 +394,7 @@ public class SceneEditor extends TudeyTool
    */
   public boolean isGridAdjustDown ()
   {
-    return newKeys() ? (RunAnywhere.isMacOS() ? _altDown && !_metaDown : _metaDown && !_altDown)
+    return _newKeys ? (RunAnywhere.isMacOS() ? _altDown && !_metaDown : _metaDown && !_altDown)
       : _altDown;
   }
 
@@ -1963,6 +1961,8 @@ public class SceneEditor extends TudeyTool
 
     // restore/bind the location of the layer divider
     _eprefs.bindDividerLocation(p + "layerDiv", _layerSplit);
+
+    _newKeys = ((SceneEditorPrefs)_eprefs).getNewKeyBindings();
   }
 
   /**
@@ -1980,9 +1980,10 @@ public class SceneEditor extends TudeyTool
     }
 
     @Editable
-    public void setNewKeyBindings (boolean newkeys)
+    public void setNewKeyBindings (boolean newKeys)
     {
-      _prefs.putBoolean("new_keybindings", newkeys);
+      _newKeys = newKeys;
+      _prefs.putBoolean("new_keybindings", newKeys);
     }
 
     @Editable
@@ -2178,6 +2179,9 @@ public class SceneEditor extends TudeyTool
 
   /** A casted reference to the editor grid. */
   protected EditorGrid _grid;
+
+  /** Do we use a newstyle keybinding setup? */
+  protected boolean _newKeys;
 
   /** Draws the coordinate system origin. */
   protected SimpleTransformable _origin;
