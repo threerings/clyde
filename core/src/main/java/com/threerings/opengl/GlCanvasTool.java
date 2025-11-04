@@ -41,6 +41,7 @@ import javax.swing.JMenuItem;
 import org.lwjgl.opengl.Display;
 
 import com.samskivert.util.Interval;
+import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.math.Vector3f;
@@ -301,7 +302,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
       rescheduleRefreshInterval();
 
       // set the background color
-      Color4f color = getPref("background_color", Color4f.GRAY);
+      Color4f color = getPref("background_color",
+          RunAnywhere.isMacOS() ? Color4f.BLACK : Color4f.GRAY);
       _compositor.getDefaultBackgroundColor().set(color.r, color.g, color.b, 0f);
 
       // and the render scheme, compatibility mode, etc.
@@ -320,7 +322,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
       _sync60 = getSync60();
 
       // set the grid color
-      Color4f gridColor = getPref("grid_color", Color4f.BLACK);
+      Color4f gridColor = getPref("grid_color",
+          RunAnywhere.isMacOS() ? Color4f.GRAY : Color4f.BLACK);
       _grid.getColor().set(gridColor.r, gridColor.g, gridColor.b, 1f);
     }
 
