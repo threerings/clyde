@@ -110,8 +110,9 @@ public class TileBrush extends ConfigTool<TileConfig>
    */
   protected void updateCursor ()
   {
-    _cursorVisible = _entry.tile != null;
-    if (!_cursorVisible || _editor.isSpecialDown() || !getMousePlaneIntersection(_isect)) return;
+    _cursorVisible = _entry.tile != null && !_editor.isSpecialDown() &&
+      getMousePlaneIntersection(_isect);
+    if (!_cursorVisible) return;
 
     TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
     int width = _entry.getWidth(config), height = _entry.getHeight(config);

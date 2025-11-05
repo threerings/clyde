@@ -124,10 +124,9 @@ public class Placer extends ConfigTool<PlaceableConfig>
    */
   protected void updateCursor ()
   {
-    if (!(_cursorVisible = (_entry.placeable != null) &&
-        getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
-      return;
-    }
+    _cursorVisible = _entry.placeable != null && !_editor.isSpecialDown() &&
+      getMousePlaneIntersection(_isect);
+    if (!_cursorVisible) return;
     // snap appropriately if shift is not held down
     if (!_editor.isShiftDown()) {
       getSnapStyle().applySnap(_isect);

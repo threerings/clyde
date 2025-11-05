@@ -151,8 +151,9 @@ public abstract class BaseMover extends EditorTool
    */
   protected void updateCursor ()
   {
-    _cursorVisible = _entries.length > 0;
-    if (!_cursorVisible || _editor.isSpecialDown() || !getMousePlaneIntersection(_isect)) return;
+    _cursorVisible = _entries.length > 0 && !_editor.isSpecialDown() &&
+      getMousePlaneIntersection(_isect);
+    if (!_cursorVisible) return;
 
     Vector2f rcenter = _center.rotate(_angle);
     _isect.x -= rcenter.x;
