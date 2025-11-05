@@ -340,11 +340,17 @@ public class SceneEditor extends TudeyTool
 //    return isMainAction(event) && !(noSpecial && isSpecialDown());
 //  }
 
+  /**
+   * Does this mouse event represent the "main action" of a tool?
+   */
   public boolean isMainAction (MouseEvent event)
   {
     return event.getButton() == MouseEvent.BUTTON1 && !(_newKeys && _controlDown);
   }
 
+  /**
+   * Does this mouse event represent the "delete action" of a tool?
+   */
   public boolean isDeleteAction (MouseEvent event)
   {
     int button = event.getButton();
@@ -353,11 +359,17 @@ public class SceneEditor extends TudeyTool
       : button == MouseEvent.BUTTON3;
   }
 
+  /**
+   * Is the "main action" of a tool active right now due to keypresses and clicks?
+   */
   public boolean isMainButtonDown ()
   {
     return _firstButtonDown && !(_newKeys && _controlDown);
   }
 
+  /**
+   * Is the "delete action" of a tool active right now due to keypresses and clicks?
+   */
   public boolean isDeleteButtonDown ()
   {
     return _newKeys ? _firstButtonDown && _controlDown : _thirdButtonDown;
@@ -374,6 +386,7 @@ public class SceneEditor extends TudeyTool
 
   /**
    * Checks whether the override key is being held down.
+   * "Override" the behavior of some tool to allow more dangerous actions.
    */
   public boolean isOverrideDown ()
   {
@@ -381,7 +394,7 @@ public class SceneEditor extends TudeyTool
   }
 
   /**
-   * Is the camera modification key being held down.
+   * Is the camera modification key being held down?
    */
   public boolean isCameraDown ()
   {
@@ -390,7 +403,7 @@ public class SceneEditor extends TudeyTool
   }
 
   /**
-   * Is the grid adjustment key being held down.
+   * Is the grid adjustment key being held down?
    */
   public boolean isGridAdjustDown ()
   {
@@ -398,6 +411,11 @@ public class SceneEditor extends TudeyTool
       : _altDown;
   }
 
+  /**
+   * Are either of the camera or grid adjustment keys being held down? If this is true then
+   * the user's actions are not intended to be making changes to the scene but rather merely
+   * adjusting their view.
+   */
   public boolean isSpecialDown ()
   {
     return isCameraDown() || isGridAdjustDown();
