@@ -278,7 +278,7 @@ public class SceneEditor extends TudeyTool
     JPanel outer = new JPanel();
     _epanel.add(outer, GroupLayout.FIXED);
     ButtonGroup tgroup = new ButtonGroup();
-    JPanel tpanel = new JPanel(new GridLayout(0, 8, 5, 5));
+    JPanel tpanel = new JPanel(new GridLayout(0, toolPanelColumns(), 5, 5));
     outer.add(tpanel);
     addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
     addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
@@ -1370,6 +1370,14 @@ public class SceneEditor extends TudeyTool
   protected void addAdditionalTools ()
   {
     // nada
+  }
+
+  /**
+   * How many columns should we make the tool panel?
+   */
+  protected int toolPanelColumns ()
+  {
+    return 8;
   }
 
   /**
