@@ -342,7 +342,7 @@ public class SceneEditor extends TudeyTool
 
   public boolean isMainAction (MouseEvent event)
   {
-    return event.getButton() == MouseEvent.BUTTON1 && (!_newKeys || !_controlDown);
+    return event.getButton() == MouseEvent.BUTTON1 && !(_newKeys && _controlDown);
   }
 
   public boolean isDeleteAction (MouseEvent event)
@@ -355,7 +355,7 @@ public class SceneEditor extends TudeyTool
 
   public boolean isMainButtonDown ()
   {
-    return _firstButtonDown && !_controlDown;
+    return _firstButtonDown && !(_newKeys && _controlDown);
   }
 
   public boolean isDeleteButtonDown ()
