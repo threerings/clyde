@@ -26,6 +26,7 @@
 package com.threerings.editor.swing;
 
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -144,8 +145,24 @@ public class ObjectPanel extends BasePropertyEditor
   {
     int tidx = getTypeIndex(value);
     if (tidx == -1) {
-      log.warning("Wrong type for object panel.", "value", value, "types", _types);
-      return;
+      // if we've opted into dangerous replace-on-view behavior..
+      if (Boolean.getBoolean("com.threerings.tool.replace_invalid_on_view")) {
+        try {
+          value = newInstance(_types[tidx = 0]);
+          EventQueue.invokeLater(new Runnable() {
+            public void run () {
+              fireStateChanged(); // fire an edit
+            }
+          });
+          // and continue...
+        } catch (Exception e) {
+          log.warning("Wrong type; unable to replace invalid for object panel?", "types", _types);
+          return;
+        }
+      } else {
+        log.warning("Wrong type for object panel.", "value", value, "types", _types);
+        return;
+      }
     }
     if (_box != null) {
       // clear out the old entries
