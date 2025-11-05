@@ -81,7 +81,6 @@ public class WallBrush extends ConfigTool<WallConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) return;
     boolean paint = _editor.isMainAction(event);
     if (_cursorVisible && (paint || _editor.isDeleteAction(event))) {
       paintWall(paint, true);
@@ -101,7 +100,7 @@ public class WallBrush extends ConfigTool<WallConfig>
    */
   protected void updateCursor ()
   {
-    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isAdjustingView())) {
       return;
     }
     WallReference wref = (WallReference)_eref;

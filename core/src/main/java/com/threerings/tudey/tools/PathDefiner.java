@@ -79,8 +79,6 @@ public class PathDefiner extends ConfigTool<PathConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) return;
-
     boolean addOrInsert = _editor.isMainAction(event);
     if (!addOrInsert && !_editor.isDeleteAction(event)) return;
 
@@ -145,7 +143,7 @@ public class PathDefiner extends ConfigTool<PathConfig>
   @Override
   public void tick (float elapsed)
   {
-    if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isSpecialDown()) {
+    if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isAdjustingView()) {
       return;
     }
     _entry = (PathEntry)_entry.clone();

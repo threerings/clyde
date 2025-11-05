@@ -334,18 +334,13 @@ public class SceneEditor extends TudeyTool
     return _grid;
   }
 
-  // TODO
-//  public boolean isMainAction (MouseEvent event, boolean noSpecial)
-//  {
-//    return isMainAction(event) && !(noSpecial && isSpecialDown());
-//  }
-
   /**
    * Does this mouse event represent the "main action" of a tool?
    */
   public boolean isMainAction (MouseEvent event)
   {
-    return event.getButton() == MouseEvent.BUTTON1 && !(_newKeys && _controlDown);
+    return !isAdjustingView() &&
+      event.getButton() == MouseEvent.BUTTON1 && !(_newKeys && _controlDown);
   }
 
   /**
@@ -353,6 +348,7 @@ public class SceneEditor extends TudeyTool
    */
   public boolean isDeleteAction (MouseEvent event)
   {
+    if (isAdjustingView()) return false;
     int button = event.getButton();
     // new: ctrl-button1 // old: button3
     return _newKeys ? (button == MouseEvent.BUTTON1 && _controlDown)
@@ -416,7 +412,7 @@ public class SceneEditor extends TudeyTool
    * the user's actions are not intended to be making changes to the scene but rather merely
    * adjusting their view.
    */
-  public boolean isSpecialDown ()
+  public boolean isAdjustingView ()
   {
     return isCameraDown() || isGridAdjustDown();
   }
@@ -811,7 +807,10 @@ public class SceneEditor extends TudeyTool
   // documentation inherited from interface MouseListener
   public void mouseClicked (MouseEvent event)
   {
-    if (mouseCameraEnabled() && isMainAction(event) && event.getClickCount() == 2) {
+    // Special secret command: double-click while holding the camera button to select under
+    // the mouse no matter which tool is currently selected.
+    if (mouseCameraEnabled() && event.getButton() == MouseEvent.BUTTON1 &&
+        event.getClickCount() == 2) {
       editMouseEntry();
     }
   }

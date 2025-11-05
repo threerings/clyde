@@ -92,10 +92,7 @@ public class LayerChanger extends EditorTool
   {
     super.mousePressed(event);
 
-    if (!_editor.isMainAction(event) || _editor.isSpecialDown()) {
-      return;
-    }
-    selectMouseEntry();
+    if (_editor.isMainAction(event)) selectMouseEntry();
   }
 
   @Override

@@ -74,7 +74,7 @@ public class TileBrush extends ConfigTool<TileConfig>
     updateCursor();
     if (_cursorVisible) {
       _cursor.tick(elapsed);
-    } else if (_editor.isDeleteButtonDown() && !_editor.isSpecialDown()) {
+    } else if (_editor.isDeleteButtonDown() && !_editor.isAdjustingView()) {
       _editor.deleteMouseEntry(SceneEditor.TILE_ENTRY_FILTER);
     }
   }
@@ -90,7 +90,6 @@ public class TileBrush extends ConfigTool<TileConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) return;
     boolean add = _editor.isMainAction(event);
     if (_cursorVisible && (add || _editor.isDeleteAction(event))) {
       paintTile(add);
@@ -110,7 +109,7 @@ public class TileBrush extends ConfigTool<TileConfig>
    */
   protected void updateCursor ()
   {
-    _cursorVisible = _entry.tile != null && !_editor.isSpecialDown() &&
+    _cursorVisible = _entry.tile != null && !_editor.isAdjustingView() &&
       getMousePlaneIntersection(_isect);
     if (!_cursorVisible) return;
 

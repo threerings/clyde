@@ -81,7 +81,6 @@ public class GroundBrush extends ConfigTool<GroundConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) return;
     boolean paint = _editor.isMainAction(event);
     if (_cursorVisible && (paint || _editor.isDeleteAction(event))) {
       paintGround(paint, true);
@@ -101,7 +100,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
    */
   protected void updateCursor ()
   {
-    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isAdjustingView())) {
       return;
     }
     GroundReference gref = (GroundReference)_eref;

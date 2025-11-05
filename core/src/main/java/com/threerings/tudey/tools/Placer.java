@@ -88,7 +88,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     updateCursor();
     if (_cursorVisible) {
       _cursor.tick(elapsed);
-    } else if (_editor.isDeleteButtonDown() && !_editor.isSpecialDown()) {
+    } else if (_editor.isDeleteButtonDown() && !_editor.isAdjustingView()) {
       _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
     }
   }
@@ -124,7 +124,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
    */
   protected void updateCursor ()
   {
-    _cursorVisible = _entry.placeable != null && !_editor.isSpecialDown() &&
+    _cursorVisible = _entry.placeable != null && !_editor.isAdjustingView() &&
       getMousePlaneIntersection(_isect);
     if (!_cursorVisible) return;
     // snap appropriately if shift is not held down

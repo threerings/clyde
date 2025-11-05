@@ -80,8 +80,6 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_editor.isSpecialDown()) return;
-
     boolean addOrInsert = _editor.isMainAction(event);
     if (!addOrInsert && !_editor.isDeleteAction(event)) return;
     if (_entry != null) {
@@ -144,7 +142,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
   @Override
   public void tick (float elapsed)
   {
-    if (_entry == null || _editor.isSpecialDown() || !getMousePlaneIntersection(_isect)) return;
+    if (_entry == null || _editor.isAdjustingView() || !getMousePlaneIntersection(_isect)) return;
 
     _entry = (AreaEntry)_entry.clone();
     setMouseLocation(_entry.vertices[_idx]);

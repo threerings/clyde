@@ -130,7 +130,7 @@ public abstract class BaseMover extends EditorTool
   @Override
   public void mousePressed (MouseEvent event)
   {
-    if (_cursorVisible && _editor.isMainAction(event) && !_editor.isSpecialDown()) {
+    if (_cursorVisible && _editor.isMainAction(event)) {
       placeEntries();
     }
   }
@@ -151,7 +151,7 @@ public abstract class BaseMover extends EditorTool
    */
   protected void updateCursor ()
   {
-    _cursorVisible = _entries.length > 0 && !_editor.isSpecialDown() &&
+    _cursorVisible = _entries.length > 0 && !_editor.isAdjustingView() &&
       getMousePlaneIntersection(_isect);
     if (!_cursorVisible) return;
 

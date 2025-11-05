@@ -117,7 +117,7 @@ public class Eraser extends EditorTool
    */
   protected void updateCursor ()
   {
-    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
+    if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isAdjustingView())) {
       return;
     }
     // snap to tile grid if shift not held down
