@@ -1997,7 +1997,7 @@ public class SceneEditor extends TudeyTool
       super(prefs);
     }
 
-    @Editable
+    @Editable(tip="i.new_key_bindings")
     public void setNewKeyBindings (boolean newKeys)
     {
       _newKeys = newKeys;
