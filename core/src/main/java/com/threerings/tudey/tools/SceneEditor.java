@@ -276,12 +276,14 @@ public class SceneEditor extends TudeyTool
     _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     _epanel.setPreferredSize(new Dimension(SIDEBAR_WIDTH, 1));
 
-    // create the tool box
-    JPanel outer = new JPanel();
-    _epanel.add(outer, GroupLayout.FIXED);
+    // create the tool grid
+    _toolGridParent = new JPanel();
+    _epanel.add(_toolGridParent, GroupLayout.FIXED);
     ButtonGroup tgroup = new ButtonGroup();
-    JPanel tpanel = new JPanel(new GridLayout(0, 8, 0, 0));
-    outer.add(tpanel);
+
+    JToolBar tpanel = _toolgrid = new JToolBar(_msgs.get("m.tools"));
+    //tpanel.setLayout(new GridLayout(0, 8, 0, 0)); // done elsewhere now
+    _toolGridParent.add(_toolgrid);
     addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
     addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
     addTool(tpanel, tgroup, "mover", _mover = new Mover(this));
@@ -289,7 +291,7 @@ public class SceneEditor extends TudeyTool
     addTool(tpanel, tgroup, "layer_changer", new LayerChanger(this, _layers));
     addTool(tpanel, tgroup, "palette", _palette = new Palette(this));
     addTool(tpanel, tgroup, "notepad", new Notepad(this));
-    tpanel.add(new Spacer(1,1));
+    tpanel.add(_toolGridSpacer = new Spacer(1,1));
 
     addTool(tpanel, tgroup, "tile_brush", _tileBrush = new TileBrush(this));
     addTool(tpanel, tgroup, "ground_brush", _groundBrush = new GroundBrush(this));
@@ -1379,7 +1381,7 @@ public class SceneEditor extends TudeyTool
   /**
    * Adds a tool to the tool panel.
    */
-  protected void addTool (JPanel tpanel, ButtonGroup tgroup, String name, EditorTool tool)
+  protected void addTool (JComponent tpanel, ButtonGroup tgroup, String name, EditorTool tool)
   {
     JToggleButton button = createToggleButton(name);
     tpanel.add(button);
@@ -2002,6 +2004,23 @@ public class SceneEditor extends TudeyTool
     _eprefs.bindDividerLocation(p + "layerDiv", _layerSplit);
 
     _newKeys = ((SceneEditorPrefs)_eprefs).getNewKeyBindings();
+
+    configureToolGridLayout();
+  }
+
+  protected void configureToolGridLayout ()
+  {
+    SceneEditorPrefs prefs = (SceneEditorPrefs)_eprefs;
+
+    boolean verticalTools = prefs.getVerticalTools();
+    if (verticalTools) {
+      _toolbar.getParent().add(_toolgrid, BorderLayout.WEST);
+      _toolgrid.setLayout(new GridLayout(0, 1, 0, 0));
+    } else {
+      _toolGridParent.add(_toolgrid);
+      _toolgrid.setLayout(new GridLayout(0, 8, 0, 0));
+    }
+    if (_toolGridSpacer != null) _toolGridSpacer.setVisible(!verticalTools);
   }
 
   /**
@@ -2029,6 +2048,19 @@ public class SceneEditor extends TudeyTool
     public boolean getNewKeyBindings ()
     {
       return _prefs.getBoolean("new_keybindings", true); // TODO false???
+    }
+
+    @Editable
+    public void setVerticalTools (boolean vert)
+    {
+      _prefs.putBoolean("vertical_tools", vert);
+      configureToolGridLayout();
+    }
+
+    @Editable
+    public boolean getVerticalTools ()
+    {
+      return _prefs.getBoolean("vertical_tools", false);
     }
 
     /**
@@ -2123,7 +2155,7 @@ public class SceneEditor extends TudeyTool
   protected boolean _testing;
 
   /** The tool bar. */
-  protected JToolBar _toolbar;
+  protected JToolBar _toolbar, _toolgrid;
 
   /** Toggle buttons. */
   protected JToggleButton _markers, _light, _fog, _sound, _camera;
@@ -2133,6 +2165,12 @@ public class SceneEditor extends TudeyTool
 
   /** The panel that holds the tool options. */
   protected JPanel _opanel;
+
+  /** The panel that is the parent of the toolgrid when in regular position. */
+  protected JPanel _toolGridParent;
+
+  /** A spacer that may or may not exist and may or may not be visible. */
+  protected JComponent _toolGridSpacer;
 
   /** Tools mapped by name. */
   protected Map<String, EditorTool> _tools = Maps.newHashMap();
