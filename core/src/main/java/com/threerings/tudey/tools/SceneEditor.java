@@ -2013,16 +2013,20 @@ public class SceneEditor extends TudeyTool
   {
     SceneEditorPrefs prefs = (SceneEditorPrefs)_eprefs;
 
+    _toolgrid.setFloatable(false); // unfloat it
     boolean verticalTools = prefs.getVerticalTools();
     if (verticalTools) {
       _toolbar.getParent().add(_toolgrid, BorderLayout.WEST);
       //_toolgrid.setLayout(new GridLayout(0, 1, 0, 0));
+      _toolgrid.setOrientation(SwingConstants.VERTICAL);
       _toolgrid.setLayout(new VGroupLayout(GroupLayout.NONE, 0, GroupLayout.TOP));
     } else {
       _toolGridParent.add(_toolgrid);
+      _toolgrid.setOrientation(SwingConstants.HORIZONTAL);
       _toolgrid.setLayout(new GridLayout(0, 8, 0, 0));
     }
     if (_toolGridSpacer != null) _toolGridSpacer.setVisible(!verticalTools);
+    _toolgrid.setFloatable(true); // reallow floatiness
   }
 
   /**
