@@ -54,7 +54,7 @@ public abstract class AbstractValidatorTask extends FileSetTask
     Iterable<File> files = getFiles();
 
     if (!validate(context.getConfigManager(), files, validator)) {
-      throw new BuildException();
+      throw new BuildException("Did not validate");
     }
   }
 
