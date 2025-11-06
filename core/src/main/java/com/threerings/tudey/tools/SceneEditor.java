@@ -59,6 +59,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -74,6 +75,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
@@ -278,7 +280,7 @@ public class SceneEditor extends TudeyTool
     JPanel outer = new JPanel();
     _epanel.add(outer, GroupLayout.FIXED);
     ButtonGroup tgroup = new ButtonGroup();
-    JPanel tpanel = new JPanel(new GridLayout(0, 8, 5, 5));
+    JPanel tpanel = new JPanel(new GridLayout(0, 8, 0, 0));
     outer.add(tpanel);
     addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
     addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
@@ -1380,7 +1382,6 @@ public class SceneEditor extends TudeyTool
   protected void addTool (JPanel tpanel, ButtonGroup tgroup, String name, EditorTool tool)
   {
     JToggleButton button = createToggleButton(name);
-    button.setToolTipText(_msgs.get("i." + name));
     tpanel.add(button);
     tgroup.add(button);
 
@@ -1399,7 +1400,7 @@ public class SceneEditor extends TudeyTool
     button.setPreferredSize(TOOL_BUTTON_SIZE);
     button.setActionCommand(name);
     button.addActionListener(this);
-    button.setToolTipText(_msgs.xlate("i." + name));
+    button.setToolTipText(_msgs.getResourceString("i." + name, false));
     return button;
   }
 
@@ -1408,14 +1409,33 @@ public class SceneEditor extends TudeyTool
    */
   protected JToggleButton createToggleButton (String name)
   {
-    JToggleButton button = new JToggleButton(createIcon(name));
+    JToggleButton button;
+    Icon icon = createIcon(name);
+    String label = _msgs.getResourceString("l." + name, false);
+    if (label != null) {
+
+      // new vertical button
+      button = new JToggleButton(label, icon);
+      button.setHorizontalAlignment(SwingConstants.CENTER);
+      button.setVerticalAlignment(SwingConstants.CENTER);
+      button.setHorizontalTextPosition(SwingConstants.CENTER);
+      button.setVerticalTextPosition(SwingConstants.BOTTOM);
+      button.setMinimumSize(LARGE_TOOL_BUTTON_SIZE);
+      button.setMaximumSize(LARGE_TOOL_BUTTON_SIZE);
+      button.setPreferredSize(LARGE_TOOL_BUTTON_SIZE);
+      button.setBorder(BorderFactory.createEmptyBorder());
+
+    } else {
+      // small square button
+      button = new JToggleButton(icon);
+      button.setMinimumSize(TOOL_BUTTON_SIZE);
+      button.setMaximumSize(TOOL_BUTTON_SIZE);
+      button.setPreferredSize(TOOL_BUTTON_SIZE);
+    }
     button.setSelectedIcon(createIcon(name + "_select"));
-    button.setMinimumSize(TOOL_BUTTON_SIZE);
-    button.setMaximumSize(TOOL_BUTTON_SIZE);
-    button.setPreferredSize(TOOL_BUTTON_SIZE);
     button.setActionCommand(name);
     button.addActionListener(this);
-    button.setToolTipText(_msgs.xlate("i." + name));
+    button.setToolTipText(_msgs.getResourceString("i." + name, false));
     return button;
   }
 
@@ -2235,4 +2255,7 @@ public class SceneEditor extends TudeyTool
 
   /** The size of the tool buttons. */
   protected static final Dimension TOOL_BUTTON_SIZE = new Dimension(28, 28);
+
+  /** The size of the large tool buttons. */
+  protected static final Dimension LARGE_TOOL_BUTTON_SIZE = new Dimension(56, 56);
 }
