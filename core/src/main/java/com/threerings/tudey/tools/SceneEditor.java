@@ -98,6 +98,7 @@ import com.google.common.collect.Sets;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.HGroupLayout;
 import com.samskivert.swing.Spacer;
+import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.CollectionUtil;
@@ -2015,7 +2016,8 @@ public class SceneEditor extends TudeyTool
     boolean verticalTools = prefs.getVerticalTools();
     if (verticalTools) {
       _toolbar.getParent().add(_toolgrid, BorderLayout.WEST);
-      _toolgrid.setLayout(new GridLayout(0, 1, 0, 0));
+      //_toolgrid.setLayout(new GridLayout(0, 1, 0, 0));
+      _toolgrid.setLayout(new VGroupLayout(GroupLayout.NONE, 0, GroupLayout.TOP));
     } else {
       _toolGridParent.add(_toolgrid);
       _toolgrid.setLayout(new GridLayout(0, 8, 0, 0));
