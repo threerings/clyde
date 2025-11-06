@@ -278,23 +278,25 @@ public class SceneEditor extends TudeyTool
     JPanel outer = new JPanel();
     _epanel.add(outer, GroupLayout.FIXED);
     ButtonGroup tgroup = new ButtonGroup();
-    JPanel tpanel = new JPanel(new GridLayout(0, toolPanelColumns(), 5, 5));
+    JPanel tpanel = new JPanel(new GridLayout(0, 8, 5, 5));
     outer.add(tpanel);
     addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
     addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
     addTool(tpanel, tgroup, "mover", _mover = new Mover(this));
-    addTool(tpanel, tgroup, "placer", _placer = new Placer(this));
-    addTool(tpanel, tgroup, "path_definer", _pathDefiner = new PathDefiner(this));
-    addTool(tpanel, tgroup, "area_definer", _areaDefiner = new AreaDefiner(this));
-    addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this, _layers));
+    addTool(tpanel, tgroup, "eyedropper", new Eyedropper(this));
     addTool(tpanel, tgroup, "layer_changer", new LayerChanger(this, _layers));
+    addTool(tpanel, tgroup, "palette", _palette = new Palette(this));
+    addTool(tpanel, tgroup, "notepad", new Notepad(this));
+    tpanel.add(new Spacer(1,1));
+
     addTool(tpanel, tgroup, "tile_brush", _tileBrush = new TileBrush(this));
     addTool(tpanel, tgroup, "ground_brush", _groundBrush = new GroundBrush(this));
     addTool(tpanel, tgroup, "wall_brush", _wallBrush = new WallBrush(this));
-    addTool(tpanel, tgroup, "palette", _palette = new Palette(this));
-    addTool(tpanel, tgroup, "eyedropper", new Eyedropper(this));
+    addTool(tpanel, tgroup, "placer", _placer = new Placer(this));
+    addTool(tpanel, tgroup, "area_definer", _areaDefiner = new AreaDefiner(this));
+    addTool(tpanel, tgroup, "path_definer", _pathDefiner = new PathDefiner(this));
+    addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this, _layers));
     addTool(tpanel, tgroup, "eraser", new Eraser(this));
-    addTool(tpanel, tgroup, "notepad", new Notepad(this));
 
     // create the option panel
     _opanel = GroupLayout.makeVStretchBox(5);
@@ -1370,14 +1372,6 @@ public class SceneEditor extends TudeyTool
   protected void addAdditionalTools ()
   {
     // nada
-  }
-
-  /**
-   * How many columns should we make the tool panel?
-   */
-  protected int toolPanelColumns ()
-  {
-    return 8;
   }
 
   /**
