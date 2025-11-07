@@ -1413,13 +1413,16 @@ public class SceneEditor extends TudeyTool
     return button;
   }
 
+  /**
+   * Creates a toggle button with different icons for the unselected and selected states.
+   */
   protected JToggleButton createToolbarButton (String name)
   {
     return createToggleButton(name, true);
   }
 
   /**
-   * Creates a toggle button with different icons for the unselected and selected states.
+   * Creates a toggle button with optional different icons for the unselected and selected states.
    */
   protected JToggleButton createToggleButton (String name, boolean hasAltSelectIcon)
   {
@@ -2008,6 +2011,9 @@ public class SceneEditor extends TudeyTool
     }
   }
 
+  /**
+   * Enables or disables sound in the editor.
+   */
   protected void setSoundEnabled (boolean enabled)
   {
     // The scoped var will notify the viewer effect assembly
