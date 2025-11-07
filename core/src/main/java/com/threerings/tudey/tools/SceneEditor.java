@@ -257,15 +257,15 @@ public class SceneEditor extends TudeyTool
     _toolbar.add(save, GroupLayout.FIXED);
     save.setPressedIcon(createIcon("save_click"));
     _toolbar.add(new Spacer(80, 1), GroupLayout.FIXED);
-    _toolbar.add(_markers = createToggleButton("markers"), GroupLayout.FIXED);
+    _toolbar.add(_markers = createToolbarButton("markers"), GroupLayout.FIXED);
     _markers.setSelected(!_markersVisible);
-    _toolbar.add(_light = createToggleButton("light"), GroupLayout.FIXED);
+    _toolbar.add(_light = createToolbarButton("light"), GroupLayout.FIXED);
     _light.setSelected(!_lightingEnabled);
-    _toolbar.add(_fog = createToggleButton("fog"), GroupLayout.FIXED);
+    _toolbar.add(_fog = createToolbarButton("fog"), GroupLayout.FIXED);
     _fog.setSelected(!_fogEnabled);
-    _toolbar.add(_sound = createToggleButton("sound"), GroupLayout.FIXED);
+    _toolbar.add(_sound = createToolbarButton("sound"), GroupLayout.FIXED);
     _sound.setSelected(!_soundEnabled);
-    _toolbar.add(_camera = createToggleButton("camera"), GroupLayout.FIXED);
+    _toolbar.add(_camera = createToolbarButton("camera"), GroupLayout.FIXED);
     _camera.setSelected(!_cameraEnabled);
     addAdditionalTools();
     _toolbar.add(new Spacer(1, 1));
@@ -314,6 +314,9 @@ public class SceneEditor extends TudeyTool
 
     // restore preferences about where things are
     restorePrefs();
+
+    // configure sound
+    setSoundEnabled(_prefs.getBoolean("soundEnabled", true));
 
     // activate the arrow tool
     setActiveTool(_arrow);
@@ -1039,11 +1042,8 @@ public class SceneEditor extends TudeyTool
       _prefs.putBoolean("fogEnabled", _fogEnabled = !_fog.isSelected());
       wasUpdated();
     } else if (action.equals("sound")) {
-      // Notify the viewer effect assembly
-      _prefs.putBoolean("soundEnabled", _soundEnabled = !_sound.isSelected());
-
-      // Set base gain to 0 (OFF) or 1 (ON) for all the places that play sounds directly (like models)
-      _soundmgr.setBaseGain(_sound.isSelected() ? 0f : 1f);
+      _prefs.putBoolean("soundEnabled", !_sound.isSelected());
+      setSoundEnabled(!_sound.isSelected());
       wasUpdated();
     } else if (action.equals("camera")) {
       _prefs.putBoolean("cameraEnabled", _cameraEnabled = !_camera.isSelected());
@@ -1384,7 +1384,7 @@ public class SceneEditor extends TudeyTool
    */
   protected void addTool (JComponent tpanel, ButtonGroup tgroup, String name, EditorTool tool)
   {
-    JToggleButton button = createToggleButton(name);
+    JToggleButton button = createToggleButton(name, false);
     tpanel.add(button);
     tgroup.add(button);
 
@@ -1404,13 +1404,24 @@ public class SceneEditor extends TudeyTool
     button.setActionCommand(name);
     button.addActionListener(this);
     button.setToolTipText(_msgs.getResourceString("i." + name, false));
+
+    // we now have transparent icons, so let's configure the buttons to be flat-ish
+    // until we can ship clyde with native flatlaf
+    button.setBorderPainted(false);
+    button.setFocusPainted(false);
+
     return button;
+  }
+
+  protected JToggleButton createToolbarButton (String name)
+  {
+    return createToggleButton(name, true);
   }
 
   /**
    * Creates a toggle button with different icons for the unselected and selected states.
    */
-  protected JToggleButton createToggleButton (String name)
+  protected JToggleButton createToggleButton (String name, boolean hasAltSelectIcon)
   {
     JToggleButton button;
     Icon icon = createIcon(name);
@@ -1435,7 +1446,16 @@ public class SceneEditor extends TudeyTool
       button.setMaximumSize(TOOL_BUTTON_SIZE);
       button.setPreferredSize(TOOL_BUTTON_SIZE);
     }
-    button.setSelectedIcon(createIcon(name + "_select"));
+
+    if (hasAltSelectIcon) {
+      button.setSelectedIcon(createIcon(name + "_select"));
+    }
+
+    // we now have transparent icons, so let's configure the buttons to be flat-ish
+    // until we can ship clyde with native flatlaf
+    button.setBorderPainted(false);
+    button.setFocusPainted(false);
+
     button.setActionCommand(name);
     button.addActionListener(this);
     button.setToolTipText(_msgs.getResourceString("i." + name, false));
@@ -1988,6 +2008,15 @@ public class SceneEditor extends TudeyTool
     }
   }
 
+  protected void setSoundEnabled (boolean enabled)
+  {
+    // The scoped var will notify the viewer effect assembly
+    _soundEnabled = enabled;
+
+    // Set base gain to 0 (OFF) or 1 (ON) for all the places that play sounds directly (like models)
+    _soundmgr.setBaseGain(enabled ? 1f : 0f);
+  }
+
   /**
    * Restore UI preferences.
    */
@@ -2254,7 +2283,7 @@ public class SceneEditor extends TudeyTool
 
   /** Whether or not sound is enabled. */
   @Scoped
-  protected boolean _soundEnabled = _prefs.getBoolean("soundEnabled", true);
+  protected boolean _soundEnabled;
 
   /** Whether or not camera is enabled. */
   @Scoped
