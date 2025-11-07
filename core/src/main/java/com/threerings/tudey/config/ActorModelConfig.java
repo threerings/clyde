@@ -34,6 +34,8 @@ import com.threerings.opengl.util.Preloadable;
 
 import com.threerings.opengl.model.config.ModelConfig;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * A model config wrapper for using an actor's model config.
  */
@@ -60,7 +62,10 @@ public abstract class ActorModelConfig extends ModelConfig
       ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
       if (config != null) {
         ActorConfig.Original original = config.getOriginal(cfgmgr);
-        return cfgmgr.getConfig(ModelConfig.class, original.sprite.model);
+        if (original != null) {
+          return cfgmgr.getConfig(ModelConfig.class, original.sprite.model);
+        }
+        log.warning("Null original?", "config", config);
       }
       return null;
     }
