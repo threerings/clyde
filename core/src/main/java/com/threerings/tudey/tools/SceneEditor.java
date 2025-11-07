@@ -26,6 +26,7 @@
 package com.threerings.tudey.tools;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.KeyEventDispatcher;
@@ -77,6 +78,8 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileFilter;
@@ -1426,7 +1429,7 @@ public class SceneEditor extends TudeyTool
    */
   protected JToggleButton createToggleButton (String name, boolean hasAltSelectIcon)
   {
-    JToggleButton button;
+    final JToggleButton button;
     Icon icon = createIcon(name);
     String label = _msgs.getResourceString("l." + name, false);
     if (label != null) {
@@ -1456,8 +1459,19 @@ public class SceneEditor extends TudeyTool
 
     // we now have transparent icons, so let's configure the buttons to be flat-ish
     // until we can ship clyde with native flatlaf
-    button.setBorderPainted(false);
     button.setFocusPainted(false);
+    if (!RunAnywhere.isMacOS()) {
+      button.setBorderPainted(false);
+
+    } else {
+      // The default old mac Laf doesn't show much for selection, so let's add a border
+      button.addChangeListener(new ChangeListener() {
+        @Override public void stateChanged (ChangeEvent event) {
+          button.setBorder(button.isSelected() ? BorderFactory.createLineBorder(Color.GRAY)
+              : BorderFactory.createEmptyBorder());
+        }
+      });
+    }
 
     button.setActionCommand(name);
     button.addActionListener(this);
