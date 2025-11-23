@@ -25,6 +25,7 @@
 
 package com.threerings.opengl.gui;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,27 +45,50 @@ public class ButtonGroup
 {
   /**
    * Creates a new button group in which one button is always selected.
-   *
+   */
+  public ButtonGroup ()
+  {
+  }
+
+  /**
+   * Creates a new button group in which one button is always selected.
    * @param buttons the buttons in the group.
    */
   public ButtonGroup (ToggleButton... buttons)
   {
-    this(true, buttons);
+    addAll(Arrays.asList(buttons));
   }
 
   /**
-   * Creates a new button group.
-   *
-   * @param alwaysSelect if true and the group contains at least one button, one button must
-   * always be selected.
-   * @param buttons the buttons in the group.
+   * Sets the always select state. If set to true and no button is selected, it will
+   * automatically select the first button in the group.
    */
-  public ButtonGroup (boolean alwaysSelect, ToggleButton... buttons)
+  public ButtonGroup setAlwaysSelect (boolean alwaysSelect)
   {
     _alwaysSelect = alwaysSelect;
-    for (ToggleButton button : buttons) {
-      add(button);
+    if (_alwaysSelect && _selected == null && !_buttons.isEmpty()) {
+      setSelected(_buttons.get(0));
     }
+    return this;
+  }
+
+  /**
+   * A hack for old sad code.
+   */
+  @Deprecated
+  public ButtonGroup suppressNullDispatch ()
+  {
+    _suppressNullDispatch = true;
+    return this;
+  }
+
+  /**
+   * Adds all the specified buttons.
+   */
+  public ButtonGroup addAll (Iterable<ToggleButton> buttons)
+  {
+    for (ToggleButton but : buttons) add(but);
+    return this;
   }
 
   /**
@@ -88,12 +112,12 @@ public class ButtonGroup
    */
   public void add (ToggleButton button)
   {
-    if (getSelectedIndex() != -1) {
-      button.setSelected(false);
-    } else if (_alwaysSelect) {
-      button.setSelected(true);
-    }
     _buttons.add(button);
+    if (_selected != null) button.setSelected(false);
+    else if (_alwaysSelect || button.isSelected()) {
+      button.setSelected(true);
+      selectionChanged(button, 0L, 0);
+    }
     button.addListener(this);
   }
 
@@ -104,8 +128,9 @@ public class ButtonGroup
   {
     _buttons.remove(button);
     button.removeListener(this);
-    if (_alwaysSelect && button.isSelected() && !_buttons.isEmpty()) {
-      _buttons.get(0).setSelected(true);
+    if (_selected == button) {
+      ToggleButton newSelect = _alwaysSelect && !_buttons.isEmpty() ? _buttons.get(0) : null;
+      setSelected(newSelect);
     }
   }
 
@@ -118,6 +143,7 @@ public class ButtonGroup
       _buttons.get(ii).removeListener(this);
     }
     _buttons.clear();
+    if (_selected != null) selectionChanged(null, 0L, 0);
   }
 
   /**
@@ -128,32 +154,16 @@ public class ButtonGroup
     return _buttons.size();
   }
 
-  /**
-   * Sets the always select state. If set to true and no button is selected, it will
-   * automatically select the first button in the group.
-   */
-  public void setAlwaysSelect (boolean alwaysSelect)
-  {
-    _alwaysSelect = alwaysSelect;
-    if (_alwaysSelect && getSelectedIndex() == -1 && getButtonCount() > 0) {
-      setSelected(_buttons.get(0));
-    }
-  }
-
   // from Selectable<ToggleButton>
   public ToggleButton getSelected ()
   {
-    int idx = getSelectedIndex();
-    return (idx == -1) ? null : _buttons.get(idx);
+    return _selected;
   }
 
   // from Selectable<ToggleButton>
   public void setSelected (ToggleButton button)
   {
-    if (!button.isSelected()) {
-      button.setSelected(true);
-      selectionChanged(button, 0L, 0);
-    }
+    if (!button.isSelected()) selectionChanged(button, 0L, 0);
   }
 
   // from Iterable<ToggleButton>
@@ -179,25 +189,22 @@ public class ButtonGroup
   // from Selectable<ToggleButton>
   public int getSelectedIndex ()
   {
-    for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
-      if (_buttons.get(ii).isSelected()) {
-        return ii;
-      }
-    }
-    return -1;
+    return _selected == null ? -1 : _buttons.indexOf(_selected);
   }
 
   // documentation inherited from interface ActionListener
   public void actionPerformed (ActionEvent event)
   {
     ToggleButton button = (ToggleButton)event.getSource();
-    if (button.isSelected()) {
-      selectionChanged(button, event.getWhen(), event.getModifiers());
-
-    } else if (_alwaysSelect) {
-      // can only unselect by selecting another button
-      button.setSelected(true);
+    if (!button.isSelected()) {
+      if (_alwaysSelect) {
+        // can only unselect by selecting another button
+        button.setSelected(true);
+        return;
+      }
+      button = null; // inform the group we've unselected..
     }
+    selectionChanged(button, event.getWhen(), event.getModifiers());
   }
 
   /**
@@ -205,12 +212,12 @@ public class ButtonGroup
    */
   protected void selectionChanged (ToggleButton selected, long when, int modifiers)
   {
+    _selected = selected;
     for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
       ToggleButton button = _buttons.get(ii);
-      if (button != selected) {
-        button.setSelected(false);
-      }
+      button.setSelected(button == selected);
     }
+    if (selected == null && _suppressNullDispatch) return; // TEMP: TODO REMOVE
     ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
     for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
       event.dispatch(_listeners.get(ii));
@@ -218,11 +225,18 @@ public class ButtonGroup
   }
 
   /** If true and we have at least one button, one must always be selected. */
-  protected boolean _alwaysSelect;
+  protected boolean _alwaysSelect = true;
+
+  /** Old code would avoid ever saying the current selection was null. */
+  // TEMP: TODO REMOVE
+  protected boolean _suppressNullDispatch;
 
   /** The buttons in the group. */
   protected List<ToggleButton> _buttons = Lists.newArrayList();
 
   /** Listeners for action events. */
   protected List<ActionListener> _listeners = Lists.newArrayList();
+
+  /** The currently selected button. */
+  protected ToggleButton _selected;
 }
