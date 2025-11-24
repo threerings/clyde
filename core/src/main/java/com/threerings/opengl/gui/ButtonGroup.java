@@ -73,16 +73,6 @@ public class ButtonGroup
   }
 
   /**
-   * A hack for old sad code.
-   */
-  @Deprecated
-  public ButtonGroup suppressNullDispatch ()
-  {
-    _suppressNullDispatch = true;
-    return this;
-  }
-
-  /**
    * Adds all the specified buttons.
    */
   public ButtonGroup addAll (Iterable<ToggleButton> buttons)
@@ -217,19 +207,17 @@ public class ButtonGroup
       ToggleButton button = _buttons.get(ii);
       button.setSelected(button == selected);
     }
-    if (selected == null && _suppressNullDispatch) return; // TEMP: TODO REMOVE
-    ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
-    for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
-      event.dispatch(_listeners.get(ii));
+    int nlist = _listeners.size();
+    if (nlist > 0) {
+      ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
+      for (int ii = 0; ii < nlist; ii++) {
+        event.dispatch(_listeners.get(ii));
+      }
     }
   }
 
   /** If true and we have at least one button, one must always be selected. */
   protected boolean _alwaysSelect = true;
-
-  /** Old code would avoid ever saying the current selection was null. */
-  // TEMP: TODO REMOVE
-  protected boolean _suppressNullDispatch;
 
   /** The buttons in the group. */
   protected List<ToggleButton> _buttons = Lists.newArrayList();
