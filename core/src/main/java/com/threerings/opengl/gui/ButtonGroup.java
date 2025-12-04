@@ -153,7 +153,7 @@ public class ButtonGroup
   // from Selectable<ToggleButton>
   public void setSelected (ToggleButton button)
   {
-    if (!button.isSelected()) selectionChanged(button, 0L, 0);
+    if (button != _selected) selectionChanged(button, 0L, 0);
   }
 
   // from Iterable<ToggleButton>
