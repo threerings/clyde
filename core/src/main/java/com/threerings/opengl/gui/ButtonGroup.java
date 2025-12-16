@@ -52,11 +52,13 @@ public class ButtonGroup
 
   /**
    * Creates a new button group in which one button is always selected.
+   * Note that if you add any button here and then immediately call setAlwaysSelect(false),
+   * one button will already still be selected.
    * @param buttons the buttons in the group.
    */
   public ButtonGroup (ToggleButton... buttons)
   {
-    addAll(Arrays.asList(buttons));
+    addAll(buttons);
   }
 
   /**
@@ -79,6 +81,14 @@ public class ButtonGroup
   {
     for (ToggleButton but : buttons) add(but);
     return this;
+  }
+
+  /**
+   * Adds all the specified buttons.
+   */
+  public ButtonGroup addAll (ToggleButton... buttons)
+  {
+    return addAll(Arrays.asList(buttons));
   }
 
   /**
