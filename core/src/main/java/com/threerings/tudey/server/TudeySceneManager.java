@@ -275,7 +275,7 @@ public class TudeySceneManager extends SceneManager
    */
   public void addTickParticipant (TickParticipant participant)
   {
-    addTickParticipant(participant, false);
+    _tickParticipants.add(participant);
   }
 
   /**
@@ -284,18 +284,16 @@ public class TudeySceneManager extends SceneManager
    * @param withinTick if true and we are not currently in the process of ticking, adds the
    * participant in the next tick.
    */
-  public void addTickParticipant (final TickParticipant participant, boolean withinTick)
+  public final void addTickParticipant (final TickParticipant participant, boolean withinTick)
   {
-    if (withinTick && !_ticking) {
-      _tickParticipants.add(new TickParticipant() {
+    addTickParticipant(_ticking || !withinTick
+      ? participant
+      : new TickParticipant() {
         public boolean tick (int timestamp) {
-          _tickParticipants.add(participant);
+          addTickParticipant(participant);
           return false;
         }
       });
-    } else {
-      _tickParticipants.add(participant);
-    }
   }
 
   /**
