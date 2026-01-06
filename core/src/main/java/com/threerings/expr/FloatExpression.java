@@ -27,8 +27,12 @@ package com.threerings.expr;
 
 import java.io.StringReader;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Groupable;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
@@ -193,6 +197,7 @@ public abstract class FloatExpression extends DeepObject
    * The superclass of the unary operations.
    */
   public static abstract class UnaryOperation extends FloatExpression
+    implements Groupable<FloatExpression>
   {
     /** The operand expression. */
     @Editable
@@ -208,6 +213,19 @@ public abstract class FloatExpression extends DeepObject
     public void invalidate ()
     {
       operand.invalidate();
+    }
+
+    // from Groupable
+    public List<FloatExpression> getGrouped ()
+    {
+      return Arrays.asList(operand);
+    }
+
+    // from Groupable
+    public void setGrouped (List<FloatExpression> values)
+    {
+      if (values.size() == 1) operand = values.get(0);
+      else throw new UnsupportedOperationException();
     }
 
     /**
@@ -400,6 +418,7 @@ public abstract class FloatExpression extends DeepObject
    * The superclass of the binary operations.
    */
   public static abstract class BinaryOperation extends FloatExpression
+    implements Groupable<FloatExpression>
   {
     /** The first operand expression. */
     @Editable
@@ -421,6 +440,28 @@ public abstract class FloatExpression extends DeepObject
     {
       firstOperand.invalidate();
       secondOperand.invalidate();
+    }
+
+    // from Groupable
+    public List<FloatExpression> getGrouped ()
+    {
+      return Arrays.asList(firstOperand, secondOperand);
+    }
+
+    // from Groupable
+    @SuppressWarnings("fallthrough")
+    public void setGrouped (List<FloatExpression> values)
+    {
+      switch (values.size()) {
+      case 2:
+        secondOperand = values.get(1);
+        // fall through
+      case 1:
+        firstOperand = values.get(0);
+        break;
+      default:
+        throw new UnsupportedOperationException();
+      }
     }
 
     /**
