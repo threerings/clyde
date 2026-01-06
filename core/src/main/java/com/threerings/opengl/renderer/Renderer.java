@@ -158,7 +158,7 @@ public class Renderer
     GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 
     // initialize the viewport
-    _viewport.set(0, 0, width, height);
+    setViewport(0, 0, width, height);
 
     // initialize the clip plane records
     _clipPlanes = new ClipPlaneRecord[_maxClipPlanes];
