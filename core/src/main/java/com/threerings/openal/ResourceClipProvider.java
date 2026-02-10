@@ -34,8 +34,8 @@ import java.nio.ByteOrder;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
-import org.lwjgl.util.WaveData;
 
+import com.threerings.openal.util.WaveData;
 import com.threerings.resource.ResourceManager;
 
 /**
