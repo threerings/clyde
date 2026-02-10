@@ -9,7 +9,7 @@
 
   <artifactId>clyde</artifactId>
   <packaging>jar</packaging>
-  <name>clyde</name>
+  <name>Clyde Core</name>
 
   <dependencies>
     <!-- exported dependencies -->
