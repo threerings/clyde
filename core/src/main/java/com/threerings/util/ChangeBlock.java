@@ -30,7 +30,7 @@ package com.threerings.util;
  * event by making another change, which in turns notifies another (or the same) listener, which
  * makes another change, and so on.  The following example demonstrates the pattern:
  *
- * <p><pre>
+ * {@code
  * public void stateChanged (ChangeEvent event)
  * {
  *     if (!_block.enter()) {
@@ -42,7 +42,7 @@ package com.threerings.util;
  *         _block.leave();
  *     }
  * }
- * </pre>
+ * }
  */
 public class ChangeBlock
 {

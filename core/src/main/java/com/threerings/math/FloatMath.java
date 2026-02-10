@@ -473,7 +473,7 @@ public class FloatMath
    * This is used to minimize garbage creation when searching for the closet point using, for
    * example, the following pattern:
    *
-   * <p><pre>
+   * {@code
    * Vector3f closest = result;
    * for (Model model : models) {
    *     if (model.getIntersection(ray, result)) {
@@ -481,7 +481,7 @@ public class FloatMath
    *     }
    * }
    * // if result != closest, then we hit something
-   * </pre>
+   * }
    */
   public static Vector3f updateClosest (Vector3f origin, Vector3f result, Vector3f closest)
   {

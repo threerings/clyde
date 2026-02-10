@@ -74,7 +74,7 @@ public class MaskEditor extends PropertyEditor
   /**
    * Turn the bits into a string of arbitrary format, for debugging. Do not try to reparse this.
    *
-   * @return "<none>", or the names of the flags that are on, separated by comma and space.
+   * @return {@code "<none>"}, or the names of the flags that are on, separated by comma and space.
    * Leftover bits are also reported.
    */
   public static String toString (String mode, int bits)

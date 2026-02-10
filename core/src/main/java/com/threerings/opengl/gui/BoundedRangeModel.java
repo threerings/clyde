@@ -39,14 +39,14 @@ import com.threerings.opengl.gui.event.MouseWheelListener;
  * <p> A bounded range model has a minimum and maximum value, a current value and an extent. These
  * are easily visualized by showing how they control a scroll bar:
  *
- * <pre>
+ * {@code
  * +-------------------------------------------------------------------+
  * |        +---------------------------------------+                  |
  * |        |                                       |                  |
  * |        +---------------------------------------+                  |
  * +-------------------------------------------------------------------+
  * min      value                        value+extent                max
- * </pre>
+ * }
  */
 public class BoundedRangeModel
 {
@@ -87,7 +87,7 @@ public class BoundedRangeModel
   }
 
   /**
-   * Returns the maximum value this model will allow for <code>value + extent</code>.
+   * Returns the maximum value this model will allow for {@code value + extent}.
    */
   public int getMaximum ()
   {
@@ -161,7 +161,7 @@ public class BoundedRangeModel
 
   /**
    * Configures the value of this model. The new value will be adjusted if it does not fall
-   * within the range of <code>min <= value <= max - extent<code>.
+   * within the range of {@code min <= value <= max - extent}.
    */
   public void setValue (int value)
   {
@@ -171,7 +171,7 @@ public class BoundedRangeModel
 
   /**
    * Configures the extent of this model. The new value will be adjusted if it does not fall
-   * within the range of <code>0 <= extent <= max - value<code>.
+   * within the range of {@code 0 <= extent <= max - value}.
    */
   public void setExtent (int extent)
   {

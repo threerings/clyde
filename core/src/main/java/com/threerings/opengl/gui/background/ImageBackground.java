@@ -44,7 +44,7 @@ import static com.threerings.opengl.Log.log;
  * unscaled, the central edges are scaled in one direction and the center
  * section is scaled in both directions.
  *
- * <pre>
+ * {@code
  * +----------+----------------+----------+
  * | unscaled |  <- scaled ->  | unscaled |
  * +----------+----------------+----------+
@@ -54,7 +54,7 @@ import static com.threerings.opengl.Log.log;
  * +----------+----------------+----------+
  * | unscaled |  <- scaled ->  | unscaled |
  * +----------+----------------+----------+
- * </pre>
+ * }
  * </ul>
  */
 public class ImageBackground extends Background

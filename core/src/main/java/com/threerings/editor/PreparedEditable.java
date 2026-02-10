@@ -13,15 +13,15 @@ import com.google.common.base.Function;
  * And from now on, I'm not doing anything that's FUCKING STUPID.
  *
  * Old bad way
- * <code>
+ * {@code
  * public class Foo {
  *    @Editable
  *    public Bar bar = new Bar();
  * }
- * </code>
+ * }
  *
  * New way
- * <code>
+ * {@code
  * public class Foo implements PreparedEditable {
  *    @Editable
  *    public Bar bar;
@@ -30,7 +30,7 @@ import com.google.common.base.Function;
  *         bar = new Bar();
  *    }
  * }
- * </code>
+ * }
  *
  * Annoying.
  */

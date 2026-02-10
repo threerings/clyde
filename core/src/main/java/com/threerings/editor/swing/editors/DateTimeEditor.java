@@ -76,9 +76,11 @@ import static com.threerings.editor.Log.log;
  * - nullKey to specify the translation key to use for null values (defaults to 'm.null_value')
  *
  * Examples:
- * &at;Editable(editor="datetime", mode="style=full, timezone=PST8PDT, locale=en us")
- * &at;Editable(editor="datetime", mode="style=short, locale=es es Traditional_WIN")
- * &at;Editable(editor="datetime", mode="format=yyyy-MM-dd hh:mm aaa")
+ * {@code
+ * @Editable(editor="datetime", mode="style=full, timezone=PST8PDT, locale=en us")
+ * @Editable(editor="datetime", mode="style=short, locale=es es Traditional_WIN")
+ * @Editable(editor="datetime", mode="format=yyyy-MM-dd hh:mm aaa")
+ * }
  */
 public class DateTimeEditor extends PropertyEditor
   implements DocumentListener, FocusListener

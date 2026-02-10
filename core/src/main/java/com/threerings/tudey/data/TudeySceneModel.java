@@ -1848,7 +1848,7 @@ public class TudeySceneModel extends SceneModel
   }
 
   /**
-   * Get the layer names. Layer 0, always present, is named "<Base Layer>"
+   * Get the layer names. Layer 0, always present, is named {@code "<Base Layer>"}.
    */
   public List<String> getLayers ()
   {

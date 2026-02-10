@@ -47,7 +47,7 @@ public abstract class GroupLayout extends LayoutManager
    * receiving the ratio of their weight to the total weight of all of the free components in the
    * container).
    *
-   * <p/> If a constraints object is constructed with fixedness set to true and with a weight,
+   * If a constraints object is constructed with fixedness set to true and with a weight,
    * the weight will be ignored.
    */
   public static class Constraints

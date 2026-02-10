@@ -604,7 +604,7 @@ public class Model extends DynamicScope
   }
 
   /**
-   * Check if we're 'showing' - us visible && parents showing.
+   * Check if we're 'showing' - us visible and parents showing.
    */
   public boolean isShowing ()
   {
