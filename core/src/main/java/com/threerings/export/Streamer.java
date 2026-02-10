@@ -40,10 +40,9 @@ import java.nio.ShortBuffer;
 
 import java.util.HashMap;
 
-import com.google.common.base.Charsets;
-
 import org.lwjgl.BufferUtils;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.threerings.export.Log.log;
 
 /**
@@ -64,7 +63,7 @@ public abstract class Streamer<T>
   public static void writeUTF (DataOutputStream out, String s)
     throws IOException
   {
-    byte[] bytes = s.getBytes(Charsets.UTF_8);
+    byte[] bytes = s.getBytes(UTF_8);
     if (bytes.length > Short.MAX_VALUE) {
       throw new IOException(
           "String too long to use with writeUTF [byteLength=" + bytes.length + "]");

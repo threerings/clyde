@@ -14,7 +14,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.zip.InflaterInputStream;
 
-import com.google.common.base.Charsets;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class FBXLoader {
 
@@ -222,7 +222,7 @@ public class FBXLoader {
 	}
 
 	private String getString(int length) {
-		return new String(getBytes(length), Charsets.UTF_8);
+		return new String(getBytes(length), UTF_8);
 	}
 
 	private FBXDataType getDataType() throws IOException {

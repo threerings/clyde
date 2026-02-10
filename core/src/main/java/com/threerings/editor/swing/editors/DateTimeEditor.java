@@ -302,7 +302,7 @@ public class DateTimeEditor extends PropertyEditor
     String localeSpec = modeArgs.remove("locale");
     if (localeSpec != null) {
       String[] specs = Iterables.toArray(
-        Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().split(localeSpec),
+        Splitter.on(CharMatcher.whitespace()).omitEmptyStrings().split(localeSpec),
         String.class);
       switch (specs.length) {
       case 1:

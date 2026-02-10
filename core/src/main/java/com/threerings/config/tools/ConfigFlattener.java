@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
@@ -65,6 +64,7 @@ import com.threerings.editor.util.PropertyUtil;
 
 import com.threerings.export.Exporter;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.threerings.ClydeLog.log;
 
 /**
@@ -354,7 +354,7 @@ public class ConfigFlattener
     value = value.replaceAll(PATTERN, ""); // replace pattern with nothing
 
     // encode the string to UTF8
-    return value.getBytes(Charsets.UTF_8);
+    return value.getBytes(UTF_8);
   }
 
   /**

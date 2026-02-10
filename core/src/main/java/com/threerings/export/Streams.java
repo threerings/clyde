@@ -13,12 +13,12 @@ import java.io.StreamCorruptedException;
 
 import java.util.Iterator;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.threerings.export.Log.log;
 
 /**
@@ -149,7 +149,7 @@ public class Streams
   public static void writeVarString (OutputStream out, String s)
     throws IOException
   {
-    byte[] bytes = s.getBytes(Charsets.UTF_8);
+    byte[] bytes = s.getBytes(UTF_8);
     writeVarInt(out, bytes.length);
     out.write(bytes);
   }
@@ -163,6 +163,6 @@ public class Streams
     int length = readVarInt(in);
     byte[] buf = new byte[length];
     ByteStreams.readFully(in, buf);
-    return new String(buf, Charsets.UTF_8);
+    return new String(buf, UTF_8);
   }
 }
