@@ -73,7 +73,7 @@ public abstract class Stringifier<T>
             return value.encodeToString();
           }
           public Encodable fromString (String string) throws Exception {
-            Encodable value = (Encodable)clazz.newInstance();
+            Encodable value = (Encodable)clazz.getConstructor().newInstance();
             value.decodeFromString(string);
             return value;
           }

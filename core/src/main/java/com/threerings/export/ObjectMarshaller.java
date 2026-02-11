@@ -151,7 +151,7 @@ public class ObjectMarshaller
       Class<?> oclazz = ReflectionUtil.getOuterClass(clazz);
       if (oclazz == null) {
         // static classes can use the no-arg constructor
-        _prototype = clazz.newInstance();
+        _prototype = clazz.getConstructor().newInstance();
       } else {
         // inner classes must pass the prototype of the outer class
         Object oproto = getObjectMarshaller(oclazz)._prototype;

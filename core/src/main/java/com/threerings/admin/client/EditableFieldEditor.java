@@ -69,7 +69,7 @@ public class EditableFieldEditor extends FieldEditor
 
     // create the dummy object that we'll actually edit
     try {
-      _dummy = object.getClass().newInstance();
+      _dummy = object.getClass().getConstructor().newInstance();
     } catch (Exception e) {
       throw new AssertionError(e);
     }

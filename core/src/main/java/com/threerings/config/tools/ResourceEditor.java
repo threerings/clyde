@@ -342,7 +342,7 @@ public class ResourceEditor extends BaseConfigEditor
   protected void newConfig (Class<?> clazz)
   {
     try {
-      ManagedConfig config = (ManagedConfig)clazz.newInstance();
+      ManagedConfig config = (ManagedConfig)clazz.getConstructor().newInstance();
       config.init(_cfgmgr);
       setConfig(config, null);
     } catch (Exception e) {

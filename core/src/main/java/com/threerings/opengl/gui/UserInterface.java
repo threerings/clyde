@@ -886,7 +886,7 @@ public class UserInterface extends Container
     String controller = original.controller;
     if (!"".equals(controller)) {
       try {
-        Controller c = (Controller)Class.forName(controller).newInstance();
+        Controller c = (Controller)Class.forName(controller).getConstructor().newInstance();
         if (c.init(_ctx.getApp(), this)) {
           _controller = c;
           checkController();

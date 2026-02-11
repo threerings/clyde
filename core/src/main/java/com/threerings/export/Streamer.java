@@ -101,7 +101,7 @@ public abstract class Streamer<T>
           public Encodable read (DataInputStream in) throws IOException {
             Encodable value;
             try {
-              value = (Encodable)clazz.newInstance();
+              value = (Encodable)clazz.getConstructor().newInstance();
             } catch (Exception e) {
               log.warning("Failed to create instance.", e);
               return null;

@@ -124,7 +124,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     // then by type
     if (clazz != null || (clazz = _classesByType.get(type)) != null) {
       try {
-        editor = clazz.newInstance();
+        editor = clazz.getConstructor().newInstance();
       } catch (Exception e) {
         log.warning("Failed to create property editor.", e);
         editor = new ObjectEditor();
@@ -133,7 +133,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
       editor = new EnumEditor();
     } else if (type.isArray() || List.class.isAssignableFrom(type)) {
       try {
-        editor = getArrayListEditorType(property).newInstance();
+        editor = getArrayListEditorType(property).getConstructor().newInstance();
       } catch (Exception e) {
         log.warning("Failed to create array list editor.", e);
         editor = new ObjectEditor();

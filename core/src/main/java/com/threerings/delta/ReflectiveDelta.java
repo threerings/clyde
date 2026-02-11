@@ -142,7 +142,7 @@ public class ReflectiveDelta extends Delta
     // create a new instance
     Object revised;
     try {
-      revised = _clazz.newInstance();
+      revised = _clazz.getConstructor().newInstance();
     } catch (Exception e) { // InstantiationException, IllegalAccessException
       throw new RuntimeException("Failed to instantiate " + _clazz +
         " for delta application", e);

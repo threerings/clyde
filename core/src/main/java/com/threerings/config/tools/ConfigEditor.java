@@ -746,7 +746,7 @@ public class ConfigEditor extends BaseConfigEditor
         Class<?> clazz = group.getRawConfigClasses().get(0);
         try {
           ManagedConfig cfg = (ManagedConfig)PreparedEditable.PREPARER.apply(
-              clazz.newInstance());
+              clazz.getConstructor().newInstance());
           if (cfg instanceof DerivedConfig) {
             ((DerivedConfig)cfg).cclass = group.getConfigClass();
           }

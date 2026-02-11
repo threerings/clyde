@@ -254,7 +254,7 @@ public abstract class ArrayListEditor extends PropertyEditor
       }
       try {
         @SuppressWarnings("unchecked")
-        List<Object> newList = (List<Object>)type.newInstance();
+        List<Object> newList = (List<Object>)type.getConstructor().newInstance();
         values = newList;
       } catch (Exception e) {
         throw new RuntimeException("Failed to instantiate list [class=" + type + "]", e);
