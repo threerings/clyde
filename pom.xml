@@ -64,6 +64,8 @@
               <arg>-Xlint</arg>
               <arg>-Xlint:-serial</arg>
               <arg>-Xlint:-path</arg>
+              <arg>-Xmaxwarns</arg>
+              <arg>9999</arg>
             </compilerArgs>
           </configuration>
         </plugin>
