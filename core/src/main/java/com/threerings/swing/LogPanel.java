@@ -29,7 +29,7 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -223,8 +223,8 @@ public class LogPanel extends JPanel
       EventQueue.invokeLater(new Runnable() {
         public void run () {
           try {
-            Rectangle view = _text.modelToView(_text.getLineStartOffset(line));
-            _pane.getVerticalScrollBar().setValue(view.y);
+            Rectangle2D view = _text.modelToView2D(_text.getLineStartOffset(line));
+            _pane.getVerticalScrollBar().setValue((int)view.getY());
           } catch (BadLocationException e) {
             // shouldn't happen
           }
