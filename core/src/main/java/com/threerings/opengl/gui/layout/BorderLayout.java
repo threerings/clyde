@@ -50,22 +50,22 @@ import com.threerings.opengl.gui.util.Insets;
 public class BorderLayout extends LayoutManager
 {
   /** A layout constraint. */
-  public static final Integer NORTH = new Integer(0);
+  public static final Integer NORTH = 0;
 
   /** A layout constraint. */
-  public static final Integer SOUTH = new Integer(1);
+  public static final Integer SOUTH = 1;
 
   /** A layout constraint. */
-  public static final Integer EAST = new Integer(2);
+  public static final Integer EAST = 2;
 
   /** A layout constraint. */
-  public static final Integer WEST = new Integer(3);
+  public static final Integer WEST = 3;
 
   /** A layout constraint. */
-  public static final Integer CENTER = new Integer(4);
+  public static final Integer CENTER = 4;
 
   /** A layout constraint. */
-  public static final Integer IGNORE = new Integer(5);
+  public static final Integer IGNORE = 5;
 
   /**
    * Creates a border layout with zero gap between the horizontal
@@ -98,8 +98,9 @@ public class BorderLayout extends LayoutManager
   public void addLayoutComponent (Component comp, Object constraints)
   {
     if (constraints instanceof Integer) {
-      if (constraints != IGNORE) {
-        _components[((Integer)constraints).intValue()] = comp;
+      int val = ((Integer)constraints).intValue();
+      if (val != IGNORE.intValue()) {
+        _components[val] = comp;
       }
     } else {
       throw new IllegalArgumentException(
