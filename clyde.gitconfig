@@ -2,4 +2,6 @@
 # % git config include.path ../clyde.gitconfig
 
 [blame]
-	ignoreRevsFile = .git-blame-ignore-revs
+  ignoreRevsFile = .git-blame-ignore-revs
+[log]
+  follow = true
