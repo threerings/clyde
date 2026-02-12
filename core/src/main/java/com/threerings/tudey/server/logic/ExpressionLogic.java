@@ -128,7 +128,7 @@ public abstract class ExpressionLogic extends Logic
     public Object evaluate (Logic activator, Object previous)
     {
       _target.resolve(activator, _targets);
-      Integer numTargets = new Integer(_targets.size());
+      Integer numTargets = Integer.valueOf(_targets.size());
       _targets.clear();
       return numTargets;
     }

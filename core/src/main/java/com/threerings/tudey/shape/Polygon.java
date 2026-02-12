@@ -193,7 +193,7 @@ public class Polygon extends Shape
         Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
         float dot = perp.dot(translation) > 0 ? 1 : -1;
         if (odot == null) {
-          odot = new Float(dot);
+          odot = Float.valueOf(dot);
         } else if (odot != dot) {
           if (dot < 0) {
             sidx = ii % nn;
