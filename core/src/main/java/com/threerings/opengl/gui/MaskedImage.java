@@ -31,10 +31,11 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 
-import org.lwjgl.opengl.ARBMultitexture;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -102,20 +103,20 @@ public class MaskedImage extends Image
     renderer.setMatrixMode(GL11.GL_MODELVIEW);
     GL11.glBegin(GL11.GL_QUADS);
     GL11.glTexCoord2f(lx, ly);
-    ARBMultitexture.glMultiTexCoord2fARB(
-      ARBMultitexture.GL_TEXTURE1_ARB, mls, mlt);
+    GL13.glMultiTexCoord2f(
+      GL13.GL_TEXTURE1, mls, mlt);
     GL11.glVertex2f(tx, ty);
     GL11.glTexCoord2f(ux, ly);
-    ARBMultitexture.glMultiTexCoord2fARB(
-      ARBMultitexture.GL_TEXTURE1_ARB, mus, mlt);
+    GL13.glMultiTexCoord2f(
+      GL13.GL_TEXTURE1, mus, mlt);
     GL11.glVertex2f(tx+twidth, ty);
     GL11.glTexCoord2f(ux, uy);
-    ARBMultitexture.glMultiTexCoord2fARB(
-      ARBMultitexture.GL_TEXTURE1_ARB, mus, mut);
+    GL13.glMultiTexCoord2f(
+      GL13.GL_TEXTURE1, mus, mut);
     GL11.glVertex2f(tx+twidth, ty+theight);
     GL11.glTexCoord2f(lx, uy);
-    ARBMultitexture.glMultiTexCoord2fARB(
-      ARBMultitexture.GL_TEXTURE1_ARB, mls, mut);
+    GL13.glMultiTexCoord2f(
+      GL13.GL_TEXTURE1, mls, mut);
     GL11.glVertex2f(tx, ty+theight);
     GL11.glEnd();
   }

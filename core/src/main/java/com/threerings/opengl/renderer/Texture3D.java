@@ -31,7 +31,8 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.util.GlUtil;
 
@@ -81,7 +82,7 @@ public class Texture3D extends Texture
     int level, int format, int width, int height, int depth, boolean border,
     int dformat, int dtype, ByteBuffer data)
   {
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       width = GlUtil.nextPowerOfTwo(width);
       height = GlUtil.nextPowerOfTwo(height);
       depth = GlUtil.nextPowerOfTwo(depth);
@@ -126,7 +127,7 @@ public class Texture3D extends Texture
     int depth, boolean premultiply, boolean rescale)
   {
     int width = image.getWidth() / sdivs, height = image.getHeight() / tdivs;
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       width = GlUtil.nextPowerOfTwo(width);
       height = GlUtil.nextPowerOfTwo(height);
       depth = GlUtil.nextPowerOfTwo(depth);

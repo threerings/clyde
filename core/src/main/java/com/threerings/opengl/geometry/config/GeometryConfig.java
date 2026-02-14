@@ -37,7 +37,8 @@ import java.util.Map;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -245,7 +246,7 @@ public abstract class GeometryConfig extends DeepObject
       final Matrix4f[] boneMatrices = getBoneMatrices(scope);
       final CoordSpace[] coordSpaces = getCoordSpaces(passes);
       final Vector3f center = bounds.getCenter();
-      if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+      if (GL.getCapabilities().GL_ARB_vertex_buffer_object) {
         final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
         final DrawCommand drawCommand = createDrawCommand(true);
         return new Geometry() {

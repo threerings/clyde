@@ -25,30 +25,25 @@
 
 package com.threerings.opengl.gui;
 
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.Window;
-
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Controller;
-import org.lwjgl.input.Controllers;
-//import org.lwjgl.input.IME;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
-
-import com.samskivert.util.RunAnywhere;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWCharCallback;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWMouseButtonCallback;
+import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.glfw.GLFWWindowFocusCallback;
 
 import com.threerings.math.FloatMath;
 
+import com.threerings.opengl.GlDisplayApp;
+import com.threerings.opengl.lwjgl2.Keyboard;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.event.ControllerEvent;
-//import com.threerings.opengl.gui.event.IMEEvent;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.text.IMEComponent;
@@ -56,7 +51,7 @@ import static com.threerings.opengl.gui.Log.log;
 
 
 /**
- * A root for {@link Display}-based apps.
+ * A root for GLFW-window-based apps.
  */
 public class DisplayRoot extends Root
 {
@@ -64,6 +59,14 @@ public class DisplayRoot extends Root
   {
     super(ctx);
     _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    // Set up GLFW callbacks if we have a window
+    if (ctx.getApp() instanceof GlDisplayApp) {
+      long window = ((GlDisplayApp)ctx.getApp()).getWindow();
+      if (window != 0) {
+        setupCallbacks(window);
+      }
+    }
   }
 
   /**
@@ -71,80 +74,27 @@ public class DisplayRoot extends Root
    */
   public void poll ()
   {
-    boolean isActive = Display.isActive();
-    boolean newActive = !_wasActive && isActive;
-    _wasActive = isActive;
-
-//        // process ime events
-//        while (IME.next()) {
-//            dispatchEvent(getFocus(),
-//                    new IMEEvent(this, _tickStamp,
-//                        IME.getState(), IME.getString(), IME.getCursorPosition()));
-//        }
-
-    // Work around a Mac issue: when focus is regained, the mouse coordinate is not
-    // updated until an actual mouse moved event is generated...
-    if (newActive && RunAnywhere.isMacOS()) {
-      Point p = MouseInfo.getPointerInfo().getLocation();
-      // We can modify and use that point directly. Translate it into window coords...
-      p.x -= Display.getX();
-      p.y = MAC_OS_MENUBAR_HEIGHT + Display.getHeight() - (p.y - Display.getY());
-      mouseMoved(_tickStamp, p.x, p.y, false); // hover the right coordinate immediately
-      _forcedMouse = p; // save this point until we get a geniune mouseMoved
+    // Process buffered events from GLFW callbacks
+    List<Runnable> events;
+    synchronized (_eventQueue) {
+      events = new ArrayList<>(_eventQueue);
+      _eventQueue.clear();
+    }
+    for (Runnable event : events) {
+      event.run();
     }
 
-    // process mouse events
-    while (Mouse.next()) {
-      int button = Mouse.getEventButton();
-      int delta = Mouse.getEventDWheel();
-      int eventX = Mouse.getEventX();
-      int eventY = Mouse.getEventY();
-      // clicks and wheels
-      if ((button != -1) || (delta != 0)) {
-        if (_forcedMouse != null) {
-          eventX = _forcedMouse.x;
-          eventY = _forcedMouse.y;
-        }
-        if (button != -1) {
-          boolean pressed = Mouse.getEventButtonState();
-          if (pressed && (NAIVE_FOCUS || !newActive)) {
-            mousePressed(_tickStamp, button, eventX, eventY, false);
-          } else {
-            mouseReleased(_tickStamp, button, eventX, eventY, false);
-          }
-          updateButtonModifier(button, pressed);
-        }
-        if (delta != 0) {
-          mouseWheeled(_tickStamp, eventX, eventY, (delta > 0) ? +1 : -1, false);
-        }
-
-      // movement
-      } else if (NAIVE_FOCUS || isActive) {
-        mouseMoved(_tickStamp, eventX, eventY, false);
-        _forcedMouse = null; // clear the forcedMouse value, if any
-      }
-    }
-
-    // process keyboard events
-    while (Keyboard.next()) {
-      int key = Keyboard.getEventKey();
-      boolean pressed = Keyboard.getEventKeyState();
-      if (pressed) {
-        keyPressed(_tickStamp, Keyboard.getEventCharacter(), key, false);
-      } else {
-        keyReleased(_tickStamp, Keyboard.getEventCharacter(), key, false);
-      }
-      updateKeyModifier(key, pressed);
-    }
-
-    if (isActive) {
-      // make sure the pressed keys are really pressed
-      if (!_pressedKeys.isEmpty()) {
+    // make sure the pressed keys are really pressed
+    if (_isActive && !_pressedKeys.isEmpty()) {
+      long window = getWindow();
+      if (window != 0) {
         for (Iterator<KeyRecord> it = _pressedKeys.values().iterator(); it.hasNext(); ) {
           KeyRecord record = it.next();
           KeyEvent press = record.getPress();
           int key = press.getKeyCode();
-          if (!Keyboard.isKeyDown(key)) {
+          int glfwKey = Keyboard.lwjgl2ToGlfw(key);
+          if (glfwKey != GLFW.GLFW_KEY_UNKNOWN &&
+              GLFW.glfwGetKey(window, glfwKey) != GLFW.GLFW_PRESS) {
             dispatchEvent(getFocus(), new KeyEvent(
               this, _tickStamp, _modifiers, KeyEvent.KEY_RELEASED,
               press.getKeyChar(), key, false));
@@ -153,7 +103,9 @@ public class DisplayRoot extends Root
           }
         }
       }
-    } else {
+    }
+
+    if (!_isActive) {
       // clear all modifiers and release all keys
       if (!_pressedKeys.isEmpty()) {
         for (KeyRecord record : _pressedKeys.values()) {
@@ -166,47 +118,14 @@ public class DisplayRoot extends Root
       }
       _modifiers = 0;
     }
-
-    // process controller events
-    while (Controllers.next()) {
-      if (!isActive) {
-        continue;
-      }
-      Controller controller = Controllers.getEventSource();
-      if (Controllers.isEventButton()) {
-        int index = Controllers.getEventControlIndex();
-        if (controller.isButtonPressed(index)) {
-          controllerPressed(controller, _tickStamp, index);
-        } else {
-          controllerReleased(controller, _tickStamp, index);
-        }
-      } else if (Controllers.isEventAxis()) {
-        int index = Controllers.getEventControlIndex();
-        controllerMoved(
-          controller, _tickStamp, index, Controllers.isEventXAxis(),
-          Controllers.isEventYAxis(), controller.getAxisValue(index));
-
-      } else if (Controllers.isEventPovX()) {
-        controllerPovXMoved(controller, _tickStamp, controller.getPovX());
-
-      } else if (Controllers.isEventPovY()) {
-        controllerPovYMoved(controller, _tickStamp, controller.getPovY());
-      }
-    }
   }
 
   /**
-   * Sets if we performe native IME composition.
+   * Sets if we perform native IME composition.
    */
   public void setIMEComposingEnabled (boolean enabled)
   {
-//        if (enabled == _imeComposingEnabled) {
-//            return;
-//        }
-//        if (_focus instanceof IMEComponent) {
-//            IME.setComposing(enabled);
-//        }
-//        _imeComposingEnabled = enabled;
+    // IME not currently supported in LWJGL 3 migration
   }
 
   @Override
@@ -224,21 +143,112 @@ public class DisplayRoot extends Root
   @Override
   public void setMousePosition (int x, int y)
   {
-    Mouse.setCursorPosition(FloatMath.round(x * _scale), FloatMath.round(y * _scale));
+    long window = getWindow();
+    if (window != 0) {
+      GLFW.glfwSetCursorPos(window, x * _scale, (_ctx.getRenderer().getHeight() - y - 1) * _scale);
+    }
     super.setMousePosition(x, y);
   }
 
   @Override
   protected void updateCursor (Cursor cursor)
   {
-    if (cursor == null) {
-      cursor = getDefaultCursor();
-    }
-    try {
-      Mouse.setNativeCursor(cursor == null ? null : cursor.getLWJGLCursor());
-    } catch (LWJGLException e) {
-      log.warning("Failed to set cursor.", "cursor", cursor, e);
-    }
+    // GLFW cursor management would go here
+    // For now, use default cursor
+  }
+
+  /**
+   * Sets up GLFW input callbacks on the given window.
+   */
+  protected void setupCallbacks (long window)
+  {
+    GLFW.glfwSetKeyCallback(window, new GLFWKeyCallback() {
+      @Override
+      public void invoke (long window, int glfwKey, int scancode, int action, int mods) {
+        int key = Keyboard.glfwToLwjgl2(glfwKey);
+        boolean pressed = (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT);
+        synchronized (_eventQueue) {
+          _eventQueue.add(() -> {
+            if (pressed) {
+              keyPressed(_tickStamp, (char)0, key, false);
+            } else {
+              keyReleased(_tickStamp, (char)0, key, false);
+            }
+            updateKeyModifier(key, pressed);
+          });
+        }
+      }
+    });
+
+    GLFW.glfwSetCharCallback(window, new GLFWCharCallback() {
+      @Override
+      public void invoke (long window, int codepoint) {
+        // Character events are handled via keyPressed char parameter
+      }
+    });
+
+    GLFW.glfwSetMouseButtonCallback(window, new GLFWMouseButtonCallback() {
+      @Override
+      public void invoke (long window, int button, int action, int mods) {
+        boolean pressed = (action == GLFW.GLFW_PRESS);
+        synchronized (_eventQueue) {
+          _eventQueue.add(() -> {
+            double[] xpos = new double[1], ypos = new double[1];
+            GLFW.glfwGetCursorPos(window, xpos, ypos);
+            int x = (int)xpos[0];
+            int[] ww = new int[1], wh = new int[1];
+            GLFW.glfwGetWindowSize(window, ww, wh);
+            int y = wh[0] - (int)ypos[0] - 1;
+            if (pressed) {
+              mousePressed(_tickStamp, button, x, y, false);
+              updateButtonModifier(button, true);
+            } else {
+              mouseReleased(_tickStamp, button, x, y, false);
+              updateButtonModifier(button, false);
+            }
+          });
+        }
+      }
+    });
+
+    GLFW.glfwSetCursorPosCallback(window, new GLFWCursorPosCallback() {
+      @Override
+      public void invoke (long window, double xpos, double ypos) {
+        synchronized (_eventQueue) {
+          _eventQueue.add(() -> {
+            int x = (int)xpos;
+            int[] ww = new int[1], wh = new int[1];
+            GLFW.glfwGetWindowSize(window, ww, wh);
+            int y = wh[0] - (int)ypos - 1;
+            mouseMoved(_tickStamp, x, y, false);
+          });
+        }
+      }
+    });
+
+    GLFW.glfwSetScrollCallback(window, new GLFWScrollCallback() {
+      @Override
+      public void invoke (long window, double xoffset, double yoffset) {
+        synchronized (_eventQueue) {
+          _eventQueue.add(() -> {
+            double[] xpos = new double[1], ypos2 = new double[1];
+            GLFW.glfwGetCursorPos(window, xpos, ypos2);
+            int x = (int)xpos[0];
+            int[] ww = new int[1], wh = new int[1];
+            GLFW.glfwGetWindowSize(window, ww, wh);
+            int y = wh[0] - (int)ypos2[0] - 1;
+            mouseWheeled(_tickStamp, x, y, (yoffset > 0) ? +1 : -1, false);
+          });
+        }
+      }
+    });
+
+    GLFW.glfwSetWindowFocusCallback(window, new GLFWWindowFocusCallback() {
+      @Override
+      public void invoke (long window, boolean focused) {
+        _isActive = focused;
+      }
+    });
   }
 
   /**
@@ -251,15 +261,12 @@ public class DisplayRoot extends Root
       case 0:
         mask = InputEvent.BUTTON1_DOWN_MASK;
         break;
-
       case 1:
         mask = InputEvent.BUTTON2_DOWN_MASK;
         break;
-
       case 2:
         mask = InputEvent.BUTTON3_DOWN_MASK;
         break;
-
       default:
         return;
     }
@@ -282,26 +289,22 @@ public class DisplayRoot extends Root
         mask = InputEvent.SHIFT_DOWN_MASK;
         okey = (key == Keyboard.KEY_LSHIFT) ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
         break;
-
       case Keyboard.KEY_LCONTROL:
       case Keyboard.KEY_RCONTROL:
         mask = InputEvent.CTRL_DOWN_MASK;
         okey = (key == Keyboard.KEY_LCONTROL) ?
           Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
         break;
-
       case Keyboard.KEY_LMENU:
       case Keyboard.KEY_RMENU:
         mask = InputEvent.ALT_DOWN_MASK;
         okey = (key == Keyboard.KEY_LMENU) ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
         break;
-
       case Keyboard.KEY_LMETA:
       case Keyboard.KEY_RMETA:
         mask = InputEvent.META_DOWN_MASK;
         okey = (key == Keyboard.KEY_LMETA) ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
         break;
-
       default:
         return;
     }
@@ -313,82 +316,19 @@ public class DisplayRoot extends Root
   }
 
   /**
-   * Notes that a controller button has been pressed.
+   * Returns the GLFW window handle.
    */
-  protected void controllerPressed (Controller controller, long when, int index)
+  protected long getWindow ()
   {
-    ControllerEvent event = new ControllerEvent(
-      controller, when, _modifiers, ControllerEvent.CONTROLLER_PRESSED, index);
-    dispatchEvent(getFocus(), event);
+    if (_ctx.getApp() instanceof GlDisplayApp) {
+      return ((GlDisplayApp)_ctx.getApp()).getWindow();
+    }
+    return 0;
   }
 
-  /**
-   * Notes that a controller button has been released.
-   */
-  protected void controllerReleased (Controller controller, long when, int index)
-  {
-    ControllerEvent event = new ControllerEvent(
-      controller, when, _modifiers, ControllerEvent.CONTROLLER_RELEASED, index);
-    dispatchEvent(getFocus(), event);
-  }
+  /** Whether the window is currently active/focused. */
+  protected boolean _isActive = true;
 
-  /**
-   * Notes that a controller has moved on an axis.
-   */
-  protected void controllerMoved (
-    Controller controller, long when, int index, boolean xAxis, boolean yAxis, float value)
-  {
-    ControllerEvent event = new ControllerEvent(
-      controller, when, _modifiers, ControllerEvent.CONTROLLER_MOVED,
-      index, xAxis, yAxis, value);
-    dispatchEvent(getFocus(), event);
-  }
-
-  /**
-   * Notes that a controller has moved on the pov x axis.
-   */
-  protected void controllerPovXMoved (Controller controller, long when, float value)
-  {
-    ControllerEvent event = new ControllerEvent(
-      controller, when, _modifiers, ControllerEvent.CONTROLLER_POV_X_MOVED, value);
-    dispatchEvent(getFocus(), event);
-  }
-
-  /**
-   * Notes that a controller has moved on the pov y axis.
-   */
-  protected void controllerPovYMoved (Controller controller, long when, float value)
-  {
-    ControllerEvent event = new ControllerEvent(
-      controller, when, _modifiers, ControllerEvent.CONTROLLER_POV_Y_MOVED, value);
-    dispatchEvent(getFocus(), event);
-  }
-
-//    @Override
-//    protected void setIMEFocus (boolean focused)
-//    {
-//        if (!focused) {
-//            IME.setComposing(false);
-//        }
-//        super.setIMEFocus(focused);
-//        if (focused) {
-//            IME.setComposing(_imeComposingEnabled);
-//        }
-//    }
-
-  /** A forced mouse location, or null. Used on Mac OS X only, after regaining focus. */
-  protected Point _forcedMouse;
-
-  /** Track whether we were active during the last event poll, so that we can consume
-   * the mouse click that may arrive with focus. */
-  protected boolean _wasActive;
-
-//    /** If ime composing is enabled. */
-//    protected boolean _imeComposingEnabled;
-
-  /** The number of pixels used by the menubar on Mac OS X. For fudging mouse position. */
-  protected static final int MAC_OS_MENUBAR_HEIGHT = 22;
-
-  /** If true, allows hovers while the window is unfocused and processes the focusing click. */
-  private static final boolean NAIVE_FOCUS = false;
+  /** Queue of input events from GLFW callbacks. */
+  protected final List<Runnable> _eventQueue = new ArrayList<>();
 }

@@ -28,7 +28,7 @@ package com.threerings.opengl.geometry;
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBBufferObject;
+import org.lwjgl.opengl.GL15;
 
 import com.threerings.opengl.renderer.BufferObject;
 
@@ -93,7 +93,7 @@ public abstract class DynamicGeometry extends Geometry
 
     // copy from buffer to vbo if using one
     if (_arrayBuffer != null) {
-      _arrayBuffer.setData(_floatArray, ARBBufferObject.GL_STREAM_DRAW_ARB);
+      _arrayBuffer.setData(_floatArray, GL15.GL_STREAM_DRAW);
     }
   }
 

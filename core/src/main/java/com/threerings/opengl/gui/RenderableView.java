@@ -30,7 +30,7 @@ import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.PixelFormat;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

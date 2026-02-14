@@ -32,73 +32,64 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Controllers;
-//import org.lwjgl.input.IME;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.PixelFormat;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryUtil;
 
 import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import static com.threerings.opengl.Log.log;
 
 /**
- * A base class for applications that use LWJGL's {@link Display} class.
+ * A base class for applications that use a GLFW window for display.
  */
 public abstract class GlDisplayApp extends GlApp
 {
   public GlDisplayApp ()
   {
-    // enable vsync unless configured otherwise
-    Display.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+    _vsync = !Boolean.getBoolean("no_vsync");
   }
 
   /**
-   * Returns an array containing the available display modes.
+   * Returns the GLFW window handle.
    */
-  public DisplayMode[] getAvailableDisplayModes ()
+  public long getWindow ()
   {
-    try {
-      return Display.getAvailableDisplayModes();
-    } catch (LWJGLException e) {
-      log.warning("Failed to retrieve available display modes.", e);
-      return new DisplayMode[] { Display.getDisplayMode() };
-    }
+    return _window;
   }
 
   /**
-   * Sets the display mode and fullscreen setting at the same time.
+   * Returns the current window width.
    */
-  public void setDisplayModeAndFullscreen (DisplayMode mode)
+  public int getWindowWidth ()
   {
-    try {
-      Display.setDisplayModeAndFullscreen(mode);
-      updateRendererSize();
-    } catch (LWJGLException e) {
-      log.warning("Failed to set display mode/fullscreen.", "mode", mode, e);
-    }
+    int[] w = new int[1], h = new int[1];
+    GLFW.glfwGetWindowSize(_window, w, h);
+    return w[0];
   }
 
   /**
-   * Sets the display mode and updates the viewport if the display is created.
+   * Returns the current window height.
    */
-  public void setDisplayMode (DisplayMode mode)
+  public int getWindowHeight ()
   {
-    if (Display.getDisplayMode().equals(mode)) {
-      return;
-    }
-    try {
-      Display.setDisplayMode(mode);
-      updateRendererSize();
-    } catch (LWJGLException e) {
-      log.warning("Failed to set display mode.", "mode", mode, e);
-    }
+    int[] w = new int[1], h = new int[1];
+    GLFW.glfwGetWindowSize(_window, w, h);
+    return h[0];
+  }
+
+  /**
+   * Sets the window size.
+   */
+  public void setWindowSize (int width, int height)
+  {
+    GLFW.glfwSetWindowSize(_window, width, height);
+    updateRendererSize();
   }
 
   /**
@@ -106,11 +97,8 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setFullscreen (boolean fullscreen)
   {
-    try {
-      Display.setFullscreen(fullscreen);
-    } catch (LWJGLException e) {
-      log.warning("Failed to set fullscreen mode.", "fullscreen", fullscreen, e);
-    }
+    // GLFW fullscreen requires recreating the window; for now just log
+    log.info("setFullscreen not yet fully implemented for GLFW.", "fullscreen", fullscreen);
   }
 
   /**
@@ -120,32 +108,15 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setIcon (String... paths)
   {
-    ByteBuffer[] icons = new ByteBuffer[paths.length];
-    for (int ii = 0; ii < paths.length; ii++) {
-      BufferedImage image = _imgcache.getBufferedImage(paths[ii]);
-      int[] argb = image.getRGB(
-        0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-      ByteBuffer buf = BufferUtils.createByteBuffer(argb.length * 4);
-      for (int pixel : argb) {
-        buf.put((byte)((pixel >> 16) & 0xFF));
-        buf.put((byte)((pixel >> 8) & 0xFF));
-        buf.put((byte)(pixel & 0xFF));
-        buf.put((byte)((pixel >> 24) & 0xFF));
-      }
-      buf.rewind();
-      icons[ii] = buf;
-    }
-    Display.setIcon(icons);
+    // GLFW window icon setting would go here
+    // For now, this is a no-op; GLFW icon support differs from LWJGL 2
+    log.info("setIcon: GLFW icon support pending implementation.");
   }
 
   // documentation inherited from interface GlContext
   public void makeCurrent ()
   {
-    try {
-      Display.makeCurrent();
-    } catch (LWJGLException e) {
-      log.warning("Failed to make context current.", e);
-    }
+    GLFW.glfwMakeContextCurrent(_window);
   }
 
   @Override
@@ -178,11 +149,11 @@ public abstract class GlDisplayApp extends GlApp
   public void shutdown ()
   {
     willShutdown();
-    Keyboard.destroy();
-    Mouse.destroy();
-    Controllers.destroy();
-//        IME.destroy();
-    Display.destroy();
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwDestroyWindow(_window);
+      _window = MemoryUtil.NULL;
+    }
+    GLFW.glfwTerminate();
     System.exit(0);
   }
 
@@ -198,33 +169,12 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   protected void didInit ()
   {
-    // create the input devices
-    try {
-      Keyboard.create();
-    } catch (LWJGLException e) {
-      log.warning("Failed to create keyboard.", e);
-    }
-    try {
-      Mouse.create();
-    } catch (LWJGLException e) {
-      log.warning("Failed to create mouse.", e);
-    }
-    try {
-      Controllers.create();
-    } catch (LWJGLException e) {
-      log.warning("Failed to create controllers.", e);
-    }
-//        try {
-//            IME.create();
-//        } catch (LWJGLException e) {
-//            log.warning("Failed to create ime.", e);
-//        }
-
     // start the updater
     final Runnable updater = new Runnable() {
       public void run () {
-        if (Display.isCloseRequested()) {
+        if (GLFW.glfwWindowShouldClose(_window)) {
           shutdown();
+          return;
         }
         makeCurrent();
         updateFrame();
@@ -247,8 +197,9 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   protected void initRenderer ()
   {
-    Dimension dim = calcRendererSize();
-    _renderer.init(Display.getDrawable(), dim.width, dim.height);
+    int[] w = new int[1], h = new int[1];
+    GLFW.glfwGetFramebufferSize(_window, w, h);
+    _renderer.init(_window, w[0], h[0]);
   }
 
   /**
@@ -256,65 +207,57 @@ public abstract class GlDisplayApp extends GlApp
    */
   protected void updateRendererSize ()
   {
-    if (Display.isCreated()) {
-      Dimension dim = calcRendererSize();
-      _renderer.setSize(dim.width, dim.height);
+    if (_window != MemoryUtil.NULL) {
+      int[] w = new int[1], h = new int[1];
+      GLFW.glfwGetFramebufferSize(_window, w, h);
+      _renderer.setSize(w[0], h[0]);
     }
   }
 
   /**
-   * Return the size to use for rendering the specified display mode.
-   * Single place to perform overrides of rendering alterations.
+   * Return the size to use for rendering.
    */
   protected Dimension calcRendererSize ()
   {
-    return new Dimension(Display.getWidth(), Display.getHeight());
+    int[] w = new int[1], h = new int[1];
+    GLFW.glfwGetFramebufferSize(_window, w, h);
+    return new Dimension(w[0], h[0]);
   }
 
   /**
-   * Creates the display with one of the supported pixel formats.
+   * Creates the GLFW window with one of the supported pixel formats.
    *
-   * @return true if successful, false if we couldn't find a valid pixel format.
+   * @return true if successful.
    */
   protected boolean createDisplay ()
   {
-    // try with the current settings
-    if (attemptCreateDisplay()) {
-      return true;
-    }
-
-    // switch to/from fullscreen mode and try again
-    boolean fullscreen = !Display.isFullscreen();
-    log.info("Couldn't create display; switching fullscreen mode.", "fullscreen", fullscreen);
-    try {
-      Display.setFullscreen(fullscreen);
-    } catch (LWJGLException e) {
-      log.warning("Failed to switch fullscreen mode.", e);
+    if (!GLFW.glfwInit()) {
+      log.warning("Failed to initialize GLFW.");
       return false;
     }
-    if (attemptCreateDisplay()) {
-      return true;
+
+    // Try pixel formats in order of preference
+    for (PixelFormat format : getPixelFormats()) {
+      GLFW.glfwDefaultWindowHints();
+      GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+      GLFW.glfwWindowHint(GLFW.GLFW_ALPHA_BITS, format.getAlphaBits());
+      GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, format.getDepthBits());
+      GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, format.getStencilBits());
+      if (format.getSamples() > 0) {
+        GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, format.getSamples());
+      }
+
+      _window = GLFW.glfwCreateWindow(800, 600, "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
+      if (_window != MemoryUtil.NULL) {
+        GLFW.glfwMakeContextCurrent(_window);
+        GL.createCapabilities();
+        GLFW.glfwSwapInterval(_vsync ? 1 : 0);
+        GLFW.glfwShowWindow(_window);
+        return true;
+      }
     }
 
     log.warning("Couldn't find valid pixel format.");
-    return false;
-  }
-
-  /**
-   * Tries each pixel format in sequence until we find one that works.
-   *
-   * @return true if successful, false if we couldn't find a valid pixel format.
-   */
-  protected boolean attemptCreateDisplay ()
-  {
-    for (PixelFormat format : getPixelFormats()) {
-      try {
-        Display.create(format);
-        return true;
-      } catch (LWJGLException e) {
-        // proceed to next format
-      }
-    }
     return false;
   }
 
@@ -324,16 +267,24 @@ public abstract class GlDisplayApp extends GlApp
   protected void updateFrame ()
   {
     try {
+      GLFW.glfwPollEvents();
       updateView();
-      if (Display.isVisible()) {
+      // Check if window is visible/not iconified
+      if (GLFW.glfwGetWindowAttrib(_window, GLFW.GLFW_VISIBLE) != 0) {
         renderView();
       }
-      Display.update();
+      GLFW.glfwSwapBuffers(_window);
 
     } catch (Exception e) {
       log.warning("Caught exception in frame loop.", e);
     }
   }
+
+  /** The GLFW window handle. */
+  protected long _window = MemoryUtil.NULL;
+
+  /** Whether vsync is enabled. */
+  protected boolean _vsync;
 
   /** Our root. */
   protected Root _displayRoot;

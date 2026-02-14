@@ -25,10 +25,11 @@
 
 package com.threerings.opengl.renderer.config;
 
-import org.lwjgl.opengl.ARBTextureEnvCombine;
-import org.lwjgl.opengl.ARBTextureEnvDot3;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -54,17 +55,17 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     REPLACE(GL11.GL_REPLACE),
     MODULATE(GL11.GL_MODULATE),
     ADD(GL11.GL_ADD),
-    ADD_SIGNED(ARBTextureEnvCombine.GL_ADD_SIGNED_ARB),
-    INTERPOLATE(ARBTextureEnvCombine.GL_INTERPOLATE_ARB),
-    SUBTRACT(ARBTextureEnvCombine.GL_SUBTRACT_ARB),
-    DOT3_RGB(ARBTextureEnvDot3.GL_DOT3_RGB_ARB) {
+    ADD_SIGNED(GL13.GL_ADD_SIGNED),
+    INTERPOLATE(GL13.GL_INTERPOLATE),
+    SUBTRACT(GL13.GL_SUBTRACT),
+    DOT3_RGB(GL13.GL_DOT3_RGB) {
       public boolean isSupported (boolean fallback) {
-        return GLContext.getCapabilities().GL_ARB_texture_env_dot3;
+        return GL.getCapabilities().GL_ARB_texture_env_dot3;
       }
     },
-    DOT3_RGBA(ARBTextureEnvDot3.GL_DOT3_RGBA_ARB) {
+    DOT3_RGBA(GL13.GL_DOT3_RGBA) {
       public boolean isSupported (boolean fallback) {
-        return GLContext.getCapabilities().GL_ARB_texture_env_dot3;
+        return GL.getCapabilities().GL_ARB_texture_env_dot3;
       }
     };
 
@@ -92,9 +93,9 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     REPLACE(GL11.GL_REPLACE),
     MODULATE(GL11.GL_MODULATE),
     ADD(GL11.GL_ADD),
-    ADD_SIGNED(ARBTextureEnvCombine.GL_ADD_SIGNED_ARB),
-    INTERPOLATE(ARBTextureEnvCombine.GL_INTERPOLATE_ARB),
-    SUBTRACT(ARBTextureEnvCombine.GL_SUBTRACT_ARB);
+    ADD_SIGNED(GL13.GL_ADD_SIGNED),
+    INTERPOLATE(GL13.GL_INTERPOLATE),
+    SUBTRACT(GL13.GL_SUBTRACT);
 
     public int getConstant ()
     {
@@ -113,9 +114,9 @@ public abstract class TextureEnvironmentConfig extends DeepObject
   public enum Source
   {
     TEXTURE(GL11.GL_TEXTURE),
-    CONSTANT(ARBTextureEnvCombine.GL_CONSTANT_ARB),
-    PRIMARY_COLOR(ARBTextureEnvCombine.GL_PRIMARY_COLOR_ARB),
-    PREVIOUS(ARBTextureEnvCombine.GL_PREVIOUS_ARB);
+    CONSTANT(GL13.GL_CONSTANT),
+    PRIMARY_COLOR(GL13.GL_PRIMARY_COLOR),
+    PREVIOUS(GL13.GL_PREVIOUS);
 
     public int getConstant ()
     {
@@ -246,7 +247,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     @Override
     public boolean isSupported (boolean fallback)
     {
-      return GLContext.getCapabilities().GL_ARB_texture_env_add;
+      return GL.getCapabilities().GL_ARB_texture_env_add;
     }
 
     @Override
@@ -304,7 +305,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     @Override
     public boolean isSupported (boolean fallback)
     {
-      return GLContext.getCapabilities().GL_ARB_texture_env_combine;
+      return GL.getCapabilities().GL_ARB_texture_env_combine;
     }
 
     @Override
@@ -332,7 +333,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     @Override
     public int getMode ()
     {
-      return ARBTextureEnvCombine.GL_COMBINE_ARB;
+      return GL13.GL_COMBINE;
     }
   }
 

@@ -28,7 +28,7 @@ package com.threerings.opengl.renderer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBOcclusionQuery;
+import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -46,7 +46,7 @@ public abstract class Query
      */
     public SamplesPassed (Renderer renderer)
     {
-      super(renderer, ARBOcclusionQuery.GL_SAMPLES_PASSED_ARB);
+      super(renderer, GL15.GL_SAMPLES_PASSED);
     }
   }
 
@@ -57,7 +57,7 @@ public abstract class Query
   {
     _renderer = renderer;
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
-    ARBOcclusionQuery.glGenQueriesARB(idbuf);
+    GL15.glGenQueries(idbuf);
     _id = idbuf.get(0);
     _target = target;
   }
@@ -83,8 +83,8 @@ public abstract class Query
    */
   public boolean isResultAvailable ()
   {
-    ARBOcclusionQuery.glGetQueryObjectARB(
-      _id, ARBOcclusionQuery.GL_QUERY_RESULT_AVAILABLE_ARB, _result);
+    GL15.glGetQueryObjectiv(
+      _id, GL15.GL_QUERY_RESULT_AVAILABLE, _result);
     return _result.get(0) == GL11.GL_TRUE;
   }
 
@@ -93,8 +93,8 @@ public abstract class Query
    */
   public int getResult ()
   {
-    ARBOcclusionQuery.glGetQueryObjectARB(
-      _id, ARBOcclusionQuery.GL_QUERY_RESULT_ARB, _result);
+    GL15.glGetQueryObjectiv(
+      _id, GL15.GL_QUERY_RESULT, _result);
     return _result.get(0);
   }
 

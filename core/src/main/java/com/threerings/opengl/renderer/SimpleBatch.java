@@ -29,7 +29,8 @@ import java.nio.ShortBuffer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.renderer.state.ArrayState;
 import com.threerings.opengl.renderer.state.RenderState;
@@ -351,7 +352,7 @@ public class SimpleBatch extends Batch
   public static DrawElements createDrawBufferElements (
     int mode, int start, int end, int count, int type, long offset)
   {
-    if (GLContext.getCapabilities().OpenGL12) {
+    if (GL.getCapabilities().OpenGL12) {
       return new DrawBufferRangeElements(mode, start, end, count, type, offset);
     } else {
       return new DrawBufferElements(mode, count, type, offset);
@@ -365,7 +366,7 @@ public class SimpleBatch extends Batch
   public static DrawElements createDrawShortElements (
     int mode, int start, int end, ShortBuffer indices)
   {
-    if (GLContext.getCapabilities().OpenGL12) {
+    if (GL.getCapabilities().OpenGL12) {
       return new DrawShortRangeElements(mode, start, end, indices);
     } else {
       return new DrawShortElements(mode, indices);

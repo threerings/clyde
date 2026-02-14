@@ -33,10 +33,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
-import org.lwjgl.opengl.EXTBgra;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.EXTTextureCompressionS3TC;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.renderer.Texture1D;
 import com.threerings.opengl.renderer.Texture2D;
@@ -336,13 +337,13 @@ public class DDSLoader
           return GL11.GL_RGBA;
         }
       } else if (rBitMask == 0xFF0000 && gBitMask == 0xFF00 && bBitMask == 0xFF) {
-        if (!GLContext.getCapabilities().GL_EXT_bgra) {
+        if (!GL.getCapabilities().GL_EXT_bgra) {
           throw new IOException("BGRA format not supported.");
         }
         if ((pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) {
-          return EXTBgra.GL_BGR_EXT;
+          return GL12.GL_BGR;
         } else if (alphaBitMask == 0xFF000000) {
-          return EXTBgra.GL_BGRA_EXT;
+          return GL12.GL_BGRA;
         }
       }
       throw new IOException("Unknown format: " + rBitMask + "/" + gBitMask + "/" +
@@ -367,7 +368,7 @@ public class DDSLoader
       } else {
         throw new IOException("Unknown format: " + fourCC);
       }
-      if (!GLContext.getCapabilities().GL_EXT_texture_compression_s3tc) {
+      if (!GL.getCapabilities().GL_EXT_texture_compression_s3tc) {
         throw new IOException("S3TC texture compression not supported.");
       }
       return format;

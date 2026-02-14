@@ -25,67 +25,94 @@
 
 package com.threerings.opengl;
 
-import java.awt.AWTEvent;
+import java.awt.Canvas;
 import java.awt.EventQueue;
-import java.lang.reflect.Field;
+import java.awt.Graphics;
 
 import javax.swing.JPopupMenu;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.AWTGLCanvas;
-import org.lwjgl.opengl.Drawable;
-import org.lwjgl.opengl.PixelFormat;
-import org.lwjgl.opengl.Util;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryUtil;
+
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import static com.threerings.opengl.Log.log;
 
 /**
- * A canvas that extends {@link AWTGLCanvas}.
+ * A canvas that creates a GLFW context for OpenGL rendering.
+ * In LWJGL 3, AWTGLCanvas is no longer available. This class creates
+ * a hidden GLFW window for the GL context.
  */
-public class AWTCanvas extends AWTGLCanvas
+public class AWTCanvas extends Canvas
   implements GlCanvas
 {
   /**
    * Creates a canvas with the supplied pixel format.
    */
   public AWTCanvas (PixelFormat pformat)
-    throws LWJGLException
+    throws Exception
   {
-    super(pformat);
+    if (!GLFW.glfwInit()) {
+      throw new Exception("Failed to initialize GLFW");
+    }
+
+    GLFW.glfwDefaultWindowHints();
+    GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+    GLFW.glfwWindowHint(GLFW.GLFW_ALPHA_BITS, pformat.getAlphaBits());
+    GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, pformat.getDepthBits());
+    GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, pformat.getStencilBits());
+    if (pformat.getSamples() > 0) {
+      GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, pformat.getSamples());
+    }
+
+    _window = GLFW.glfwCreateWindow(800, 600, "", MemoryUtil.NULL, MemoryUtil.NULL);
+    if (_window == MemoryUtil.NULL) {
+      throw new Exception("Failed to create GLFW window for AWTCanvas");
+    }
+
+    GLFW.glfwMakeContextCurrent(_window);
+    GL.createCapabilities();
 
     // make popups heavyweight so that we can see them over the canvas
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
   }
 
   // documentation inherited from interface GlCanvas
-  public Drawable getDrawable ()
+  public long getWindowHandle ()
   {
-    return this;
+    return _window;
+  }
+
+  // documentation inherited from interface GlCanvas
+  public void setVSyncEnabled (boolean vsync)
+  {
+    GLFW.glfwMakeContextCurrent(_window);
+    GLFW.glfwSwapInterval(vsync ? 1 : 0);
   }
 
   // documentation inherited from interface GlCanvas
   public void shutdown ()
   {
-    // no-op
+    stopUpdating();
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwDestroyWindow(_window);
+      _window = MemoryUtil.NULL;
+    }
   }
 
   @Override
   public void makeCurrent ()
   {
-    try {
-      super.makeCurrent();
-    } catch (LWJGLException e) {
-      log.warning("Failed to make context current.", e);
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwMakeContextCurrent(_window);
     }
   }
 
-  @Override
   public void swapBuffers ()
   {
-    try {
-      super.swapBuffers();
-    } catch (LWJGLException e) {
-      log.warning("Error swapping buffers.", e);
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwSwapBuffers(_window);
     }
   }
 
@@ -97,32 +124,17 @@ public class AWTCanvas extends AWTGLCanvas
   }
 
   @Override
-  protected void initGL ()
+  public void paint (Graphics g)
   {
-    // hackery: increment the reentry count so that the context is never released
-    try {
-      Field field = AWTGLCanvas.class.getDeclaredField("reentry_count");
-      field.setAccessible(true);
-      field.setInt(this, 2);
-    } catch (Exception e) {
-      log.warning("Failed to access field.", e);
+    if (!_glInitialized) {
+      _glInitialized = true;
+
+      // let subclasses do their own initialization
+      didInit();
+
+      // start rendering frames
+      startUpdating();
     }
-
-    // now that we're initialized, make sure AWT doesn't call our paint method
-    disableEvents(AWTEvent.PAINT_EVENT_MASK);
-    setIgnoreRepaint(true);
-
-    // let subclasses do their own initialization
-    didInit();
-
-    // start rendering frames
-    startUpdating();
-  }
-
-  @Override
-  protected void paintGL ()
-  {
-    renderView();
   }
 
   /**
@@ -164,13 +176,9 @@ public class AWTCanvas extends AWTGLCanvas
     try {
       updateView();
       if (isShowing()) {
-        // LWJGL's paint method obtains a lock on the AWT surface; without it, we crash
-        // due to failed synchronization-related assertions on Linux
-        paint(null);
+        renderView();
         swapBuffers();
       }
-      Util.checkGLError();
-
     } catch (Exception e) {
       log.warning("Caught exception in frame loop.", e);
     }
@@ -189,6 +197,12 @@ public class AWTCanvas extends AWTGLCanvas
   protected void renderView ()
   {
   }
+
+  /** The GLFW window handle. */
+  protected long _window = MemoryUtil.NULL;
+
+  /** Whether GL has been initialized. */
+  protected boolean _glInitialized;
 
   /** The runnable that updates the frame. */
   protected Runnable _updater;

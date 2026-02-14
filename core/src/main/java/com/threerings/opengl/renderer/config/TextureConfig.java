@@ -34,14 +34,15 @@ import java.lang.ref.SoftReference;
 import java.util.HashSet;
 import java.util.List;
 
-import org.lwjgl.opengl.ARBShadow;
-import org.lwjgl.opengl.ARBTextureBorderClamp;
-import org.lwjgl.opengl.ARBTextureCompression;
-import org.lwjgl.opengl.ARBTextureMirroredRepeat;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.google.common.collect.Lists;
 
@@ -115,18 +116,18 @@ public class TextureConfig extends ParameterizedConfig
       }
     },
     ALPHA(GL11.GL_ALPHA),
-    COMPRESSED_ALPHA(ARBTextureCompression.GL_COMPRESSED_ALPHA_ARB, GL11.GL_ALPHA),
+    COMPRESSED_ALPHA(GL13.GL_COMPRESSED_ALPHA, GL11.GL_ALPHA),
     LUMINANCE(GL11.GL_LUMINANCE),
-    COMPRESSED_LUMINANCE(ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ARB, GL11.GL_LUMINANCE),
+    COMPRESSED_LUMINANCE(GL13.GL_COMPRESSED_LUMINANCE, GL11.GL_LUMINANCE),
     LUMINANCE_ALPHA(GL11.GL_LUMINANCE_ALPHA),
     COMPRESSED_LUMINANCE_ALPHA(
-      ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB, GL11.GL_LUMINANCE_ALPHA),
+      GL13.GL_COMPRESSED_LUMINANCE_ALPHA, GL11.GL_LUMINANCE_ALPHA),
     INTENSITY(GL11.GL_INTENSITY),
-    COMPRESSED_INTENSITY(ARBTextureCompression.GL_COMPRESSED_INTENSITY_ARB, GL11.GL_INTENSITY),
+    COMPRESSED_INTENSITY(GL13.GL_COMPRESSED_INTENSITY, GL11.GL_INTENSITY),
     RGB(GL11.GL_RGB),
-    COMPRESSED_RGB(ARBTextureCompression.GL_COMPRESSED_RGB_ARB, GL11.GL_RGB),
+    COMPRESSED_RGB(GL13.GL_COMPRESSED_RGB, GL11.GL_RGB),
     RGBA(GL11.GL_RGBA),
-    COMPRESSED_RGBA(ARBTextureCompression.GL_COMPRESSED_RGBA_ARB, GL11.GL_RGBA),
+    COMPRESSED_RGBA(GL13.GL_COMPRESSED_RGBA, GL11.GL_RGBA),
     DEPTH_COMPONENT(GL11.GL_DEPTH_COMPONENT, -1, true);
 
     /**
@@ -137,7 +138,7 @@ public class TextureConfig extends ParameterizedConfig
     public int getConstant (BufferedImage image)
     {
       // return the uncompressed equivalent if we don't support texture compression
-      if (_uncompressed != -1 && !GLContext.getCapabilities().GL_ARB_texture_compression) {
+      if (_uncompressed != -1 && !GL.getCapabilities().GL_ARB_texture_compression) {
         return _uncompressed;
       }
       return _constant;
@@ -145,7 +146,7 @@ public class TextureConfig extends ParameterizedConfig
 
     public boolean isSupported (boolean fallback)
     {
-      return (!_depth || GLContext.getCapabilities().GL_ARB_depth_texture);
+      return (!_depth || GL.getCapabilities().GL_ARB_depth_texture);
     }
 
     Format (int constant)
@@ -225,35 +226,35 @@ public class TextureConfig extends ParameterizedConfig
     CLAMP(GL11.GL_CLAMP),
     CLAMP_TO_EDGE(GL12.GL_CLAMP_TO_EDGE) {
       public int getConstant () {
-        return GLContext.getCapabilities().OpenGL12 ? _constant : GL11.GL_CLAMP;
+        return GL.getCapabilities().OpenGL12 ? _constant : GL11.GL_CLAMP;
       }
       public boolean isSupported (boolean fallback) {
-        return GLContext.getCapabilities().OpenGL12 || fallback;
+        return GL.getCapabilities().OpenGL12 || fallback;
       }
     },
     REPEAT(GL11.GL_REPEAT),
-    CLAMP_TO_BORDER(ARBTextureBorderClamp.GL_CLAMP_TO_BORDER_ARB) {
+    CLAMP_TO_BORDER(GL13.GL_CLAMP_TO_BORDER) {
       public int getConstant () {
-        return GLContext.getCapabilities().GL_ARB_texture_border_clamp ?
+        return GL.getCapabilities().GL_ARB_texture_border_clamp ?
           _constant : GL11.GL_CLAMP;
       }
       public boolean isSupported (boolean fallback) {
-        return GLContext.getCapabilities().GL_ARB_texture_border_clamp || fallback;
+        return GL.getCapabilities().GL_ARB_texture_border_clamp || fallback;
       }
     },
     MIRRORED_REPEAT(GL14.GL_MIRRORED_REPEAT) {
       public int getConstant () {
-        if (GLContext.getCapabilities().OpenGL14) {
+        if (GL.getCapabilities().OpenGL14) {
           return _constant;
-        } else if (GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat) {
-          return ARBTextureMirroredRepeat.GL_MIRRORED_REPEAT_ARB;
+        } else if (GL.getCapabilities().GL_ARB_texture_mirrored_repeat) {
+          return GL14.GL_MIRRORED_REPEAT;
         } else {
           return GL11.GL_REPEAT;
         }
       }
       public boolean isSupported (boolean fallback) {
-        return GLContext.getCapabilities().OpenGL14 ||
-          GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat || fallback;
+        return GL.getCapabilities().OpenGL14 ||
+          GL.getCapabilities().GL_ARB_texture_mirrored_repeat || fallback;
       }
     };
 
@@ -279,9 +280,9 @@ public class TextureConfig extends ParameterizedConfig
   public enum CompareMode
   {
     NONE(GL11.GL_NONE),
-    COMPARE_R_TO_TEXTURE(ARBShadow.GL_COMPARE_R_TO_TEXTURE_ARB) {
+    COMPARE_R_TO_TEXTURE(GL14.GL_COMPARE_R_TO_TEXTURE) {
       public boolean isSupported (boolean fallback) {
-        return GLContext.getCapabilities().GL_ARB_shadow;
+        return GL.getCapabilities().GL_ARB_shadow;
       }
     };
 
@@ -805,7 +806,7 @@ public class TextureConfig extends ParameterizedConfig
     public boolean isSupported (GlContext ctx, boolean fallback)
     {
       return super.isSupported(ctx, fallback) &&
-        GLContext.getCapabilities().GL_ARB_texture_rectangle;
+        GL.getCapabilities().GL_ARB_texture_rectangle;
     }
 
     @Override
@@ -946,7 +947,7 @@ public class TextureConfig extends ParameterizedConfig
     @Override
     public boolean isSupported (GlContext ctx, boolean fallback)
     {
-      return super.isSupported(ctx, fallback) && GLContext.getCapabilities().OpenGL12;
+      return super.isSupported(ctx, fallback) && GL.getCapabilities().OpenGL12;
     }
 
     @Override
@@ -1181,7 +1182,7 @@ public class TextureConfig extends ParameterizedConfig
     public boolean isSupported (GlContext ctx, boolean fallback)
     {
       return super.isSupported(ctx, fallback) &&
-        GLContext.getCapabilities().GL_ARB_texture_cube_map;
+        GL.getCapabilities().GL_ARB_texture_cube_map;
     }
 
     @Override

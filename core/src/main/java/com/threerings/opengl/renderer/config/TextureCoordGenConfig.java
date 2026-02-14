@@ -25,9 +25,10 @@
 
 package com.threerings.opengl.renderer.config;
 
-import org.lwjgl.opengl.ARBTextureCubeMap;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.math.Vector4f;
 
@@ -120,13 +121,13 @@ public abstract class TextureCoordGenConfig extends DeepObject
     @Override
     public boolean isSupported (boolean fallback)
     {
-      return GLContext.getCapabilities().GL_ARB_texture_cube_map;
+      return GL.getCapabilities().GL_ARB_texture_cube_map;
     }
 
     @Override
     public int getModeAndPlane (Vector4f plane)
     {
-      return ARBTextureCubeMap.GL_NORMAL_MAP_ARB;
+      return GL13.GL_NORMAL_MAP;
     }
   }
 
@@ -138,13 +139,13 @@ public abstract class TextureCoordGenConfig extends DeepObject
     @Override
     public boolean isSupported (boolean fallback)
     {
-      return GLContext.getCapabilities().GL_ARB_texture_cube_map;
+      return GL.getCapabilities().GL_ARB_texture_cube_map;
     }
 
     @Override
     public int getModeAndPlane (Vector4f plane)
     {
-      return ARBTextureCubeMap.GL_REFLECTION_MAP_ARB;
+      return GL13.GL_REFLECTION_MAP;
     }
   }
 

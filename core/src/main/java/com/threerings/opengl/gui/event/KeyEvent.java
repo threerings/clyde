@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui.event;
 
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 /**
  * Encapsulates the information associated with a keyboard event.

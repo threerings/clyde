@@ -26,7 +26,7 @@
 package com.threerings.opengl.gui;
 
 import java.awt.Component;
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 import com.threerings.math.FloatMath;
 

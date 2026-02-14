@@ -36,8 +36,8 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.lwjgl.opengl.ARBFragmentShader;
-import org.lwjgl.opengl.ARBVertexShader;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL20;
 
 import com.samskivert.util.ArrayUtil;
 
@@ -251,8 +251,8 @@ public class ShaderCache extends ResourceCache
 
   /** Maps file extensions to shader types. */
   protected static final Map<String, Integer> TYPES = ImmutableMap.of(
-    "vert", ARBVertexShader.GL_VERTEX_SHADER_ARB,
-    "frag", ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
+    "vert", GL20.GL_VERTEX_SHADER,
+    "frag", GL20.GL_FRAGMENT_SHADER);
 
   /** Whether or not we should check the logs even if the shader compiles/links successfully. */
   protected static final boolean CHECK_LOGS = true;

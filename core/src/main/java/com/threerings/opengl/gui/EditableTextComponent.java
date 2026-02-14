@@ -29,7 +29,7 @@ import javax.swing.undo.UndoManager;
 
 import com.google.common.base.Strings;
 
-//import org.lwjgl.input.IME.State;
+//// LWJGL3: IME.State removed
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.IntTuple;

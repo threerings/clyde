@@ -35,7 +35,8 @@ import java.util.HashMap;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.samskivert.util.HashIntMap;
 
@@ -1043,7 +1044,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
     // use a VBO if possible
     BufferObject elementArrayBuffer = null;
-    if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+    if (GL.getCapabilities().GL_ARB_vertex_buffer_object) {
       _arrayBuffer = new BufferObject(ctx.getRenderer());
       _floatArray = getScratchBuffer(_data.length);
 

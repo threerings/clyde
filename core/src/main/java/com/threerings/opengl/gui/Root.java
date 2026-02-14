@@ -39,7 +39,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Iterables;
 
-//import org.lwjgl.input.IME;
+//// LWJGL3: IME removed
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;

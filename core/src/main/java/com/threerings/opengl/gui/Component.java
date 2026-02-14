@@ -35,7 +35,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.config.ArgumentMap;

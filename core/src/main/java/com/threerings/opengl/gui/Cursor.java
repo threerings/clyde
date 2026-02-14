@@ -31,11 +31,10 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWImage;
 
 import static com.threerings.opengl.gui.Log.log;
 
@@ -55,14 +54,14 @@ public class Cursor
   }
 
   /**
-   * Retrieve the lazily-initialized LWJGL cursor.
+   * Retrieve the lazily-initialized GLFW cursor handle.
    */
-  public org.lwjgl.input.Cursor getLWJGLCursor ()
+  public long getGLFWCursor ()
   {
-    if (_lwjglCursor == null) {
-      _lwjglCursor = createLWJGLCursor();
+    if (_glfwCursor == 0) {
+      _glfwCursor = createGLFWCursor();
     }
-    return _lwjglCursor;
+    return _glfwCursor;
   }
 
   /**
@@ -77,51 +76,66 @@ public class Cursor
   }
 
   /**
-   * Display the LWJGL cursor.
+   * Display the GLFW cursor on the given window.
    */
-  public void show ()
+  public void show (long window)
   {
-    if (!Display.isCreated()) {
+    if (window == 0) {
       return;
     }
-    if (!Mouse.isCreated()) {
-      try {
-        Mouse.create();
-      } catch (Throwable t) {
-        log.warning("Problem creating mouse.", t);
-        return;
-      }
-    }
-    org.lwjgl.input.Cursor cursor = getLWJGLCursor();
-    if (Mouse.getNativeCursor() != cursor) {
-      try {
-        Mouse.setNativeCursor(cursor);
-      } catch (Throwable t) {
-        log.warning("Problem updating mouse cursor.", t);
-      }
+    long cursor = getGLFWCursor();
+    if (cursor != 0) {
+      GLFW.glfwSetCursor(window, cursor);
     }
   }
 
   /**
-   * Creates an LWJGL cursor from the configured image and hotspot.
+   * Display the cursor (legacy method).
    */
-  protected org.lwjgl.input.Cursor createLWJGLCursor ()
+  public void show ()
+  {
+    // No-op without a window reference; use show(long window) instead
+  }
+
+  /**
+   * Destroys the GLFW cursor resources.
+   */
+  public void destroy ()
+  {
+    if (_glfwCursor != 0) {
+      GLFW.glfwDestroyCursor(_glfwCursor);
+      _glfwCursor = 0;
+    }
+  }
+
+  /**
+   * Creates a GLFW cursor from the configured image and hotspot.
+   */
+  protected long createGLFWCursor ()
   {
     int ww = _image.getWidth();
     int hh = _image.getHeight();
-    IntBuffer data = ByteBuffer.allocateDirect(ww*hh*4).asIntBuffer();
-    for (int yy = hh - 1; yy >= 0; yy--) {
+
+    // Convert image to RGBA byte buffer
+    ByteBuffer pixels = BufferUtils.createByteBuffer(ww * hh * 4);
+    for (int yy = 0; yy < hh; yy++) {
       for (int xx = 0; xx < ww; xx++) {
-        data.put(_image.getRGB(xx, yy));
+        int argb = _image.getRGB(xx, yy);
+        pixels.put((byte)((argb >> 16) & 0xFF)); // R
+        pixels.put((byte)((argb >> 8) & 0xFF));  // G
+        pixels.put((byte)(argb & 0xFF));          // B
+        pixels.put((byte)((argb >> 24) & 0xFF)); // A
       }
     }
-    data.flip();
-    try {
-      return new org.lwjgl.input.Cursor(ww, hh, _hx, hh - _hy - 1, 1, data, null);
-    } catch (LWJGLException e) {
-      System.err.println("Unable to create cursor: " + e);
-      return null;
-    }
+    pixels.flip();
+
+    GLFWImage glfwImage = GLFWImage.malloc();
+    glfwImage.set(ww, hh, pixels);
+
+    long cursor = GLFW.glfwCreateCursor(glfwImage, _hx, _hy);
+    glfwImage.free();
+
+    return cursor;
   }
 
   /**
@@ -134,7 +148,6 @@ public class Cursor
     Image image = _image;
     int hx = _hx, hy = _hy;
     if (size.width != width || size.height != height) {
-      // resize the image and adjust the hotspot
       image = _image.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
       hx = (_hx * size.width) / width;
       hy = (_hy * size.height) / height;
@@ -145,6 +158,6 @@ public class Cursor
   protected BufferedImage _image;
   protected int _hx, _hy;
 
-  protected org.lwjgl.input.Cursor _lwjglCursor;
+  protected long _glfwCursor;
   protected java.awt.Cursor _awtCursor;
 }

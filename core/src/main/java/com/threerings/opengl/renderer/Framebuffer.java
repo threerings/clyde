@@ -28,8 +28,8 @@ package com.threerings.opengl.renderer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBTextureCubeMap;
-import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -45,7 +45,7 @@ public class Framebuffer
   {
     _renderer = renderer;
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
-    EXTFramebufferObject.glGenFramebuffersEXT(idbuf);
+    GL30.glGenFramebuffers(idbuf);
     _id = idbuf.get(0);
   }
 
@@ -75,7 +75,7 @@ public class Framebuffer
   {
     if (_colorAttachment != texture || _colorLevel != level || _colorParam != param) {
       setAttachment(
-        EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, texture,
+        GL30.GL_COLOR_ATTACHMENT0, texture,
         _colorLevel = level, _colorParam = param);
       _colorAttachment = texture;
     }
@@ -87,7 +87,7 @@ public class Framebuffer
   public void setColorAttachment (Renderbuffer renderbuffer)
   {
     if (_colorAttachment != renderbuffer) {
-      setAttachment(EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, renderbuffer);
+      setAttachment(GL30.GL_COLOR_ATTACHMENT0, renderbuffer);
       _colorAttachment = renderbuffer;
     }
   }
@@ -119,7 +119,7 @@ public class Framebuffer
   {
     if (_depthAttachment != texture || _depthLevel != level || _depthParam != param) {
       setAttachment(
-        EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, texture,
+        GL30.GL_DEPTH_ATTACHMENT, texture,
         _depthLevel = level, _depthParam = param);
       _depthAttachment = texture;
     }
@@ -131,7 +131,7 @@ public class Framebuffer
   public void setDepthAttachment (Renderbuffer renderbuffer)
   {
     if (_depthAttachment != renderbuffer) {
-      setAttachment(EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, renderbuffer);
+      setAttachment(GL30.GL_DEPTH_ATTACHMENT, renderbuffer);
       _depthAttachment = renderbuffer;
     }
   }
@@ -163,7 +163,7 @@ public class Framebuffer
   {
     if (_stencilAttachment != texture || _stencilLevel != level || _stencilParam != param) {
       setAttachment(
-        EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, texture,
+        GL30.GL_STENCIL_ATTACHMENT, texture,
         _stencilLevel = level, _stencilParam = param);
       _stencilAttachment = texture;
     }
@@ -175,7 +175,7 @@ public class Framebuffer
   public void setStencilAttachment (Renderbuffer renderbuffer)
   {
     if (_stencilAttachment != renderbuffer) {
-      setAttachment(EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, renderbuffer);
+      setAttachment(GL30.GL_STENCIL_ATTACHMENT, renderbuffer);
       _stencilAttachment = renderbuffer;
     }
   }
@@ -194,7 +194,7 @@ public class Framebuffer
    */
   public boolean isComplete ()
   {
-    return checkStatus() == EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT;
+    return checkStatus() == GL30.GL_FRAMEBUFFER_COMPLETE;
   }
 
   /**
@@ -204,8 +204,8 @@ public class Framebuffer
   {
     Framebuffer obuffer = _renderer.getFramebuffer();
     _renderer.setFramebuffer(this);
-    int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(
-      EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
+    int status = GL30.glCheckFramebufferStatus(
+      GL30.GL_FRAMEBUFFER);
     _renderer.setFramebuffer(obuffer);
     return status;
   }
@@ -217,7 +217,7 @@ public class Framebuffer
   {
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
     idbuf.put(_id).rewind();
-    EXTFramebufferObject.glDeleteFramebuffersEXT(idbuf);
+    GL30.glDeleteFramebuffers(idbuf);
     _id = 0;
   }
 
@@ -234,17 +234,17 @@ public class Framebuffer
     _renderer.setFramebuffer(this);
     int target = texture.getTarget();
     if (target == GL11.GL_TEXTURE_1D) {
-      EXTFramebufferObject.glFramebufferTexture1DEXT(
-        EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
+      GL30.glFramebufferTexture1D(
+        GL30.GL_FRAMEBUFFER, attachment,
         GL11.GL_TEXTURE_1D, texture.getId(), level);
     } else if (target == GL12.GL_TEXTURE_3D) {
-      EXTFramebufferObject.glFramebufferTexture3DEXT(
-        EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
+      GL30.glFramebufferTexture3D(
+        GL30.GL_FRAMEBUFFER, attachment,
         GL12.GL_TEXTURE_3D, texture.getId(), level, param);
     } else { // GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_CUBE_MAP_ARB
-      EXTFramebufferObject.glFramebufferTexture2DEXT(
-        EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
-        (target == ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB) ?
+      GL30.glFramebufferTexture2D(
+        GL30.GL_FRAMEBUFFER, attachment,
+        (target == GL13.GL_TEXTURE_CUBE_MAP) ?
           TextureCubeMap.FACE_TARGETS[param] : target,
         texture.getId(), level);
     }
@@ -258,9 +258,9 @@ public class Framebuffer
   {
     Framebuffer obuffer = _renderer.getFramebuffer();
     _renderer.setFramebuffer(this);
-    EXTFramebufferObject.glFramebufferRenderbufferEXT(
-      EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
-      EXTFramebufferObject.GL_RENDERBUFFER_EXT, renderbuffer.getId());
+    GL30.glFramebufferRenderbuffer(
+      GL30.GL_FRAMEBUFFER, attachment,
+      GL30.GL_RENDERBUFFER, renderbuffer.getId());
     _renderer.setFramebuffer(obuffer);
   }
 

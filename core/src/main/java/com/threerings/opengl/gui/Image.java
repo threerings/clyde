@@ -33,7 +33,8 @@ import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -51,7 +52,7 @@ public class Image
   public static void configureTexture (Texture2D texture)
   {
     texture.setMinFilter(GL11.GL_LINEAR);
-    int wrap = GLContext.getCapabilities().OpenGL12 ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_CLAMP;
+    int wrap = GL.getCapabilities().OpenGL12 ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_CLAMP;
     texture.setWrap(wrap, wrap);
   }
 

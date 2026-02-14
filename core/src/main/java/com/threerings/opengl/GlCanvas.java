@@ -25,17 +25,15 @@
 
 package com.threerings.opengl;
 
-import org.lwjgl.opengl.Drawable;
-
 /**
  * An interface implemented by {@link AWTCanvas} and {@link DisplayCanvas}.
  */
 public interface GlCanvas
 {
   /**
-   * Returns the canvas drawable.
+   * Returns the GLFW window handle, or 0 if not applicable.
    */
-  public Drawable getDrawable ();
+  public long getWindowHandle ();
 
   /**
    * Enables or disables vsync.

@@ -37,7 +37,7 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.PixelFormat;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;

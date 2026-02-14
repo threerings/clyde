@@ -38,7 +38,6 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import org.lwjgl.opengl.Display;
 
 import com.samskivert.util.Interval;
 import com.samskivert.util.RunAnywhere;
@@ -157,9 +156,12 @@ public abstract class GlCanvasTool extends GlCanvasApp
     super.renderView();
 
     if (_sync60) {
-      // we probably shouldn't reference Display here, but this static method merely
-      // does thread sleep/yielding.
-      Display.sync(60);
+      // Simple frame rate limiter (replacing LWJGL 2's Display.sync)
+      try {
+        Thread.sleep(16); // ~60fps
+      } catch (InterruptedException e) {
+        // ignore
+      }
     }
   }
 

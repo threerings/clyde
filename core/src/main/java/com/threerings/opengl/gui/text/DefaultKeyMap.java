@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui.text;
 
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 import com.samskivert.util.RunAnywhere;
 

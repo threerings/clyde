@@ -25,10 +25,9 @@
 
 package com.threerings.opengl.gui.event;
 
-import org.lwjgl.input.Controller;
-
 /**
  * Encapsulates the information associated with a controller (joystick, gamepad) event.
+ * In LWJGL 3, the Controller class is no longer available; controller source is stored as Object.
  */
 public class ControllerEvent extends InputEvent
 {
@@ -51,7 +50,7 @@ public class ControllerEvent extends InputEvent
    * Creates a new controller button event.
    */
   public ControllerEvent (
-    Controller source, long when, int modifiers, int type, int controlIndex)
+    Object source, long when, int modifiers, int type, int controlIndex)
   {
     this(source, when, modifiers, type, controlIndex, false, false, 0f);
   }
@@ -60,7 +59,7 @@ public class ControllerEvent extends InputEvent
    * Creates a new controller pov event.
    */
   public ControllerEvent (
-    Controller source, long when, int modifiers, int type, float value)
+    Object source, long when, int modifiers, int type, float value)
   {
     this(source, when, modifiers, type, -1, false, false, value);
   }
@@ -69,7 +68,7 @@ public class ControllerEvent extends InputEvent
    * Creates a new controller event.
    */
   public ControllerEvent (
-    Controller source, long when, int modifiers, int type,
+    Object source, long when, int modifiers, int type,
     int controlIndex, boolean xAxis, boolean yAxis, float value)
   {
     super(source, when, modifiers);
@@ -83,14 +82,13 @@ public class ControllerEvent extends InputEvent
   /**
    * Returns a reference to the controller that caused the event.
    */
-  public Controller getController ()
+  public Object getController ()
   {
-    return (Controller)getSource();
+    return getSource();
   }
 
   /**
-   * Returns the type of this event, one of {@link #CONTROLLER_PRESSED},
-   * {#link CONTROLLER_RELEASED}, etc.
+   * Returns the type of this event.
    */
   public int getType ()
   {
@@ -140,25 +138,21 @@ public class ControllerEvent extends InputEvent
         ((ControllerListener)listener).controllerPressed(this);
       }
       break;
-
     case CONTROLLER_RELEASED:
       if (listener instanceof ControllerListener) {
         ((ControllerListener)listener).controllerReleased(this);
       }
       break;
-
     case CONTROLLER_MOVED:
       if (listener instanceof ControllerListener) {
         ((ControllerListener)listener).controllerMoved(this);
       }
       break;
-
     case CONTROLLER_POV_X_MOVED:
       if (listener instanceof ControllerListener) {
         ((ControllerListener)listener).controllerPovXMoved(this);
       }
       break;
-
     case CONTROLLER_POV_Y_MOVED:
       if (listener instanceof ControllerListener) {
         ((ControllerListener)listener).controllerPovYMoved(this);
@@ -178,18 +172,9 @@ public class ControllerEvent extends InputEvent
     buf.append(", value=").append(_value);
   }
 
-  /** The type of the event. */
   protected int _type;
-
-  /** The index of the control (button or axis) that caused the event. */
   protected int _controlIndex;
-
-  /** Whether or not the axis is the x axis. */
   protected boolean _xAxis;
-
-  /** Whether or not the axis is the y axis. */
   protected boolean _yAxis;
-
-  /** The value of the axis. */
   protected float _value;
 }
