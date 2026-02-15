@@ -41,6 +41,7 @@ import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
+import com.threerings.opengl.lwjgl2.DisplayMode;
 import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import static com.threerings.opengl.Log.log;
@@ -93,12 +94,165 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
+   * Returns whether the window is currently fullscreen.
+   */
+  public boolean isFullscreen ()
+  {
+    return _window != MemoryUtil.NULL &&
+      GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
+  }
+
+  /**
+   * Returns whether the window is currently active (focused).
+   */
+  public boolean isActive ()
+  {
+    return _window != MemoryUtil.NULL &&
+      GLFW.glfwGetWindowAttrib(_window, GLFW.GLFW_FOCUSED) != 0;
+  }
+
+  /**
+   * Returns whether the display/window has been created.
+   */
+  public boolean isCreated ()
+  {
+    return _window != MemoryUtil.NULL;
+  }
+
+  /**
+   * Returns whether the window was resized since the last call.
+   */
+  public boolean wasResized ()
+  {
+    boolean resized = _wasResized;
+    _wasResized = false;
+    return resized;
+  }
+
+  /**
    * Sets the fullscreen mode.
    */
   public void setFullscreen (boolean fullscreen)
   {
-    // GLFW fullscreen requires recreating the window; for now just log
-    log.info("setFullscreen not yet fully implemented for GLFW.", "fullscreen", fullscreen);
+    if (_window == MemoryUtil.NULL) return;
+    long monitor = GLFW.glfwGetPrimaryMonitor();
+    if (fullscreen) {
+      GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
+      GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
+        vidMode.width(), vidMode.height(), vidMode.refreshRate());
+    } else {
+      GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
+        100, 100, 800, 600, GLFW.GLFW_DONT_CARE);
+    }
+    GLFW.glfwSwapInterval(_vsync ? 1 : 0);
+    updateRendererSize();
+  }
+
+  /**
+   * Sets whether the window is resizable.
+   */
+  public void setResizable (boolean resizable)
+  {
+    GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_RESIZABLE,
+      resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+  }
+
+  /**
+   * Sets the window title.
+   */
+  public void setTitle (String title)
+  {
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwSetWindowTitle(_window, title);
+    }
+  }
+
+  /**
+   * Sets whether vsync is enabled.
+   */
+  public void setVSyncEnabled (boolean enabled)
+  {
+    _vsync = enabled;
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwMakeContextCurrent(_window);
+      GLFW.glfwSwapInterval(enabled ? 1 : 0);
+    }
+  }
+
+  /**
+   * Synchronizes the frame rate to the given FPS. Negative values are no-ops.
+   */
+  public void sync (int fps)
+  {
+    if (fps <= 0) return;
+    long targetNanos = 1_000_000_000L / fps;
+    long elapsed = System.nanoTime() - _lastFrameTime;
+    long sleepNanos = targetNanos - elapsed;
+    if (sleepNanos > 0) {
+      try {
+        Thread.sleep(sleepNanos / 1_000_000, (int)(sleepNanos % 1_000_000));
+      } catch (InterruptedException e) {
+        // ignore
+      }
+    }
+    _lastFrameTime = System.nanoTime();
+  }
+
+  /**
+   * Gets the desktop display mode via GLFW.
+   */
+  public DisplayMode getDesktopDisplayMode ()
+  {
+    long monitor = GLFW.glfwGetPrimaryMonitor();
+    GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
+    return new DisplayMode(vidMode.width(), vidMode.height(),
+      vidMode.redBits() + vidMode.greenBits() + vidMode.blueBits(),
+      vidMode.refreshRate(), true);
+  }
+
+  /**
+   * Gets all available display modes.
+   */
+  public DisplayMode[] getAvailableDisplayModes ()
+  {
+    long monitor = GLFW.glfwGetPrimaryMonitor();
+    GLFWVidMode.Buffer vidModes = GLFW.glfwGetVideoModes(monitor);
+    if (vidModes == null) return new DisplayMode[0];
+    DisplayMode[] modes = new DisplayMode[vidModes.limit()];
+    for (int ii = 0; ii < vidModes.limit(); ii++) {
+      vidModes.position(ii);
+      int bpp = vidModes.redBits() + vidModes.greenBits() + vidModes.blueBits();
+      modes[ii] = new DisplayMode(
+        vidModes.width(), vidModes.height(), bpp, vidModes.refreshRate(), true);
+    }
+    return modes;
+  }
+
+  /**
+   * Sets the display mode and fullscreen state.
+   */
+  public void setDisplayModeAndFullscreen (DisplayMode mode)
+  {
+    if (_window == MemoryUtil.NULL) return;
+    if (mode.isFullscreenCapable()) {
+      long monitor = GLFW.glfwGetPrimaryMonitor();
+      GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
+        mode.getWidth(), mode.getHeight(),
+        mode.getFrequency() > 0 ? mode.getFrequency() : GLFW.GLFW_DONT_CARE);
+    } else {
+      GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
+        100, 100, mode.getWidth(), mode.getHeight(), GLFW.GLFW_DONT_CARE);
+    }
+    GLFW.glfwSwapInterval(_vsync ? 1 : 0);
+    updateRendererSize();
+  }
+
+  /**
+   * Returns the OpenGL adapter/renderer string (replaces Display.getAdapter()).
+   */
+  public String getAdapter ()
+  {
+    return org.lwjgl.opengl.GL11.glGetString(org.lwjgl.opengl.GL11.GL_RENDERER);
   }
 
   /**
@@ -252,6 +406,7 @@ public abstract class GlDisplayApp extends GlApp
         GLFW.glfwMakeContextCurrent(_window);
         GL.createCapabilities();
         GLFW.glfwSwapInterval(_vsync ? 1 : 0);
+        GLFW.glfwSetWindowSizeCallback(_window, (win, w, h) -> _wasResized = true);
         GLFW.glfwShowWindow(_window);
         return true;
       }
@@ -285,6 +440,12 @@ public abstract class GlDisplayApp extends GlApp
 
   /** Whether vsync is enabled. */
   protected boolean _vsync;
+
+  /** Whether the window was resized. */
+  protected boolean _wasResized;
+
+  /** Last frame time for sync(). */
+  protected long _lastFrameTime = System.nanoTime();
 
   /** Our root. */
   protected Root _displayRoot;
