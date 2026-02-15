@@ -30,6 +30,7 @@ import java.awt.EventQueue;
 import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
@@ -37,6 +38,7 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 
+import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.DisplayRoot;
@@ -153,8 +155,11 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setResizable (boolean resizable)
   {
-    GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_RESIZABLE,
-      resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+    _resizable = resizable;
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_RESIZABLE,
+        resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+    }
   }
 
   /**
@@ -199,12 +204,33 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
+   * Ensures GLFW is initialized (safe to call multiple times).
+   */
+  protected void ensureGlfwInit ()
+  {
+    if (!_glfwInited) {
+      if (!GLFW.glfwInit()) {
+        log.warning("Failed to initialize GLFW.");
+        return;
+      }
+      _glfwInited = true;
+    }
+  }
+
+  /**
    * Gets the desktop display mode via GLFW.
    */
   public DisplayMode getDesktopDisplayMode ()
   {
+    ensureGlfwInit();
     long monitor = GLFW.glfwGetPrimaryMonitor();
+    if (monitor == MemoryUtil.NULL) {
+      return new DisplayMode(1024, 768);
+    }
     GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
+    if (vidMode == null) {
+      return new DisplayMode(1024, 768);
+    }
     return new DisplayMode(vidMode.width(), vidMode.height(),
       vidMode.redBits() + vidMode.greenBits() + vidMode.blueBits(),
       vidMode.refreshRate(), true);
@@ -215,7 +241,9 @@ public abstract class GlDisplayApp extends GlApp
    */
   public DisplayMode[] getAvailableDisplayModes ()
   {
+    ensureGlfwInit();
     long monitor = GLFW.glfwGetPrimaryMonitor();
+    if (monitor == MemoryUtil.NULL) return new DisplayMode[0];
     GLFWVidMode.Buffer vidModes = GLFW.glfwGetVideoModes(monitor);
     if (vidModes == null) return new DisplayMode[0];
     DisplayMode[] modes = new DisplayMode[vidModes.limit()];
@@ -276,7 +304,12 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   public RunQueue getRunQueue ()
   {
-    return RunQueue.AWT;
+    if (_mainRunQueue == null) {
+      // Can be called during superclass constructor before field initializers run
+      _mainQueue = new ConcurrentLinkedQueue<>();
+      _mainRunQueue = createMainRunQueue();
+    }
+    return _mainRunQueue;
   }
 
   @Override
@@ -291,16 +324,30 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   public void startup ()
   {
-    // all the work happens in the AWT thread
-    EventQueue.invokeLater(new Runnable() {
-      public void run () {
-        init();
-      }
-    });
+    // On macOS, GLFW requires all window/event operations on the main thread.
+    // With -XstartOnFirstThread, main() IS the main thread, so we run the
+    // GLFW loop there and use a queue for deferred tasks.
+    _mainThread = Thread.currentThread();
+    _running = true;
+    init();
+    if (_window == MemoryUtil.NULL) {
+      _running = false;
+      return;
+    }
+    // run the main loop on this thread (the main thread)
+    mainLoop();
   }
 
   @Override
   public void shutdown ()
+  {
+    _running = false;
+  }
+
+  /**
+   * Performs the actual shutdown cleanup. Called from the main loop thread.
+   */
+  protected void performShutdown ()
   {
     willShutdown();
     if (_window != MemoryUtil.NULL) {
@@ -323,19 +370,35 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   protected void didInit ()
   {
-    // start the updater
-    final Runnable updater = new Runnable() {
-      public void run () {
-        if (GLFW.glfwWindowShouldClose(_window)) {
-          shutdown();
-          return;
-        }
-        makeCurrent();
-        updateFrame();
-        EventQueue.invokeLater(this);
+    // Nothing to do here — the main loop is started by startup() after init().
+  }
+
+  /**
+   * The main render/event loop. Runs on the main thread.
+   */
+  protected void mainLoop ()
+  {
+    _mainThread = Thread.currentThread();
+    _running = true;
+    while (_running) {
+      if (GLFW.glfwWindowShouldClose(_window)) {
+        _running = false;
+        break;
       }
-    };
-    EventQueue.invokeLater(updater);
+
+      // Process any queued tasks
+      Runnable task;
+      while ((task = _mainQueue.poll()) != null) {
+        try {
+          task.run();
+        } catch (Exception e) {
+          log.warning("Error in queued task.", e);
+        }
+      }
+
+      updateFrame();
+    }
+    performShutdown();
   }
 
   @Override
@@ -385,8 +448,8 @@ public abstract class GlDisplayApp extends GlApp
    */
   protected boolean createDisplay ()
   {
-    if (!GLFW.glfwInit()) {
-      log.warning("Failed to initialize GLFW.");
+    ensureGlfwInit();
+    if (!_glfwInited) {
       return false;
     }
 
@@ -394,6 +457,7 @@ public abstract class GlDisplayApp extends GlApp
     for (PixelFormat format : getPixelFormats()) {
       GLFW.glfwDefaultWindowHints();
       GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+      GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
       GLFW.glfwWindowHint(GLFW.GLFW_ALPHA_BITS, format.getAlphaBits());
       GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, format.getDepthBits());
       GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, format.getStencilBits());
@@ -435,18 +499,54 @@ public abstract class GlDisplayApp extends GlApp
     }
   }
 
+  /** Whether GLFW has been initialized. */
+  protected boolean _glfwInited;
+
   /** The GLFW window handle. */
   protected long _window = MemoryUtil.NULL;
 
   /** Whether vsync is enabled. */
   protected boolean _vsync;
 
+  /** Whether the window should be resizable. */
+  protected boolean _resizable = true;
+
   /** Whether the window was resized. */
   protected boolean _wasResized;
+
+  /** Whether the main loop is running. */
+  protected volatile boolean _running;
 
   /** Last frame time for sync(). */
   protected long _lastFrameTime = System.nanoTime();
 
   /** Our root. */
   protected Root _displayRoot;
+
+  /** Queue of tasks to run on the main/GL thread. */
+  protected ConcurrentLinkedQueue<Runnable> _mainQueue;
+
+  /** A RunQueue that posts to the main/GL thread. */
+  protected RunQueue _mainRunQueue;
+
+  private RunQueue createMainRunQueue ()
+  {
+    return new RunQueue() {
+      @Override public void postRunnable (Runnable r) {
+        _mainQueue.add(r);
+      }
+      @Override public boolean isDispatchThread () {
+        return Thread.currentThread() == _mainThread;
+      }
+      @Override public boolean isRunning () {
+        // Always return true: the queue can always accept tasks (they'll be
+        // processed once mainLoop starts). Returning false even once causes
+        // samskivert Interval to permanently cancel itself.
+        return true;
+      }
+    };
+  }
+
+  /** The main thread reference for RunQueue.isDispatchThread(). */
+  protected Thread _mainThread = Thread.currentThread();
 }
