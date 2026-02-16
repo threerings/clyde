@@ -87,6 +87,7 @@ public class DisplayCanvas extends JPanel
             init(format);
             return;
           } catch (Exception e) {
+            log.warning("Unable to use 'PixelFormat'", "ex", e); // log msg, not trace
             // proceed to next format
           }
         }
