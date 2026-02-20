@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Iterables;
@@ -92,6 +93,11 @@ public abstract class Root extends SimpleOverlay
   {
     _soundGroup.dispose();
     _ctx.getRenderer().removeObserver(_rendererObserver);
+  }
+
+  public void addFocusConsumer (Consumer<FocusEvent> consumer)
+  {
+    _focusConsumer = _focusConsumer.andThen(consumer);
   }
 
   /**
@@ -1073,13 +1079,18 @@ public abstract class Root extends SimpleOverlay
       Component oldFocus = _focus;
       _focus = focus;
       if (oldFocus != null) {
-        oldFocus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_LOST));
+        FocusEvent lost = new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_LOST);
+        oldFocus.dispatchEvent(lost);
+        _focusConsumer.accept(lost);
 //                if (oldFocus instanceof IMEComponent) {
 //                    setIMEFocus(false);
 //                }
       }
       if (_focus != null) {
-        _focus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_GAINED));
+        FocusEvent gained = new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_GAINED);
+        _focus.dispatchEvent(gained);
+        _focusConsumer.accept(gained);
+//                if (oldFocus instanceof IMEComponent) {
 //                if (_focus instanceof IMEComponent) {
 //                    setIMEFocus(true);
 //                }
@@ -1343,6 +1354,26 @@ public abstract class Root extends SimpleOverlay
 
   /** The cursor being displayed. */
   protected Cursor _cursor;
+
+  // TODO: move this
+  public enum NoopConsumer implements Consumer<Object>
+  {
+    INSTANCE;
+
+    /**
+     * Get a No-op consumer for the type you desire.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Consumer<T> get () {
+      return (Consumer<T>)INSTANCE;
+    }
+
+    @Override public void accept (Object obj) { /* nothing */ }
+    @Override public Consumer<Object> andThen (Consumer<Object> next) { return next; }
+  }
+
+  /** A global consumer for focus events. */
+  protected Consumer<FocusEvent> _focusConsumer = NoopConsumer.get();
 
   /** Mouse button information. */
   protected ButtonRecord[] _buttons = new ButtonRecord[MouseEvent.MAX_BUTTONS];
