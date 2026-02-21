@@ -1079,7 +1079,7 @@ public abstract class Root extends SimpleOverlay
       Component oldFocus = _focus;
       _focus = focus;
       if (oldFocus != null) {
-        FocusEvent lost = new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_LOST);
+        FocusEvent lost = new FocusEvent(oldFocus, getTickStamp(), FocusEvent.FOCUS_LOST);
         oldFocus.dispatchEvent(lost);
         _focusConsumer.accept(lost);
 //                if (oldFocus instanceof IMEComponent) {
@@ -1087,7 +1087,7 @@ public abstract class Root extends SimpleOverlay
 //                }
       }
       if (_focus != null) {
-        FocusEvent gained = new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_GAINED);
+        FocusEvent gained = new FocusEvent(_focus, getTickStamp(), FocusEvent.FOCUS_GAINED);
         _focus.dispatchEvent(gained);
         _focusConsumer.accept(gained);
 //                if (oldFocus instanceof IMEComponent) {
