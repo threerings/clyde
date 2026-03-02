@@ -6,6 +6,7 @@ package com.threerings.config.util;
 import java.util.List;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
 
 import com.google.common.base.Function;
@@ -77,8 +78,12 @@ public class FieldCache
             // get all the filtered fields of the specified class
             for (Field f : clazz.getDeclaredFields()) {
               if (_pred.apply(f)) {
-                f.setAccessible(true);
-                ourFields.add(f);
+                try {
+                  f.setAccessible(true);
+                  ourFields.add(f);
+                } catch (InaccessibleObjectException ioe) {
+                  log.warning("Unable to inspect field, skipping.", "class", clazz, "field", f);
+                }
               }
             }
             // add our fields in name-sorted order
