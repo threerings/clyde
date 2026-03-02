@@ -13,8 +13,8 @@ public class FBXNode {
 	FBXNode(String name, FBXNode parent) {
 		this.name = name;
 		this.parent = parent;
-		children = new ArrayList<FBXNode>();
-		properties = new ArrayList<FBXProperty>();
+		children = new ArrayList<>();
+		properties = new ArrayList<>();
 	}
 
 	void add(FBXNode node) {
@@ -76,7 +76,7 @@ public class FBXNode {
 //	}
 
 	public List<FBXNode> getChildrenByName(String name) {
-		List<FBXNode> nodes = new ArrayList<FBXNode>();
+		List<FBXNode> nodes = new ArrayList<>();
 		for (FBXNode child:children) {
 			if (child.getName().equals(name)) {
 				nodes.add(child);
@@ -101,25 +101,44 @@ public class FBXNode {
 		return name;
 	}
 
-        public <T> T getData () {
-            return getData(0);
-        }
+	/**
+	 * Get the name of the node like "foo/bar/node".
+	 */
+	public String getFullName () {
+		return (parent == null) ? name : parent.getFullName() + "/" + name;
+	}
 
-        public <T> T getData (int index) {
-            @SuppressWarnings("unchecked")
-            T tt = (T)getProperty(index).getData();
-            return tt;
-        }
+	/**
+	 * Convenience: get the data at property index 0 and cast it to the specified type.
+	 * May cause a runtime error if the type is not as anticipated!
+	 */
+	public <T> T getData () {
+		return getData(0);
+	}
 
-        public <T> T getChildProperty (String name) {
-            return getChildProperty(name, 0);
-        }
+	/**
+	 * Convenience: get the data at the specified property index and cast it to the specified type.
+	 * May cause a runtime error if the type is not as anticipated!
+	 */
+	public <T> T getData (int index) {
+		@SuppressWarnings("unchecked")
+		T tt = (T)getProperty(index).getData();
+		return tt;
+	}
 
-        public <T> T getChildProperty (String name, int index) {
-            return getChildByName(name).getData(index);
-        }
+	/**
+	 * Get the data at property index 0 of the child with the specified name.
+	 * May cause a runtime error if the type is not as anticipated!
+	 */
+	public <T> T getChildProperty (String name) {
+		return getChildProperty(name, 0);
+	}
 
-        public String getFullName () {
-            return (parent == null) ? name : parent.getFullName() + "/" + name;
-        }
+	/**
+	 * Get the data at the specified property index of the child with the specified name.
+	 * May cause a runtime error if the type is not as anticipated!
+	 */
+	public <T> T getChildProperty (String name, int index) {
+		return getChildByName(name).getData(index);
+	}
 }

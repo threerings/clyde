@@ -1,20 +1,16 @@
 package com.lukaseichberg.fbxloader;
 
-import com.samskivert.io.StreamUtil;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-//import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.zip.InflaterInputStream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class FBXLoader {
 
@@ -23,29 +19,27 @@ public class FBXLoader {
 
 	private final ByteBuffer buffer;
 
-        private long version;
+	private long version;
 
-	public static FBXFile loadFBXFile(String filePath) throws IOException {
+	public static FBXFile loadFBXFile (String filePath) throws IOException {
 		File file = new File(filePath);
-                return loadFBXFile(
-                    file.getAbsolutePath(), file.getName(), new FileInputStream(file));
-        }
+		FBXLoader loader = new FBXLoader(ByteBuffer.wrap(Files.readAllBytes(file.toPath())));
+		return loader.load(file.getAbsolutePath(), file.getName());
+	}
 
-        public static FBXFile loadFBXFile (String name, InputStream in) throws IOException {
-            return loadFBXFile(null, name, in);
-        }
+	public static FBXFile loadFBXFile (String name, InputStream in) throws IOException {
+		return loadFBXFile(null, name, in);
+	}
 
-        public static FBXFile loadFBXFile (String path, String name, InputStream in)
-            throws IOException
-        {
-            return new FBXLoader(ByteBuffer.wrap(StreamUtil.toByteArray(in))).load(path, name);
-        }
+	public static FBXFile loadFBXFile (String path, String name, InputStream in) throws IOException {
+		return new FBXLoader(ByteBuffer.wrap(in.readAllBytes())).load(path, name);
+	}
 
-        private FBXLoader (ByteBuffer buffer) {
-            this.buffer = buffer;
-        }
+	private FBXLoader (ByteBuffer buffer) {
+		this.buffer = buffer;
+	}
 
-        private FBXFile load(String path, String name) throws IOException {
+	private FBXFile load(String path, String name) throws IOException {
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 
 		byte[] header = getBytes(FBX_FILE_HEADER.length);
@@ -80,7 +74,7 @@ public class FBXLoader {
 		}
 
 		if (buffer.position() < endOffset) {
-                        int endSize = getRecordSize();
+			int endSize = getRecordSize();
 			while (buffer.position() < (endOffset - endSize)) {
 				FBXNode child = readNodeRecord(node);
 				if (child != null) {
@@ -222,7 +216,7 @@ public class FBXLoader {
 	}
 
 	private String getString(int length) {
-		return new String(getBytes(length), UTF_8);
+		return new String(getBytes(length), StandardCharsets.UTF_8);
 	}
 
 	private FBXDataType getDataType() throws IOException {
