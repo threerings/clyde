@@ -18,6 +18,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
+import static com.threerings.ClydeLog.log;
+
 /**
  * Utility class for reflection.
  */
