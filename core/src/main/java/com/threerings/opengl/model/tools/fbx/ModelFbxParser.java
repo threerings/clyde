@@ -164,17 +164,24 @@ public class ModelFbxParser extends AbstractFbxParser
         continue;
       }
       float[] preRot = null;
+      float[] eulerRot = null;
+      int rotOrder = ROTATION_ORDER_XYZ;
       for (FBXNode prop : props.getChildrenByName("P")) {
         String pname = prop.getData(0);
         if ("Lcl Translation".equals(pname)) {
           spat.translation = getXYZ(prop);
         } else if ("Lcl Rotation".equals(pname)) {
-          spat.rotation = getRotation(prop);
+          eulerRot = getXYZ(prop);
         } else if ("Lcl Scaling".equals(pname)) {
           spat.scale = getXYZUnsigned(prop);
+        } else if ("RotationOrder".equals(pname)) {
+          rotOrder = prop.<Integer>getData(4);
         } else if ("PreRotation".equals(pname)) {
           preRot = getRotation(prop);
         }
+      }
+      if (eulerRot != null) {
+        spat.rotation = fromEuler(eulerRot, rotOrder);
       }
       if (preRot != null) {
         Quaternion result = new Quaternion(preRot).multLocal(new Quaternion(spat.rotation));

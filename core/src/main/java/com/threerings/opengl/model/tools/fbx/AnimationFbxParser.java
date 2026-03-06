@@ -58,6 +58,8 @@ public class AnimationFbxParser extends AbstractFbxParser
     // representation!
     // ===============
     Map<Long, AnimationDef.TransformDef> limbs = Maps.newHashMap();
+    Map<String, float[]> preRotations = Maps.newHashMap();
+    Map<String, Integer> rotationOrders = Maps.newHashMap();
     Map<String, Vector3f> rotPivots = Maps.newHashMap();
     Map<String, Vector3f> scalePivots = Maps.newHashMap();
 
@@ -89,6 +91,10 @@ public class AnimationFbxParser extends AbstractFbxParser
           rotPivots.put(xform.name, new Vector3f(getXYZ(prop)));
         } else if ("ScalingPivot".equals(pname)) {
           scalePivots.put(xform.name, new Vector3f(getXYZ(prop)));
+        } else if ("RotationOrder".equals(pname)) {
+          rotationOrders.put(xform.name, prop.<Integer>getData(4));
+        } else if ("PreRotation".equals(pname)) {
+          preRotations.put(xform.name, getRotation(prop));
         }
       }
       limbs.put(id, xform);
@@ -187,7 +193,14 @@ public class AnimationFbxParser extends AbstractFbxParser
       for (AnimationDef.FrameDef frame : frames.values()) { // this is sorted by timestamp
         // fix all the rotations to be quaternion based
         for (AnimationDef.TransformDef td : frame.transforms.values()) {
-          td.rotation = fromEuler(td.rotation);
+          Integer rotOrder = rotationOrders.get(td.name);
+          td.rotation = fromEuler(td.rotation,
+            rotOrder != null ? rotOrder : ROTATION_ORDER_XYZ);
+          float[] preRot = preRotations.get(td.name);
+          if (preRot != null) {
+            Quaternion result = new Quaternion(preRot).multLocal(new Quaternion(td.rotation));
+            result.get(td.rotation);
+          }
           Vector3f rpivot = rotPivots.get(td.name);
           Vector3f spivot = scalePivots.get(td.name);
           if (rpivot != null || spivot != null) {

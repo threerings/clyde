@@ -198,18 +198,106 @@ public abstract class AbstractFbxParser
   }
 
   /**
-   * Convert a 3-element euler angles (degrees) rotation into the quaternion values needed.
+   * Convert a 3-element euler angles (degrees) rotation into the quaternion values needed,
+   * using the default XYZ rotation order.
    */
   protected float[] fromEuler (float[] rots)
   {
-    float[] values = new float[4];
-    new Quaternion().fromAngles(
-      FloatMath.toRadians(rots[0]),
-      FloatMath.toRadians(rots[1]),
-      FloatMath.toRadians(rots[2]))
-      .get(values);
-    return values;
+    return fromEuler(rots, ROTATION_ORDER_XYZ);
   }
+
+  /**
+   * Convert a 3-element euler angles (degrees) rotation into the quaternion values needed.
+   * The input angles are in engine space (already remapped from file space by getXYZ).
+   * We convert back to file space, compute the quaternion there using the correct FBX
+   * rotation order, then remap the quaternion to engine space.
+   *
+   * @param rotationOrder FBX RotationOrder enum value (0=XYZ, 1=XZY, 2=YZX, 3=YXZ,
+   *                      4=ZXY, 5=ZYX). Default is 0 (eEulerXYZ).
+   */
+  protected float[] fromEuler (float[] rots, int rotationOrder)
+  {
+    // Undo axis remap+sign to recover file-space Euler angles.
+    // getXYZ produced: rots[0] = file[xAxis]*xAxisSign, etc.
+    // So: file[xAxis] = rots[0]*xAxisSign (since sign*sign = 1)
+    float[] fileRots = new float[3];
+    fileRots[xAxis] = rots[0] * xAxisSign;
+    fileRots[yAxis] = rots[1] * yAxisSign;
+    fileRots[zAxis] = rots[2] * zAxisSign;
+
+    float rx = FloatMath.toRadians(fileRots[0]);
+    float ry = FloatMath.toRadians(fileRots[1]);
+    float rz = FloatMath.toRadians(fileRots[2]);
+
+    // Build quaternion in file space using the correct rotation order.
+    // FBX rotation order "ABC" means: rotate about A first, then B, then C (intrinsic).
+    // In quaternion form: Q = QC * QB * QA
+    float[] fv = new float[4];
+    Quaternion q;
+    switch (rotationOrder) {
+      default:
+      case ROTATION_ORDER_XYZ:
+        q = new Quaternion().fromAngles(rx, ry, rz);
+        break;
+      case ROTATION_ORDER_ZXY:
+        q = new Quaternion().fromAnglesZXY(rx, ry, rz);
+        break;
+      case ROTATION_ORDER_XZY:
+      case ROTATION_ORDER_YZX:
+      case ROTATION_ORDER_YXZ:
+      case ROTATION_ORDER_ZYX:
+        // General case: compose three single-axis quaternions.
+        // Order {a, b, c} means Q = Q_c * Q_b * Q_a
+        int[] order = ROTATION_ORDERS[rotationOrder];
+        float[] angles = { rx, ry, rz };
+        q = singleAxisQuat(order[2], angles[order[2]])
+          .multLocal(singleAxisQuat(order[1], angles[order[1]]))
+          .multLocal(singleAxisQuat(order[0], angles[order[0]]));
+        break;
+    }
+    q.get(fv);
+
+    // Remap quaternion xyz components from file space to engine space
+    // (same permutation+sign as for any vector).
+    return new float[] {
+      fv[xAxis] * xAxisSign,
+      fv[yAxis] * yAxisSign,
+      fv[zAxis] * zAxisSign,
+      fv[3]
+    };
+  }
+
+  /** Create a quaternion for rotation about a single axis (0=X, 1=Y, 2=Z). */
+  private static Quaternion singleAxisQuat (int axis, float angle)
+  {
+    float ha = angle * 0.5f;
+    float s = FloatMath.sin(ha), c = FloatMath.cos(ha);
+    switch (axis) {
+      case 0: return new Quaternion(s, 0, 0, c);
+      case 1: return new Quaternion(0, s, 0, c);
+      case 2: return new Quaternion(0, 0, s, c);
+      default: return new Quaternion(0, 0, 0, 1);
+    }
+  }
+
+  // FBX RotationOrder enum values
+  protected static final int ROTATION_ORDER_XYZ = 0;
+  protected static final int ROTATION_ORDER_XZY = 1;
+  protected static final int ROTATION_ORDER_YZX = 2;
+  protected static final int ROTATION_ORDER_YXZ = 3;
+  protected static final int ROTATION_ORDER_ZXY = 4;
+  protected static final int ROTATION_ORDER_ZYX = 5;
+
+  // Intrinsic rotation axis order for each FBX RotationOrder.
+  // Entry {a, b, c} means: rotate about axis a first, then b, then c.
+  private static final int[][] ROTATION_ORDERS = {
+    {0, 1, 2}, // 0: eEulerXYZ
+    {0, 2, 1}, // 1: eEulerXZY
+    {1, 2, 0}, // 2: eEulerYZX
+    {1, 0, 2}, // 3: eEulerYXZ
+    {2, 0, 1}, // 4: eEulerZXY
+    {2, 1, 0}, // 5: eEulerZYX
+  };
 
   protected float[] newRotation ()
   {
