@@ -66,7 +66,8 @@ public class AnimationConfig extends ParameterizedConfig
   /**
    * Contains the actual implementation of the animation.
    */
-  @EditorTypes({ Imported.class, Procedural.class, Sequential.class, Derived.class })
+  @EditorTypes({ Imported.class, Procedural.class, Sequential.class, RandomLoop.class,
+    Derived.class })
   public static abstract class Implementation extends DeepObject
     implements Exportable, Preloadable.LoadableConfig
   {
@@ -422,6 +423,38 @@ public class AnimationConfig extends ParameterizedConfig
   }
 
   /**
+   * Randomly plays a bunch of animations in a loop.
+   */
+  public static class RandomLoop extends Original
+  {
+    /** The component animations. */
+    @Editable(tip="~The component animations.")
+    public WeightedComponentAnimation[] animations = new WeightedComponentAnimation[0];
+
+    @Override
+    public Animation.Implementation getAnimationImplementation (
+      GlContext ctx, Scope scope, Animation.Implementation impl)
+    {
+      if (animations.length == 0) {
+        impl = null;
+      } else if (impl instanceof Animation.RandomLoop) {
+        ((Animation.RandomLoop)impl).setConfig(this);
+      } else {
+        impl = new Animation.RandomLoop(ctx, scope, this);
+      }
+      return impl;
+    }
+
+    @Override
+    public void preload (GlContext ctx)
+    {
+      for (ComponentAnimation animation : animations) {
+        new Preloadable.Animation(animation.animation).preload(ctx);
+      }
+    }
+  }
+
+  /**
    * A derived implementation.
    */
   public static class Derived extends Implementation
@@ -483,12 +516,22 @@ public class AnimationConfig extends ParameterizedConfig
     implements Exportable
   {
     /** The speed of the animation. */
-    @Editable(min=0, step=0.01)
+    @Editable(min=0, step=0.01, hgroup="nums")
     public float speed = 1f;
 
     /** The animation reference. */
     @Editable(nullable=true)
     public ConfigReference<AnimationConfig> animation;
+  }
+
+  /**
+   * Contains a weighted component animation in a sequence.
+   */
+  public static class WeightedComponentAnimation extends ComponentAnimation
+  {
+    /** The weight of this animation. */
+    @Editable(min=0, step=0.01, hgroup="nums", weight=-1)
+    public float weight = 1f;
   }
 
   /**

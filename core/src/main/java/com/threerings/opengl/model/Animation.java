@@ -28,6 +28,7 @@ package com.threerings.opengl.model;
 import java.util.ArrayList;
 
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.Randoms;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
@@ -802,43 +803,35 @@ public class Animation extends SimpleScope
   }
 
   /**
-   * A sequential implementation.
+   * A composed implementation.
    */
-  public static class Sequential extends Implementation
+  public static abstract class Composed extends Implementation
   {
-    /**
-     * Creates a new sequential implementation.
-     */
-    public Sequential (GlContext ctx, Scope parentScope, AnimationConfig.Sequential config)
+    protected Composed (GlContext ctx, Scope parentScope)
     {
       super(ctx, parentScope);
-      setConfig(config);
     }
 
     /**
-     * (Re)configures the implementation.
+     * Configure the sub-animations.
      */
-    public void setConfig (AnimationConfig.Sequential config)
+    protected void setAnimations (AnimationConfig.ComponentAnimation[] configAnims)
     {
-      super.setConfig(_config = config);
-
       // (re)create the component animations
       Animation[] oanims = _animations;
-      _animations = new Animation[config.animations.length];
-      for (int ii = 0; ii < _animations.length; ii++) {
+      var nn = configAnims.length;
+      _animations = new Animation[nn];
+      for (int ii = 0; ii < nn; ii++) {
         Animation anim = (oanims == null || oanims.length <= ii) ?
           new Animation(_ctx, this) : oanims[ii];
         _animations[ii] = anim;
-        AnimationConfig.ComponentAnimation comp = config.animations[ii];
-        anim.setConfig(null, comp.animation);
-        anim.setSpeed(comp.speed);
+        anim.setConfig(null, configAnims[ii].animation);
+        anim.setSpeed(configAnims[ii].speed);
         anim.setSpeedModifier(((Animation)_parentScope).getSpeedModifier());
       }
       if (oanims != null) {
-        if (_aidx >= _animations.length) {
-          _aidx = 0;
-        }
-        for (int ii = _animations.length; ii < oanims.length; ii++) {
+        if (_aidx >= nn) _aidx = 0;
+        for (int ii = nn; ii < oanims.length; ii++) {
           oanims[ii].dispose();
         }
       }
@@ -870,7 +863,7 @@ public class Animation extends SimpleScope
     public void start ()
     {
       // initialize animation counter, start the first animation
-      _animations[_aidx = 0].start();
+      _animations[_aidx = getFirstIndex()].start();
 
       // blend in
       super.start();
@@ -887,29 +880,20 @@ public class Animation extends SimpleScope
     {
       // update the weight
       super.tick(elapsed);
-      if (!isPlaying()) {
-        return false;
-      }
+      if (!isPlaying()) return false;
 
       // tick the active component animation
       Animation anim = _animations[_aidx];
       anim.tick(elapsed);
-      if (anim.isPlaying()) {
-        return false;
-      }
-      _aidx++;
+      if (anim.isPlaying()) return false;
 
-      // check for loop or completion
-      int acount = _animations.length;
-      if (_aidx >= acount) {
-        if (_config.loop) {
-          _aidx %= acount;
-        } else {
-          _aidx = acount - 1;
-          ((Animation)_parentScope).stopped(true);
-          return true;
-        }
+      int next = getNextIndex();
+      if (next == -1) {
+        // leave _aidx pointing at the stopped anim
+        ((Animation)_parentScope).stopped(true);
+        return true;
       }
+      _aidx = next;
       _animations[_aidx].start();
       return false;
     }
@@ -932,14 +916,115 @@ public class Animation extends SimpleScope
       _animations[_aidx].blendTransforms(update);
     }
 
-    /** The implementation configuration. */
-    protected AnimationConfig.Sequential _config;
+    /**
+     * Get the animation index to start at.
+     */
+    protected abstract int getFirstIndex ();
+
+    /**
+     * Get the next animation index, given the current value of _aidx.
+     * Or return -1 to stop.
+     */
+    protected abstract int getNextIndex ();
 
     /** The component animations. */
     protected Animation[] _animations;
 
     /** The index of the current animation. */
     protected int _aidx;
+  }
+
+  /**
+   * A sequential implementation.
+   */
+  public static class Sequential extends Composed
+  {
+    /**
+     * Creates a new sequential implementation.
+     */
+    public Sequential (GlContext ctx, Scope parentScope, AnimationConfig.Sequential config)
+    {
+      super(ctx, parentScope);
+      setConfig(config);
+    }
+
+    /**
+     * (Re)configures the implementation.
+     */
+    public void setConfig (AnimationConfig.Sequential config)
+    {
+      super.setConfig(_config = config);
+      setAnimations(config.animations);
+    }
+
+    @Override
+    protected int getFirstIndex ()
+    {
+      return 0;
+    }
+
+    @Override
+    protected int getNextIndex ()
+    {
+      int next = _aidx + 1;
+      var nn = _animations.length;
+      return next < nn ? next
+        : _config.loop ? next % nn
+        : -1;
+    }
+
+    /** The implementation configuration. */
+    protected AnimationConfig.Sequential _config;
+  }
+
+  /**
+   * A random loop implementation.
+   */
+  public static class RandomLoop extends Composed
+  {
+    /**
+     * Creates a new random loop implementation.
+     */
+    public RandomLoop (GlContext ctx, Scope parentScope, AnimationConfig.RandomLoop config)
+    {
+      super(ctx, parentScope);
+      setConfig(config);
+    }
+
+    /**
+     * (Re)configures the implementation.
+     */
+    public void setConfig (AnimationConfig.RandomLoop config)
+    {
+      super.setConfig(_config = config);
+      setAnimations(config.animations);
+      _totalWeight = 0;
+      for (var wca : config.animations) {
+        _totalWeight += wca.weight;
+      }
+    }
+
+    @Override
+    protected int getFirstIndex ()
+    {
+      return getNextIndex();
+    }
+
+    @Override
+    protected int getNextIndex ()
+    {
+      float pick = Randoms.threadLocal().getFloat(_totalWeight);
+      int idx = 0;
+      for (int last = _animations.length - 1;
+           idx < last && (pick -= _config.animations[idx].weight) >= 0;
+           ++idx) {}
+      return idx;
+    }
+
+    /** The implementation configuration. */
+    protected AnimationConfig.RandomLoop _config;
+
+    protected float _totalWeight;
   }
 
   /** An empty array of animations. */
