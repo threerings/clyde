@@ -29,6 +29,8 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
+import com.threerings.opengl.gui.event.ChangeEvent;
+import com.threerings.opengl.gui.event.WindowListener;
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
 
@@ -246,6 +248,22 @@ public class Window extends Container
   protected String getDefaultStyleConfig ()
   {
     return "Default/Window";
+  }
+
+  @Override
+  protected void wasRemoved ()
+  {
+    super.wasRemoved();
+
+    if (_listeners != null) {
+      ChangeEvent evt = null;
+      for (var cl : _listeners) {
+        if (cl instanceof WindowListener) {
+          if (evt == null) evt = new ChangeEvent(this);
+          ((WindowListener)cl).windowRemoved(evt);
+        }
+      }
+    }
   }
 
   /**
