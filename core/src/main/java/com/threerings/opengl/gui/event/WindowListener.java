@@ -8,5 +8,5 @@ public interface WindowListener extends ComponentListener
   /**
    * The window that is the source of the event has been removed.
    */
-  public void windowRemoved (ChangeEvent event);
+  public void windowRemoved (WindowEvent event);
 }
