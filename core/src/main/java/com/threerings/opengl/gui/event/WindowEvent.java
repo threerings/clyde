@@ -2,6 +2,8 @@ package com.threerings.opengl.gui.event;
 
 import com.threerings.opengl.gui.Window;
 
+import static com.threerings.opengl.Log.log;
+
 /**
  * An event dispatched for windows.
  */
@@ -29,7 +31,14 @@ public class WindowEvent extends Event
   public void dispatch (ComponentListener listener)
   {
     if (listener instanceof WindowListener) {
-      ((WindowListener)listener).windowRemoved(this);
+      switch (type) {
+      case WINDOW_REMOVED:
+        ((WindowListener)listener).windowRemoved(this);
+        break;
+      default:
+        log.warning("TODO: Add handling for event type `" + type + "'");
+        break;
+      }
     }
   }
 }
