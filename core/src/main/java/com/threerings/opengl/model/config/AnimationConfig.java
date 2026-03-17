@@ -170,6 +170,10 @@ public class AnimationConfig extends ParameterizedConfig
               tip="~A (possibly random) offset to apply when the animation starts.")
     public FloatVariable offset = new FloatVariable.Constant(0f);
 
+    /** Try reversing the transforms to reverse the animation. */
+    @Editable(tip="~Experimental feature to attempt to run the animation in reverse!")
+    public boolean reverseTransforms;
+
     /** Actions to perform at specific times within the animation. */
     @Editable(weight=2, tip="~Actions to perform at specific times within the animation.")
     public FrameAction[] actions = new FrameAction[0];

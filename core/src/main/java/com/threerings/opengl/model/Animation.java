@@ -27,6 +27,7 @@ package com.threerings.opengl.model;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Randoms;
 
@@ -290,6 +291,14 @@ public class Animation extends SimpleScope
         AnimationConfig.FrameAction action = config.actions[ii];
         _executors[ii] = new FrameExecutor(
           action.frame, action.action.createExecutor(_ctx, this));
+      }
+
+      if (config.reverseTransforms) {
+        // clone the array if we're using the one from the config!
+        if (config.transforms == _transforms) _transforms = _transforms.clone();
+        ArrayUtil.reverse(_transforms); // reverse in place
+        // TODO: reverse other things too?
+//        ArrayUtil.reverse(_executors);
       }
 
       if (_fidx >= _transforms.length) {
