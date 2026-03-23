@@ -47,6 +47,7 @@ import com.samskivert.util.HashIntMap;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.math.FloatMath;
+import com.threerings.util.FunctionUtil;
 
 import com.threerings.openal.Sound;
 import com.threerings.openal.SoundGroup;
@@ -1355,25 +1356,8 @@ public abstract class Root extends SimpleOverlay
   /** The cursor being displayed. */
   protected Cursor _cursor;
 
-  // TODO: move this
-  public enum NoopConsumer implements Consumer<Object>
-  {
-    INSTANCE;
-
-    /**
-     * Get a No-op consumer for the type you desire.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> Consumer<T> get () {
-      return (Consumer<T>)INSTANCE;
-    }
-
-    @Override public void accept (Object obj) { /* nothing */ }
-    @Override public Consumer<Object> andThen (Consumer<Object> next) { return next; }
-  }
-
   /** A global consumer for focus events. */
-  protected Consumer<FocusEvent> _focusConsumer = NoopConsumer.get();
+  protected Consumer<FocusEvent> _focusConsumer = FunctionUtil.getNoopConsumer();
 
   /** Mouse button information. */
   protected ButtonRecord[] _buttons = new ButtonRecord[MouseEvent.MAX_BUTTONS];
