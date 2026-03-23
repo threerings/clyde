@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -59,6 +60,7 @@ import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.util.CacheUtil;
 import com.threerings.util.Copyable;
+import com.threerings.util.FunctionUtil;
 import com.threerings.util.MessageManager;
 
 import static com.threerings.ClydeLog.log;
@@ -69,8 +71,11 @@ import static com.threerings.ClydeLog.log;
 public class ConfigManager
   implements Copyable, Exportable
 {
-  // TODO: Replace with java.util.function.Consumer when we got to Java 8
-  public interface Consumer<T>
+  /**
+   * @deprecated use java.util.function.Consumer<T> directly.
+   */
+  @Deprecated(forRemoval=true)
+  public interface Consumer<T> extends java.util.function.Consumer<T>
   {
     public void accept (T t);
   }
@@ -108,15 +113,13 @@ public class ConfigManager
    */
   public void init ()
   {
-    init(new Consumer<Exception>() {
-        public void accept (Exception e) {} // do-nothing
-      });
+    init(FunctionUtil.getNoopConsumer());
   }
 
   /**
    * Initialization method for the global configuration manager.
    */
-  public void init (Consumer<Exception> exceptionConsumer)
+  public void init (java.util.function.Consumer<Exception> exceptionConsumer)
   {
     // load the manager properties
     try {
@@ -742,7 +745,7 @@ public class ConfigManager
    * Registers a new config group.
    */
   protected <T extends ManagedConfig> void registerGroup (
-      Class<T> clazz, Consumer<Exception> exceptionConsumer)
+      Class<T> clazz, java.util.function.Consumer<Exception> exceptionConsumer)
   {
     ConfigGroup<T> group = new ConfigGroup<T>(clazz);
     group.init(this, exceptionConsumer);

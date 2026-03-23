@@ -38,6 +38,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
@@ -60,6 +61,7 @@ import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 import com.threerings.export.util.LazyOutputStream;
 import com.threerings.util.Copyable;
+import com.threerings.util.FunctionUtil;
 
 import static com.threerings.ClydeLog.log;
 
@@ -100,15 +102,13 @@ public class ConfigGroup<T extends ManagedConfig>
    */
   public void init (ConfigManager cfgmgr)
   {
-    init(cfgmgr, new ConfigManager.Consumer<Exception>() {
-        public void accept (Exception e) {} // do nothing
-      });
+    init(cfgmgr, FunctionUtil.getNoopConsumer());
   }
 
   /**
    * Initializes this group.
    */
-  public void init (ConfigManager cfgmgr, ConfigManager.Consumer<Exception> exceptionConsumer)
+  public void init (ConfigManager cfgmgr, Consumer<Exception> exceptionConsumer)
   {
     _cfgmgr = cfgmgr;
 
@@ -474,7 +474,7 @@ public class ConfigGroup<T extends ManagedConfig>
    *
    * @return true if successful, false otherwise.
    */
-  protected boolean readConfigs (boolean xml, ConfigManager.Consumer<Exception> exceptionConsumer)
+  protected boolean readConfigs (boolean xml, Consumer<Exception> exceptionConsumer)
   {
     InputStream stream = getConfigStream(xml);
     if (stream == null) {

@@ -6,6 +6,7 @@ import java.lang.reflect.Array;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.lukaseichberg.fbxloader.FBXFile;
 import com.lukaseichberg.fbxloader.FBXDataType;
@@ -14,9 +15,6 @@ import com.lukaseichberg.fbxloader.FBXNode;
 import com.lukaseichberg.fbxloader.FBXProperty;
 
 import com.samskivert.util.StringUtil;
-
-// TODO: replace with java.util.function.Consumer someday
-import static com.threerings.config.ConfigManager.Consumer;
 
 import static com.threerings.opengl.Log.log;
 
@@ -27,31 +25,16 @@ public class FbxDumper {
   }
 
   public static void DumpToOut (FBXFile file) {
-    Consumer<String> outConsumer = new Consumer<String>() {
-      public void accept (String s) {
-        System.out.println(s);
-      }
-    };
-    Dump(file, outConsumer);
+    Dump(file, s -> System.out.println(s));
   }
 
   public static void DumpToLog (FBXFile file) {
-    Consumer<String> logConsumer = new Consumer<String>() {
-      public void accept (String s) {
-        log.info(s);
-      }
-    };
-    Dump(file, logConsumer);
+    Dump(file, s -> log.info(s));
   }
 
   public static List<String> DumpToList (FBXFile file) {
     final List<String> list = new ArrayList<String>();
-    Consumer<String> listConsumer = new Consumer<String>() {
-      public void accept (String s) {
-        list.add(s);
-      }
-    };
-    Dump(file, listConsumer);
+    Dump(file, s -> list.add(s));
     return list;
   }
 
