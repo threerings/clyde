@@ -25,16 +25,17 @@ public class FbxDumper {
   }
 
   public static void DumpToOut (FBXFile file) {
-    Dump(file, s -> System.out.println(s));
+    Dump(file, System.out::println);
   }
 
   public static void DumpToLog (FBXFile file) {
-    Dump(file, s -> log.info(s));
+    Dump(file, log::info);
   }
 
   public static List<String> DumpToList (FBXFile file) {
     final List<String> list = new ArrayList<String>();
-    Dump(file, s -> list.add(s));
+    //Dump(file, s -> list.add(s));
+    Dump(file, list::add);
     return list;
   }
 
