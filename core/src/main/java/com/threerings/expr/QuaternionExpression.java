@@ -150,7 +150,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
         if (populate) {
           for (Scope sc = scope; sc != null; sc = sc.getParentScope()) {
             if (sc instanceof DynamicScope) {
-              refQ = defvalue;
+              refQ = new Quaternion(defvalue);
               ((DynamicScope)sc).put(name, refQ);
               break;
             }
@@ -158,7 +158,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
         }
         if (refQ == null) {
           log.warning("We never found a dynamic scope in which to stash!");
-          refQ = defvalue; // this is not ok
+          refQ = new Quaternion(defvalue); // this is not ok
         }
       }
       final Quaternion value = refQ;
