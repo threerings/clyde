@@ -31,13 +31,16 @@ import com.threerings.math.Quaternion;
 
 import com.threerings.expr.util.ScopeUtil;
 
+import static com.threerings.ClydeLog.log;
+
 /**
  * A color-valued expression.
  */
 @EditorTypes({
   QuaternionExpression.Constant.class,
   QuaternionExpression.Reference.class,
-  QuaternionExpression.Angles.class })
+  QuaternionExpression.Angles.class,
+  QuaternionExpression.MultiplyReference.class })
 public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
 {
   /**
@@ -123,6 +126,55 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
       x.invalidate();
       y.invalidate();
       z.invalidate();
+    }
+  }
+
+  /**
+   * Multiply a quaternion expression by a reference.
+   */
+  public static class MultiplyReference extends Reference
+  {
+    /** The name of the variable. */
+    @Editable
+    public QuaternionExpression multiplicand = new QuaternionExpression.Constant();
+
+    /** TODO: REMOVE... Scene Influencer? */
+    @Editable
+    public boolean populate;
+
+    @Override
+    public Evaluator<Quaternion> createEvaluator (Scope scope)
+    {
+      Quaternion refQ = ScopeUtil.resolve(scope, name, (Quaternion)null);
+      if (refQ == null) {
+        if (populate) {
+          for (Scope sc = scope; sc != null; sc = sc.getParentScope()) {
+            if (sc instanceof DynamicScope) {
+              refQ = defvalue;
+              ((DynamicScope)sc).put(name, refQ);
+              break;
+            }
+          }
+        }
+        if (refQ == null) {
+          log.warning("We never found a dynamic scope in which to stash!");
+          refQ = defvalue; // this is not ok
+        }
+      }
+      final Quaternion value = refQ;
+      final Evaluator<Quaternion> cand = multiplicand.createEvaluator(scope);
+      return new Evaluator<Quaternion>() {
+        public Quaternion evaluate () {
+          return value.multLocal(cand.evaluate());
+        }
+      };
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      super.invalidate();
+      multiplicand.invalidate();
     }
   }
 }
