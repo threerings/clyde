@@ -331,7 +331,9 @@ public class ModelViewer extends ModelTool
     _elapsed -= lelapsed;
     _now.value += lelapsed;
 
-    updateView(lelapsed / 1000f);
+    float felapsed = lelapsed / 1000f;
+    super._elapsed.value = felapsed;
+    updateView(felapsed);
   }
 
   @Override
