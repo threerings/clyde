@@ -40,6 +40,10 @@ public interface Scope
    * base time of the scope's owner (such at the time at which an animation started). */
   public static final String EPOCH = "epoch";
 
+  /** The name of a special symbol that we expect to map to a {@link MutableFloat} containing the
+   * number of fractional seconds between the start of this frame and the last. */
+  public static final String ELAPSED = "elapsed";
+
   /**
    * Returns the name of this scope for purposes of qualification.  Can return <code>null</code>
    * if qualified symbols cannot specifically address this scope.

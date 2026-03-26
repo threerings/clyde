@@ -431,6 +431,7 @@ public abstract class GlApp extends DynamicScope
   {
     long nnow = System.currentTimeMillis();
     float elapsed = Math.max(0f, (nnow - _now.value) / 1000f);
+    _elapsed.value = elapsed;
     _now.value = nnow;
 
     updateView(elapsed);
@@ -556,6 +557,10 @@ public abstract class GlApp extends DynamicScope
   /** A container for the current time as sampled at the beginning of the frame. */
   @Scoped
   protected MutableLong _now = new MutableLong(System.currentTimeMillis());
+
+  /** A container for the elapsed time, in seconds, between this frame and the last. */
+  @Scoped
+  protected MutableFloat _elapsed = new MutableFloat(0f);
 
   /** A container for the application epoch. */
   @Scoped

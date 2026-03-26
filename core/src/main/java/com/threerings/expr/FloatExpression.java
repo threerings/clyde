@@ -48,7 +48,7 @@ import static com.threerings.ClydeLog.log;
  */
 @EditorTypes({
   FloatExpression.Parsed.class, FloatExpression.Constant.class,
-  FloatExpression.Reference.class, FloatExpression.Clock.class,
+  FloatExpression.Reference.class, FloatExpression.Clock.class, FloatExpression.Elapsed.class,
   FloatExpression.Abs.class, FloatExpression.Negate.class, FloatExpression.Add.class,
   FloatExpression.Subtract.class, FloatExpression.Multiply.class,
   FloatExpression.Divide.class, FloatExpression.Remainder.class,
@@ -188,6 +188,24 @@ public abstract class FloatExpression extends DeepObject
       return new Evaluator() {
         public float evaluate () {
           return (now.value - epoch.value) / 1000f;
+        }
+      };
+    }
+  }
+
+  /**
+   * The delta between this frame and the last, in seconds.
+   */
+  public static class Elapsed extends FloatExpression
+  {
+    @Override
+    public Evaluator createEvaluator (Scope scope)
+    {
+      MutableFloat found = ScopeUtil.resolve(scope, Scope.ELAPSED, (MutableFloat)null);
+      final MutableFloat elapsed = found != null ? found : new MutableFloat(1/60f);
+      return new Evaluator() {
+        public float evaluate () {
+          return elapsed.value;
         }
       };
     }
@@ -723,6 +741,8 @@ public abstract class FloatExpression extends DeepObject
           result = new Saw();
         } else if (function.equals("noise1")) {
           result = new Noise1();
+        } else if (function.equals("elapsed")) {
+          return new Elapsed();
         } else {
           return super.handleFunctionCall(function, arity);
         }
