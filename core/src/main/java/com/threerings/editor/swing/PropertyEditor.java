@@ -485,7 +485,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     } else if (type.isArray()) {
       return Array.newInstance(type.getComponentType(), 0);
     } else {
-      return PreparedEditable.PREPARER.apply(ReflectionUtil.newInstance(type, outer));
+      return PreparedEditable.prepare(ReflectionUtil.newInstance(type, outer));
     }
   }
 

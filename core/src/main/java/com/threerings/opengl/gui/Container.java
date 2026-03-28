@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -444,15 +443,9 @@ public class Container extends Component
   /**
    * Helper method for getDescendants(), so it can also be shared by Root's version of the same.
    */
-  protected static Iterable<Component> getDescendants (
-      Iterable<? extends Component> directChildren)
+  protected static Iterable<Component> getDescendants (Iterable<? extends Component> directChildren)
   {
-    return Iterables.concat(Iterables.transform(directChildren,
-      new Function<Component, Iterable<Component>>() {
-        public Iterable<Component> apply (Component c) {
-          return c.getDownwards();
-        }
-      }));
+    return Iterables.concat(Iterables.transform(directChildren, Component::getDownwards));
   }
 
   /** A child operation that is best done by protecting against exceptions. */

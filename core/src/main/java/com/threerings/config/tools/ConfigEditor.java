@@ -92,7 +92,8 @@ import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 import javax.swing.undo.UndoManager;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
@@ -165,8 +166,7 @@ public class ConfigEditor extends BaseConfigEditor
   {
     ConfigEditor editor = (_editorCreator != null)
       ? _editorCreator.apply(ctx)
-      : new ConfigEditor(
-          ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
+      : new ConfigEditor(ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
     if (clazz != null) {
       editor.select(clazz, name);
     }
@@ -745,8 +745,8 @@ public class ConfigEditor extends BaseConfigEditor
       {
         Class<?> clazz = group.getRawConfigClasses().get(0);
         try {
-          ManagedConfig cfg = (ManagedConfig)PreparedEditable.PREPARER.apply(
-              clazz.getConstructor().newInstance());
+          ManagedConfig cfg = (ManagedConfig)PreparedEditable.prepare(
+            clazz.getConstructor().newInstance());
           if (cfg instanceof DerivedConfig) {
             ((DerivedConfig)cfg).cclass = group.getConfigClass();
           }

@@ -377,12 +377,12 @@ public class ObjectPanel extends BasePropertyEditor
         }
       }
       if (cctor != null) {
-        return PreparedEditable.PREPARER.apply(
+        return PreparedEditable.prepare(
           inner ? cctor.newInstance(_outer, _lvalue) : cctor.newInstance(_lvalue));
       }
     }
     // fall back on default constructor
-    return PreparedEditable.PREPARER.apply(ReflectionUtil.newInstance(type, _outer));
+    return PreparedEditable.prepare(ReflectionUtil.newInstance(type, _outer));
   }
 
   /**

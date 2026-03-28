@@ -38,7 +38,6 @@ import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -1022,11 +1021,7 @@ public class ModelConfig extends ParameterizedConfig
     } else if (enqueuer instanceof TechniqueConfig.CompoundEnqueuer) {
       return Iterables.concat(Iterables.transform(
         Arrays.asList(((TechniqueConfig.CompoundEnqueuer)enqueuer).enqueuers),
-        new Function<TechniqueConfig.Enqueuer, Iterable<PassConfig>>() {
-          public Iterable<PassConfig> apply (TechniqueConfig.Enqueuer enqueuer) {
-            return getPasses(enqueuer);
-          }
-        }));
+        ModelConfig::getPasses)); // recurse
     }
     return Collections.emptyList();
   }

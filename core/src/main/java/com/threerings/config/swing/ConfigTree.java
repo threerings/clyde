@@ -46,7 +46,6 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -598,11 +597,8 @@ public class ConfigTree extends JTree
       log.warning("Too many expanded paths to store in preferences, trimming.",
         "group", group, "length", value.length());
       // sort the array so that the deepest paths are at the end
-      Arrays.sort(names, Ordering.natural().onResultOf(new Function<String, Integer>() {
-        public Integer apply (String s) {
-          return Collections.frequency(Lists.charactersOf(s), '/');
-        }
-      }));
+      Arrays.sort(names,
+          Ordering.natural().onResultOf(s -> Collections.frequency(Lists.charactersOf(s), '/')));
       do {
         names = ArrayUtil.splice(names, names.length - 1);
         value = StringUtil.joinEscaped(names);

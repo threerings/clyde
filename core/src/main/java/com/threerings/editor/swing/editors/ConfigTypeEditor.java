@@ -85,8 +85,7 @@ public class ConfigTypeEditor extends ChoiceEditor
     ManagedConfig dest = _cachedInstances.get(destClass);
     if (dest == null) {
       try {
-        dest = (ManagedConfig)PreparedEditable.PREPARER.apply(
-            destClass.getConstructor().newInstance());
+        dest = (ManagedConfig)PreparedEditable.prepare(destClass.getConstructor().newInstance());
       } catch (Exception e) {
         log.warning("Failed to change type", e);
         return null;

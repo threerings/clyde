@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import org.lwjgl.opengl.GL11;
@@ -351,12 +350,7 @@ public abstract class ShapeConfig extends DeepObject
     // from Groupable
     public List<ShapeConfig> getGrouped ()
     {
-      return Lists.transform(Arrays.asList(shapes),
-          new Function<TransformedShape, ShapeConfig>() {
-            public ShapeConfig apply (TransformedShape xform) {
-              return xform.shape;
-            }
-          });
+      return Lists.transform(Arrays.asList(shapes), xform -> xform.shape);
     }
 
     // from Groupable

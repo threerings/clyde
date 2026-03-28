@@ -28,8 +28,6 @@ package com.threerings.opengl.gui.config;
 import java.util.Arrays;
 import java.util.Collections;
 
-import com.google.common.base.Function;
-
 import com.google.common.collect.Lists;
 
 import com.samskivert.text.MessageUtil;
@@ -120,17 +118,6 @@ public abstract class ComponentConfig extends DeepObject
     @Editable(weight=1)
     public ComponentConfig component = new ComponentConfig.Spacer();
 
-    /**
-     * Get a function for extracting components.
-     */
-    public static Function<ChildComponent, ComponentConfig> extractFunction ()
-    {
-      return new Function<ChildComponent, ComponentConfig>() {
-        public ComponentConfig apply (ChildComponent ccomp) {
-          return ccomp.component;
-        }
-      };
-    }
   }
 
   /**
@@ -639,7 +626,7 @@ public abstract class ComponentConfig extends DeepObject
     // from Groupable
     public java.util.List<ComponentConfig> getGrouped ()
     {
-      return Lists.transform(Arrays.asList(tabs), ChildComponent.extractFunction());
+      return Lists.transform(Arrays.asList(tabs), ccomp -> ccomp.component);
     }
 
     // from Groupable
@@ -882,7 +869,7 @@ public abstract class ComponentConfig extends DeepObject
     // from Groupable
     public java.util.List<ComponentConfig> getGrouped ()
     {
-      return Lists.transform(layout.getChildComponents(), ChildComponent.extractFunction());
+      return Lists.transform(layout.getChildComponents(), ccomp -> ccomp.component);
     }
 
     // from Groupable

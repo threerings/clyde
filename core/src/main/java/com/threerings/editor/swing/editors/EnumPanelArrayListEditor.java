@@ -35,7 +35,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
@@ -124,11 +123,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
       final MessageBundle msgs =
         _msgmgr.getBundle(Introspector.getMessageBundle(getEnumType()));
       List<Enum<?>> values = getValues();
-      Object[] labels = Lists.transform(values, new Function<Enum<?>, String>() {
-        public String apply (Enum<?> value) {
-          return getLabel(value, msgs);
-        }
-      }).toArray();
+      Object[] labels = Lists.transform(values, val -> getLabel(val, msgs)).toArray();
       panel.add(_box = new JComboBox(labels));
       _box.setSelectedIndex(values.indexOf(value));
       _box.addActionListener(new ActionListener() {

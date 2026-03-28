@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
 import org.apache.tools.ant.DirectoryScanner;
@@ -57,23 +56,13 @@ public abstract class FileSetTask extends Task
    */
   protected Iterable<File> getFiles ()
   {
-    return Iterables.concat(Iterables.transform(_filesets, _filesetToFiles));
+    return Iterables.concat(Iterables.transform(_filesets, fileset -> {
+      DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+      final File fromDir = fileset.getDir(getProject());
+      return Iterables.transform(Arrays.asList(ds.getIncludedFiles()),
+          file -> new File(fromDir, file));
+    }));
   }
-
-  /** A function to transform a fileset into the files it represents. */
-  protected final Function<FileSet, Iterable<File>> _filesetToFiles =
-      new Function<FileSet, Iterable<File>>() {
-        public Iterable<File> apply (FileSet fileset) {
-          DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
-          final File fromDir = fileset.getDir(getProject());
-          return Iterables.transform(Arrays.asList(ds.getIncludedFiles()),
-              new Function<String, File>() {
-                public File apply (String file) {
-                  return new File(fromDir, file);
-                }
-              });
-        }
-      };
 
   /** A list of filesets. */
   protected List<FileSet> _filesets = Lists.newArrayList();

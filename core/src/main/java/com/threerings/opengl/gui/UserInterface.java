@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -612,11 +611,7 @@ public class UserInterface extends Container
     final String nextpath = tag.substring(idx + 1);
     tag = tag.substring(0, idx);
     return Iterables.concat(Iterables.transform(getComponents(tag, UserInterface.class),
-      new Function<UserInterface, Iterable<Component>>() {
-        public Iterable<Component> apply (UserInterface comp) {
-          return comp.getComponents(nextpath);
-        }
-      }));
+        comp -> comp.getComponents(nextpath)));
   }
 
   /**

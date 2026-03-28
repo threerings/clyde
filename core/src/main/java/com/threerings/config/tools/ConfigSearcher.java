@@ -31,7 +31,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractIterator;
@@ -328,20 +327,8 @@ public class ConfigSearcher extends JFrame
     @Override
     public <T> Iterator<Result> getResults (final SearchReporter<T> detector)
     {
-      Iterable<File> allFiles = Iterables.concat(
-        Iterables.transform(_dirs,
-          new Function<File, Iterable<File>>() {
-            public Iterable<File> apply (File dir) {
-              return findFiles(dir);
-            }
-          }));
-
-      return Iterables.transform(allFiles,
-        new Function<File, Result>() {
-          public Result apply (File f) {
-            return resultForFile(f, detector);
-          }
-        }).iterator();
+      Iterable<File> allFiles = Iterables.concat(Iterables.transform(_dirs, this::findFiles));
+      return Iterables.transform(allFiles, f -> resultForFile(f, detector)).iterator();
     }
 
     /**
@@ -359,13 +346,8 @@ public class ConfigSearcher extends JFrame
     {
       return Iterables.concat(
         Arrays.asList(directory.listFiles(filter)),
-        Iterables.concat(
-          Iterables.transform(Arrays.asList(directory.listFiles(DIR_FILTER)),
-            new Function<File, Iterable<File>>() {
-              public Iterable<File> apply (File dir) {
-                return findFiles(dir, filter); // recurse
-              }
-            })));
+        Iterables.concat(Iterables.transform(Arrays.asList(directory.listFiles(DIR_FILTER)),
+          dir -> findFiles(dir, filter)))); // recurse
     }
 
     /**

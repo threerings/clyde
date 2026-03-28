@@ -1,7 +1,5 @@
 package com.threerings.editor;
 
-import com.google.common.base.Function;
-
 /**
  * An interface for objects that wish to lazily construct fields prior to editing.
  *
@@ -36,15 +34,15 @@ import com.google.common.base.Function;
  */
 public interface PreparedEditable
 {
-  public static final Function<Object, Object> PREPARER = new Function<Object, Object>() {
-    public Object apply (Object instance)
-    {
-      if (instance instanceof PreparedEditable) {
-        ((PreparedEditable)instance).prepareInstanceToEdit();
-      }
-      return instance;
+  /**
+   * Prepare the instance, if it's a PreparedEditabe, and return it.
+   */
+  public static <T> T prepare (T instance) {
+    if (instance instanceof PreparedEditable) {
+      ((PreparedEditable)instance).prepareInstanceToEdit();
     }
-  };
+    return instance;
+  }
 
   /**
    * Called to prepare this instance to be edited. Can instantiate sub-objects.

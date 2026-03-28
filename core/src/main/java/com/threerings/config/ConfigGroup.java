@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.io.Closer;
 import com.google.common.collect.ImmutableList;
@@ -175,12 +174,7 @@ public class ConfigGroup<T extends ManagedConfig>
    */
   public Iterable<T> getConfigs ()
   {
-    return Iterables.transform(getRawConfigs(),
-        new Function<ManagedConfig, T>() {
-          public T apply (ManagedConfig cfg) {
-            return actualize(cfg);
-          }
-        });
+    return Iterables.transform(getRawConfigs(), this::actualize);
   }
 
   /**

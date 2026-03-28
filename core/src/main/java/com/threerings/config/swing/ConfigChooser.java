@@ -50,7 +50,6 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -106,12 +105,7 @@ public abstract class ConfigChooser extends JPanel
       String desc = constraints.description();
       if ("".equals(desc)) {
         List<Class<? extends ManagedConfig>> vals = Arrays.asList(constraints.value());
-        desc = Joiner.on(", ").join(Iterables.transform(vals,
-              new Function<Class<?>, String>() {
-                public String apply (Class<?> clazz) {
-                  return ConfigGroup.getName(clazz);
-                }
-              }));
+        desc = Joiner.on(", ").join(Iterables.transform(vals, ConfigGroup::getName));
 
       } else {
         MessageBundle msgs = msgmgr.getBundle(Introspector.getMessageBundle(clazz));

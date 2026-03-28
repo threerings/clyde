@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -368,12 +367,7 @@ public class ComboBox<T> extends Label
    */
   protected List<T> getItems ()
   {
-    return Lists.transform(_items,
-      new Function<ComboMenuItem<T>, T>() {
-        public T apply (ComboMenuItem<T> item) {
-          return item.item;
-        }
-      });
+    return Lists.transform(_items, item -> item.item);
   }
 
   /**

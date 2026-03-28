@@ -88,7 +88,6 @@ import javax.swing.undo.UndoableEditSupport;
 
 import org.lwjgl.opengl.GL11;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -181,13 +180,6 @@ public class SceneEditor extends TudeyTool
   public static final Predicate<Object> DEFAULT_ENTRY_FILTER =
     Predicates.and(Predicates.instanceOf(Entry.class),
       Predicates.not(Predicates.instanceOf(GlobalEntry.class)));
-
-  /** A function that transforms an Entry to its key. */
-  public static final Function<Entry, Object> ENTRY_TO_KEY = new Function<Entry, Object>() {
-    public Object apply (Entry entry) {
-      return entry.getKey();
-    }
-  };
 
   /**
    * The program entry point.
@@ -689,7 +681,7 @@ public class SceneEditor extends TudeyTool
         Rectangle region = new Rectangle();
         tentry.getRegion(config, region);
         _scene.getTileEntries(region, temp);
-        toRemoveKeys.addAll(Collections2.transform(temp, ENTRY_TO_KEY));
+        toRemoveKeys.addAll(Collections2.transform(temp, TileEntry::getKey));
         temp.clear();
       }
     }
@@ -752,7 +744,7 @@ public class SceneEditor extends TudeyTool
   // documentation inherited from interface EntryManipulator
   public void removeEntries (Collection<? extends Entry> coll)
   {
-    removeEntries(Collections2.transform(coll, ENTRY_TO_KEY).toArray());
+    removeEntries(Collections2.transform(coll, Entry::getKey).toArray());
   }
 
   // documentation inherited from interface EntryManipulator

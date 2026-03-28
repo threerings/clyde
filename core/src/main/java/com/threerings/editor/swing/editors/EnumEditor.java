@@ -34,7 +34,6 @@ import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
@@ -71,11 +70,7 @@ public class EnumEditor extends PropertyEditor
     add(new JLabel(getPropertyLabel() + ":"));
     final MessageBundle msgs =
       _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
-    Object[] labels = Lists.transform(getValues(), new Function<Enum<?>, String>() {
-      public String apply (Enum<?> value) {
-        return getLabel(value, msgs);
-      }
-    }).toArray();
+    Object[] labels = Lists.transform(getValues(), value -> getLabel(value, msgs)).toArray();
     add(_box = new JComboBox(labels));
     _box.addActionListener(this);
   }
