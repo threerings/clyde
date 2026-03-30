@@ -149,11 +149,7 @@ public class ObjectPanel extends BasePropertyEditor
       if (Boolean.getBoolean("com.threerings.tool.replace_invalid_on_view")) {
         try {
           value = newInstance(_types[tidx = 0]);
-          EventQueue.invokeLater(new Runnable() {
-            public void run () {
-              fireStateChanged(); // fire an edit
-            }
-          });
+          EventQueue.invokeLater(this::fireStateChanged); // fire an edit
           // and continue...
         } catch (Exception e) {
           log.warning("Wrong type; unable to replace invalid for object panel?", "types", _types);

@@ -167,11 +167,7 @@ public abstract class GlDisplayApp extends GlApp
   public void startup ()
   {
     // all the work happens in the AWT thread
-    EventQueue.invokeLater(new Runnable() {
-      public void run () {
-        init();
-      }
-    });
+    EventQueue.invokeLater(this::init);
   }
 
   @Override

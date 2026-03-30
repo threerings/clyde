@@ -286,11 +286,7 @@ public class ConfigEditor extends BaseConfigEditor
       }
       public void menuDeselected (MenuEvent event) {
         // restore after a delay so as not to interfere with selected item
-        EventQueue.invokeLater(new Runnable() {
-          public void run () {
-            restoreActions();
-          }
-        });
+        EventQueue.invokeLater(this::restoreActions);
       }
       public void menuCanceled (MenuEvent event) {
         // no-op
