@@ -35,7 +35,7 @@ package com.threerings.editor;
 public interface PreparedEditable
 {
   /**
-   * Prepare the instance, if it's a PreparedEditabe, and return it.
+   * Prepare the instance, if it's a PreparedEditable, and return it.
    */
   public static <T> T prepare (T instance) {
     if (instance instanceof PreparedEditable) {
