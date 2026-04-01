@@ -34,10 +34,7 @@ import com.google.common.collect.ListMultimap;
 
 import com.samskivert.util.HashIntSet;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Controller;
-import org.lwjgl.input.Controllers;
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 import com.google.common.collect.Maps;
 
@@ -251,7 +248,7 @@ public class PseudoKeys
     {
       if (!event.isConsumed()) {
         keyPressed(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
-          event.getController().getIndex(), event.getControlIndex()), 1f);
+          0, event.getControlIndex()), 1f);
         if (_consume) {
           event.consume();
         }
@@ -263,7 +260,7 @@ public class PseudoKeys
     {
       if (!event.isConsumed()) {
         keyReleased(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
-          event.getController().getIndex(), event.getControlIndex()));
+          0, event.getControlIndex()));
         if (_consume) {
           event.consume();
         }
@@ -276,11 +273,11 @@ public class PseudoKeys
       if (event.isConsumed()) {
         return;
       }
-      Controller controller = event.getController();
-      int controllerIndex = controller.getIndex();
+      Object controller = event.getController();
+      int controllerIndex = 0;
       int axisIndex = event.getControlIndex();
-      float value = controller.getAxisValue(axisIndex);
-      float dead = controller.getDeadZone(axisIndex);
+      float value = event.getValue();
+      float dead = 0.2f;
       if (value > dead) {
         Integer okey = _axes.put(new IntTuple(controllerIndex, axisIndex),
           KEY_CONTROLLER_AXIS_POSITIVE);
@@ -319,9 +316,9 @@ public class PseudoKeys
       if (event.isConsumed()) {
         return;
       }
-      Controller controller = event.getController();
-      int controllerIndex = controller.getIndex();
-      float value = controller.getPovX();
+      Object controller = event.getController();
+      int controllerIndex = 0;
+      float value = event.getValue();
       if (value > 0f) {
         Integer okey = _povx.put(controllerIndex, KEY_CONTROLLER_POV_X_POSITIVE);
         if (okey != null && okey == KEY_CONTROLLER_POV_X_NEGATIVE) {
@@ -355,9 +352,9 @@ public class PseudoKeys
       if (event.isConsumed()) {
         return;
       }
-      Controller controller = event.getController();
-      int controllerIndex = controller.getIndex();
-      float value = controller.getPovY();
+      Object controller = event.getController();
+      int controllerIndex = 0;
+      float value = event.getValue();
       if (value > 0f) {
         Integer okey = _povy.put(controllerIndex, KEY_CONTROLLER_POV_Y_POSITIVE);
         if (okey != null && okey == KEY_CONTROLLER_POV_Y_NEGATIVE) {
@@ -632,29 +629,16 @@ public class PseudoKeys
    */
   public boolean isValid (int key)
   {
-    int controllerIndex;
-
-    if (!Controllers.isCreated()) {
-      throw new RuntimeException("Controllers has not been created.");
-    }
-
     switch (getType(key)) {
       case KEY_CONTROLLER_BUTTON:
-        controllerIndex = getControllerIndex(key);
-        return controllerIndex < Controllers.getControllerCount() &&
-          getControlIndex(key) <
-            Controllers.getController(controllerIndex).getButtonCount();
       case KEY_CONTROLLER_AXIS_POSITIVE:
       case KEY_CONTROLLER_AXIS_NEGATIVE:
-        controllerIndex = getControllerIndex(key);
-        return controllerIndex < Controllers.getControllerCount() &&
-          getControlIndex(key) <
-            Controllers.getController(controllerIndex).getAxisCount();
+        return getControllerIndex(key) < 0 && getControlIndex(key) < 0;
       case KEY_CONTROLLER_POV_X_POSITIVE:
       case KEY_CONTROLLER_POV_X_NEGATIVE:
       case KEY_CONTROLLER_POV_Y_POSITIVE:
       case KEY_CONTROLLER_POV_Y_NEGATIVE:
-        return getControllerIndex(key) < Controllers.getControllerCount();
+        return getControllerIndex(key) < 0;
       default:
         return true;
     }
@@ -711,18 +695,18 @@ public class PseudoKeys
       case KEY_CONTROLLER_BUTTON:
         idx = getControllerIndex(baseKey);
         return MessageBundle.tcompose("m.controller_button", String.valueOf(idx),
-            Controllers.getController(idx).getButtonName(getControlIndex(baseKey))
+            String.valueOf(getControlIndex(baseKey))
                 .replaceFirst("[Bb]utton\\s*", ""));
 
       case KEY_CONTROLLER_AXIS_POSITIVE:
         idx = getControllerIndex(baseKey);
         return MessageBundle.tcompose("m.controller_axis_positive", String.valueOf(idx),
-          Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
+          String.valueOf(getControlIndex(baseKey)));
 
       case KEY_CONTROLLER_AXIS_NEGATIVE:
         idx = getControllerIndex(baseKey);
         return MessageBundle.tcompose("m.controller_axis_negative", String.valueOf(idx),
-          Controllers.getController(idx).getAxisName(getControlIndex(baseKey)));
+          String.valueOf(getControlIndex(baseKey)));
 
       case KEY_CONTROLLER_POV_X_POSITIVE:
         return MessageBundle.tcompose("m.controller_pov_x_positive",

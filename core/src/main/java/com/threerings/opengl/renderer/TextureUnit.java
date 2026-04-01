@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.renderer;
 
-import org.lwjgl.opengl.ARBTextureEnvCombine;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.math.Transform3D;
@@ -55,19 +55,19 @@ public class TextureUnit
   public int rgbSource0 = GL11.GL_TEXTURE;
 
   /** The second RGB combine source. */
-  public int rgbSource1 = ARBTextureEnvCombine.GL_PREVIOUS_ARB;
+  public int rgbSource1 = GL13.GL_PREVIOUS;
 
   /** The third RGB combine source. */
-  public int rgbSource2 = ARBTextureEnvCombine.GL_CONSTANT_ARB;
+  public int rgbSource2 = GL13.GL_CONSTANT;
 
   /** The first alpha combine source. */
   public int alphaSource0 = GL11.GL_TEXTURE;
 
   /** The second alpha combine source. */
-  public int alphaSource1 = ARBTextureEnvCombine.GL_PREVIOUS_ARB;
+  public int alphaSource1 = GL13.GL_PREVIOUS;
 
   /** The third alpha combine source. */
-  public int alphaSource2 = ARBTextureEnvCombine.GL_CONSTANT_ARB;
+  public int alphaSource2 = GL13.GL_CONSTANT;
 
   /** The first RGB combine operand. */
   public int rgbOperand0 = GL11.GL_SRC_COLOR;

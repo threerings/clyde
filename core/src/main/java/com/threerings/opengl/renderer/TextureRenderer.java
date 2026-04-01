@@ -26,30 +26,27 @@
 package com.threerings.opengl.renderer;
 
 import java.lang.ref.WeakReference;
-
 import java.util.Map;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.ARBDepthTexture;
-import org.lwjgl.opengl.ARBTextureCubeMap;
-import org.lwjgl.opengl.ARBTextureRectangle;
-import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.opengl.Pbuffer;
-import org.lwjgl.opengl.PixelFormat;
-import org.lwjgl.opengl.RenderTexture;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL31;
+import org.lwjgl.opengl.GL;
 
 import com.threerings.util.CacheUtil;
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.log;
 
 /**
- * Provides render-to-texture functionality using various methods according to the abilities
- * of the driver.
+ * Provides render-to-texture functionality using FBOs.
+ * In LWJGL 3, Pbuffer and RenderTexture are no longer available;
+ * FBO-based rendering is used exclusively.
  */
 public class TextureRenderer
 {
@@ -64,9 +61,6 @@ public class TextureRenderer
 
   /**
    * Retrieves the shared texture renderer instance for the supplied textures.
-   *
-   * @param width the width of the render surface, or -1 to match the texture dimensions.
-   * @param height the height of the render surface, or -1.
    */
   public static TextureRenderer getInstance (
     GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
@@ -82,9 +76,6 @@ public class TextureRenderer
 
   /**
    * Creates a new texture renderer to render into the specified texture(s).
-   *
-   * @param width the width of the render surface, or -1 to match the texture dimensions.
-   * @param height the height of the render surface, or -1.
    */
   public TextureRenderer (
     GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
@@ -97,7 +88,6 @@ public class TextureRenderer
     Texture tex = (color == null) ? depth : color;
     int twidth = tex.getWidth(), theight = tex.getHeight();
 
-    // match the texture dimensions if unspecified
     if (width == -1) {
       _width = twidth;
       _height = theight;
@@ -107,84 +97,8 @@ public class TextureRenderer
       _height = height;
     }
 
-    // first try fbos (temporarily disabled)
-    if (false && GLContext.getCapabilities().GL_EXT_framebuffer_object) {
-      Framebuffer obuffer = _renderer.getFramebuffer();
-      _renderer.setFramebuffer(_framebuffer = new Framebuffer(_renderer));
-
-      // attach the color texture
-      if (color != null) {
-        _framebuffer.setColorAttachment(color);
-      }
-
-      // attach the depth texture or render buffer
-      if (depth != null) {
-        _framebuffer.setDepthAttachment(depth);
-      } else {
-        int dbits = pformat.getDepthBits();
-        if (dbits > 0) {
-          Renderbuffer dbuf = new Renderbuffer(_renderer);
-          dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
-          _framebuffer.setDepthAttachment(dbuf);
-        }
-      }
-
-      // add a stencil buffer if requested
-      int sbits = pformat.getStencilBits();
-      if (sbits > 0) {
-        Renderbuffer sbuf = new Renderbuffer(_renderer);
-        sbuf.setStorage(GL11.GL_STENCIL_INDEX, twidth, theight);
-        _framebuffer.setStencilAttachment(sbuf);
-      }
-
-      // if we have no color buffer, disable draw and read
-      if (color == null) {
-        GL11.glDrawBuffer(GL11.GL_NONE);
-        GL11.glReadBuffer(GL11.GL_NONE);
-      }
-
-      // get the status
-      int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(
-        EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
-
-      // restore the old frame buffer
-      _renderer.setFramebuffer(obuffer);
-
-      // process the status
-      if (status == EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT) {
-        return; // success!
-      } else if (status != EXTFramebufferObject.GL_FRAMEBUFFER_UNSUPPORTED_EXT) {
-        log.warning("Framebuffer incomplete.", "status", status);
-      }
-      deleteFramebuffer(_framebuffer);
-      _framebuffer = null;
-    }
-
-    // then try pbuffers with or without rtt (temporarily disabled)
-    // even calling Pbuffer.getCapabilities has side effects on Windows with AWTGLCanvas: it
-    // seems to put us in a glBegin segment, which causes a subsequent call to glViewport to
-    // fail with GL_INVALID_OPERATION
-    int pcaps = 0; // Pbuffer.getCapabilities();
-    if ((pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
-      int target = getRenderTextureTarget(tex.getTarget());
-      boolean rectangle = (target == RenderTexture.RENDER_TEXTURE_RECTANGLE);
-      _pwidth = _width;
-      _pheight = _height;
-      if ((pcaps & Pbuffer.RENDER_TEXTURE_SUPPORTED) != 0 &&
-          (!rectangle || (pcaps & Pbuffer.RENDER_TEXTURE_RECTANGLE_SUPPORTED) != 0) &&
-          (depth == null || (pcaps & Pbuffer.RENDER_DEPTH_TEXTURE_SUPPORTED) != 0)) {
-        boolean rgb = false, rgba = false;
-        if (color != null) {
-          rgb = !(rgba = color.hasAlpha());
-        }
-        _rtex = new RenderTexture(rgb, rgba, depth != null, rectangle, target, 0);
-        _pwidth = twidth;
-        _pheight = theight;
-      }
-      initPbuffer();
-    }
-
-    // the final option is to render to back buffer, then copy to texture
+    // Use FBO-based rendering (the only option in LWJGL 3)
+    initFramebuffer(twidth, theight);
   }
 
   /**
@@ -229,9 +143,6 @@ public class TextureRenderer
 
   /**
    * Starts rendering to the texture.
-   *
-   * @param level the mipmap level.
-   * @param param the cube map face index or z offset, as appropriate.
    */
   public void startRender (int level, int param)
   {
@@ -247,22 +158,6 @@ public class TextureRenderer
     if (_framebuffer != null) {
       _obuffer = _renderer.getFramebuffer();
       _renderer.setFramebuffer(_framebuffer);
-
-    } else if (_pbuffer != null) {
-      if (_pbuffer.isBufferLost()) {
-        _pbuffer.destroy();
-        initPbuffer();
-      }
-      if (_rtex != null) {
-        releaseTextures();
-      }
-      try {
-        _pbuffer.makeCurrent();
-        _orenderer = _ctx.getRenderer();
-        _ctx.setRenderer(_renderer);
-      } catch (LWJGLException e) {
-        log.warning("Failed to make pbuffer context current.", e);
-      }
     }
     if (_color == null) {
       _odraw = _renderer.getDrawBuffer();
@@ -276,7 +171,7 @@ public class TextureRenderer
   }
 
   /**
-   * Stops rendering to the texture (and makes it available for use).
+   * Stops rendering to the texture.
    */
   public void commitRender ()
   {
@@ -289,23 +184,13 @@ public class TextureRenderer
     if (_framebuffer != null) {
       _renderer.setFramebuffer(_obuffer);
       _obuffer = null;
-
-    } else if (_pbuffer != null) {
-      if (_rtex == null) {
-        copyTextures();
-      }
-      _ctx.setRenderer(_orenderer);
-      _ctx.makeCurrent();
-      if (_rtex != null) {
-        bindTextures();
-      }
     } else {
       copyTextures();
     }
   }
 
   /**
-   * Disposes of this texture renderer, rendering it unusable.
+   * Disposes of this texture renderer.
    */
   public void dispose ()
   {
@@ -313,103 +198,73 @@ public class TextureRenderer
       deleteFramebuffer(_framebuffer);
       _framebuffer = null;
     }
-    if (_pbuffer != null) {
-      _pbuffer.destroy();
-      _pbuffer = null;
-    }
   }
 
-  @Override
-  protected void finalize ()
-    throws Throwable
+  /**
+   * Initializes the FBO for rendering.
+   */
+  protected void initFramebuffer (int twidth, int theight)
   {
-    super.finalize();
-    if (_pbuffer != null) {
-      _renderer.pbufferFinalized(_pbuffer);
+    Framebuffer obuffer = _renderer.getFramebuffer();
+    _renderer.setFramebuffer(_framebuffer = new Framebuffer(_renderer));
+
+    if (_color != null) {
+      _framebuffer.setColorAttachment(_color);
+    }
+    if (_depth != null) {
+      _framebuffer.setDepthAttachment(_depth);
+    } else {
+      int dbits = _pformat.depthBits;
+      if (dbits > 0) {
+        Renderbuffer dbuf = new Renderbuffer(_renderer);
+        dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
+        _framebuffer.setDepthAttachment(dbuf);
+      }
+    }
+    int sbits = _pformat.stencilBits;
+    if (sbits > 0) {
+      Renderbuffer sbuf = new Renderbuffer(_renderer);
+      sbuf.setStorage(GL11.GL_STENCIL_INDEX, twidth, theight);
+      _framebuffer.setStencilAttachment(sbuf);
+    }
+    if (_color == null) {
+      GL11.glDrawBuffer(GL11.GL_NONE);
+      GL11.glReadBuffer(GL11.GL_NONE);
+    }
+
+    int status = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
+    _renderer.setFramebuffer(obuffer);
+
+    if (status != GL30.GL_FRAMEBUFFER_COMPLETE) {
+      log.warning("Framebuffer incomplete.", "status", status);
+      deleteFramebuffer(_framebuffer);
+      _framebuffer = null;
     }
   }
 
   /**
-   * Resizes the texture render state to match the supplied dimensions.
+   * Resizes the texture render state.
    */
   protected void resize (int width, int height)
   {
     _width = width;
     _height = height;
-
     if (_framebuffer != null) {
-      // resize the depth and/or stencil render buffers
-      if (_depth == null && _pformat.getDepthBits() > 0) {
+      if (_depth == null && _pformat.depthBits > 0) {
         Renderbuffer dbuf = new Renderbuffer(_renderer);
         dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, width, height);
         _framebuffer.setDepthAttachment(dbuf);
       }
-      if (_pformat.getStencilBits() > 0) {
+      if (_pformat.stencilBits > 0) {
         Renderbuffer sbuf = new Renderbuffer(_renderer);
         sbuf.setStorage(GL11.GL_STENCIL_INDEX, width, height);
         _framebuffer.setStencilAttachment(sbuf);
       }
-    } else if (_pbuffer != null) {
-      _pwidth = width;
-      _pheight = height;
-      initPbuffer();
     }
   }
 
   /**
-   * (Re)initializes the pbuffer.
-   */
-  protected void initPbuffer ()
-  {
-    try {
-      _pbuffer = new Pbuffer(
-        _pwidth, _pheight, _pformat, _rtex, _ctx.getRenderer().getDrawable());
-      _pbuffer.makeCurrent();
-      _renderer = new Renderer();
-      _renderer.init(_pbuffer, _pwidth, _pheight);
-      _ctx.makeCurrent();
-      if (_rtex != null) {
-        bindTextures();
-      }
-    } catch (LWJGLException e) {
-      log.warning("Failed to create pbuffer.", e);
-      if (_pbuffer != null) {
-        _pbuffer.destroy();
-        _pbuffer = null;
-      }
-    }
-  }
-
-  /**
-   * Binds the texture(s) to the pbuffer.
-   */
-  protected void bindTextures ()
-  {
-    if (_color != null) {
-      _ctx.getRenderer().setTexture(_color);
-      _pbuffer.bindTexImage(Pbuffer.FRONT_LEFT_BUFFER);
-    }
-    if (_depth != null) {
-      _ctx.getRenderer().setTexture(_depth);
-      _pbuffer.bindTexImage(Pbuffer.DEPTH_BUFFER);
-    }
-  }
-
-  /**
-   * Releases the texture(s) from the pbuffer.
-   */
-  protected void releaseTextures ()
-  {
-    if (_color != null) {
-      _pbuffer.releaseTexImage(Pbuffer.FRONT_LEFT_BUFFER);
-    }
-    if (_depth != null) {
-      _pbuffer.releaseTexImage(Pbuffer.DEPTH_BUFFER);
-    }
-  }
-
-  /**
-   * Copies the textures from the buffer.
+   * Copies the textures from the buffer (fallback when FBO is not available).
    */
   protected void copyTextures ()
   {
@@ -444,9 +299,9 @@ public class TextureRenderer
   protected static int getDepthFormat (int bits)
   {
     switch (bits) {
-      default: case 16: return ARBDepthTexture.GL_DEPTH_COMPONENT16_ARB;
-      case 24: return ARBDepthTexture.GL_DEPTH_COMPONENT24_ARB;
-      case 32: return ARBDepthTexture.GL_DEPTH_COMPONENT32_ARB;
+      default: case 16: return GL14.GL_DEPTH_COMPONENT16;
+      case 24: return GL14.GL_DEPTH_COMPONENT24;
+      case 32: return GL14.GL_DEPTH_COMPONENT32;
     }
   }
 
@@ -456,27 +311,10 @@ public class TextureRenderer
   protected static int getStencilFormat (int bits)
   {
     switch (bits) {
-      default: case 1: return EXTFramebufferObject.GL_STENCIL_INDEX1_EXT;
-      case 4: return EXTFramebufferObject.GL_STENCIL_INDEX4_EXT;
-      case 8: return EXTFramebufferObject.GL_STENCIL_INDEX8_EXT;
-      case 16: return EXTFramebufferObject.GL_STENCIL_INDEX16_EXT;
-    }
-  }
-
-  /**
-   * Returns the render texture target corresponding to the specified texture target.
-   */
-  protected static int getRenderTextureTarget (int target)
-  {
-    switch (target) {
-      case GL11.GL_TEXTURE_1D:
-        return RenderTexture.RENDER_TEXTURE_1D;
-      default: case GL11.GL_TEXTURE_2D:
-        return RenderTexture.RENDER_TEXTURE_2D;
-      case ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB:
-        return RenderTexture.RENDER_TEXTURE_CUBE_MAP;
-      case ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB:
-        return RenderTexture.RENDER_TEXTURE_RECTANGLE;
+      default: case 1: return GL30.GL_STENCIL_INDEX1;
+      case 4: return GL30.GL_STENCIL_INDEX4;
+      case 8: return GL30.GL_STENCIL_INDEX8;
+      case 16: return GL30.GL_STENCIL_INDEX16;
     }
   }
 
@@ -526,58 +364,21 @@ public class TextureRenderer
       return _color.get() == okey._color.get() && _depth.get() == okey._depth.get();
     }
 
-    /** The color and depth textures. */
     protected WeakReference<Texture> _color, _depth;
   }
 
-  /** The renderer context. */
   protected GlContext _ctx;
-
-  /** The renderer with which we render. */
   protected Renderer _renderer;
-
-  /** The width and height of the render surface. */
   protected int _width, _height;
-
-  /** If true, change the render surface dimensions to match the texture dimensions. */
   protected boolean _matchTextureDimensions;
-
-  /** The requested pixel format. */
   protected PixelFormat _pformat;
-
-  /** The color and/or depth textures to which we render. */
   protected Texture _color, _depth;
-
-  /** The frame buffer object, if supported. */
   protected Framebuffer _framebuffer;
-
-  /** The dimensions of the Pbuffer. */
-  protected int _pwidth, _pheight;
-
-  /** The render-to-texture configuration. */
-  protected RenderTexture _rtex;
-
-  /** The pbuffer object, if supported. */
-  protected Pbuffer _pbuffer;
-
-  /** The mipmap level. */
   protected int _level;
-
-  /** The cube map face index or z offset, as appropriate. */
   protected int _param;
-
-  /** The original viewport. */
   protected Rectangle _oviewport = new Rectangle();
-
-  /** The originally bound frame buffer. */
   protected Framebuffer _obuffer;
-
-  /** The original context renderer. */
-  protected Renderer _orenderer;
-
-  /** The original draw and read buffers. */
   protected int _odraw, _oread;
 
-  /** The shared texture renderer instances. */
   protected static Map<InstanceKey, TextureRenderer> _instances = CacheUtil.softValues();
 }

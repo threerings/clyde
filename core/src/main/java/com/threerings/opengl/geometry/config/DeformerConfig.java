@@ -30,7 +30,8 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.samskivert.util.ListUtil;
 
@@ -123,7 +124,7 @@ public abstract class DeformerConfig extends DeepObject
       // create the array states and, if possible, a VBO to hold the skinned data
       BufferObject arrayBuffer = null;
       FloatBuffer floatArray = null;
-      boolean vbos = GLContext.getCapabilities().GL_ARB_vertex_buffer_object;
+      boolean vbos = GL.getCapabilities().GL_ARB_vertex_buffer_object;
       if (vbos) {
         arrayBuffer = new BufferObject(ctx.getRenderer());
       } else {

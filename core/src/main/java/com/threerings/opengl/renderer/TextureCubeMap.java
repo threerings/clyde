@@ -29,10 +29,11 @@ import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
 
-import org.lwjgl.opengl.ARBTextureCompression;
-import org.lwjgl.opengl.ARBTextureCubeMap;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.util.GlUtil;
 
@@ -43,19 +44,19 @@ public class TextureCubeMap extends Texture
 {
   /** The targets for each face. */
   public static final int[] FACE_TARGETS = {
-    ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB,
-    ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB,
-    ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB,
-    ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB,
-    ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB,
-    ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB };
+    GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+    GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+    GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+    GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+    GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
   /**
    * Creates a new texture.
    */
   public TextureCubeMap (Renderer renderer)
   {
-    super(renderer, ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB);
+    super(renderer, GL13.GL_TEXTURE_CUBE_MAP);
   }
 
   /**
@@ -91,7 +92,7 @@ public class TextureCubeMap extends Texture
     int target, int level, int format, int size, boolean border,
     int dformat, int dtype, ByteBuffer data)
   {
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       size = GlUtil.nextPowerOfTwo(size);
     }
     if (level == 0) {
@@ -117,7 +118,7 @@ public class TextureCubeMap extends Texture
     _renderer.setTexture(this);
     int ib = border ? 1 : 0, ib2 = ib*2;
     int bsize = size + ib2;
-    ARBTextureCompression.glCompressedTexImage2DARB(
+    GL13.glCompressedTexImage2D(
       target, level, format, bsize, bsize, ib, data);
   }
 
@@ -156,7 +157,7 @@ public class TextureCubeMap extends Texture
         size = Math.max(size, Math.max(image.getWidth(), image.getHeight()));
       }
     }
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       size = GlUtil.nextPowerOfTwo(size);
     }
     if (level == 0) {
@@ -202,7 +203,7 @@ public class TextureCubeMap extends Texture
     int sdivs, int tdivs, boolean premultiply, boolean rescale)
   {
     int size = Math.max(image.getWidth() / sdivs, image.getHeight() / tdivs);
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       size = GlUtil.nextPowerOfTwo(size);
     }
     if (level == 0) {

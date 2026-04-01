@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.compositor;
 
-import org.lwjgl.opengl.PixelFormat;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.threerings.expr.Updater;
 import com.threerings.math.Box;

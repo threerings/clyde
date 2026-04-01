@@ -29,12 +29,13 @@ import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
 
-import org.lwjgl.opengl.ARBTextureCompression;
-import org.lwjgl.opengl.ARBTextureRectangle;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL31;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.util.glu.GLU;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.opengl.GL30;
 
 import com.threerings.opengl.util.GlUtil;
 
@@ -61,7 +62,7 @@ public class Texture2D extends Texture
   public Texture2D (Renderer renderer, boolean rectangle)
   {
     super(renderer,
-      rectangle ? ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB : GL11.GL_TEXTURE_2D);
+      rectangle ? GL31.GL_TEXTURE_RECTANGLE : GL11.GL_TEXTURE_2D);
     if (rectangle) {
       _minFilter = GL11.GL_LINEAR;
       _wrapS = _wrapT = GL12.GL_CLAMP_TO_EDGE;
@@ -73,7 +74,7 @@ public class Texture2D extends Texture
    */
   public boolean isRectangle ()
   {
-    return _target == ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB;
+    return _target == GL31.GL_TEXTURE_RECTANGLE;
   }
 
   /**
@@ -108,7 +109,7 @@ public class Texture2D extends Texture
     int level, int format, int width, int height, boolean border,
     int dformat, int dtype, ByteBuffer data)
   {
-    if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
+    if (!(isRectangle() || GL.getCapabilities().GL_ARB_texture_non_power_of_two)) {
       width = GlUtil.nextPowerOfTwo(width);
       height = GlUtil.nextPowerOfTwo(height);
     }
@@ -137,7 +138,7 @@ public class Texture2D extends Texture
     }
     _renderer.setTexture(this);
     int ib = border ? 1 : 0, ib2 = ib*2;
-    ARBTextureCompression.glCompressedTexImage2DARB(
+    GL13.glCompressedTexImage2D(
       _target, level, format, width + ib2, height + ib2, ib, data);
     setBytes(level, (data == null) ? (width*height*4) : data.remaining());
   }
@@ -156,13 +157,13 @@ public class Texture2D extends Texture
       setImage(0, format, border, image, premultiply, rescale);
       return;
     }
-    if (GLContext.getCapabilities().GL_SGIS_generate_mipmap) {
+    if (GL.getCapabilities().OpenGL14) {
       setGenerateMipmaps(true);
       setImage(0, format, border, image, premultiply, rescale);
       return;
     }
     int width = image.getWidth(), height = image.getHeight();
-    if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
+    if (!(isRectangle() || GL.getCapabilities().GL_ARB_texture_non_power_of_two)) {
       width = GlUtil.nextPowerOfTwo(width);
       height = GlUtil.nextPowerOfTwo(height);
     }
@@ -171,9 +172,10 @@ public class Texture2D extends Texture
     _height = height;
     _renderer.setTexture(this);
     ByteBuffer data = getData(image, premultiply, width, height, rescale);
-    GLU.gluBuild2DMipmaps(
-      _target, format, width, height,
+    GL11.glTexImage2D(
+      _target, 0, format, width, height, 0,
       getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+    GL30.glGenerateMipmap(_target);
     setMipmapBytes(data.remaining(), width, height);
   }
 
@@ -185,7 +187,7 @@ public class Texture2D extends Texture
     boolean premultiply, boolean rescale)
   {
     int width = image.getWidth(), height = image.getHeight();
-    if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
+    if (!(isRectangle() || GL.getCapabilities().GL_ARB_texture_non_power_of_two)) {
       width = GlUtil.nextPowerOfTwo(width);
       height = GlUtil.nextPowerOfTwo(height);
     }
@@ -236,22 +238,23 @@ public class Texture2D extends Texture
   {
     // determine the width and height of the texture
     int width = image.getWidth(), height = image.getHeight();
-    if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
+    if (!(isRectangle() || GL.getCapabilities().GL_ARB_texture_non_power_of_two)) {
       width = GlUtil.nextPowerOfTwo(width);
       height = GlUtil.nextPowerOfTwo(height);
     }
     _renderer.setTexture(this);
     ByteBuffer data = getData(image, premultiply, width, height, rescale);
     if (mipmap && !isRectangle()) { // rectangles cannot be mipmapped
-      if (GLContext.getCapabilities().GL_SGIS_generate_mipmap) {
+      if (GL.getCapabilities().OpenGL14) {
         setGenerateMipmaps(true);
         GL11.glTexImage2D(
           _target, 0, getInternalFormat(image, compress), _width = width,
           _height = height, 0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
       } else {
-        GLU.gluBuild2DMipmaps(
-          _target, getInternalFormat(image, compress), _width = width, _height = height,
-          _format = getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+        GL11.glTexImage2D(
+          _target, 0, getInternalFormat(image, compress), _width = width,
+          _height = height, 0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+        GL30.glGenerateMipmap(_target);
       }
       setMipmapBytes(data.remaining(), width, height);
 

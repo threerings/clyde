@@ -40,9 +40,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.PixelFormat;
-
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
@@ -54,6 +51,7 @@ import com.threerings.math.Ray3D;
 
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 import static com.threerings.opengl.Log.log;
 
 /**
@@ -137,8 +135,10 @@ public abstract class GlCanvasApp extends GlApp
    */
   public void getPickRay (int x, int y, Ray3D result)
   {
-    // flip vertically to convert to viewport coordinates
-    _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);
+    // scale from AWT logical points to framebuffer pixels, then flip vertically
+    int scale = ((GlCanvas)_canvas).getPixelScale();
+    _compositor.getCamera().getPickRay(
+      x * scale, _canvas.getHeight() * scale - y * scale - 1, result);
   }
 
   // documentation inherited from interface GlContext
@@ -179,7 +179,10 @@ public abstract class GlCanvasApp extends GlApp
   @Override
   protected void initRenderer ()
   {
-    _renderer.init(((GlCanvas)_canvas).getDrawable(), _canvas.getWidth(), _canvas.getHeight());
+    // Use framebuffer pixel dimensions (accounts for HiDPI/Retina scaling)
+    int scale = ((GlCanvas)_canvas).getPixelScale();
+    _renderer.init(((GlCanvas)_canvas).getWindowHandle(),
+      _canvas.getWidth() * scale, _canvas.getHeight() * scale);
   }
 
   @Override
@@ -188,10 +191,11 @@ public abstract class GlCanvasApp extends GlApp
     // enable vsync unless configured otherwise
     ((GlCanvas)_canvas).setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
 
-    // notify the renderer on resize
+    // notify the renderer on resize (use framebuffer pixel dimensions)
     _canvas.addComponentListener(new ComponentAdapter() {
       public void componentResized (ComponentEvent event) {
-        _renderer.setSize(_canvas.getWidth(), _canvas.getHeight());
+        int scale = ((GlCanvas)_canvas).getPixelScale();
+        _renderer.setSize(_canvas.getWidth() * scale, _canvas.getHeight() * scale);
       }
     });
 
@@ -217,41 +221,18 @@ public abstract class GlCanvasApp extends GlApp
    */
   protected Component createCanvas ()
   {
-    // at least as of Ubuntu 9.10 (Karmic Koala), using the AWTCanvas on Linux results
-    // in frequent crashes.  using it on Windows with the latest Nvidia drivers causes
-    // the window to stop refreshing
-    if (RunAnywhere.isLinux() || RunAnywhere.isWindows()) {
-      return new DisplayCanvas(getAntialiasingLevel()) {
-        @Override protected void didInit () {
-          GlCanvasApp.this.init();
-        }
-        @Override protected void updateView () {
-          GlCanvasApp.this.updateView();
-        }
-        @Override protected void renderView () {
-          GlCanvasApp.this.renderView();
-        }
-      };
-    }
-    for (PixelFormat format : getPixelFormats()) {
-      try {
-        return new AWTCanvas(format) {
-          @Override protected void didInit () {
-            GlCanvasApp.this.init();
-          }
-          @Override protected void updateView () {
-            GlCanvasApp.this.updateView();
-          }
-          @Override protected void renderView () {
-            GlCanvasApp.this.renderView();
-          }
-        };
-      } catch (LWJGLException e) {
-        // proceed to next format
+    // Use DisplayCanvas for all platforms (AWTGLCanvas no longer available in LWJGL 3)
+    return new DisplayCanvas(getAntialiasingLevel()) {
+      @Override protected void didInit () {
+        GlCanvasApp.this.init();
       }
-    }
-    log.warning("Couldn't find valid pixel format.");
-    return null;
+      @Override protected void updateView () {
+        GlCanvasApp.this.updateView();
+      }
+      @Override protected void renderView () {
+        GlCanvasApp.this.renderView();
+      }
+    };
   }
 
   /**

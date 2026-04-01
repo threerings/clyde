@@ -25,45 +25,38 @@
 
 package com.threerings.opengl;
 
-import java.lang.reflect.Field;
-
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.EventQueue;
-import java.awt.Graphics;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.Window;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-
-import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputAdapter;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.Drawable;
-import org.lwjgl.opengl.PixelFormat;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.awt.AWTGLCanvas;
+import org.lwjgl.opengl.awt.GLData;
 
 import com.samskivert.util.HashIntSet;
-import com.samskivert.util.Interator;
-import com.samskivert.util.RunAnywhere;
+
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 import static com.threerings.opengl.Log.log;
 
 /**
- * A canvas that uses {@link Display}.
+ * A canvas that uses lwjgl3-awt to embed an OpenGL context in a Swing panel.
+ * This replaces the old LWJGL 2 Display.setParent() approach.
  */
 public class DisplayCanvas extends JPanel
   implements GlCanvas, KeyEventDispatcher
@@ -75,44 +68,25 @@ public class DisplayCanvas extends JPanel
   {
     super(new BorderLayout());
 
-    // create and add the contained canvas
-    _canvas = new Canvas() {
-      @Override public Point getMousePosition () {
-        return _entered ? getRelativeMouseLocation() : null;
-      }
-      @Override public void paint (Graphics g) {
-        // initialize on first paint
-        if (_initialized) {
-          return;
-        }
-        _initialized = true;
+    // configure the GL data for the context
+    GLData data = new GLData();
+    data.samples = antialiasingLevel;
+    data.depthSize = 24;
+    data.stencilSize = 8;
+    data.alphaSize = 0; // no framebuffer alpha to avoid compositing issues on macOS
+    data.doubleBuffer = true;
+    // Request a compatibility profile for legacy OpenGL
+    data.profile = GLData.Profile.COMPATIBILITY;
 
-        // attempt to find a valid pixel format
-        for (PixelFormat format : GlApp.getPixelFormats(antialiasingLevel)) {
-          try {
-            init(format);
-            return;
-          } catch (LWJGLException e) {
-            // proceed to next format
-          }
-        }
-        log.warning("Couldn't find valid pixel format.");
-      }
-      @Override public void update (Graphics g) {
-        // no-op
-      }
-    };
-    add(_canvas, BorderLayout.CENTER);
+    // create the AWT GL canvas
+    _glCanvas = new LockableGLCanvas(data);
 
-    // make popups heavyweight so that we can see them over the canvas
+    add(_glCanvas, BorderLayout.CENTER);
+
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+    _glCanvas.setFocusable(false);
 
-    // do not allow the canvas to receive focus
-    _canvas.setFocusable(false);
-
-    // add a listener to record states.  we do this here rather than in the check methods
-    // because on some platforms AWT dispatches some of the mouse events that are also
-    // picked up by LWJGL
+    // add a listener to record states
     MouseInputAdapter listener = new MouseInputAdapter() {
       @Override public void mouseEntered (MouseEvent event) {
         _entered = true;
@@ -125,13 +99,17 @@ public class DisplayCanvas extends JPanel
       @Override public void mousePressed (MouseEvent event) {
         requestFocusInWindow();
         int button = getLWJGLButton(event.getButton());
-        _buttons[button].wasPressed(event);
-        updateButtonModifier(button, true);
+        if (button >= 0 && button < _buttons.length) {
+          _buttons[button].wasPressed(event);
+          updateButtonModifier(button, true);
+        }
       }
       @Override public void mouseReleased (MouseEvent event) {
         int button = getLWJGLButton(event.getButton());
-        _buttons[button].wasReleased(event);
-        updateButtonModifier(button, false);
+        if (button >= 0 && button < _buttons.length) {
+          _buttons[button].wasReleased(event);
+          updateButtonModifier(button, false);
+        }
       }
       @Override public void mouseMoved (MouseEvent event) {
         _lx = event.getX();
@@ -142,49 +120,86 @@ public class DisplayCanvas extends JPanel
         _ly = event.getY();
       }
     };
-    addMouseListener(listener);
-    addMouseMotionListener(listener);
-    addMouseWheelListener(new MouseWheelListener() {
+    // Attach listeners to _glCanvas (heavyweight) since it sits on top and
+    // intercepts mouse events that would otherwise go to this JPanel.
+    _glCanvas.addMouseListener(listener);
+    _glCanvas.addMouseMotionListener(listener);
+    _glCanvas.addMouseWheelListener(new MouseWheelListener() {
       public void mouseWheelMoved (MouseWheelEvent event) {
         _lclicks--;
       }
     });
   }
 
-  // documentation inherited from interface GlCanvas
-  public Drawable getDrawable ()
+  /**
+   * Returns the framebuffer width in pixels (may differ from component width on HiDPI/Retina).
+   */
+  public int getFramebufferWidth ()
   {
-    return Display.getDrawable();
+    return _glCanvas.getFramebufferWidth();
+  }
+
+  /**
+   * Returns the framebuffer height in pixels (may differ from component height on HiDPI/Retina).
+   */
+  public int getFramebufferHeight ()
+  {
+    return _glCanvas.getFramebufferHeight();
+  }
+
+  // documentation inherited from interface GlCanvas
+  public int getPixelScale ()
+  {
+    int cw = super.getWidth();
+    int fbw = _glCanvas.getFramebufferWidth();
+    return (cw > 0 && fbw > 0) ? Math.max(1, fbw / cw) : 1;
+  }
+
+  // documentation inherited from interface GlCanvas
+  public long getWindowHandle ()
+  {
+    return 0; // no GLFW window; context is managed by lwjgl3-awt
   }
 
   // documentation inherited from interface GlCanvas
   public void setVSyncEnabled (boolean vsync)
   {
-    Display.setVSyncEnabled(vsync);
+    // TODO: implement vsync for lwjgl3-awt (requires platform-specific CGL/WGL/GLX calls).
+    // The GlCanvasTool frame limiter (Thread.sleep) provides adequate rate control for tools.
   }
 
   // documentation inherited from interface GlCanvas
   public void makeCurrent ()
   {
-    try {
-      Display.makeCurrent();
-    } catch (LWJGLException e) {
-      log.warning("Failed to make context current.", e);
+    // Lock the GL context so that GL calls can be made outside of the
+    // render callback (e.g., during scene/resource loading).
+    if (!_contextLocked) {
+      _glCanvas.lockContext();
+      _contextLocked = true;
+    }
+  }
+
+  /**
+   * Releases the GL context after a manual {@link #makeCurrent()} call.
+   */
+  public void releaseCurrent ()
+  {
+    if (_contextLocked) {
+      _glCanvas.unlockContext();
+      _contextLocked = false;
     }
   }
 
   // documentation inherited from interface GlCanvas
   public void shutdown ()
   {
-    Keyboard.destroy();
-    Mouse.destroy();
-    Display.destroy();
+    stopUpdating();
+    _glCanvas.disposeCanvas();
   }
 
   // documentation inherited from interface KeyEventDispatcher
   public boolean dispatchKeyEvent (KeyEvent event)
   {
-    // update the key modifiers
     boolean pressed;
     int id = event.getID();
     if (id == KeyEvent.KEY_PRESSED) {
@@ -201,22 +216,18 @@ public class DisplayCanvas extends JPanel
         mask = InputEvent.SHIFT_DOWN_MASK;
         okey = left ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
         break;
-
       case KeyEvent.VK_CONTROL:
         mask = InputEvent.CTRL_DOWN_MASK;
         okey = left ? Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
         break;
-
       case KeyEvent.VK_ALT:
         mask = InputEvent.ALT_DOWN_MASK;
         okey = left ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
         break;
-
       case KeyEvent.VK_META:
         mask = InputEvent.META_DOWN_MASK;
         okey = left ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
         break;
-
       default:
         return false;
     }
@@ -228,11 +239,33 @@ public class DisplayCanvas extends JPanel
     return false;
   }
 
+  // Forward external mouse listener registration to the heavyweight GL canvas,
+  // which sits on top and receives all mouse events.
+  @Override
+  public synchronized void addMouseListener (MouseListener l)
+  {
+    _glCanvas.addMouseListener(l);
+  }
+
+  @Override
+  public synchronized void addMouseMotionListener (MouseMotionListener l)
+  {
+    _glCanvas.addMouseMotionListener(l);
+  }
+
+  @Override
+  public synchronized void addMouseWheelListener (MouseWheelListener l)
+  {
+    _glCanvas.addMouseWheelListener(l);
+  }
+
   @Override
   public void addNotify ()
   {
     super.addNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+    // Start the render loop once the canvas has a native peer
+    startUpdating();
   }
 
   @Override
@@ -240,44 +273,18 @@ public class DisplayCanvas extends JPanel
   {
     super.removeNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+    stopUpdating();
   }
 
   @Override
   public Point getMousePosition ()
   {
-    return _canvas.getMousePosition();
-  }
-
-  /**
-   * Attempts to create the display with this canvas as its parent.
-   */
-  protected void init (PixelFormat pformat)
-    throws LWJGLException
-  {
-    Display.setParent(_canvas);
-    Display.create(pformat);
-
-    // create the keyboard and mouse
-    try {
-      Keyboard.create();
-    } catch (LWJGLException e) {
-      log.warning("Failed to create keyboard.", e);
-    }
-    try {
-      Mouse.create();
-    } catch (LWJGLException e) {
-      log.warning("Failed to create mouse.", e);
-    }
-
-    // give subclasses a chance to initialize
-    didInit();
-
-    // start rendering frames
-    startUpdating();
+    return _entered ? getRelativeMouseLocation() : null;
   }
 
   /**
    * Override to perform custom initialization.
+   * Called once when the GL context is first created.
    */
   protected void didInit ()
   {
@@ -291,7 +298,6 @@ public class DisplayCanvas extends JPanel
     _updater = new Runnable() {
       public void run () {
         if (_updater != null) {
-          makeCurrent();
           updateFrame();
           EventQueue.invokeLater(this);
         }
@@ -306,148 +312,27 @@ public class DisplayCanvas extends JPanel
   protected void stopUpdating ()
   {
     _updater = null;
+    releaseCurrent();
   }
 
   /**
    * Updates and, if the canvas is showing, renders the scene and swaps the buffers.
+   * The lwjgl3-awt render() call makes the context current, calls paintGL()
+   * (which runs updateView + renderView + swapBuffers), then releases the context.
    */
   protected void updateFrame ()
   {
     try {
-      generateEvents();
-      updateView();
-      if (Display.isVisible()) {
-        renderView();
-      }
-      Display.update();
-
+      // Release the persistent context lock so render()'s internal lock/unlock works
+      releaseCurrent();
+      _glCanvas.render();
     } catch (Exception e) {
       log.warning("Caught exception in frame loop.", e);
     }
-  }
-
-  /**
-   * Generates AWT input events from the LWJGL devices.
-   */
-  protected void generateEvents ()
-  {
-    long now = System.currentTimeMillis();
-
-    // dispatch keyboard events
-    while (Keyboard.next()) {
-      int key = Keyboard.getEventKey();
-      boolean pressed = Keyboard.getEventKeyState();
-      dispatchEvent(new KeyEvent(
-        this, pressed ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED,
-        now, _modifiers, getAWTCode(key), Keyboard.getEventCharacter(),
-        getAWTLocation(key)));
-      if (pressed) {
-        _pressedKeys.add(key);
-      } else {
-        _pressedKeys.remove(key);
-      }
-    }
-
-    // process mouse events
-    while (Mouse.next()) {
-      int x = Mouse.getEventX(), y = getHeight() - Mouse.getEventY() - 1;
-      checkEntered(now, x, y);
-      checkMoved(now, x, y);
-      int button = Mouse.getEventButton();
-      if (button != -1) {
-        checkButtonState(now, x, y, button, Mouse.getEventButtonState());
-      }
-      int delta = -Integer.signum(Mouse.getEventDWheel());
-      if (delta != 0 && ++_lclicks > 0) {
-        dispatchEvent(new MouseWheelEvent(
-          this, MouseEvent.MOUSE_WHEEL, now, _modifiers, x, y,
-          0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, delta, delta));
-      }
-    }
-
-    // handle non-event mouse business (once the pointer is outside the window, we no longer
-    // receive events)
-    Point pt = getRelativeMouseLocation();
-    checkEntered(now, pt.x, pt.y);
-    checkExited(now, pt.x, pt.y);
-    checkMoved(now, pt.x, pt.y);
-    checkButtonState(now, pt.x, pt.y, 0, Mouse.isButtonDown(0));
-    checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
-    checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
-
-    // clear modifiers and release keys if we don't have focus
-    if (!windowIsFocused()) {
-      if (!_pressedKeys.isEmpty()) {
-        for (Interator it = _pressedKeys.interator(); it.hasNext(); ) {
-          int key = it.nextInt();
-          dispatchEvent(new KeyEvent(
-            this, KeyEvent.KEY_RELEASED, now, _modifiers, getAWTCode(key),
-            KeyEvent.CHAR_UNDEFINED, getAWTLocation(key)));
-        }
-        _pressedKeys.clear();
-      }
-      _modifiers = 0;
-    }
-  }
-
-  /**
-   * Determines whether the mouse has entered the component, dispatching an event if so.
-   */
-  protected void checkEntered (long now, int x, int y)
-  {
-    if (!_entered && contains(x, y) && windowIsFocused()) {
-      dispatchEvent(new MouseEvent(
-        this, MouseEvent.MOUSE_ENTERED, now, _modifiers, x, y, 0, false));
-    }
-  }
-
-  /**
-   * Determines whether the mouse has exited the component, dispatching an event if so.
-   */
-  protected void checkExited (long now, int x, int y)
-  {
-    if (_entered && !anyButtonsDown() && !(contains(x, y) && windowIsFocused())) {
-      for (int ii = 0; ii < _buttons.length; ii++) {
-        checkButtonState(now, x, y, ii, false);
-      }
-      dispatchEvent(new MouseEvent(
-        this, MouseEvent.MOUSE_EXITED, now, _modifiers, x, y, 0, false));
-    }
-  }
-
-  /**
-   * Checks whether the window that contains this canvas (if any) is focused.
-   */
-  protected boolean windowIsFocused ()
-  {
-    Window window = SwingUtilities.windowForComponent(this);
-    return window != null && window.isFocused();
-  }
-
-  /**
-   * Determines whether the mouse has moved, dispatching an event if so.
-   */
-  protected void checkMoved (long now, int x, int y)
-  {
-    if (_entered && (_lx != x || _ly != y)) {
-      dispatchEvent(new MouseEvent(
-        this,
-        anyButtonsDown() ? MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED,
-        now, _modifiers, x, y, 0, false));
-    }
-  }
-
-  /**
-   * Checks for button press/release.
-   */
-  protected void checkButtonState (long now, int x, int y, int button, boolean pressed)
-  {
-    if (_entered && _buttons[button].isPressed() != pressed) {
-      dispatchEvent(new MouseEvent(
-        this,
-        pressed ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_RELEASED,
-        now, _modifiers, x, y, 0, false, getAWTButton(button)));
-    }
+    // Re-lock the context so it stays current on the AWT thread between frames.
+    // This matches LWJGL 2 behavior where the GL context was always current,
+    // allowing resource creation (buffer uploads, texture loads) at any time.
+    makeCurrent();
   }
 
   /**
@@ -460,15 +345,12 @@ public class DisplayCanvas extends JPanel
       case 0:
         mask = InputEvent.BUTTON1_DOWN_MASK;
         break;
-
       case 1:
         mask = InputEvent.BUTTON3_DOWN_MASK;
         break;
-
       case 2:
         mask = InputEvent.BUTTON2_DOWN_MASK;
         break;
-
       default:
         return;
     }
@@ -494,32 +376,17 @@ public class DisplayCanvas extends JPanel
   }
 
   /**
-   * Returns the location of the mouse pointer relative to this component, regardless of whether
-   * or not it's actually hovering over the component.
+   * Returns the location of the mouse pointer relative to this component.
    */
   protected Point getRelativeMouseLocation ()
   {
-    // NULL_MOUSE_WORKAROUND
     java.awt.PointerInfo info = MouseInfo.getPointerInfo();
     if (info == null) {
-      // What in the heck?
-      log.warning("Checking graphics devices");
-      for (java.awt.GraphicsDevice gd :
-          java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-        log.warning("gd: " + gd.getIDstring() + ": " +
-            gd.getDefaultConfiguration().getBounds());
-      }
-
       return new Point(0, 0);
     }
     Point pt = info.getLocation();
     SwingUtilities.convertPointFromScreen(pt, this);
     return pt;
-    // end: NULL_MOUSE_WORKAROUND
-
-//        Point pt = MouseInfo.getPointerInfo().getLocation();
-//        SwingUtilities.convertPointFromScreen(pt, this);
-//        return pt;
   }
 
   /**
@@ -528,179 +395,6 @@ public class DisplayCanvas extends JPanel
   protected boolean anyButtonsDown ()
   {
     return (_modifiers & ANY_BUTTONS_DOWN_MASK) != 0;
-  }
-
-  /**
-   * Returns the AWT key code corresponding to the specified key.
-   */
-  protected static int getAWTCode (int key)
-  {
-    switch (key) {
-      case Keyboard.KEY_0: return KeyEvent.VK_0;
-      case Keyboard.KEY_1: return KeyEvent.VK_1;
-      case Keyboard.KEY_2: return KeyEvent.VK_2;
-      case Keyboard.KEY_3: return KeyEvent.VK_3;
-      case Keyboard.KEY_4: return KeyEvent.VK_4;
-      case Keyboard.KEY_5: return KeyEvent.VK_5;
-      case Keyboard.KEY_6: return KeyEvent.VK_6;
-      case Keyboard.KEY_7: return KeyEvent.VK_7;
-      case Keyboard.KEY_8: return KeyEvent.VK_8;
-      case Keyboard.KEY_9: return KeyEvent.VK_9;
-      case Keyboard.KEY_A: return KeyEvent.VK_A;
-      case Keyboard.KEY_ADD: return KeyEvent.VK_ADD;
-      case Keyboard.KEY_APOSTROPHE: return KeyEvent.VK_QUOTE;
-      case Keyboard.KEY_APPS: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_AT: return KeyEvent.VK_AT;
-      case Keyboard.KEY_AX: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_B: return KeyEvent.VK_B;
-      case Keyboard.KEY_BACK: return KeyEvent.VK_BACK_SPACE;
-      case Keyboard.KEY_BACKSLASH: return KeyEvent.VK_BACK_SLASH;
-      case Keyboard.KEY_C: return KeyEvent.VK_C;
-      case Keyboard.KEY_CAPITAL: return KeyEvent.VK_CAPS_LOCK;
-      case Keyboard.KEY_CIRCUMFLEX: return KeyEvent.VK_CIRCUMFLEX;
-      case Keyboard.KEY_COLON: return KeyEvent.VK_COLON;
-      case Keyboard.KEY_COMMA: return KeyEvent.VK_COMMA;
-      case Keyboard.KEY_CONVERT: return KeyEvent.VK_CONVERT;
-      case Keyboard.KEY_D: return KeyEvent.VK_D;
-      case Keyboard.KEY_DECIMAL: return KeyEvent.VK_DECIMAL;
-      case Keyboard.KEY_DELETE: return KeyEvent.VK_DELETE;
-      case Keyboard.KEY_DIVIDE: return KeyEvent.VK_DIVIDE;
-      case Keyboard.KEY_DOWN: return KeyEvent.VK_DOWN;
-      case Keyboard.KEY_E: return KeyEvent.VK_E;
-      case Keyboard.KEY_END: return KeyEvent.VK_END;
-      case Keyboard.KEY_EQUALS: return KeyEvent.VK_EQUALS;
-      case Keyboard.KEY_ESCAPE: return KeyEvent.VK_ESCAPE;
-      case Keyboard.KEY_F: return KeyEvent.VK_F;
-      case Keyboard.KEY_F1: return KeyEvent.VK_F1;
-      case Keyboard.KEY_F10: return KeyEvent.VK_F10;
-      case Keyboard.KEY_F11: return KeyEvent.VK_F11;
-      case Keyboard.KEY_F12: return KeyEvent.VK_F12;
-      case Keyboard.KEY_F13: return KeyEvent.VK_F13;
-      case Keyboard.KEY_F14: return KeyEvent.VK_F14;
-      case Keyboard.KEY_F15: return KeyEvent.VK_F15;
-      case Keyboard.KEY_F2: return KeyEvent.VK_F2;
-      case Keyboard.KEY_F3: return KeyEvent.VK_F3;
-      case Keyboard.KEY_F4: return KeyEvent.VK_F4;
-      case Keyboard.KEY_F5: return KeyEvent.VK_F5;
-      case Keyboard.KEY_F6: return KeyEvent.VK_F6;
-      case Keyboard.KEY_F7: return KeyEvent.VK_F7;
-      case Keyboard.KEY_F8: return KeyEvent.VK_F8;
-      case Keyboard.KEY_F9: return KeyEvent.VK_F9;
-      case Keyboard.KEY_G: return KeyEvent.VK_G;
-      case Keyboard.KEY_GRAVE: return KeyEvent.VK_BACK_QUOTE;
-      case Keyboard.KEY_H: return KeyEvent.VK_H;
-      case Keyboard.KEY_HOME: return KeyEvent.VK_HOME;
-      case Keyboard.KEY_I: return KeyEvent.VK_I;
-      case Keyboard.KEY_INSERT: return KeyEvent.VK_INSERT;
-      case Keyboard.KEY_J: return KeyEvent.VK_J;
-      case Keyboard.KEY_K: return KeyEvent.VK_K;
-      case Keyboard.KEY_KANA: return KeyEvent.VK_KATAKANA;
-      case Keyboard.KEY_KANJI: return KeyEvent.VK_KANJI;
-      case Keyboard.KEY_L: return KeyEvent.VK_L;
-      case Keyboard.KEY_LBRACKET: return KeyEvent.VK_OPEN_BRACKET;
-      case Keyboard.KEY_LCONTROL: return KeyEvent.VK_CONTROL;
-      case Keyboard.KEY_LEFT: return KeyEvent.VK_LEFT;
-      case Keyboard.KEY_LMENU: return KeyEvent.VK_ALT;
-      case Keyboard.KEY_LMETA: return KeyEvent.VK_META;
-      case Keyboard.KEY_LSHIFT: return KeyEvent.VK_SHIFT;
-      case Keyboard.KEY_M: return KeyEvent.VK_M;
-      case Keyboard.KEY_MINUS: return KeyEvent.VK_MINUS;
-      case Keyboard.KEY_MULTIPLY: return KeyEvent.VK_MULTIPLY;
-      case Keyboard.KEY_N: return KeyEvent.VK_N;
-      case Keyboard.KEY_NEXT: return KeyEvent.VK_PAGE_DOWN;
-      case Keyboard.KEY_NOCONVERT: return KeyEvent.VK_NONCONVERT;
-      case Keyboard.KEY_NONE: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_NUMLOCK: return KeyEvent.VK_NUM_LOCK;
-      case Keyboard.KEY_NUMPAD0: return KeyEvent.VK_NUMPAD0;
-      case Keyboard.KEY_NUMPAD1: return KeyEvent.VK_NUMPAD1;
-      case Keyboard.KEY_NUMPAD2: return KeyEvent.VK_NUMPAD2;
-      case Keyboard.KEY_NUMPAD3: return KeyEvent.VK_NUMPAD3;
-      case Keyboard.KEY_NUMPAD4: return KeyEvent.VK_NUMPAD4;
-      case Keyboard.KEY_NUMPAD5: return KeyEvent.VK_NUMPAD5;
-      case Keyboard.KEY_NUMPAD6: return KeyEvent.VK_NUMPAD6;
-      case Keyboard.KEY_NUMPAD7: return KeyEvent.VK_NUMPAD7;
-      case Keyboard.KEY_NUMPAD8: return KeyEvent.VK_NUMPAD8;
-      case Keyboard.KEY_NUMPAD9: return KeyEvent.VK_NUMPAD9;
-      case Keyboard.KEY_NUMPADCOMMA: return KeyEvent.VK_COMMA;
-      case Keyboard.KEY_NUMPADENTER: return KeyEvent.VK_ENTER;
-      case Keyboard.KEY_NUMPADEQUALS: return KeyEvent.VK_EQUALS;
-      case Keyboard.KEY_O: return KeyEvent.VK_O;
-      case Keyboard.KEY_P: return KeyEvent.VK_P;
-      case Keyboard.KEY_PAUSE: return KeyEvent.VK_PAUSE;
-      case Keyboard.KEY_PERIOD: return KeyEvent.VK_PERIOD;
-      case Keyboard.KEY_POWER: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_PRIOR: return KeyEvent.VK_PAGE_UP;
-      case Keyboard.KEY_Q: return KeyEvent.VK_Q;
-      case Keyboard.KEY_R: return KeyEvent.VK_R;
-      case Keyboard.KEY_RBRACKET: return KeyEvent.VK_CLOSE_BRACKET;
-      case Keyboard.KEY_RCONTROL: return KeyEvent.VK_CONTROL;
-      case Keyboard.KEY_RETURN: return KeyEvent.VK_ENTER;
-      case Keyboard.KEY_RIGHT: return KeyEvent.VK_RIGHT;
-      case Keyboard.KEY_RMENU: return KeyEvent.VK_ALT;
-      case Keyboard.KEY_RMETA: return KeyEvent.VK_META;
-      case Keyboard.KEY_RSHIFT: return KeyEvent.VK_SHIFT;
-      case Keyboard.KEY_S: return KeyEvent.VK_S;
-      case Keyboard.KEY_SCROLL: return KeyEvent.VK_SCROLL_LOCK;
-      case Keyboard.KEY_SEMICOLON: return KeyEvent.VK_SEMICOLON;
-      case Keyboard.KEY_SLASH: return KeyEvent.VK_SLASH;
-      case Keyboard.KEY_SLEEP: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_SPACE: return KeyEvent.VK_SPACE;
-      case Keyboard.KEY_STOP: return KeyEvent.VK_STOP;
-      case Keyboard.KEY_SUBTRACT: return KeyEvent.VK_SUBTRACT;
-      case Keyboard.KEY_SYSRQ: return KeyEvent.VK_PRINTSCREEN;
-      case Keyboard.KEY_T: return KeyEvent.VK_T;
-      case Keyboard.KEY_TAB: return KeyEvent.VK_TAB;
-      case Keyboard.KEY_U: return KeyEvent.VK_U;
-      case Keyboard.KEY_UNDERLINE: return KeyEvent.VK_UNDERSCORE;
-      case Keyboard.KEY_UNLABELED: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_UP: return KeyEvent.VK_UP;
-      case Keyboard.KEY_V: return KeyEvent.VK_V;
-      case Keyboard.KEY_W: return KeyEvent.VK_W;
-      case Keyboard.KEY_X: return KeyEvent.VK_X;
-      case Keyboard.KEY_Y: return KeyEvent.VK_Y;
-      case Keyboard.KEY_YEN: return KeyEvent.VK_UNDEFINED;
-      case Keyboard.KEY_Z: return KeyEvent.VK_Z;
-      default: return KeyEvent.VK_UNDEFINED;
-    }
-  }
-
-  /**
-   * Returns the AWT location corresponding to the specified key.
-   */
-  protected static int getAWTLocation (int key)
-  {
-    switch (key) {
-      case Keyboard.KEY_LCONTROL:
-      case Keyboard.KEY_LMENU:
-      case Keyboard.KEY_LMETA:
-      case Keyboard.KEY_LSHIFT:
-        return KeyEvent.KEY_LOCATION_LEFT;
-
-      case Keyboard.KEY_NUMLOCK:
-      case Keyboard.KEY_NUMPAD0:
-      case Keyboard.KEY_NUMPAD1:
-      case Keyboard.KEY_NUMPAD2:
-      case Keyboard.KEY_NUMPAD3:
-      case Keyboard.KEY_NUMPAD4:
-      case Keyboard.KEY_NUMPAD5:
-      case Keyboard.KEY_NUMPAD6:
-      case Keyboard.KEY_NUMPAD7:
-      case Keyboard.KEY_NUMPAD8:
-      case Keyboard.KEY_NUMPAD9:
-      case Keyboard.KEY_NUMPADCOMMA:
-      case Keyboard.KEY_NUMPADENTER:
-      case Keyboard.KEY_NUMPADEQUALS:
-        return KeyEvent.KEY_LOCATION_NUMPAD;
-
-      case Keyboard.KEY_RCONTROL:
-      case Keyboard.KEY_RMENU:
-      case Keyboard.KEY_RMETA:
-      case Keyboard.KEY_RSHIFT:
-        return KeyEvent.KEY_LOCATION_RIGHT;
-
-      default:
-        return KeyEvent.KEY_LOCATION_STANDARD;
-    }
   }
 
   /**
@@ -734,33 +428,22 @@ public class DisplayCanvas extends JPanel
    */
   protected class ButtonRecord
   {
-    /**
-     * Checks whether the button is pressed.
-     */
     public boolean isPressed ()
     {
       return _pressed;
     }
 
-    /**
-     * Notes that the button has been pressed.
-     */
     public void wasPressed (MouseEvent press)
     {
       _pressed = true;
-
       long when = press.getWhen();
       _clickTime = when + CLICK_INTERVAL;
       _count = (when < _chainTime) ? (_count + 1) : 1;
     }
 
-    /**
-     * Notes that the button has been released.
-     */
     public void wasReleased (MouseEvent release)
     {
       _pressed = false;
-
       long when = release.getWhen();
       if (when < _clickTime) {
         dispatchEvent(new MouseEvent(
@@ -770,24 +453,37 @@ public class DisplayCanvas extends JPanel
       }
     }
 
-    /** Whether or not the button is currently pressed. */
     protected boolean _pressed;
-
-    /** The initial and chained click times. */
     protected long _clickTime, _chainTime;
-
-    /** The current click count. */
     protected int _count;
   }
 
-  /** The contained canvas. */
-  protected Canvas _canvas;
+  /**
+   * AWTGLCanvas subclass that exposes context lock/unlock for use outside the render callback.
+   */
+  protected class LockableGLCanvas extends AWTGLCanvas
+  {
+    public LockableGLCanvas (GLData data) { super(data); }
+    @Override public void initGL () {
+      GL.createCapabilities();
+      DisplayCanvas.this.didInit();
+    }
+    @Override public void paintGL () {
+      DisplayCanvas.this.updateView();
+      if (isShowing()) {
+        DisplayCanvas.this.renderView();
+      }
+      swapBuffers();
+    }
+    public void lockContext () { beforeRender(); }
+    public void unlockContext () { afterRender(); }
+  }
 
-  /** Set on initialization. */
-  protected boolean _initialized;
+  /** The lwjgl3-awt GL canvas that provides the actual OpenGL surface. */
+  protected LockableGLCanvas _glCanvas;
 
-  /** The runnable that updates the frame. */
-  protected Runnable _updater;
+  /** Whether the GL context is manually locked via makeCurrent(). */
+  protected boolean _contextLocked;
 
   /** Whether or not the mouse is over the component. */
   protected boolean _entered;
@@ -807,6 +503,9 @@ public class DisplayCanvas extends JPanel
 
   /** The set of currently pressed keys. */
   protected HashIntSet _pressedKeys = new HashIntSet();
+
+  /** The runnable that updates the frame. */
+  protected Runnable _updater;
 
   /** A mask for checking whether any mouse buttons are down. */
   protected static final int ANY_BUTTONS_DOWN_MASK =

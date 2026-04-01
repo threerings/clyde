@@ -30,7 +30,7 @@ import java.nio.IntBuffer;
 import java.nio.charset.Charset;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBShaderObjects;
+import org.lwjgl.opengl.GL20;
 
 /**
  * An OpenGL shader object.
@@ -59,21 +59,11 @@ public abstract class ShaderObject
   public String getInfoLog ()
   {
     // get the length of the log
-    IntBuffer ibuf = BufferUtils.createIntBuffer(1);
-    ARBShaderObjects.glGetObjectParameterARB(
-      _id, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB, ibuf);
-
-    // then the log itself (if the length is greater than zero)
-    int length = ibuf.get(0);
+    int length = GL20.glGetShaderi(_id, GL20.GL_INFO_LOG_LENGTH);
     if (length <= 0) {
       return "";
     }
-    ByteBuffer bbuf = BufferUtils.createByteBuffer(length);
-    ARBShaderObjects.glGetInfoLogARB(_id, ibuf, bbuf);
-    bbuf.limit(length);
-
-    // convert from ASCII and return
-    return ASCII_CHARSET.decode(bbuf).toString();
+    return GL20.glGetShaderInfoLog(_id, length);
   }
 
   /**
@@ -81,7 +71,7 @@ public abstract class ShaderObject
    */
   public void delete ()
   {
-    ARBShaderObjects.glDeleteObjectARB(_id);
+    GL20.glDeleteShader(_id);
     _id = 0;
     _renderer.shaderObjectDeleted();
   }

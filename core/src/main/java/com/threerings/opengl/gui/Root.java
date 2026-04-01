@@ -40,7 +40,7 @@ import java.util.function.Consumer;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Iterables;
 
-//import org.lwjgl.input.IME;
+//// LWJGL3: IME removed
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
@@ -1091,7 +1091,6 @@ public abstract class Root extends SimpleOverlay
         FocusEvent gained = new FocusEvent(_focus, getTickStamp(), FocusEvent.FOCUS_GAINED);
         _focus.dispatchEvent(gained);
         _focusConsumer.accept(gained);
-//                if (oldFocus instanceof IMEComponent) {
 //                if (_focus instanceof IMEComponent) {
 //                    setIMEFocus(true);
 //                }

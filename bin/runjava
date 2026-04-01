@@ -32,7 +32,7 @@ if (defined $libpath) {
 # put everything in our class path
 my $mvnpath = `mvn dependency:build-classpath | grep -v INFO`;
 chomp($mvnpath);
-my $classpath = "-classpath $mvnpath:$root/dist/test-classes:$root/dist/classes";
+my $classpath = "--class-path $mvnpath:$root/dist/test-classes:$root/dist/classes";
 
 # add zip and jar files from our lib/ directory and the global Java
 # libraries directory
@@ -81,6 +81,6 @@ for ($i = 0; $i < @ARGV; $i++) {
 # log the pid file if requested to do so
 print `echo $$ > $pid_file` if (defined $pid_file);
 
-my $cmd = "java -mx256M $classpath $rootarg " . join(" ", @ARGV);
-# print "$cmd\n";
+my $cmd = "java $classpath $rootarg " . join(" ", @ARGV);
+#print "$cmd\n";
 exec($cmd);

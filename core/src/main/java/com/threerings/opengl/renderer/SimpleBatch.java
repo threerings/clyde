@@ -29,7 +29,11 @@ import java.nio.ShortBuffer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
+
+import static com.threerings.opengl.Log.log;
 
 import com.threerings.opengl.renderer.state.ArrayState;
 import com.threerings.opengl.renderer.state.RenderState;
@@ -290,6 +294,15 @@ public class SimpleBatch extends Batch
     @Override
     public boolean call ()
     {
+      // Debug: check GL state before draw to diagnose macOS Metal null pointer crashes
+      int vbo = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
+      int ebo = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING);
+      if (ebo == 0) {
+        log.warning("DrawBufferRangeElements with no EBO bound!",
+          "mode", _mode, "start", _start, "end", _end,
+          "count", _count, "type", _type, "offset", _offset, "vbo", vbo);
+        return false; // skip the draw to avoid segfault
+      }
       GL12.glDrawRangeElements(_mode, _start, _end, _count, _type, _offset);
       return false;
     }
@@ -330,6 +343,11 @@ public class SimpleBatch extends Batch
     @Override
     public boolean call ()
     {
+      // Debug: check for null/empty index buffer
+      if (_indices == null || !_indices.hasRemaining()) {
+        log.warning("DrawShortRangeElements with null/empty indices!");
+        return false;
+      }
       GL12.glDrawRangeElements(_mode, _start, _end, _indices);
       return false;
     }
@@ -351,7 +369,7 @@ public class SimpleBatch extends Batch
   public static DrawElements createDrawBufferElements (
     int mode, int start, int end, int count, int type, long offset)
   {
-    if (GLContext.getCapabilities().OpenGL12) {
+    if (GL.getCapabilities().OpenGL12) {
       return new DrawBufferRangeElements(mode, start, end, count, type, offset);
     } else {
       return new DrawBufferElements(mode, count, type, offset);
@@ -365,7 +383,7 @@ public class SimpleBatch extends Batch
   public static DrawElements createDrawShortElements (
     int mode, int start, int end, ShortBuffer indices)
   {
-    if (GLContext.getCapabilities().OpenGL12) {
+    if (GL.getCapabilities().OpenGL12) {
       return new DrawShortRangeElements(mode, start, end, indices);
     } else {
       return new DrawShortElements(mode, indices);

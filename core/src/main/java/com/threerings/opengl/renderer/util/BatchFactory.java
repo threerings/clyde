@@ -29,7 +29,8 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.BufferObject;
@@ -54,7 +55,7 @@ public class BatchFactory
     RenderState[] states = RenderState.createEmptySet();
     SimpleBatch.DrawCommand command;
     int vcount = vbuf.remaining() / 3;
-    if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+    if (GL.getCapabilities().GL_ARB_vertex_buffer_object) {
       BufferObject buffer = new BufferObject(renderer);
       buffer.setData(vbuf);
       states[RenderState.ARRAY_STATE] = new ArrayState(
@@ -83,7 +84,7 @@ public class BatchFactory
     RenderState[] states = RenderState.createEmptySet();
     SimpleBatch.DrawCommand command;
     int vcount = vbuf.remaining() / 8, icount = ibuf.remaining();
-    if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+    if (GL.getCapabilities().GL_ARB_vertex_buffer_object) {
       BufferObject vbobj = new BufferObject(renderer);
       BufferObject ibobj = new BufferObject(renderer);
       vbobj.setData(vbuf);

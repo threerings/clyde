@@ -30,7 +30,8 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.opengl.util.GlUtil;
 
@@ -77,7 +78,7 @@ public class Texture1D extends Texture
   public void setImage (
     int level, int format, int width, boolean border, int dformat, int dtype, ByteBuffer data)
   {
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       width = GlUtil.nextPowerOfTwo(width);
     }
     if (level == 0) {
@@ -116,7 +117,7 @@ public class Texture1D extends Texture
     boolean premultiply, boolean rescale)
   {
     int width = image.getWidth();
-    if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+    if (!GL.getCapabilities().GL_ARB_texture_non_power_of_two) {
       width = GlUtil.nextPowerOfTwo(width);
     }
     if (level == 0) {

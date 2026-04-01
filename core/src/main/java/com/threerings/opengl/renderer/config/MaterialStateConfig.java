@@ -28,7 +28,8 @@ package com.threerings.opengl.renderer.config;
 import java.lang.ref.SoftReference;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -132,7 +133,7 @@ public abstract class MaterialStateConfig extends DeepObject
     {
       return new MaterialState(
         ambient, diffuse, specular, emission, shininess, colorMaterialMode.getConstant(),
-        localViewer, separateSpecular && GLContext.getCapabilities().OpenGL12,
+        localViewer, separateSpecular && GL.getCapabilities().OpenGL12,
         flatShading);
     }
   }
@@ -171,7 +172,7 @@ public abstract class MaterialStateConfig extends DeepObject
         front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
         back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
         colorMaterialMode.getConstant(), colorMaterialFace.getConstant(), localViewer,
-        separateSpecular && GLContext.getCapabilities().OpenGL12, flatShading);
+        separateSpecular && GL.getCapabilities().OpenGL12, flatShading);
     }
   }
 
@@ -239,7 +240,7 @@ public abstract class MaterialStateConfig extends DeepObject
    */
   public boolean isSupported (boolean fallback)
   {
-    return !separateSpecular || GLContext.getCapabilities().OpenGL12 || fallback;
+    return !separateSpecular || GL.getCapabilities().OpenGL12 || fallback;
   }
 
   /**

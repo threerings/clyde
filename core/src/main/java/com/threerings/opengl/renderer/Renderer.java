@@ -32,31 +32,33 @@ import java.nio.IntBuffer;
 import java.util.List;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBBufferObject;
-import org.lwjgl.opengl.ARBFragmentShader;
-import org.lwjgl.opengl.ARBMultitexture;
-import org.lwjgl.opengl.ARBOcclusionQuery;
-import org.lwjgl.opengl.ARBVertexBufferObject;
-import org.lwjgl.opengl.ARBVertexShader;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBTextureCubeMap;
-import org.lwjgl.opengl.ARBTextureEnvCombine;
-import org.lwjgl.opengl.ARBTextureRectangle;
-import org.lwjgl.opengl.ContextCapabilities;
-import org.lwjgl.opengl.Drawable;
-import org.lwjgl.opengl.EXTFramebufferObject;
-import org.lwjgl.opengl.EXTRescaleNormal;
-import org.lwjgl.opengl.EXTTextureLODBias;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL31;
+import org.lwjgl.opengl.GLCapabilities;
+
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.opengl.Pbuffer;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.WeakObserverList;
+
+import static com.threerings.opengl.Log.log;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
@@ -93,33 +95,45 @@ public class Renderer
    * @param width the initial viewport width.
    * @param height the initial viewport height.
    */
-  public void init (Drawable drawable, int width, int height)
+  public void init (int width, int height)
   {
-    _drawable = drawable;
+    init(0L, width, height);
+  }
+
+  /**
+   * Initializes the renderer.
+   *
+   * @param windowHandle the GLFW window handle (or 0 if not applicable).
+   * @param width the initial viewport width.
+   * @param height the initial viewport height.
+   */
+  public void init (long windowHandle, int width, int height)
+  {
+    _windowHandle = windowHandle;
     _width = width;
     _height = height;
 
     // find out how many alpha bit planes are in the frame buffer
     IntBuffer buf = BufferUtils.createIntBuffer(16);
-    GL11.glGetInteger(GL11.GL_ALPHA_BITS, buf);
+    GL11.glGetIntegerv(GL11.GL_ALPHA_BITS, buf);
     _alphaBits = buf.get(0);
 
     // how many stencil bit planes
-    GL11.glGetInteger(GL11.GL_STENCIL_BITS, buf);
+    GL11.glGetIntegerv(GL11.GL_STENCIL_BITS, buf);
     _stencilBits = buf.get(0);
 
     // how many user clip planes
-    GL11.glGetInteger(GL11.GL_MAX_CLIP_PLANES, buf);
+    GL11.glGetIntegerv(GL11.GL_MAX_CLIP_PLANES, buf);
     _maxClipPlanes = buf.get(0);
 
     // how many lights
-    GL11.glGetInteger(GL11.GL_MAX_LIGHTS, buf);
+    GL11.glGetIntegerv(GL11.GL_MAX_LIGHTS, buf);
     _maxLights = buf.get(0);
 
     // how many fixed-function texture units
-    ContextCapabilities caps = GLContext.getCapabilities();
+    GLCapabilities caps = GL.getCapabilities();
     if (caps.GL_ARB_multitexture) {
-      GL11.glGetInteger(ARBMultitexture.GL_MAX_TEXTURE_UNITS_ARB, buf);
+      GL11.glGetIntegerv(GL13.GL_MAX_TEXTURE_UNITS, buf);
       _maxTextureUnits = buf.get(0);
     } else {
       _maxTextureUnits = 1;
@@ -127,7 +141,7 @@ public class Renderer
 
     // how many programmable texture units
     if (caps.GL_ARB_fragment_shader) {
-      GL11.glGetInteger(ARBFragmentShader.GL_MAX_TEXTURE_IMAGE_UNITS_ARB, buf);
+      GL11.glGetIntegerv(GL20.GL_MAX_TEXTURE_IMAGE_UNITS, buf);
       _maxTextureImageUnits = buf.get(0);
     } else {
       _maxTextureImageUnits = _maxTextureUnits;
@@ -135,7 +149,7 @@ public class Renderer
 
     // and how many vertex attributes
     if (caps.GL_ARB_vertex_shader) {
-      GL11.glGetInteger(ARBVertexShader.GL_MAX_VERTEX_ATTRIBS_ARB, buf);
+      GL11.glGetIntegerv(GL20.GL_MAX_VERTEX_ATTRIBS, buf);
       _maxVertexAttribs = buf.get(0);
     } else {
       _maxVertexAttribs = 0;
@@ -148,14 +162,21 @@ public class Renderer
     _intel = vendor.contains("intel");
 
     // get the initial draw/read buffers
-    GL11.glGetInteger(GL11.GL_DRAW_BUFFER, buf);
+    GL11.glGetIntegerv(GL11.GL_DRAW_BUFFER, buf);
     _drawBuffer = buf.get(0);
-    GL11.glGetInteger(GL11.GL_READ_BUFFER, buf);
+    GL11.glGetIntegerv(GL11.GL_READ_BUFFER, buf);
     _readBuffer = buf.get(0);
 
     // to make things easier for texture loading, we just keep this at one (default is four)
     GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
     GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+
+    // On macOS with Metal-backed GL, even compatibility profile may require a VAO
+    // to be bound before VBO-based vertex attribute calls work correctly.
+    if (caps.GL_ARB_vertex_array_object) {
+      _defaultVao = GL30.glGenVertexArrays();
+      GL30.glBindVertexArray(_defaultVao);
+    }
 
     // initialize the viewport
     setViewport(0, 0, width, height);
@@ -195,9 +216,12 @@ public class Renderer
   /**
    * Returns a reference to the drawable target of this renderer.
    */
-  public Drawable getDrawable ()
+  /**
+   * Returns the GLFW window handle.
+   */
+  public long getWindowHandle ()
   {
-    return _drawable;
+    return _windowHandle;
   }
 
   /**
@@ -521,7 +545,7 @@ public class Renderer
         _top = top, _near = near, _far = far, _nearFarNormal);
     }
     _mat.get(_vbuf).rewind();
-    GL11.glLoadMatrix(_vbuf);
+    GL11.glLoadMatrixf(_vbuf);
   }
 
   /**
@@ -677,7 +701,7 @@ public class Renderer
       setCapability(GL11.GL_NORMALIZE, _normalize = normalize);
     }
     if (_rescaleNormal != Boolean.valueOf(rescaleNormal)) {
-      setCapability(EXTRescaleNormal.GL_RESCALE_NORMAL_EXT, _rescaleNormal = rescaleNormal);
+      setCapability(GL12.GL_RESCALE_NORMAL, _rescaleNormal = rescaleNormal);
     }
   }
 
@@ -686,15 +710,15 @@ public class Renderer
    */
   public void startQuery (Query query)
   {
-    if (query.getTarget() != ARBOcclusionQuery.GL_SAMPLES_PASSED_ARB ||
+    if (query.getTarget() != GL15.GL_SAMPLES_PASSED ||
         _samplesPassed == query) {
       return;
     }
     if (_samplesPassed != null) {
-      ARBOcclusionQuery.glEndQueryARB(ARBOcclusionQuery.GL_SAMPLES_PASSED_ARB);
+      GL15.glEndQuery(GL15.GL_SAMPLES_PASSED);
     }
     _samplesPassed = query;
-    ARBOcclusionQuery.glBeginQueryARB(query.getTarget(), query.getId());
+    GL15.glBeginQuery(query.getTarget(), query.getId());
   }
 
   /**
@@ -705,7 +729,7 @@ public class Renderer
     if (_samplesPassed != query) {
       return;
     }
-    ARBOcclusionQuery.glEndQueryARB(ARBOcclusionQuery.GL_SAMPLES_PASSED_ARB);
+    GL15.glEndQuery(GL15.GL_SAMPLES_PASSED);
     _samplesPassed = null;
   }
 
@@ -806,9 +830,9 @@ public class Renderer
       }
       if (arec.enabled != Boolean.valueOf(enableVertexAttribArray)) {
         if (arec.enabled = enableVertexAttribArray) {
-          ARBVertexShader.glEnableVertexAttribArrayARB(ii);
+          GL20.glEnableVertexAttribArray(ii);
         } else {
-          ARBVertexShader.glDisableVertexAttribArrayARB(ii);
+          GL20.glDisableVertexAttribArray(ii);
         }
       }
       arec.array = vertexAttribArray;
@@ -896,8 +920,8 @@ public class Renderer
 
     if (_elementArrayBuffer != elementArrayBuffer) {
       int id = (elementArrayBuffer == null) ? 0 : elementArrayBuffer.getId();
-      ARBBufferObject.glBindBufferARB(
-        ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, id);
+      GL15.glBindBuffer(
+        GL15.GL_ELEMENT_ARRAY_BUFFER, id);
       _elementArrayBuffer = elementArrayBuffer;
     }
   }
@@ -919,7 +943,7 @@ public class Renderer
     _colorArray.invalidate();
     _normalArray.invalidate();
     _vertexArray.invalidate();
-    if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+    if (GL.getCapabilities().GL_ARB_vertex_buffer_object) {
       _elementArrayBuffer = INVALID_BUFFER;
     }
     _states[RenderState.ARRAY_STATE] = null;
@@ -1065,7 +1089,7 @@ public class Renderer
     }
     if (!_fogColor.equals(fogColor)) {
       _fogColor.set(fogColor).get(_vbuf).rewind();
-      GL11.glFog(GL11.GL_FOG_COLOR, _vbuf);
+      GL11.glFogfv(GL11.GL_FOG_COLOR, _vbuf);
     }
   }
 
@@ -1094,7 +1118,7 @@ public class Renderer
     }
     if (!_fogColor.equals(fogColor)) {
       _fogColor.set(fogColor).get(_vbuf).rewind();
-      GL11.glFog(GL11.GL_FOG_COLOR, _vbuf);
+      GL11.glFogfv(GL11.GL_FOG_COLOR, _vbuf);
     }
   }
 
@@ -1146,21 +1170,21 @@ public class Renderer
       light.dirty = false;
       if (!lrec.ambient.equals(light.ambient)) {
         lrec.ambient.set(light.ambient).get(_vbuf).rewind();
-        GL11.glLight(lname, GL11.GL_AMBIENT, _vbuf);
+        GL11.glLightfv(lname, GL11.GL_AMBIENT, _vbuf);
       }
       if (!lrec.diffuse.equals(light.diffuse)) {
         lrec.diffuse.set(light.diffuse).get(_vbuf).rewind();
-        GL11.glLight(lname, GL11.GL_DIFFUSE, _vbuf);
+        GL11.glLightfv(lname, GL11.GL_DIFFUSE, _vbuf);
       }
       if (!lrec.specular.equals(light.specular)) {
         lrec.specular.set(light.specular).get(_vbuf).rewind();
-        GL11.glLight(lname, GL11.GL_SPECULAR, _vbuf);
+        GL11.glLightfv(lname, GL11.GL_SPECULAR, _vbuf);
       }
       if (!lrec.position.equals(light.position)) {
         // OpenGL multiplies by the modelview matrix, so we have to clear it first
         cleared = maybeClearModelview(cleared);
         lrec.position.set(light.position).get(_vbuf).rewind();
-        GL11.glLight(lname, GL11.GL_POSITION, _vbuf);
+        GL11.glLightfv(lname, GL11.GL_POSITION, _vbuf);
       }
       if (lrec.spotExponent != light.spotExponent) {
         GL11.glLightf(lname, GL11.GL_SPOT_EXPONENT,
@@ -1174,7 +1198,7 @@ public class Renderer
         // as with the position, clear the modelview matrix
         cleared = maybeClearModelview(cleared);
         lrec.spotDirection.set(light.spotDirection).get(_vbuf).rewind();
-        GL11.glLight(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
+        GL11.glLightfv(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
       }
       if (light.position.w == 0f) {
         continue; // light is directional; the rest does not apply
@@ -1197,7 +1221,7 @@ public class Renderer
 
     if (!_globalAmbient.equals(globalAmbient)) {
       _globalAmbient.set(globalAmbient).get(_vbuf).rewind();
-      GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, _vbuf);
+      GL11.glLightModelfv(GL11.GL_LIGHT_MODEL_AMBIENT, _vbuf);
     }
   }
 
@@ -1251,19 +1275,19 @@ public class Renderer
 
     if (!_frontAmbient.equals(frontAmbient)) {
       _frontAmbient.set(frontAmbient).get(_vbuf).rewind();
-      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT, _vbuf);
+      GL11.glMaterialfv(GL11.GL_FRONT, GL11.GL_AMBIENT, _vbuf);
     }
     if (!_frontDiffuse.equals(frontDiffuse)) {
       _frontDiffuse.set(frontDiffuse).get(_vbuf).rewind();
-      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE, _vbuf);
+      GL11.glMaterialfv(GL11.GL_FRONT, GL11.GL_DIFFUSE, _vbuf);
     }
     if (!_frontSpecular.equals(frontSpecular)) {
       _frontSpecular.set(frontSpecular).get(_vbuf).rewind();
-      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_SPECULAR, _vbuf);
+      GL11.glMaterialfv(GL11.GL_FRONT, GL11.GL_SPECULAR, _vbuf);
     }
     if (!_frontEmission.equals(frontEmission)) {
       _frontEmission.set(frontEmission).get(_vbuf).rewind();
-      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_EMISSION, _vbuf);
+      GL11.glMaterialfv(GL11.GL_FRONT, GL11.GL_EMISSION, _vbuf);
     }
     if (_frontShininess != frontShininess) {
       GL11.glMaterialf(GL11.GL_FRONT, GL11.GL_SHININESS, _frontShininess = frontShininess);
@@ -1271,19 +1295,19 @@ public class Renderer
     if (twoSide) {
       if (!_backAmbient.equals(backAmbient)) {
         _backAmbient.set(backAmbient).get(_vbuf).rewind();
-        GL11.glMaterial(GL11.GL_BACK, GL11.GL_AMBIENT, _vbuf);
+        GL11.glMaterialfv(GL11.GL_BACK, GL11.GL_AMBIENT, _vbuf);
       }
       if (!_backDiffuse.equals(backDiffuse)) {
         _backDiffuse.set(backDiffuse).get(_vbuf).rewind();
-        GL11.glMaterial(GL11.GL_BACK, GL11.GL_DIFFUSE, _vbuf);
+        GL11.glMaterialfv(GL11.GL_BACK, GL11.GL_DIFFUSE, _vbuf);
       }
       if (!_backSpecular.equals(backSpecular)) {
         _backSpecular.set(backSpecular).get(_vbuf).rewind();
-        GL11.glMaterial(GL11.GL_BACK, GL11.GL_SPECULAR, _vbuf);
+        GL11.glMaterialfv(GL11.GL_BACK, GL11.GL_SPECULAR, _vbuf);
       }
       if (!_backEmission.equals(backEmission)) {
         _backEmission.set(backEmission).get(_vbuf).rewind();
-        GL11.glMaterial(GL11.GL_BACK, GL11.GL_EMISSION, _vbuf);
+        GL11.glMaterialfv(GL11.GL_BACK, GL11.GL_EMISSION, _vbuf);
       }
       if (_backShininess != backShininess) {
         GL11.glMaterialf(GL11.GL_BACK, GL11.GL_SHININESS, _backShininess = backShininess);
@@ -1408,13 +1432,13 @@ public class Renderer
   {
     if (_program != program) {
       int id = (program == null) ? 0 : program.getId();
-      ARBShaderObjects.glUseProgramObjectARB(id);
+      GL20.glUseProgram(id);
       _program = program;
       _states[RenderState.SHADER_STATE] = null;
     }
     if (program != null && program.getVertexShader() != null &&
         _vertexProgramTwoSide != Boolean.valueOf(vertexProgramTwoSide)) {
-      setCapability(ARBVertexShader.GL_VERTEX_PROGRAM_TWO_SIDE_ARB,
+      setCapability(GL20.GL_VERTEX_PROGRAM_TWO_SIDE,
         _vertexProgramTwoSide = vertexProgramTwoSide);
     }
 
@@ -1427,7 +1451,7 @@ public class Renderer
    */
   public void invalidateShaderState ()
   {
-    if (GLContext.getCapabilities().GL_ARB_shader_objects) {
+    if (GL.getCapabilities().GL_ARB_shader_objects) {
       _program = INVALID_PROGRAM;
       _vertexProgramTwoSide = null;
     }
@@ -1506,10 +1530,10 @@ public class Renderer
         continue;
       }
       int target = unitEnabled ? unit.texture.getTarget() : 0;
-      boolean enabledCubeMap = (target == ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB);
+      boolean enabledCubeMap = (target == GL13.GL_TEXTURE_CUBE_MAP);
       if (urec.enabledCubeMap != Boolean.valueOf(enabledCubeMap)) {
         setActiveUnit(ii);
-        setCapability(ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB,
+        setCapability(GL13.GL_TEXTURE_CUBE_MAP,
           urec.enabledCubeMap = enabledCubeMap);
       }
       if (!enabledCubeMap) {
@@ -1520,10 +1544,10 @@ public class Renderer
         }
         if (!enabled3D) {
           boolean enabledRectangle =
-            (target == ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB);
+            (target == GL31.GL_TEXTURE_RECTANGLE);
           if (urec.enabledRectangle != Boolean.valueOf(enabledRectangle)) {
             setActiveUnit(ii);
-            setCapability(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
+            setCapability(GL31.GL_TEXTURE_RECTANGLE,
               urec.enabledRectangle = enabledRectangle);
           }
           if (!enabledRectangle) {
@@ -1564,10 +1588,10 @@ public class Renderer
             _textureChangeCount++;
           }
           break;
-        case ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB:
+        case GL31.GL_TEXTURE_RECTANGLE:
           if (urec.textureRectangle != unit.texture) {
             setActiveUnit(ii);
-            GL11.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
+            GL11.glBindTexture(GL31.GL_TEXTURE_RECTANGLE,
               (urec.textureRectangle = unit.texture).getId());
             _textureChangeCount++;
           }
@@ -1580,10 +1604,10 @@ public class Renderer
             _textureChangeCount++;
           }
           break;
-        case ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB:
+        case GL13.GL_TEXTURE_CUBE_MAP:
           if (urec.textureCubeMap != unit.texture) {
             setActiveUnit(ii);
-            GL11.glBindTexture(ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB,
+            GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP,
               (urec.textureCubeMap = unit.texture).getId());
             _textureChangeCount++;
           }
@@ -1594,103 +1618,103 @@ public class Renderer
         GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE,
           urec.envMode = unit.envMode);
       }
-      boolean combine = (unit.envMode == ARBTextureEnvCombine.GL_COMBINE_ARB);
+      boolean combine = (unit.envMode == GL13.GL_COMBINE);
       if ((combine || unit.envMode == GL11.GL_BLEND) &&
           !urec.envColor.equals(unit.envColor)) {
         setActiveUnit(ii);
         urec.envColor.set(unit.envColor).get(_vbuf).rewind();
-        GL11.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, _vbuf);
+        GL11.glTexEnvfv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, _vbuf);
       }
       if (combine) {
         if (urec.rgbCombine != unit.rgbCombine) {
           setActiveUnit(ii);
-          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_COMBINE_RGB_ARB,
+          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_RGB,
             urec.rgbCombine = unit.rgbCombine);
         }
         if (urec.alphaCombine != unit.alphaCombine) {
           setActiveUnit(ii);
-          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_COMBINE_ALPHA_ARB,
+          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA,
             urec.alphaCombine = unit.alphaCombine);
         }
         if (urec.rgbSource0 != unit.rgbSource0) {
           setActiveUnit(ii);
-          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_SOURCE0_RGB_ARB,
+          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_RGB,
             urec.rgbSource0 = unit.rgbSource0);
         }
         if (urec.rgbOperand0 != unit.rgbOperand0) {
           setActiveUnit(ii);
-          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_OPERAND0_RGB_ARB,
+          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND0_RGB,
             urec.rgbOperand0 = unit.rgbOperand0);
         }
         if (unit.rgbCombine != GL11.GL_REPLACE) {
           if (urec.rgbSource1 != unit.rgbSource1) {
             setActiveUnit(ii);
             GL11.glTexEnvi(
-              GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_SOURCE1_RGB_ARB,
+              GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_RGB,
               urec.rgbSource1 = unit.rgbSource1);
           }
           if (urec.rgbOperand1 != unit.rgbOperand1) {
             setActiveUnit(ii);
             GL11.glTexEnvi(
-              GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_OPERAND1_RGB_ARB,
+              GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND1_RGB,
               urec.rgbOperand1 = unit.rgbOperand1);
           }
-          if (unit.rgbCombine == ARBTextureEnvCombine.GL_INTERPOLATE_ARB) {
+          if (unit.rgbCombine == GL13.GL_INTERPOLATE) {
             if (urec.rgbSource2 != unit.rgbSource2) {
               setActiveUnit(ii);
               GL11.glTexEnvi(
-                GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_SOURCE2_RGB_ARB,
+                GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE2_RGB,
                 urec.rgbSource2 = unit.rgbSource2);
             }
             if (urec.rgbOperand2 != unit.rgbOperand2) {
               setActiveUnit(ii);
               GL11.glTexEnvi(
-                GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_OPERAND2_RGB_ARB,
+                GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND2_RGB,
                 urec.rgbOperand2 = unit.rgbOperand2);
             }
           }
         }
         if (urec.alphaSource0 != unit.alphaSource0) {
           setActiveUnit(ii);
-          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_SOURCE0_ALPHA_ARB,
+          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA,
             urec.alphaSource0 = unit.alphaSource0);
         }
         if (urec.alphaOperand0 != unit.alphaOperand0) {
           setActiveUnit(ii);
-          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_OPERAND0_ALPHA_ARB,
+          GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND0_ALPHA,
             urec.alphaOperand0 = unit.alphaOperand0);
         }
         if (unit.alphaCombine != GL11.GL_REPLACE) {
           if (urec.alphaSource1 != unit.alphaSource1) {
             setActiveUnit(ii);
             GL11.glTexEnvi(
-              GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_SOURCE1_ALPHA_ARB,
+              GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_ALPHA,
               urec.alphaSource1 = unit.alphaSource1);
           }
           if (urec.alphaOperand1 != unit.alphaOperand1) {
             setActiveUnit(ii);
             GL11.glTexEnvi(
-              GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_OPERAND1_ALPHA_ARB,
+              GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND1_ALPHA,
               urec.alphaOperand1 = unit.alphaOperand1);
           }
-          if (unit.alphaCombine == ARBTextureEnvCombine.GL_INTERPOLATE_ARB) {
+          if (unit.alphaCombine == GL13.GL_INTERPOLATE) {
             if (urec.alphaSource2 != unit.alphaSource2) {
               setActiveUnit(ii);
               GL11.glTexEnvi(
-                GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_SOURCE2_ALPHA_ARB,
+                GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE2_ALPHA,
                 urec.alphaSource2 = unit.alphaSource2);
             }
             if (urec.alphaOperand2 != unit.alphaOperand2) {
               setActiveUnit(ii);
               GL11.glTexEnvi(
-                GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_OPERAND2_ALPHA_ARB,
+                GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND2_ALPHA,
                 urec.alphaOperand2 = unit.alphaOperand2);
             }
           }
         }
         if (urec.rgbScale != unit.rgbScale) {
           setActiveUnit(ii);
-          GL11.glTexEnvf(GL11.GL_TEXTURE_ENV, ARBTextureEnvCombine.GL_RGB_SCALE_ARB,
+          GL11.glTexEnvf(GL11.GL_TEXTURE_ENV, GL13.GL_RGB_SCALE,
             urec.rgbScale = unit.rgbScale);
         }
         if (urec.alphaScale != unit.alphaScale) {
@@ -1702,8 +1726,8 @@ public class Renderer
       if (urec.lodBias != unit.lodBias) {
         setActiveUnit(ii);
         GL11.glTexEnvf(
-          EXTTextureLODBias.GL_TEXTURE_FILTER_CONTROL_EXT,
-          EXTTextureLODBias.GL_TEXTURE_LOD_BIAS_EXT, urec.lodBias = unit.lodBias);
+          GL14.GL_TEXTURE_FILTER_CONTROL,
+          GL14.GL_TEXTURE_LOD_BIAS, urec.lodBias = unit.lodBias);
       }
       boolean genEnabledS = (unit.genModeS != -1);
       if (urec.genEnabledS != Boolean.valueOf(genEnabledS)) {
@@ -1720,14 +1744,14 @@ public class Renderer
           if (!urec.genPlaneS.equals(unit.genPlaneS)) {
             setActiveUnit(ii);
             urec.genPlaneS.set(unit.genPlaneS).get(_vbuf).rewind();
-            GL11.glTexGen(GL11.GL_S, GL11.GL_OBJECT_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_S, GL11.GL_OBJECT_PLANE, _vbuf);
           }
         } else if (unit.genModeS == GL11.GL_EYE_LINEAR) {
           if (!urec.genEyePlaneS.equals(unit.genPlaneS)) {
             setActiveUnit(ii);
             cleared = clearModelviewOrTransposeTransform(
               cleared, urec.genEyePlaneS.set(unit.genPlaneS), _vbuf);
-            GL11.glTexGen(GL11.GL_S, GL11.GL_EYE_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_S, GL11.GL_EYE_PLANE, _vbuf);
           }
         }
       }
@@ -1746,14 +1770,14 @@ public class Renderer
           if (!urec.genPlaneT.equals(unit.genPlaneT)) {
             setActiveUnit(ii);
             urec.genPlaneT.set(unit.genPlaneT).get(_vbuf).rewind();
-            GL11.glTexGen(GL11.GL_T, GL11.GL_OBJECT_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_T, GL11.GL_OBJECT_PLANE, _vbuf);
           }
         } else if (unit.genModeT == GL11.GL_EYE_LINEAR) {
           if (!urec.genEyePlaneT.equals(unit.genPlaneT)) {
             setActiveUnit(ii);
             cleared = clearModelviewOrTransposeTransform(
               cleared, urec.genEyePlaneT.set(unit.genPlaneT), _vbuf);
-            GL11.glTexGen(GL11.GL_T, GL11.GL_EYE_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_T, GL11.GL_EYE_PLANE, _vbuf);
           }
         }
       }
@@ -1772,14 +1796,14 @@ public class Renderer
           if (!urec.genPlaneR.equals(unit.genPlaneR)) {
             setActiveUnit(ii);
             urec.genPlaneR.set(unit.genPlaneR).get(_vbuf).rewind();
-            GL11.glTexGen(GL11.GL_R, GL11.GL_OBJECT_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_R, GL11.GL_OBJECT_PLANE, _vbuf);
           }
         } else if (unit.genModeR == GL11.GL_EYE_LINEAR) {
           if (!urec.genEyePlaneR.equals(unit.genPlaneR)) {
             setActiveUnit(ii);
             cleared = clearModelviewOrTransposeTransform(
               cleared, urec.genEyePlaneR.set(unit.genPlaneR), _vbuf);
-            GL11.glTexGen(GL11.GL_R, GL11.GL_EYE_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_R, GL11.GL_EYE_PLANE, _vbuf);
           }
         }
       }
@@ -1798,14 +1822,14 @@ public class Renderer
           if (!urec.genPlaneQ.equals(unit.genPlaneQ)) {
             setActiveUnit(ii);
             urec.genPlaneQ.set(unit.genPlaneQ).get(_vbuf).rewind();
-            GL11.glTexGen(GL11.GL_Q, GL11.GL_OBJECT_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_Q, GL11.GL_OBJECT_PLANE, _vbuf);
           }
         } else if (unit.genModeQ == GL11.GL_EYE_LINEAR) {
           if (!urec.genEyePlaneQ.equals(unit.genPlaneQ)) {
             setActiveUnit(ii);
             cleared = clearModelviewOrTransposeTransform(
               cleared, urec.genEyePlaneQ.set(unit.genPlaneQ), _vbuf);
-            GL11.glTexGen(GL11.GL_Q, GL11.GL_EYE_PLANE, _vbuf);
+            GL11.glTexGenfv(GL11.GL_Q, GL11.GL_EYE_PLANE, _vbuf);
           }
         }
       }
@@ -1845,7 +1869,7 @@ public class Renderer
       if (type == Transform3D.IDENTITY || type == Transform3D.RIGID) {
         setNormalize(false, false);
       } else if (type == Transform3D.UNIFORM &&
-          GLContext.getCapabilities().GL_EXT_rescale_normal && !RunAnywhere.isMacOS()) {
+          GL.getCapabilities().OpenGL12 && !RunAnywhere.isMacOS()) {
         // OS X has a bug where the normal scale affects the parameters to glTexGen, so
         // we just disable it there
         setNormalize(false, true);
@@ -1905,13 +1929,13 @@ public class Renderer
   {
     if (array.arrayBuffer != null) {
       setArrayBuffer(array.arrayBuffer);
-      ARBVertexShader.glVertexAttribPointerARB(
+      GL20.glVertexAttribPointer(
         idx, array.size, array.type, array.normalized, array.stride, array.offset);
     } else { // array.floatArray != null
       setArrayBuffer(null);
       array.floatArray.position((int)array.offset / 4); // offsets are in bytes
-      ARBVertexShader.glVertexAttribPointerARB(
-        idx, array.size, array.normalized, array.stride, array.floatArray);
+      GL20.glVertexAttribPointer(
+        idx, array.size, GL11.GL_FLOAT, array.normalized, array.stride, array.floatArray);
       array.floatArray.rewind();
     }
   }
@@ -1927,7 +1951,7 @@ public class Renderer
     } else { // array.floatArray != null
       setArrayBuffer(null);
       array.floatArray.position((int)array.offset / 4);
-      GL11.glTexCoordPointer(array.size, array.stride, array.floatArray);
+      GL11.glTexCoordPointer(array.size, GL11.GL_FLOAT, array.stride, array.floatArray);
       array.floatArray.rewind();
     }
   }
@@ -1943,7 +1967,7 @@ public class Renderer
     } else { // array.floatArray != null
       setArrayBuffer(null);
       array.floatArray.position((int)array.offset / 4);
-      GL11.glColorPointer(array.size, array.stride, array.floatArray);
+      GL11.glColorPointer(array.size, GL11.GL_FLOAT, array.stride, array.floatArray);
       array.floatArray.rewind();
     }
   }
@@ -1959,7 +1983,7 @@ public class Renderer
     } else { // array.floatArray != null
       setArrayBuffer(null);
       array.floatArray.position((int)array.offset / 4);
-      GL11.glNormalPointer(array.stride, array.floatArray);
+      GL11.glNormalPointer(GL11.GL_FLOAT, array.stride, array.floatArray);
       array.floatArray.rewind();
     }
   }
@@ -1971,11 +1995,15 @@ public class Renderer
   {
     if (array.arrayBuffer != null) {
       setArrayBuffer(array.arrayBuffer);
+      if (GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING) == 0) {
+        log.warning("setVertexArray: VBO expected but none bound!",
+          "arrayBuffer.id", array.arrayBuffer.getId());
+      }
       GL11.glVertexPointer(array.size, array.type, array.stride, array.offset);
     } else { // array.floatArray != null
       setArrayBuffer(null);
       array.floatArray.position((int)array.offset / 4);
-      GL11.glVertexPointer(array.size, array.stride, array.floatArray);
+      GL11.glVertexPointer(array.size, GL11.GL_FLOAT, array.stride, array.floatArray);
       array.floatArray.rewind();
     }
   }
@@ -1987,8 +2015,8 @@ public class Renderer
   {
     if (_arrayBuffer != arrayBuffer) {
       int id = (arrayBuffer == null) ? 0 : arrayBuffer.getId();
-      ARBBufferObject.glBindBufferARB(
-        ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, id);
+      GL15.glBindBuffer(
+        GL15.GL_ARRAY_BUFFER, id);
       _arrayBuffer = arrayBuffer;
     }
   }
@@ -2017,7 +2045,7 @@ public class Renderer
     int type = transform.getType();
     if (type >= Transform3D.AFFINE) {
       transform.getMatrix().get(_vbuf).rewind();
-      GL11.glLoadMatrix(_vbuf);
+      GL11.glLoadMatrixf(_vbuf);
       return;
     }
     GL11.glLoadIdentity();
@@ -2124,8 +2152,8 @@ public class Renderer
   protected void setClientActiveUnit (int unit)
   {
     if (_clientActiveUnit != unit) {
-      ARBMultitexture.glClientActiveTextureARB(
-        ARBMultitexture.GL_TEXTURE0_ARB + (_clientActiveUnit = unit));
+      GL13.glClientActiveTexture(
+        GL13.GL_TEXTURE0 + (_clientActiveUnit = unit));
     }
   }
 
@@ -2135,8 +2163,8 @@ public class Renderer
   protected void setActiveUnit (int unit)
   {
     if (_activeUnit != unit) {
-      ARBMultitexture.glActiveTextureARB(
-        ARBMultitexture.GL_TEXTURE0_ARB + (_activeUnit = unit));
+      GL13.glActiveTexture(
+        GL13.GL_TEXTURE0 + (_activeUnit = unit));
     }
   }
 
@@ -2161,9 +2189,9 @@ public class Renderer
         }
         break;
 
-      case ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB:
+      case GL31.GL_TEXTURE_RECTANGLE:
         if (unit.textureRectangle != texture) {
-          GL11.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
+          GL11.glBindTexture(GL31.GL_TEXTURE_RECTANGLE,
             (unit.textureRectangle = texture).getId());
           unit.unit = unit;
         }
@@ -2176,9 +2204,9 @@ public class Renderer
         }
         break;
 
-      case ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB:
+      case GL13.GL_TEXTURE_CUBE_MAP:
         if (unit.textureCubeMap != texture) {
-          GL11.glBindTexture(ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB,
+          GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP,
             (unit.textureCubeMap = texture).getId());
           unit.unit = unit;
         }
@@ -2222,8 +2250,8 @@ public class Renderer
   {
     if (_framebuffer != framebuffer) {
       int id = (framebuffer == null) ? 0 : framebuffer.getId();
-      EXTFramebufferObject.glBindFramebufferEXT(
-        EXTFramebufferObject.GL_FRAMEBUFFER_EXT, id);
+      GL30.glBindFramebuffer(
+        GL30.GL_FRAMEBUFFER, id);
       _framebuffer = framebuffer;
     }
   }
@@ -2243,8 +2271,8 @@ public class Renderer
   {
     if (_renderbuffer != renderbuffer) {
       int id = (renderbuffer == null) ? 0 : renderbuffer.getId();
-      EXTFramebufferObject.glBindRenderbufferEXT(
-        EXTFramebufferObject.GL_RENDERBUFFER_EXT, id);
+      GL30.glBindRenderbuffer(
+        GL30.GL_RENDERBUFFER, id);
       _renderbuffer = renderbuffer;
     }
   }
@@ -2362,8 +2390,10 @@ public class Renderer
 
   /**
    * Called when a pbuffer has been finalized.
+   * @deprecated Pbuffers are no longer supported in LWJGL 3. Use FBOs instead.
    */
-  protected synchronized void pbufferFinalized (Pbuffer pbuffer)
+  @Deprecated
+  protected synchronized void pbufferFinalized (Object pbuffer)
   {
     _finalizedPbuffers = ListUtil.add(_finalizedPbuffers, pbuffer);
   }
@@ -2410,7 +2440,7 @@ public class Renderer
       int[] compacted = IntListUtil.compact(_finalizedBufferObjects);
       IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
       idbuf.put(compacted).rewind();
-      ARBBufferObject.glDeleteBuffersARB(idbuf);
+      GL15.glDeleteBuffers(idbuf);
       _bufferObjectCount -= compacted.length;
       _bufferObjectBytes -= _finalizedBufferObjectBytes;
       _finalizedBufferObjects = null;
@@ -2428,27 +2458,23 @@ public class Renderer
     if (_finalizedFramebuffers != null) {
       IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedFramebuffers.length);
       idbuf.put(_finalizedFramebuffers).rewind();
-      EXTFramebufferObject.glDeleteFramebuffersEXT(idbuf);
+      GL30.glDeleteFramebuffers(idbuf);
       _finalizedFramebuffers = null;
     }
     if (_finalizedPbuffers != null) {
-      for (Object buf : _finalizedPbuffers) {
-        if (buf != null) {
-          ((Pbuffer)buf).destroy();
-        }
-      }
+      // Pbuffers no longer supported in LWJGL 3; resources cleaned up via FBOs
       _finalizedPbuffers = null;
     }
     if (_finalizedQueries != null) {
       IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedQueries.length);
       idbuf.put(_finalizedQueries).rewind();
-      ARBOcclusionQuery.glDeleteQueriesARB(idbuf);
+      GL15.glDeleteQueries(idbuf);
       _finalizedQueries = null;
     }
     if (_finalizedRenderbuffers != null) {
       IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedRenderbuffers.length);
       idbuf.put(_finalizedRenderbuffers).rewind();
-      EXTFramebufferObject.glDeleteRenderbuffersEXT(idbuf);
+      GL30.glDeleteRenderbuffers(idbuf);
       _finalizedRenderbuffers = null;
     }
     if (_finalizedShaderObjects != null) {
@@ -2456,7 +2482,7 @@ public class Renderer
         // technically glDeleteObject is supposed to silently ignore zero values, but
         // instead, at least on some systems, it raises an invalid value error
         if (id != 0) {
-          ARBShaderObjects.glDeleteObjectARB(id);
+          GL20.glDeleteProgram(id);
           _shaderObjectCount--;
         }
       }
@@ -2657,19 +2683,19 @@ public class Renderer
     {
       enabled1D = enabled2D = null;
       texture1D = texture2D = INVALID_TEXTURE;
-      if (GLContext.getCapabilities().GL_ARB_texture_rectangle) {
+      if (GL.getCapabilities().GL_ARB_texture_rectangle) {
         enabledRectangle = null;
         textureRectangle = INVALID_TEXTURE;
       }
-      if (GLContext.getCapabilities().OpenGL12) {
+      if (GL.getCapabilities().OpenGL12) {
         enabled3D = null;
         texture3D = INVALID_TEXTURE;
       }
-      if (GLContext.getCapabilities().GL_ARB_texture_cube_map) {
+      if (GL.getCapabilities().GL_ARB_texture_cube_map) {
         enabledCubeMap = null;
         textureCubeMap = INVALID_TEXTURE;
       }
-      if (GLContext.getCapabilities().GL_EXT_texture_lod_bias) {
+      if (GL.getCapabilities().OpenGL14) {
         lodBias = Float.NaN;
       }
       genEnabledS = genEnabledT = genEnabledR = genEnabledQ = null;
@@ -2688,8 +2714,11 @@ public class Renderer
     }
   }
 
-  /** The drawable with which this renderer is being used. */
-  protected Drawable _drawable;
+  /** The GLFW window handle with which this renderer is being used. */
+  protected long _windowHandle;
+
+  /** Default VAO, required on macOS Metal-backed GL even in compatibility profile. */
+  protected int _defaultVao;
 
   /** The width and height of the drawable surface. */
   protected int _width, _height;

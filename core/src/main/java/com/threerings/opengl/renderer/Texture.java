@@ -42,15 +42,16 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBDepthTexture;
-import org.lwjgl.opengl.ARBShadow;
-import org.lwjgl.opengl.ARBTextureCompression;
-import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.opengl.SGISGenerateMipmap;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.opengl.GL14;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.IntListUtil;
@@ -104,11 +105,11 @@ public abstract class Texture
   {
     // these aren't all the alpha formats; just the ones in TextureConfig
     return _format == GL11.GL_ALPHA ||
-      _format == ARBTextureCompression.GL_COMPRESSED_ALPHA_ARB ||
+      _format == GL13.GL_COMPRESSED_ALPHA ||
       _format == GL11.GL_LUMINANCE_ALPHA ||
-      _format == ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB ||
+      _format == GL13.GL_COMPRESSED_LUMINANCE_ALPHA ||
       _format == GL11.GL_RGBA ||
-      _format == ARBTextureCompression.GL_COMPRESSED_RGBA_ARB;
+      _format == GL13.GL_COMPRESSED_RGBA;
   }
 
   /**
@@ -241,7 +242,7 @@ public abstract class Texture
     if (!_borderColor.equals(borderColor)) {
       _renderer.setTexture(this);
       _borderColor.set(borderColor).get(_vbuf).rewind();
-      GL11.glTexParameter(_target, GL11.GL_TEXTURE_BORDER_COLOR, _vbuf);
+      GL11.glTexParameterfv(_target, GL11.GL_TEXTURE_BORDER_COLOR, _vbuf);
     }
   }
 
@@ -253,7 +254,7 @@ public abstract class Texture
     if (_generateMipmaps != generate) {
       _renderer.setTexture(this);
       GL11.glTexParameteri(
-        _target, SGISGenerateMipmap.GL_GENERATE_MIPMAP_SGIS,
+        _target, GL14.GL_GENERATE_MIPMAP,
         (_generateMipmaps = generate) ? GL11.GL_TRUE : GL11.GL_FALSE);
     }
   }
@@ -275,7 +276,7 @@ public abstract class Texture
     if (_compareMode != compareMode) {
       _renderer.setTexture(this);
       GL11.glTexParameteri(
-        _target, ARBShadow.GL_TEXTURE_COMPARE_MODE_ARB,
+        _target, GL14.GL_TEXTURE_COMPARE_MODE,
         _compareMode = compareMode);
     }
   }
@@ -288,7 +289,7 @@ public abstract class Texture
     if (_compareFunc != compareFunc) {
       _renderer.setTexture(this);
       GL11.glTexParameteri(
-        _target, ARBShadow.GL_TEXTURE_COMPARE_FUNC_ARB,
+        _target, GL14.GL_TEXTURE_COMPARE_FUNC,
         _compareFunc = compareFunc);
     }
   }
@@ -301,7 +302,7 @@ public abstract class Texture
     if (_depthMode != depthMode) {
       _renderer.setTexture(this);
       GL11.glTexParameteri(
-        _target, ARBDepthTexture.GL_DEPTH_TEXTURE_MODE_ARB,
+        _target, GL14.GL_DEPTH_TEXTURE_MODE,
         _depthMode = depthMode);
     }
   }
@@ -313,7 +314,7 @@ public abstract class Texture
   public void generateMipmap ()
   {
     _renderer.setTexture(this);
-    EXTFramebufferObject.glGenerateMipmapEXT(_target);
+    GL30.glGenerateMipmap(_target);
   }
 
   /**
@@ -391,7 +392,7 @@ public abstract class Texture
    */
   protected static int getInternalFormat (BufferedImage image, boolean compress)
   {
-    int[] formats = (GLContext.getCapabilities().GL_ARB_texture_compression && compress) ?
+    int[] formats = (GL.getCapabilities().GL_ARB_texture_compression && compress) ?
       COMPRESSED_FORMATS : FORMATS;
     return formats[image.getColorModel().getNumComponents() - 1];
   }
@@ -410,9 +411,9 @@ public abstract class Texture
   protected static boolean isDepth (int format)
   {
     return format == GL11.GL_DEPTH_COMPONENT ||
-      format == ARBDepthTexture.GL_DEPTH_COMPONENT16_ARB ||
-      format == ARBDepthTexture.GL_DEPTH_COMPONENT24_ARB ||
-      format == ARBDepthTexture.GL_DEPTH_COMPONENT32_ARB;
+      format == GL14.GL_DEPTH_COMPONENT16 ||
+      format == GL14.GL_DEPTH_COMPONENT24 ||
+      format == GL14.GL_DEPTH_COMPONENT32;
   }
 
   /**
@@ -542,8 +543,8 @@ public abstract class Texture
 
   /** Compressed internal formats for one, two, three, or four color components. */
   protected static final int[] COMPRESSED_FORMATS = {
-    ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ARB,
-    ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB,
-    ARBTextureCompression.GL_COMPRESSED_RGB_ARB,
-    ARBTextureCompression.GL_COMPRESSED_RGBA_ARB };
+    GL13.GL_COMPRESSED_LUMINANCE,
+    GL13.GL_COMPRESSED_LUMINANCE_ALPHA,
+    GL13.GL_COMPRESSED_RGB,
+    GL13.GL_COMPRESSED_RGBA };
 }

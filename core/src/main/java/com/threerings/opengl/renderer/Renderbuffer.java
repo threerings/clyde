@@ -28,7 +28,7 @@ package com.threerings.opengl.renderer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GL30;
 
 /**
  * An OpenGL render buffer object.
@@ -42,7 +42,7 @@ public class Renderbuffer
   {
     _renderer = renderer;
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
-    EXTFramebufferObject.glGenRenderbuffersEXT(idbuf);
+    GL30.glGenRenderbuffers(idbuf);
     _id = idbuf.get(0);
   }
 
@@ -60,8 +60,8 @@ public class Renderbuffer
   public void setStorage (int format, int width, int height)
   {
     _renderer.setRenderbuffer(this);
-    EXTFramebufferObject.glRenderbufferStorageEXT(
-      EXTFramebufferObject.GL_RENDERBUFFER_EXT, format, width, height);
+    GL30.glRenderbufferStorage(
+      GL30.GL_RENDERBUFFER, format, width, height);
   }
 
   /**
@@ -71,7 +71,7 @@ public class Renderbuffer
   {
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
     idbuf.put(_id).rewind();
-    EXTFramebufferObject.glDeleteRenderbuffersEXT(idbuf);
+    GL30.glDeleteRenderbuffers(idbuf);
     _id = 0;
   }
 

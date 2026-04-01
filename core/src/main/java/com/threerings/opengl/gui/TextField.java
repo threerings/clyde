@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui;
 
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;

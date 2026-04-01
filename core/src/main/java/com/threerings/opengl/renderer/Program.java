@@ -32,8 +32,8 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBVertexShader;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
@@ -114,7 +114,7 @@ public class Program extends ShaderObject
     @Override
     public void apply ()
     {
-      ARBShaderObjects.glUniform1iARB(_location, value);
+      GL20.glUniform1i(_location, value);
     }
 
     @Override
@@ -168,7 +168,7 @@ public class Program extends ShaderObject
     @Override
     public void apply ()
     {
-      ARBShaderObjects.glUniform1fARB(_location, value);
+      GL20.glUniform1f(_location, value);
     }
 
     @Override
@@ -222,7 +222,7 @@ public class Program extends ShaderObject
     @Override
     public void apply ()
     {
-      ARBShaderObjects.glUniform2fARB(_location, value.x, value.y);
+      GL20.glUniform2f(_location, value.x, value.y);
     }
 
     @Override
@@ -276,7 +276,7 @@ public class Program extends ShaderObject
     @Override
     public void apply ()
     {
-      ARBShaderObjects.glUniform3fARB(_location, value.x, value.y, value.z);
+      GL20.glUniform3f(_location, value.x, value.y, value.z);
     }
 
     @Override
@@ -330,7 +330,7 @@ public class Program extends ShaderObject
     @Override
     public void apply ()
     {
-      ARBShaderObjects.glUniform4fARB(_location, value.x, value.y, value.z, value.w);
+      GL20.glUniform4f(_location, value.x, value.y, value.z, value.w);
     }
 
     @Override
@@ -385,7 +385,7 @@ public class Program extends ShaderObject
     public void apply ()
     {
       value.get(_vbuf).rewind();
-      ARBShaderObjects.glUniformMatrix4ARB(_location, false, _vbuf);
+      GL20.glUniformMatrix4fv(_location, false, _vbuf);
     }
 
     @Override
@@ -417,7 +417,7 @@ public class Program extends ShaderObject
   public Program (Renderer renderer)
   {
     super(renderer);
-    _id = ARBShaderObjects.glCreateProgramObjectARB();
+    _id = GL20.glCreateProgram();
     _renderer.shaderObjectCreated();
   }
 
@@ -441,25 +441,22 @@ public class Program extends ShaderObject
   {
     if (_vertex != vertex) {
       if (_vertex != null) {
-        ARBShaderObjects.glDetachObjectARB(_id, _vertex.getId());
+        GL20.glDetachShader(_id, _vertex.getId());
       }
       if ((_vertex = vertex) != null) {
-        ARBShaderObjects.glAttachObjectARB(_id, _vertex.getId());
+        GL20.glAttachShader(_id, _vertex.getId());
       }
     }
     if (_fragment != fragment) {
       if (_fragment != null) {
-        ARBShaderObjects.glDetachObjectARB(_id, _fragment.getId());
+        GL20.glDetachShader(_id, _fragment.getId());
       }
       if ((_fragment = fragment) != null) {
-        ARBShaderObjects.glAttachObjectARB(_id, _fragment.getId());
+        GL20.glAttachShader(_id, _fragment.getId());
       }
     }
-    ARBShaderObjects.glLinkProgramARB(_id);
-    IntBuffer ibuf = BufferUtils.createIntBuffer(1);
-    ARBShaderObjects.glGetObjectParameterARB(
-      _id, ARBShaderObjects.GL_OBJECT_LINK_STATUS_ARB, ibuf);
-    return (ibuf.get(0) == GL11.GL_TRUE);
+    GL20.glLinkProgram(_id);
+    return GL20.glGetProgrami(_id, GL20.GL_LINK_STATUS) == GL11.GL_TRUE;
   }
 
   /**
@@ -486,7 +483,7 @@ public class Program extends ShaderObject
     Integer location = _uniformLocations.get(name);
     if (location == null) {
       _uniformLocations.put(
-        name, location = ARBShaderObjects.glGetUniformLocationARB(_id, toBuffer(name)));
+        name, location = GL20.glGetUniformLocation(_id, name));
     }
     return location;
   }
@@ -518,7 +515,7 @@ public class Program extends ShaderObject
    */
   public void setAttribLocation (String name, int index)
   {
-    ARBVertexShader.glBindAttribLocationARB(_id, index, toBuffer(name));
+    GL20.glBindAttribLocation(_id, index, name);
     _attribLocations.put(name, index);
   }
 
@@ -530,9 +527,27 @@ public class Program extends ShaderObject
     Integer location = _attribLocations.get(name);
     if (location == null) {
       _attribLocations.put(name,
-        location = ARBVertexShader.glGetAttribLocationARB(_id, toBuffer(name)));
+        location = GL20.glGetAttribLocation(_id, name));
     }
     return location;
+  }
+
+  @Override
+  public String getInfoLog ()
+  {
+    int length = GL20.glGetProgrami(_id, GL20.GL_INFO_LOG_LENGTH);
+    if (length <= 0) {
+      return "";
+    }
+    return GL20.glGetProgramInfoLog(_id, length);
+  }
+
+  @Override
+  public void delete ()
+  {
+    GL20.glDeleteProgram(_id);
+    _id = 0;
+    _renderer.shaderObjectDeleted();
   }
 
   /**

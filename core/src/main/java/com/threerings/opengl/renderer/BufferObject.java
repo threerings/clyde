@@ -30,8 +30,8 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBBufferObject;
-import org.lwjgl.opengl.ARBVertexBufferObject;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL15;
 
 /**
  * An OpenGL buffer object.
@@ -45,7 +45,7 @@ public class BufferObject
   {
     _renderer = renderer;
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
-    ARBBufferObject.glGenBuffersARB(idbuf);
+    GL15.glGenBuffers(idbuf);
     _id = idbuf.get(0);
     _renderer.bufferObjectCreated();
   }
@@ -63,7 +63,7 @@ public class BufferObject
    */
   public void setData (long size)
   {
-    setData(size, ARBBufferObject.GL_STATIC_DRAW_ARB);
+    setData(size, GL15.GL_STATIC_DRAW);
   }
 
   /**
@@ -72,7 +72,7 @@ public class BufferObject
   public void setData (long size, int usage)
   {
     _renderer.setArrayBuffer(this);
-    ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, size, usage);
+    GL15.glBufferData(GL15.GL_ARRAY_BUFFER, size, usage);
     setBytes((int)size);
   }
 
@@ -81,7 +81,7 @@ public class BufferObject
    */
   public void setData (FloatBuffer data)
   {
-    setData(data, ARBBufferObject.GL_STATIC_DRAW_ARB);
+    setData(data, GL15.GL_STATIC_DRAW);
   }
 
   /**
@@ -90,7 +90,7 @@ public class BufferObject
   public void setData (FloatBuffer data, int usage)
   {
     _renderer.setArrayBuffer(this);
-    ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, usage);
+    GL15.glBufferData(GL15.GL_ARRAY_BUFFER, data, usage);
     setBytes(data.remaining() * 4);
   }
 
@@ -99,7 +99,7 @@ public class BufferObject
    */
   public void setData (ShortBuffer data)
   {
-    setData(data, ARBBufferObject.GL_STATIC_DRAW_ARB);
+    setData(data, GL15.GL_STATIC_DRAW);
   }
 
   /**
@@ -108,7 +108,7 @@ public class BufferObject
   public void setData (ShortBuffer data, int usage)
   {
     _renderer.setArrayBuffer(this);
-    ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, usage);
+    GL15.glBufferData(GL15.GL_ARRAY_BUFFER, data, usage);
     setBytes(data.remaining() * 2);
   }
 
@@ -118,8 +118,8 @@ public class BufferObject
   public void setSubData (long offset, FloatBuffer data)
   {
     _renderer.setArrayBuffer(this);
-    ARBBufferObject.glBufferSubDataARB(
-      ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, offset, data);
+    GL15.glBufferSubData(
+      GL15.GL_ARRAY_BUFFER, offset, data);
   }
 
   /**
@@ -128,8 +128,8 @@ public class BufferObject
   public void setSubData (long offset, ShortBuffer data)
   {
     _renderer.setArrayBuffer(this);
-    ARBBufferObject.glBufferSubDataARB(
-      ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, offset, data);
+    GL15.glBufferSubData(
+      GL15.GL_ARRAY_BUFFER, offset, data);
   }
 
   /**
@@ -139,7 +139,7 @@ public class BufferObject
   {
     IntBuffer idbuf = BufferUtils.createIntBuffer(1);
     idbuf.put(_id).rewind();
-    ARBBufferObject.glDeleteBuffersARB(idbuf);
+    GL15.glDeleteBuffers(idbuf);
     _id = 0;
     _renderer.bufferObjectDeleted(_bytes);
   }

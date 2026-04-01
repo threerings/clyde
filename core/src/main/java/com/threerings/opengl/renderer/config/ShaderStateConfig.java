@@ -27,7 +27,8 @@ package com.threerings.opengl.renderer.config;
 
 import java.util.List;
 
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.google.common.collect.Lists;
 
@@ -96,8 +97,8 @@ public abstract class ShaderStateConfig extends DeepObject
     @Override
     public boolean isSupported (GlContext ctx, boolean fallback)
     {
-      return (vertex == null || GLContext.getCapabilities().GL_ARB_vertex_shader) &&
-        (fragment == null || GLContext.getCapabilities().GL_ARB_fragment_shader) &&
+      return (vertex == null || GL.getCapabilities().GL_ARB_vertex_shader) &&
+        (fragment == null || GL.getCapabilities().GL_ARB_fragment_shader) &&
           !ctx.getApp().getCompatibilityMode();
     }
 

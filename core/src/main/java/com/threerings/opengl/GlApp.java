@@ -37,7 +37,7 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.PixelFormat;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
@@ -74,6 +74,8 @@ import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
+
+import static com.threerings.opengl.Log.log;
 import com.threerings.opengl.util.ImageCache;
 import com.threerings.opengl.util.ShaderCache;
 

@@ -494,7 +494,7 @@ public class Compositor
   protected Camera _camera = new Camera();
 
   /** The default background color. */
-  protected Color4f _defaultBackgroundColor = new Color4f(0f, 0f, 0f, 0f);
+  protected Color4f _defaultBackgroundColor = new Color4f(0f, 0f, 0f, 1f);
 
   /** The current background color, or <code>null</code> to use the default. */
   protected Color4f _backgroundColor;

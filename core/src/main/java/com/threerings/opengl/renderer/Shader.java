@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBShaderObjects;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -43,7 +43,7 @@ public class Shader extends ShaderObject
   public Shader (Renderer renderer, int type)
   {
     super(renderer);
-    _id = ARBShaderObjects.glCreateShaderObjectARB(type);
+    _id = GL20.glCreateShader(type);
     _renderer.shaderObjectCreated();
   }
 
@@ -55,21 +55,11 @@ public class Shader extends ShaderObject
    */
   public boolean setSource (String source)
   {
-    // convert the source to an ASCII buffer
-    ByteBuffer buf = ASCII_CHARSET.encode(source);
-
-    // and copy that to a direct buffer
-    buf = BufferUtils.createByteBuffer(buf.remaining()).put(buf);
-    buf.rewind();
-
     // load the source and compile
-    ARBShaderObjects.glShaderSourceARB(_id, buf);
-    ARBShaderObjects.glCompileShaderARB(_id);
+    GL20.glShaderSource(_id, source);
+    GL20.glCompileShader(_id);
 
     // check the result
-    IntBuffer ibuf = BufferUtils.createIntBuffer(1);
-    ARBShaderObjects.glGetObjectParameterARB(
-      _id, ARBShaderObjects.GL_OBJECT_COMPILE_STATUS_ARB, ibuf);
-    return (ibuf.get(0) == GL11.GL_TRUE);
+    return GL20.glGetShaderi(_id, GL20.GL_COMPILE_STATUS) == GL11.GL_TRUE;
   }
 }

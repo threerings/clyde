@@ -25,7 +25,7 @@
 
 package com.threerings.tudey.tools;
 
-import org.lwjgl.input.Keyboard;
+import com.threerings.opengl.lwjgl2.Keyboard;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.util.CrowdContext;

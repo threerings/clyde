@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.compositor.config;
 
-import org.lwjgl.opengl.PixelFormat;
+import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;

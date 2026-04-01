@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBMultitexture;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Lists;
@@ -180,20 +180,20 @@ public class SceneMap
           GL11.glVertex2f(lx, uy);
         } else {
           GL11.glTexCoord2f(ls, lt);
-          ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mls, mlt);
+          GL13.glMultiTexCoord2f(
+            GL13.GL_TEXTURE1, mls, mlt);
           GL11.glVertex2f(lx, ly);
           GL11.glTexCoord2f(us, lt);
-          ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mus, mlt);
+          GL13.glMultiTexCoord2f(
+            GL13.GL_TEXTURE1, mus, mlt);
           GL11.glVertex2f(ux, ly);
           GL11.glTexCoord2f(us, ut);
-          ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mus, mut);
+          GL13.glMultiTexCoord2f(
+            GL13.GL_TEXTURE1, mus, mut);
           GL11.glVertex2f(ux, uy);
           GL11.glTexCoord2f(ls, ut);
-          ARBMultitexture.glMultiTexCoord2fARB(
-            ARBMultitexture.GL_TEXTURE1_ARB, mls, mut);
+          GL13.glMultiTexCoord2f(
+            GL13.GL_TEXTURE1, mls, mut);
           GL11.glVertex2f(lx, uy);
         }
         GL11.glEnd();

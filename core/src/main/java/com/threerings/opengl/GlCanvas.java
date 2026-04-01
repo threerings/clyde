@@ -25,17 +25,15 @@
 
 package com.threerings.opengl;
 
-import org.lwjgl.opengl.Drawable;
-
 /**
  * An interface implemented by {@link AWTCanvas} and {@link DisplayCanvas}.
  */
 public interface GlCanvas
 {
   /**
-   * Returns the canvas drawable.
+   * Returns the GLFW window handle, or 0 if not applicable.
    */
-  public Drawable getDrawable ();
+  public long getWindowHandle ();
 
   /**
    * Enables or disables vsync.
@@ -51,4 +49,13 @@ public interface GlCanvas
    * Shuts down the canvas.
    */
   public void shutdown ();
+
+  /**
+   * Returns the ratio of framebuffer pixels to AWT logical points.
+   * On standard displays this is 1; on HiDPI/Retina it is typically 2.
+   */
+  default int getPixelScale ()
+  {
+    return 1;
+  }
 }
