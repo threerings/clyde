@@ -95,6 +95,9 @@ public class DisplayRoot extends Root
     // Lazily install GLFW callbacks once the window exists
     initCallbacksIfNeeded();
 
+    // Flush any key event that didn't get a matching char callback
+    flushPendingKeyEvent();
+
     // Process buffered events from GLFW callbacks
     List<Runnable> events;
     synchronized (_eventQueue) {
@@ -146,6 +149,30 @@ public class DisplayRoot extends Root
 
     // Poll gamepads and generate controller events by diffing against previous state
     pollGamepads();
+  }
+
+  /**
+   * Flushes a buffered key event that never received a matching char callback.
+   * This happens for keys that glfwGetKeyName reports as printable but that
+   * don't generate a char event (e.g., due to dead keys or modifier combos).
+   */
+  protected void flushPendingKeyEvent ()
+  {
+    if (_pendingKey >= 0) {
+      int key = _pendingKey;
+      boolean pressed = _pendingKeyPressed;
+      _pendingKey = -1;
+      synchronized (_eventQueue) {
+        _eventQueue.add(() -> {
+          if (pressed) {
+            keyPressed(_tickStamp, (char)0, key, false);
+          } else {
+            keyReleased(_tickStamp, (char)0, key, false);
+          }
+          updateKeyModifier(key, pressed);
+        });
+      }
+    }
   }
 
   /**
@@ -289,30 +316,38 @@ public class DisplayRoot extends Root
     // Store strong references to all callbacks to prevent GC from collecting them.
     // GLFW only holds native references; without Java-side refs, the GC collects
     // the callback objects and input silently stops working.
+    // GLFW delivers key codes and characters as separate callbacks, firing
+    // synchronously during glfwPollEvents (key first, then char). We buffer
+    // the key event and merge the character from the char callback before
+    // enqueueing, so the BUI event carries both the key code AND the correct
+    // modifier-aware character (e.g., Shift+A → 'A', Shift+hyphen → '_').
     _keyCallback = new GLFWKeyCallback() {
       @Override
       public void invoke (long window, int glfwKey, int scancode, int action, int mods) {
+        // Flush any previous buffered key event that never got a char callback
+        flushPendingKeyEvent();
+
         int key = Keyboard.glfwToLwjgl2(glfwKey);
         boolean pressed = (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT);
-        // Get the printable character for this key (if any) so that text fields
-        // can recognize and consume printable key events. In LWJGL 2, both the
-        // key code and character were delivered in a single event.
-        String keyName = GLFW.glfwGetKeyName(glfwKey, scancode);
-        char keyChar = (keyName != null && keyName.length() == 1) ? keyName.charAt(0) : 0;
-        // If this key produces a character, suppress the next char callback
-        // to avoid double input (GLFW delivers key and char as separate events).
-        if (keyChar != 0 && pressed) {
-          _suppressNextChar = true;
-        }
-        synchronized (_eventQueue) {
-          _eventQueue.add(() -> {
-            if (pressed) {
-              keyPressed(_tickStamp, keyChar, key, false);
-            } else {
-              keyReleased(_tickStamp, keyChar, key, false);
-            }
-            updateKeyModifier(key, pressed);
-          });
+        boolean printable = (GLFW.glfwGetKeyName(glfwKey, scancode) != null);
+
+        if (printable && pressed) {
+          // Buffer this key press — the char callback will provide the character
+          _pendingKey = key;
+          _pendingKeyPressed = true;
+        } else {
+          // Non-printable key or release: enqueue immediately with no character
+          synchronized (_eventQueue) {
+            _eventQueue.add(() -> {
+              if (pressed) {
+                keyPressed(_tickStamp, (char)0, key, false);
+              } else {
+                keyReleased(_tickStamp, (char)0, key, false);
+              }
+              updateKeyModifier(key, pressed);
+            });
+          }
+          _pendingKey = -1;
         }
       }
     };
@@ -321,18 +356,24 @@ public class DisplayRoot extends Root
     _charCallback = new GLFWCharCallback() {
       @Override
       public void invoke (long window, int codepoint) {
-        // Skip if the key callback already delivered this character.
-        // The char callback still handles IME and composed characters
-        // that glfwGetKeyName doesn't cover.
-        if (_suppressNextChar) {
-          _suppressNextChar = false;
-          return;
-        }
         char ch = (char)codepoint;
-        synchronized (_eventQueue) {
-          _eventQueue.add(() -> {
-            keyPressed(_tickStamp, ch, Keyboard.KEY_NONE, false);
-          });
+        if (_pendingKey >= 0) {
+          // Merge the character with the buffered key event
+          int key = _pendingKey;
+          _pendingKey = -1;
+          synchronized (_eventQueue) {
+            _eventQueue.add(() -> {
+              keyPressed(_tickStamp, ch, key, false);
+              updateKeyModifier(key, true);
+            });
+          }
+        } else {
+          // Standalone character (IME, composed input)
+          synchronized (_eventQueue) {
+            _eventQueue.add(() -> {
+              keyPressed(_tickStamp, ch, Keyboard.KEY_NONE, false);
+            });
+          }
         }
       }
     };
@@ -489,8 +530,11 @@ public class DisplayRoot extends Root
   /** Whether GLFW callbacks have been installed. */
   protected boolean _callbacksInstalled;
 
-  /** Whether to suppress the next char callback (key callback already delivered the character). */
-  protected boolean _suppressNextChar;
+  /** Buffered key code waiting for a char callback to provide the character, or -1. */
+  protected int _pendingKey = -1;
+
+  /** Whether the pending key event is a press (vs release). */
+  protected boolean _pendingKeyPressed;
 
   /** Ratio of framebuffer pixels to window coordinates (2 on Retina, 1 otherwise). */
   protected float _pixelScale = 1f;
