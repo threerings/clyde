@@ -210,27 +210,27 @@ public abstract class GlDisplayApp extends GlApp
 
   /**
    * Ensures GLFW is initialized (safe to call multiple times).
+   * On macOS, this must be called BEFORE any AWT class is loaded to prevent
+   * AWT from taking over the NSApplication event loop, which blocks glfwPollEvents.
+   * Call this as the first thing in main() for GlDisplayApp-based applications.
    */
   protected void ensureGlfwInit ()
   {
-    if (!_glfwInited) {
-      // On macOS, prevent AWT from initializing its Cocoa event loop, which
-      // conflicts with GLFW's event processing and causes glfwPollEvents to block.
-      // Must be set before any AWT class is loaded.
-      if (RunAnywhere.isMacOS()) {
-        System.setProperty("java.awt.headless", "true");
-      }
-      // On macOS, tell GLFW not to change the working directory to the
-      // .app bundle Resources dir (we manage resources ourselves).
-      GLFW.glfwInitHint(GLFW.GLFW_COCOA_CHDIR_RESOURCES, GLFW.GLFW_FALSE);
-      if (!GLFW.glfwInit()) {
-        log.warning("Failed to initialize GLFW.");
-        return;
-      }
-      _glfwInited = true;
-      // Pump events once so macOS NSApplication finishes launching.
-      GLFW.glfwPollEvents();
+    if (_glfwInited) return;
+    // On macOS, AWT's Cocoa initialization deadlocks with GLFW's event loop.
+    // Headless mode prevents AWT from touching the native event system.
+    // AWT windows (admin tools) are not available in this mode on macOS;
+    // use the AWT-based tools (scene editor, etc.) for admin tasks instead.
+    if (RunAnywhere.isMacOS()) System.setProperty("java.awt.headless", "true");
+    // On macOS, tell GLFW not to change the working directory to the
+    // .app bundle Resources dir (we manage resources ourselves).
+    GLFW.glfwInitHint(GLFW.GLFW_COCOA_CHDIR_RESOURCES, GLFW.GLFW_FALSE);
+    if (!GLFW.glfwInit()) {
+      log.warning("Failed to initialize GLFW.");
+      return;
     }
+    _glfwInited = true;
+    GLFW.glfwPollEvents();
   }
 
   /**
