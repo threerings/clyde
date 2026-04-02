@@ -72,15 +72,6 @@ public class ConfigManager
   implements Copyable, Exportable
 {
   /**
-   * @deprecated use java.util.function.Consumer<T> directly.
-   */
-  @Deprecated(forRemoval=true)
-  public interface Consumer<T> extends java.util.function.Consumer<T>
-  {
-    public void accept (T t);
-  }
-
-  /**
    * Creates a new global configuration manager.
    *
    * @param configPath the resource path of the configurations.
