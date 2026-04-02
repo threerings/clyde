@@ -2389,16 +2389,6 @@ public class Renderer
   }
 
   /**
-   * Called when a pbuffer has been finalized.
-   * @deprecated Pbuffers are no longer supported in LWJGL 3. Use FBOs instead.
-   */
-  @Deprecated
-  protected synchronized void pbufferFinalized (Object pbuffer)
-  {
-    _finalizedPbuffers = ListUtil.add(_finalizedPbuffers, pbuffer);
-  }
-
-  /**
    * Called when a query has been finalized.
    */
   protected synchronized void queryFinalized (int id)
@@ -2460,10 +2450,6 @@ public class Renderer
       idbuf.put(_finalizedFramebuffers).rewind();
       GL30.glDeleteFramebuffers(idbuf);
       _finalizedFramebuffers = null;
-    }
-    if (_finalizedPbuffers != null) {
-      // Pbuffers no longer supported in LWJGL 3; resources cleaned up via FBOs
-      _finalizedPbuffers = null;
     }
     if (_finalizedQueries != null) {
       IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedQueries.length);
@@ -3076,9 +3062,6 @@ public class Renderer
 
   /** The list of frame buffers to be deleted. */
   protected int[] _finalizedFramebuffers;
-
-  /** The list of pbuffers to be destroyed. */
-  protected Object[] _finalizedPbuffers;
 
   /** The list of queries to be deleted. */
   protected int[] _finalizedQueries;
