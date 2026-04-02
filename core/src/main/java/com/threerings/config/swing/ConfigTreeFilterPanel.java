@@ -165,13 +165,7 @@ public class ConfigTreeFilterPanel extends JPanel
     public void documentChanged ()
     {
       final String text = _input.getText().trim().toLowerCase();
-      _filter = "".equals(text)
-        ? null
-        : new Predicate<ManagedConfig>() {
-          public boolean apply (ManagedConfig cfg) {
-            return cfg.getName().toLowerCase().contains(text);
-          }
-        };
+      _filter = "".equals(text) ? null : cfg -> cfg.getName().toLowerCase().contains(text);
       setFilter();
       _clearAction.setEnabled(_filter != null);
     }

@@ -28,7 +28,6 @@ package com.threerings.opengl.gui.layout;
 import java.util.Arrays;
 import java.util.Map;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
@@ -307,11 +306,7 @@ public class TableLayout extends LayoutManager
 
   protected Iterable<Component> visibleChildren (Container target)
   {
-    return Iterables.filter(target.getChildren(), new Predicate<Component>() {
-      public boolean apply (Component c) {
-        return c.isVisible();
-      }
-    });
+    return Iterables.filter(target.getChildren(), Component::isVisible);
   }
 
   protected int sum (int[] values)

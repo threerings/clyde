@@ -30,7 +30,6 @@ import java.util.Comparator;
 
 import org.lwjgl.opengl.GL11;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
 import com.samskivert.util.ListUtil;
@@ -105,11 +104,7 @@ public class ColorPicker extends Component
     } else {
       Collection<ColorRecord> colors = crec.colors.values();
       if (starters) {
-        colors = Collections2.filter(colors, new Predicate<ColorRecord>() {
-          public boolean apply (ColorRecord color) {
-            return color.starter;
-          }
-        });
+        colors = Collections2.filter(colors, color -> color.starter);
       }
       _colors = colors.toArray(new ColorRecord[colors.size()]);
       QuickSort.sort(_colors, new Comparator<ColorRecord>() {

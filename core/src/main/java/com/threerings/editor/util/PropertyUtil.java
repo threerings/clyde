@@ -226,19 +226,15 @@ public class PropertyUtil
       return Predicates.alwaysTrue();
     }
     final List<Class<? extends ManagedConfig>> vals = Arrays.asList(constraints.value());
-    return new Predicate<ManagedConfig>() {
-      public boolean apply (ManagedConfig cfg) {
-        if (cfg instanceof DerivedConfig) {
-          cfg = cfg.getInstance((ArgumentMap)null);
-        }
-        Class<? extends ManagedConfig> clazz = cfg.getClass();
-        for (Class<? extends ManagedConfig> listedClass : vals) {
-          if (listedClass.isAssignableFrom(clazz)) {
-            return true;
-          }
-        }
-        return false;
+    return cfg -> {
+      if (cfg instanceof DerivedConfig) {
+        cfg = cfg.getInstance((ArgumentMap)null);
       }
+      Class<? extends ManagedConfig> clazz = cfg.getClass();
+      for (Class<? extends ManagedConfig> listedClass : vals) {
+        if (listedClass.isAssignableFrom(clazz)) return true;
+      }
+      return false;
     };
   }
 

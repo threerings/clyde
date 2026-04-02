@@ -18,7 +18,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
@@ -453,11 +452,6 @@ public abstract class DependencyGatherer
   }
 
   /** A cache of field information. */
-  protected final FieldCache _fieldCache = new FieldCache(Predicates.and(
-        FieldCache.getDefaultPredicate(),
-        new Predicate<Field>() {
-          public boolean apply (Field f) {
-            return !f.isSynthetic();
-          }
-        }));
+  protected final FieldCache _fieldCache = new FieldCache(
+    Predicates.and(FieldCache.getDefaultPredicate(), f -> !f.isSynthetic()));
 }

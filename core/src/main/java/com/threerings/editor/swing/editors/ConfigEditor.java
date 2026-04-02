@@ -93,12 +93,8 @@ public class ConfigEditor extends PropertyEditor
                 }
                 // if we are, don't let ourselves be referenced
                 final ManagedConfig ourCfg = (ManagedConfig)_object;
-                return new Predicate<ManagedConfig>() {
-                  public boolean apply (ManagedConfig cfg) {
-                    return (ourCfg.getName() != cfg.getName()) ||
-                        (ourCfg.getConfigGroup() != cfg.getConfigGroup());
-                  }
-                };
+                return cfg -> (ourCfg.getName() != cfg.getName()) ||
+                  (ourCfg.getConfigGroup() != cfg.getConfigGroup());
               }
             });
     _box.addActionListener(this);

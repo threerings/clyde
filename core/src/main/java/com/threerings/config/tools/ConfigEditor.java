@@ -591,14 +591,10 @@ public class ConfigEditor extends BaseConfigEditor
       return;
     }
     new ConfigSearcher(this, cfgNameOrPrefix,
-        ConfigSearcher.Presence.getReporter(clazz, new Predicate<ConfigReference<?>>() {
-          public boolean apply (ConfigReference<?> ref) {
-            return exact
-              ? ref.getName().equals(cfgNameOrPrefix)
-              : ref.getName().startsWith(cfgNameOrPrefix);
-          }
-        }),
-        getSearcherDomains());
+      ConfigSearcher.Presence.getReporter(clazz,
+        ref -> exact ? ref.getName().equals(cfgNameOrPrefix)
+                     : ref.getName().startsWith(cfgNameOrPrefix)),
+      getSearcherDomains());
   }
 
   /**

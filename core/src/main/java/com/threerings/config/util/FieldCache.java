@@ -29,11 +29,7 @@ public class FieldCache
    */
   public static Predicate<Field> getDefaultPredicate ()
   {
-    return new Predicate<Field>() {
-          public boolean apply (Field field) {
-            return 0 == (field.getModifiers() & (Modifier.STATIC | Modifier.TRANSIENT));
-          }
-        };
+    return field -> 0 == (field.getModifiers() & (Modifier.STATIC | Modifier.TRANSIENT));
   }
 
   /**
