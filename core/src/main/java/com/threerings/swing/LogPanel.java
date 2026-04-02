@@ -220,14 +220,12 @@ public class LogPanel extends JPanel
 
       // scroll to the appropriate line once we're laid out
       final int line = lines - 1;
-      EventQueue.invokeLater(new Runnable() {
-        public void run () {
-          try {
-            Rectangle2D view = _text.modelToView2D(_text.getLineStartOffset(line));
-            _pane.getVerticalScrollBar().setValue((int)view.getY());
-          } catch (BadLocationException e) {
-            // shouldn't happen
-          }
+      EventQueue.invokeLater(() -> {
+        try {
+          Rectangle2D view = _text.modelToView2D(_text.getLineStartOffset(line));
+          _pane.getVerticalScrollBar().setValue((int)view.getY());
+        } catch (BadLocationException e) {
+          // shouldn't happen
         }
       });
     }

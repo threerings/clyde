@@ -435,11 +435,7 @@ public class SceneEditor extends TudeyTool
    */
   public Predicate<Entry> getLayerPredicate ()
   {
-    return new Predicate<Entry>() {
-      public boolean apply (Entry entry) {
-        return (_layers.getSelectedLayer() == _scene.getLayer(entry.getKey()));
-      }
-    };
+    return entry -> (_layers.getSelectedLayer() == _scene.getLayer(entry.getKey()));
   }
 
   /**
@@ -448,11 +444,7 @@ public class SceneEditor extends TudeyTool
   public Predicate<Entry> getVisiblePredicate ()
   {
     final List<Boolean> vis = _layers.getLayerVisibility(); // returns an ever-changing view
-    return new Predicate<Entry>() {
-      public boolean apply (Entry entry) {
-        return vis.get(_scene.getLayer(entry.getKey()));
-      }
-    };
+    return entry -> vis.get(_scene.getLayer(entry.getKey()));
   }
 
   /**
@@ -622,12 +614,7 @@ public class SceneEditor extends TudeyTool
     }
     final Predicate<Entry> pred = Predicates.and(getLayerPredicate(), filter);
     EntrySprite sprite = (EntrySprite)_view.getIntersection(
-      _pick, _pt, new Predicate<Sprite>() {
-        public boolean apply (Sprite sprite) {
-          return (sprite instanceof EntrySprite) &&
-            pred.apply(((EntrySprite) sprite).getEntry());
-        }
-      });
+      _pick, _pt, sp -> sp instanceof EntrySprite es && pred.apply(es.getEntry()));
     return (sprite == null) ? null : sprite.getEntry();
   }
 
@@ -1927,14 +1914,9 @@ public class SceneEditor extends TudeyTool
   protected void deleteErrors ()
   {
     incrementEditId();
-    Collection<Entry> toProcess =
-      (_selection.length > 0) ? Arrays.asList(_selection) : _scene.getEntries();
-    Predicate<Entry> isInvalid = new Predicate<Entry>() {
-      public boolean apply (Entry entry) {
-        return !entry.isValid(getConfigManager());
-      }
-    };
-    removeEntries(Collections2.filter(toProcess, isInvalid));
+    Collection<Entry> toProcess = (_selection.length > 0) ? Arrays.asList(_selection)
+      : _scene.getEntries();
+    removeEntries(Collections2.filter(toProcess, entry -> !entry.isValid(getConfigManager())));
   }
 
   /**

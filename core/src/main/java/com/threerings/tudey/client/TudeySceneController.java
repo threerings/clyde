@@ -1123,10 +1123,6 @@ public class TudeySceneController extends SceneController
   protected static final int UPSTREAM_RATE_LIMIT = 12 * 1024;
 
   /** Selects hoverable sprites. */
-  protected static final Predicate<SceneElement> HOVER_FILTER = new Predicate<SceneElement>() {
-    public boolean apply (SceneElement element) {
-      Object obj = element.getUserObject();
-      return obj instanceof Sprite && ((Sprite)obj).isHoverable();
-    }
-  };
+  protected static final Predicate<SceneElement> HOVER_FILTER = se ->
+    se.getUserObject() instanceof Sprite sp && sp.isHoverable();
 }

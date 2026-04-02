@@ -556,11 +556,9 @@ public abstract class ActionConfig extends DeepObject
 
       // and unpause when the handler calls back
       final Script[] wscript = new Script[1];
-      iface.addScript(wscript[0] = event.addHandler(iface, new Runnable() {
-        public void run () {
-          wscript[0].remove();
-          script.setPaused(false);
-        }
+      iface.addScript(wscript[0] = event.addHandler(iface, () -> {
+        wscript[0].remove();
+        script.setPaused(false);
       }));
     }
   }
@@ -581,11 +579,9 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void execute (final UserInterface iface, final ConfigScript script)
     {
-      iface.addScript(event.addHandler(iface, new Runnable() {
-        public void run () {
-          for (ActionConfig action : actions) {
-            action.execute(iface, script);
-          }
+      iface.addScript(event.addHandler(iface, () -> {
+        for (ActionConfig action : actions) {
+          action.execute(iface, script);
         }
       }));
     }

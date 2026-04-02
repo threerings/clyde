@@ -998,14 +998,12 @@ public class UserInterface extends Container
     protected boolean _running;
 
     /** The actual runnable. */
-    protected Runnable _runnable = new Runnable() {
-      public void run () {
-        for (InterfaceScriptConfig config : _queue) {
-          runScript(config);
-        }
-        _queue.clear();
-        _running = false;
+    protected Runnable _runnable = () -> {
+      for (InterfaceScriptConfig config : _queue) {
+        runScript(config);
       }
+      _queue.clear();
+      _running = false;
     };
 
   }

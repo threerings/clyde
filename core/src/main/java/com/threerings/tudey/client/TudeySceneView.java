@@ -587,12 +587,8 @@ public class TudeySceneView extends DynamicScope
   public Sprite getIntersection (
     Ray3D ray, Vector3f location, final Predicate<? super Sprite> filter)
   {
-    SceneElement el = _scene.getIntersection(ray, location, new Predicate<SceneElement>() {
-      public boolean apply (SceneElement element) {
-        Object userObject = element.getUserObject();
-        return userObject instanceof Sprite && filter.apply((Sprite)userObject);
-      }
-    });
+    SceneElement el = _scene.getIntersection(ray, location, se ->
+      se.getUserObject() instanceof Sprite sp && filter.apply(sp));
     return (el == null) ? null : (Sprite)el.getUserObject();
   }
 
