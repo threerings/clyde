@@ -170,11 +170,6 @@ public class ReflectionUtil
     Class<?> oclazz = _oclasses.get(clazz);
     if (oclazz == null) {
       Class<?> dclazz = clazz.getDeclaringClass();
-      // TODO: enclosing? Nesting?
-      //Class<?> eclazz = clazz.getEnclosingClass();
-      //Class<?> nhost = clazz.getNestHost();
-      // log.info("getOuterClass(" + clazz + ")",
-      //     "nhost", nhost, "dclazz", dclazz, "eclazz", eclazz);
       if (dclazz != null && !Modifier.isStatic(clazz.getModifiers())) {
         oclazz = dclazz;
 
@@ -201,7 +196,6 @@ public class ReflectionUtil
   {
     Field field = _outers.get(clazz);
     if (field == null) {
-      Class<?> nhost = clazz.getNestHost();
       Class<?> dclazz = clazz.getDeclaringClass();
       for (Field ofield : clazz.getDeclaredFields()) {
         if (ofield.isSynthetic() && ofield.getType() == dclazz &&
@@ -214,12 +208,11 @@ public class ReflectionUtil
       if (field == null && clazz.getSuperclass() instanceof Class<?> superclazz) {
         field = getOuterField(superclazz);
       }
-      // TODO: cache this
-      if (field == null) return null;
-      field.setAccessible(true);
+      if (field == null) field = _noField;
+      else field.setAccessible(true);
       _outers.put(clazz, field);
     }
-    return field;
+    return field == _noField ? null : field;
   }
 
   /** Maps inner classes to their outer class reference fields. */
@@ -231,4 +224,18 @@ public class ReflectionUtil
   /** Maps classes to their default constructors. */
   protected static HashMap<Class<?>, Constructor<?>> _ctors =
       new HashMap<Class<?>, Constructor<?>>();
+
+  /** A marker field indicating that there's no field storing an outer reference. */
+  protected static final Field _noField;
+  static {
+    Field f;
+    try {
+      f = ReflectionUtil.class.getDeclaredField("_noField");
+    } catch (NoSuchFieldException nsfe) {
+      log.warning("Someone messed up!");
+      f = null; // it will still work but be less optimal
+    }
+    _noField = f;
+  }
+
 }
