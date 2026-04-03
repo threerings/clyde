@@ -123,9 +123,7 @@ public abstract class GlCanvasApp extends GlApp
   public boolean getMouseRay (Ray3D result)
   {
     Point pt = _canvas.getMousePosition();
-    if (pt == null) {
-      return false;
-    }
+    if (pt == null) return false;
     getPickRay(pt.x, pt.y, result);
     return true;
   }
@@ -166,6 +164,12 @@ public abstract class GlCanvasApp extends GlApp
   public void startup ()
   {
     _frame.setVisible(true);
+  }
+
+  @Override
+  public float getPixelScaleFactor ()
+  {
+    return _canvas instanceof GlCanvas glCanvas ? glCanvas.getPixelScale() : 1f;
   }
 
   @Override

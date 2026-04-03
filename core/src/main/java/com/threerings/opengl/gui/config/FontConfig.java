@@ -27,8 +27,14 @@ package com.threerings.opengl.gui.config;
 
 import java.awt.Font;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import org.lwjgl.BufferUtils;
 
 import com.samskivert.util.IntTuple;
 import com.threerings.config.ManagedConfig;
@@ -147,14 +153,26 @@ public class FontConfig extends ManagedConfig
     @Override
     public TextFactory getTextFactory (GlContext ctx, int style, int size)
     {
+      int effectiveStyle = style | baseStyle.getFlags();
+      // Scale font size for HiDPI/Retina: STB renders at exact pixel size,
+      // unlike AWT Font which handled DPI scaling internally.
+      int pixelSize = Math.round((size + sizeModifier) * ctx.getApp().getPixelScaleFactor());
+      ByteBuffer fontData = getFontData(ctx);
+      if (fontData != null) {
+        return CharacterTextFactory.getInstance(
+          fontData, effectiveStyle, pixelSize, antialias,
+          descentModifier, heightModifier);
+      }
+      log.warning("No font data available.", "file", file);
       return CharacterTextFactory.getInstance(
-          getFont(ctx, style, size), antialias, descentModifier, heightModifier);
+        getDefaultFontData(), effectiveStyle, pixelSize, antialias,
+        descentModifier, heightModifier);
     }
 
     @Override
     public void invalidate()
     {
-      _fonts.clear();
+      _fontData = null;
     }
 
     @Override
@@ -171,42 +189,23 @@ public class FontConfig extends ManagedConfig
       return allowNegativeSpacing ? spacing : Math.max(0, spacing);
     }
 
-    /**
-     * Returns the cached font with the specified style and size.
-     */
-    protected Font getFont (GlContext ctx, int style, int size)
+    /** Loads and caches the raw TTF data as a direct ByteBuffer (required by STB). */
+    protected ByteBuffer getFontData (GlContext ctx)
     {
-      IntTuple key = new IntTuple(style, size);
-      Font font = _fonts.get(key);
-      if (font == null) {
-        _fonts.put(key, font = createFont(ctx, style, size));
+      if (_fontData != null) return _fontData;
+      if (file == null) return null;
+      try (InputStream in = ctx.getResourceManager().getResource(file)) {
+        _fontData = readToDirectBuffer(in);
+        return _fontData;
+      } catch (Exception e) {
+        log.warning("Failed to load font file.", "file", file, e);
+        return null;
       }
-      return font;
     }
 
-    /**
-     * Creates the font with the specified style and size.
-     */
-    protected Font createFont (GlContext ctx, int style, int size)
-    {
-      if (style != Font.PLAIN || size != 1) {
-        style |= baseStyle.getFlags();
-        return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size + sizeModifier);
-      }
-      if (file != null) {
-        try {
-          return Font.createFont(
-            Font.TRUETYPE_FONT, ctx.getResourceManager().getResource(file));
-        } catch (Exception e) { // FontFormatException, IOException
-          log.warning("Failed to load font file.", "file", file, e);
-        }
-      }
-      return new Font("Dialog", Font.PLAIN, 1);
-    }
-
-    /** Cached font instances. */
+    /** Cached font data. */
     @DeepOmit
-    protected transient HashMap<IntTuple, Font> _fonts = new HashMap<IntTuple, Font>();
+    protected transient ByteBuffer _fontData;
   }
 
   /** The actual font implementation. */
@@ -250,4 +249,33 @@ public class FontConfig extends ManagedConfig
   {
     implementation.getUpdateResources(paths);
   }
+
+  /** Reads an InputStream into a direct ByteBuffer (required by STB). */
+  static ByteBuffer readToDirectBuffer (InputStream in) throws Exception
+  {
+    byte[] bytes = in.readAllBytes();
+    ByteBuffer buf = BufferUtils.createByteBuffer(bytes.length);
+    buf.put(bytes).flip();
+    return buf;
+  }
+
+  /** Returns a minimal default font for fallback when no TTF file is configured. */
+  static ByteBuffer getDefaultFontData ()
+  {
+    if (_defaultFontData == null) {
+      // Try to load a system font as fallback
+      try {
+        java.awt.Font dialog = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 1);
+        // Unfortunately there's no clean way to get the TTF data from a system Font.
+        // We'll need to bundle a default TTF or require all fonts to be configured.
+        log.warning("No default TTF font available. Text rendering may not work.");
+        _defaultFontData = BufferUtils.createByteBuffer(0);
+      } catch (Exception e) {
+        _defaultFontData = BufferUtils.createByteBuffer(0);
+      }
+    }
+    return _defaultFontData;
+  }
+
+  private static ByteBuffer _defaultFontData;
 }

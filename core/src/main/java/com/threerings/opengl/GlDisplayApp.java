@@ -26,8 +26,6 @@
 package com.threerings.opengl;
 
 import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -210,18 +208,10 @@ public abstract class GlDisplayApp extends GlApp
 
   /**
    * Ensures GLFW is initialized (safe to call multiple times).
-   * On macOS, this must be called BEFORE any AWT class is loaded to prevent
-   * AWT from taking over the NSApplication event loop, which blocks glfwPollEvents.
-   * Call this as the first thing in main() for GlDisplayApp-based applications.
    */
   protected void ensureGlfwInit ()
   {
     if (_glfwInited) return;
-    // On macOS, AWT's Cocoa initialization deadlocks with GLFW's event loop.
-    // Headless mode prevents AWT from touching the native event system.
-    // AWT windows (admin tools) are not available in this mode on macOS;
-    // use the AWT-based tools (scene editor, etc.) for admin tasks instead.
-    if (RunAnywhere.isMacOS()) System.setProperty("java.awt.headless", "true");
     // On macOS, tell GLFW not to change the working directory to the
     // .app bundle Resources dir (we manage resources ourselves).
     GLFW.glfwInitHint(GLFW.GLFW_COCOA_CHDIR_RESOURCES, GLFW.GLFW_FALSE);
@@ -244,6 +234,12 @@ public abstract class GlDisplayApp extends GlApp
     float[] sx = new float[1], sy = new float[1];
     GLFW.glfwGetMonitorContentScale(monitor, sx, sy);
     return sx[0];
+  }
+
+  @Override
+  public float getPixelScaleFactor ()
+  {
+    return getContentScale();
   }
 
   /**
@@ -513,19 +509,12 @@ public abstract class GlDisplayApp extends GlApp
       _window = GLFW.glfwCreateWindow(initWidth, initHeight,
         _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
       if (_window != MemoryUtil.NULL) {
-        // On macOS, creating a window triggers NSApplication activation. Post an
-        // empty event to ensure glfwPollEvents won't block on app activation,
-        // then pump events before proceeding.
-        GLFW.glfwPostEmptyEvent();
-        GLFW.glfwWaitEvents(); // waits for the posted event, processes activation
         GLFW.glfwMakeContextCurrent(_window);
         GL.createCapabilities();
         GLFW.glfwSwapInterval(_vsync ? 1 : 0);
         GLFW.glfwSetWindowSizeCallback(_window, (win, w, h) -> _wasResized = true);
         _pendingMode = null;
-        // Don't show the window yet — on macOS, glfwShowWindow triggers app
-        // activation which blocks glfwPollEvents until the run loop is active.
-        // The window is shown at the start of mainLoop() after the first poll.
+        GLFW.glfwPollEvents();
         return true;
       }
     }

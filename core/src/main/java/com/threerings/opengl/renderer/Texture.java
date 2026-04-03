@@ -421,14 +421,18 @@ public abstract class Texture
    */
   protected static BufferedImage halveImage (BufferedImage image)
   {
-    int width = Math.max(1, image.getWidth() / 2);
-    int height = Math.max(1, image.getHeight() / 2);
+    int iw = image.getWidth(), ih = image.getHeight();
+    int width = Math.max(1, iw / 2);
+    int height = Math.max(1, ih / 2);
+    // Scale using nearest-neighbor sampling without Graphics2D, which triggers
+    // AWT toolkit initialization on macOS and conflicts with GLFW.
     BufferedImage dest = new BufferedImage(width, height, image.getType());
-    Graphics2D graphics = dest.createGraphics();
-    try {
-      graphics.drawImage(image, 0, 0, width, height, null);
-    } finally {
-      graphics.dispose();
+    for (int y = 0; y < height; y++) {
+      int sy = y * ih / height;
+      for (int x = 0; x < width; x++) {
+        int sx = x * iw / width;
+        dest.setRGB(x, y, image.getRGB(sx, sy));
+      }
     }
     return dest;
   }
@@ -439,50 +443,65 @@ public abstract class Texture
   protected static ByteBuffer getData (
     BufferedImage image, boolean premultiply, int width, int height, boolean rescale)
   {
+    // Extract pixels from the source image, flip vertically, optionally rescale,
+    // and return as a ByteBuffer in component byte order (R,G,B,A or L,A or L).
+    // This avoids BufferedImage.createGraphics() which triggers AWT toolkit
+    // initialization on macOS, conflicting with GLFW's event loop.
     int iwidth = image.getWidth(), iheight = image.getHeight();
     int ncomps = image.getColorModel().getNumComponents();
-    // create a compatible color model
     boolean hasAlpha = (ncomps == 2 || ncomps == 4);
-    ComponentColorModel cmodel = new ComponentColorModel(
-      ColorSpace.getInstance(ncomps >= 3 ? ColorSpace.CS_sRGB : ColorSpace.CS_GRAY),
-      hasAlpha,
-      hasAlpha && premultiply,
-      hasAlpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE,
-      DataBuffer.TYPE_BYTE);
 
-    // create the target image
-    BufferedImage dest = new BufferedImage(
-      cmodel,
-      Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, ncomps, null),
-      cmodel.isAlphaPremultiplied(), null);
-
-    // draw the image into the target buffer, scaling and flipping it in the process
-    double xscale, yscale;
-    if (rescale && (width != iwidth || height != iheight)) {
-      xscale = (double)width / iwidth;
-      yscale = -(double)height / iheight;
-    } else {
-      xscale = +1.0;
-      yscale = -1.0;
-    }
-    AffineTransform xform = AffineTransform.getScaleInstance(xscale, yscale);
-    xform.translate(0.0, -iheight);
-    Graphics2D graphics = dest.createGraphics();
-    try {
-      graphics.setComposite(AlphaComposite.Src);
-      graphics.setRenderingHint(
-        RenderingHints.KEY_INTERPOLATION,
-        rescale ? RenderingHints.VALUE_INTERPOLATION_BILINEAR :
-          RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-      graphics.drawRenderedImage(image, xform);
-    } finally {
-      graphics.dispose();
-    }
-
-    // get the pixel data and copy it to a byte buffer
-    byte[] rgba = ((DataBufferByte)dest.getRaster().getDataBuffer()).getData();
     ByteBuffer data = BufferUtils.createByteBuffer(width * height * ncomps);
-    data.put(rgba).rewind();
+
+    for (int dy = 0; dy < height; dy++) {
+      // flip vertically: OpenGL y=0 is bottom, BufferedImage y=0 is top
+      int sy;
+      if (rescale && iheight != height) {
+        sy = (height - 1 - dy) * iheight / height;
+      } else {
+        sy = height - 1 - dy;
+      }
+      sy = Math.min(Math.max(sy, 0), iheight - 1);
+
+      for (int dx = 0; dx < width; dx++) {
+        int sx;
+        if (rescale && iwidth != width) {
+          sx = dx * iwidth / width;
+        } else {
+          sx = dx;
+        }
+        sx = Math.min(Math.max(sx, 0), iwidth - 1);
+
+        int pixel = image.getRGB(sx, sy); // ARGB int
+        int a = (pixel >> 24) & 0xFF;
+        int r = (pixel >> 16) & 0xFF;
+        int g = (pixel >> 8) & 0xFF;
+        int b = pixel & 0xFF;
+
+        if (premultiply && hasAlpha && a < 255) {
+          r = r * a / 255;
+          g = g * a / 255;
+          b = b * a / 255;
+        }
+
+        if (ncomps >= 3) {
+          data.put((byte)r);
+          data.put((byte)g);
+          data.put((byte)b);
+          if (hasAlpha) {
+            data.put((byte)a);
+          }
+        } else {
+          // Grayscale: use luminance
+          int lum = (r * 299 + g * 587 + b * 114) / 1000;
+          data.put((byte)lum);
+          if (hasAlpha) {
+            data.put((byte)a);
+          }
+        }
+      }
+    }
+    data.rewind();
     return data;
   }
 

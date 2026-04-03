@@ -232,6 +232,15 @@ public abstract class GlApp extends DynamicScope
     return image;
   }
 
+  /**
+   * Returns the ratio of framebuffer pixels to logical points (2.0 on Retina, 1.0 otherwise).
+   * Used to scale font sizes for STB rendering. Subclasses override for their display type.
+   */
+  public float getPixelScaleFactor ()
+  {
+    return 1f;
+  }
+
   // documentation inherited from interface GlContext
   public GlApp getApp ()
   {
