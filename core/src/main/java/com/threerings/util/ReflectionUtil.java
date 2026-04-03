@@ -85,15 +85,13 @@ public class ReflectionUtil
    */
   public static Object newInstance (Class<?> clazz, Object outer)
   {
-    if (!isInner(clazz)) {
-      outer = null;
-    }
+    Class<?> outerClazz = getOuterClass(clazz);
     Constructor<?> ctor = _ctors.get(clazz);
     if (ctor == null) {
       for (Constructor<?> octor : clazz.getDeclaredConstructors()) {
         Class<?>[] ptypes = octor.getParameterTypes();
-        if (outer == null ? (ptypes.length == 0) :
-            (ptypes.length == 1 && ptypes[0].isInstance(outer))) {
+        if (outerClazz == null ? (ptypes.length == 0)
+            : (ptypes.length == 1 && ptypes[0] == outerClazz)) {
           ctor = octor;
           break;
         }
@@ -106,7 +104,7 @@ public class ReflectionUtil
       _ctors.put(clazz, ctor);
     }
     try {
-      return (outer == null) ? ctor.newInstance() : ctor.newInstance(outer);
+      return (outerClazz == null) ? ctor.newInstance() : ctor.newInstance(outer);
     } catch (Exception e) {
       log.warning("Failed to create new instance.", "class", clazz, e);
       return null;
@@ -127,7 +125,8 @@ public class ReflectionUtil
       return;
     }
     try {
-      getOuterField(clazz).set(object, outer);
+      var fld = getOuterField(clazz);
+      if (fld != null) fld.set(object, outer);
     } catch (IllegalAccessException e) {
       // shouldn't happen
     }
@@ -147,7 +146,8 @@ public class ReflectionUtil
       return ((Inner)object).getOuter();
     }
     try {
-      return getOuterField(clazz).get(object);
+      var fld = getOuterField(clazz);
+      return fld != null ? fld.get(object) : null;
     } catch (IllegalAccessException e) {
       return null; // shouldn't happen
     }
@@ -170,6 +170,11 @@ public class ReflectionUtil
     Class<?> oclazz = _oclasses.get(clazz);
     if (oclazz == null) {
       Class<?> dclazz = clazz.getDeclaringClass();
+      // TODO: enclosing? Nesting?
+      //Class<?> eclazz = clazz.getEnclosingClass();
+      //Class<?> nhost = clazz.getNestHost();
+      // log.info("getOuterClass(" + clazz + ")",
+      //     "nhost", nhost, "dclazz", dclazz, "eclazz", eclazz);
       if (dclazz != null && !Modifier.isStatic(clazz.getModifiers())) {
         oclazz = dclazz;
 
@@ -196,6 +201,7 @@ public class ReflectionUtil
   {
     Field field = _outers.get(clazz);
     if (field == null) {
+      Class<?> nhost = clazz.getNestHost();
       Class<?> dclazz = clazz.getDeclaringClass();
       for (Field ofield : clazz.getDeclaredFields()) {
         if (ofield.isSynthetic() && ofield.getType() == dclazz &&
@@ -204,6 +210,12 @@ public class ReflectionUtil
           break;
         }
       }
+      // Possibly check superclasses?
+      if (field == null && clazz.getSuperclass() instanceof Class<?> superclazz) {
+        field = getOuterField(superclazz);
+      }
+      // TODO: cache this
+      if (field == null) return null;
       field.setAccessible(true);
       _outers.put(clazz, field);
     }
