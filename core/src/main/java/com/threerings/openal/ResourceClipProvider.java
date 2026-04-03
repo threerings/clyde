@@ -34,7 +34,7 @@ import java.nio.ByteOrder;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
-import com.threerings.opengl.lwjgl2.WaveData;
+import com.threerings.openal.util.WaveData;
 
 import com.threerings.resource.ResourceManager;
 
@@ -66,12 +66,7 @@ public class ResourceClipProvider
     if (data == null) {
       throw new IOException("Error loading " + path);
     }
-    // Populate Clip fields directly (WaveData constructor removed in LWJGL 3 migration)
-    Clip clip = new Clip();
-    clip.format = data.format;
-    clip.frequency = data.samplerate;
-    clip.data = data.data;
-    return clip;
+    return new Clip(data);
   }
 
   /**
