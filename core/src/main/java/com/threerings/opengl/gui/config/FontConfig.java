@@ -158,19 +158,12 @@ public class FontConfig extends ManagedConfig
       // unlike AWT Font which handled DPI scaling internally.
       int pixelSize = Math.round((size + sizeModifier) * ctx.getApp().getPixelScaleFactor());
       ByteBuffer fontData = getFontData(ctx);
-      if (fontData != null) {
-        return CharacterTextFactory.getInstance(
-          fontData, effectiveStyle, pixelSize, antialias,
-          descentModifier, heightModifier);
-      }
-      log.warning("No font data available.", "file", file);
-      return CharacterTextFactory.getInstance(
-        getDefaultFontData(), effectiveStyle, pixelSize, antialias,
-        descentModifier, heightModifier);
+      return CharacterTextFactory.getInstance(fontData != null ? fontData : getDefaultFontData(),
+          effectiveStyle, pixelSize, antialias, descentModifier, heightModifier);
     }
 
     @Override
-    public void invalidate()
+    public void invalidate ()
     {
       _fontData = null;
     }
@@ -263,16 +256,12 @@ public class FontConfig extends ManagedConfig
   static ByteBuffer getDefaultFontData ()
   {
     if (_defaultFontData == null) {
-      // Try to load a system font as fallback
-      try {
-        java.awt.Font dialog = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 1);
+      // TODO: we need to have our system font as a default ttf?
+//        java.awt.Font dialog = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 1);
         // Unfortunately there's no clean way to get the TTF data from a system Font.
         // We'll need to bundle a default TTF or require all fonts to be configured.
-        log.warning("No default TTF font available. Text rendering may not work.");
-        _defaultFontData = BufferUtils.createByteBuffer(0);
-      } catch (Exception e) {
-        _defaultFontData = BufferUtils.createByteBuffer(0);
-      }
+      log.warning("No default TTF font available. Text rendering may not work.");
+      _defaultFontData = BufferUtils.createByteBuffer(0);
     }
     return _defaultFontData;
   }
