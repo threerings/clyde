@@ -40,7 +40,7 @@ public abstract class AbstractRecentList extends JPanel
     readPrefs();
 
     // create the list and add it to the hierarchy
-    _list = new JList(_listModel);
+    _list = new JList<>(_listModel);
     _list.setVisibleRowCount(4);
 
     JScrollPane pane = new JScrollPane(
@@ -55,21 +55,20 @@ public abstract class AbstractRecentList extends JPanel
         if (_block) {
           return;
         }
-        Object selected = _list.getSelectedValue();
+        String selected = _list.getSelectedValue();
         if (selected != null) {
-          valueSelected((String)selected);
+          valueSelected(selected);
         }
       }
     });
     _list.setCellRenderer(new DefaultListCellRenderer() {
       @Override
       public Component getListCellRendererComponent (
-        JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
       {
         // first, transform the ConfigReference into a nice String
         String fullString = String.valueOf(value);
-        super.getListCellRendererComponent(
-          list, fullString, index, isSelected, cellHasFocus);
+        super.getListCellRendererComponent(list, fullString, index, isSelected, cellHasFocus);
 
         // then see if we should try to shrink the String to display ellipses
         // at the beginning rather than the end
@@ -179,7 +178,7 @@ public abstract class AbstractRecentList extends JPanel
     }
     StringBuilder builder = new StringBuilder();
     for (int ii = 0, nn = _listModel.getSize(); ii < nn; ii++) {
-      String value = (String)_listModel.getElementAt(ii);
+      String value = _listModel.getElementAt(ii);
       value = value.replace("|", "%BAR%");
       if (builder.length() + value.length() + 1 > Preferences.MAX_VALUE_LENGTH) {
         break;
@@ -191,10 +190,10 @@ public abstract class AbstractRecentList extends JPanel
   }
 
   /** The actual list widget. */
-  protected JList _list;
+  protected JList<String> _list;
 
   /** Our list model. */
-  protected DefaultListModel _listModel = new DefaultListModel();
+  protected DefaultListModel<String> _listModel = new DefaultListModel<>();
 
   /** The preferences key. */
   protected String _prefKey;

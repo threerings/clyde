@@ -34,6 +34,7 @@ import java.util.Vector;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import com.samskivert.util.Tuple;
@@ -362,7 +363,9 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     in.defaultReadFields();
     userObject = in.read("name", (String)null);
     parent = in.read("parent", null, MutableTreeNode.class);
-    children = in.read("children", null, Vector.class);
+    @SuppressWarnings("unchecked")
+    Vector<TreeNode> treechilds = in.read("children", null, Vector.class);
+    children = treechilds;
     if (children != null) {
       _childrenByName = new HashMap<String, ConfigTreeNode>(children.size());
       for (Object child : children) {
@@ -404,7 +407,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
       cnode._config = (ManagedConfig)_config.clone();
 
     } else if (children != null) {
-      cnode.children = (Vector)new Vector<ConfigTreeNode>();
+      cnode.children = new Vector<>();
       for (int ii = 0, nn = children.size(); ii < nn; ii++) {
         ConfigTreeNode child = (ConfigTreeNode)children.get(ii);
         cnode.insert(child.clone(), ii);

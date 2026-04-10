@@ -33,6 +33,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import com.threerings.export.Exportable;
@@ -238,7 +239,9 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
     in.defaultReadFields();
     setAllowsChildren(_value == null);
     parent = in.read("parent", null, PrefsTreeNode.class);
-    children = in.read("children", null, Vector.class);
+    @SuppressWarnings("unchecked")
+    Vector<TreeNode> treechilds = in.read("children", null, Vector.class);
+    children = treechilds;
     userObject = in.read("userObject", (String)null);
   }
 
