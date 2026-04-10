@@ -308,13 +308,13 @@ public class DateTimeEditor extends PropertyEditor
         String.class);
       switch (specs.length) {
       case 1:
-        locale = new Locale(specs[0]);
+        locale = Locale.of(specs[0]);
         break;
       case 2:
-        locale = new Locale(specs[0], specs[1]);
+        locale = Locale.of(specs[0], specs[1]);
         break;
       case 3:
-        locale = new Locale(specs[0], specs[1], specs[2]);
+        locale = Locale.of(specs[0], specs[1], specs[2]);
         break;
       default:
         log.warning("Too many arguments to locale: " + localeSpec);
