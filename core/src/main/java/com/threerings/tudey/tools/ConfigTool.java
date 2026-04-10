@@ -222,7 +222,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
    */
   protected void addSnapStyleSelector ()
   {
-    _snapStyle = new JComboBox(SnapStyle.values());
+    _snapStyle = new JComboBox<>(SnapStyle.values());
     add(GroupLayout.makeButtonBox(new JLabel("Snap to:"), _snapStyle), GroupLayout.FIXED, 0);
   }
 
@@ -282,5 +282,5 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
   protected EditorPanel _epanel;
 
   /** Optional: the snapping style in use by this tool. */
-  protected JComboBox _snapStyle;
+  protected JComboBox<SnapStyle> _snapStyle;
 }

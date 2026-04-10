@@ -41,6 +41,7 @@ import com.google.common.collect.Lists;
 import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
@@ -57,7 +58,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
   @Override
   protected void updatePanel (EntryPanel panel, Object value)
   {
-    JComboBox box = ((EnumEntryPanel)panel).getBox();
+    JComboBox<String> box = ((EnumEntryPanel)panel).getBox();
     box.setSelectedIndex(getValues().indexOf(value));
   }
 
@@ -87,7 +88,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
   /**
    * Called when a enum is updated.
    */
-  protected void boxUpdated (JComboBox box)
+  protected void boxUpdated (JComboBox<String> box)
   {
     int idx = ((EntryPanel)box.getParent().getParent()).getIndex();
     setValue(idx, getValues().get(box.getSelectedIndex()));
@@ -104,7 +105,7 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
       super(value);
     }
 
-    public JComboBox getBox ()
+    public JComboBox<String> getBox ()
     {
       return _box;
     }
@@ -119,22 +120,17 @@ public class EnumPanelArrayListEditor extends PanelArrayListEditor
     protected JPanel createPanel (Object value)
     {
       JPanel panel = new JPanel(new VGroupLayout(
-            GroupLayout.NONE, GroupLayout.CONSTRAIN, 5, GroupLayout.TOP));
-      final MessageBundle msgs =
-        _msgmgr.getBundle(Introspector.getMessageBundle(getEnumType()));
+          GroupLayout.NONE, GroupLayout.CONSTRAIN, 5, GroupLayout.TOP));
+      final MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(getEnumType()));
       List<Enum<?>> values = getValues();
-      Object[] labels = Lists.transform(values, val -> getLabel(val, msgs)).toArray();
-      panel.add(_box = new JComboBox(labels));
+      String[] labels = Lists.transform(values, val -> getLabel(val, msgs))
+        .toArray(ArrayUtil.EMPTY_STRING);
+      panel.add(_box = new JComboBox<>(labels));
       _box.setSelectedIndex(values.indexOf(value));
-      _box.addActionListener(new ActionListener() {
-        public void actionPerformed (ActionEvent event) {
-          boxUpdated((JComboBox)event.getSource());
-        }
-      });
-
+      _box.addActionListener(evt -> boxUpdated(_box));
       return panel;
     }
 
-    protected JComboBox _box;
+    protected JComboBox<String> _box;
   }
 }

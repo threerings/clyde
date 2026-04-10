@@ -980,7 +980,7 @@ public class ConfigEditor extends BaseConfigEditor
     public ConfigManager cfgmgr;
 
     /** Determines the selected group. */
-    public JComboBox gbox;
+    public JComboBox<GroupItem> gbox;
 
     public ManagerPanel (ConfigManager cfgmgr)
     {
@@ -1007,7 +1007,7 @@ public class ConfigEditor extends BaseConfigEditor
           return String.CASE_INSENSITIVE_ORDER.compare(g1.toString(), g2.toString());
         }
       });
-      gpanel.add(gbox = new JComboBox(items));
+      gpanel.add(gbox = new JComboBox<>(items));
       gbox.addItemListener(this);
 
       // add the filtering panel
@@ -1061,7 +1061,7 @@ public class ConfigEditor extends BaseConfigEditor
     public boolean select (Class<?> clazz, String name)
     {
       for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
-        GroupItem item = (GroupItem)gbox.getItemAt(ii);
+        GroupItem item = gbox.getItemAt(ii);
         if (item.group.getConfigClass() == clazz) {
           return item.select(name);
         }
@@ -1099,7 +1099,7 @@ public class ConfigEditor extends BaseConfigEditor
     public void dispose ()
     {
       for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
-        ((GroupItem)gbox.getItemAt(ii)).dispose();
+        gbox.getItemAt(ii).dispose();
       }
     }
 
@@ -1185,7 +1185,7 @@ public class ConfigEditor extends BaseConfigEditor
     // restore/bind the selected group
     String cat = _prefs.get(p + "group", null);
     for (int tab = _tabs.getComponentCount() - 1; tab >= 0; tab--) {
-      final JComboBox gbox = ((ManagerPanel)_tabs.getComponentAt(tab)).gbox;
+      final JComboBox<ManagerPanel.GroupItem> gbox = ((ManagerPanel)_tabs.getComponentAt(tab)).gbox;
       if (cat != null) {
         for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
           if (cat.equals(String.valueOf(gbox.getItemAt(ii)))) {

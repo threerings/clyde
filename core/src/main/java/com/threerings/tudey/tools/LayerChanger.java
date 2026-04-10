@@ -14,9 +14,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import com.samskivert.swing.GroupLayout;
 
 import com.threerings.tudey.data.TudeySceneModel;
@@ -48,7 +45,7 @@ public class LayerChanger extends EditorTool
       }
     };
 
-    layers.addChangeListener(_layerListener);
+    layers.addChangeListener(evt -> updateLayers());
 
     JPanel vbox = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP);
     JPanel hbox = GroupLayout.makeHStretchBox(5);
@@ -151,7 +148,7 @@ public class LayerChanger extends EditorTool
     }
 
     // create the new model
-    DefaultComboBoxModel model = new DefaultComboBoxModel(infos);
+    DefaultComboBoxModel<LayerInfo> model = new DefaultComboBoxModel<>(infos);
 
     // Transfer the selection to the new model.
     if (selected != null) {
@@ -225,15 +222,7 @@ public class LayerChanger extends EditorTool
   }
 
   /** Allows the user to select the target layer. */
-  protected JComboBox _layerBox = new JComboBox();
-
-  /** Listens to changes in layers. */
-  protected ChangeListener _layerListener = new ChangeListener() {
-    public void stateChanged (ChangeEvent event)
-    {
-      updateLayers();
-    }
-  };
+  protected JComboBox<LayerInfo> _layerBox = new JComboBox<>();
 
   /** The action for moving multiple items to the layer. */
   protected Action _moveMulti, _copyMulti;

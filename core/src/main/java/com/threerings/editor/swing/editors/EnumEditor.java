@@ -37,6 +37,8 @@ import javax.swing.JLabel;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Introspector;
@@ -70,8 +72,9 @@ public class EnumEditor extends PropertyEditor
     add(new JLabel(getPropertyLabel() + ":"));
     final MessageBundle msgs =
       _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
-    Object[] labels = Lists.transform(getValues(), value -> getLabel(value, msgs)).toArray();
-    add(_box = new JComboBox(labels));
+    String[] labels = Lists.transform(getValues(), value -> getLabel(value, msgs))
+      .toArray(ArrayUtil.EMPTY_STRING);
+    add(_box = new JComboBox<>(labels));
     _box.addActionListener(this);
   }
 
@@ -87,5 +90,5 @@ public class EnumEditor extends PropertyEditor
   }
 
   /** The combo box. */
-  protected JComboBox _box;
+  protected JComboBox<String> _box;
 }
