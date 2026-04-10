@@ -199,7 +199,7 @@ public class ResourceEditor extends BaseConfigEditor
       }
       if (++idx <= 9) {
         item.setAccelerator(KeyStroke.getKeyStroke(
-          Character.forDigit(idx, 10), KeyEvent.CTRL_MASK));
+          Character.forDigit(idx, 10), KeyEvent.CTRL_DOWN_MASK));
       }
       nmenu.add(item);
       item.addActionListener(new ActionListener() {

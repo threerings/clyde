@@ -720,9 +720,9 @@ public class ConfigEditor extends BaseConfigEditor
 
           // remove the mappings for cut/copy/paste since we handle those ourself
           InputMap imap = _tree.getInputMap();
-          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK), "noop");
-          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK), "noop");
-          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
+          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_DOWN_MASK), "noop");
+          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "noop");
+          imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK), "noop");
         }
         _pane.setViewportView(_tree);
         _filterPanel.setTree(_tree);

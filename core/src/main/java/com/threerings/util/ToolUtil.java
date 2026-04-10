@@ -369,7 +369,7 @@ public class ToolUtil
   public static JMenuItem createMenuItem (
     ActionListener listener, MessageBundle msgs, String action, int mnemonic, int accelerator)
   {
-    return createMenuItem(listener, msgs, action, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+    return createMenuItem(listener, msgs, action, mnemonic, accelerator, KeyEvent.CTRL_DOWN_MASK);
   }
 
   /**
@@ -392,7 +392,7 @@ public class ToolUtil
     ActionListener listener, MessageBundle msgs, String action, int mnemonic, int accelerator)
   {
     return createCheckBoxMenuItem(
-      listener, msgs, action, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+      listener, msgs, action, mnemonic, accelerator, KeyEvent.CTRL_DOWN_MASK);
   }
 
   /**
@@ -413,7 +413,7 @@ public class ToolUtil
   public static Action createAction (
     ActionListener listener, MessageBundle msgs, String command, int mnemonic, int accelerator)
   {
-    return createAction(listener, msgs, command, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+    return createAction(listener, msgs, command, mnemonic, accelerator, KeyEvent.CTRL_DOWN_MASK);
   }
 
   /**

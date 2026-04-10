@@ -1097,7 +1097,7 @@ public class SceneEditor extends TudeyTool
     edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
     _paste.setEnabled(false);
     edit.add(new JMenuItem(_pasteHeight = createAction("paste_height",
-        KeyEvent.VK_P, KeyEvent.VK_V, KeyEvent.CTRL_MASK | KeyEvent.META_MASK)));
+        KeyEvent.VK_P, KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK | KeyEvent.META_DOWN_MASK)));
     _pasteHeight.setEnabled(false);
     edit.add(new JMenuItem(
       _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
@@ -1160,8 +1160,8 @@ public class SceneEditor extends TudeyTool
         createMenuItem("center_selected", KeyEvent.VK_E, KeyEvent.VK_LEFT, 0));
     _centerSelected.setEnabled(false);
     view.addSeparator();
-    view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
-    view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
+    view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK));
+    view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK));
 
     return view;
   }
