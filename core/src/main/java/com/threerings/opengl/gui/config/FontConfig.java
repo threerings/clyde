@@ -56,6 +56,8 @@ import static com.threerings.opengl.gui.Log.log;
  */
 public class FontConfig extends ManagedConfig
 {
+  public static final String DEFAULT_FONT = "font/InterVariable.ttf";
+
   /** An object to use when the config cannot be resolved. */
   public static final FontConfig NULL = new FontConfig();
 
@@ -157,8 +159,7 @@ public class FontConfig extends ManagedConfig
       // Scale font size for HiDPI/Retina: STB renders at exact pixel size,
       // unlike AWT Font which handled DPI scaling internally.
       int pixelSize = Math.round((size + sizeModifier) * ctx.getApp().getPixelScaleFactor());
-      ByteBuffer fontData = getFontData(ctx);
-      return CharacterTextFactory.getInstance(fontData != null ? fontData : getDefaultFontData(),
+      return CharacterTextFactory.getInstance(getFontData(ctx),
           effectiveStyle, pixelSize, antialias, descentModifier, heightModifier);
     }
 
@@ -185,15 +186,11 @@ public class FontConfig extends ManagedConfig
     /** Loads and caches the raw TTF data as a direct ByteBuffer (required by STB). */
     protected ByteBuffer getFontData (GlContext ctx)
     {
-      if (_fontData != null) return _fontData;
-      if (file == null) return null;
-      try (InputStream in = ctx.getResourceManager().getResource(file)) {
-        _fontData = readToDirectBuffer(in);
-        return _fontData;
-      } catch (Exception e) {
-        log.warning("Failed to load font file.", "file", file, e);
-        return null;
+      var fd = _fontData;
+      if (fd == null) {
+        fd = _fontData = (file != null) ? readToDirectBuffer(ctx, file) : getDefaultFontData(ctx);
       }
+      return fd;
     }
 
     /** Cached font data. */
@@ -243,27 +240,25 @@ public class FontConfig extends ManagedConfig
     implementation.getUpdateResources(paths);
   }
 
-  /** Reads an InputStream into a direct ByteBuffer (required by STB). */
-  static ByteBuffer readToDirectBuffer (InputStream in) throws Exception
+  /** Read a font's data into a direct ByteBuffer (required by STB). */
+  protected static ByteBuffer readToDirectBuffer (GlContext ctx, String file)
   {
-    byte[] bytes = in.readAllBytes();
-    ByteBuffer buf = BufferUtils.createByteBuffer(bytes.length);
-    buf.put(bytes).flip();
-    return buf;
+    try (InputStream in = ctx.getResourceManager().getResource(file)) {
+      byte[] bytes = in.readAllBytes();
+      ByteBuffer buf = BufferUtils.createByteBuffer(bytes.length);
+      return buf.put(bytes).flip();
+    } catch (Exception e) {
+      log.warning("Failed to load font file.", "file", file, e);
+      return null;
+    }
   }
 
   /** Returns a minimal default font for fallback when no TTF file is configured. */
-  static ByteBuffer getDefaultFontData ()
+  static ByteBuffer getDefaultFontData (GlContext ctx)
   {
-    if (_defaultFontData == null) {
-      // TODO: we need to have our system font as a default ttf?
-//        java.awt.Font dialog = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 1);
-        // Unfortunately there's no clean way to get the TTF data from a system Font.
-        // We'll need to bundle a default TTF or require all fonts to be configured.
-      log.warning("No default TTF font available. Text rendering may not work.");
-      _defaultFontData = BufferUtils.createByteBuffer(0);
-    }
-    return _defaultFontData;
+    var dfd = _defaultFontData;
+    if (dfd == null) dfd = _defaultFontData = readToDirectBuffer(ctx, DEFAULT_FONT);
+    return dfd;
   }
 
   private static ByteBuffer _defaultFontData;
