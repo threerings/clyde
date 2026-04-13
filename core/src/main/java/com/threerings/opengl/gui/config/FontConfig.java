@@ -188,7 +188,9 @@ public class FontConfig extends ManagedConfig
     {
       var fd = _fontData;
       if (fd == null) {
-        fd = _fontData = (file != null) ? readToDirectBuffer(ctx, file) : getDefaultFontData(ctx);
+        if (file != null) fd = readToDirectBuffer(ctx, file);
+        if (fd == null) fd = getDefaultFontData(ctx);
+        _fontData = fd;
       }
       return fd;
     }
