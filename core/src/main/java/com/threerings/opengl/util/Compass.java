@@ -25,16 +25,14 @@
 
 package com.threerings.opengl.util;
 
-import java.awt.Font;
-
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.math.Quaternion;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.gui.text.AwtCharacterTextFactory;
-import com.threerings.opengl.gui.text.TextFactory;
+import com.threerings.opengl.gui.config.FontConfig;
 import com.threerings.opengl.gui.text.Text;
+import com.threerings.opengl.gui.text.TextFactory;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -51,8 +49,7 @@ public class Compass extends SimpleOverlay
     super(ctx);
 
     // create the axis labels
-    TextFactory factory = AwtCharacterTextFactory.getInstance(
-      new Font("Dialog", Font.PLAIN, 12), true, 0f);
+    TextFactory factory = FontConfig.NULL.getTextFactory(ctx, FontConfig.Style.PLAIN, 12);
     _x = factory.createText("x", new Color4f(0.75f, 0f, 0f, 1f));
     _y = factory.createText("y", new Color4f(0f, 0.75f, 0f, 1f));
     _z = factory.createText("z", Color4f.BLUE);

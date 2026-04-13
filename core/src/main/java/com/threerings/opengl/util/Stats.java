@@ -25,12 +25,10 @@
 
 package com.threerings.opengl.util;
 
-import java.awt.Font;
-
 import com.threerings.opengl.compositor.Compositor;
-import com.threerings.opengl.gui.text.AwtCharacterTextFactory;
-import com.threerings.opengl.gui.text.TextFactory;
+import com.threerings.opengl.gui.config.FontConfig;
 import com.threerings.opengl.gui.text.Text;
+import com.threerings.opengl.gui.text.TextFactory;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -47,8 +45,7 @@ public class Stats extends SimpleOverlay
     super(ctx);
 
     // create the label (empty for now)
-    _textFactory = AwtCharacterTextFactory.getInstance(
-      new Font("Dialog", Font.PLAIN, 12), true, 0f);
+    _textFactory = FontConfig.NULL.getTextFactory(ctx, FontConfig.Style.PLAIN, 12);
     _stats = _textFactory.createText("", Color4f.WHITE, 0, 0, Color4f.BLACK, true);
   }
 

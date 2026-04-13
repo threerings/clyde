@@ -25,15 +25,14 @@
 
 package com.threerings.opengl.util;
 
-import java.awt.Font;
-
 import com.threerings.math.Box;
 
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.UIConstants;
-import com.threerings.opengl.gui.text.AwtCharacterTextFactory;
+import com.threerings.opengl.gui.config.FontConfig;
 import com.threerings.opengl.gui.text.Text;
+import com.threerings.opengl.gui.text.TextFactory;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.AlphaState;
@@ -48,24 +47,24 @@ public class TextBillboard extends SimpleSceneElement
   implements UIConstants
 {
   /**
-   * Creates a new text object using a character text factory.
+   * Creates a new text billboard using the default font.
    */
   public TextBillboard (
-    GlContext ctx, Font font, boolean antialias, String text, Color4f color)
+    GlContext ctx, int fontSize, String text, Color4f color)
   {
     this(ctx, null);
-    setText(font, antialias, text, color);
+    setText(fontSize, text, color);
   }
 
   /**
-   * Creates a new text object using a character text factory.
+   * Creates a new text billboard using the default font.
    */
   public TextBillboard (
-    GlContext ctx, Font font, boolean antialias, String text,
+    GlContext ctx, int fontSize, String text,
     Color4f color, int effect, int effectSize, Color4f effectColor)
   {
     this(ctx, null);
-    setText(font, antialias, text, color, effect, effectSize, effectColor);
+    setText(fontSize, text, color, effect, effectSize, effectColor);
   }
 
   /**
@@ -78,22 +77,23 @@ public class TextBillboard extends SimpleSceneElement
   }
 
   /**
-   * Sets the text using a character text factory.
+   * Sets the text using the default font.
    */
-  public void setText (Font font, boolean antialias, String text, Color4f color)
+  public void setText (int fontSize, String text, Color4f color)
   {
-    setText(font, antialias, text, color, NORMAL, 0, Color4f.BLACK);
+    setText(fontSize, text, color, NORMAL, 0, Color4f.BLACK);
   }
 
   /**
-   * Sets the text using a character text factory.
+   * Sets the text using the default font.
    */
   public void setText (
-    Font font, boolean antialias, String text, Color4f color,
+    int fontSize, String text, Color4f color,
     int effect, int effectSize, Color4f effectColor)
   {
-    setText(AwtCharacterTextFactory.getInstance(font, antialias, 0f).createText(
-      text, color, effect, effectSize, effectColor, true));
+    TextFactory factory = FontConfig.NULL.getTextFactory(
+      _ctx, FontConfig.Style.PLAIN, fontSize);
+    setText(factory.createText(text, color, effect, effectSize, effectColor, true));
   }
 
   /**
@@ -102,49 +102,12 @@ public class TextBillboard extends SimpleSceneElement
   public void setText (Text text)
   {
     _text = text;
-    Dimension size = _text.getSize();
-    float extent = Math.max(size.width/2, size.height);
-    _localBounds.getMinimumExtent().set(-extent, -extent, -extent);
-    _localBounds.getMaximumExtent().set(+extent, +extent, +extent);
-    updateBounds();
-  }
-
-  /**
-   * Returns the text being rendered.
-   */
-  public Text getText ()
-  {
-    return _text;
-  }
-
-  /**
-   * Sets the alpha value with which to render the text.
-   */
-  public void setAlpha (float alpha)
-  {
-    _alpha = alpha;
-  }
-
-  /**
-   * Returns the alpha value with which the text is being rendered.
-   */
-  public float getAlpha ()
-  {
-    return _alpha;
-  }
-
-  @Override
-  public void enqueue ()
-  {
-    Compositor compositor = _ctx.getCompositor();
-    if (compositor.getSubrenderDepth() > 0) {
-      return; // don't show up in reflections, etc.
+    if (text != null) {
+      Dimension size = text.getSize();
+      _bounds.getMinimumExtent().set(-size.width / 2f, -size.height / 2f, 0f);
+      _bounds.getMaximumExtent().set(+size.width / 2f, +size.height / 2f, 0f);
     }
-
-    // rotate to face the camera
-    _transform.getRotation().set(compositor.getCamera().getWorldTransform().getRotation());
-
-    super.enqueue();
+    updateBounds();
   }
 
   @Override
@@ -159,14 +122,15 @@ public class TextBillboard extends SimpleSceneElement
   @Override
   protected Box getLocalBounds ()
   {
-    return _localBounds;
+    return _bounds;
   }
 
   @Override
   protected void draw ()
   {
     if (_text != null) {
-      _text.render(_ctx.getRenderer(), _text.getSize().width/2, 0, _alpha);
+      Dimension size = _text.getSize();
+      _text.render(_ctx.getRenderer(), -size.width / 2, -size.height / 2, 1f);
     }
   }
 
@@ -174,8 +138,5 @@ public class TextBillboard extends SimpleSceneElement
   protected Text _text;
 
   /** The bounds of the text. */
-  protected Box _localBounds = new Box();
-
-  /** The alpha value with which to render the text. */
-  protected float _alpha = 1f;
+  protected Box _bounds = new Box();
 }
