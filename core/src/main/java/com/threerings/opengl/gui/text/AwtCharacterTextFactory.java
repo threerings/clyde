@@ -16,36 +16,49 @@ import java.nio.ByteBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
+import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntTuple;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.TextureUnit;
-import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Rectangle;
 
-import static com.threerings.opengl.Log.log;
-
 /**
- * AWT-based CharacterTextFactory for use by tool classes (scene editor, model viewer, etc.)
+ * AWT-based text factory for use by tool classes (scene editor, model viewer, etc.)
  * that already use AWT/Swing. This calls BufferedImage.createGraphics() which triggers
  * macOS AWT toolkit initialization — do NOT use from the GLFW game client.
  */
-public class AwtCharacterTextFactory extends CharacterTextFactory
-  implements UIConstants
+public class AwtCharacterTextFactory extends TextFactory
 {
+  /**
+   * Creates a factory for the given AWT font.
+   */
+  public static AwtCharacterTextFactory getInstance (
+    Font font, boolean antialias, float descentModifier)
+  {
+    return getInstance(font, antialias, descentModifier, 0);
+  }
+
+  /**
+   * Creates a factory for the given AWT font.
+   */
+  public static AwtCharacterTextFactory getInstance (
+    Font font, boolean antialias, float descentModifier, int heightModifier)
+  {
+    return new AwtCharacterTextFactory(font, antialias, descentModifier, heightModifier);
+  }
+
   public AwtCharacterTextFactory (Font font, boolean antialias,
     float descentModifier, int heightModifier)
   {
-    // Pass null fontData — we use AWT instead of STB
-    super(null, 0, font.getSize(), antialias, descentModifier, heightModifier);
     _awtFont = font;
 
-    // Override metrics using AWT
     _scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
     _graphics = _scratch.createGraphics();
     _awtMetrics = _graphics.getFontMetrics(font);
 
-    // Override the STB-computed values with AWT values
     _awtHeight = _awtMetrics.getHeight() + heightModifier;
     _awtDescent = _awtMetrics.getDescent();
     _awtDescentOffset = Math.round(_awtMetrics.getHeight() * descentModifier);
@@ -154,7 +167,7 @@ public class AwtCharacterTextFactory extends CharacterTextFactory
         String extra = "";
         if (c != '\n' && c != ' ') {
           line.append(c);
-          com.samskivert.util.IntTuple bspan = getBreakSpan(line);
+          IntTuple bspan = getBreakSpan(line);
           if (bspan != null) {
             extra = line.substring(bspan.right, line.length());
             line.delete(bspan.left, line.length());
@@ -228,7 +241,6 @@ public class AwtCharacterTextFactory extends CharacterTextFactory
           _graphics.fill(outline);
         }
 
-        // Convert the scratch BufferedImage region to an RGBA ByteBuffer
         int w = Math.min(_bounds.width, _scratch.getWidth());
         int h = Math.min(_bounds.height, _scratch.getHeight());
         ByteBuffer rgba = BufferUtils.createByteBuffer(w * h * 4);
@@ -285,6 +297,5 @@ public class AwtCharacterTextFactory extends CharacterTextFactory
   protected int _awtHeight;
   protected int _awtDescent;
   protected int _awtDescentOffset;
-  protected com.samskivert.util.HashIntMap<AwtGlyph> _awtGlyphs =
-    new com.samskivert.util.HashIntMap<>();
+  protected HashIntMap<AwtGlyph> _awtGlyphs = new HashIntMap<>();
 }

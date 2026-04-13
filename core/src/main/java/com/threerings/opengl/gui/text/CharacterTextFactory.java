@@ -44,10 +44,8 @@ import com.samskivert.util.IntTuple;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
-import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.TextureUnit;
 
-import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Rectangle;
 
@@ -60,28 +58,7 @@ import static com.threerings.opengl.Log.log;
  * initialization that conflicts with GLFW.
  */
 public class CharacterTextFactory extends TextFactory
-  implements UIConstants
 {
-  /**
-   * Legacy AWT-compatible factory method for use by tool classes that already
-   * use AWT (scene editor, model viewer, etc.). This calls createGraphics()
-   * which triggers AWT toolkit init — do NOT use from the GLFW game client.
-   */
-  public static CharacterTextFactory getInstance (
-    java.awt.Font font, boolean antialias, float descentModifier)
-  {
-    return getInstance(font, antialias, descentModifier, 0);
-  }
-
-  /**
-   * Legacy AWT-compatible factory method.
-   */
-  public static CharacterTextFactory getInstance (
-    java.awt.Font font, boolean antialias, float descentModifier, int heightModifier)
-  {
-    return new AwtCharacterTextFactory(font, antialias, descentModifier, heightModifier);
-  }
-
   /**
    * Returns a shared STB-based factory instance.
    */
@@ -117,10 +94,6 @@ public class CharacterTextFactory extends TextFactory
     _fontData = fontData;
     _fontSize = size;
     _heightModifier = heightModifier;
-
-    if (_fontData == null) {
-      return; // AwtCharacterTextFactory passes null — it overrides all rendering.
-    }
 
     _fontInfo = STBTTFontinfo.create();
     if (!STBTruetype.stbtt_InitFont(_fontInfo, _fontData)) {
@@ -310,41 +283,6 @@ public class CharacterTextFactory extends TextFactory
     return glyph;
   }
 
-  protected IntTuple getBreakSpan (StringBuilder buf)
-  {
-    for (int ii = buf.length() - 2; ii > 0; ii--) {
-      char c = buf.charAt(ii);
-      if (Character.isWhitespace(c)) {
-        for (int jj = ii - 1; jj >= 0; jj--) {
-          if (!Character.isWhitespace(buf.charAt(jj))) {
-            return new IntTuple(jj + 1, ii + 1);
-          }
-        }
-        return null;
-      } else if (isBreakChar(c) && (!Character.isWhitespace(buf.charAt(ii - 1)))) {
-        return new IntTuple(ii + 1, ii + 1);
-      }
-    }
-    return null;
-  }
-
-  protected boolean isBreakChar (char c)
-  {
-    return '-' == c || (c >= 0x4E00 && c <= 0x9FFF);
-  }
-
-  /** Inserts a glyph bitmap into the texture atlas. */
-  protected TextureUnit[] addGlyphToTexture (
-    Renderer renderer, ByteBuffer bitmap, int width, int height, float[] tcoords)
-  {
-    TextureUnit[] units = (_texture == null) ? null : _texture.add(bitmap, width, height, tcoords);
-    if (units == null) {
-      _texture = new GlyphTexture(renderer);
-      units = _texture.add(bitmap, width, height, tcoords);
-    }
-    return units;
-  }
-
   /**
    * A single glyph, rasterized via STB TrueType.
    */
@@ -475,57 +413,6 @@ public class CharacterTextFactory extends TextFactory
     protected float _s1, _t1, _s2, _t2;
   }
 
-  /**
-   * A shared glyph texture atlas.
-   */
-  protected class GlyphTexture
-  {
-    public GlyphTexture (Renderer renderer)
-    {
-      _texture = new Texture2D(renderer);
-      // Initialize atlas to premultiplied transparent (all zeros)
-      ByteBuffer clear = BufferUtils.createByteBuffer(TEXTURE_SIZE * TEXTURE_SIZE * 4);
-      // ByteBuffer is zero-filled by default
-      _texture.setImage(
-        0, GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false,
-        GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, clear);
-      _texture.setFilters(GL11.GL_LINEAR, GL11.GL_NEAREST);
-      _units = new TextureUnit[] { new TextureUnit(_texture) };
-    }
-
-    /** Copies an RGBA glyph bitmap into this texture. */
-    public TextureUnit[] add (ByteBuffer rgba, int width, int height, float[] tcoords)
-    {
-      width = Math.min(Math.max(width, 0), TEXTURE_SIZE);
-      height = Math.min(Math.max(height, 0), TEXTURE_SIZE);
-      if (_x + width > TEXTURE_SIZE) {
-        _y += _height;
-        _x = 0;
-        _height = 0;
-      }
-      if (_y + height > TEXTURE_SIZE) {
-        return null;
-      }
-
-      // Upload the RGBA data directly to the sub-region of the texture
-      _texture.setSubimage(0, _x, _y, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, rgba);
-
-      tcoords[0] = (float)_x / TEXTURE_SIZE;
-      tcoords[1] = (float)_y / TEXTURE_SIZE;
-      tcoords[2] = (float)(_x + width) / TEXTURE_SIZE;
-      tcoords[3] = (float)(_y + height) / TEXTURE_SIZE;
-
-      _x += width;
-      _height = Math.max(_height, height);
-      return _units;
-    }
-
-    protected TextureUnit[] _units;
-    protected Texture2D _texture;
-    protected int _x, _y;
-    protected int _height;
-  }
-
   protected static class FactoryKey
   {
     public ByteBuffer fontData;
@@ -594,12 +481,6 @@ public class CharacterTextFactory extends TextFactory
   /** Cached glyphs. */
   protected HashIntMap<Glyph> _glyphs = new HashIntMap<Glyph>();
 
-  /** The glyph texture currently being populated. */
-  protected GlyphTexture _texture;
-
   /** Shared instances. */
   protected static Map<FactoryKey, CharacterTextFactory> _instances = Maps.newHashMap();
-
-  /** The width/height of the glyph textures. */
-  protected static final int TEXTURE_SIZE = 256;
 }

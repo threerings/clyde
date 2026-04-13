@@ -32,7 +32,7 @@ import com.threerings.math.Box;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.UIConstants;
-import com.threerings.opengl.gui.text.CharacterTextFactory;
+import com.threerings.opengl.gui.text.AwtCharacterTextFactory;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.renderer.Color4f;
@@ -92,7 +92,7 @@ public class TextBillboard extends SimpleSceneElement
     Font font, boolean antialias, String text, Color4f color,
     int effect, int effectSize, Color4f effectColor)
   {
-    setText(CharacterTextFactory.getInstance(font, antialias, 0f).createText(
+    setText(AwtCharacterTextFactory.getInstance(font, antialias, 0f).createText(
       text, color, effect, effectSize, effectColor, true));
   }
 
