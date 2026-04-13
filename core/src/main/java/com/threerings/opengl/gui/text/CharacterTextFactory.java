@@ -118,6 +118,10 @@ public class CharacterTextFactory extends TextFactory
     _fontSize = size;
     _heightModifier = heightModifier;
 
+    if (_fontData == null) {
+      return; // AwtCharacterTextFactory passes null — it overrides all rendering.
+    }
+
     _fontInfo = STBTTFontinfo.create();
     if (!STBTruetype.stbtt_InitFont(_fontInfo, _fontData)) {
       log.warning("Failed to initialize STB TrueType font.");
