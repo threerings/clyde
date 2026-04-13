@@ -244,7 +244,7 @@ public class AwtCharacterTextFactory extends TextFactory
         int w = Math.min(_bounds.width, _scratch.getWidth());
         int h = Math.min(_bounds.height, _scratch.getHeight());
         ByteBuffer rgba = BufferUtils.createByteBuffer(w * h * 4);
-        for (int row = 0; row < h; row++) {
+        for (int row = h - 1; row >= 0; row--) { // flip Y for OpenGL
           for (int col = 0; col < w; col++) {
             int pixel = _scratch.getRGB(col, row);
             rgba.put((byte)((pixel >> 16) & 0xFF));

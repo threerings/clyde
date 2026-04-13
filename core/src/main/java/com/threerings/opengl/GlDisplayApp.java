@@ -70,10 +70,7 @@ public abstract class GlDisplayApp extends GlApp
    */
   public int getWindowWidth ()
   {
-    if (_window == MemoryUtil.NULL) return 0;
-    int[] w = new int[1], h = new int[1];
-    GLFW.glfwGetFramebufferSize(_window, w, h);
-    return w[0];
+    return _fbWidth;
   }
 
   /**
@@ -81,10 +78,7 @@ public abstract class GlDisplayApp extends GlApp
    */
   public int getWindowHeight ()
   {
-    if (_window == MemoryUtil.NULL) return 0;
-    int[] w = new int[1], h = new int[1];
-    GLFW.glfwGetFramebufferSize(_window, w, h);
-    return h[0];
+    return _fbHeight;
   }
 
   /**
@@ -457,7 +451,9 @@ public abstract class GlDisplayApp extends GlApp
   {
     int[] w = new int[1], h = new int[1];
     GLFW.glfwGetFramebufferSize(_window, w, h);
-    _renderer.init(_window, w[0], h[0]);
+    _fbWidth = w[0];
+    _fbHeight = h[0];
+    _renderer.init(_window, _fbWidth, _fbHeight);
   }
 
   /**
@@ -466,9 +462,7 @@ public abstract class GlDisplayApp extends GlApp
   protected void updateRendererSize ()
   {
     if (_window != MemoryUtil.NULL) {
-      int[] w = new int[1], h = new int[1];
-      GLFW.glfwGetFramebufferSize(_window, w, h);
-      _renderer.setSize(w[0], h[0]);
+      _renderer.setSize(_fbWidth, _fbHeight);
     }
   }
 
@@ -477,9 +471,7 @@ public abstract class GlDisplayApp extends GlApp
    */
   protected Dimension calcRendererSize ()
   {
-    int[] w = new int[1], h = new int[1];
-    GLFW.glfwGetFramebufferSize(_window, w, h);
-    return new Dimension(w[0], h[0]);
+    return new Dimension(_fbWidth, _fbHeight);
   }
 
   /**
@@ -515,7 +507,11 @@ public abstract class GlDisplayApp extends GlApp
         GLFW.glfwMakeContextCurrent(_window);
         GL.createCapabilities();
         GLFW.glfwSwapInterval(_vsync ? 1 : 0);
-        GLFW.glfwSetWindowSizeCallback(_window, (win, w, h) -> _wasResized = true);
+        GLFW.glfwSetFramebufferSizeCallback(_window, (win, w, h) -> {
+          _fbWidth = w;
+          _fbHeight = h;
+          _wasResized = true;
+        });
         _pendingMode = null;
         GLFW.glfwPollEvents();
         return true;
@@ -565,7 +561,10 @@ public abstract class GlDisplayApp extends GlApp
   protected boolean _resizable = true;
 
   /** Whether the window was resized. */
-  protected boolean _wasResized;
+  protected volatile boolean _wasResized;
+
+  /** Cached framebuffer dimensions, updated from the framebuffer size callback. */
+  protected volatile int _fbWidth, _fbHeight;
 
   /** Whether the main loop is running. */
   protected volatile boolean _running;
