@@ -34,6 +34,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryUtil;
 
 import com.samskivert.util.RunAnywhere;
@@ -210,6 +211,12 @@ public abstract class GlDisplayApp extends GlApp
   protected void ensureGlfwInit ()
   {
     if (_glfwInited) return;
+    // On macOS, use the async GLFW build that allows AWT/Swing to coexist
+    // with GLFW. This avoids glfwPollEvents hanging when AWT is initialized.
+    if (RunAnywhere.isMacOS()) {
+      java.awt.Toolkit.getDefaultToolkit(); // tickle the awt prior to init
+      Configuration.GLFW_LIBRARY_NAME.set("glfw_async");
+    }
     // On macOS, tell GLFW not to change the working directory to the
     // .app bundle Resources dir (we manage resources ourselves).
     GLFW.glfwInitHint(GLFW.GLFW_COCOA_CHDIR_RESOURCES, GLFW.GLFW_FALSE);
