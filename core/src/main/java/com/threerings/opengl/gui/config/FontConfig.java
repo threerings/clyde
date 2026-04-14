@@ -156,11 +156,8 @@ public class FontConfig extends ManagedConfig
     public TextFactory getTextFactory (GlContext ctx, int style, int size)
     {
       int effectiveStyle = style | baseStyle.getFlags();
-      // Scale font size for HiDPI/Retina: STB renders at exact pixel size,
-      // unlike AWT Font which handled DPI scaling internally.
-      int pixelSize = Math.round((size + sizeModifier) * ctx.getApp().getPixelScaleFactor());
       return CharacterTextFactory.getInstance(getFontData(ctx),
-          effectiveStyle, pixelSize, antialias, descentModifier, heightModifier);
+          effectiveStyle, size + sizeModifier, antialias, descentModifier, heightModifier);
     }
 
     @Override

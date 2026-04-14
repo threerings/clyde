@@ -328,19 +328,11 @@ public class CharacterTextFactory extends TextFactory
         if (_bounds == null) {
           return; // whitespace
         }
-        // Rasterize the glyph with STB
-        float renderScale = _scale;
-        if (_effect == OUTLINE) {
-          // For outlines, render at a slightly larger scale and we'll get the
-          // filled shape; true outline rendering would need SDF or manual dilation
-          renderScale = _scale;
-        }
-
         try (MemoryStack stack = MemoryStack.stackPush()) {
           IntBuffer pw = stack.mallocInt(1), ph = stack.mallocInt(1);
           IntBuffer pxoff = stack.mallocInt(1), pyoff = stack.mallocInt(1);
           ByteBuffer bitmap = STBTruetype.stbtt_GetCodepointBitmap(
-            _fontInfo, renderScale, renderScale, _c, pw, ph, pxoff, pyoff);
+            _fontInfo, _scale, _scale, _c, pw, ph, pxoff, pyoff);
 
           if (bitmap != null) {
             int bw = pw.get(0);
@@ -349,9 +341,8 @@ public class CharacterTextFactory extends TextFactory
             // Convert single-channel alpha bitmap to RGBA
             ByteBuffer rgba = BufferUtils.createByteBuffer(
               _bounds.width * _bounds.height * 4);
-            int padX = (-pxoff.get(0)) + _bounds.x; // padding offset to center in bounds
-            int padY = (-pyoff.get(0)) - (_bounds.y + _bounds.height); // flip
-            // Clear to fully transparent (premultiplied: 0,0,0,0)
+            int padX = (-pxoff.get(0)) + _bounds.x;
+            int padY = (-pyoff.get(0)) - (_bounds.y + _bounds.height);
             for (int i = 0; i < _bounds.width * _bounds.height * 4; i++) {
               rgba.put(i, (byte)0);
             }
@@ -363,7 +354,6 @@ public class CharacterTextFactory extends TextFactory
                 if (dx >= 0 && dx < _bounds.width && dy >= 0 && dy < _bounds.height) {
                   byte alpha = bitmap.get(row * bw + col);
                   int idx = (dy * _bounds.width + dx) * 4;
-                  // Premultiplied: RGB = alpha (white * alpha)
                   rgba.put(idx, alpha);
                   rgba.put(idx + 1, alpha);
                   rgba.put(idx + 2, alpha);
