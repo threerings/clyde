@@ -86,7 +86,9 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setWindowSize (int width, int height)
   {
-    GLFW.glfwSetWindowSize(_window, width, height);
+    // Convert pixel dimensions to screen coordinates for GLFW
+    float scale = getContentScale();
+    GLFW.glfwSetWindowSize(_window, (int)(width / scale), (int)(height / scale));
     updateRendererSize();
   }
 
@@ -296,9 +298,10 @@ public abstract class GlDisplayApp extends GlApp
         mode.width, mode.height,
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
     } else {
-      // Windowed: mode dimensions are screen coordinates
+      // Windowed: convert pixel dimensions to screen coordinates for GLFW
+      float scale = getContentScale();
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
-        100, 100, mode.width, mode.height,
+        100, 100, (int)(mode.width / scale), (int)(mode.height / scale),
         GLFW.GLFW_DONT_CARE);
     }
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
@@ -498,9 +501,10 @@ public abstract class GlDisplayApp extends GlApp
         GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, format.samples);
       }
 
-      // _pendingMode dimensions are screen coordinates
-      int initWidth = (_pendingMode != null) ? _pendingMode.width : 800;
-      int initHeight = (_pendingMode != null) ? _pendingMode.height : 600;
+      // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
+      float cs = getContentScale();
+      int initWidth = (_pendingMode != null) ? (int)(_pendingMode.width / cs) : 800;
+      int initHeight = (_pendingMode != null) ? (int)(_pendingMode.height / cs) : 600;
       _window = GLFW.glfwCreateWindow(initWidth, initHeight,
         _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
       if (_window != MemoryUtil.NULL) {
