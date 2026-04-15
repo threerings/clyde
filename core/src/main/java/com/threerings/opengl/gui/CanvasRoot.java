@@ -36,6 +36,8 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 
+import static com.threerings.opengl.Log.log;
+
 /**
  * Bridges between the AWT and the BUI input event system when we are
  * being used in an AWT canvas.
@@ -48,7 +50,7 @@ public class CanvasRoot extends Root
   {
     super(ctx);
     _canvas = canvas;
-    _pixelScale = (canvas instanceof GlCanvas) ? ((GlCanvas)canvas).getPixelScale() : 1;
+    _glCanvas = (canvas instanceof GlCanvas) ? (GlCanvas)canvas : null;
     _clipboard = canvas.getToolkit().getSystemClipboard();
 
     // we want to hear about mouse movement, clicking, and keys
@@ -61,13 +63,13 @@ public class CanvasRoot extends Root
   @Override
   public int getDisplayWidth ()
   {
-    return FloatMath.round(_canvas.getWidth() * _pixelScale / _scale);
+    return FloatMath.round(_ctx.getRenderer().getWidth() / _scale);
   }
 
   @Override
   public int getDisplayHeight ()
   {
-    return FloatMath.round(_canvas.getHeight() * _pixelScale / _scale);
+    return FloatMath.round(_ctx.getRenderer().getHeight() / _scale);
   }
 
   // documentation inherited from interface MouseListener
@@ -89,16 +91,16 @@ public class CanvasRoot extends Root
   public void mousePressed (java.awt.event.MouseEvent e)
   {
     _modifiers = convertModifiers(e.getModifiersEx());
-    mousePressed(e.getWhen(), convertButton(e), e.getX() * _pixelScale,
-      _canvas.getHeight() * _pixelScale - e.getY() * _pixelScale - 1, e.isConsumed());
+    mousePressed(e.getWhen(), convertButton(e), e.getX() * getPixelScale(),
+      _canvas.getHeight() * getPixelScale() - e.getY() * getPixelScale() - 1, e.isConsumed());
   }
 
   // documentation inherited from interface MouseListener
   public void mouseReleased (java.awt.event.MouseEvent e)
   {
     _modifiers = convertModifiers(e.getModifiersEx());
-    mouseReleased(e.getWhen(), convertButton(e), e.getX() * _pixelScale,
-      _canvas.getHeight() * _pixelScale - e.getY() * _pixelScale - 1, e.isConsumed());
+    mouseReleased(e.getWhen(), convertButton(e), e.getX() * getPixelScale(),
+      _canvas.getHeight() * getPixelScale() - e.getY() * getPixelScale() - 1, e.isConsumed());
   }
 
   // documentation inherited from interface MouseMotionListener
@@ -111,16 +113,16 @@ public class CanvasRoot extends Root
   public void mouseMoved (java.awt.event.MouseEvent e)
   {
     _modifiers = convertModifiers(e.getModifiersEx());
-    mouseMoved(e.getWhen(), e.getX() * _pixelScale,
-      _canvas.getHeight() * _pixelScale - e.getY() * _pixelScale - 1, e.isConsumed());
+    mouseMoved(e.getWhen(), e.getX() * getPixelScale(),
+      _canvas.getHeight() * getPixelScale() - e.getY() * getPixelScale() - 1, e.isConsumed());
   }
 
   // documentation inherited from interface MouseWheelListener
   public void mouseWheelMoved (java.awt.event.MouseWheelEvent e)
   {
     _modifiers = convertModifiers(e.getModifiersEx());
-    mouseWheeled(e.getWhen(), e.getX() * _pixelScale,
-      _canvas.getHeight() * _pixelScale - e.getY() * _pixelScale - 1,
+    mouseWheeled(e.getWhen(), e.getX() * getPixelScale(),
+      _canvas.getHeight() * getPixelScale() - e.getY() * getPixelScale() - 1,
       -e.getWheelRotation(), e.isConsumed());
   }
 
@@ -346,8 +348,12 @@ public class CanvasRoot extends Root
     }
   }
 
-  protected Component _canvas;
+  /** Returns the current pixel scale (may change after canvas is realized). */
+  protected int getPixelScale ()
+  {
+    return (_glCanvas != null) ? _glCanvas.getPixelScale() : 1;
+  }
 
-  /** Ratio of framebuffer pixels to AWT logical points (1 on standard, 2 on Retina). */
-  protected int _pixelScale;
+  protected Component _canvas;
+  protected GlCanvas _glCanvas;
 }
