@@ -265,6 +265,24 @@ public class DisplayCanvas extends JPanel
   }
 
   @Override
+  public synchronized void removeMouseListener (MouseListener l)
+  {
+    _glCanvas.removeMouseListener(l);
+  }
+
+  @Override
+  public synchronized void removeMouseMotionListener (MouseMotionListener l)
+  {
+    _glCanvas.removeMouseMotionListener(l);
+  }
+
+  @Override
+  public synchronized void removeMouseWheelListener (MouseWheelListener l)
+  {
+    _glCanvas.removeMouseWheelListener(l);
+  }
+
+  @Override
   public void addNotify ()
   {
     super.addNotify();
