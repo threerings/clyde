@@ -155,6 +155,7 @@ public abstract class GlCanvasApp extends GlApp
   {
     if (_canvasRoot == null) {
       _canvasRoot = new CanvasRoot(this, _canvas);
+      _canvasRoot.setScale(getPixelScaleFactor());
     }
     return _canvasRoot;
   }
@@ -199,6 +200,9 @@ public abstract class GlCanvasApp extends GlApp
       public void componentResized (ComponentEvent event) {
         int scale = ((GlCanvas)_canvas).getPixelScale();
         _renderer.setSize(_canvas.getWidth() * scale, _canvas.getHeight() * scale);
+        if (_canvasRoot != null) {
+          _canvasRoot.setScale(scale);
+        }
       }
     });
 

@@ -53,6 +53,11 @@ public class CanvasRoot extends Root
     _glCanvas = (canvas instanceof GlCanvas) ? (GlCanvas)canvas : null;
     _clipboard = canvas.getToolkit().getSystemClipboard();
 
+    // set the UI scale for HiDPI/Retina displays
+    if (_glCanvas != null) {
+      setScale(_glCanvas.getPixelScale());
+    }
+
     // we want to hear about mouse movement, clicking, and keys
     canvas.addMouseListener(this);
     canvas.addMouseMotionListener(this);
