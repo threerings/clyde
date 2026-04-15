@@ -149,12 +149,9 @@ public class CanvasRoot extends Root
   @Override
   protected void updateCursor (Cursor cursor)
   {
-    if (cursor == null) {
-      cursor = getDefaultCursor();
-    }
-    if (cursor == null) {
-      _canvas.setCursor(null);
-    } else {
+    if (cursor == null) cursor = getDefaultCursor();
+    if (cursor == null) _canvas.setCursor(null);
+    else {
       _canvas.setCursor(cursor.getAWTCursor(_canvas.getToolkit()));
       cursor.show(); // hack for DisplayCanvas
     }

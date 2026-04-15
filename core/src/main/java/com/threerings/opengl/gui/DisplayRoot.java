@@ -304,8 +304,10 @@ public class DisplayRoot extends Root
   @Override
   protected void updateCursor (Cursor cursor)
   {
-    // GLFW cursor management would go here
-    // For now, use default cursor
+    if (_glfwWindow == 0) return;
+    if (cursor == null) cursor = getDefaultCursor();
+    if (cursor == null) GLFW.glfwSetCursor(_glfwWindow, 0);
+    else cursor.show(_glfwWindow);
   }
 
   /**
