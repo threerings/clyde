@@ -25,103 +25,95 @@
 
 package com.threerings.opengl.gui.text;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.stb.STBTruetype;
-import org.lwjgl.stb.STBTTFontinfo;
-import org.lwjgl.system.MemoryStack;
 
 import com.google.common.collect.Maps;
+import com.google.common.base.Objects;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
+import com.samskivert.util.ObjectUtil;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.TextureUnit;
 
+import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Rectangle;
 
-import static com.threerings.opengl.Log.log;
-
 /**
- * Formats text by rendering individual characters into a set of shared textures using
- * STB TrueType, then returning {@link Text} instances that render groups of quads.
- * This implementation avoids java.awt.Graphics2D which triggers macOS AWT toolkit
- * initialization that conflicts with GLFW.
+ * Formats text by rendering individual characters into a set of shared textures, then returning
+ * {@link Text} instances that render groups of quads, one for each character.
  */
 public class CharacterTextFactory extends TextFactory
+  implements UIConstants
 {
   /**
-   * Returns a shared STB-based factory instance.
+   * Returns a shared factory instance.
    */
   public static CharacterTextFactory getInstance (
-    ByteBuffer fontData, int style, int size, boolean antialias,
-    float descentModifier, int heightModifier)
+      Font font, boolean antialias, float descentModifier)
   {
-    FactoryKey key = new FactoryKey(fontData, style, size, antialias,
-      descentModifier, heightModifier);
+    return getInstance(font, antialias, descentModifier, 0);
+  }
+
+  public static CharacterTextFactory getInstance (
+      Font font, boolean antialias, float descentModifier, int heightModifier)
+  {
+    FactoryKey key = new FactoryKey(font, antialias, descentModifier, heightModifier);
     CharacterTextFactory factory = _instances.get(key);
     if (factory == null) {
-      _instances.put(key,
-        factory = new CharacterTextFactory(fontData, style, size, antialias,
-          descentModifier, heightModifier));
+      _instances.put(
+          key, factory = new CharacterTextFactory(font, antialias, descentModifier, heightModifier));
     }
     return factory;
   }
 
   /**
-   * Creates a character text factory with STB TrueType.
-   *
-   * @param fontData the raw TTF/TTC file data (must remain valid for the factory's lifetime)
-   * @param style font style flags (java.awt.Font.BOLD, etc.) — used to select bold/italic
-   * @param size font size in pixels
-   * @param antialias whether to antialias (ignored for now; STB always antialiases)
-   * @param descentModifier descent adjustment as fraction of height
-   * @param heightModifier additional height in pixels
+   * Creates a character text factory with the supplied font.
    */
-  public CharacterTextFactory (
-    ByteBuffer fontData, int style, int size, boolean antialias,
-    float descentModifier, int heightModifier)
+  public CharacterTextFactory (Font font, boolean antialias, float descentModifier , int heightModifier)
   {
-    _fontData = fontData;
-    _fontSize = size;
+    _font = font;
+
+    // we need a graphics context to retrieve the metrics
+    _scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    _graphics = _scratch.createGraphics();
+    _metrics = _graphics.getFontMetrics(font);
+    _descentOffset = Math.round(_metrics.getHeight() * descentModifier);
     _heightModifier = heightModifier;
 
-    _fontInfo = STBTTFontinfo.create();
-    if (!STBTruetype.stbtt_InitFont(_fontInfo, _fontData)) {
-      log.warning("Failed to initialize STB TrueType font.");
-      _scale = 1f;
-      _ascent = size;
-      _descent = 0;
-      _lineGap = 0;
-      _height = size;
-      return;
-    }
+    // create a test glyph to determine the size
+    FontRenderContext ctx = _graphics.getFontRenderContext();
+    GlyphVector vector = _font.createGlyphVector(ctx, "J");
+    java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
 
-    // Compute the scale factor from font units to pixel size
-    _scale = STBTruetype.stbtt_ScaleForPixelHeight(_fontInfo, size);
-
-    // Get vertical metrics in font units, then scale to pixels
-    try (MemoryStack stack = MemoryStack.stackPush()) {
-      IntBuffer pAscent = stack.mallocInt(1);
-      IntBuffer pDescent = stack.mallocInt(1);
-      IntBuffer pLineGap = stack.mallocInt(1);
-      STBTruetype.stbtt_GetFontVMetrics(_fontInfo, pAscent, pDescent, pLineGap);
-      _ascent = Math.round(pAscent.get(0) * _scale);
-      _descent = Math.round(pDescent.get(0) * _scale); // negative value
-      _lineGap = Math.round(pLineGap.get(0) * _scale);
-    }
-
-    _height = _ascent - _descent + _lineGap;
-    _descentOffset = Math.round(_height * descentModifier);
+    // allow up to four times the sample dimensions for descenders, effects, etc.
+    _scratch = new BufferedImage(bounds.width*4, bounds.height*4, BufferedImage.TYPE_INT_ARGB);
+    _graphics.dispose();
+    _graphics = _scratch.createGraphics();
+    _graphics.setFont(font);
+    _graphics.setBackground(new Color(0, true));
+    _graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+      antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+    _graphics.setRenderingHint(
+      RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
   }
 
   /**
@@ -139,7 +131,7 @@ public class CharacterTextFactory extends TextFactory
   @Override
   public int getHeight ()
   {
-    return _height + _heightModifier;
+    return _metrics.getHeight() + _heightModifier;
   }
 
   @Override
@@ -193,7 +185,7 @@ public class CharacterTextFactory extends TextFactory
       }
       public void render (Renderer renderer, int x, int y, float alpha) {
         // add the descent above the baseline
-        y += (-_descent) + _descentOffset;
+        y += _metrics.getDescent() + _descentOffset;
 
         // multi-pixel outlines go below the character
         if (outlines != null && effectSize > 1) {
@@ -239,6 +231,7 @@ public class CharacterTextFactory extends TextFactory
       if (c == '\n' || width + glyph.width > maxWidth) {
         String extra = "";
         if (c != '\n' && c != ' ') {
+          // scan backwards, see if we can break on a space
           line.append(c);
           IntTuple bspan = getBreakSpan(line);
           if (bspan != null) {
@@ -262,19 +255,25 @@ public class CharacterTextFactory extends TextFactory
         width += glyph.width;
       }
     }
+    // add the final line
     lines.add(createText(line.toString(), color, effect, effectSize, effectColor, true));
     return lines.toArray(new Text[lines.size()]);
   }
 
-  /** Returns the normal glyph for the given character. */
+  /**
+   * Returns the normal glyph for the given character.
+   */
   protected Glyph getGlyph (char c)
   {
     return getGlyph(c, NORMAL, 0);
   }
 
-  /** Returns the glyph for the given character with the given effect. */
+  /**
+   * Returns the glyph for the given character with the given effect and effect size.
+   */
   protected Glyph getGlyph (char c, int effect, int size)
   {
+    // the key combines the character with the effect and size
     int key = (size << 20) | (effect << 16) | c;
     Glyph glyph = _glyphs.get(key);
     if (glyph == null) {
@@ -284,98 +283,115 @@ public class CharacterTextFactory extends TextFactory
   }
 
   /**
-   * A single glyph, rasterized via STB TrueType.
+   * Searches for an appropriate break span: the region of characters that may be omitted prior
+   * to the region to be pushed to the next line. Typically this is the last region of whitespace.
+   * The region may be zero-length to indicate that no characters should be removed.
+   *
+   * "foo[ ]bar" (break after foo, cut the space, and put bar on the next line)
+   * "foo-[]bar" (break after the dash, put bar on the next line)
+   *
+   * @return the start (inclusive) and end (exclusive) indices of the span,
+   * or <code>null</code> if no span was found.
+   */
+  protected IntTuple getBreakSpan (StringBuilder buf)
+  {
+    for (int ii = buf.length() - 2; ii > 0; ii--) {
+      char c = buf.charAt(ii);
+      if (Character.isWhitespace(c)) {
+        for (int jj = ii - 1; jj >= 0; jj--) {
+          if (!Character.isWhitespace(buf.charAt(jj))) {
+            return new IntTuple(jj + 1, ii + 1);
+          }
+        }
+        return null; // no non-whitespace before whitespace
+
+      } else if (isBreakChar(c) && (!Character.isWhitespace(buf.charAt(ii - 1)))) {
+        return new IntTuple(ii + 1, ii + 1);
+      }
+    }
+    return null; // no whitespace
+  }
+
+  /**
+   * Returns true if the character is a valid break character.
+   */
+  protected boolean isBreakChar (char c)
+  {
+    return '-' == c || (c >= 0x4E00 && c <= 0x9FFF);
+  }
+
+  /**
+   * Inserts the glyph image in the scratch pad into the current texture (creating a new
+   * texture if there is no current texture or the current texture doesn't have enough
+   * room), returns the texture unit data, and populates the supplied array with the
+   * texture coordinates.
+   */
+  protected TextureUnit[] addGlyphToTexture (
+    Renderer renderer, int width, int height, float[] tcoords)
+  {
+    // make sure the width and height don't exceed the borders of the scratchpad
+    width = Math.min(Math.max(width, 0), _scratch.getWidth());
+    height = Math.min(Math.max(height, 0), _scratch.getHeight());
+
+    // try to add to the current texture; if there's not enough room, create a new one
+    TextureUnit[] units = (_texture == null) ? null : _texture.add(width, height, tcoords);
+    if (units == null) {
+      _texture = new GlyphTexture(renderer);
+      units = _texture.add(width, height, tcoords);
+    }
+    return units;
+  }
+
+  /**
+   * A single glyph.
    */
   protected class Glyph
   {
-    /** The advance width of this glyph in pixels. */
+    /** The advance width of this glyph. */
     public int width;
 
-    public Glyph (char c, int effect, int effectSize)
+    public Glyph (char c, int effect, int size)
     {
-      _c = c;
+      width = _metrics.charWidth(_c = c);
       _effect = effect;
-      _effectSize = effectSize;
-
-      try (MemoryStack stack = MemoryStack.stackPush()) {
-        IntBuffer pAdvance = stack.mallocInt(1);
-        IntBuffer pLsb = stack.mallocInt(1);
-        STBTruetype.stbtt_GetCodepointHMetrics(_fontInfo, c, pAdvance, pLsb);
-        width = Math.round(pAdvance.get(0) * _scale);
-
-        // Get the bounding box for this glyph
-        IntBuffer x0 = stack.mallocInt(1), y0 = stack.mallocInt(1);
-        IntBuffer x1 = stack.mallocInt(1), y1 = stack.mallocInt(1);
-        STBTruetype.stbtt_GetCodepointBitmapBox(
-          _fontInfo, c, _scale, _scale, x0, y0, x1, y1);
-        int bw = x1.get(0) - x0.get(0);
-        int bh = y1.get(0) - y0.get(0);
-        if (bw > 0 && bh > 0) {
-          int grow = 1 + (effect == OUTLINE ? Math.round(effectSize / 2f) : 0);
-          _bounds = new Rectangle(
-            x0.get(0) - grow,
-            -y1.get(0) - grow, // flip Y: STB has y-down, we need y-up from baseline
-            bw + grow * 2,
-            bh + grow * 2);
-        }
+      _size = size;
+      FontRenderContext ctx = _graphics.getFontRenderContext();
+      _vector = _font.createGlyphVector(ctx, Character.toString(c));
+      java.awt.Rectangle bounds = _vector.getPixelBounds(ctx, 0f, 0f);
+      if (bounds.width > 0 && bounds.height > 0) {
+        _bounds = new Rectangle(
+          bounds.x, -bounds.y - bounds.height, bounds.width, bounds.height);
+        int grow = 1 + (_effect == OUTLINE ? Math.round(size/2f) : 0);
+        _bounds.grow(grow, grow);
       }
     }
 
-    /** Renders this glyph at the specified position. */
+    /**
+     * Renders this glyph at the specified position.
+     */
     public void render (Renderer renderer, int x, int y)
     {
       if (_units == null) {
         if (_bounds == null) {
           return; // whitespace
         }
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          IntBuffer pw = stack.mallocInt(1), ph = stack.mallocInt(1);
-          IntBuffer pxoff = stack.mallocInt(1), pyoff = stack.mallocInt(1);
-          ByteBuffer bitmap = STBTruetype.stbtt_GetCodepointBitmap(
-            _fontInfo, _scale, _scale, _c, pw, ph, pxoff, pyoff);
-
-          if (bitmap != null) {
-            int bw = pw.get(0);
-            int bh = ph.get(0);
-
-            // Convert single-channel alpha bitmap to RGBA
-            ByteBuffer rgba = BufferUtils.createByteBuffer(
-              _bounds.width * _bounds.height * 4);
-            int padX = (-pxoff.get(0)) + _bounds.x;
-            int padY = (-pyoff.get(0)) - (_bounds.y + _bounds.height);
-            for (int i = 0; i < _bounds.width * _bounds.height * 4; i++) {
-              rgba.put(i, (byte)0);
-            }
-            // Copy bitmap alpha into premultiplied RGBA, flipping vertically
-            for (int row = 0; row < bh; row++) {
-              for (int col = 0; col < bw; col++) {
-                int dx = col - padX;
-                int dy = (bh - 1 - row) - padY;
-                if (dx >= 0 && dx < _bounds.width && dy >= 0 && dy < _bounds.height) {
-                  byte alpha = bitmap.get(row * bw + col);
-                  int idx = (dy * _bounds.width + dx) * 4;
-                  rgba.put(idx, alpha);
-                  rgba.put(idx + 1, alpha);
-                  rgba.put(idx + 2, alpha);
-                  rgba.put(idx + 3, alpha);
-                }
-              }
-            }
-            rgba.rewind();
-
-            float[] tcoords = new float[4];
-            _units = addGlyphToTexture(renderer, rgba, _bounds.width, _bounds.height, tcoords);
-            _s1 = tcoords[0];
-            _t1 = tcoords[1];
-            _s2 = tcoords[2];
-            _t2 = tcoords[3];
-
-            STBTruetype.stbtt_FreeBitmap(bitmap);
-          }
+        // render the glyph to the scratch image
+        _graphics.clearRect(0, 0, _scratch.getWidth(), _scratch.getHeight());
+        Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
+        if (_effect == OUTLINE) {
+          _graphics.setStroke(new BasicStroke(
+            _size, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
+          _graphics.draw(outline);
+        } else {
+          _graphics.fill(outline);
         }
-      }
-      if (_units == null || _bounds == null) {
-        return;
+        float[] tcoords = new float[4];
+        _units = addGlyphToTexture(renderer, _bounds.width, _bounds.height, tcoords);
+        _s1 = tcoords[0];
+        _t1 = tcoords[1];
+        _s2 = tcoords[2];
+        _t2 = tcoords[3];
+        _vector = null;
       }
       int lx = x + _bounds.x;
       int ly = y + _bounds.y;
@@ -396,39 +412,107 @@ public class CharacterTextFactory extends TextFactory
       GL11.glEnd();
     }
 
+    /** The glyph character. */
     protected char _c;
-    protected int _effect, _effectSize;
+
+    /** The effect and effect size. */
+    protected int _effect, _size;
+
+    /** Stores the glyph vector. */
+    protected GlyphVector _vector;
+
+    /** The glyph bounds. */
     protected Rectangle _bounds;
+
+    /** The glyph texture units. */
     protected TextureUnit[] _units;
+
+    /** The texture coordinates of the glyph. */
     protected float _s1, _t1, _s2, _t2;
+  }
+
+  /**
+   * A shared texture.
+   */
+  protected class GlyphTexture
+  {
+    public GlyphTexture (Renderer renderer)
+    {
+      _texture = new Texture2D(renderer);
+      _texture.setImage(GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false, false);
+      _texture.setFilters(GL11.GL_LINEAR, GL11.GL_NEAREST);
+      _units = new TextureUnit[] { new TextureUnit(_texture) };
+    }
+
+    /**
+     * Attempts to copy the glyph in the scratch image into this texture.
+     */
+    public TextureUnit[] add (int width, int height, float[] tcoords)
+    {
+      // move up to the next row if necessary
+      if (_x + width > TEXTURE_SIZE) {
+        _y += _height;
+        _x = 0;
+        _height = 0;
+      }
+      if (_y + height > TEXTURE_SIZE) {
+        return null; // out of room in this texture
+      }
+
+      // copy the scratch image into the texture
+      _texture.setSubimage(
+        _scratch.getSubimage(0, 0, width, height), true, _x, _y, width, height);
+
+      // set the texture coordinates
+      tcoords[0] = (float)_x / TEXTURE_SIZE;
+      tcoords[1] = (float)_y / TEXTURE_SIZE;
+      tcoords[2] = (float)(_x + width) / TEXTURE_SIZE;
+      tcoords[3] = (float)(_y + height) / TEXTURE_SIZE;
+
+      // advance to the next position
+      _x += width;
+      _height = Math.max(_height, height);
+
+      // return the texture units
+      return _units;
+    }
+
+    /** The shared texture unit array. */
+    protected TextureUnit[] _units;
+
+    /** The casted texture. */
+    protected Texture2D _texture;
+
+    /** The current x and y position within the texture. */
+    protected int _x, _y;
+
+    /** The height of the current row. */
+    protected int _height;
   }
 
   protected static class FactoryKey
   {
-    public ByteBuffer fontData;
-    public int style, size;
+    public Font font;
+
     public boolean antialias;
+
     public float descentModifier;
+
     public int heightModifier;
 
-    public FactoryKey (ByteBuffer fontData, int style, int size,
-      boolean antialias, float descentModifier, int heightModifier)
+    public FactoryKey (Font font, boolean antialias, float descentModifier, int heightModifier)
     {
-      this.fontData = fontData;
-      this.style = style;
-      this.size = size;
+      this.font = font;
       this.antialias = antialias;
       this.descentModifier = descentModifier;
       this.heightModifier = heightModifier;
     }
 
-    @Override
+    @Override // from Object
     public int hashCode ()
     {
       int value = 17;
-      value = value * 31 + System.identityHashCode(fontData);
-      value = value * 31 + style;
-      value = value * 31 + size;
+      value = value * 31 + ((font == null) ? 0 : font.hashCode());
       value = value * 31 + (antialias ? 1 : 0);
       value = value * 31 + Float.floatToIntBits(descentModifier);
       value = value * 31 + heightModifier;
@@ -438,39 +522,43 @@ public class CharacterTextFactory extends TextFactory
     @Override
     public boolean equals (Object obj)
     {
-      if (!(obj instanceof FactoryKey)) return false;
-      FactoryKey k = (FactoryKey)obj;
-      return fontData == k.fontData && style == k.style && size == k.size &&
-        antialias == k.antialias && descentModifier == k.descentModifier &&
-        heightModifier == k.heightModifier;
+      if (!(obj instanceof FactoryKey)) {
+        return false;
+      }
+
+      FactoryKey key = (FactoryKey)obj;
+      return (antialias == key.antialias) &&
+        (descentModifier == key.descentModifier) &&
+        (heightModifier == key.heightModifier) &&
+        Objects.equal(font, key.font);
     }
   }
 
-  /** The raw TTF data (must remain valid). */
-  protected ByteBuffer _fontData;
+  /** The font being rendered by this factory. */
+  protected Font _font;
 
-  /** The STB font info. */
-  protected STBTTFontinfo _fontInfo;
+  /** A scratchpad image and its graphics context. */
+  protected BufferedImage _scratch;
+  protected Graphics2D _graphics;
 
-  /** The font size in pixels and the scale from font units to pixels. */
-  protected int _fontSize;
-  protected float _scale;
-
-  /** Vertical metrics in pixels. */
-  protected int _ascent, _descent, _lineGap;
-
-  /** Total line height in pixels. */
-  protected int _height;
-
-  /** Height modifier from config. */
-  protected int _heightModifier;
-
-  /** Descent offset from config. */
-  protected int _descentOffset;
+  /** The font metrics. */
+  protected FontMetrics _metrics;
 
   /** Cached glyphs. */
   protected HashIntMap<Glyph> _glyphs = new HashIntMap<Glyph>();
 
+  /** The glyph texture currently being populated. */
+  protected GlyphTexture _texture;
+
+  /** The offset for the descent value. */
+  protected int _descentOffset;
+
+  protected int _heightModifier;
+
   /** Shared instances. */
-  protected static Map<FactoryKey, CharacterTextFactory> _instances = Maps.newHashMap();
+  protected static Map<FactoryKey, CharacterTextFactory> _instances =
+    Maps.newHashMap();
+
+  /** The width/height of the glyph textures. */
+  protected static final int TEXTURE_SIZE = 256;
 }

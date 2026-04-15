@@ -27,14 +27,8 @@ package com.threerings.opengl.gui.config;
 
 import java.awt.Font;
 
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import org.lwjgl.BufferUtils;
 
 import com.samskivert.util.IntTuple;
 import com.threerings.config.ManagedConfig;
@@ -56,8 +50,6 @@ import static com.threerings.opengl.gui.Log.log;
  */
 public class FontConfig extends ManagedConfig
 {
-  public static final String DEFAULT_FONT = "font/InterVariable.ttf";
-
   /** An object to use when the config cannot be resolved. */
   public static final FontConfig NULL = new FontConfig();
 
@@ -155,15 +147,14 @@ public class FontConfig extends ManagedConfig
     @Override
     public TextFactory getTextFactory (GlContext ctx, int style, int size)
     {
-      int effectiveStyle = style | baseStyle.getFlags();
-      return CharacterTextFactory.getInstance(getFontData(ctx),
-          effectiveStyle, size + sizeModifier, antialias, descentModifier, heightModifier);
+      return CharacterTextFactory.getInstance(
+          getFont(ctx, style, size), antialias, descentModifier, heightModifier);
     }
 
     @Override
-    public void invalidate ()
+    public void invalidate()
     {
-      _fontData = null;
+      _fonts.clear();
     }
 
     @Override
@@ -180,21 +171,42 @@ public class FontConfig extends ManagedConfig
       return allowNegativeSpacing ? spacing : Math.max(0, spacing);
     }
 
-    /** Loads and caches the raw TTF data as a direct ByteBuffer (required by STB). */
-    protected ByteBuffer getFontData (GlContext ctx)
+    /**
+     * Returns the cached font with the specified style and size.
+     */
+    protected Font getFont (GlContext ctx, int style, int size)
     {
-      var fd = _fontData;
-      if (fd == null) {
-        if (file != null) fd = readToDirectBuffer(ctx, file);
-        if (fd == null) fd = getDefaultFontData(ctx);
-        _fontData = fd;
+      IntTuple key = new IntTuple(style, size);
+      Font font = _fonts.get(key);
+      if (font == null) {
+        _fonts.put(key, font = createFont(ctx, style, size));
       }
-      return fd;
+      return font;
     }
 
-    /** Cached font data. */
+    /**
+     * Creates the font with the specified style and size.
+     */
+    protected Font createFont (GlContext ctx, int style, int size)
+    {
+      if (style != Font.PLAIN || size != 1) {
+        style |= baseStyle.getFlags();
+        return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size + sizeModifier);
+      }
+      if (file != null) {
+        try {
+          return Font.createFont(
+            Font.TRUETYPE_FONT, ctx.getResourceManager().getResource(file));
+        } catch (Exception e) { // FontFormatException, IOException
+          log.warning("Failed to load font file.", "file", file, e);
+        }
+      }
+      return new Font("Dialog", Font.PLAIN, 1);
+    }
+
+    /** Cached font instances. */
     @DeepOmit
-    protected transient ByteBuffer _fontData;
+    protected transient HashMap<IntTuple, Font> _fonts = new HashMap<IntTuple, Font>();
   }
 
   /** The actual font implementation. */
@@ -238,27 +250,4 @@ public class FontConfig extends ManagedConfig
   {
     implementation.getUpdateResources(paths);
   }
-
-  /** Read a font's data into a direct ByteBuffer (required by STB). */
-  protected static ByteBuffer readToDirectBuffer (GlContext ctx, String file)
-  {
-    try (InputStream in = ctx.getResourceManager().getResource(file)) {
-      byte[] bytes = in.readAllBytes();
-      ByteBuffer buf = BufferUtils.createByteBuffer(bytes.length);
-      return buf.put(bytes).flip();
-    } catch (Exception e) {
-      log.warning("Failed to load font file.", "file", file, e);
-      return null;
-    }
-  }
-
-  /** Returns a minimal default font for fallback when no TTF file is configured. */
-  static ByteBuffer getDefaultFontData (GlContext ctx)
-  {
-    var dfd = _defaultFontData;
-    if (dfd == null) dfd = _defaultFontData = readToDirectBuffer(ctx, DEFAULT_FONT);
-    return dfd;
-  }
-
-  private static ByteBuffer _defaultFontData;
 }
