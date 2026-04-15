@@ -54,21 +54,7 @@ public class TextureRenderer
    */
   public static TextureRenderer getInstance (GlContext ctx, Texture color, Texture depth)
   {
-    return getInstance(ctx, color, depth, -1, -1);
-  }
-
-  /**
-   * Retrieves the shared texture renderer instance for the supplied textures.
-   */
-  public static TextureRenderer getInstance (
-    GlContext ctx, Texture color, Texture depth, int width, int height)
-  {
-    InstanceKey key = new InstanceKey(color, depth);
-    TextureRenderer instance = _instances.get(key);
-    if (instance == null) {
-      _instances.put(key, instance = new TextureRenderer(ctx, color, depth, width, height));
-    }
-    return instance;
+    return new TextureRenderer(ctx, color, depth, -1, -1);
   }
 
   /**
@@ -76,10 +62,19 @@ public class TextureRenderer
    */
   public TextureRenderer (GlContext ctx, Texture color, Texture depth, int width, int height)
   {
+    this(ctx, color, depth, width, height, true, true);
+  }
+
+  public TextureRenderer (
+    GlContext ctx, Texture color, Texture depth, int width, int height,
+    boolean depthBits, boolean stencilBits)
+  {
     _ctx = ctx;
     _renderer = ctx.getRenderer();
     _color = color;
     _depth = depth;
+    _depthBits = depthBits;
+    _stencilBits = stencilBits;
     Texture tex = (color == null) ? depth : color;
     int twidth = tex.getWidth(), theight = tex.getHeight();
 
@@ -208,13 +203,12 @@ public class TextureRenderer
     }
     if (_depth != null) {
       _framebuffer.setDepthAttachment(_depth);
-      log.info("We already have a depth attachment");
-    } else {
+    } else if (_depthBits) {
       Renderbuffer dbuf = new Renderbuffer(_renderer);
       dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
       _framebuffer.setDepthAttachment(dbuf);
     }
-    if (true) { // stencil
+    if (_stencilBits) {
       Renderbuffer sbuf = new Renderbuffer(_renderer);
       sbuf.setStorage(GL11.GL_STENCIL_INDEX, twidth, theight);
       _framebuffer.setStencilAttachment(sbuf);
@@ -242,12 +236,12 @@ public class TextureRenderer
     _width = width;
     _height = height;
     if (_framebuffer != null) {
-      if (_depth == null) {
+      if (_depth == null && _depthBits) {
         Renderbuffer dbuf = new Renderbuffer(_renderer);
         dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, width, height);
         _framebuffer.setDepthAttachment(dbuf);
       }
-      if (true) {
+      if (_stencilBits) {
         Renderbuffer sbuf = new Renderbuffer(_renderer);
         sbuf.setStorage(GL11.GL_STENCIL_INDEX, width, height);
         _framebuffer.setStencilAttachment(sbuf);
@@ -331,38 +325,11 @@ public class TextureRenderer
     }
   }
 
-  /**
-   * Identifies a shared texture renderer instance.
-   */
-  protected static class InstanceKey
-  {
-    public InstanceKey (Texture color, Texture depth)
-    {
-      _color = new WeakReference<Texture>(color);
-      _depth = new WeakReference<Texture>(depth);
-    }
-
-    @Override
-    public int hashCode ()
-    {
-      return System.identityHashCode(_color.get()) ^
-        System.identityHashCode(_depth.get());
-    }
-
-    @Override
-    public boolean equals (Object other)
-    {
-      InstanceKey okey = (InstanceKey)other;
-      return _color.get() == okey._color.get() && _depth.get() == okey._depth.get();
-    }
-
-    protected WeakReference<Texture> _color, _depth;
-  }
-
   protected GlContext _ctx;
   protected Renderer _renderer;
   protected int _width, _height;
   protected boolean _matchTextureDimensions;
+  protected boolean _depthBits, _stencilBits;
   protected Texture _color, _depth;
   protected Framebuffer _framebuffer;
   protected int _level;
@@ -370,6 +337,4 @@ public class TextureRenderer
   protected Rectangle _oviewport = new Rectangle();
   protected Framebuffer _obuffer;
   protected int _odraw, _oread;
-
-  protected static Map<InstanceKey, TextureRenderer> _instances = CacheUtil.softValues();
 }

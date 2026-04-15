@@ -79,7 +79,7 @@ public abstract class TargetConfig extends DeepObject
       TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
       com.threerings.opengl.renderer.Texture dtex =
         (dconfig == null) ? null : dconfig.getTexture(ctx);
-      return TextureRenderer.getInstance(ctx, ctex, dtex);
+      return new TextureRenderer(ctx, ctex, dtex, -1, -1, depthBits > 0, stencilBits > 0);
     }
 
     @Override

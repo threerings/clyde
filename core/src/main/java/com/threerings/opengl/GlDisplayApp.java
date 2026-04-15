@@ -492,13 +492,12 @@ public abstract class GlDisplayApp extends GlApp
 
     // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
     float cs = getContentScale();
-    log.info("Starter content scale: " + cs, "pend", _pendingMode);
     int initWidth = (_pendingMode != null) ? (int)(_pendingMode.width / cs) : 800;
     int initHeight = (_pendingMode != null) ? (int)(_pendingMode.height / cs) : 600;
     _window = GLFW.glfwCreateWindow(initWidth, initHeight,
       _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
     if (_window == MemoryUtil.NULL) {
-      log.warning("Couldn't find valid pixel format.");
+      log.warning("Couldn't create window!");
       return false;
     }
 
