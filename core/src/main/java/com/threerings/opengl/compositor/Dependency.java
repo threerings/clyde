@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.compositor;
 
-import com.threerings.opengl.lwjgl2.PixelFormat;
-
 import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -215,8 +213,7 @@ public abstract class Dependency
       transform.getMatrix().setToReflection(eyePlane);
       ocamera.getWorldTransform().compose(transform, transform);
       ncamera.updateTransform();
-      TextureRenderer renderer = TextureRenderer.getInstance(
-        _ctx, texture, null, new PixelFormat(8, 16, 8));
+      TextureRenderer renderer = TextureRenderer.getInstance(_ctx, texture, null);
       renderer.startRender();
       try {
         compositor.performSubrender(this);
@@ -266,8 +263,7 @@ public abstract class Dependency
       transform.getMatrix().setToSkew(eyePlane, _v0.set(_v1.x, _v1.y, _v1.z - normal.z));
       ocamera.getWorldTransform().compose(transform, transform);
       ncamera.updateTransform();
-      TextureRenderer renderer = TextureRenderer.getInstance(
-        _ctx, texture, null, new PixelFormat(8, 16, 8));
+      TextureRenderer renderer = TextureRenderer.getInstance(_ctx, texture, null);
       renderer.startRender();
       try {
         compositor.performSubrender(this);
@@ -337,8 +333,7 @@ public abstract class Dependency
       Quaternion rot = new Quaternion();
       ocamera.getWorldTransform().extractRotation(rot);
       ncamera.getWorldTransform().set(origin, rot, 1f);
-      TextureRenderer renderer = TextureRenderer.getInstance(
-        _ctx, texture, null, new PixelFormat(8, 16, 8));
+      TextureRenderer renderer = TextureRenderer.getInstance(_ctx, texture, null);
       try {
         for (int ii = 0; ii < 6; ii++) {
           if ((faces & (1 << ii)) == 0) {
@@ -475,8 +470,7 @@ public abstract class Dependency
       Transform3D transform = ncamera.getWorldTransform();
       Light.Type lightType = data.light.getType();
       Vector4f pos = data.light.position;
-      TextureRenderer renderer = TextureRenderer.getInstance(
-        _ctx, color, depth, new PixelFormat(8, 16, 8));
+      TextureRenderer renderer = TextureRenderer.getInstance(_ctx, color, depth);
       if (lightType == Light.Type.POINT) {
         ncamera.setFrustum(-data.near, +data.near, -data.near, +data.near,
           data.near, data.far);

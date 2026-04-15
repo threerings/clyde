@@ -38,7 +38,6 @@ import org.lwjgl.opengl.GL;
 import com.threerings.util.CacheUtil;
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.gui.util.Rectangle;
-import com.threerings.opengl.lwjgl2.PixelFormat;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.log;
@@ -53,23 +52,21 @@ public class TextureRenderer
   /**
    * Retrieves the shared texture renderer instance for the supplied textures.
    */
-  public static TextureRenderer getInstance (
-    GlContext ctx, Texture color, Texture depth, PixelFormat pformat)
+  public static TextureRenderer getInstance (GlContext ctx, Texture color, Texture depth)
   {
-    return getInstance(ctx, color, depth, -1, -1, pformat);
+    return getInstance(ctx, color, depth, -1, -1);
   }
 
   /**
    * Retrieves the shared texture renderer instance for the supplied textures.
    */
   public static TextureRenderer getInstance (
-    GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
+    GlContext ctx, Texture color, Texture depth, int width, int height)
   {
     InstanceKey key = new InstanceKey(color, depth);
     TextureRenderer instance = _instances.get(key);
     if (instance == null) {
-      _instances.put(key,
-        instance = new TextureRenderer(ctx, color, depth, width, height, pformat));
+      _instances.put(key, instance = new TextureRenderer(ctx, color, depth, width, height));
     }
     return instance;
   }
@@ -77,14 +74,12 @@ public class TextureRenderer
   /**
    * Creates a new texture renderer to render into the specified texture(s).
    */
-  public TextureRenderer (
-    GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
+  public TextureRenderer (GlContext ctx, Texture color, Texture depth, int width, int height)
   {
     _ctx = ctx;
     _renderer = ctx.getRenderer();
     _color = color;
     _depth = depth;
-    _pformat = pformat;
     Texture tex = (color == null) ? depth : color;
     int twidth = tex.getWidth(), theight = tex.getHeight();
 
@@ -213,16 +208,13 @@ public class TextureRenderer
     }
     if (_depth != null) {
       _framebuffer.setDepthAttachment(_depth);
+      log.info("We already have a depth attachment");
     } else {
-      int dbits = _pformat.depthBits;
-      if (dbits > 0) {
-        Renderbuffer dbuf = new Renderbuffer(_renderer);
-        dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
-        _framebuffer.setDepthAttachment(dbuf);
-      }
+      Renderbuffer dbuf = new Renderbuffer(_renderer);
+      dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
+      _framebuffer.setDepthAttachment(dbuf);
     }
-    int sbits = _pformat.stencilBits;
-    if (sbits > 0) {
+    if (true) { // stencil
       Renderbuffer sbuf = new Renderbuffer(_renderer);
       sbuf.setStorage(GL11.GL_STENCIL_INDEX, twidth, theight);
       _framebuffer.setStencilAttachment(sbuf);
@@ -250,12 +242,12 @@ public class TextureRenderer
     _width = width;
     _height = height;
     if (_framebuffer != null) {
-      if (_depth == null && _pformat.depthBits > 0) {
+      if (_depth == null) {
         Renderbuffer dbuf = new Renderbuffer(_renderer);
         dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, width, height);
         _framebuffer.setDepthAttachment(dbuf);
       }
-      if (_pformat.stencilBits > 0) {
+      if (true) {
         Renderbuffer sbuf = new Renderbuffer(_renderer);
         sbuf.setStorage(GL11.GL_STENCIL_INDEX, width, height);
         _framebuffer.setStencilAttachment(sbuf);
@@ -371,7 +363,6 @@ public class TextureRenderer
   protected Renderer _renderer;
   protected int _width, _height;
   protected boolean _matchTextureDimensions;
-  protected PixelFormat _pformat;
   protected Texture _color, _depth;
   protected Framebuffer _framebuffer;
   protected int _level;

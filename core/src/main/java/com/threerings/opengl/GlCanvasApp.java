@@ -51,7 +51,6 @@ import com.threerings.math.Ray3D;
 
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
-import com.threerings.opengl.lwjgl2.PixelFormat;
 import static com.threerings.opengl.Log.log;
 
 /**

@@ -37,7 +37,6 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
@@ -492,44 +491,11 @@ public abstract class GlApp extends DynamicScope
   }
 
   /**
-   * Returns the pixel formats to use in attempting to create the display, in order of
-   * preference.
-   */
-  protected PixelFormat[] getPixelFormats ()
-  {
-    return getPixelFormats(getAntialiasingLevel());
-  }
-
-  /**
    * Returns the antialiasing level desired.
    */
   protected int getAntialiasingLevel ()
   {
     return 0;
-  }
-
-  /**
-   * Returns the pixel formats to use in attempting to create the display, in order of
-   * preference.
-   *
-   * @param antialiasingLevel the antialiasing level desired.
-   */
-  protected static PixelFormat[] getPixelFormats (int antialiasingLevel)
-  {
-    if (antialiasingLevel == 0) {
-      return DEFAULT_PIXEL_FORMATS;
-    }
-    // keep dividing the number of samples by two until we reach one
-    int levels = antialiasingLevel + 1;
-    PixelFormat[] formats = new PixelFormat[DEFAULT_PIXEL_FORMATS.length * levels];
-    for (int ii = 0; ii < levels; ii++, antialiasingLevel--) {
-      for (int jj = 0; jj < DEFAULT_PIXEL_FORMATS.length; jj++) {
-        formats[ii * DEFAULT_PIXEL_FORMATS.length + jj] =
-          DEFAULT_PIXEL_FORMATS[jj].withSamples(
-            antialiasingLevel == 0 ? 0 : 1 << antialiasingLevel);
-      }
-    }
-    return formats;
   }
 
   /** The OpenGL renderer. */
@@ -611,18 +577,4 @@ public abstract class GlApp extends DynamicScope
 
   /** Used to compute listener orientation. */
   protected Vector3f _at = new Vector3f(), _up = new Vector3f();
-
-  /** Our default supported pixel formats in order of preference. */
-  protected static final PixelFormat[] DEFAULT_PIXEL_FORMATS =
-  RunAnywhere.isMacOS() ? new PixelFormat[] {
-    // Reordered to put first the one that works on my mac 20241213 RJG
-    // Adjusted to only do the new ordering for macs 20250602 RJG
-    new PixelFormat(8, 32, 0),
-    new PixelFormat(8, 24, 0),
-    new PixelFormat(8, 16, 0), new PixelFormat(0, 8, 0),
-    new PixelFormat(8, 16, 8), new PixelFormat(1, 16, 8), new PixelFormat(0, 16, 8) }
-  : new PixelFormat[] {
-    new PixelFormat(8, 16, 8), new PixelFormat(1, 16, 8),
-    new PixelFormat(0, 16, 8), new PixelFormat(0, 8, 0)
-  };
 }

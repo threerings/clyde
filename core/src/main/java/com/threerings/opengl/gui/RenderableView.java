@@ -30,7 +30,6 @@ import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -270,8 +269,7 @@ public class RenderableView extends Component
         texture.setImage(GL11.GL_RGBA, twidth, theight, false, false);
       }
       _image = new Image(texture, width, height);
-      _renderer = new TextureRenderer(
-        _ctx, texture, null, width, height, new PixelFormat(1, 8, 0));
+      _renderer = new TextureRenderer(_ctx, texture, null, width, height);
     }
     _renderer.startRender();
     try {

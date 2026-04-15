@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.compositor.config;
 
-import com.threerings.opengl.lwjgl2.PixelFormat;
-
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -81,9 +79,7 @@ public abstract class TargetConfig extends DeepObject
       TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
       com.threerings.opengl.renderer.Texture dtex =
         (dconfig == null) ? null : dconfig.getTexture(ctx);
-      int alphaBits = (ctex != null && ctex.hasAlpha()) ? 1 : 0;
-      return TextureRenderer.getInstance(
-        ctx, ctex, dtex, new PixelFormat(alphaBits, depthBits, stencilBits));
+      return TextureRenderer.getInstance(ctx, ctex, dtex);
     }
 
     @Override

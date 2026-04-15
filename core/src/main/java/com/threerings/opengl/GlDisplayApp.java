@@ -43,7 +43,6 @@ import com.samskivert.util.RunQueue;
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.lwjgl2.DisplayMode;
-import com.threerings.opengl.lwjgl2.PixelFormat;
 
 import static com.threerings.opengl.Log.log;
 
@@ -485,45 +484,35 @@ public abstract class GlDisplayApp extends GlApp
   protected boolean createDisplay ()
   {
     ensureGlfwInit();
-    if (!_glfwInited) {
+    if (!_glfwInited) return false;
+
+    GLFW.glfwDefaultWindowHints();
+    GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+    GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+
+    // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
+    float cs = getContentScale();
+    log.info("Starter content scale: " + cs, "pend", _pendingMode);
+    int initWidth = (_pendingMode != null) ? (int)(_pendingMode.width / cs) : 800;
+    int initHeight = (_pendingMode != null) ? (int)(_pendingMode.height / cs) : 600;
+    _window = GLFW.glfwCreateWindow(initWidth, initHeight,
+      _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
+    if (_window == MemoryUtil.NULL) {
+      log.warning("Couldn't find valid pixel format.");
       return false;
     }
 
-    // Try pixel formats in order of preference
-    for (PixelFormat format : getPixelFormats()) {
-      GLFW.glfwDefaultWindowHints();
-      GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
-      GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
-      GLFW.glfwWindowHint(GLFW.GLFW_ALPHA_BITS, format.alphaBits);
-      GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, format.depthBits);
-      GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, format.stencilBits);
-      if (format.samples > 0) {
-        GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, format.samples);
-      }
-
-      // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
-      float cs = getContentScale();
-      int initWidth = (_pendingMode != null) ? (int)(_pendingMode.width / cs) : 800;
-      int initHeight = (_pendingMode != null) ? (int)(_pendingMode.height / cs) : 600;
-      _window = GLFW.glfwCreateWindow(initWidth, initHeight,
-        _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
-      if (_window != MemoryUtil.NULL) {
-        GLFW.glfwMakeContextCurrent(_window);
-        GL.createCapabilities();
-        GLFW.glfwSwapInterval(_vsync ? 1 : 0);
-        GLFW.glfwSetFramebufferSizeCallback(_window, (win, w, h) -> {
-          _fbWidth = w;
-          _fbHeight = h;
-          _wasResized = true;
-        });
-        _pendingMode = null;
-        GLFW.glfwPollEvents();
-        return true;
-      }
-    }
-
-    log.warning("Couldn't find valid pixel format.");
-    return false;
+    GLFW.glfwMakeContextCurrent(_window);
+    GL.createCapabilities();
+    GLFW.glfwSwapInterval(_vsync ? 1 : 0);
+    GLFW.glfwSetFramebufferSizeCallback(_window, (win, w, h) -> {
+      _fbWidth = w;
+      _fbHeight = h;
+      _wasResized = true;
+    });
+    _pendingMode = null;
+    GLFW.glfwPollEvents();
+    return true;
   }
 
   /**

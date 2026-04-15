@@ -35,8 +35,6 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 
-import com.threerings.opengl.lwjgl2.PixelFormat;
-
 import static com.threerings.opengl.Log.log;
 
 /**
@@ -50,7 +48,7 @@ public class AWTCanvas extends Canvas
   /**
    * Creates a canvas with the supplied pixel format.
    */
-  public AWTCanvas (PixelFormat pformat)
+  public AWTCanvas ()
     throws Exception
   {
     if (!GLFW.glfwInit()) {
@@ -59,12 +57,6 @@ public class AWTCanvas extends Canvas
 
     GLFW.glfwDefaultWindowHints();
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
-    GLFW.glfwWindowHint(GLFW.GLFW_ALPHA_BITS, pformat.alphaBits);
-    GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, pformat.depthBits);
-    GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, pformat.stencilBits);
-    if (pformat.samples > 0) {
-      GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, pformat.samples);
-    }
 
     _window = GLFW.glfwCreateWindow(800, 600, "", MemoryUtil.NULL, MemoryUtil.NULL);
     if (_window == MemoryUtil.NULL) {
