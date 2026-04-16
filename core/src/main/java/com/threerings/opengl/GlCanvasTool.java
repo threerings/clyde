@@ -320,7 +320,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     public void didInit ()
     {
       // initialize vertical synchronization
-      ((GlCanvas)_canvas).setVSyncEnabled(getVSyncEnabled());
+      _canvas.setVSyncEnabled(getVSyncEnabled());
       _sync60 = getSync60();
 
       // set the grid color
@@ -413,7 +413,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     @Editable(weight=5)
     public void setVSyncEnabled (boolean enabled)
     {
-      ((GlCanvas)_canvas).setVSyncEnabled(enabled);
+      _canvas.setVSyncEnabled(enabled);
       _prefs.putBoolean("vsync_enabled", enabled);
     }
 

@@ -26,7 +26,6 @@
 package com.threerings.opengl;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
@@ -120,7 +119,7 @@ public abstract class GlCanvasApp extends GlApp
   /**
    * Returns a reference to the canvas.
    */
-  public Component getCanvas ()
+  public GlCanvas getCanvas ()
   {
     return _canvas;
   }
@@ -153,7 +152,7 @@ public abstract class GlCanvasApp extends GlApp
   // documentation inherited from interface GlContext
   public void makeCurrent ()
   {
-    ((GlCanvas)_canvas).makeCurrent();
+    _canvas.makeCurrent();
   }
 
   @Override
@@ -181,7 +180,7 @@ public abstract class GlCanvasApp extends GlApp
   public void shutdown ()
   {
     willShutdown();
-    ((GlCanvas)_canvas).shutdown();
+    _canvas.shutdown();
     System.exit(0);
   }
 
@@ -190,7 +189,7 @@ public abstract class GlCanvasApp extends GlApp
   {
     // Use framebuffer pixel dimensions (accounts for HiDPI/Retina scaling)
     float scale = getPixelScaleFactor();
-    _renderer.init(((GlCanvas)_canvas).getWindowHandle(),
+    _renderer.init(_canvas.getWindowHandle(),
       Math.round(_canvas.getWidth() * scale),
       Math.round(_canvas.getHeight() * scale));
   }
@@ -199,7 +198,7 @@ public abstract class GlCanvasApp extends GlApp
   protected void didInit ()
   {
     // enable vsync unless configured otherwise
-    ((GlCanvas)_canvas).setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+    _canvas.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
 
     // notify the renderer on resize (use framebuffer pixel dimensions)
     _canvas.addComponentListener(new ComponentAdapter() {
@@ -230,10 +229,9 @@ public abstract class GlCanvasApp extends GlApp
   /**
    * Creates a canvas using one of our supported pixel formats.
    */
-  protected Component createCanvas ()
+  protected GlCanvas createCanvas ()
   {
-    // Use DisplayCanvas for all platforms (AWTGLCanvas no longer available in LWJGL 3)
-    return new DisplayCanvas(getAntialiasingLevel()) {
+    return new GlCanvas(getAntialiasingLevel()) {
       @Override protected void didInit () {
         GlCanvasApp.this.init();
       }
@@ -264,7 +262,7 @@ public abstract class GlCanvasApp extends GlApp
   protected float _scale;
 
   /** The render canvas. */
-  protected Component _canvas;
+  protected GlCanvas _canvas;
 
   /** The root. */
   protected Root _canvasRoot;

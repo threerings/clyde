@@ -25,7 +25,6 @@
 
 package com.threerings.opengl.gui;
 
-import java.awt.Component;
 import com.threerings.opengl.lwjgl2.Keyboard;
 
 import com.threerings.math.FloatMath;
@@ -46,11 +45,10 @@ public class CanvasRoot extends Root
   implements java.awt.event.MouseListener, java.awt.event.MouseMotionListener,
         java.awt.event.MouseWheelListener, java.awt.event.KeyListener
 {
-  public CanvasRoot (GlContext ctx, Component canvas)
+  public CanvasRoot (GlContext ctx, GlCanvas canvas)
   {
     super(ctx);
     _canvas = canvas;
-    _glCanvas = (canvas instanceof GlCanvas) ? (GlCanvas)canvas : null;
     _clipboard = canvas.getToolkit().getSystemClipboard();
 
     // set our UI scale to match the display scale
@@ -160,7 +158,7 @@ public class CanvasRoot extends Root
     if (cursor == null) _canvas.setCursor(null);
     else {
       _canvas.setCursor(cursor.getAWTCursor(_canvas.getToolkit()));
-      cursor.show(); // hack for DisplayCanvas
+      cursor.show(); // hack for GlCanvas
     }
   }
 
@@ -352,6 +350,5 @@ public class CanvasRoot extends Root
     }
   }
 
-  protected Component _canvas;
-  protected GlCanvas _glCanvas;
+  protected GlCanvas _canvas;
 }
