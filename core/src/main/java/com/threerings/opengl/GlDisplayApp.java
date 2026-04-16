@@ -250,16 +250,13 @@ public abstract class GlDisplayApp extends GlApp
   {
     ensureGlfwInit();
     long monitor = GLFW.glfwGetPrimaryMonitor();
-    if (monitor == MemoryUtil.NULL) {
-      return new DisplayMode(1024, 768);
+    if (monitor != MemoryUtil.NULL) {
+      GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
+      if (vidMode != null) {
+        return new DisplayMode(vidMode.width(), vidMode.height(), vidMode.refreshRate(), true);
+      }
     }
-    GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
-    if (vidMode == null) {
-      return new DisplayMode(1024, 768);
-    }
-    return new DisplayMode(vidMode.width(), vidMode.height(),
-      vidMode.redBits() + vidMode.greenBits() + vidMode.blueBits(),
-      vidMode.refreshRate(), true);
+    return new DisplayMode(1024, 768);
   }
 
   /**
@@ -276,9 +273,8 @@ public abstract class GlDisplayApp extends GlApp
     DisplayMode[] modes = new DisplayMode[vidModes.limit()];
     for (int ii = 0; ii < vidModes.limit(); ii++) {
       vidModes.position(ii);
-      int bpp = vidModes.redBits() + vidModes.greenBits() + vidModes.blueBits();
       modes[ii] = new DisplayMode(
-        vidModes.width(), vidModes.height(), bpp, vidModes.refreshRate(), true);
+        vidModes.width(), vidModes.height(), vidModes.refreshRate(), true);
     }
     return modes;
   }
