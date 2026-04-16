@@ -49,13 +49,4 @@ public interface GlCanvas
    * Shuts down the canvas.
    */
   public void shutdown ();
-
-  /**
-   * Returns the ratio of framebuffer pixels to AWT logical points.
-   * On standard displays this is 1; on HiDPI/Retina it is typically 2.
-   */
-  default int getPixelScale ()
-  {
-    return 1;
-  }
 }

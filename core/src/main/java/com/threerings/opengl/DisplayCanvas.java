@@ -148,19 +148,6 @@ public class DisplayCanvas extends JPanel
   }
 
   // documentation inherited from interface GlCanvas
-  public int getPixelScale ()
-  {
-    // Use the AWT graphics transform to get the display's backing scale factor.
-    // This is reliable during resize and startup, unlike computing the ratio of
-    // framebuffer/component widths which races during layout transitions.
-    java.awt.GraphicsConfiguration gc = _glCanvas.getGraphicsConfiguration();
-    if (gc != null) {
-      return Math.max(1, (int)gc.getDefaultTransform().getScaleX());
-    }
-    return 1;
-  }
-
-  // documentation inherited from interface GlCanvas
   public long getWindowHandle ()
   {
     return 0; // no GLFW window; context is managed by lwjgl3-awt

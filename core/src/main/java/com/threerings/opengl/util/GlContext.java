@@ -70,6 +70,14 @@ public interface GlContext extends AlContext, ResourceColorContext
   public Renderer getRenderer ();
 
   /**
+   * Return the screen's scale factor. (2.0 on "retina", 1.0 otherwise.)
+   */
+  public default float getPixelScaleFactor ()
+  {
+    return 1f;
+  }
+
+  /**
    * Returns a reference to the compositor.
    */
   public Compositor getCompositor ();

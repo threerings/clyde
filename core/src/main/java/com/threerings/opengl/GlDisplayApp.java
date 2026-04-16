@@ -85,9 +85,7 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setWindowSize (int width, int height)
   {
-    // Convert pixel dimensions to screen coordinates for GLFW
-    float scale = getContentScale();
-    GLFW.glfwSetWindowSize(_window, (int)(width / scale), (int)(height / scale));
+    GLFW.glfwSetWindowSize(_window, width, height);
     updateRendererSize();
   }
 
@@ -223,23 +221,16 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwPollEvents();
   }
 
-  /**
-   * Returns the content scale factor for the primary monitor (2.0 on Retina, 1.0 otherwise).
-   */
-  public float getContentScale ()
+  @Override
+  public float getPixelScaleFactor ()
   {
+    if (_scale > 0) return _scale;
     ensureGlfwInit();
     long monitor = GLFW.glfwGetPrimaryMonitor();
     if (monitor == MemoryUtil.NULL) return 1f;
     float[] sx = new float[1], sy = new float[1];
     GLFW.glfwGetMonitorContentScale(monitor, sx, sy);
-    return sx[0];
-  }
-
-  @Override
-  public float getPixelScaleFactor ()
-  {
-    return getContentScale();
+    return _scale = sx[0];
   }
 
   /**
@@ -293,10 +284,8 @@ public abstract class GlDisplayApp extends GlApp
         mode.width, mode.height,
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
     } else {
-      // Windowed: convert pixel dimensions to screen coordinates for GLFW
-      float scale = getContentScale();
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
-        100, 100, (int)(mode.width / scale), (int)(mode.height / scale),
+        100, 100, mode.width, mode.height,
         GLFW.GLFW_DONT_CARE);
     }
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
@@ -378,6 +367,7 @@ public abstract class GlDisplayApp extends GlApp
     if (_window != MemoryUtil.NULL) {
       GLFW.glfwDestroyWindow(_window);
       _window = MemoryUtil.NULL;
+      _scale = 0;
     }
     GLFW.glfwTerminate();
     System.exit(0);
@@ -487,11 +477,19 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
 
     // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
-    float cs = getContentScale();
-    int initWidth = (_pendingMode != null) ? (int)(_pendingMode.width / cs) : 800;
-    int initHeight = (_pendingMode != null) ? (int)(_pendingMode.height / cs) : 600;
+    int initWidth, initHeight;
+    if (_pendingMode != null) {
+      initWidth = _pendingMode.width;
+      initHeight = _pendingMode.height;
+    } else {
+      // guess a default, bigger for retina screens
+      float scale = getPixelScaleFactor();
+      initWidth = Math.round(1024 * scale);
+      initHeight = Math.round(768 * scale);
+    }
     _window = GLFW.glfwCreateWindow(initWidth, initHeight,
       _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
+    _scale = 0;
     if (_window == MemoryUtil.NULL) {
       log.warning("Couldn't create window!");
       return false;
@@ -535,6 +533,9 @@ public abstract class GlDisplayApp extends GlApp
 
   /** The GLFW window handle. */
   protected long _window = MemoryUtil.NULL;
+
+  /** Our cached screen scale, probably 1 or 2, or 0 if not yet set. */
+  protected float _scale;
 
   /** The window title (stored so it can be set before window creation). */
   protected String _title;

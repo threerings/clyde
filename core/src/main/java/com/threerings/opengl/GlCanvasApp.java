@@ -105,6 +105,18 @@ public abstract class GlCanvasApp extends GlApp
     return _frame;
   }
 
+  @Override
+  public float getPixelScaleFactor ()
+  {
+    if (_scale > 0) return _scale;
+    if (_canvas == null) {
+      throw new RuntimeException("Oh no, asked for scale factor prior to canvas being created?");
+    }
+    java.awt.GraphicsConfiguration gc = _canvas.getGraphicsConfiguration();
+    if (gc == null) return 1f;
+    return _scale = Math.max(1f, (float)gc.getDefaultTransform().getScaleX());
+  }
+
   /**
    * Returns a reference to the canvas.
    */
@@ -132,10 +144,10 @@ public abstract class GlCanvasApp extends GlApp
    */
   public void getPickRay (int x, int y, Ray3D result)
   {
+    float scale = getPixelScaleFactor();
     // scale from AWT logical points to framebuffer pixels, then flip vertically
-    int scale = ((GlCanvas)_canvas).getPixelScale();
-    _compositor.getCamera().getPickRay(
-      x * scale, _canvas.getHeight() * scale - y * scale - 1, result);
+    _compositor.getCamera().getPickRay(Math.round(x * scale),
+      Math.round(((_canvas.getHeight() - y) * scale) - 1), result);
   }
 
   // documentation inherited from interface GlContext
@@ -155,7 +167,6 @@ public abstract class GlCanvasApp extends GlApp
   {
     if (_canvasRoot == null) {
       _canvasRoot = new CanvasRoot(this, _canvas);
-      _canvasRoot.setScale(getPixelScaleFactor());
     }
     return _canvasRoot;
   }
@@ -164,12 +175,6 @@ public abstract class GlCanvasApp extends GlApp
   public void startup ()
   {
     _frame.setVisible(true);
-  }
-
-  @Override
-  public float getPixelScaleFactor ()
-  {
-    return _canvas instanceof GlCanvas glCanvas ? glCanvas.getPixelScale() : 1f;
   }
 
   @Override
@@ -184,9 +189,10 @@ public abstract class GlCanvasApp extends GlApp
   protected void initRenderer ()
   {
     // Use framebuffer pixel dimensions (accounts for HiDPI/Retina scaling)
-    int scale = ((GlCanvas)_canvas).getPixelScale();
+    float scale = getPixelScaleFactor();
     _renderer.init(((GlCanvas)_canvas).getWindowHandle(),
-      _canvas.getWidth() * scale, _canvas.getHeight() * scale);
+      Math.round(_canvas.getWidth() * scale),
+      Math.round(_canvas.getHeight() * scale));
   }
 
   @Override
@@ -198,11 +204,9 @@ public abstract class GlCanvasApp extends GlApp
     // notify the renderer on resize (use framebuffer pixel dimensions)
     _canvas.addComponentListener(new ComponentAdapter() {
       public void componentResized (ComponentEvent event) {
-        int scale = ((GlCanvas)_canvas).getPixelScale();
-        _renderer.setSize(_canvas.getWidth() * scale, _canvas.getHeight() * scale);
-        if (_canvasRoot != null) {
-          _canvasRoot.setScale(scale);
-        }
+        float scale = getPixelScaleFactor();
+        _renderer.setSize(Math.round(_canvas.getWidth() * scale),
+            Math.round(_canvas.getHeight() * scale));
       }
     });
 
@@ -255,6 +259,9 @@ public abstract class GlCanvasApp extends GlApp
 
   /** The frame containing the canvas. */
   protected JFrame _frame;
+
+  /** Our cached screen scale. */
+  protected float _scale;
 
   /** The render canvas. */
   protected Component _canvas;
