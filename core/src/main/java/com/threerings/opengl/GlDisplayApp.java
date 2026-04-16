@@ -81,15 +81,6 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
-   * Sets the window size in screen coordinates.
-   */
-  public void setWindowSize (int width, int height)
-  {
-    GLFW.glfwSetWindowSize(_window, width, height);
-    updateRendererSize();
-  }
-
-  /**
    * Returns whether the window is currently fullscreen.
    */
   public boolean isFullscreen ()
@@ -123,25 +114,6 @@ public abstract class GlDisplayApp extends GlApp
     boolean resized = _wasResized;
     _wasResized = false;
     return resized;
-  }
-
-  /**
-   * Sets the fullscreen mode.
-   */
-  public void setFullscreen (boolean fullscreen)
-  {
-    if (_window == MemoryUtil.NULL) return;
-    long monitor = GLFW.glfwGetPrimaryMonitor();
-    if (fullscreen) {
-      GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
-      GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
-        vidMode.width(), vidMode.height(), vidMode.refreshRate());
-    } else {
-      GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
-        100, 100, 800, 600, GLFW.GLFW_DONT_CARE);
-    }
-    GLFW.glfwSwapInterval(_vsync ? 1 : 0);
-    updateRendererSize();
   }
 
   /**
@@ -275,8 +247,10 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setDisplayModeAndFullscreen (DisplayMode mode)
   {
-    _pendingMode = mode;
-    if (_window == MemoryUtil.NULL) return;
+    if (_window == MemoryUtil.NULL) {
+      _pendingMode = mode;
+      return;
+    }
     if (mode.fullscreenCapable) {
       // Fullscreen: pixel dimensions match monitor video mode directly
       long monitor = GLFW.glfwGetPrimaryMonitor();
@@ -284,8 +258,11 @@ public abstract class GlDisplayApp extends GlApp
         mode.width, mode.height,
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
     } else {
+      // the size we provide will be multiplied by the pixel scale, so let's divide it..
+      log.info("set window size: " + mode);
+      float scale = getPixelScaleFactor();
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
-        100, 100, mode.width, mode.height,
+        100, 100, Math.round(mode.width / scale), Math.round(mode.height / scale),
         GLFW.GLFW_DONT_CARE);
     }
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
@@ -478,12 +455,13 @@ public abstract class GlDisplayApp extends GlApp
 
     // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
     int initWidth, initHeight;
+    boolean fs = false;
+    float scale = getPixelScaleFactor();
     if (_pendingMode != null) {
-      initWidth = _pendingMode.width;
-      initHeight = _pendingMode.height;
+      initWidth = Math.round(_pendingMode.width / scale);
+      initHeight = Math.round(_pendingMode.height / scale);
     } else {
       // guess a default, bigger for retina screens
-      float scale = getPixelScaleFactor();
       initWidth = Math.round(1024 * scale);
       initHeight = Math.round(768 * scale);
     }
@@ -494,7 +472,15 @@ public abstract class GlDisplayApp extends GlApp
       log.warning("Couldn't create window!");
       return false;
     }
-
+//    // TODO: Untested fullscreen stuff. Needs moving around.
+//    if (_pendingMode != null && _pendingMode.fullscreenCapable) {
+//      // Fullscreen: pixel dimensions match monitor video mode directly
+//      long monitor = GLFW.glfwGetPrimaryMonitor();
+//      GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
+//        _pendingMode.width, _pendingMode.height,
+//        _pendingMode.frequency > 0 ? _pendingMode.frequency : GLFW.GLFW_DONT_CARE);
+//    }
+    _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
     GL.createCapabilities();
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
@@ -503,7 +489,6 @@ public abstract class GlDisplayApp extends GlApp
       _fbHeight = h;
       _wasResized = true;
     });
-    _pendingMode = null;
     GLFW.glfwPollEvents();
     return true;
   }
