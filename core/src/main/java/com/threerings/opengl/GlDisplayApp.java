@@ -238,6 +238,7 @@ public abstract class GlDisplayApp extends GlApp
     DisplayMode[] modes = new DisplayMode[vidModes.limit()];
     for (int ii = 0; ii < vidModes.limit(); ii++) {
       vidModes.position(ii);
+      // But, for some reason, these modes are full pixel? I am confused.
       modes[ii] = new DisplayMode(
         vidModes.width(), vidModes.height(), vidModes.refreshRate(), true);
     }
@@ -263,6 +264,7 @@ public abstract class GlDisplayApp extends GlApp
       // the size we provide will be multiplied by the pixel scale, so let's divide it..
       log.info("set window size: " + mode);
       float scale = getPixelScaleFactor();
+      // TODO: Center window? Something.
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
         100, 100, Math.round(mode.width / scale), Math.round(mode.height / scale),
         GLFW.GLFW_DONT_CARE);
@@ -328,7 +330,8 @@ public abstract class GlDisplayApp extends GlApp
       return;
     }
     GLFW.glfwPostEmptyEvent();
-    mainLoop();
+    mainLoop(); // holds this thread!
+    performShutdown();
   }
 
   @Override
@@ -373,8 +376,6 @@ public abstract class GlDisplayApp extends GlApp
    */
   protected void mainLoop ()
   {
-    _mainThread = Thread.currentThread();
-    _running = true;
     // Pump events before showing the window so macOS NSApplication is ready,
     // then show the window. Showing before the first poll blocks on macOS.
     GLFW.glfwPollEvents();
@@ -400,7 +401,6 @@ public abstract class GlDisplayApp extends GlApp
 
       updateFrame();
     }
-    performShutdown();
   }
 
   @Override
