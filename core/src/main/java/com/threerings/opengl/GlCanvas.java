@@ -26,7 +26,7 @@
 package com.threerings.opengl;
 
 /**
- * An interface implemented by {@link AWTCanvas} and {@link DisplayCanvas}.
+ * An interface implemented by {@link DisplayCanvas}.
  */
 public interface GlCanvas
 {
