@@ -216,10 +216,12 @@ public abstract class GlDisplayApp extends GlApp
     if (monitor != MemoryUtil.NULL) {
       GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
       if (vidMode != null) {
-        return new DisplayMode(vidMode.width(), vidMode.height(), vidMode.refreshRate(), true);
+        float scale = getPixelScaleFactor();
+        return new DisplayMode(Math.round(vidMode.width() * scale),
+          Math.round(vidMode.height() * scale), vidMode.refreshRate(), true);
       }
     }
-    return new DisplayMode(1024, 768);
+    return new DisplayMode(1024, 768); // make something up... ouch!
   }
 
   /**
