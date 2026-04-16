@@ -251,7 +251,7 @@ public abstract class GlDisplayApp extends GlApp
       _pendingMode = mode;
       return;
     }
-    if (mode.fullscreenCapable) {
+    if (mode.fullscreen) {
       // Fullscreen: pixel dimensions match monitor video mode directly
       long monitor = GLFW.glfwGetPrimaryMonitor();
       GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
@@ -473,7 +473,7 @@ public abstract class GlDisplayApp extends GlApp
       return false;
     }
 //    // TODO: Untested fullscreen stuff. Needs moving around.
-//    if (_pendingMode != null && _pendingMode.fullscreenCapable) {
+//    if (_pendingMode != null && _pendingMode.fullscreen) {
 //      // Fullscreen: pixel dimensions match monitor video mode directly
 //      long monitor = GLFW.glfwGetPrimaryMonitor();
 //      GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
