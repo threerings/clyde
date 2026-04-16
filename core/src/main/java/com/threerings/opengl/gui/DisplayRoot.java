@@ -59,9 +59,6 @@ public class DisplayRoot extends Root
   public DisplayRoot (GlContext ctx)
   {
     super(ctx);
-    // Use GLFW clipboard instead of AWT Toolkit to avoid initializing AWT,
-    // which conflicts with GLFW's event loop on macOS with -XstartOnFirstThread.
-    _glfwClipboard = true;
 
     // Try to set up GLFW callbacks now; if the window doesn't exist yet
     // (created before startup()), they'll be installed lazily in poll().
@@ -548,9 +545,6 @@ public class DisplayRoot extends Root
   protected GLFWCursorPosCallback _cursorPosCallback;
   protected GLFWScrollCallback _scrollCallback;
   protected GLFWWindowFocusCallback _focusCallback;
-
-  /** Whether to use GLFW clipboard instead of AWT. */
-  protected boolean _glfwClipboard;
 
   /** The GLFW window handle (cached to avoid repeated lookups). */
   protected long _glfwWindow;
