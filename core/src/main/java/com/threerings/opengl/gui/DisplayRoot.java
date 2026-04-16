@@ -73,11 +73,6 @@ public class DisplayRoot extends Root
     if (!_callbacksInstalled && _ctx.getApp() instanceof GlDisplayApp) {
       _glfwWindow = ((GlDisplayApp)_ctx.getApp()).getWindow();
       if (_glfwWindow != 0) {
-        // Compute pixel scale for HiDPI/Retina: framebuffer pixels / window points
-        int[] fw = new int[1], fh = new int[1], ww = new int[1], wh = new int[1];
-        GLFW.glfwGetFramebufferSize(_glfwWindow, fw, fh);
-        GLFW.glfwGetWindowSize(_glfwWindow, ww, wh);
-        _pixelScale = (ww[0] > 0) ? (float)fw[0] / ww[0] : 1f;
         setupCallbacks(_glfwWindow);
         _callbacksInstalled = true;
       }
@@ -385,10 +380,11 @@ public class DisplayRoot extends Root
         // Capture scaled coordinates immediately
         double[] xpos = new double[1], ypos = new double[1];
         GLFW.glfwGetCursorPos(window, xpos, ypos);
-        int x = (int)(xpos[0] * _pixelScale);
+        float pixelScale = _ctx.getPixelScaleFactor();
+        int x = (int)(xpos[0] * pixelScale);
         int[] ww = new int[1], wh = new int[1];
         GLFW.glfwGetFramebufferSize(window, ww, wh);
-        int y = wh[0] - (int)(ypos[0] * _pixelScale) - 1;
+        int y = wh[0] - (int)(ypos[0] * pixelScale) - 1;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
             if (pressed) {
@@ -407,10 +403,11 @@ public class DisplayRoot extends Root
     _cursorPosCallback = new GLFWCursorPosCallback() {
       @Override
       public void invoke (long window, double xpos, double ypos) {
-        int x = (int)(xpos * _pixelScale);
+        float pixelScale = _ctx.getPixelScaleFactor();
+        int x = (int)(xpos * pixelScale);
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
-        int y = fh[0] - (int)(ypos * _pixelScale) - 1;
+        int y = fh[0] - (int)(ypos * pixelScale) - 1;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
             mouseMoved(_tickStamp, x, y, false);
@@ -423,12 +420,13 @@ public class DisplayRoot extends Root
     _scrollCallback = new GLFWScrollCallback() {
       @Override
       public void invoke (long window, double xoffset, double yoffset) {
+        float pixelScale = _ctx.getPixelScaleFactor();
         double[] xpos = new double[1], ypos2 = new double[1];
         GLFW.glfwGetCursorPos(window, xpos, ypos2);
-        int x = (int)(xpos[0] * _pixelScale);
+        int x = (int)(xpos[0] * pixelScale);
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
-        int y = fh[0] - (int)(ypos2[0] * _pixelScale) - 1;
+        int y = fh[0] - (int)(ypos2[0] * pixelScale) - 1;
         int delta = (yoffset > 0) ? +1 : -1;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
@@ -534,9 +532,6 @@ public class DisplayRoot extends Root
 
   /** Whether the pending key event is a press (vs release). */
   protected boolean _pendingKeyPressed;
-
-  /** Ratio of framebuffer pixels to window coordinates (2 on Retina, 1 otherwise). */
-  protected float _pixelScale = 1f;
 
   /** Strong references to GLFW callbacks to prevent GC collection. */
   protected GLFWKeyCallback _keyCallback;
