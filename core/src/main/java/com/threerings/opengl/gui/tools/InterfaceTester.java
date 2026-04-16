@@ -141,6 +141,10 @@ public class InterfaceTester extends GlCanvasTool
     _height.setMinimumSize(_height.getPreferredSize());
     _height.setMaximumSize(_height.getPreferredSize());
     _height.addChangeListener(this);
+    controls.add(new Spacer(10, 1));
+    controls.add(new JLabel(_msgs.get("m.scale")));
+    controls.add(_scaleSpinner = new DraggableSpinner(1f, 1f, 10f, .1f));
+    _scaleSpinner.addChangeListener(this);
 
     // configure the config editor
     UserInterfaceConfig.Derived impl = new UserInterfaceConfig.Derived();
@@ -212,6 +216,10 @@ public class InterfaceTester extends GlCanvasTool
       } finally {
         _block.leave();
       }
+
+    } else if (event.getSource() == _scaleSpinner) {
+      _root.setScale(_scaleSpinner.getFloatValue());
+
     } else {
       _userInterface.setPreferredSize(_width.getIntValue(), _height.getIntValue());
     }
@@ -269,6 +277,8 @@ public class InterfaceTester extends GlCanvasTool
     config.implementation = (UserInterfaceConfig.Derived)_epanel.getObject();
     config.addListener(this);
     window.add(_userInterface = new UserInterface(this, config, this));
+
+    _scaleSpinner.setValue(_root.getScale()); // show what we're currently set to
   }
 
   @Override
@@ -305,7 +315,7 @@ public class InterfaceTester extends GlCanvasTool
   protected EditorPanel _epanel;
 
   /** The width and height controls. */
-  protected DraggableSpinner _width, _height;
+  protected DraggableSpinner _width, _height, _scaleSpinner;
 
   /** Indicates that we should ignore any changes, because we're the one effecting them. */
   protected ChangeBlock _block = new ChangeBlock();
