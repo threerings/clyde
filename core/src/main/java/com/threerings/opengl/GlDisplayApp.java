@@ -418,7 +418,7 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwGetFramebufferSize(_window, w, h);
     _fbWidth = w[0];
     _fbHeight = h[0];
-    _renderer.init(_window, _fbWidth, _fbHeight);
+    _renderer.init(_fbWidth, _fbHeight);
   }
 
   /**

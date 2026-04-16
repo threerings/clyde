@@ -91,25 +91,11 @@ public class Renderer
   /**
    * Initializes the renderer.
    *
-   * @param drawable the drawable surface with which this renderer will be used.
    * @param width the initial viewport width.
    * @param height the initial viewport height.
    */
   public void init (int width, int height)
   {
-    init(0L, width, height);
-  }
-
-  /**
-   * Initializes the renderer.
-   *
-   * @param windowHandle the GLFW window handle (or 0 if not applicable).
-   * @param width the initial viewport width.
-   * @param height the initial viewport height.
-   */
-  public void init (long windowHandle, int width, int height)
-  {
-    _windowHandle = windowHandle;
     _width = width;
     _height = height;
 
@@ -211,17 +197,6 @@ public class Renderer
     for (int ii = 0; ii < _maxTextureImageUnits; ii++) {
       _units[ii] = new TextureUnitRecord();
     }
-  }
-
-  /**
-   * Returns a reference to the drawable target of this renderer.
-   */
-  /**
-   * Returns the GLFW window handle.
-   */
-  public long getWindowHandle ()
-  {
-    return _windowHandle;
   }
 
   /**
@@ -2699,9 +2674,6 @@ public class Renderer
       transform.setType(-1);
     }
   }
-
-  /** The GLFW window handle with which this renderer is being used. */
-  protected long _windowHandle;
 
   /** Default VAO, required on macOS Metal-backed GL even in compatibility profile. */
   protected int _defaultVao;

@@ -189,7 +189,7 @@ public abstract class GlCanvasApp extends GlApp
   {
     // Use framebuffer pixel dimensions (accounts for HiDPI/Retina scaling)
     float scale = getPixelScaleFactor();
-    _renderer.init(_canvas.getWindowHandle(),
+    _renderer.init(
       Math.round(_canvas.getWidth() * scale),
       Math.round(_canvas.getHeight() * scale));
   }

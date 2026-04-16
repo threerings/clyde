@@ -148,14 +148,6 @@ public class GlCanvas extends JPanel
   }
 
   /**
-   * Returns the GLFW window handle, or 0 if not applicable.
-   */
-  public long getWindowHandle ()
-  {
-    return 0; // no GLFW window; context is managed by lwjgl3-awt
-  }
-
-  /**
    * Enables or disables vsync.
    */
   public void setVSyncEnabled (boolean vsync)
