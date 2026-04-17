@@ -986,7 +986,7 @@ public class UserInterface extends Container
     public void add (InterfaceScriptConfig config) {
       _queue.add(config);
       if (!_running) {
-        _ctx.getApp().getRunQueue().postRunnable(_runnable);
+        _ctx.postRunnable(_runnable);
         _running = true;
       }
     }

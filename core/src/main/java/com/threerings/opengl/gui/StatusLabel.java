@@ -74,7 +74,7 @@ public class StatusLabel extends Label
       null : new BlankIcon(alert.getWidth(), alert.getHeight());
     setIcon(flash ? alert : blank);
     if (flash) {
-      (_flashAlert = new Interval(_ctx.getApp().getRunQueue()) {
+      (_flashAlert = new Interval(_ctx.getRunQueue()) {
         public void expired () {
           _flashCount++;
           setIcon(_flashCount % 2 == 0 ? alert : blank);

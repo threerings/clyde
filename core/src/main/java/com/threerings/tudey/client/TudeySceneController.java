@@ -616,7 +616,7 @@ public class TudeySceneController extends SceneController
           if (_tickCount == _pressTick) {
             _released = when;
             if (!_posted) {
-              _ctx.getClient().getRunQueue().postRunnable(this);
+              _tctx.postRunnable(this);
               _posted = true;
             }
           } else {

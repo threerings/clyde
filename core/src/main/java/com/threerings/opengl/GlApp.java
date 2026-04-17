@@ -101,11 +101,6 @@ public abstract class GlApp extends DynamicScope
   }
 
   /**
-   * Returns a reference to the application's run queue.
-   */
-  public abstract RunQueue getRunQueue ();
-
-  /**
    * Sets the render scheme.
    */
   public void setRenderScheme (String scheme)

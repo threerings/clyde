@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.util;
 
+import com.samskivert.util.RunQueue;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.expr.DynamicScope;
 import com.threerings.media.image.ColorPository;
@@ -163,6 +165,12 @@ public abstract class GlContextWrapper
   public ShaderCache getShaderCache ()
   {
     return _wrapped.getShaderCache();
+  }
+
+  // documentation inherited
+  public RunQueue getRunQueue ()
+  {
+    return _wrapped.getRunQueue();
   }
 
   /** The wrapped context. */

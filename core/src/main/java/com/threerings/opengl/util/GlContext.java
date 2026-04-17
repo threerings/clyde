@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.util;
 
+import com.samskivert.util.RunQueue;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.expr.DynamicScope;
 import com.threerings.media.image.ColorPository;
@@ -121,4 +123,17 @@ public interface GlContext extends AlContext, ResourceColorContext
    * Returns a reference to the shader cache.
    */
   public ShaderCache getShaderCache ();
+
+  /**
+   * Get the RunQueue that is our "main event loop".
+   */
+  public RunQueue getRunQueue ();
+
+  /**
+   * Post a runnable to our RunQueue.
+   */
+  public default void postRunnable (Runnable r)
+  {
+    getRunQueue().postRunnable(r);
+  }
 }

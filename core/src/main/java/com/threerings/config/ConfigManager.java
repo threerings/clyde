@@ -824,8 +824,9 @@ public class ConfigManager
    */
   public RunQueue getRunQueue ()
   {
-    if (_runQueue != null) return _runQueue;
-    return _parent != null ? _parent.getRunQueue() : null;
+    return _runQueue != null ? _runQueue
+      : _parent != null ? _parent.getRunQueue()
+      : null;
   }
 
   /** The type of this manager. */

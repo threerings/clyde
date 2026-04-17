@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.util;
 
+import com.samskivert.util.RunQueue;
+
 import com.threerings.whirled.util.WhirledContext;
 
 import com.threerings.opengl.gui.Root;
@@ -39,4 +41,12 @@ public interface TudeyContext extends GlContext, WhirledContext
    * Returns a reference to the UI root.
    */
   public Root getRoot ();
+
+  /**
+   * Get the client's RunQueue.
+   */
+  public default RunQueue getRunQueue ()
+  {
+    return getClient().getRunQueue();
+  }
 }
