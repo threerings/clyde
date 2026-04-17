@@ -363,6 +363,7 @@ public abstract class GlApp extends DynamicScope
     _rsrcmgr = new ResourceManager("rsrc/");
     _rsrcmgr.activateResourceProtocol();
     _cfgmgr = new ConfigManager(_rsrcmgr, _msgmgr, "config/");
+    _cfgmgr.setRunQueue(getRunQueue());
     _colorpos = ColorPository.loadColorPository(_rsrcmgr);
   }
 

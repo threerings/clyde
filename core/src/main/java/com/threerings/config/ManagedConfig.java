@@ -35,6 +35,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.RunQueue;
 import com.samskivert.util.WeakObserverList;
 import com.samskivert.util.Tuple;
 
@@ -354,6 +355,17 @@ public abstract class ManagedConfig extends DeepObject
    */
   protected void fireConfigUpdated ()
   {
+    // If the config manager has a run queue set and we're not on its dispatch thread,
+    // re-post so observer notifications (which commonly touch GL resources) run on the
+    // correct thread. Subclass overrides re-enter through this::fireConfigUpdated, so
+    // any pre-work they do before super.fireConfigUpdated() runs on the dispatch thread
+    // too (their pre-work runs a second time on the initial thread, but those overrides
+    // are idempotent invalidate() calls).
+    RunQueue rq = _cfgmgr == null ? null : _cfgmgr.getRunQueue();
+    if (rq != null && !rq.isDispatchThread()) {
+      rq.postRunnable(this::fireConfigUpdated);
+      return;
+    }
     // TODO: Remove need for _firing kludge?!?!
     if (_firing) {
       return;
