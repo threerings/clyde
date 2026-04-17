@@ -283,7 +283,7 @@ public abstract class ManagedConfig extends DeepObject
       clearUpdateDependencies();
       addUpdateDependencies();
     }
-    fireConfigUpdated();
+    fireFireConfigUpdated();
   }
 
   /**
@@ -307,13 +307,13 @@ public abstract class ManagedConfig extends DeepObject
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<ManagedConfig> event)
   {
-    fireConfigUpdated();
+    fireFireConfigUpdated();
   }
 
   // documentation inherited from interface ModificationObserver
   public void resourceModified (String path, long lastModified)
   {
-    fireConfigUpdated();
+    fireFireConfigUpdated();
   }
 
   /**
@@ -351,21 +351,31 @@ public abstract class ManagedConfig extends DeepObject
   }
 
   /**
+   * Call fireConfigUpdated() if we're on the config manager's RunQueue or there is none,
+   * else queue it up.
+   */
+  protected final void fireFireConfigUpdated ()
+  {
+    // If the config manager has a run queue set and we're not on its dispatch thread,
+    // re-post so observer notifications (which commonly touch GL resources) run on the
+    // correct thread.
+    if (_cfgmgr != null) {
+      RunQueue rq = _cfgmgr.getRunQueue();
+      if (rq != null && !rq.isDispatchThread()) {
+        rq.postRunnable(this::fireConfigUpdated);
+        return;
+      }
+    }
+
+    // otherwise...
+    fireConfigUpdated();
+  }
+
+  /**
    * Fires a configuration updated event.
    */
   protected void fireConfigUpdated ()
   {
-    // If the config manager has a run queue set and we're not on its dispatch thread,
-    // re-post so observer notifications (which commonly touch GL resources) run on the
-    // correct thread. Subclass overrides re-enter through this::fireConfigUpdated, so
-    // any pre-work they do before super.fireConfigUpdated() runs on the dispatch thread
-    // too (their pre-work runs a second time on the initial thread, but those overrides
-    // are idempotent invalidate() calls).
-    RunQueue rq = _cfgmgr == null ? null : _cfgmgr.getRunQueue();
-    if (rq != null && !rq.isDispatchThread()) {
-      rq.postRunnable(this::fireConfigUpdated);
-      return;
-    }
     // TODO: Remove need for _firing kludge?!?!
     if (_firing) {
       return;
