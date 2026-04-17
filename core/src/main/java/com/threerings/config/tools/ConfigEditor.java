@@ -1194,11 +1194,7 @@ public class ConfigEditor extends BaseConfigEditor
           }
         }
       }
-      gbox.addActionListener(new ActionListener() {
-        public void actionPerformed (ActionEvent event) {
-          _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem()));
-        }
-      });
+      gbox.addActionListener(e -> _prefs.put(p + "group", String.valueOf(gbox.getSelectedItem())));
     }
 
     // restore color

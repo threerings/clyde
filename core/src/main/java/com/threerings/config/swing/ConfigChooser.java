@@ -29,7 +29,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Frame;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -278,14 +277,12 @@ public abstract class ConfigChooser extends JPanel
 
       // add button listeners
       final boolean[] result = new boolean[1];
-      ActionListener al = new ActionListener() {
-        public void actionPerformed (ActionEvent event) {
-          if (event.getSource() == _ok) {
-            _selected = tree.getSelectedNode().getName();
-            result[0] = true;
-          }
-          dialog.setVisible(false);
+      ActionListener al = event -> {
+        if (event.getSource() == _ok) {
+          _selected = tree.getSelectedNode().getName();
+          result[0] = true;
         }
+        dialog.setVisible(false);
       };
       _ok.addActionListener(al);
       _cancel.addActionListener(al);

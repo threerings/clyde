@@ -262,7 +262,6 @@ public abstract class GlDisplayApp extends GlApp
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
     } else {
       // the size we provide will be multiplied by the pixel scale, so let's divide it..
-      log.info("set window size: " + mode);
       float scale = getPixelScaleFactor();
       // TODO: Center window? Something.
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,

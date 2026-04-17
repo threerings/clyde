@@ -158,14 +158,12 @@ public class List extends Container
   protected int _selidx = -1;
 
   /** Listens for button selections. */
-  protected ActionListener _slistener = new ActionListener() {
-    public void actionPerformed (ActionEvent e) {
-      if (_selidx != -1) {
-        ((ToggleButton)_children.get(_selidx)).setSelected(false);
-      }
-      _selidx = getComponentIndex((ToggleButton)e.getSource());
-      emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
-        SELECT, getSelected()));
+  protected ActionListener _slistener = e -> {
+    if (_selidx != -1) {
+      ((ToggleButton)_children.get(_selidx)).setSelected(false);
     }
+    _selidx = getComponentIndex((ToggleButton)e.getSource());
+    emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
+      SELECT, getSelected()));
   };
 }

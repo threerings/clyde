@@ -32,8 +32,6 @@ import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -109,11 +107,7 @@ public class EditorPanel extends BaseEditorPanel
     dialog.add(bpanel, BorderLayout.SOUTH);
     JButton ok = new JButton(msgs.get("b.ok"));
     bpanel.add(ok);
-    ok.addActionListener(new ActionListener() {
-      public void actionPerformed (ActionEvent event) {
-        dialog.setVisible(false);
-      }
-    });
+    ok.addActionListener(event -> dialog.setVisible(false));
     dialog.pack();
     dialog.setLocationRelativeTo(parent);
     return dialog;

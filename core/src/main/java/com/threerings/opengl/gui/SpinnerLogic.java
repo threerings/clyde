@@ -147,16 +147,14 @@ public class SpinnerLogic
   };
 
   /** Listens to our buttons and updates the model when they're pressed. */
-  protected ActionListener _buttonListener = new ActionListener() {
-    public void actionPerformed (ActionEvent e) {
-      for (int ii = getRotationCount(e); ii > 0; ii--) {
-        Object newValue =
-          (e.getSource() == _next) ? _model.getNextValue() : _model.getPreviousValue();
-        if (newValue == null) {
-          break;
-        }
-        _model.setValue(newValue);
+  protected ActionListener _buttonListener = e -> {
+    for (int ii = getRotationCount(e); ii > 0; ii--) {
+      Object newValue =
+        (e.getSource() == _next) ? _model.getNextValue() : _model.getPreviousValue();
+      if (newValue == null) {
+        break;
       }
+      _model.setValue(newValue);
     }
   };
 }

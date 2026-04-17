@@ -27,7 +27,6 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.WindowEvent;
 import com.threerings.opengl.gui.layout.LayoutManager;
@@ -236,11 +235,7 @@ public class Window extends Container
    */
   public ActionListener dismissListener ()
   {
-    return new ActionListener() {
-      public void actionPerformed (ActionEvent event) {
-        dismiss();
-      }
-    };
+    return event -> dismiss();
   }
 
   @Override

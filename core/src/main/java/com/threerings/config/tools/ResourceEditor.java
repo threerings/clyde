@@ -202,11 +202,7 @@ public class ResourceEditor extends BaseConfigEditor
           Character.forDigit(idx, 10), KeyEvent.CTRL_DOWN_MASK));
       }
       nmenu.add(item);
-      item.addActionListener(new ActionListener() {
-        public void actionPerformed (ActionEvent event) {
-          newConfig(clazz);
-        }
-      });
+      item.addActionListener(event -> newConfig(clazz));
     }
 
     // create the file chooser

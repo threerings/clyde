@@ -40,11 +40,7 @@ import static com.threerings.opengl.gui.Log.log;
 public class ControllerUtil
 {
   /** An action listener that uses {@link #postAction} to forward the event to a controller. */
-  public static final ActionListener DISPATCHER = new ActionListener() {
-    public void actionPerformed (ActionEvent event) {
-      postAction(event);
-    }
-  };
+  public static final ActionListener DISPATCHER = event -> postAction(event);
 
   /**
    * Posts a new {@link ActionEvent} with the supplied parameters to the controller hierarchy.

@@ -1137,11 +1137,9 @@ public class SceneEditor extends TudeyTool
     final JCheckBoxMenuItem showGridCoord = createCheckBoxMenuItem("grid_ray", KeyEvent.VK_M, -1);
     view.add(showGridCoord);
     showGridCoord.setSelected(true);
-    showGridCoord.addActionListener(new ActionListener() {
-      public void actionPerformed (ActionEvent evt) {
-        _mouseLoc.setVisible(showGridCoord.isSelected());
-        _mouseLoc.setText("");
-      }
+    showGridCoord.addActionListener(evt -> {
+      _mouseLoc.setVisible(showGridCoord.isSelected());
+      _mouseLoc.setText("");
     });
     view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
     _showCompass.setSelected(true);
