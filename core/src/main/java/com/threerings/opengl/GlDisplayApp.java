@@ -170,6 +170,27 @@ public abstract class GlDisplayApp extends GlApp
     _lastFrameTime = System.nanoTime();
   }
 
+  protected void initSharedManagers ()
+  {
+    _mainQueue = new ConcurrentLinkedQueue<>();
+    _mainRunQueue = new RunQueue() {
+      @Override public void postRunnable (Runnable r) {
+        _mainQueue.add(r);
+      }
+      @Override public boolean isDispatchThread () {
+        return Thread.currentThread() == _mainThread;
+      }
+      @Override public boolean isRunning () {
+        // Always return true: the queue can always accept tasks (they'll be
+        // processed once mainLoop starts). Returning false even once causes
+        // samskivert Interval to permanently cancel itself.
+        return true;
+      }
+    };
+
+    super.initSharedManagers();
+  }
+
   /**
    * Ensures GLFW is initialized (safe to call multiple times).
    */
@@ -299,11 +320,6 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   public RunQueue getRunQueue ()
   {
-    if (_mainRunQueue == null) {
-      // Can be called during superclass constructor before field initializers run
-      _mainQueue = new ConcurrentLinkedQueue<>();
-      _mainRunQueue = createMainRunQueue();
-    }
     return _mainRunQueue;
   }
 
@@ -558,24 +574,6 @@ public abstract class GlDisplayApp extends GlApp
 
   /** A RunQueue that posts to the main/GL thread. */
   protected RunQueue _mainRunQueue;
-
-  private RunQueue createMainRunQueue ()
-  {
-    return new RunQueue() {
-      @Override public void postRunnable (Runnable r) {
-        _mainQueue.add(r);
-      }
-      @Override public boolean isDispatchThread () {
-        return Thread.currentThread() == _mainThread;
-      }
-      @Override public boolean isRunning () {
-        // Always return true: the queue can always accept tasks (they'll be
-        // processed once mainLoop starts). Returning false even once causes
-        // samskivert Interval to permanently cancel itself.
-        return true;
-      }
-    };
-  }
 
   /** The main thread reference for RunQueue.isDispatchThread(). */
   protected Thread _mainThread = Thread.currentThread();
