@@ -455,33 +455,36 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
 
-    // _pendingMode dimensions are in pixels; glfwCreateWindow takes screen coordinates
+    // _pendingMode dimensions are in pixels. For fullscreen, glfwCreateWindow wants
+    // pixel dimensions matching a monitor video mode, with a non-null monitor handle.
+    // For windowed, it wants screen coordinates (pixels / content scale) and a null
+    // monitor handle.
+    boolean fs = _pendingMode != null && _pendingMode.fullscreen;
+    long monitor = fs ? GLFW.glfwGetPrimaryMonitor() : MemoryUtil.NULL;
     int initWidth, initHeight;
-    boolean fs = false;
-    float scale = getPixelScaleFactor();
-    if (_pendingMode != null) {
+    if (_pendingMode != null && fs) {
+      initWidth = _pendingMode.width;
+      initHeight = _pendingMode.height;
+      if (_pendingMode.frequency > 0) {
+        GLFW.glfwWindowHint(GLFW.GLFW_REFRESH_RATE, _pendingMode.frequency);
+      }
+    } else if (_pendingMode != null) {
+      float scale = getPixelScaleFactor();
       initWidth = Math.round(_pendingMode.width / scale);
       initHeight = Math.round(_pendingMode.height / scale);
     } else {
       // guess a default, bigger for retina screens
+      float scale = getPixelScaleFactor();
       initWidth = Math.round(1024 * scale);
       initHeight = Math.round(768 * scale);
     }
     _window = GLFW.glfwCreateWindow(initWidth, initHeight,
-      _title != null ? _title : "Clyde", MemoryUtil.NULL, MemoryUtil.NULL);
+      _title != null ? _title : "Clyde", monitor, MemoryUtil.NULL);
     _scale = 0;
     if (_window == MemoryUtil.NULL) {
       log.warning("Couldn't create window!");
       return false;
     }
-//    // TODO: Untested fullscreen stuff. Needs moving around.
-//    if (_pendingMode != null && _pendingMode.fullscreen) {
-//      // Fullscreen: pixel dimensions match monitor video mode directly
-//      long monitor = GLFW.glfwGetPrimaryMonitor();
-//      GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
-//        _pendingMode.width, _pendingMode.height,
-//        _pendingMode.frequency > 0 ? _pendingMode.frequency : GLFW.GLFW_DONT_CARE);
-//    }
     _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
     GL.createCapabilities();
