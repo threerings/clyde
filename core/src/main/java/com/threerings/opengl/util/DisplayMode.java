@@ -1,4 +1,4 @@
-package com.threerings.opengl.lwjgl2;
+package com.threerings.opengl.util;
 
 /**
  * Represents raw screen pixel dimensions.

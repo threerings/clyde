@@ -42,7 +42,7 @@ import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
-import com.threerings.opengl.lwjgl2.DisplayMode;
+import com.threerings.opengl.util.DisplayMode;
 
 import static com.threerings.opengl.Log.log;
 
