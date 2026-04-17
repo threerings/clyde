@@ -288,9 +288,31 @@ public class DisplayRoot extends Root
   {
     long window = getWindow();
     if (window != 0) {
-      GLFW.glfwSetCursorPos(window, x * _scale, (_ctx.getRenderer().getHeight() - y - 1) * _scale);
+      // x, y are in logical coords (y-up from bottom-left). Convert to framebuffer
+      // pixels via _scale, then to GLFW cursor coords (y-down) via the cursor scale.
+      int[] fh = { 0 };
+      GLFW.glfwGetFramebufferSize(window, null, fh);
+      float cs = cursorScale();
+      GLFW.glfwSetCursorPos(window,
+        (x * _scale) / cs,
+        (fh[0] - y * _scale - 1) / cs);
     }
     super.setMousePosition(x, y);
+  }
+
+  /**
+   * Returns the ratio between framebuffer pixels and GLFW cursor/window coordinates
+   * (typically 1, or 2 on macOS Retina in windowed mode). Computed fresh every call
+   * because this ratio changes when the window enters/leaves fullscreen or moves to a
+   * differently-scaled display; any cached value would go stale.
+   */
+  protected float cursorScale ()
+  {
+    if (_glfwWindow == 0) return 1f;
+    int[] fw = { 0 }, ww = { 0 };
+    GLFW.glfwGetFramebufferSize(_glfwWindow, fw, null);
+    GLFW.glfwGetWindowSize(_glfwWindow, ww, null);
+    return ww[0] > 0 ? (float)fw[0] / ww[0] : 1f;
   }
 
   @Override
@@ -380,11 +402,11 @@ public class DisplayRoot extends Root
         // Capture scaled coordinates immediately
         double[] xpos = new double[1], ypos = new double[1];
         GLFW.glfwGetCursorPos(window, xpos, ypos);
-        float pixelScale = _ctx.getPixelScaleFactor();
-        int x = (int)(xpos[0] * pixelScale);
-        int[] ww = new int[1], wh = new int[1];
-        GLFW.glfwGetFramebufferSize(window, ww, wh);
-        int y = wh[0] - (int)(ypos[0] * pixelScale) - 1;
+        float scale = cursorScale();
+        int[] fh = new int[1];
+        GLFW.glfwGetFramebufferSize(window, null, fh);
+        int x = (int)(xpos[0] * scale);
+        int y = fh[0] - (int)(ypos[0] * scale) - 1;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
             if (pressed) {
@@ -403,11 +425,11 @@ public class DisplayRoot extends Root
     _cursorPosCallback = new GLFWCursorPosCallback() {
       @Override
       public void invoke (long window, double xpos, double ypos) {
-        float pixelScale = _ctx.getPixelScaleFactor();
-        int x = (int)(xpos * pixelScale);
+        float scale = cursorScale();
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
-        int y = fh[0] - (int)(ypos * pixelScale) - 1;
+        int x = (int)(xpos * scale);
+        int y = fh[0] - (int)(ypos * scale) - 1;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
             mouseMoved(_tickStamp, x, y, false);
@@ -420,13 +442,13 @@ public class DisplayRoot extends Root
     _scrollCallback = new GLFWScrollCallback() {
       @Override
       public void invoke (long window, double xoffset, double yoffset) {
-        float pixelScale = _ctx.getPixelScaleFactor();
         double[] xpos = new double[1], ypos2 = new double[1];
         GLFW.glfwGetCursorPos(window, xpos, ypos2);
-        int x = (int)(xpos[0] * pixelScale);
+        float scale = cursorScale();
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
-        int y = fh[0] - (int)(ypos2[0] * pixelScale) - 1;
+        int x = (int)(xpos[0] * scale);
+        int y = fh[0] - (int)(ypos2[0] * scale) - 1;
         int delta = (yoffset > 0) ? +1 : -1;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
