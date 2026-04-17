@@ -80,6 +80,23 @@ public interface GlContext extends AlContext, ResourceColorContext
   }
 
   /**
+   * Get the scale factor for the current window.
+   *
+   * Returns the current framebuffer-to-window scale. Computed fresh from the live window
+   * when one exists (so it reflects the window's actual state — windowed, fullscreen at a
+   * non-native video mode, moved to a differently-scaled display, etc.). Falls back to the
+   * monitor's content scale before the window is created.
+   *
+   * <p>Use this (not {@link #getPixelScaleFactor}) whenever converting between DisplayMode
+   * pixel dimensions and GLFW window/screen coordinates, since the monitor content scale
+   * diverges from the real framebuffer/window ratio in several cases.
+   */
+  public default float getWindowScaleFactor ()
+  {
+    return getPixelScaleFactor();
+  }
+
+  /**
    * Returns a reference to the compositor.
    */
   public Compositor getCompositor ();

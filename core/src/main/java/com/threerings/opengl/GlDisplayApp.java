@@ -226,6 +226,18 @@ public abstract class GlDisplayApp extends GlApp
     return _scale = sx[0];
   }
 
+  @Override
+  public float getWindowScaleFactor ()
+  {
+    if (_window != MemoryUtil.NULL) {
+      int[] fw = { 0 }, ww = { 0 };
+      GLFW.glfwGetFramebufferSize(_window, fw, null);
+      GLFW.glfwGetWindowSize(_window, ww, null);
+      if (ww[0] > 0) return (float)fw[0] / ww[0];
+    }
+    return getPixelScaleFactor();
+  }
+
   /**
    * Gets the desktop display mode via GLFW.
    * Dimensions are in pixels (physical resolution).
@@ -237,7 +249,7 @@ public abstract class GlDisplayApp extends GlApp
     if (monitor != MemoryUtil.NULL) {
       GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
       if (vidMode != null) {
-        float scale = getPixelScaleFactor();
+        float scale = getWindowScaleFactor();
         return new DisplayMode(Math.round(vidMode.width() * scale),
           Math.round(vidMode.height() * scale), vidMode.refreshRate(), true);
       }
@@ -275,6 +287,7 @@ public abstract class GlDisplayApp extends GlApp
       _pendingMode = mode;
       return;
     }
+    boolean wasFullscreen = GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
     if (mode.fullscreen) {
       // Fullscreen: pixel dimensions match monitor video mode directly
       long monitor = GLFW.glfwGetPrimaryMonitor();
@@ -282,12 +295,44 @@ public abstract class GlDisplayApp extends GlApp
         mode.width, mode.height,
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
     } else {
-      // the size we provide will be multiplied by the pixel scale, so let's divide it..
+      // Windowed: glfwSetWindowMonitor's size args are screen coords, so we divide pixel
+      // dims by the fb/win ratio of the target (windowed) state.
+      //
+      // Wrinkle: on macOS, glfwGetMonitorContentScale reflects the *current* video mode,
+      // not a static monitor property. While fullscreen at a non-native mode (e.g. 1920x1080
+      // on a Retina display) it reports 1.0, since the mode is already at pixel resolution.
+      // If we query it mid-transition, we'd use 1.0 and end up with a 2x-too-big window once
+      // macOS restores the native mode.
+      //
+      // So: exit fullscreen first with a placeholder size, pump events so macOS restores the
+      // native video mode and the real content scale, drop the cached scale, then do the
+      // actual resize using a freshly-queried value.
+      if (wasFullscreen) {
+        GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, 0, 0,
+          100, 100, GLFW.GLFW_DONT_CARE);
+        GLFW.glfwPollEvents();
+        _scale = 0; // invalidate stale cache now that the mode is restored
+      }
       float scale = getPixelScaleFactor();
-      // TODO: Center window? Something.
+      int winW = Math.round(mode.width / scale);
+      int winH = Math.round(mode.height / scale);
+
+      // Where to position the window: if we're resizing a windowed window, keep its
+      // current top-left. If we're coming out of fullscreen, center on the primary monitor.
+      int xpos, ypos;
+      if (wasFullscreen) {
+        int[] wx = { 0 }, wy = { 0 }, ww = { 0 }, wh = { 0 };
+        GLFW.glfwGetMonitorWorkarea(GLFW.glfwGetPrimaryMonitor(), wx, wy, ww, wh);
+        xpos = wx[0] + (ww[0] - winW) / 2;
+        ypos = wy[0] + (wh[0] - winH) / 2;
+      } else {
+        int[] x = { 0 }, y = { 0 };
+        GLFW.glfwGetWindowPos(_window, x, y);
+        xpos = x[0];
+        ypos = y[0];
+      }
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
-        100, 100, Math.round(mode.width / scale), Math.round(mode.height / scale),
-        GLFW.GLFW_DONT_CARE);
+        xpos, ypos, winW, winH, GLFW.GLFW_DONT_CARE);
     }
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
     updateRendererSize();

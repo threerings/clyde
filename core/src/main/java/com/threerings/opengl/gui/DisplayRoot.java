@@ -292,27 +292,12 @@ public class DisplayRoot extends Root
       // pixels via _scale, then to GLFW cursor coords (y-down) via the cursor scale.
       int[] fh = { 0 };
       GLFW.glfwGetFramebufferSize(window, null, fh);
-      float cs = cursorScale();
+      float cs = _ctx.getWindowScaleFactor();
       GLFW.glfwSetCursorPos(window,
         (x * _scale) / cs,
         (fh[0] - y * _scale - 1) / cs);
     }
     super.setMousePosition(x, y);
-  }
-
-  /**
-   * Returns the ratio between framebuffer pixels and GLFW cursor/window coordinates
-   * (typically 1, or 2 on macOS Retina in windowed mode). Computed fresh every call
-   * because this ratio changes when the window enters/leaves fullscreen or moves to a
-   * differently-scaled display; any cached value would go stale.
-   */
-  protected float cursorScale ()
-  {
-    if (_glfwWindow == 0) return 1f;
-    int[] fw = { 0 }, ww = { 0 };
-    GLFW.glfwGetFramebufferSize(_glfwWindow, fw, null);
-    GLFW.glfwGetWindowSize(_glfwWindow, ww, null);
-    return ww[0] > 0 ? (float)fw[0] / ww[0] : 1f;
   }
 
   @Override
@@ -402,7 +387,7 @@ public class DisplayRoot extends Root
         // Capture scaled coordinates immediately
         double[] xpos = new double[1], ypos = new double[1];
         GLFW.glfwGetCursorPos(window, xpos, ypos);
-        float scale = cursorScale();
+        float scale = _ctx.getWindowScaleFactor();
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
         int x = (int)(xpos[0] * scale);
@@ -425,7 +410,7 @@ public class DisplayRoot extends Root
     _cursorPosCallback = new GLFWCursorPosCallback() {
       @Override
       public void invoke (long window, double xpos, double ypos) {
-        float scale = cursorScale();
+        float scale = _ctx.getWindowScaleFactor();
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
         int x = (int)(xpos * scale);
@@ -444,7 +429,7 @@ public class DisplayRoot extends Root
       public void invoke (long window, double xoffset, double yoffset) {
         double[] xpos = new double[1], ypos2 = new double[1];
         GLFW.glfwGetCursorPos(window, xpos, ypos2);
-        float scale = cursorScale();
+        float scale = _ctx.getWindowScaleFactor();
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
         int x = (int)(xpos[0] * scale);

@@ -1,8 +1,7 @@
 package com.threerings.opengl.lwjgl2;
 
 /**
- * Compatibility replacement for LWJGL 2's org.lwjgl.opengl.DisplayMode.
- * Represents a display resolution with optional fullscreen capabilities.
+ * Represents raw screen pixel dimensions.
  */
 public class DisplayMode
 {
