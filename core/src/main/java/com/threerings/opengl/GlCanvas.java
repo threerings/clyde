@@ -27,16 +27,11 @@ package com.threerings.opengl;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
 import javax.swing.JPanel;
@@ -48,10 +43,6 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 
-import com.samskivert.util.HashIntSet;
-
-import com.threerings.opengl.lwjgl2.Keyboard;
-
 import static com.threerings.opengl.Log.log;
 
 /**
@@ -59,7 +50,6 @@ import static com.threerings.opengl.Log.log;
  * This replaces the old LWJGL 2 Display.setParent() approach.
  */
 public class GlCanvas extends JPanel
-  implements KeyEventDispatcher
 {
   /**
    * Creates a new canvas.
@@ -86,49 +76,18 @@ public class GlCanvas extends JPanel
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     _awtCanvas.setFocusable(false);
 
-    // add a listener to record states
+    // Track whether the mouse is over the canvas (for the getMousePosition override,
+    // which can't use the default JPanel behavior because the heavyweight child
+    // covers the panel), and route focus to this panel on mouse press so it
+    // receives subsequent key events.
     MouseInputAdapter listener = new MouseInputAdapter() {
-      @Override public void mouseEntered (MouseEvent event) {
-        _entered = true;
-        _lx = event.getX();
-        _ly = event.getY();
-      }
-      @Override public void mouseExited (MouseEvent event) {
-        _entered = false;
-      }
-      @Override public void mousePressed (MouseEvent event) {
-        requestFocusInWindow();
-        int button = getLWJGLButton(event.getButton());
-        if (button >= 0 && button < _buttons.length) {
-          _buttons[button].wasPressed(event);
-          updateButtonModifier(button, true);
-        }
-      }
-      @Override public void mouseReleased (MouseEvent event) {
-        int button = getLWJGLButton(event.getButton());
-        if (button >= 0 && button < _buttons.length) {
-          _buttons[button].wasReleased(event);
-          updateButtonModifier(button, false);
-        }
-      }
-      @Override public void mouseMoved (MouseEvent event) {
-        _lx = event.getX();
-        _ly = event.getY();
-      }
-      @Override public void mouseDragged (MouseEvent event) {
-        _lx = event.getX();
-        _ly = event.getY();
-      }
+      @Override public void mouseEntered (MouseEvent event) { _entered = true; }
+      @Override public void mouseExited (MouseEvent event) { _entered = false; }
+      @Override public void mousePressed (MouseEvent event) { requestFocusInWindow(); }
     };
-    // Attach listeners to _awtCanvas (heavyweight) since it sits on top and
-    // intercepts mouse events that would otherwise go to this JPanel.
+    // Attach to _awtCanvas (heavyweight) since it sits on top and intercepts events
+    // that would otherwise go to this JPanel.
     _awtCanvas.addMouseListener(listener);
-    _awtCanvas.addMouseMotionListener(listener);
-    _awtCanvas.addMouseWheelListener(new MouseWheelListener() {
-      public void mouseWheelMoved (MouseWheelEvent event) {
-        _lclicks--;
-      }
-    });
   }
 
   /**
@@ -145,6 +104,14 @@ public class GlCanvas extends JPanel
   public int getFramebufferHeight ()
   {
     return _awtCanvas.getFramebufferHeight();
+  }
+
+  /**
+   * Returns the GLFW window handle, or 0 if not applicable.
+   */
+  public long getWindowHandle ()
+  {
+    return 0; // no GLFW window; context is managed by lwjgl3-awt
   }
 
   /**
@@ -189,48 +156,6 @@ public class GlCanvas extends JPanel
     _awtCanvas.disposeCanvas();
   }
 
-  // documentation inherited from interface KeyEventDispatcher
-  public boolean dispatchKeyEvent (KeyEvent event)
-  {
-    boolean pressed;
-    int id = event.getID();
-    if (id == KeyEvent.KEY_PRESSED) {
-      pressed = true;
-    } else if (id == KeyEvent.KEY_RELEASED) {
-      pressed = false;
-    } else {
-      return false;
-    }
-    int mask, okey;
-    boolean left = (event.getKeyLocation() == KeyEvent.KEY_LOCATION_LEFT);
-    switch (event.getKeyCode()) {
-      case KeyEvent.VK_SHIFT:
-        mask = InputEvent.SHIFT_DOWN_MASK;
-        okey = left ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
-        break;
-      case KeyEvent.VK_CONTROL:
-        mask = InputEvent.CTRL_DOWN_MASK;
-        okey = left ? Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
-        break;
-      case KeyEvent.VK_ALT:
-        mask = InputEvent.ALT_DOWN_MASK;
-        okey = left ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
-        break;
-      case KeyEvent.VK_META:
-        mask = InputEvent.META_DOWN_MASK;
-        okey = left ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
-        break;
-      default:
-        return false;
-    }
-    if (pressed || _pressedKeys.contains(okey)) {
-      _modifiers |= mask;
-    } else {
-      _modifiers &= ~mask;
-    }
-    return false;
-  }
-
   // Forward external mouse listener registration to the heavyweight GL canvas,
   // which sits on top and receives all mouse events.
   @Override
@@ -273,7 +198,6 @@ public class GlCanvas extends JPanel
   public void addNotify ()
   {
     super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
     // Start the render loop once the canvas has a native peer
     startUpdating();
   }
@@ -282,7 +206,6 @@ public class GlCanvas extends JPanel
   public void removeNotify ()
   {
     super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
     stopUpdating();
   }
 
@@ -346,32 +269,6 @@ public class GlCanvas extends JPanel
   }
 
   /**
-   * Updates the modifier for the specified button.
-   */
-  protected void updateButtonModifier (int button, boolean pressed)
-  {
-    int mask;
-    switch (button) {
-      case 0:
-        mask = InputEvent.BUTTON1_DOWN_MASK;
-        break;
-      case 1:
-        mask = InputEvent.BUTTON3_DOWN_MASK;
-        break;
-      case 2:
-        mask = InputEvent.BUTTON2_DOWN_MASK;
-        break;
-      default:
-        return;
-    }
-    if (pressed) {
-      _modifiers |= mask;
-    } else {
-      _modifiers &= ~mask;
-    }
-  }
-
-  /**
    * Override to perform any updates that are required even if not rendering.
    */
   protected void updateView ()
@@ -397,75 +294,6 @@ public class GlCanvas extends JPanel
     Point pt = info.getLocation();
     SwingUtilities.convertPointFromScreen(pt, this);
     return pt;
-  }
-
-  /**
-   * Determines whether the current set of modifiers contains any pressed buttons.
-   */
-  protected boolean anyButtonsDown ()
-  {
-    return (_modifiers & ANY_BUTTONS_DOWN_MASK) != 0;
-  }
-
-  /**
-   * Returns the AWT button corresponding to the specified LWJGL button.
-   */
-  protected static int getAWTButton (int button)
-  {
-    switch (button) {
-      case 0: return MouseEvent.BUTTON1;
-      case 1: return MouseEvent.BUTTON3;
-      case 2: return MouseEvent.BUTTON2;
-      default: return MouseEvent.NOBUTTON;
-    }
-  }
-
-  /**
-   * Returns the LWJGL button corresponding to the specified AWT button.
-   */
-  protected static int getLWJGLButton (int button)
-  {
-    switch (button) {
-      case MouseEvent.BUTTON1: return 0;
-      case MouseEvent.BUTTON2: return 2;
-      case MouseEvent.BUTTON3: return 1;
-      default: return -1;
-    }
-  }
-
-  /**
-   * Contains the state of a single mouse button.
-   */
-  protected class ButtonRecord
-  {
-    public boolean isPressed ()
-    {
-      return _pressed;
-    }
-
-    public void wasPressed (MouseEvent press)
-    {
-      _pressed = true;
-      long when = press.getWhen();
-      _clickTime = when + CLICK_INTERVAL;
-      _count = (when < _chainTime) ? (_count + 1) : 1;
-    }
-
-    public void wasReleased (MouseEvent release)
-    {
-      _pressed = false;
-      long when = release.getWhen();
-      if (when < _clickTime) {
-        dispatchEvent(new MouseEvent(
-          GlCanvas.this, MouseEvent.MOUSE_CLICKED, when, _modifiers,
-          release.getX(), release.getY(), _count, false, release.getButton()));
-        _chainTime = when + CLICK_CHAIN_INTERVAL;
-      }
-    }
-
-    protected boolean _pressed;
-    protected long _clickTime, _chainTime;
-    protected int _count;
   }
 
   /**
@@ -498,32 +326,6 @@ public class GlCanvas extends JPanel
   /** Whether or not the mouse is over the component. */
   protected boolean _entered;
 
-  /** The last position we reported. */
-  protected int _lx, _ly;
-
-  /** The states of the mouse buttons. */
-  protected ButtonRecord[] _buttons = new ButtonRecord[] {
-    new ButtonRecord(), new ButtonRecord(), new ButtonRecord() };
-
-  /** The number of wheel clicks recorded. */
-  protected int _lclicks;
-
-  /** The current set of modifiers. */
-  protected int _modifiers;
-
-  /** The set of currently pressed keys. */
-  protected HashIntSet _pressedKeys = new HashIntSet();
-
   /** The runnable that updates the frame. */
   protected Runnable _updater;
-
-  /** A mask for checking whether any mouse buttons are down. */
-  protected static final int ANY_BUTTONS_DOWN_MASK =
-    InputEvent.BUTTON1_DOWN_MASK | InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK;
-
-  /** Mouse buttons released within this interval after being pressed are counted as clicks. */
-  protected static final long CLICK_INTERVAL = 250L;
-
-  /** Clicks this close to one another are chained together for counting purposes. */
-  protected static final long CLICK_CHAIN_INTERVAL = 250L;
 }
