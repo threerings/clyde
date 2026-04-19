@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.threerings.ClydeLog.log;
 
@@ -85,30 +86,7 @@ public class ReflectionUtil
    */
   public static Object newInstance (Class<?> clazz, Object outer)
   {
-    Class<?> outerClazz = getOuterClass(clazz);
-    Constructor<?> ctor = _ctors.get(clazz);
-    if (ctor == null) {
-      for (Constructor<?> octor : clazz.getDeclaredConstructors()) {
-        Class<?>[] ptypes = octor.getParameterTypes();
-        if (outerClazz == null ? (ptypes.length == 0)
-            : (ptypes.length == 1 && ptypes[0] == outerClazz)) {
-          ctor = octor;
-          break;
-        }
-      }
-      if (ctor == null) {
-        log.warning("Class has no default constructor.", "class", clazz, new Exception());
-        return null;
-      }
-      ctor.setAccessible(true);
-      _ctors.put(clazz, ctor);
-    }
-    try {
-      return (outerClazz == null) ? ctor.newInstance() : ctor.newInstance(outer);
-    } catch (Exception e) {
-      log.warning("Failed to create new instance.", "class", clazz, e);
-      return null;
-    }
+    return getClassInfo(clazz).newInstance(outer);
   }
 
   /**
@@ -116,20 +94,8 @@ public class ReflectionUtil
    */
   public static void setOuter (Object object, Object outer)
   {
-    Class<?> clazz = object.getClass();
-    if (!isInner(clazz)) {
-      return;
-    }
-    if (object instanceof Inner) {
-      ((Inner)object).setOuter(outer);
-      return;
-    }
-    try {
-      var fld = getOuterField(clazz);
-      if (fld != null) fld.set(object, outer);
-    } catch (IllegalAccessException e) {
-      // shouldn't happen
-    }
+    if (object instanceof Inner inner) inner.setOuter(outer);
+    else getClassInfo(object.getClass()).setOuter(object, outer);
   }
 
   /**
@@ -138,19 +104,8 @@ public class ReflectionUtil
    */
   public static Object getOuter (Object object)
   {
-    Class<?> clazz = object.getClass();
-    if (!isInner(clazz)) {
-      return null;
-    }
-    if (object instanceof Inner) {
-      return ((Inner)object).getOuter();
-    }
-    try {
-      var fld = getOuterField(clazz);
-      return fld != null ? fld.get(object) : null;
-    } catch (IllegalAccessException e) {
-      return null; // shouldn't happen
-    }
+    return object instanceof Inner inner ? inner.getOuter()
+      : getClassInfo(object.getClass()).getOuter(object);
   }
 
   /**
@@ -158,7 +113,7 @@ public class ReflectionUtil
    */
   public static boolean isInner (Class<?> clazz)
   {
-    return getOuterClass(clazz) != null;
+    return null != getOuterClass(clazz);
   }
 
   /**
@@ -167,75 +122,134 @@ public class ReflectionUtil
    */
   public static Class<?> getOuterClass (Class<?> clazz)
   {
-    Class<?> oclazz = _oclasses.get(clazz);
-    if (oclazz == null) {
-      Class<?> dclazz = clazz.getDeclaringClass();
-      if (dclazz != null && !Modifier.isStatic(clazz.getModifiers())) {
-        oclazz = dclazz;
-
-      } else if (Inner.class.isAssignableFrom(clazz)) {
-        for (Constructor<?> ctor : clazz.getDeclaredConstructors()) {
-          Class<?>[] ptypes = ctor.getParameterTypes();
-          if (ptypes.length > 0) {
-            oclazz = ptypes[0];
-            break;
-          }
-        }
-      } else {
-        oclazz = Void.class;
-      }
-      _oclasses.put(clazz, oclazz);
-    }
-    return (oclazz == Void.class) ? null : oclazz;
+    return getClassInfo(clazz).outerClazz;
   }
 
   /**
-   * Returns a reference to the outer class reference field.
+   * Get the class info for the specified class. Never fails.
    */
-  protected static Field getOuterField (Class<?> clazz)
+  protected static ClassInfo getClassInfo (Class<?> clazz)
   {
-    Field field = _outers.get(clazz);
-    if (field == null) {
+    var info = _infos.get(clazz);
+    if (info == null) _infos.put(clazz, info = new ClassInfo(clazz));
+    return info;
+  }
+
+  protected static class ClassInfo
+  {
+    public final Class<?> clazz;
+
+    public final Constructor<?> constructor;
+
+    public final Class<?> outerClazz;
+
+    public final Field outerField;
+
+    public ClassInfo (Class<?> clazz)
+    {
+      Constructor<?> ctor = null;
+      Class<?> oclazz = null;
+      Field field = null;
+
+      // find the outer class and constructor
       Class<?> dclazz = clazz.getDeclaringClass();
-      for (Field ofield : clazz.getDeclaredFields()) {
-        if (ofield.isSynthetic() && ofield.getType() == dclazz &&
-            ofield.getName().startsWith("this")) {
-          field = ofield;
-          break;
+      log.info("Looking up outer for : " + clazz, "dclazz", dclazz);
+      if (dclazz != null && !Modifier.isStatic(clazz.getModifiers())) {
+        oclazz = dclazz;
+        try {
+          ctor = clazz.getDeclaredConstructor(oclazz);
+        } catch (NoSuchMethodException nsme) {
+          log.warning("Unable to find constructor for inner class", "clazz", clazz, nsme);
+        }
+
+      } else if (Inner.class.isAssignableFrom(clazz)) {
+        for (Constructor<?> cc : clazz.getDeclaredConstructors()) {
+          Class<?>[] ptypes = cc.getParameterTypes();
+          if (ptypes.length > 0) { // Guess
+            oclazz = ptypes[0];
+            ctor = cc;
+            break;
+          }
         }
       }
-      // Possibly check superclasses?
-      if (field == null && clazz.getSuperclass() instanceof Class<?> superclazz) {
-        field = getOuterField(superclazz);
+      // if we have no outer then we need a zero-arg constructor
+      if (oclazz == null) {
+        try {
+          ctor = clazz.getDeclaredConstructor();
+        } catch (NoSuchMethodException nsme) {
+          log.warning("Unable to find constructor for class", "clazz", clazz, nsme);
+        }
+
+      } else {
+        // See if we can find the field holding the outer class reference
+FINDFIELD:
+        for (Class<?> ocl = clazz; ocl != Object.class; ocl = ocl.getSuperclass()) {
+          for (Field ff : ocl.getDeclaredFields()) {
+            if (ff.isSynthetic() && ff.getType() == oclazz && ff.getName().startsWith("this")) {
+              field = ff;
+              field.setAccessible(true);
+              break FINDFIELD;
+            }
+          }
+        }
+        // if we never find the field, that may mean that the compiler erased it. We need to cope.
       }
-      if (field == null) field = _noField;
-      else field.setAccessible(true);
-      _outers.put(clazz, field);
+      if (ctor == null) log.warning("Class has no default ctor.", "class", clazz, new Exception());
+      else ctor.setAccessible(true);
+
+      this.clazz = clazz;
+      this.constructor = ctor;
+      this.outerClazz = oclazz;
+      this.outerField = field;
     }
-    return field == _noField ? null : field;
+
+    /**
+     * Create a new instance.
+     */
+    public Object newInstance (Object outer)
+    {
+      try {
+        if (outerClazz == null) return constructor.newInstance();
+//        if (outer == null) {
+//          // outer can't be null. We were unable to copy it due to field getting dropped.
+//          // We need to come up with an instance??
+//          outer = outerClazz.getConstructor().newInstance();
+//        }
+        return constructor.newInstance(outer);
+      } catch (Exception e) {
+        log.warning("Failed to create new instance.", "class", clazz, "outer", outerClazz, e);
+        return null;
+      }
+    }
+
+    public void setOuter (Object object, Object outer)
+    {
+      // if not outer or outer field missing, skip
+      if (outerField != null) { // As of Java 22 or so, the compiler might erase the field. Cope.
+        try {
+          outerField.set(object, outer);
+        } catch (IllegalAccessException e) {
+          // shouldn't happen
+        }
+      }
+    }
+
+    public Object getOuter (Object object)
+    {
+      // whether or not the class is inner or not is somewhat irrelevant, as we may not be able
+      // to find an outer anyway??? TODO: maybe this is where we need to return a dummy instance
+      // so as not to NPE some shit?
+      if (outerField != null) {
+        try {
+          return outerField.get(object);
+        } catch (IllegalAccessException e) {
+          // shouldn't happen
+        }
+      }
+      return null;
+    }
   }
 
-  /** Maps inner classes to their outer class reference fields. */
-  protected static HashMap<Class<?>, Field> _outers = new HashMap<Class<?>, Field>();
-
-  /** Maps classes to their outer classes, or to {@link Void} if they are not inner classes. */
-  protected static HashMap<Class<?>, Class<?>> _oclasses = new HashMap<Class<?>, Class<?>>();
-
-  /** Maps classes to their default constructors. */
-  protected static HashMap<Class<?>, Constructor<?>> _ctors =
-      new HashMap<Class<?>, Constructor<?>>();
-
-  /** A marker field indicating that there's no field storing an outer reference. */
-  protected static final Field _noField;
-  static {
-    Field f;
-    try {
-      f = ReflectionUtil.class.getDeclaredField("_noField");
-    } catch (NoSuchFieldException nsfe) {
-      log.warning("Someone messed up!");
-      f = null; // it will still work but be less optimal
-    }
-    _noField = f;
-  }
-
+  /** Maps class to memoized information regarding it. */
+  protected static final Map<Class<?>, ClassInfo> _infos = new HashMap<>();
 }
