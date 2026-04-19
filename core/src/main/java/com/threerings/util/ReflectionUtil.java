@@ -191,7 +191,6 @@ public class ReflectionUtil
               if (ff.isSynthetic() && ff.getType() == oclazz && ff.getName().startsWith("this")) {
                 field = ff;
                 field.setAccessible(true);
-                log.info("Yo we did find the field.");
                 break;
               }
             }
@@ -201,8 +200,6 @@ public class ReflectionUtil
                 syntheticOuter = ReflectionFactory.getReflectionFactory()
                   .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
                   .newInstance();
-                log.info("IT'S ALIVE!!!!!! We've created a synthetic outer for " + clazz,
-                    "yo yo yo", oclazz);
               } catch (Exception e) {
                 log.warning("Could not make synthetic outer", "clazz", clazz, e);
               }
@@ -249,8 +246,7 @@ public class ReflectionUtil
     public Object getOuter (Object object)
     {
       // whether or not the class is inner or not is somewhat irrelevant, as we may not be able
-      // to find an outer anyway??? TODO: maybe this is where we need to return a dummy instance
-      // so as not to NPE some shit?
+      // to find an outer anyway. Just see if we have the field and try it
       if (outerField != null) {
         try {
           return outerField.get(object);
