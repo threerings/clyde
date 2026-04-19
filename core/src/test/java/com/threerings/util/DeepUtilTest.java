@@ -90,7 +90,7 @@ public class DeepUtilTest extends TestCase
   public void testEquals ()
   {
     // make sure it works for some wrappers and arrays
-    Integer v1 = RandomUtil.rand.nextInt(), v2 = RandomUtil.rand.nextInt();
+    Integer v1 = incremented(RandomUtil.rand.nextInt()), v2 = RandomUtil.rand.nextInt();
     assertEquals(false, DeepUtil.equals(null, v1));
     assertEquals(false, DeepUtil.equals(v1, null));
     assertEquals(true, DeepUtil.equals(v1, v1));
@@ -145,6 +145,12 @@ public class DeepUtilTest extends TestCase
     assertEquals(false, DeepUtil.hashCode(c1) == DeepUtil.hashCode(c2));
   }
 
+  // Child calls this so that it retains a reference to its outer...
+  protected int incremented (int value)
+  {
+    return value + 1;
+  }
+
   protected abstract class Parent
   {
     public byte v1;
@@ -174,7 +180,7 @@ public class DeepUtilTest extends TestCase
               v3[ii][jj] = RandomUtil.rand.nextDouble();
               break;
             case 1:
-              v3[ii][jj] = (short)RandomUtil.rand.nextInt();
+              v3[ii][jj] = (short)incremented(RandomUtil.rand.nextInt());
               break;
             case 2:
               Other other = new Other();

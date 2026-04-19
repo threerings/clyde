@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -29,10 +27,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+//import sun.reflect.ReflectionFactory;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import sun.reflect.ReflectionFactory;
 
 import static com.threerings.ClydeLog.log;
 
@@ -137,24 +135,37 @@ public class ReflectionUtil
     return info;
   }
 
+  /**
+   * Contains cached information about classes we've been asked to handle.
+   */
   protected static class ClassInfo
   {
+    /** The class that is the subject of this record. */
     public final Class<?> clazz;
 
+    /** The constructor that we'll use to create instances. */
     public final Constructor<?> constructor;
 
+    /** If non-null, the outer class for the clazz, an instance of which will need to be the
+     * first argument to the constructor. */
     public final Class<?> outerClazz;
 
+    /** A field to read/write the outer instance, which may be null even for inner classes! */
     public final Field outerField;
 
-    private final Object syntheticOuter;
+    /** If non-null, indicates that the outerField doesn't exist, and this can be used as a non-null
+     * instance provided to the constructor. */
+    private final Object fakeOuter;
 
+    /**
+     * Construct ClassInfo for a class.
+     */
     public ClassInfo (Class<?> clazz)
     {
       Constructor<?> ctor = null;
       Class<?> oclazz = null;
       Field field = null;
-      Object syntheticOuter = null;
+      Object fakeOuter = null;
 
       if (Inner.class.isAssignableFrom(clazz)) {
         for (Constructor<?> cc : clazz.getDeclaredConstructors()) {
@@ -168,13 +179,17 @@ public class ReflectionUtil
       } else {
         Class<?> dclazz = clazz.getDeclaringClass();
         if (dclazz != null) {
+          // we've found an outer class
           if (!Modifier.isStatic(clazz.getModifiers())) oclazz = dclazz;
 
         } else if (clazz.getEnclosingClass() instanceof Class<?> eclazz) {
+          // An anonymous inner class technically has an outer but the constructors/references
+          // will be unknowable. Warn.
           log.warning("You might not have good success with anonymous inner classes pal!",
             "clazz", clazz, "eclazz", eclazz);
         }
 
+        // Look for the constructor and the field to access the outer value...
         for (Class<?> ocl = clazz; ocl != null; ocl = ocl.getSuperclass()) {
           for (Constructor<?> cc : ocl.getDeclaredConstructors()) {
             Class<?>[] ptypes = cc.getParameterTypes();
@@ -196,12 +211,29 @@ public class ReflectionUtil
             }
             // if we never find the field, maybe compiler erased it. We need to cope.
             if (field == null) {
+              // See if we can find a constructor to make the outer
               try {
-                syntheticOuter = ReflectionFactory.getReflectionFactory()
-                  .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
-                  .newInstance();
+                for (Constructor<?> cc : oclazz.getDeclaredConstructors()) {
+                  if (cc.getParameterTypes().length == 0) {
+                    cc.setAccessible(true);
+                    fakeOuter = cc.newInstance();
+                    break;
+                  }
+                }
               } catch (Exception e) {
-                log.warning("Could not make synthetic outer", "clazz", clazz, e);
+                log.warning("Trouble making an outer", "oclazz", oclazz);
+              }
+              if (fakeOuter == null) {
+                log.warning("Class has erased 'outer', and we're unable to create an instance." +
+                    "Consider making static or adding an explicit reference?",
+                    "clazz", clazz, "outer", oclazz);
+//                try {
+//                  fakeOuter = ReflectionFactory.getReflectionFactory()
+//                    .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
+//                    .newInstance();
+//                } catch (Exception e) {
+//                  log.warning("Could not make a fake outer", "clazz", clazz, e);
+//                }
               }
             }
           }
@@ -213,7 +245,7 @@ public class ReflectionUtil
       this.constructor = ctor;
       this.outerClazz = oclazz;
       this.outerField = field;
-      this.syntheticOuter = syntheticOuter;
+      this.fakeOuter = fakeOuter;
     }
 
     /**
@@ -223,7 +255,7 @@ public class ReflectionUtil
     {
       try {
         if (outerClazz == null) return constructor.newInstance();
-        if (outer == null && syntheticOuter != null) outer = syntheticOuter;
+        if (outer == null && fakeOuter != null) outer = fakeOuter;
         return constructor.newInstance(outer);
       } catch (Exception e) {
         log.warning("Failed to create new instance.", "class", clazz, "outer", outerClazz, e);
