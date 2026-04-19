@@ -74,6 +74,17 @@ public class DeepUtilTest extends TestCase
     assertEquals(c1, c2);
     c2.randomize();
     assertEquals(DeepUtil.copy(c2), c2);
+
+//    // Test anonymous instances
+//    Other anon1 = new Other() {
+//      @Override public void randomize ()
+//      {
+//        super.randomize();
+//        ++v2;
+//      }
+//    };
+//    Other anon2 = DeepUtil.copy(anon1);
+//    assertEquals(true, DeepUtil.equals(anon1, anon2));
   }
 
   public void testEquals ()

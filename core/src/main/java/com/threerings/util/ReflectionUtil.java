@@ -32,6 +32,8 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import sun.reflect.ReflectionFactory;
+
 import static com.threerings.ClydeLog.log;
 
 /**
@@ -145,24 +147,16 @@ public class ReflectionUtil
 
     public final Field outerField;
 
+    private final Object syntheticOuter;
+
     public ClassInfo (Class<?> clazz)
     {
       Constructor<?> ctor = null;
       Class<?> oclazz = null;
       Field field = null;
+      Object syntheticOuter = null;
 
-      // find the outer class and constructor
-      Class<?> dclazz = clazz.getDeclaringClass();
-      log.info("Looking up outer for : " + clazz, "dclazz", dclazz);
-      if (dclazz != null && !Modifier.isStatic(clazz.getModifiers())) {
-        oclazz = dclazz;
-        try {
-          ctor = clazz.getDeclaredConstructor(oclazz);
-        } catch (NoSuchMethodException nsme) {
-          log.warning("Unable to find constructor for inner class", "clazz", clazz, nsme);
-        }
-
-      } else if (Inner.class.isAssignableFrom(clazz)) {
+      if (Inner.class.isAssignableFrom(clazz)) {
         for (Constructor<?> cc : clazz.getDeclaredConstructors()) {
           Class<?>[] ptypes = cc.getParameterTypes();
           if (ptypes.length > 0) { // Guess
@@ -171,36 +165,58 @@ public class ReflectionUtil
             break;
           }
         }
-      }
-      // if we have no outer then we need a zero-arg constructor
-      if (oclazz == null) {
-        try {
-          ctor = clazz.getDeclaredConstructor();
-        } catch (NoSuchMethodException nsme) {
-          log.warning("Unable to find constructor for class", "clazz", clazz, nsme);
+      } else {
+        Class<?> dclazz = clazz.getDeclaringClass();
+        if (dclazz != null) {
+          if (!Modifier.isStatic(clazz.getModifiers())) oclazz = dclazz;
+
+        } else if (clazz.getEnclosingClass() instanceof Class<?> eclazz) {
+          log.warning("You might not have good success with anonymous inner classes pal!",
+            "clazz", clazz, "eclazz", eclazz);
         }
 
-      } else {
-        // See if we can find the field holding the outer class reference
-FINDFIELD:
-        for (Class<?> ocl = clazz; ocl != Object.class; ocl = ocl.getSuperclass()) {
-          for (Field ff : ocl.getDeclaredFields()) {
-            if (ff.isSynthetic() && ff.getType() == oclazz && ff.getName().startsWith("this")) {
-              field = ff;
-              field.setAccessible(true);
-              break FINDFIELD;
+        for (Class<?> ocl = clazz; ocl != null; ocl = ocl.getSuperclass()) {
+          for (Constructor<?> cc : ocl.getDeclaredConstructors()) {
+            Class<?>[] ptypes = cc.getParameterTypes();
+            if (oclazz == null ? ptypes.length == 0
+                : (ptypes.length == 1 && ptypes[0] == oclazz)) {
+              ctor = cc;
+              ctor.setAccessible(true);
+              break;
             }
           }
+          if (ctor == null) continue;
+          if (oclazz != null) { // try to find the field?
+            for (Field ff : ocl.getDeclaredFields()) {
+              if (ff.isSynthetic() && ff.getType() == oclazz && ff.getName().startsWith("this")) {
+                field = ff;
+                field.setAccessible(true);
+                log.info("Yo we did find the field.");
+                break;
+              }
+            }
+            // if we never find the field, maybe compiler erased it. We need to cope.
+            if (field == null) {
+              try {
+                syntheticOuter = ReflectionFactory.getReflectionFactory()
+                  .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
+                  .newInstance();
+                log.info("IT'S ALIVE!!!!!! We've created a synthetic outer for " + clazz,
+                    "yo yo yo", oclazz);
+              } catch (Exception e) {
+                log.warning("Could not make synthetic outer", "clazz", clazz, e);
+              }
+            }
+          }
+          break;
         }
-        // if we never find the field, that may mean that the compiler erased it. We need to cope.
       }
-      if (ctor == null) log.warning("Class has no default ctor.", "class", clazz, new Exception());
-      else ctor.setAccessible(true);
 
       this.clazz = clazz;
       this.constructor = ctor;
       this.outerClazz = oclazz;
       this.outerField = field;
+      this.syntheticOuter = syntheticOuter;
     }
 
     /**
@@ -210,11 +226,7 @@ FINDFIELD:
     {
       try {
         if (outerClazz == null) return constructor.newInstance();
-//        if (outer == null) {
-//          // outer can't be null. We were unable to copy it due to field getting dropped.
-//          // We need to come up with an instance??
-//          outer = outerClazz.getConstructor().newInstance();
-//        }
+        if (outer == null && syntheticOuter != null) outer = syntheticOuter;
         return constructor.newInstance(outer);
       } catch (Exception e) {
         log.warning("Failed to create new instance.", "class", clazz, "outer", outerClazz, e);
