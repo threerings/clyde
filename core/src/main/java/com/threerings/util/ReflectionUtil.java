@@ -153,10 +153,6 @@ public class ReflectionUtil
     /** A field to read/write the outer instance, which may be null even for inner classes! */
     public final Field outerField;
 
-    /** If non-null, indicates that the outerField doesn't exist, and this can be used as a non-null
-     * instance provided to the constructor. */
-    private final Object fakeOuter;
-
     /**
      * Construct ClassInfo for a class.
      */
@@ -165,7 +161,6 @@ public class ReflectionUtil
       Constructor<?> ctor = null;
       Class<?> oclazz = null;
       Field field = null;
-      Object fakeOuter = null;
 
       if (Inner.class.isAssignableFrom(clazz)) {
         for (Constructor<?> cc : clazz.getDeclaredConstructors()) {
@@ -215,32 +210,9 @@ FIND_FIELD:
           }
           // if we never find the field, maybe compiler erased it. We need to cope.
           if (field == null) {
-            // See if we can find a constructor to make the outer
-            try {
-              for (Constructor<?> cc : oclazz.getDeclaredConstructors()) {
-                if (cc.getParameterTypes().length == 0) {
-                  cc.setAccessible(true);
-                  fakeOuter = cc.newInstance();
-                  log.info("YES. We made a fake outer.", "oclazz", oclazz,
-                      "fakeOuter", fakeOuter.getClass());
-                  break;
-                }
-              }
-            } catch (Exception e) {
-              log.warning("Trouble making an outer", "oclazz", oclazz);
-            }
-            if (fakeOuter == null) {
-              log.warning("Class has erased 'outer', and we're unable to create an instance." +
-                  "Consider making static or adding an explicit reference?",
+            log.warning("Class has erased 'outer', and we're unable to create an instance." +
+                "Consider making static or adding an explicit reference?",
                   "clazz", clazz, "outer", oclazz);
-//              try {
-//                fakeOuter = ReflectionFactory.getReflectionFactory()
-//                  .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
-//                  .newInstance();
-//              } catch (Exception e) {
-//                log.warning("Could not make a fake outer", "clazz", clazz, e);
-//              }
-            }
           }
         }
       }
@@ -249,7 +221,6 @@ FIND_FIELD:
       this.constructor = ctor;
       this.outerClazz = oclazz;
       this.outerField = field;
-      this.fakeOuter = fakeOuter;
     }
 
     /**
@@ -258,9 +229,7 @@ FIND_FIELD:
     public Object newInstance (Object outer)
     {
       try {
-        if (outerClazz == null) return constructor.newInstance();
-        if (outer == null && fakeOuter != null) outer = fakeOuter;
-        return constructor.newInstance(outer);
+        return outerClazz == null ? constructor.newInstance() : constructor.newInstance(outer);
       } catch (Exception e) {
         log.warning("Failed to create new instance.", "class", clazz, "outer", outerClazz, e);
         return null;
