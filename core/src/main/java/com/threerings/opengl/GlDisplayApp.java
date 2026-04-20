@@ -559,10 +559,9 @@ public abstract class GlDisplayApp extends GlApp
       initWidth = Math.round(_pendingMode.width / winScale);
       initHeight = Math.round(_pendingMode.height / winScale);
     } else {
-      // guess a default, bigger for retina screens
-      float scale = getPixelScaleFactor();
-      initWidth = Math.round(1024 * scale);
-      initHeight = Math.round(768 * scale);
+      // safeish default
+      initWidth = 1024;
+      initHeight = 768;
     }
     _window = GLFW.glfwCreateWindow(initWidth, initHeight,
       _title != null ? _title : "Clyde", monitor, MemoryUtil.NULL);
