@@ -190,6 +190,7 @@ public class ReflectionUtil
         }
 
         // Look for the constructor and the field to access the outer value...
+FIND_CTOR:
         for (Class<?> ocl = clazz; ocl != null; ocl = ocl.getSuperclass()) {
           for (Constructor<?> cc : ocl.getDeclaredConstructors()) {
             Class<?>[] ptypes = cc.getParameterTypes();
@@ -197,47 +198,50 @@ public class ReflectionUtil
                 : (ptypes.length == 1 && ptypes[0] == oclazz)) {
               ctor = cc;
               ctor.setAccessible(true);
-              break;
+              break FIND_CTOR;
             }
           }
-          if (ctor == null) continue;
-          if (oclazz != null) { // try to find the field?
+        }
+        if (oclazz != null) { // try to find the field?
+FIND_FIELD:
+          for (Class<?> ocl = clazz; ocl != null; ocl = ocl.getSuperclass()) {
             for (Field ff : ocl.getDeclaredFields()) {
               if (ff.isSynthetic() && ff.getType() == oclazz && ff.getName().startsWith("this")) {
                 field = ff;
                 field.setAccessible(true);
-                break;
-              }
-            }
-            // if we never find the field, maybe compiler erased it. We need to cope.
-            if (field == null) {
-              // See if we can find a constructor to make the outer
-              try {
-                for (Constructor<?> cc : oclazz.getDeclaredConstructors()) {
-                  if (cc.getParameterTypes().length == 0) {
-                    cc.setAccessible(true);
-                    fakeOuter = cc.newInstance();
-                    break;
-                  }
-                }
-              } catch (Exception e) {
-                log.warning("Trouble making an outer", "oclazz", oclazz);
-              }
-              if (fakeOuter == null) {
-                log.warning("Class has erased 'outer', and we're unable to create an instance." +
-                    "Consider making static or adding an explicit reference?",
-                    "clazz", clazz, "outer", oclazz);
-//                try {
-//                  fakeOuter = ReflectionFactory.getReflectionFactory()
-//                    .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
-//                    .newInstance();
-//                } catch (Exception e) {
-//                  log.warning("Could not make a fake outer", "clazz", clazz, e);
-//                }
+                break FIND_FIELD;
               }
             }
           }
-          break;
+          // if we never find the field, maybe compiler erased it. We need to cope.
+          if (field == null) {
+            // See if we can find a constructor to make the outer
+            try {
+              for (Constructor<?> cc : oclazz.getDeclaredConstructors()) {
+                if (cc.getParameterTypes().length == 0) {
+                  cc.setAccessible(true);
+                  fakeOuter = cc.newInstance();
+                  log.info("YES. We made a fake outer.", "oclazz", oclazz,
+                      "fakeOuter", fakeOuter.getClass());
+                  break;
+                }
+              }
+            } catch (Exception e) {
+              log.warning("Trouble making an outer", "oclazz", oclazz);
+            }
+            if (fakeOuter == null) {
+              log.warning("Class has erased 'outer', and we're unable to create an instance." +
+                  "Consider making static or adding an explicit reference?",
+                  "clazz", clazz, "outer", oclazz);
+//              try {
+//                fakeOuter = ReflectionFactory.getReflectionFactory()
+//                  .newConstructorForSerialization(oclazz, Object.class.getDeclaredConstructor())
+//                  .newInstance();
+//              } catch (Exception e) {
+//                log.warning("Could not make a fake outer", "clazz", clazz, e);
+//              }
+            }
+          }
         }
       }
 

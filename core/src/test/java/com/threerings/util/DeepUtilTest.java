@@ -145,7 +145,7 @@ public class DeepUtilTest extends TestCase
     assertEquals(false, DeepUtil.hashCode(c1) == DeepUtil.hashCode(c2));
   }
 
-  // Child calls this so that it retains a reference to its outer...
+  // Parent calls this so that it retains a reference to its outer...
   protected int incremented (int value)
   {
     return value + 1;
@@ -154,6 +154,11 @@ public class DeepUtilTest extends TestCase
   protected abstract class Parent
   {
     public byte v1;
+
+    public void randomize ()
+    {
+      v1 = (byte)incremented(RandomUtil.rand.nextInt());
+    }
   }
 
   protected class Child extends Parent
@@ -161,9 +166,9 @@ public class DeepUtilTest extends TestCase
     public boolean v2;
     public Object[][] v3;
 
-    public void randomize ()
+    @Override public void randomize ()
     {
-      v1 = (byte)RandomUtil.rand.nextInt();
+      super.randomize();
       v2 = RandomUtil.rand.nextBoolean();
       v3 = new Object[RandomUtil.getInRange(10, 21)][];
       for (int ii = 0; ii < v3.length; ii++) {
@@ -180,7 +185,7 @@ public class DeepUtilTest extends TestCase
               v3[ii][jj] = RandomUtil.rand.nextDouble();
               break;
             case 1:
-              v3[ii][jj] = (short)incremented(RandomUtil.rand.nextInt());
+              v3[ii][jj] = (short)RandomUtil.rand.nextInt();
               break;
             case 2:
               Other other = new Other();
