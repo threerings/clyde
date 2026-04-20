@@ -324,22 +324,20 @@ public abstract class GlDisplayApp extends GlApp
       // Windowed: glfwSetWindowMonitor's size args are screen coords, so we divide pixel
       // dims by the fb/win ratio of the target (windowed) state.
       //
-      // Wrinkle: on macOS, glfwGetMonitorContentScale reflects the *current* video mode,
-      // not a static monitor property. While fullscreen at a non-native mode (e.g. 1920x1080
-      // on a Retina display) it reports 1.0, since the mode is already at pixel resolution.
-      // If we query it mid-transition, we'd use 1.0 and end up with a 2x-too-big window once
-      // macOS restores the native mode.
-      //
-      // So: exit fullscreen first with a placeholder size, pump events so macOS restores the
-      // native video mode and the real content scale, drop the cached scale, then do the
-      // actual resize using a freshly-queried value.
+      // We use the live window's fb/win ratio (getWindowScaleFactor), NOT the monitor's
+      // content scale (getPixelScaleFactor). They differ meaningfully on two platforms:
+      //   - Windows DPI-aware (our default): window coordinates ARE pixels, so fb/win is 1
+      //     regardless of the OS's display scaling. Monitor content scale reports e.g. 2
+      //     at 200% scaling, which would make us halve the requested size.
+      //   - macOS when fullscreen at a non-native video mode: fb/win is momentarily 1 even
+      //     on Retina. We handle that by exiting fullscreen first (below), which lets the
+      //     window report its actual post-transition ratio before we query.
       if (wasFullscreen) {
         GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, 0, 0,
           100, 100, GLFW.GLFW_DONT_CARE);
         GLFW.glfwPollEvents();
-        _scale = 0; // invalidate stale cache now that the mode is restored
       }
-      float scale = getPixelScaleFactor();
+      float scale = getWindowScaleFactor();
       int winW = Math.round(mode.width / scale);
       int winH = Math.round(mode.height / scale);
 
@@ -541,10 +539,12 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
 
-    // _pendingMode dimensions are in pixels. For fullscreen, glfwCreateWindow wants
-    // pixel dimensions matching a monitor video mode, with a non-null monitor handle.
-    // For windowed, it wants screen coordinates (pixels / content scale) and a null
-    // monitor handle.
+    // _pendingMode dimensions are in pixels. For fullscreen, glfwCreateWindow wants pixel
+    // dimensions matching a monitor video mode, with a non-null monitor handle. For
+    // windowed, it wants "screen coordinates" — which on macOS are logical points (so we
+    // divide pixel dims by the monitor content scale), but on Windows (DPI-aware) and on
+    // Linux/X11 are just pixels (divide by 1). We have no live window yet to query a
+    // real fb/win ratio, so we pick the divisor by platform.
     boolean fs = _pendingMode != null && _pendingMode.isFullscreen();
     long monitor = fs ? GLFW.glfwGetPrimaryMonitor() : MemoryUtil.NULL;
     int initWidth, initHeight;
@@ -555,9 +555,9 @@ public abstract class GlDisplayApp extends GlApp
         GLFW.glfwWindowHint(GLFW.GLFW_REFRESH_RATE, _pendingMode.frequency);
       }
     } else if (_pendingMode != null) {
-      float scale = getPixelScaleFactor();
-      initWidth = Math.round(_pendingMode.width / scale);
-      initHeight = Math.round(_pendingMode.height / scale);
+      float winScale = RunAnywhere.isMacOS() ? getPixelScaleFactor() : 1f;
+      initWidth = Math.round(_pendingMode.width / winScale);
+      initHeight = Math.round(_pendingMode.height / winScale);
     } else {
       // guess a default, bigger for retina screens
       float scale = getPixelScaleFactor();
