@@ -572,8 +572,7 @@ public abstract class GlDisplayApp extends GlApp
       return false;
     }
     if (_pendingMode != null && _pendingMode.isMaxed()) {
-      MacFullscreen.setFullscreen(_window, true, getRunQueue(),
-          () -> { log.info("WE did it!"); });
+      MacFullscreen.setFullscreen(_window, true, getRunQueue(), null /*onComplete*/);
     }
     _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
