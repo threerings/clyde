@@ -287,6 +287,23 @@ public abstract class GlDisplayApp extends GlApp
       _pendingMode = mode;
       return;
     }
+    // If we're switching to windowed but are currently in macOS Cocoa (green-button)
+    // fullscreen, we have to exit that first — otherwise a glfwSetWindowMonitor resize just
+    // gives us a small window floating in the black fullscreen Space. The Cocoa transition
+    // is animated and async, so we defer the actual mode change until it's done.
+    if (!mode.fullscreen && MacFullscreen.isFullscreen(_window)) {
+      MacFullscreen.setFullscreen(_window, false, getRunQueue(),
+          () -> applyDisplayMode(mode));
+      return;
+    }
+    applyDisplayMode(mode);
+  }
+
+  /** Applies the given mode assuming any asynchronous pre-transitions (e.g. exiting Cocoa
+   *  native fullscreen) have already completed. */
+  protected void applyDisplayMode (DisplayMode mode)
+  {
+    if (_window == MemoryUtil.NULL) return;
     boolean wasFullscreen = GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
     if (mode.fullscreen) {
       // Fullscreen: pixel dimensions match monitor video mode directly
