@@ -73,12 +73,15 @@ public class StringEditor extends PropertyEditor
   @Override
   public void update ()
   {
-    // this generates two documents events: first a remove, then an add.  we don't want to
-    // fire a state change, so we remove ourselves as a document listener when updating
-    _field.getDocument().removeDocumentListener(this);
     String text = StringUtil.trim((String)_property.get(_object));
     text = StringUtil.truncate(text, _property.getAnnotation().maxsize());
+    // Skip making any change if we're getting triggered by our own change propagating back!
+    if (text.equals(_field.getText())) return;
+    // Change from elsewhere! Remove our listener to skip events; try to preserve caret location...
+    _field.getDocument().removeDocumentListener(this);
+    int caret = _field.getCaretPosition();
     _field.setText(text);
+    _field.setCaretPosition(Math.min(caret, text.length()));
     _field.getDocument().addDocumentListener(this);
   }
 
