@@ -153,4 +153,14 @@ public interface GlContext extends AlContext, ResourceColorContext
   {
     getRunQueue().postRunnable(r);
   }
+
+  /**
+   * Run the runnable immediately if called from the RunQueue thread, otherwise post it.
+   */
+  public default void runOnRunQueue (Runnable r)
+  {
+    var rq = getRunQueue();
+    if (rq.isDispatchThread()) r.run();
+    else rq.postRunnable(r);
+  }
 }

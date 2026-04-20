@@ -1072,7 +1072,7 @@ public class Model extends DynamicScope
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<ModelConfig> event)
   {
-    updateFromConfig();
+    _ctx.runOnRunQueue(this::updateFromConfig);
   }
 
   @Override
@@ -1090,9 +1090,14 @@ public class Model extends DynamicScope
   @Override
   public void wasUpdated ()
   {
+    // Propagate the scope-updated notification synchronously so observer ordering is
+    // preserved, but defer updateFromConfig() — which (re)creates the model's GL-backed
+    // implementation — onto the app's main/GL thread if we aren't already there. This lets
+    // callers (e.g. Swing config editors on the EDT) fire wasUpdated without hopping threads
+    // themselves.
     super.wasUpdated();
     if (_impl != null && _compoundDepth == 0) {
-      updateFromConfig();
+      _ctx.runOnRunQueue(this::updateFromConfig);
     }
   }
 

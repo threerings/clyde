@@ -35,7 +35,6 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
 import com.samskivert.util.ObserverList;
-import com.samskivert.util.RunQueue;
 import com.samskivert.util.WeakObserverList;
 import com.samskivert.util.Tuple;
 
@@ -351,23 +350,12 @@ public abstract class ManagedConfig extends DeepObject
   }
 
   /**
-   * Call fireConfigUpdated() if we're on the config manager's RunQueue or there is none,
-   * else queue it up.
+   * Fire the config-updated event. Observer notifications happen synchronously on whatever
+   * thread called us; listeners that need to do thread-affine work (GL calls, Swing UI
+   * updates) are responsible for dispatching themselves onto the right thread.
    */
   protected final void fireFireConfigUpdated ()
   {
-    // If the config manager has a run queue set and we're not on its dispatch thread,
-    // re-post so observer notifications (which commonly touch GL resources) run on the
-    // correct thread.
-    if (_cfgmgr != null) {
-      RunQueue rq = _cfgmgr.getRunQueue();
-      if (rq != null && !rq.isDispatchThread()) {
-        rq.postRunnable(this::fireConfigUpdated);
-        return;
-      }
-    }
-
-    // otherwise...
     fireConfigUpdated();
   }
 

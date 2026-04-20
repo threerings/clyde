@@ -48,7 +48,6 @@ import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.PropertiesUtil;
-import com.samskivert.util.RunQueue;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
@@ -807,28 +806,6 @@ public class ConfigManager
     return null;
   }
 
-  /**
-   * Sets the run queue on which config-updated notifications should be dispatched.
-   * When non-null, {@link ManagedConfig#fireConfigUpdated} re-posts itself to this queue
-   * if it's called off the queue's dispatch thread. This is how in-game Swing-triggered
-   * config edits get routed from the AWT EDT back to the GL/main thread.
-   */
-  public void setRunQueue (RunQueue runQueue)
-  {
-    _runQueue = runQueue;
-  }
-
-  /**
-   * Returns the run queue for config-updated notifications, falling back to the parent
-   * manager's queue if none is set here.
-   */
-  public RunQueue getRunQueue ()
-  {
-    return _runQueue != null ? _runQueue
-      : _parent != null ? _parent.getRunQueue()
-      : null;
-  }
-
   /** The type of this manager. */
   protected String _type;
 
@@ -858,7 +835,4 @@ public class ConfigManager
 
   /** Set when we should ignore config updates because we're refreshing. */
   protected boolean _ignoreUpdates;
-
-  /** Run queue used to dispatch config-updated events; null means run inline. */
-  protected RunQueue _runQueue;
 }

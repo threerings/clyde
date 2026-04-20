@@ -48,6 +48,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -257,6 +258,12 @@ public class ResourceEditor extends BaseConfigEditor
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<ManagedConfig> event)
   {
+    // The fire may come from any thread (e.g. the game's main/GL thread if a config edit
+    // was initiated there); _epanel is a Swing component and must be touched on the EDT.
+    if (!SwingUtilities.isEventDispatchThread()) {
+      SwingUtilities.invokeLater(() -> configUpdated(event));
+      return;
+    }
     if (!_block.enter()) {
       return;
     }
