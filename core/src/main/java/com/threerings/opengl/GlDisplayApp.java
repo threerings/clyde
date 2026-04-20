@@ -251,10 +251,17 @@ public abstract class GlDisplayApp extends GlApp
       if (vidMode != null) {
         float scale = getWindowScaleFactor();
         return new DisplayMode(Math.round(vidMode.width() * scale),
-          Math.round(vidMode.height() * scale), vidMode.refreshRate(), true);
+          Math.round(vidMode.height() * scale), vidMode.refreshRate());
       }
     }
-    return new DisplayMode(1024, 768); // make something up... ouch!
+    return new DisplayMode(1024, 768, 60); // make something up... ouch!
+  }
+
+  public DisplayMode getCurrentDisplayMode ()
+  {
+    if (isFullscreen()) return getDesktopDisplayMode();
+    var mode = new DisplayMode(getWindowWidth(), getWindowHeight());
+    return MacFullscreen.isFullscreen(_window) ? mode.asMaxed() : mode;
   }
 
   /**
@@ -271,9 +278,7 @@ public abstract class GlDisplayApp extends GlApp
     DisplayMode[] modes = new DisplayMode[vidModes.limit()];
     for (int ii = 0; ii < vidModes.limit(); ii++) {
       vidModes.position(ii);
-      // But, for some reason, these modes are full pixel? I am confused.
-      modes[ii] = new DisplayMode(
-        vidModes.width(), vidModes.height(), vidModes.refreshRate(), true);
+      modes[ii] = new DisplayMode(vidModes.width(), vidModes.height(), vidModes.refreshRate());
     }
     return modes;
   }
@@ -291,8 +296,8 @@ public abstract class GlDisplayApp extends GlApp
     // fullscreen, we have to exit that first — otherwise a glfwSetWindowMonitor resize just
     // gives us a small window floating in the black fullscreen Space. The Cocoa transition
     // is animated and async, so we defer the actual mode change until it's done.
-    if (!mode.fullscreen && MacFullscreen.isFullscreen(_window)) {
-      MacFullscreen.setFullscreen(_window, false, getRunQueue(),
+    if (mode.isMaxed() != MacFullscreen.isFullscreen(_window)) {
+      MacFullscreen.setFullscreen(_window, mode.isMaxed(), getRunQueue(),
           () -> applyDisplayMode(mode));
       return;
     }
@@ -303,9 +308,13 @@ public abstract class GlDisplayApp extends GlApp
    *  native fullscreen) have already completed. */
   protected void applyDisplayMode (DisplayMode mode)
   {
+    if (mode.isMaxed()) {
+      log.warning("We already did it!");
+      return;
+    }
     if (_window == MemoryUtil.NULL) return;
     boolean wasFullscreen = GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
-    if (mode.fullscreen) {
+    if (mode.isFullscreen()) {
       // Fullscreen: pixel dimensions match monitor video mode directly
       long monitor = GLFW.glfwGetPrimaryMonitor();
       GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
@@ -536,7 +545,7 @@ public abstract class GlDisplayApp extends GlApp
     // pixel dimensions matching a monitor video mode, with a non-null monitor handle.
     // For windowed, it wants screen coordinates (pixels / content scale) and a null
     // monitor handle.
-    boolean fs = _pendingMode != null && _pendingMode.fullscreen;
+    boolean fs = _pendingMode != null && _pendingMode.isFullscreen();
     long monitor = fs ? GLFW.glfwGetPrimaryMonitor() : MemoryUtil.NULL;
     int initWidth, initHeight;
     if (_pendingMode != null && fs) {
@@ -561,6 +570,10 @@ public abstract class GlDisplayApp extends GlApp
     if (_window == MemoryUtil.NULL) {
       log.warning("Couldn't create window!");
       return false;
+    }
+    if (_pendingMode != null && _pendingMode.isMaxed()) {
+      MacFullscreen.setFullscreen(_window, true, getRunQueue(),
+          () -> { log.info("WE did it!"); });
     }
     _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
