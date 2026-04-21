@@ -75,6 +75,7 @@ public class StringEditor extends PropertyEditor
   {
     String text = StringUtil.trim((String)_property.get(_object));
     text = StringUtil.truncate(text, _property.getAnnotation().maxsize());
+    if (text == null) text = "";
     // Skip making any change if we're getting triggered by our own change propagating back!
     if (text.equals(_field.getText())) return;
     // Change from elsewhere! Remove our listener to skip events; try to preserve caret location...
