@@ -621,11 +621,9 @@ public class ConfigGroup<T extends ManagedConfig>
       return;
     }
     final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
-    _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener>() {
-      public boolean apply (ConfigGroupListener listener) {
-        listener.configAdded(event);
-        return true;
-      }
+    _listeners.apply(listener -> {
+      listener.configAdded(event);
+      return true;
     });
   }
 
@@ -638,11 +636,9 @@ public class ConfigGroup<T extends ManagedConfig>
       return;
     }
     final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
-    _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener>() {
-      public boolean apply (ConfigGroupListener listener) {
-        listener.configRemoved(event);
-        return true;
-      }
+    _listeners.apply(listener -> {
+      listener.configRemoved(event);
+      return true;
     });
   }
 

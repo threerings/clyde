@@ -764,12 +764,9 @@ public class ConfigManager
   {
     if (_updateListeners != null && !_ignoreUpdates) {
       final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
-      _updateListeners.apply(
-        new ObserverList.ObserverOp<ConfigUpdateListener<ManagedConfig>>() {
-        public boolean apply (ConfigUpdateListener<ManagedConfig> listener) {
-          listener.configUpdated(event);
-          return true;
-        }
+      _updateListeners.apply(listener -> {
+        listener.configUpdated(event);
+        return true;
       });
     }
   }

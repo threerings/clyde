@@ -506,11 +506,9 @@ public class TudeySceneManager extends SceneManager
     }
 
     // notify observers
-    _actorObservers.apply(new ObserverList.ObserverOp<ActorObserver>() {
-      public boolean apply (ActorObserver observer) {
-        observer.actorAdded(logic);
-        return true;
-      }
+    _actorObservers.apply(observer -> {
+      observer.actorAdded(logic);
+      return true;
     });
 
     return logic;
@@ -723,11 +721,9 @@ public class TudeySceneManager extends SceneManager
     }
 
     // notify observers
-    _actorObservers.apply(new ObserverList.ObserverOp<ActorObserver>() {
-      public boolean apply (ActorObserver observer) {
-        observer.actorRemoved(logic);
-        return true;
-      }
+    _actorObservers.apply(observer -> {
+      observer.actorRemoved(logic);
+      return true;
     });
   }
 
@@ -1872,11 +1868,8 @@ public class TudeySceneManager extends SceneManager
   protected static long _tickParticipantCount;
 
   /** Shutdown observer op. */
-  protected static final ObserverList.ObserverOp<ShutdownObserver> _shutdownOp =
-    new ObserverList.ObserverOp<ShutdownObserver>() {
-    public boolean apply (ShutdownObserver observer) {
-      observer.didShutdown();
-      return false;
-    }
+  protected static final ObserverList.ObserverOp<ShutdownObserver> _shutdownOp = observer -> {
+    observer.didShutdown();
+    return false;
   };
 }

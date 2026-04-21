@@ -1548,11 +1548,9 @@ public class TudeySceneModel extends SceneModel
       return false;
     }
     // notify the observers and report success
-    _observers.apply(new ObserverList.ObserverOp<Observer>() {
-      public boolean apply (Observer observer) {
-        observer.entryAdded(entry);
-        return true;
-      }
+    _observers.apply(observer -> {
+      observer.entryAdded(entry);
+      return true;
     });
     return true;
   }
@@ -1572,11 +1570,9 @@ public class TudeySceneModel extends SceneModel
       return null;
     }
     // notify the observers and return the old entry
-    _observers.apply(new ObserverList.ObserverOp<Observer>() {
-      public boolean apply (Observer observer) {
-        observer.entryUpdated(oentry, nentry);
-        return true;
-      }
+    _observers.apply(observer -> {
+      observer.entryUpdated(oentry, nentry);
+      return true;
     });
     return oentry;
   }
@@ -1596,11 +1592,9 @@ public class TudeySceneModel extends SceneModel
       return null;
     }
     // notify the observers and return the old entry
-    _observers.apply(new ObserverList.ObserverOp<Observer>() {
-      public boolean apply (Observer observer) {
-        observer.entryRemoved(oentry);
-        return true;
-      }
+    _observers.apply(observer -> {
+      observer.entryRemoved(oentry);
+      return true;
     });
     return oentry;
   }
@@ -1880,13 +1874,9 @@ public class TudeySceneModel extends SceneModel
         itr.remove(); // shift that object to the base layer
         // notify the observers
         final Integer key = entry.getKey();
-        _observers.apply(new ObserverList.ObserverOp<Observer>() {
-          public boolean apply (Observer observer) {
-            if (observer instanceof LayerObserver) {
-              ((LayerObserver) observer).entryLayerWasSet(key, 0);
-            }
-            return true;
-          }
+        _observers.apply(observer -> {
+          if (observer instanceof LayerObserver lobs) lobs.entryLayerWasSet(key, 0);
+          return true;
         });
       } else if (entryLayer > layer) {
         entry.setValue(entryLayer - 1);
@@ -1915,13 +1905,9 @@ public class TudeySceneModel extends SceneModel
     validateLayer(layer);
     if (setEntryLayer(key, layer)) {
       // notify the observers
-      _observers.apply(new ObserverList.ObserverOp<Observer>() {
-        public boolean apply (Observer observer) {
-          if (observer instanceof LayerObserver) {
-            ((LayerObserver) observer).entryLayerWasSet(key, layer);
-          }
-          return true;
-        }
+      _observers.apply(observer -> {
+        if (observer instanceof LayerObserver lobs) lobs.entryLayerWasSet(key, layer);
+        return true;
       });
     }
   }

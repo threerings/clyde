@@ -258,11 +258,9 @@ public class TudeySceneController extends SceneController
     if (!mouseCameraEnabled()) {
       ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
       if (list != null) {
-        list.apply(new ObserverList.ObserverOp<PseudoKeys.Observer>() {
-          public boolean apply (PseudoKeys.Observer observer) {
-            observer.keyPressed(when, key, amount);
-            return true;
-          }
+        list.apply(observer -> {
+          observer.keyPressed(when, key, amount);
+          return true;
         });
       }
     }
@@ -274,11 +272,9 @@ public class TudeySceneController extends SceneController
     if (!mouseCameraEnabled()) {
       ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
       if (list != null) {
-        list.apply(new ObserverList.ObserverOp<PseudoKeys.Observer>() {
-          public boolean apply (PseudoKeys.Observer observer) {
-            observer.keyReleased(when, key);
-            return true;
-          }
+        list.apply(observer -> {
+          observer.keyReleased(when, key);
+          return true;
         });
       }
     }

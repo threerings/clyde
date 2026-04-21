@@ -1299,12 +1299,10 @@ public class ConfigEditor extends BaseConfigEditor
       Boolean oldVal = _dirty.put(group, dirty);
       boolean oldDirty = Boolean.TRUE.equals(oldVal);
       if (dirty != oldDirty) {
-        _editors.apply(new ObserverList.ObserverOp<ConfigEditor>() {
-            public boolean apply (ConfigEditor editor) {
-              editor.recheckDirty();
-              return true;
-            }
-          });
+        _editors.apply(editor -> {
+          editor.recheckDirty();
+          return true;
+        });
       }
     }
 

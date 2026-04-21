@@ -142,11 +142,9 @@ public class DynamicScope
   {
     if (_compoundDepth == 0 && _listeners != null) {
       final ScopeEvent event = new ScopeEvent(this);
-      _listeners.apply(new ObserverList.ObserverOp<ScopeUpdateListener>() {
-        public boolean apply (ScopeUpdateListener listener) {
-          listener.scopeUpdated(event);
-          return true;
-        }
+      _listeners.apply(listener -> {
+        listener.scopeUpdated(event);
+        return true;
       });
     }
   }

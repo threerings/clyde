@@ -89,11 +89,9 @@ public class RecentConfigList extends AbstractRecentList
   protected void valueSelected (String value)
   {
     final ConfigReference<?> ref = new ConfigReference<ManagedConfig>(value);
-    _observers.apply(new ObserverList.ObserverOp<Observer>() {
-      public boolean apply (Observer obs) {
-        obs.configSelected(ref);
-        return true;
-      }
+    _observers.apply(obs -> {
+      obs.configSelected(ref);
+      return true;
     });
   }
 

@@ -667,11 +667,9 @@ public class ActorLogic extends Logic
     }
     final int oflags = _collisionFlags;
     _collisionFlags = nflags;
-    _collisionFlagObservers.apply(new ObserverList.ObserverOp<CollisionFlagObserver>() {
-      public boolean apply (CollisionFlagObserver observer) {
-        observer.collisionFlagsChanged(ActorLogic.this, oflags);
-        return true;
-      }
+    _collisionFlagObservers.apply(observer -> {
+      observer.collisionFlagsChanged(ActorLogic.this, oflags);
+      return true;
     });
   }
 
@@ -784,21 +782,15 @@ public class ActorLogic extends Logic
   protected boolean _destroyed;
 
   /** Used to notify observers when the shape is about to change. */
-  protected ObserverList.ObserverOp<ShapeObserver> _shapeWillChangeOp =
-    new ObserverList.ObserverOp<ShapeObserver>() {
-    public boolean apply (ShapeObserver observer) {
-      observer.shapeWillChange(ActorLogic.this);
-      return true;
-    }
+  protected ObserverList.ObserverOp<ShapeObserver> _shapeWillChangeOp = observer -> {
+    observer.shapeWillChange(ActorLogic.this);
+    return true;
   };
 
   /** Used to notify observers when the shape has just changed. */
-  protected ObserverList.ObserverOp<ShapeObserver> _shapeDidChangeOp =
-    new ObserverList.ObserverOp<ShapeObserver>() {
-    public boolean apply (ShapeObserver observer) {
-      observer.shapeDidChange(ActorLogic.this);
-      return true;
-    }
+  protected ObserverList.ObserverOp<ShapeObserver> _shapeDidChangeOp = observer -> {
+    observer.shapeDidChange(ActorLogic.this);
+    return true;
   };
 
   /** The maximum number of steps away from the spawn point for adjustment. */

@@ -211,11 +211,9 @@ public class Renderer
     _width = width;
     _height = height;
 
-    _observers.apply(new ObserverList.ObserverOp<Observer>() {
-      public boolean apply (Observer observer) {
-        observer.sizeChanged(_width, _height);
-        return true;
-      }
+    _observers.apply(observer -> {
+      observer.sizeChanged(_width, _height);
+      return true;
     });
   }
 

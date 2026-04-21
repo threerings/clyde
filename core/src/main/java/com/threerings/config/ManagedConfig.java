@@ -372,11 +372,9 @@ public abstract class ManagedConfig extends DeepObject
     try {
       if (_listeners != null) {
         final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, this);
-        _listeners.apply(new ObserverList.ObserverOp<ConfigUpdateListener<ManagedConfig>>() {
-          public boolean apply (ConfigUpdateListener<ManagedConfig> listener) {
-            listener.configUpdated(event);
-            return true;
-          }
+        _listeners.apply(listener -> {
+          listener.configUpdated(event);
+          return true;
         });
       }
       maybeFireOnConfigManager();
