@@ -292,35 +292,33 @@ public abstract class GlDisplayApp extends GlApp
       _pendingMode = mode;
       return;
     }
-    // If we're switching to windowed but are currently in macOS Cocoa (green-button)
-    // fullscreen, we have to exit that first — otherwise a glfwSetWindowMonitor resize just
-    // gives us a small window floating in the black fullscreen Space. The Cocoa transition
-    // is animated and async, so we defer the actual mode change until it's done.
+    boolean wasFullscreen = GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
+    // 1. Exit fullscreen, if needed, first and foremost
+    if (wasFullscreen && !mode.isFullscreen()) {
+      GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, 0, 0,
+        100, 100, GLFW.GLFW_DONT_CARE);
+      GLFW.glfwPollEvents();
+      postRunnable(() -> setDisplayModeAndFullscreen(mode));
+      return;
+    }
+
+    // 2. If going in or out of Mac "Spaces" mode (green button), do that next and wait to complete.
     if (mode.isMaxed() != MacFullscreen.isFullscreen(_window)) {
       MacFullscreen.setFullscreen(_window, mode.isMaxed(), getRunQueue(),
-          () -> applyDisplayMode(mode));
+          () -> setDisplayModeAndFullscreen(mode)); // re-enter
       return;
     }
-    applyDisplayMode(mode);
-  }
 
-  /** Applies the given mode assuming any asynchronous pre-transitions (e.g. exiting Cocoa
-   *  native fullscreen) have already completed. */
-  protected void applyDisplayMode (DisplayMode mode)
-  {
-    if (mode.isMaxed()) {
-      log.warning("We already did it!");
-      return;
-    }
-    if (_window == MemoryUtil.NULL) return;
-    boolean wasFullscreen = GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
+    // 3. If going to fullscreen, do that
     if (mode.isFullscreen()) {
       // Fullscreen: pixel dimensions match monitor video mode directly
       long monitor = GLFW.glfwGetPrimaryMonitor();
       GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
         mode.width, mode.height,
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
-    } else {
+
+    // 4. If the new mode is windowed
+    } else if (mode.isWindowed()) {
       // Windowed: glfwSetWindowMonitor's size args are screen coords, so we divide pixel
       // dims by the fb/win ratio of the target (windowed) state.
       //
@@ -332,11 +330,6 @@ public abstract class GlDisplayApp extends GlApp
       //   - macOS when fullscreen at a non-native video mode: fb/win is momentarily 1 even
       //     on Retina. We handle that by exiting fullscreen first (below), which lets the
       //     window report its actual post-transition ratio before we query.
-      if (wasFullscreen) {
-        GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, 0, 0,
-          100, 100, GLFW.GLFW_DONT_CARE);
-        GLFW.glfwPollEvents();
-      }
       float scale = getWindowScaleFactor();
       int winW = Math.round(mode.width / scale);
       int winH = Math.round(mode.height / scale);
