@@ -284,12 +284,21 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
-   * Sets the display mode and fullscreen state.
+   * Sets the display mode.
    */
-  public void setDisplayModeAndFullscreen (DisplayMode mode)
+  public void setDisplayMode (DisplayMode mode)
+  {
+    setDisplayMode(mode, null);
+  }
+
+  public void setDisplayMode (DisplayMode mode, Runnable onComplete)
   {
     if (_window == MemoryUtil.NULL) {
       _pendingMode = mode;
+      if (onComplete != null) {
+        log.warning("Running startup onComplete too soon... TODO");
+        onComplete.run();
+      }
       return;
     }
     boolean wasFullscreen = GLFW.glfwGetWindowMonitor(_window) != MemoryUtil.NULL;
@@ -298,14 +307,14 @@ public abstract class GlDisplayApp extends GlApp
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, 0, 0,
         100, 100, GLFW.GLFW_DONT_CARE);
       GLFW.glfwPollEvents();
-      postRunnable(() -> setDisplayModeAndFullscreen(mode));
+      postRunnable(() -> setDisplayMode(mode, onComplete));
       return;
     }
 
     // 2. If going in or out of Mac "Spaces" mode (green button), do that next and wait to complete.
     if (mode.isMaxed() != MacFullscreen.isFullscreen(_window)) {
       MacFullscreen.setFullscreen(_window, mode.isMaxed(), getRunQueue(),
-          () -> setDisplayModeAndFullscreen(mode)); // re-enter
+          () -> setDisplayMode(mode, onComplete)); // re-enter
       return;
     }
 
@@ -353,6 +362,7 @@ public abstract class GlDisplayApp extends GlApp
     }
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
     updateRendererSize();
+    if (onComplete != null) onComplete.run();
   }
 
   /**
