@@ -664,29 +664,31 @@ public class PseudoKeys
 
     List<String> modifiers = Lists.newArrayList();
 
-    OUTER:
-    for (int ii = 0; ii < KEY_MODIFIERS.length; ii++) {
-      if (hasModifierKey(key, KEY_MODIFIERS[ii])) {
-        List<Integer> keys = _modifierToKeys.get(KEY_MODIFIERS[ii]);
-        if (keys.isEmpty()) {
-          // Modified key with no modifier association. Return default.
-          modifiers.add("k.modifier_" + (ii + 1));
-          continue;
-        }
-        boolean isController = isControllerKey(baseKey);
-        boolean isMouse = isMouseKey(baseKey);
-        boolean isKeyboard = isKeyboardKey(baseKey);
-        for (int k : keys) {
-          if ((isController && isControllerKey(k)) ||
-              (isMouse && isMouseKey(k)) ||
-              (isKeyboard && isKeyboardKey(k))) {
-            // If we have a modifier that matches the button type, use it.
-            modifiers.add(MessageBundle.taint(getDesc(msgs, k)));
-            continue OUTER;
+    if (key != KEY_NONE) {
+      OUTER:
+      for (int ii = 0; ii < KEY_MODIFIERS.length; ii++) {
+        if (hasModifierKey(key, KEY_MODIFIERS[ii])) {
+          List<Integer> keys = _modifierToKeys.get(KEY_MODIFIERS[ii]);
+          if (keys.isEmpty()) {
+            // Modified key with no modifier association. Return default.
+            modifiers.add("k.modifier_" + (ii + 1));
+            continue;
           }
+          boolean isController = isControllerKey(baseKey);
+          boolean isMouse = isMouseKey(baseKey);
+          boolean isKeyboard = isKeyboardKey(baseKey);
+          for (int k : keys) {
+            if ((isController && isControllerKey(k)) ||
+                (isMouse && isMouseKey(k)) ||
+                (isKeyboard && isKeyboardKey(k))) {
+              // If we have a modifier that matches the button type, use it.
+              modifiers.add(MessageBundle.taint(getDesc(msgs, k)));
+              continue OUTER;
+            }
+          }
+          // Otherwise just use the first one.
+          modifiers.add(MessageBundle.taint(getDesc(msgs, keys.iterator().next())));
         }
-        // Otherwise just use the first one.
-        modifiers.add(MessageBundle.taint(getDesc(msgs, keys.iterator().next())));
       }
     }
 
@@ -960,11 +962,13 @@ public class PseudoKeys
   }
 
   /**
-   * Returns the base key for a given int.
+   * Returns the base key for a given int (strips the modifier-mask bits). {@link #KEY_NONE}
+   * stays {@link #KEY_NONE} — its all-bits-set representation would otherwise mangle to
+   * {@code ~KEY_MODIFIER_MASK}.
    */
   public int getBaseKey (int key)
   {
-    return key & ~KEY_MODIFIER_MASK;
+    return (key == KEY_NONE) ? KEY_NONE : (key & ~KEY_MODIFIER_MASK);
   }
 
   /**
