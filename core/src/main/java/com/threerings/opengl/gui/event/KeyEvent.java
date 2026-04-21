@@ -64,24 +64,6 @@ public class KeyEvent extends InputEvent
    */
   public char getKeyChar ()
   {
-    // TEMP: This is a hack to get around a bug in lwjgl's handling of
-    // numpad keys in windows
-    if (_keyChar == 0) {
-      switch (_keyCode) {
-      case GLFW.GLFW_KEY_KP_1: return '1';
-      case GLFW.GLFW_KEY_KP_2: return '2';
-      case GLFW.GLFW_KEY_KP_3: return '3';
-      case GLFW.GLFW_KEY_KP_4: return '4';
-      case GLFW.GLFW_KEY_KP_5: return '5';
-      case GLFW.GLFW_KEY_KP_6: return '6';
-      case GLFW.GLFW_KEY_KP_7: return '7';
-      case GLFW.GLFW_KEY_KP_8: return '8';
-      case GLFW.GLFW_KEY_KP_9: return '9';
-      case GLFW.GLFW_KEY_KP_0: return '0';
-      default: return _keyChar;
-      }
-    }
-    // END TEMP
     return _keyChar;
   }
 
