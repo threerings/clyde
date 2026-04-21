@@ -41,13 +41,13 @@ import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import com.threerings.math.FloatMath;
 
 import com.threerings.opengl.GlDisplayApp;
-import com.threerings.opengl.lwjgl2.Keyboard;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ControllerEvent;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.text.IMEComponent;
+import com.threerings.opengl.gui.util.PseudoKeys;
 import static com.threerings.opengl.gui.Log.log;
 
 
@@ -112,9 +112,8 @@ public class DisplayRoot extends Root
           KeyRecord record = it.next();
           KeyEvent press = record.getPress();
           int key = press.getKeyCode();
-          int glfwKey = Keyboard.lwjgl2ToGlfw(key);
-          if (glfwKey != GLFW.GLFW_KEY_UNKNOWN &&
-              GLFW.glfwGetKey(window, glfwKey) != GLFW.GLFW_PRESS) {
+          if (key != GLFW.GLFW_KEY_UNKNOWN &&
+              GLFW.glfwGetKey(window, key) != GLFW.GLFW_PRESS) {
             dispatchEvent(getFocus(), new KeyEvent(
               this, _tickStamp, _modifiers, KeyEvent.KEY_RELEASED,
               press.getKeyChar(), key, false));
@@ -328,7 +327,7 @@ public class DisplayRoot extends Root
         // Flush any previous buffered key event that never got a char callback
         flushPendingKeyEvent();
 
-        int key = Keyboard.glfwToLwjgl2(glfwKey);
+        int key = glfwKey;
         boolean pressed = (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT);
         boolean printable = (GLFW.glfwGetKeyName(glfwKey, scancode) != null);
 
@@ -372,7 +371,7 @@ public class DisplayRoot extends Root
           // Standalone character (IME, composed input)
           synchronized (_eventQueue) {
             _eventQueue.add(() -> {
-              keyPressed(_tickStamp, ch, Keyboard.KEY_NONE, false);
+              keyPressed(_tickStamp, ch, PseudoKeys.KEY_NONE, false);
             });
           }
         }
@@ -486,26 +485,29 @@ public class DisplayRoot extends Root
   {
     int mask, okey;
     switch (key) {
-      case Keyboard.KEY_LSHIFT:
-      case Keyboard.KEY_RSHIFT:
+      case GLFW.GLFW_KEY_LEFT_SHIFT:
+      case GLFW.GLFW_KEY_RIGHT_SHIFT:
         mask = InputEvent.SHIFT_DOWN_MASK;
-        okey = (key == Keyboard.KEY_LSHIFT) ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
+        okey = (key == GLFW.GLFW_KEY_LEFT_SHIFT)
+          ? GLFW.GLFW_KEY_RIGHT_SHIFT : GLFW.GLFW_KEY_LEFT_SHIFT;
         break;
-      case Keyboard.KEY_LCONTROL:
-      case Keyboard.KEY_RCONTROL:
+      case GLFW.GLFW_KEY_LEFT_CONTROL:
+      case GLFW.GLFW_KEY_RIGHT_CONTROL:
         mask = InputEvent.CTRL_DOWN_MASK;
-        okey = (key == Keyboard.KEY_LCONTROL) ?
-          Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
+        okey = (key == GLFW.GLFW_KEY_LEFT_CONTROL)
+          ? GLFW.GLFW_KEY_RIGHT_CONTROL : GLFW.GLFW_KEY_LEFT_CONTROL;
         break;
-      case Keyboard.KEY_LMENU:
-      case Keyboard.KEY_RMENU:
+      case GLFW.GLFW_KEY_LEFT_ALT:
+      case GLFW.GLFW_KEY_RIGHT_ALT:
         mask = InputEvent.ALT_DOWN_MASK;
-        okey = (key == Keyboard.KEY_LMENU) ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
+        okey = (key == GLFW.GLFW_KEY_LEFT_ALT)
+          ? GLFW.GLFW_KEY_RIGHT_ALT : GLFW.GLFW_KEY_LEFT_ALT;
         break;
-      case Keyboard.KEY_LMETA:
-      case Keyboard.KEY_RMETA:
+      case GLFW.GLFW_KEY_LEFT_SUPER:
+      case GLFW.GLFW_KEY_RIGHT_SUPER:
         mask = InputEvent.META_DOWN_MASK;
-        okey = (key == Keyboard.KEY_LMETA) ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
+        okey = (key == GLFW.GLFW_KEY_LEFT_SUPER)
+          ? GLFW.GLFW_KEY_RIGHT_SUPER : GLFW.GLFW_KEY_LEFT_SUPER;
         break;
       default:
         return;

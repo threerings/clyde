@@ -35,7 +35,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.config.ArgumentMap;
@@ -976,7 +976,7 @@ public class Component
       KeyEvent kev = (KeyEvent)event;
       if (kev.getType() == KeyEvent.KEY_PRESSED) {
         int modifiers = kev.getModifiers(), keyCode = kev.getKeyCode();
-        if (keyCode == Keyboard.KEY_TAB && getWindow() != null) {
+        if (keyCode == GLFW.GLFW_KEY_TAB && getWindow() != null) {
           if (modifiers == 0) {
             getWindow().requestFocus(getNextFocus());
             processed = true;

@@ -32,9 +32,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ListMultimap;
 
-import com.samskivert.util.HashIntSet;
+import org.lwjgl.glfw.GLFW;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import com.samskivert.util.HashIntSet;
 
 import com.google.common.collect.Maps;
 
@@ -55,7 +55,9 @@ import static com.threerings.opengl.gui.Log.log;
 
 /**
  * Provides a unified system for handling keys, mouse buttons, and other key-like features.  The
- * pseudo-keys are in the same identifier space as the key codes defined in {@link Keyboard}.
+ * pseudo-keys share the integer identifier space with GLFW's {@code GLFW_KEY_*} constants: real
+ * keyboard keys use their GLFW codes (0..{@link GLFW#GLFW_KEY_LAST}), and pseudo-keys start at
+ * {@link #KEY_BASE}, safely above the GLFW range.
  */
 public class PseudoKeys
 {
@@ -458,12 +460,14 @@ public class PseudoKeys
     }
 
     /**
-     * Returns any associated modifier key with this key.
+     * Returns any associated modifier key bit (one of {@link #KEY_MODIFIER1}..{@link
+     * #KEY_MODIFIER4}) for the given key, or 0 if this key is not configured as a modifier.
+     * Note: this sentinel is 0, not {@link #KEY_NONE} — the callers check {@code modKey == 0}.
      */
     protected int getModifierKey (int key)
     {
       Integer retVal = _modifierMap.get(key);
-      return (retVal == null) ? Keyboard.KEY_NONE : retVal;
+      return (retVal == null) ? 0 : retVal;
     }
 
     /**
@@ -514,58 +518,65 @@ public class PseudoKeys
     protected boolean _consume;
   }
 
+  /** Sentinel for "no key assigned"; matches GLFW's UNKNOWN value (-1). */
+  public static final int KEY_NONE = GLFW.GLFW_KEY_UNKNOWN;
+
+  /** First identifier used for pseudo-keys. Chosen well above {@link GLFW#GLFW_KEY_LAST}
+   *  (348) to leave headroom if GLFW ever adds more real keys. */
+  public static final int KEY_BASE = 512;
+
   /** A special "key" mapping for the left mouse button. */
-  public static final int KEY_BUTTON1 = Keyboard.KEYBOARD_SIZE;
+  public static final int KEY_BUTTON1 = KEY_BASE;
 
   /** A special "key" mapping for the right mouse button. */
-  public static final int KEY_BUTTON2 = Keyboard.KEYBOARD_SIZE + 1;
+  public static final int KEY_BUTTON2 = KEY_BASE + 1;
 
   /** A special "key" mapping for the middle mouse button. */
-  public static final int KEY_BUTTON3 = Keyboard.KEYBOARD_SIZE + 2;
+  public static final int KEY_BUTTON3 = KEY_BASE + 2;
 
   /** A special "key" mapping for scrolling the mouse wheel up. */
-  public static final int KEY_WHEEL_UP = Keyboard.KEYBOARD_SIZE + 3;
+  public static final int KEY_WHEEL_UP = KEY_BASE + 3;
 
   /** A special "key" mapping for scrolling the mouse wheel down. */
-  public static final int KEY_WHEEL_DOWN = Keyboard.KEYBOARD_SIZE + 4;
+  public static final int KEY_WHEEL_DOWN = KEY_BASE + 4;
 
   /** A special "key" mapping for a controller button. */
-  public static final int KEY_CONTROLLER_BUTTON = Keyboard.KEYBOARD_SIZE + 5;
+  public static final int KEY_CONTROLLER_BUTTON = KEY_BASE + 5;
 
   /** A special "key" mapping for positive movement on a controller axis. */
-  public static final int KEY_CONTROLLER_AXIS_POSITIVE = Keyboard.KEYBOARD_SIZE + 6;
+  public static final int KEY_CONTROLLER_AXIS_POSITIVE = KEY_BASE + 6;
 
   /** A special "key" mapping for negative movement on a controller axis. */
-  public static final int KEY_CONTROLLER_AXIS_NEGATIVE = Keyboard.KEYBOARD_SIZE + 7;
+  public static final int KEY_CONTROLLER_AXIS_NEGATIVE = KEY_BASE + 7;
 
   /** A special "key" mapping for positive movement on a controller pov x axis. */
-  public static final int KEY_CONTROLLER_POV_X_POSITIVE = Keyboard.KEYBOARD_SIZE + 8;
+  public static final int KEY_CONTROLLER_POV_X_POSITIVE = KEY_BASE + 8;
 
   /** A special "key" mapping for negative movement on a controller pov x axis. */
-  public static final int KEY_CONTROLLER_POV_X_NEGATIVE = Keyboard.KEYBOARD_SIZE + 9;
+  public static final int KEY_CONTROLLER_POV_X_NEGATIVE = KEY_BASE + 9;
 
   /** A special "key" mapping for positive movement on a controller pov y axis. */
-  public static final int KEY_CONTROLLER_POV_Y_POSITIVE = Keyboard.KEYBOARD_SIZE + 10;
+  public static final int KEY_CONTROLLER_POV_Y_POSITIVE = KEY_BASE + 10;
 
   /** A special "key" mapping for negative movement on a controller pov y axis. */
-  public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = Keyboard.KEYBOARD_SIZE + 11;
+  public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = KEY_BASE + 11;
 
   /** A special "key" mapping for the 4th mouse button. */
-  public static final int KEY_BUTTON4 = Keyboard.KEYBOARD_SIZE + 12;
+  public static final int KEY_BUTTON4 = KEY_BASE + 12;
 
   /** A special "key" mapping for the 5th mouse button. */
-  public static final int KEY_BUTTON5 = Keyboard.KEYBOARD_SIZE + 13;
-  public static final int KEY_BUTTON6 = Keyboard.KEYBOARD_SIZE + 14;
-  public static final int KEY_BUTTON7 = Keyboard.KEYBOARD_SIZE + 15;
-  public static final int KEY_BUTTON8 = Keyboard.KEYBOARD_SIZE + 16;
-  public static final int KEY_BUTTON9 = Keyboard.KEYBOARD_SIZE + 17;
-  public static final int KEY_BUTTON10 = Keyboard.KEYBOARD_SIZE + 18;
-  public static final int KEY_BUTTON11 = Keyboard.KEYBOARD_SIZE + 19;
-  public static final int KEY_BUTTON12 = Keyboard.KEYBOARD_SIZE + 20;
-  public static final int KEY_BUTTON13 = Keyboard.KEYBOARD_SIZE + 21;
-  public static final int KEY_BUTTON14 = Keyboard.KEYBOARD_SIZE + 22;
-  public static final int KEY_BUTTON15 = Keyboard.KEYBOARD_SIZE + 23;
-  public static final int KEY_BUTTON16 = Keyboard.KEYBOARD_SIZE + 24;
+  public static final int KEY_BUTTON5 = KEY_BASE + 13;
+  public static final int KEY_BUTTON6 = KEY_BASE + 14;
+  public static final int KEY_BUTTON7 = KEY_BASE + 15;
+  public static final int KEY_BUTTON8 = KEY_BASE + 16;
+  public static final int KEY_BUTTON9 = KEY_BASE + 17;
+  public static final int KEY_BUTTON10 = KEY_BASE + 18;
+  public static final int KEY_BUTTON11 = KEY_BASE + 19;
+  public static final int KEY_BUTTON12 = KEY_BASE + 20;
+  public static final int KEY_BUTTON13 = KEY_BASE + 21;
+  public static final int KEY_BUTTON14 = KEY_BASE + 22;
+  public static final int KEY_BUTTON15 = KEY_BASE + 23;
+  public static final int KEY_BUTTON16 = KEY_BASE + 24;
 
   public static final int LAST_KEY = KEY_BUTTON16;
 
@@ -611,7 +622,7 @@ public class PseudoKeys
       case MouseEvent.BUTTON14: return KEY_BUTTON14;
       case MouseEvent.BUTTON15: return KEY_BUTTON15;
       case MouseEvent.BUTTON16: return KEY_BUTTON15;
-      default: return Keyboard.KEY_NONE;
+      default: return KEY_NONE;
     }
   }
 
@@ -760,7 +771,111 @@ public class PseudoKeys
         return "CONTROLLER" + getControllerIndex(key) + "_POV_Y_POSITIVE";
       case KEY_CONTROLLER_POV_Y_NEGATIVE:
         return "CONTROLLER" + getControllerIndex(key) + "_POV_Y_NEGATIVE";
-      default: return Keyboard.getKeyName(key);
+      default: {
+        // Return old LWJGL-2-era short lowercase names where the i18n bundle
+        // has existing translations keyed on them (k.lshift, k.return, etc.).
+        // Anything not listed falls through to glfwGetKeyName for printable
+        // characters (a, 1, ...) or "Unknown(code)" as a last resort.
+        switch (key) {
+          case KEY_NONE: return "none";
+
+          // Modifiers / locks
+          case GLFW.GLFW_KEY_LEFT_SHIFT: return "lshift";
+          case GLFW.GLFW_KEY_RIGHT_SHIFT: return "rshift";
+          case GLFW.GLFW_KEY_LEFT_CONTROL: return "lcontrol";
+          case GLFW.GLFW_KEY_RIGHT_CONTROL: return "rcontrol";
+          case GLFW.GLFW_KEY_LEFT_ALT: return "lmenu";
+          case GLFW.GLFW_KEY_RIGHT_ALT: return "rmenu";
+          case GLFW.GLFW_KEY_LEFT_SUPER: return "lmeta";
+          case GLFW.GLFW_KEY_RIGHT_SUPER: return "rmeta";
+          case GLFW.GLFW_KEY_CAPS_LOCK: return "capital";
+          case GLFW.GLFW_KEY_NUM_LOCK: return "numlock";
+          case GLFW.GLFW_KEY_SCROLL_LOCK: return "scroll";
+
+          // Navigation / editing
+          case GLFW.GLFW_KEY_LEFT: return "left";
+          case GLFW.GLFW_KEY_RIGHT: return "right";
+          case GLFW.GLFW_KEY_UP: return "up";
+          case GLFW.GLFW_KEY_DOWN: return "down";
+          case GLFW.GLFW_KEY_HOME: return "home";
+          case GLFW.GLFW_KEY_END: return "end";
+          case GLFW.GLFW_KEY_PAGE_UP: return "prior";
+          case GLFW.GLFW_KEY_PAGE_DOWN: return "next";
+          case GLFW.GLFW_KEY_INSERT: return "insert";
+          case GLFW.GLFW_KEY_DELETE: return "delete";
+
+          // Control
+          case GLFW.GLFW_KEY_ENTER: return "return";
+          case GLFW.GLFW_KEY_ESCAPE: return "escape";
+          case GLFW.GLFW_KEY_TAB: return "tab";
+          case GLFW.GLFW_KEY_SPACE: return "space";
+          case GLFW.GLFW_KEY_BACKSPACE: return "back";
+          case GLFW.GLFW_KEY_PAUSE: return "pause";
+          case GLFW.GLFW_KEY_PRINT_SCREEN: return "sysrq";
+          case GLFW.GLFW_KEY_MENU: return "menu";
+
+          // Numpad
+          case GLFW.GLFW_KEY_KP_0: return "numpad0";
+          case GLFW.GLFW_KEY_KP_1: return "numpad1";
+          case GLFW.GLFW_KEY_KP_2: return "numpad2";
+          case GLFW.GLFW_KEY_KP_3: return "numpad3";
+          case GLFW.GLFW_KEY_KP_4: return "numpad4";
+          case GLFW.GLFW_KEY_KP_5: return "numpad5";
+          case GLFW.GLFW_KEY_KP_6: return "numpad6";
+          case GLFW.GLFW_KEY_KP_7: return "numpad7";
+          case GLFW.GLFW_KEY_KP_8: return "numpad8";
+          case GLFW.GLFW_KEY_KP_9: return "numpad9";
+          case GLFW.GLFW_KEY_KP_DECIMAL: return "decimal";
+          case GLFW.GLFW_KEY_KP_DIVIDE: return "divide";
+          case GLFW.GLFW_KEY_KP_MULTIPLY: return "multiply";
+          case GLFW.GLFW_KEY_KP_SUBTRACT: return "subtract";
+          case GLFW.GLFW_KEY_KP_ADD: return "add";
+          case GLFW.GLFW_KEY_KP_ENTER: return "numpadenter";
+          case GLFW.GLFW_KEY_KP_EQUAL: return "numpadequals";
+
+          // Punctuation whose bundle entries differ from the glfwGetKeyName result
+          case GLFW.GLFW_KEY_GRAVE_ACCENT: return "grave";
+          case GLFW.GLFW_KEY_APOSTROPHE: return "apostrophe";
+          case GLFW.GLFW_KEY_BACKSLASH: return "backslash";
+          case GLFW.GLFW_KEY_SEMICOLON: return "semicolon";
+          case GLFW.GLFW_KEY_SLASH: return "slash";
+          case GLFW.GLFW_KEY_COMMA: return "comma";
+          case GLFW.GLFW_KEY_PERIOD: return "period";
+          case GLFW.GLFW_KEY_MINUS: return "minus";
+          case GLFW.GLFW_KEY_EQUAL: return "equals";
+          case GLFW.GLFW_KEY_LEFT_BRACKET: return "lbracket";
+          case GLFW.GLFW_KEY_RIGHT_BRACKET: return "rbracket";
+
+          // Function keys (no bundle entries; rendered tainted as "F1".."F25")
+          case GLFW.GLFW_KEY_F1: return "F1";
+          case GLFW.GLFW_KEY_F2: return "F2";
+          case GLFW.GLFW_KEY_F3: return "F3";
+          case GLFW.GLFW_KEY_F4: return "F4";
+          case GLFW.GLFW_KEY_F5: return "F5";
+          case GLFW.GLFW_KEY_F6: return "F6";
+          case GLFW.GLFW_KEY_F7: return "F7";
+          case GLFW.GLFW_KEY_F8: return "F8";
+          case GLFW.GLFW_KEY_F9: return "F9";
+          case GLFW.GLFW_KEY_F10: return "F10";
+          case GLFW.GLFW_KEY_F11: return "F11";
+          case GLFW.GLFW_KEY_F12: return "F12";
+          case GLFW.GLFW_KEY_F13: return "F13";
+          case GLFW.GLFW_KEY_F14: return "F14";
+          case GLFW.GLFW_KEY_F15: return "F15";
+          case GLFW.GLFW_KEY_F16: return "F16";
+          case GLFW.GLFW_KEY_F17: return "F17";
+          case GLFW.GLFW_KEY_F18: return "F18";
+          case GLFW.GLFW_KEY_F19: return "F19";
+          case GLFW.GLFW_KEY_F20: return "F20";
+          case GLFW.GLFW_KEY_F21: return "F21";
+          case GLFW.GLFW_KEY_F22: return "F22";
+          case GLFW.GLFW_KEY_F23: return "F23";
+          case GLFW.GLFW_KEY_F24: return "F24";
+          case GLFW.GLFW_KEY_F25: return "F25";
+        }
+        String name = GLFW.glfwGetKeyName(key, 0);
+        return (name != null) ? name : "Unknown(" + key + ")";
+      }
     }
   }
 
@@ -833,7 +948,7 @@ public class PseudoKeys
   public boolean isKeyboardKey (int key)
   {
     key = getBaseKey(key);
-    return (key < Keyboard.KEYBOARD_SIZE && key != Keyboard.KEY_NONE);
+    return (key != KEY_NONE && key < KEY_BASE);
   }
 
   /**

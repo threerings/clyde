@@ -28,7 +28,7 @@ package com.threerings.tudey.client;
 import java.util.Arrays;
 import java.util.List;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
@@ -463,14 +463,14 @@ public class TudeySceneController extends SceneController
     _unifier.clearModifierUsers();
     if (_controlledId > 0) {
       bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, _relativeMovePresses, 0);
-      bindKeyMovement(Keyboard.KEY_W, _absoluteMoveAmounts, _absoluteMovePresses, 0);
-      bindKeyMovement(Keyboard.KEY_S, _absoluteMoveAmounts, _absoluteMovePresses, 1);
-      bindKeyMovement(Keyboard.KEY_A, _absoluteMoveAmounts, _absoluteMovePresses, 2);
-      bindKeyMovement(Keyboard.KEY_D, _absoluteMoveAmounts, _absoluteMovePresses, 3);
-      bindKeyStrafe(Keyboard.KEY_C);
+      bindKeyMovement(GLFW.GLFW_KEY_W, _absoluteMoveAmounts, _absoluteMovePresses, 0);
+      bindKeyMovement(GLFW.GLFW_KEY_S, _absoluteMoveAmounts, _absoluteMovePresses, 1);
+      bindKeyMovement(GLFW.GLFW_KEY_A, _absoluteMoveAmounts, _absoluteMovePresses, 2);
+      bindKeyMovement(GLFW.GLFW_KEY_D, _absoluteMoveAmounts, _absoluteMovePresses, 3);
+      bindKeyStrafe(GLFW.GLFW_KEY_C);
     } else {
-      bindKeyCycle(Keyboard.KEY_LEFT, false);
-      bindKeyCycle(Keyboard.KEY_RIGHT, true);
+      bindKeyCycle(GLFW.GLFW_KEY_LEFT, false);
+      bindKeyCycle(GLFW.GLFW_KEY_RIGHT, true);
     }
   }
 

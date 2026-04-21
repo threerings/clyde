@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui.event;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Encapsulates the information associated with a keyboard event.
@@ -68,16 +68,16 @@ public class KeyEvent extends InputEvent
     // numpad keys in windows
     if (_keyChar == 0) {
       switch (_keyCode) {
-      case Keyboard.KEY_NUMPAD1: return '1';
-      case Keyboard.KEY_NUMPAD2: return '2';
-      case Keyboard.KEY_NUMPAD3: return '3';
-      case Keyboard.KEY_NUMPAD4: return '4';
-      case Keyboard.KEY_NUMPAD5: return '5';
-      case Keyboard.KEY_NUMPAD6: return '6';
-      case Keyboard.KEY_NUMPAD7: return '7';
-      case Keyboard.KEY_NUMPAD8: return '8';
-      case Keyboard.KEY_NUMPAD9: return '9';
-      case Keyboard.KEY_NUMPAD0: return '0';
+      case GLFW.GLFW_KEY_KP_1: return '1';
+      case GLFW.GLFW_KEY_KP_2: return '2';
+      case GLFW.GLFW_KEY_KP_3: return '3';
+      case GLFW.GLFW_KEY_KP_4: return '4';
+      case GLFW.GLFW_KEY_KP_5: return '5';
+      case GLFW.GLFW_KEY_KP_6: return '6';
+      case GLFW.GLFW_KEY_KP_7: return '7';
+      case GLFW.GLFW_KEY_KP_8: return '8';
+      case GLFW.GLFW_KEY_KP_9: return '9';
+      case GLFW.GLFW_KEY_KP_0: return '0';
       default: return _keyChar;
       }
     }
@@ -86,9 +86,8 @@ public class KeyEvent extends InputEvent
   }
 
   /**
-   * Returns the numeric identifier associated with the key.
-   *
-   * @see Keyboard
+   * Returns the numeric identifier associated with the key. This is a GLFW key code
+   * ({@link GLFW} {@code GLFW_KEY_*}) or one of the PseudoKeys pseudo-key constants.
    */
   public int getKeyCode ()
   {

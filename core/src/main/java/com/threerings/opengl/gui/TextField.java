@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
@@ -229,7 +229,7 @@ public class TextField extends EditableTextComponent
 
   { // initializer
     // map return/enter to ACTION
-    _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_RETURN, EditCommands.ACTION);
-    _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_NUMPADENTER, EditCommands.ACTION);
+    _keymap.addMapping(KeyMap.ANY_MODIFIER, GLFW.GLFW_KEY_ENTER, EditCommands.ACTION);
+    _keymap.addMapping(KeyMap.ANY_MODIFIER, GLFW.GLFW_KEY_KP_ENTER, EditCommands.ACTION);
   }
 }

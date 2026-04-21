@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui.text;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import com.samskivert.util.RunAnywhere;
 
@@ -40,41 +40,41 @@ public class DefaultKeyMap extends KeyMap
   {
     boolean mac = RunAnywhere.isMacOS();
 
-    addMapping(ANY_MODIFIER, Keyboard.KEY_BACK, EditCommands.BACKSPACE);
-    addMapping(ANY_MODIFIER, Keyboard.KEY_DELETE, EditCommands.DELETE);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_BACKSPACE, EditCommands.BACKSPACE);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_DELETE, EditCommands.DELETE);
 
-    addMapping(ANY_MODIFIER, Keyboard.KEY_LEFT, EditCommands.CURSOR_LEFT);
-    addMapping(ANY_MODIFIER, Keyboard.KEY_RIGHT, EditCommands.CURSOR_RIGHT);
-    addMapping(ANY_MODIFIER, Keyboard.KEY_UP, EditCommands.CURSOR_UP);
-    addMapping(ANY_MODIFIER, Keyboard.KEY_DOWN, EditCommands.CURSOR_DOWN);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_LEFT, EditCommands.CURSOR_LEFT);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_RIGHT, EditCommands.CURSOR_RIGHT);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_UP, EditCommands.CURSOR_UP);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_DOWN, EditCommands.CURSOR_DOWN);
 
-    addMapping(ANY_MODIFIER, Keyboard.KEY_HOME, EditCommands.START_OF_LINE);
-    addMapping(ANY_MODIFIER, Keyboard.KEY_END, EditCommands.END_OF_LINE);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_HOME, EditCommands.START_OF_LINE);
+    addMapping(ANY_MODIFIER, GLFW.GLFW_KEY_END, EditCommands.END_OF_LINE);
 
     int wordMoveMask = mac ? InputEvent.ALT_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
-    addMapping(wordMoveMask, Keyboard.KEY_LEFT, EditCommands.WORD_LEFT);
-    addMapping(wordMoveMask, Keyboard.KEY_RIGHT, EditCommands.WORD_RIGHT);
+    addMapping(wordMoveMask, GLFW.GLFW_KEY_LEFT, EditCommands.WORD_LEFT);
+    addMapping(wordMoveMask, GLFW.GLFW_KEY_RIGHT, EditCommands.WORD_RIGHT);
 
     int editMask = mac ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
-    addMapping(editMask, Keyboard.KEY_X, EditCommands.CUT);
-    addMapping(editMask, Keyboard.KEY_C, EditCommands.COPY);
-    addMapping(editMask, Keyboard.KEY_V, EditCommands.PASTE);
-    addMapping(editMask, Keyboard.KEY_A, EditCommands.SELECT_ALL);
+    addMapping(editMask, GLFW.GLFW_KEY_X, EditCommands.CUT);
+    addMapping(editMask, GLFW.GLFW_KEY_C, EditCommands.COPY);
+    addMapping(editMask, GLFW.GLFW_KEY_V, EditCommands.PASTE);
+    addMapping(editMask, GLFW.GLFW_KEY_A, EditCommands.SELECT_ALL);
 
-    addMapping(editMask, Keyboard.KEY_Z, EditCommands.UNDO);
+    addMapping(editMask, GLFW.GLFW_KEY_Z, EditCommands.UNDO);
     if (mac) {
-      addMapping(InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, Keyboard.KEY_Z,
+      addMapping(InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, GLFW.GLFW_KEY_Z,
           EditCommands.REDO);
     } else {
-      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_Y, EditCommands.REDO);
+      addMapping(InputEvent.CTRL_DOWN_MASK, GLFW.GLFW_KEY_Y, EditCommands.REDO);
     }
 
     // some emacs commands, which are fairly standard actually
     if (mac) {
-      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_A, EditCommands.START_OF_LINE);
-      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_E, EditCommands.END_OF_LINE);
-      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_D, EditCommands.DELETE);
-      addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_K, EditCommands.CLEAR);
+      addMapping(InputEvent.CTRL_DOWN_MASK, GLFW.GLFW_KEY_A, EditCommands.START_OF_LINE);
+      addMapping(InputEvent.CTRL_DOWN_MASK, GLFW.GLFW_KEY_E, EditCommands.END_OF_LINE);
+      addMapping(InputEvent.CTRL_DOWN_MASK, GLFW.GLFW_KEY_D, EditCommands.DELETE);
+      addMapping(InputEvent.CTRL_DOWN_MASK, GLFW.GLFW_KEY_K, EditCommands.CLEAR);
     }
   }
 }

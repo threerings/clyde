@@ -25,7 +25,7 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import com.threerings.math.FloatMath;
 
@@ -207,146 +207,117 @@ public class CanvasRoot extends Root
 
   protected int convertKeyCode (java.awt.event.KeyEvent e)
   {
+    boolean numpad = (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_NUMPAD);
+    boolean left = (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_LEFT);
     switch (e.getKeyCode()) {
-    case java.awt.event.KeyEvent.VK_ESCAPE: return Keyboard.KEY_ESCAPE;
-    case java.awt.event.KeyEvent.VK_1: return Keyboard.KEY_1;
-    case java.awt.event.KeyEvent.VK_2: return Keyboard.KEY_2;
-    case java.awt.event.KeyEvent.VK_3: return Keyboard.KEY_3;
-    case java.awt.event.KeyEvent.VK_4: return Keyboard.KEY_4;
-    case java.awt.event.KeyEvent.VK_5: return Keyboard.KEY_5;
-    case java.awt.event.KeyEvent.VK_6: return Keyboard.KEY_6;
-    case java.awt.event.KeyEvent.VK_7: return Keyboard.KEY_7;
-    case java.awt.event.KeyEvent.VK_8: return Keyboard.KEY_8;
-    case java.awt.event.KeyEvent.VK_9: return Keyboard.KEY_9;
-    case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_0;
-    case java.awt.event.KeyEvent.VK_MINUS: return Keyboard.KEY_MINUS;
-    case java.awt.event.KeyEvent.VK_EQUALS: return e.getKeyLocation() ==
-      java.awt.event.KeyEvent.KEY_LOCATION_NUMPAD ?
-        Keyboard.KEY_NUMPADEQUALS : Keyboard.KEY_EQUALS;
-    case java.awt.event.KeyEvent.VK_BACK_SPACE: return Keyboard.KEY_BACK;
-    case java.awt.event.KeyEvent.VK_TAB: return Keyboard.KEY_TAB;
-    case java.awt.event.KeyEvent.VK_Q: return Keyboard.KEY_Q;
-    case java.awt.event.KeyEvent.VK_W: return Keyboard.KEY_W;
-    case java.awt.event.KeyEvent.VK_E: return Keyboard.KEY_E;
-    case java.awt.event.KeyEvent.VK_R: return Keyboard.KEY_R;
-    case java.awt.event.KeyEvent.VK_T: return Keyboard.KEY_T;
-    case java.awt.event.KeyEvent.VK_Y: return Keyboard.KEY_Y;
-    case java.awt.event.KeyEvent.VK_U: return Keyboard.KEY_U;
-    case java.awt.event.KeyEvent.VK_I: return Keyboard.KEY_I;
-    case java.awt.event.KeyEvent.VK_O: return Keyboard.KEY_O;
-    case java.awt.event.KeyEvent.VK_P: return Keyboard.KEY_P;
-    case java.awt.event.KeyEvent.VK_OPEN_BRACKET:
-      return Keyboard.KEY_LBRACKET;
-    case java.awt.event.KeyEvent.VK_CLOSE_BRACKET:
-      return Keyboard.KEY_RBRACKET;
-    case java.awt.event.KeyEvent.VK_ENTER: return e.getKeyLocation() ==
-      java.awt.event.KeyEvent.KEY_LOCATION_NUMPAD ?
-        Keyboard.KEY_NUMPADENTER : Keyboard.KEY_RETURN;
-    case java.awt.event.KeyEvent.VK_CONTROL: return e.getKeyLocation() ==
-      java.awt.event.KeyEvent.KEY_LOCATION_LEFT ?
-        Keyboard.KEY_LCONTROL : Keyboard.KEY_RCONTROL;
-    case java.awt.event.KeyEvent.VK_A: return Keyboard.KEY_A;
-    case java.awt.event.KeyEvent.VK_S: return Keyboard.KEY_S;
-    case java.awt.event.KeyEvent.VK_D: return Keyboard.KEY_D;
-    case java.awt.event.KeyEvent.VK_F: return Keyboard.KEY_F;
-    case java.awt.event.KeyEvent.VK_G: return Keyboard.KEY_G;
-    case java.awt.event.KeyEvent.VK_H: return Keyboard.KEY_H;
-    case java.awt.event.KeyEvent.VK_J: return Keyboard.KEY_J;
-    case java.awt.event.KeyEvent.VK_K: return Keyboard.KEY_K;
-    case java.awt.event.KeyEvent.VK_L: return Keyboard.KEY_L;
-    case java.awt.event.KeyEvent.VK_SEMICOLON:
-      return Keyboard.KEY_SEMICOLON;
-    case java.awt.event.KeyEvent.VK_QUOTE: return Keyboard.KEY_APOSTROPHE;
-    case java.awt.event.KeyEvent.VK_BACK_QUOTE: return Keyboard.KEY_GRAVE;
-    case java.awt.event.KeyEvent.VK_SHIFT: return e.getKeyLocation() ==
-      java.awt.event.KeyEvent.KEY_LOCATION_LEFT ?
-        Keyboard.KEY_LSHIFT : Keyboard.KEY_RSHIFT;
-    case java.awt.event.KeyEvent.VK_BACK_SLASH:
-      return Keyboard.KEY_BACKSLASH;
-    case java.awt.event.KeyEvent.VK_Z: return Keyboard.KEY_Z;
-    case java.awt.event.KeyEvent.VK_X: return Keyboard.KEY_X;
-    case java.awt.event.KeyEvent.VK_C: return Keyboard.KEY_C;
-    case java.awt.event.KeyEvent.VK_V: return Keyboard.KEY_V;
-    case java.awt.event.KeyEvent.VK_B: return Keyboard.KEY_B;
-    case java.awt.event.KeyEvent.VK_N: return Keyboard.KEY_N;
-    case java.awt.event.KeyEvent.VK_M: return Keyboard.KEY_M;
-    case java.awt.event.KeyEvent.VK_COMMA: return e.getKeyLocation() ==
-      java.awt.event.KeyEvent.KEY_LOCATION_NUMPAD ?
-        Keyboard.KEY_NUMPADCOMMA : Keyboard.KEY_COMMA;
-    case java.awt.event.KeyEvent.VK_PERIOD: return Keyboard.KEY_PERIOD;
-    case java.awt.event.KeyEvent.VK_SLASH: return Keyboard.KEY_SLASH;
-    case java.awt.event.KeyEvent.VK_MULTIPLY: return Keyboard.KEY_MULTIPLY;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_LMENU;
-    case java.awt.event.KeyEvent.VK_SPACE: return Keyboard.KEY_SPACE;
-    case java.awt.event.KeyEvent.VK_CAPS_LOCK: return Keyboard.KEY_CAPITAL;
-    case java.awt.event.KeyEvent.VK_F1: return Keyboard.KEY_F1;
-    case java.awt.event.KeyEvent.VK_F2: return Keyboard.KEY_F2;
-    case java.awt.event.KeyEvent.VK_F3: return Keyboard.KEY_F3;
-    case java.awt.event.KeyEvent.VK_F4: return Keyboard.KEY_F4;
-    case java.awt.event.KeyEvent.VK_F5: return Keyboard.KEY_F5;
-    case java.awt.event.KeyEvent.VK_F6: return Keyboard.KEY_F6;
-    case java.awt.event.KeyEvent.VK_F7: return Keyboard.KEY_F7;
-    case java.awt.event.KeyEvent.VK_F8: return Keyboard.KEY_F8;
-    case java.awt.event.KeyEvent.VK_F9: return Keyboard.KEY_F9;
-    case java.awt.event.KeyEvent.VK_F10: return Keyboard.KEY_F10;
-    case java.awt.event.KeyEvent.VK_NUM_LOCK: return Keyboard.KEY_NUMLOCK;
-    case java.awt.event.KeyEvent.VK_SCROLL_LOCK: return Keyboard.KEY_SCROLL;
-    case java.awt.event.KeyEvent.VK_NUMPAD7: return Keyboard.KEY_NUMPAD7;
-    case java.awt.event.KeyEvent.VK_NUMPAD8: return Keyboard.KEY_NUMPAD8;
-    case java.awt.event.KeyEvent.VK_NUMPAD9: return Keyboard.KEY_NUMPAD9;
-    case java.awt.event.KeyEvent.VK_SUBTRACT: return Keyboard.KEY_SUBTRACT;
-    case java.awt.event.KeyEvent.VK_NUMPAD4: return Keyboard.KEY_NUMPAD4;
-    case java.awt.event.KeyEvent.VK_NUMPAD5: return Keyboard.KEY_NUMPAD5;
-    case java.awt.event.KeyEvent.VK_NUMPAD6: return Keyboard.KEY_NUMPAD6;
-    case java.awt.event.KeyEvent.VK_ADD: return Keyboard.KEY_ADD;
-    case java.awt.event.KeyEvent.VK_NUMPAD1: return Keyboard.KEY_NUMPAD1;
-    case java.awt.event.KeyEvent.VK_NUMPAD2: return Keyboard.KEY_NUMPAD2;
-    case java.awt.event.KeyEvent.VK_NUMPAD3: return Keyboard.KEY_NUMPAD3;
-    case java.awt.event.KeyEvent.VK_NUMPAD0: return Keyboard.KEY_NUMPAD0;
-    case java.awt.event.KeyEvent.VK_DECIMAL: return Keyboard.KEY_DECIMAL;
-    case java.awt.event.KeyEvent.VK_F11: return Keyboard.KEY_F11;
-    case java.awt.event.KeyEvent.VK_F12: return Keyboard.KEY_F12;
-    case java.awt.event.KeyEvent.VK_F13: return Keyboard.KEY_F13;
-    case java.awt.event.KeyEvent.VK_F14: return Keyboard.KEY_F14;
-    case java.awt.event.KeyEvent.VK_F15: return Keyboard.KEY_F15;
-    case java.awt.event.KeyEvent.VK_KANA: return Keyboard.KEY_KANA;
-    case java.awt.event.KeyEvent.VK_CONVERT: return Keyboard.KEY_CONVERT;
-    case java.awt.event.KeyEvent.VK_NONCONVERT:
-      return Keyboard.KEY_NOCONVERT;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_YEN;
-    case java.awt.event.KeyEvent.VK_CIRCUMFLEX:
-      return Keyboard.KEY_CIRCUMFLEX;
-    case java.awt.event.KeyEvent.VK_AT: return Keyboard.KEY_AT;
-    case java.awt.event.KeyEvent.VK_COLON: return Keyboard.KEY_COLON;
-    case java.awt.event.KeyEvent.VK_UNDERSCORE:
-      return Keyboard.KEY_UNDERLINE;
-    case java.awt.event.KeyEvent.VK_KANJI: return Keyboard.KEY_KANJI;
-    case java.awt.event.KeyEvent.VK_STOP: return Keyboard.KEY_STOP;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_AX;
-    case java.awt.event.KeyEvent.VK_UNDEFINED:
-      return Keyboard.KEY_UNLABELED;
-    case java.awt.event.KeyEvent.VK_DIVIDE: return Keyboard.KEY_DIVIDE;
-    case java.awt.event.KeyEvent.VK_PRINTSCREEN: return Keyboard.KEY_SYSRQ;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_RMENU;
-    case java.awt.event.KeyEvent.VK_PAUSE: return Keyboard.KEY_PAUSE;
-    case java.awt.event.KeyEvent.VK_HOME: return Keyboard.KEY_HOME;
-    case java.awt.event.KeyEvent.VK_UP: return Keyboard.KEY_UP;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_PRIOR;
-    case java.awt.event.KeyEvent.VK_PAGE_UP: return Keyboard.KEY_PRIOR;
-    case java.awt.event.KeyEvent.VK_LEFT: return Keyboard.KEY_LEFT;
-    case java.awt.event.KeyEvent.VK_RIGHT: return Keyboard.KEY_RIGHT;
-    case java.awt.event.KeyEvent.VK_END: return Keyboard.KEY_END;
-    case java.awt.event.KeyEvent.VK_DOWN: return Keyboard.KEY_DOWN;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_NEXT;
-    case java.awt.event.KeyEvent.VK_PAGE_DOWN: return Keyboard.KEY_NEXT;
-    case java.awt.event.KeyEvent.VK_INSERT: return Keyboard.KEY_INSERT;
-    case java.awt.event.KeyEvent.VK_DELETE: return Keyboard.KEY_DELETE;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_LWIN;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_RWIN;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_APPS;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_POWER;
-//        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_SLEEP;
-    default: return Keyboard.KEY_UNLABELED;
+    case java.awt.event.KeyEvent.VK_ESCAPE: return GLFW.GLFW_KEY_ESCAPE;
+    case java.awt.event.KeyEvent.VK_1: return GLFW.GLFW_KEY_1;
+    case java.awt.event.KeyEvent.VK_2: return GLFW.GLFW_KEY_2;
+    case java.awt.event.KeyEvent.VK_3: return GLFW.GLFW_KEY_3;
+    case java.awt.event.KeyEvent.VK_4: return GLFW.GLFW_KEY_4;
+    case java.awt.event.KeyEvent.VK_5: return GLFW.GLFW_KEY_5;
+    case java.awt.event.KeyEvent.VK_6: return GLFW.GLFW_KEY_6;
+    case java.awt.event.KeyEvent.VK_7: return GLFW.GLFW_KEY_7;
+    case java.awt.event.KeyEvent.VK_8: return GLFW.GLFW_KEY_8;
+    case java.awt.event.KeyEvent.VK_9: return GLFW.GLFW_KEY_9;
+    case java.awt.event.KeyEvent.VK_0: return GLFW.GLFW_KEY_0;
+    case java.awt.event.KeyEvent.VK_MINUS: return GLFW.GLFW_KEY_MINUS;
+    case java.awt.event.KeyEvent.VK_EQUALS:
+      return numpad ? GLFW.GLFW_KEY_KP_EQUAL : GLFW.GLFW_KEY_EQUAL;
+    case java.awt.event.KeyEvent.VK_BACK_SPACE: return GLFW.GLFW_KEY_BACKSPACE;
+    case java.awt.event.KeyEvent.VK_TAB: return GLFW.GLFW_KEY_TAB;
+    case java.awt.event.KeyEvent.VK_Q: return GLFW.GLFW_KEY_Q;
+    case java.awt.event.KeyEvent.VK_W: return GLFW.GLFW_KEY_W;
+    case java.awt.event.KeyEvent.VK_E: return GLFW.GLFW_KEY_E;
+    case java.awt.event.KeyEvent.VK_R: return GLFW.GLFW_KEY_R;
+    case java.awt.event.KeyEvent.VK_T: return GLFW.GLFW_KEY_T;
+    case java.awt.event.KeyEvent.VK_Y: return GLFW.GLFW_KEY_Y;
+    case java.awt.event.KeyEvent.VK_U: return GLFW.GLFW_KEY_U;
+    case java.awt.event.KeyEvent.VK_I: return GLFW.GLFW_KEY_I;
+    case java.awt.event.KeyEvent.VK_O: return GLFW.GLFW_KEY_O;
+    case java.awt.event.KeyEvent.VK_P: return GLFW.GLFW_KEY_P;
+    case java.awt.event.KeyEvent.VK_OPEN_BRACKET: return GLFW.GLFW_KEY_LEFT_BRACKET;
+    case java.awt.event.KeyEvent.VK_CLOSE_BRACKET: return GLFW.GLFW_KEY_RIGHT_BRACKET;
+    case java.awt.event.KeyEvent.VK_ENTER:
+      return numpad ? GLFW.GLFW_KEY_KP_ENTER : GLFW.GLFW_KEY_ENTER;
+    case java.awt.event.KeyEvent.VK_CONTROL:
+      return left ? GLFW.GLFW_KEY_LEFT_CONTROL : GLFW.GLFW_KEY_RIGHT_CONTROL;
+    case java.awt.event.KeyEvent.VK_A: return GLFW.GLFW_KEY_A;
+    case java.awt.event.KeyEvent.VK_S: return GLFW.GLFW_KEY_S;
+    case java.awt.event.KeyEvent.VK_D: return GLFW.GLFW_KEY_D;
+    case java.awt.event.KeyEvent.VK_F: return GLFW.GLFW_KEY_F;
+    case java.awt.event.KeyEvent.VK_G: return GLFW.GLFW_KEY_G;
+    case java.awt.event.KeyEvent.VK_H: return GLFW.GLFW_KEY_H;
+    case java.awt.event.KeyEvent.VK_J: return GLFW.GLFW_KEY_J;
+    case java.awt.event.KeyEvent.VK_K: return GLFW.GLFW_KEY_K;
+    case java.awt.event.KeyEvent.VK_L: return GLFW.GLFW_KEY_L;
+    case java.awt.event.KeyEvent.VK_SEMICOLON: return GLFW.GLFW_KEY_SEMICOLON;
+    case java.awt.event.KeyEvent.VK_QUOTE: return GLFW.GLFW_KEY_APOSTROPHE;
+    case java.awt.event.KeyEvent.VK_BACK_QUOTE: return GLFW.GLFW_KEY_GRAVE_ACCENT;
+    case java.awt.event.KeyEvent.VK_SHIFT:
+      return left ? GLFW.GLFW_KEY_LEFT_SHIFT : GLFW.GLFW_KEY_RIGHT_SHIFT;
+    case java.awt.event.KeyEvent.VK_BACK_SLASH: return GLFW.GLFW_KEY_BACKSLASH;
+    case java.awt.event.KeyEvent.VK_Z: return GLFW.GLFW_KEY_Z;
+    case java.awt.event.KeyEvent.VK_X: return GLFW.GLFW_KEY_X;
+    case java.awt.event.KeyEvent.VK_C: return GLFW.GLFW_KEY_C;
+    case java.awt.event.KeyEvent.VK_V: return GLFW.GLFW_KEY_V;
+    case java.awt.event.KeyEvent.VK_B: return GLFW.GLFW_KEY_B;
+    case java.awt.event.KeyEvent.VK_N: return GLFW.GLFW_KEY_N;
+    case java.awt.event.KeyEvent.VK_M: return GLFW.GLFW_KEY_M;
+    case java.awt.event.KeyEvent.VK_COMMA:
+      // GLFW has no separate numpad-comma; map both to the plain comma key.
+      return GLFW.GLFW_KEY_COMMA;
+    case java.awt.event.KeyEvent.VK_PERIOD: return GLFW.GLFW_KEY_PERIOD;
+    case java.awt.event.KeyEvent.VK_SLASH: return GLFW.GLFW_KEY_SLASH;
+    case java.awt.event.KeyEvent.VK_MULTIPLY: return GLFW.GLFW_KEY_KP_MULTIPLY;
+    case java.awt.event.KeyEvent.VK_SPACE: return GLFW.GLFW_KEY_SPACE;
+    case java.awt.event.KeyEvent.VK_CAPS_LOCK: return GLFW.GLFW_KEY_CAPS_LOCK;
+    case java.awt.event.KeyEvent.VK_F1: return GLFW.GLFW_KEY_F1;
+    case java.awt.event.KeyEvent.VK_F2: return GLFW.GLFW_KEY_F2;
+    case java.awt.event.KeyEvent.VK_F3: return GLFW.GLFW_KEY_F3;
+    case java.awt.event.KeyEvent.VK_F4: return GLFW.GLFW_KEY_F4;
+    case java.awt.event.KeyEvent.VK_F5: return GLFW.GLFW_KEY_F5;
+    case java.awt.event.KeyEvent.VK_F6: return GLFW.GLFW_KEY_F6;
+    case java.awt.event.KeyEvent.VK_F7: return GLFW.GLFW_KEY_F7;
+    case java.awt.event.KeyEvent.VK_F8: return GLFW.GLFW_KEY_F8;
+    case java.awt.event.KeyEvent.VK_F9: return GLFW.GLFW_KEY_F9;
+    case java.awt.event.KeyEvent.VK_F10: return GLFW.GLFW_KEY_F10;
+    case java.awt.event.KeyEvent.VK_F11: return GLFW.GLFW_KEY_F11;
+    case java.awt.event.KeyEvent.VK_F12: return GLFW.GLFW_KEY_F12;
+    case java.awt.event.KeyEvent.VK_F13: return GLFW.GLFW_KEY_F13;
+    case java.awt.event.KeyEvent.VK_F14: return GLFW.GLFW_KEY_F14;
+    case java.awt.event.KeyEvent.VK_F15: return GLFW.GLFW_KEY_F15;
+    case java.awt.event.KeyEvent.VK_NUM_LOCK: return GLFW.GLFW_KEY_NUM_LOCK;
+    case java.awt.event.KeyEvent.VK_SCROLL_LOCK: return GLFW.GLFW_KEY_SCROLL_LOCK;
+    case java.awt.event.KeyEvent.VK_NUMPAD0: return GLFW.GLFW_KEY_KP_0;
+    case java.awt.event.KeyEvent.VK_NUMPAD1: return GLFW.GLFW_KEY_KP_1;
+    case java.awt.event.KeyEvent.VK_NUMPAD2: return GLFW.GLFW_KEY_KP_2;
+    case java.awt.event.KeyEvent.VK_NUMPAD3: return GLFW.GLFW_KEY_KP_3;
+    case java.awt.event.KeyEvent.VK_NUMPAD4: return GLFW.GLFW_KEY_KP_4;
+    case java.awt.event.KeyEvent.VK_NUMPAD5: return GLFW.GLFW_KEY_KP_5;
+    case java.awt.event.KeyEvent.VK_NUMPAD6: return GLFW.GLFW_KEY_KP_6;
+    case java.awt.event.KeyEvent.VK_NUMPAD7: return GLFW.GLFW_KEY_KP_7;
+    case java.awt.event.KeyEvent.VK_NUMPAD8: return GLFW.GLFW_KEY_KP_8;
+    case java.awt.event.KeyEvent.VK_NUMPAD9: return GLFW.GLFW_KEY_KP_9;
+    case java.awt.event.KeyEvent.VK_DECIMAL: return GLFW.GLFW_KEY_KP_DECIMAL;
+    case java.awt.event.KeyEvent.VK_DIVIDE: return GLFW.GLFW_KEY_KP_DIVIDE;
+    case java.awt.event.KeyEvent.VK_SUBTRACT: return GLFW.GLFW_KEY_KP_SUBTRACT;
+    case java.awt.event.KeyEvent.VK_ADD: return GLFW.GLFW_KEY_KP_ADD;
+    case java.awt.event.KeyEvent.VK_PRINTSCREEN: return GLFW.GLFW_KEY_PRINT_SCREEN;
+    case java.awt.event.KeyEvent.VK_PAUSE: return GLFW.GLFW_KEY_PAUSE;
+    case java.awt.event.KeyEvent.VK_HOME: return GLFW.GLFW_KEY_HOME;
+    case java.awt.event.KeyEvent.VK_UP: return GLFW.GLFW_KEY_UP;
+    case java.awt.event.KeyEvent.VK_PAGE_UP: return GLFW.GLFW_KEY_PAGE_UP;
+    case java.awt.event.KeyEvent.VK_LEFT: return GLFW.GLFW_KEY_LEFT;
+    case java.awt.event.KeyEvent.VK_RIGHT: return GLFW.GLFW_KEY_RIGHT;
+    case java.awt.event.KeyEvent.VK_END: return GLFW.GLFW_KEY_END;
+    case java.awt.event.KeyEvent.VK_DOWN: return GLFW.GLFW_KEY_DOWN;
+    case java.awt.event.KeyEvent.VK_PAGE_DOWN: return GLFW.GLFW_KEY_PAGE_DOWN;
+    case java.awt.event.KeyEvent.VK_INSERT: return GLFW.GLFW_KEY_INSERT;
+    case java.awt.event.KeyEvent.VK_DELETE: return GLFW.GLFW_KEY_DELETE;
+    // VK_KANA, VK_CONVERT, VK_NONCONVERT, VK_CIRCUMFLEX, VK_AT, VK_COLON,
+    // VK_UNDERSCORE, VK_KANJI, VK_STOP, VK_UNDEFINED — no GLFW equivalent.
+    default: return GLFW.GLFW_KEY_UNKNOWN;
     }
   }
 

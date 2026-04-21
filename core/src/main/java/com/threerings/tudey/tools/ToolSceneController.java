@@ -25,7 +25,7 @@
 
 package com.threerings.tudey.tools;
 
-import com.threerings.opengl.lwjgl2.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.util.CrowdContext;
@@ -53,7 +53,7 @@ public class ToolSceneController extends TudeySceneController
     super.bindKeys();
 
     // go back to editor mode if escape is pressed
-    addKeyObserver(Keyboard.KEY_ESCAPE, new PseudoKeys.Adapter() {
+    addKeyObserver(GLFW.GLFW_KEY_ESCAPE, new PseudoKeys.Adapter() {
       public void keyPressed (long when, int key, float amount) {
         _ctx.getLocationDirector().leavePlace();
       }
