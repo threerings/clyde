@@ -876,7 +876,7 @@ public class PseudoKeys
           case GLFW.GLFW_KEY_F25: return "F25";
         }
         String name = GLFW.glfwGetKeyName(key, 0);
-        return (name != null) ? name : "Unknown(" + key + ")";
+        return (name != null) ? StringUtil.toUSUpperCase(name) : "Unknown(" + key + ")";
       }
     }
   }
