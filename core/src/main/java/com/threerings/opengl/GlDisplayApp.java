@@ -296,6 +296,11 @@ public abstract class GlDisplayApp extends GlApp
 
   public void setDisplayMode (DisplayMode mode, Runnable onComplete)
   {
+    setDisplayMode(mode, onComplete, null);
+  }
+
+  private void setDisplayMode (DisplayMode mode, Runnable onComplete, Boolean wasFsOverride)
+  {
     if (_window == MemoryUtil.NULL) {
       _pendingMode = mode;
       if (onComplete != null) {
@@ -310,14 +315,14 @@ public abstract class GlDisplayApp extends GlApp
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, 0, 0,
         100, 100, GLFW.GLFW_DONT_CARE);
       GLFW.glfwPollEvents();
-      postRunnable(() -> setDisplayMode(mode, onComplete));
+      postRunnable(() -> setDisplayMode(mode, onComplete, wasFullscreen));
       return;
     }
 
     // 2. If going in or out of Mac "Spaces" mode (green button), do that next and wait to complete.
     if (mode.isMaxed() != MacFullscreen.isFullscreen(_window)) {
       MacFullscreen.setFullscreen(_window, mode.isMaxed(), getRunQueue(),
-          () -> setDisplayMode(mode, onComplete)); // re-enter
+          () -> setDisplayMode(mode, onComplete, wasFullscreen)); // re-enter
       return;
     }
 
@@ -349,7 +354,7 @@ public abstract class GlDisplayApp extends GlApp
       // Where to position the window: if we're resizing a windowed window, keep its
       // current top-left. If we're coming out of fullscreen, center on the primary monitor.
       int xpos, ypos;
-      if (wasFullscreen) {
+      if (wasFullscreen || (wasFsOverride != null && wasFsOverride.booleanValue())) {
         int[] wx = { 0 }, wy = { 0 }, ww = { 0 }, wh = { 0 };
         GLFW.glfwGetMonitorWorkarea(GLFW.glfwGetPrimaryMonitor(), wx, wy, ww, wh);
         xpos = wx[0] + (ww[0] - winW) / 2;
@@ -361,7 +366,7 @@ public abstract class GlDisplayApp extends GlApp
         ypos = y[0];
       }
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
-        xpos, ypos, winW, winH, GLFW.GLFW_DONT_CARE);
+        Math.max(0, xpos), Math.max(0, ypos), winW, winH, GLFW.GLFW_DONT_CARE);
     }
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
     updateRendererSize();
