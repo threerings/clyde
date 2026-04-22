@@ -31,7 +31,6 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -45,6 +44,7 @@ import com.samskivert.util.RunQueue;
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.util.DisplayMode;
+import com.threerings.opengl.util.GlUtil;
 import com.threerings.opengl.util.MacFullscreen;
 
 import static com.threerings.opengl.Log.log;
@@ -413,22 +413,15 @@ public abstract class GlDisplayApp extends GlApp
     if (loaded == 0) return;
 
     GLFWImage.Buffer buf = GLFWImage.malloc(loaded);
-    ByteBuffer[] pixels = new ByteBuffer[loaded];
+    // buf.pixels(pb) stores the buffer's native address in the struct — the Java wrapper must
+    // remain strongly reachable until glfwSetWindowIcon copies the data, or GC could free the
+    // direct-buffer backing memory mid-call. This array is that anchor.
+    ByteBuffer[] keepalive = new ByteBuffer[loaded];
     try {
       for (int ii = 0; ii < loaded; ii++) {
-        BufferedImage img = images[ii];
-        int w = img.getWidth(), h = img.getHeight();
-        int[] argb = img.getRGB(0, 0, w, h, null, 0, w);
-        ByteBuffer pb = BufferUtils.createByteBuffer(w * h * 4);
-        for (int px : argb) {
-          pb.put((byte)((px >> 16) & 0xFF)); // R
-          pb.put((byte)((px >>  8) & 0xFF)); // G
-          pb.put((byte)( px        & 0xFF)); // B
-          pb.put((byte)((px >> 24) & 0xFF)); // A
-        }
-        pb.flip();
-        pixels[ii] = pb;
-        buf.position(ii).width(w).height(h).pixels(pb);
+        ByteBuffer pb = GlUtil.getRgbaPixels(images[ii]);
+        keepalive[ii] = pb;
+        buf.position(ii).width(images[ii].getWidth()).height(images[ii].getHeight()).pixels(pb);
       }
       buf.position(0);
       GLFW.glfwSetWindowIcon(_window, buf);

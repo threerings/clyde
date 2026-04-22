@@ -30,11 +30,11 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
+
+import com.threerings.opengl.util.GlUtil;
 
 import static com.threerings.opengl.gui.Log.log;
 
@@ -113,25 +113,8 @@ public class Cursor
    */
   protected long createGLFWCursor ()
   {
-    int ww = _image.getWidth();
-    int hh = _image.getHeight();
-
-    // Convert image to RGBA byte buffer
-    ByteBuffer pixels = BufferUtils.createByteBuffer(ww * hh * 4);
-    for (int yy = 0; yy < hh; yy++) {
-      for (int xx = 0; xx < ww; xx++) {
-        int argb = _image.getRGB(xx, yy);
-        pixels.put((byte)((argb >> 16) & 0xFF)); // R
-        pixels.put((byte)((argb >> 8) & 0xFF));  // G
-        pixels.put((byte)(argb & 0xFF));          // B
-        pixels.put((byte)((argb >> 24) & 0xFF)); // A
-      }
-    }
-    pixels.flip();
-
     GLFWImage glfwImage = GLFWImage.malloc();
-    glfwImage.set(ww, hh, pixels);
-
+    glfwImage.set(_image.getWidth(), _image.getHeight(), GlUtil.getRgbaPixels(_image));
     long cursor = GLFW.glfwCreateCursor(glfwImage, _hx, _hy);
     glfwImage.free();
 

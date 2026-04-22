@@ -25,7 +25,11 @@
 
 package com.threerings.opengl.util;
 
+import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 import java.util.Comparator;
+
+import org.lwjgl.BufferUtils;
 
 /**
  * Various static methods of general utility.
@@ -39,6 +43,24 @@ public class GlUtil
   public static int nextPowerOfTwo (int value)
   {
     return (Integer.bitCount(value) > 1) ? (Integer.highestOneBit(value) << 1) : value;
+  }
+
+  /**
+   * Get the RGBA pixel data from a BufferedImage, suitable for use with GLFW.
+   */
+  public static ByteBuffer getRgbaPixels (BufferedImage image)
+  {
+    int ww = image.getWidth(), hh = image.getHeight();
+    int[] argb = image.getRGB(0, 0, ww, hh, null, 0, ww);
+    ByteBuffer pixels = BufferUtils.createByteBuffer(ww * hh * 4);
+    for (int px : argb) {
+      pixels.put((byte)((px >> 16) & 0xFF)); // R
+      pixels.put((byte)((px >>  8) & 0xFF)); // G
+      pixels.put((byte)( px        & 0xFF)); // B
+      pixels.put((byte)((px >> 24) & 0xFF)); // A
+    }
+    pixels.flip();
+    return pixels;
   }
 
   /**
