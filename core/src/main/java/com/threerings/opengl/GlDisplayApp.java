@@ -26,12 +26,14 @@
 package com.threerings.opengl;
 
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.Configuration;
@@ -374,13 +376,62 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
-   * Sets the display icon.
+   * Sets the display icon. GLFW will pick the best-matching size for the window manager,
+   * so it's fine to pass multiple sizes of the same icon. On macOS this is a no-op at the
+   * GLFW level — icons come from the .app bundle.
    *
    * @param paths the resource paths of the icons to set.
    */
   public void setIcon (String... paths)
   {
-    // TODO: GLFW icon support (differs from LWJGL 2)
+    if (_window == MemoryUtil.NULL) {
+      _pendingIconPaths = paths;
+      return;
+    }
+    applyIcons(paths);
+  }
+
+  /**
+   * Loads icons from the given resource paths and hands them to GLFW.
+   */
+  protected void applyIcons (String[] paths)
+  {
+    if (paths == null || paths.length == 0) return;
+    BufferedImage[] images = new BufferedImage[paths.length];
+    int loaded = 0;
+    for (int ii = 0; ii < paths.length; ii++) {
+      try {
+        images[loaded] = getResourceManager().getImageResource(paths[ii]);
+        loaded++;
+      } catch (Exception e) {
+        log.warning("Failed to load icon.", "path", paths[ii], e);
+      }
+    }
+    if (loaded == 0) return;
+
+    GLFWImage.Buffer buf = GLFWImage.malloc(loaded);
+    ByteBuffer[] pixels = new ByteBuffer[loaded];
+    try {
+      for (int ii = 0; ii < loaded; ii++) {
+        BufferedImage img = images[ii];
+        int w = img.getWidth(), h = img.getHeight();
+        int[] argb = img.getRGB(0, 0, w, h, null, 0, w);
+        ByteBuffer pb = BufferUtils.createByteBuffer(w * h * 4);
+        for (int px : argb) {
+          pb.put((byte)((px >> 16) & 0xFF)); // R
+          pb.put((byte)((px >>  8) & 0xFF)); // G
+          pb.put((byte)( px        & 0xFF)); // B
+          pb.put((byte)((px >> 24) & 0xFF)); // A
+        }
+        pb.flip();
+        pixels[ii] = pb;
+        buf.position(ii).width(w).height(h).pixels(pb);
+      }
+      buf.position(0);
+      GLFW.glfwSetWindowIcon(_window, buf);
+    } finally {
+      buf.free();
+    }
   }
 
   // documentation inherited from interface GlContext
@@ -585,6 +636,10 @@ public abstract class GlDisplayApp extends GlApp
       _fbHeight = h;
       _wasResized = true;
     });
+    if (_pendingIconPaths != null) {
+      applyIcons(_pendingIconPaths);
+      _pendingIconPaths = null;
+    }
     GLFW.glfwPollEvents();
     return true;
   }
@@ -623,6 +678,9 @@ public abstract class GlDisplayApp extends GlApp
 
   /** Display mode requested before window creation (applied at create time). */
   protected DisplayMode _pendingMode;
+
+  /** Icon paths requested before window creation (applied at create time). */
+  protected String[] _pendingIconPaths;
 
   /** Whether vsync is enabled. */
   protected boolean _vsync;
