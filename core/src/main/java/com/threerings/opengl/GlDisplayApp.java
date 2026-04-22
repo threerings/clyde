@@ -45,6 +45,7 @@ import com.samskivert.util.RunQueue;
 import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.util.DisplayMode;
+import com.threerings.opengl.util.MacFullscreen;
 
 import static com.threerings.opengl.Log.log;
 
