@@ -32,25 +32,19 @@ import java.nio.IntBuffer;
 import java.util.List;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL31;
-import org.lwjgl.opengl.GLCapabilities;
 
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL31;
+import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.opengl.GLDebugMessageCallback;
 
 import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ListUtil;
@@ -139,6 +133,15 @@ public class Renderer
       _maxVertexAttribs = buf.get(0);
     } else {
       _maxVertexAttribs = 0;
+    }
+
+    if (caps.GL_KHR_debug) {
+      GL11.glEnable(GL43.GL_DEBUG_OUTPUT);
+      GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      GL43.glDebugMessageCallback(GLDebugMessageCallback.create((source, type, id, severity, length,
+    message, userParam) -> {
+        log.warning("GL: " + GLDebugMessageCallback.getMessage(length, message));
+      }), 0L);
     }
 
     // determine the vendor
