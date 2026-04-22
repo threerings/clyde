@@ -385,6 +385,8 @@ public abstract class GlDisplayApp extends GlApp
    */
   public void setIcon (String... paths)
   {
+    final boolean DEBUG = true;
+    if (RunAnywhere.isMacOS() && !DEBUG) return;
     if (_window == MemoryUtil.NULL) {
       _pendingIconPaths = paths;
       return;
