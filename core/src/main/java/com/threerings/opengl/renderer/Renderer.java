@@ -2451,13 +2451,12 @@ public class Renderer
       _finalizedShaderObjects = null;
     }
     if (_finalizedTextures != null) {
-      System.err.println("Intentionally leaking textures...");
-//      int[] compacted = IntListUtil.compact(_finalizedTextures);
-//      IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
-//      idbuf.put(compacted).rewind();
-//      GL11.glDeleteTextures(idbuf);
-//      _textureCount -= compacted.length;
-//      _textureBytes -= _finalizedTextureBytes;
+      int[] compacted = IntListUtil.compact(_finalizedTextures);
+      IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
+      idbuf.put(compacted).rewind();
+      GL11.glDeleteTextures(idbuf);
+      _textureCount -= compacted.length;
+      _textureBytes -= _finalizedTextureBytes;
       _finalizedTextures = null;
       _finalizedTextureBytes = 0;
     }
