@@ -135,7 +135,7 @@ public class Renderer
       _maxVertexAttribs = 0;
     }
 
-    if (caps.GL_KHR_debug) {
+    if (Boolean.getBoolean("gldebug") && caps.GL_KHR_debug) {
       GL11.glEnable(GL43.GL_DEBUG_OUTPUT);
       GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
       GL43.glDebugMessageCallback(GLDebugMessageCallback.create((source, type, id, severity, length,
