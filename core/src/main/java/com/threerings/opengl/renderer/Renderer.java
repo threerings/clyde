@@ -903,6 +903,22 @@ public class Renderer
   }
 
   /**
+   * Rebinds our default VAO. Cheaper alternative to {@link #invalidateArrayState} for the
+   * common case where external GL code (overlays, capture tools) may have switched the bound
+   * VAO between frames. A VAO encapsulates vertex-attribute pointers, enables, and the
+   * element-array-buffer binding, so rebinding ours restores exactly that state set. Does
+   * NOT cover state outside the VAO (current program, texture bindings, {@code GL_ARRAY_BUFFER},
+   * fixed-function client arrays) — if an overlay clobbers those too, {@link #invalidateArrayState}
+   * is the broader hammer.
+   */
+  public void bindDefaultVao ()
+  {
+    if (_defaultVao != 0) {
+      GL30.glBindVertexArray(_defaultVao);
+    }
+  }
+
+  /**
    * Invalidates the array state, forcing it to be reapplied.
    */
   public void invalidateArrayState ()
