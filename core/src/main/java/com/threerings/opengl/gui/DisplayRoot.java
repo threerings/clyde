@@ -329,7 +329,12 @@ public class DisplayRoot extends Root
 
         int key = glfwKey;
         boolean pressed = (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT);
-        boolean printable = (GLFW.glfwGetKeyName(glfwKey, scancode) != null);
+        // glfwGetKeyName returns null for SPACE (it's whitespace with no displayable glyph),
+        // but the char callback still fires for codepoint 32. Treat space as printable so it
+        // goes through the buffer/merge path; otherwise we'd dispatch both a key=SPACE event
+        // from here and a stray key=KEY_NONE event from the char callback.
+        boolean printable = glfwKey == GLFW.GLFW_KEY_SPACE
+          || GLFW.glfwGetKeyName(glfwKey, scancode) != null;
 
         if (printable && pressed) {
           // Buffer this key press — the char callback will provide the character
