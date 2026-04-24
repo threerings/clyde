@@ -635,24 +635,25 @@ public class PseudoKeys
   }
 
   /**
-   * Checks whether the supplied key is valid.  Controller keys are invalid if they refer to
+   * Checks whether the supplied key is valid. Controller keys are invalid if they refer to
    * controllers or controls that don't exist.
    */
   public boolean isValid (int key)
   {
-    switch (getType(key)) {
-      case KEY_CONTROLLER_BUTTON:
-      case KEY_CONTROLLER_AXIS_POSITIVE:
-      case KEY_CONTROLLER_AXIS_NEGATIVE:
-        return getControllerIndex(key) < 0 && getControlIndex(key) < 0;
-      case KEY_CONTROLLER_POV_X_POSITIVE:
-      case KEY_CONTROLLER_POV_X_NEGATIVE:
-      case KEY_CONTROLLER_POV_Y_POSITIVE:
-      case KEY_CONTROLLER_POV_Y_NEGATIVE:
-        return getControllerIndex(key) < 0;
-      default:
-        return true;
-    }
+    return true;
+//    switch (getType(key)) {
+//      case KEY_CONTROLLER_BUTTON:
+//      case KEY_CONTROLLER_AXIS_POSITIVE:
+//      case KEY_CONTROLLER_AXIS_NEGATIVE:
+//        return getControllerIndex(key) < 0 && getControlIndex(key) < 0;
+//      case KEY_CONTROLLER_POV_X_POSITIVE:
+//      case KEY_CONTROLLER_POV_X_NEGATIVE:
+//      case KEY_CONTROLLER_POV_Y_POSITIVE:
+//      case KEY_CONTROLLER_POV_Y_NEGATIVE:
+//        return getControllerIndex(key) < 0;
+//      default:
+//        return true;
+//    }
   }
 
   /**
