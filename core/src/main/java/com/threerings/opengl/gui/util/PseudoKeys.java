@@ -272,9 +272,7 @@ public class PseudoKeys
     // documentation inherited from interface ControllerListener
     public void controllerMoved (ControllerEvent event)
     {
-      if (event.isConsumed()) {
-        return;
-      }
+      if (event.isConsumed()) return;
       Object controller = event.getController();
       int controllerIndex = 0;
       int axisIndex = event.getControlIndex();
@@ -640,20 +638,31 @@ public class PseudoKeys
    */
   public boolean isValid (int key)
   {
-    return true;
-//    switch (getType(key)) {
-//      case KEY_CONTROLLER_BUTTON:
-//      case KEY_CONTROLLER_AXIS_POSITIVE:
-//      case KEY_CONTROLLER_AXIS_NEGATIVE:
-//        return getControllerIndex(key) < 0 && getControlIndex(key) < 0;
-//      case KEY_CONTROLLER_POV_X_POSITIVE:
-//      case KEY_CONTROLLER_POV_X_NEGATIVE:
-//      case KEY_CONTROLLER_POV_Y_POSITIVE:
-//      case KEY_CONTROLLER_POV_Y_NEGATIVE:
-//        return getControllerIndex(key) < 0;
-//      default:
-//        return true;
-//    }
+    int joy;
+    switch (getType(key)) {
+      case KEY_CONTROLLER_BUTTON:
+        joy = getControllerIndex(key);
+        if (!GLFW.glfwJoystickPresent(joy)) return false;
+        var buttons = GLFW.glfwGetJoystickButtons(joy);
+        return buttons != null && buttons.remaining() > getControlIndex(key);
+
+      case KEY_CONTROLLER_AXIS_POSITIVE:
+      case KEY_CONTROLLER_AXIS_NEGATIVE:
+        joy = getControllerIndex(key);
+        if (!GLFW.glfwJoystickPresent(joy)) return false;
+        var axes = GLFW.glfwGetJoystickAxes(joy);
+        return axes != null && axes.remaining() > getControlIndex(key);
+
+      case KEY_CONTROLLER_POV_X_POSITIVE:
+      case KEY_CONTROLLER_POV_X_NEGATIVE:
+      case KEY_CONTROLLER_POV_Y_POSITIVE:
+      case KEY_CONTROLLER_POV_Y_NEGATIVE:
+        joy = getControllerIndex(key);
+        return GLFW.glfwJoystickPresent(joy);
+
+      default:
+        return true;
+    }
   }
 
   /**
