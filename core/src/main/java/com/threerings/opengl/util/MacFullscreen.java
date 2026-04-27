@@ -129,6 +129,7 @@ public final class MacFullscreen
       // defaultLookup() on macOS only covers libSystem-level symbols; libobjc isn't in it,
       // so we have to load it explicitly. libobjc.A.dylib is already loaded into the
       // process (GLFW/AWT pull it in); libraryLookup just finds the existing image.
+      @SuppressWarnings("restricted") // yeah, yeah, we know, just trying it here...
       SymbolLookup libobjc = SymbolLookup.libraryLookup("libobjc.A.dylib", Arena.global());
       _objcMsgSend = libobjc.find("objc_msgSend")
           .orElseThrow(() -> new IllegalStateException("objc_msgSend not found"))

@@ -40,7 +40,6 @@ import java.util.function.Consumer;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Iterables;
 
-//// LWJGL3: IME removed
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
