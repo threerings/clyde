@@ -66,9 +66,9 @@
             <showWarnings>true</showWarnings>
             <compilerArgs>
               <arg>-Xlint</arg>
-              <arg>-Xlint:-serial</arg>
-              <arg>-Xlint:-path</arg>
-              <arg>-Xlint:-this-escape</arg> <!-- too many to clean up presently -->
+              <arg>-Xlint:-serial</arg> <!-- our streaming/export looks like serialization -->
+              <arg>-Xlint:-this-escape</arg> <!-- we have so many, they've been tested -->
+              <arg>-Xlint:-removal</arg> <!-- we use finalizers, todo -->
               <arg>-Xmaxwarns</arg>
               <arg>9999</arg>
             </compilerArgs>
