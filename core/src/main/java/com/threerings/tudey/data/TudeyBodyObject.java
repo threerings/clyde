@@ -25,7 +25,7 @@
 
 package com.threerings.tudey.data;
 
-import javax.annotation.Generated;
+import javax.annotation.processing.Generated;
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;

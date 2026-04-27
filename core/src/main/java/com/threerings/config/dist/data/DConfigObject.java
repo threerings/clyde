@@ -25,7 +25,7 @@
 
 package com.threerings.config.dist.data;
 
-import javax.annotation.Generated;
+import javax.annotation.processing.Generated;
 
 import com.threerings.presents.dobj.DEvent;
 import com.threerings.presents.dobj.DObject;
