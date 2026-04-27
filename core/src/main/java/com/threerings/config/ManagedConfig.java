@@ -282,7 +282,7 @@ public abstract class ManagedConfig extends DeepObject
       clearUpdateDependencies();
       addUpdateDependencies();
     }
-    fireFireConfigUpdated();
+    fireConfigUpdated();
   }
 
   /**
@@ -306,13 +306,13 @@ public abstract class ManagedConfig extends DeepObject
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<ManagedConfig> event)
   {
-    fireFireConfigUpdated();
+    fireConfigUpdated();
   }
 
   // documentation inherited from interface ModificationObserver
   public void resourceModified (String path, long lastModified)
   {
-    fireFireConfigUpdated();
+    fireConfigUpdated();
   }
 
   /**
@@ -353,14 +353,6 @@ public abstract class ManagedConfig extends DeepObject
    * Fire the config-updated event. Observer notifications happen synchronously on whatever
    * thread called us; listeners that need to do thread-affine work (GL calls, Swing UI
    * updates) are responsible for dispatching themselves onto the right thread.
-   */
-  protected final void fireFireConfigUpdated ()
-  {
-    fireConfigUpdated();
-  }
-
-  /**
-   * Fires a configuration updated event.
    */
   protected void fireConfigUpdated ()
   {
