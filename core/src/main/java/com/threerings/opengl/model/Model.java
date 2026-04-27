@@ -28,7 +28,7 @@ package com.threerings.opengl.model;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import com.samskivert.util.ObserverList;
 
@@ -555,7 +555,7 @@ public class Model extends DynamicScope
    */
   public void setRenderScheme (String scheme)
   {
-    if (!Objects.equal(_renderScheme, scheme)) {
+    if (!Objects.equals(_renderScheme, scheme)) {
       _renderScheme = scheme;
       wasUpdated();
     }
@@ -1238,7 +1238,7 @@ public class Model extends DynamicScope
     GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings)
   {
     for (MaterialMapping mapping : materialMappings) {
-      if (Objects.equal(texture, mapping.texture) && tag.equals(mapping.tag)) {
+      if (Objects.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
         if (mapping.material == null) {
           return null;
         }

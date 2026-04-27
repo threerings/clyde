@@ -25,6 +25,8 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.util.Objects;
+
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -33,8 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
-
-import com.google.common.base.Objects;
 
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
@@ -64,7 +64,7 @@ public class StringEditor extends PropertyEditor
   public void changedUpdate (DocumentEvent event)
   {
     String text = StringUtil.trim(_field.getText());
-    if (!Objects.equal(_property.get(_object), text)) {
+    if (!Objects.equals(_property.get(_object), text)) {
       _property.set(_object, text);
       fireStateChanged();
     }

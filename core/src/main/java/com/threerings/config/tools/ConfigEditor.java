@@ -94,7 +94,6 @@ import javax.swing.undo.UndoManager;
 
 import java.util.function.Function;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;

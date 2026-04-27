@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -54,7 +55,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -420,7 +420,7 @@ public class ResourceEditor extends BaseConfigEditor
     // do some special handling to make sure we play nice with the cache
     String opath = (_file == null) ? null : _rsrcmgr.getResourcePath(_file);
     String npath = _rsrcmgr.getResourcePath(file);
-    if (!Objects.equal(opath, npath)) {
+    if (!Objects.equals(opath, npath)) {
       if (opath != null) {
         config = (ManagedConfig)config.clone();
         config.init(_cfgmgr);

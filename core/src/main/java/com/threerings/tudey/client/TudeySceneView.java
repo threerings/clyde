@@ -30,10 +30,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
@@ -547,7 +547,7 @@ public class TudeySceneView extends DynamicScope
     MergedStaticConfig impl = (MergedStaticConfig)mconfig.implementation;
     for (int ii = 0; ii < impl.models.length; ii++) {
       ComponentModel cmodel = impl.models[ii];
-      if (Objects.equal(cmodel.model, ref) && cmodel.transform.equals(transform)) {
+      if (Objects.equals(cmodel.model, ref) && cmodel.transform.equals(transform)) {
         if (impl.models.length == 1) {
           _scene.remove(model);
           _mergedSprites.remove(key);

@@ -26,13 +26,13 @@
 package com.threerings.config.swing;
 
 import java.util.HashSet;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
@@ -191,7 +191,7 @@ public class ConfigBox extends JComboBox<ConfigBox.ConfigItem>
     @Override
     public boolean equals (Object other)
     {
-      return Objects.equal(name, ((ConfigItem)other).name);
+      return Objects.equals(name, ((ConfigItem)other).name);
     }
 
     @Override

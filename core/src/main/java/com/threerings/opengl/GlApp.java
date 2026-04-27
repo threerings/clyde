@@ -35,10 +35,11 @@ import java.awt.image.Raster;
 
 import java.nio.ByteBuffer;
 
+import java.util.Objects;
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 
 import com.samskivert.util.RunAnywhere;
@@ -105,7 +106,7 @@ public abstract class GlApp extends DynamicScope
    */
   public void setRenderScheme (String scheme)
   {
-    if (!Objects.equal(_renderScheme, scheme)) {
+    if (!Objects.equals(_renderScheme, scheme)) {
       _renderScheme = scheme;
       wasUpdated();
     }

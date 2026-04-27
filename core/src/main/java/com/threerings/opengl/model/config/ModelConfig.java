@@ -34,11 +34,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 
 import proguard.annotation.Keep;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -464,7 +464,7 @@ public class ModelConfig extends ParameterizedConfig
     protected MaterialMapping getMaterialMapping (String texture, String tag)
     {
       for (MaterialMapping mapping : materialMappings) {
-        if (Objects.equal(texture, mapping.texture) && tag.equals(mapping.tag)) {
+        if (Objects.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
           return mapping;
         }
       }
@@ -672,7 +672,7 @@ public class ModelConfig extends ParameterizedConfig
       // as we do with the material techniques, first look for an exact match
       String scheme = ScopeUtil.resolve(scope, "renderScheme", (String)null);
       for (SchemedModel smodel : models) {
-        if (Objects.equal(smodel.scheme, scheme)) {
+        if (Objects.equals(smodel.scheme, scheme)) {
           return smodel.model;
         }
       }

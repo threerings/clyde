@@ -29,9 +29,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -793,7 +793,7 @@ public abstract class ActionLogic extends Logic
     {
       Object value = _value.evaluate(activator, null);
       for (int ii = 0; ii < _caseValues.length; ii++) {
-        if (Objects.equal(value, _caseValues[ii].evaluate(activator, null))) {
+        if (Objects.equals(value, _caseValues[ii].evaluate(activator, null))) {
           return _actions[ii].execute(timestamp, activator);
         }
       }

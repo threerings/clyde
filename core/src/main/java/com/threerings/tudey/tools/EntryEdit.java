@@ -26,13 +26,13 @@
 package com.threerings.tudey.tools;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 
 import com.threerings.opengl.gui.util.Rectangle;
@@ -95,7 +95,7 @@ public class EntryEdit extends AbstractUndoableEdit
     for (int yy = region.y, yymax = yy + region.height; yy < yymax; yy++) {
       for (int xx = region.x, xxmax = xx + region.width; xx < xxmax; xx++) {
         Paint opaint = _scene.setPaint(xx, yy, paint);
-        if (!Objects.equal(opaint, paint)) {
+        if (!Objects.equals(opaint, paint)) {
           _paint.put(new Coord(xx, yy), opaint);
         }
       }

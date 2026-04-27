@@ -31,11 +31,11 @@ import java.awt.event.ActionListener;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
+import java.util.Objects;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-
-import com.google.common.base.Objects;
 
 import com.samskivert.util.StringUtil;
 
@@ -53,7 +53,7 @@ public class ChoiceEditor extends PropertyEditor
   public void actionPerformed (ActionEvent event)
   {
     Object selected = _box.getSelectedItem();
-    if (!Objects.equal(_property.get(_object), selected)) {
+    if (!Objects.equals(_property.get(_object), selected)) {
       _property.set(_object, selected);
       fireStateChanged();
     }

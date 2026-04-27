@@ -26,8 +26,7 @@
 package com.threerings.tudey.config;
 
 import java.util.ArrayList;
-
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import com.samskivert.util.IntTuple;
 import com.samskivert.util.Randoms;
@@ -173,7 +172,7 @@ public abstract class PaintableConfig extends ParameterizedConfig
      */
     public boolean matches (TileEntry entry, int elevation)
     {
-      if (!Objects.equal(entry.tile, tile) ||
+      if (!Objects.equals(entry.tile, tile) ||
           entry.elevation != (elevation + elevationOffset)) {
         return false;
       }

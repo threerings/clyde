@@ -26,8 +26,8 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.List;
+import java.util.Objects;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import com.threerings.math.Vector2f;
@@ -438,7 +438,7 @@ public abstract class ExpressionLogic extends Logic
     @Override
     public Object evaluate (Logic activator, Object previous)
     {
-      return Objects.equal(_firstOperand.evaluate(activator, previous),
+      return Objects.equals(_firstOperand.evaluate(activator, previous),
         _secondOperand.evaluate(activator, previous));
     }
   }

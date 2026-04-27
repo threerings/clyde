@@ -32,9 +32,8 @@ import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-
-import com.google.common.base.Objects;
 
 import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.SortableArrayList;
@@ -130,7 +129,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
   {
     for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
       // equals() must be called on the value provided to this method, per Java spec
-      if (Objects.equal(value, _entries.get(ii).getValue())) {
+      if (Objects.equals(value, _entries.get(ii).getValue())) {
         return true;
       }
     }
@@ -219,7 +218,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
           Map.Entry<?,?> entry = (Map.Entry<?,?>)value;
           int idx = findKeyIndex(entry.getKey());
           return ((idx >= 0) &&
-              Objects.equal(entry.getValue(), _entries.get(idx).getValue()))
+              Objects.equals(entry.getValue(), _entries.get(idx).getValue()))
             ? idx
             : -1;
           // Note that we have "externalized" the call to this entry's equals().

@@ -35,7 +35,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import com.samskivert.swing.CollapsiblePanel;

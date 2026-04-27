@@ -25,12 +25,13 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.util.Objects;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
@@ -55,7 +56,7 @@ public class ConfigEditor extends PropertyEditor
   public void actionPerformed (ActionEvent event)
   {
     Object value = _box.getSelectedConfig();
-    if (!Objects.equal(_property.get(_object), value)) {
+    if (!Objects.equals(_property.get(_object), value)) {
       _property.set(_object, value);
       fireStateChanged();
     }

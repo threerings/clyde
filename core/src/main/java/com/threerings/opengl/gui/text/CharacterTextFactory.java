@@ -38,11 +38,11 @@ import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
-import com.google.common.base.Objects;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
@@ -530,7 +530,7 @@ public class CharacterTextFactory extends TextFactory
       return (antialias == key.antialias) &&
         (descentModifier == key.descentModifier) &&
         (heightModifier == key.heightModifier) &&
-        Objects.equal(font, key.font);
+        Objects.equals(font, key.font);
     }
   }
 

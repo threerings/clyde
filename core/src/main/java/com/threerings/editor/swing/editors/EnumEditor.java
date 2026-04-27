@@ -30,11 +30,11 @@ import java.awt.event.ActionListener;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
@@ -54,7 +54,7 @@ public class EnumEditor extends PropertyEditor
   public void actionPerformed (ActionEvent event)
   {
     Object value = getValues().get(_box.getSelectedIndex());
-    if (!Objects.equal(_property.get(_object), value)) {
+    if (!Objects.equals(_property.get(_object), value)) {
       _property.set(_object, value);
       fireStateChanged();
     }

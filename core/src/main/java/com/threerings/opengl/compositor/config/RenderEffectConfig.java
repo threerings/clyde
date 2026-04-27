@@ -26,8 +26,7 @@
 package com.threerings.opengl.compositor.config;
 
 import java.util.ArrayList;
-
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import com.threerings.config.BoundConfig;
 import com.threerings.config.ConfigReference;
@@ -96,7 +95,7 @@ public class RenderEffectConfig extends BoundConfig
       // first look for an exact match for the scheme
       Technique[] processed = getProcessedTechniques(ctx);
       for (Technique technique : processed) {
-        if (Objects.equal(technique.scheme, scheme)) {
+        if (Objects.equals(technique.scheme, scheme)) {
           return technique;
         }
       }
