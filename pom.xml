@@ -68,6 +68,7 @@
               <arg>-Xlint</arg>
               <arg>-Xlint:-serial</arg>
               <arg>-Xlint:-path</arg>
+              <arg>-Xlint:-this-escape</arg> <!-- too many to clean up presently -->
               <arg>-Xmaxwarns</arg>
               <arg>9999</arg>
             </compilerArgs>
