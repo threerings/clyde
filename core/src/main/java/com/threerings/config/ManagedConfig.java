@@ -77,6 +77,9 @@ public abstract class ManagedConfig extends DeepObject
     }
   }
 
+  // TEMP
+  public static boolean TrackFiringKludge = false;
+
   /** The type of this config. */
   @Editable // see setter
   public final Class<?> getConfigType ()
@@ -357,10 +360,19 @@ public abstract class ManagedConfig extends DeepObject
   protected void fireConfigUpdated ()
   {
     // TODO: Remove need for _firing kludge?!?!
-    if (_firing) {
+    if (_firing && TrackFiringKludge) {
+      log.warning("Original trace", _trace);
+      log.warning("Firing kludge is in effect.", new Exception());
       return;
     }
     _firing = true;
+    if (TrackFiringKludge) {
+      try {
+        throw new Exception();
+      } catch (Exception e) {
+        _trace = e;
+      }
+    }
     try {
       if (_listeners != null) {
         final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, this);
@@ -373,8 +385,13 @@ public abstract class ManagedConfig extends DeepObject
 
     } finally {
       _firing =false;
+      _trace = null;
     }
   }
+
+  // TrackFiringKludge TEMP
+  @DeepOmit
+  protected transient Exception _trace;
 
   /**
    * Fires a configuration updated event on the config manager if appropriate.
