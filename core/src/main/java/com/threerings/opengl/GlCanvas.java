@@ -65,7 +65,12 @@ public class GlCanvas extends JPanel
     data.stencilSize = 8;
     data.alphaSize = 0; // no framebuffer alpha to avoid compositing issues on macOS
     data.doubleBuffer = true;
-    // Request a compatibility profile for legacy OpenGL
+    // Request a 3.2+ compatibility profile for legacy OpenGL. The version must be set
+    // alongside the profile: lwjgl3-awt rejects a non-null profile with version < 3.2,
+    // since the OpenGL profile concept doesn't exist below 3.2. Drivers will typically
+    // hand back a higher compatibility context (4.x) than the minimum we ask for.
+    data.majorVersion = 3;
+    data.minorVersion = 2;
     data.profile = GLData.Profile.COMPATIBILITY;
 
     // create the AWT GL canvas
