@@ -1654,7 +1654,7 @@ public class SceneEditor extends TudeyTool
   protected void exportScene ()
   {
     if (_exportChooser.showSaveDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-      File file = _exportChooser.getSelectedFile();
+      File file = validateSaveExtension(_exportChooser.getSelectedFile(), ".xml");
       try {
         XMLExporter out = new XMLExporter(new FileOutputStream(file));
         out.writeObject(_scene);
@@ -1965,6 +1965,27 @@ public class SceneEditor extends TudeyTool
     Rectangle region = new Rectangle();
     entry.getRegion(config, region);
     setPaint(region, null);
+  }
+
+  /**
+   * Validate that new filenames end with the proper extension.
+   *
+   * @param ext You might want to provide your own leading ".", as we merely check if the filename
+   *            ends with this string.
+   * @return a modified File ready for saving.
+   * @throws IllegalArgumentException if a file exists at the *renamed* location.
+   */
+  protected File validateSaveExtension (File file, String ext)
+  {
+    if (file.exists() || file.getName().endsWith(ext)) return file;
+    File withExt = new File(file.getParentFile(), file.getName() + ext);
+    if (!withExt.exists()) return withExt;
+
+    JOptionPane.showMessageDialog(_frame,
+      "Please save to a " + ext + " filename.",
+      "Save error: would overwrite.",
+      JOptionPane.ERROR_MESSAGE);
+    throw new IllegalArgumentException("Could not massage filename: " + file);
   }
 
   /**

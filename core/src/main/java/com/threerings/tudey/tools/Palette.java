@@ -157,7 +157,7 @@ public class Palette extends BaseMover
   protected void exportPalette ()
   {
     if (_chooser.showSaveDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
-      File file = _chooser.getSelectedFile();
+      File file = _editor.validateSaveExtension(_chooser.getSelectedFile(), ".xml");
       try {
         XMLExporter out = new XMLExporter(new FileOutputStream(file));
         out.writeObject(_tree.getRootNode());
