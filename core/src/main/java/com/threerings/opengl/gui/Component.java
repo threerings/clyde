@@ -57,6 +57,11 @@ import com.threerings.opengl.gui.config.CursorConfig;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.ComponentListener;
+import com.threerings.opengl.gui.event.ActionListener;
+import com.threerings.opengl.gui.event.MouseWheelListener;
+import com.threerings.opengl.gui.event.TextListener;
+import com.threerings.opengl.gui.event.EventListener;
+import com.threerings.opengl.gui.event.WindowListener;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.text.HTMLView;
@@ -727,6 +732,51 @@ public class Component
       _listeners = new CopyOnWriteArrayList<ComponentListener>();
     }
     _listeners.add(listener);
+  }
+
+  /**
+   * Convenience for ActionListeners- easily assign a lambda and get a Remover.
+   */
+  public final Runnable addActionListener (ActionListener listener)
+  {
+    addListener(listener);
+    return () -> removeListener(listener);
+  }
+
+  /**
+   * Convenience for EventListener- easily assign a lambda and get a Remover.
+   */
+  public final Runnable addEventListener (EventListener listener)
+  {
+    addListener(listener);
+    return () -> removeListener(listener);
+  }
+
+  /**
+   * Convenience for MouseWheelListener- easily assign a lambda and get a Remover.
+   */
+  public final Runnable addMouseWheelListener (MouseWheelListener listener)
+  {
+    addListener(listener);
+    return () -> removeListener(listener);
+  }
+
+  /**
+   * Convenience for TextListener- easily assign a lambda and get a Remover.
+   */
+  public final Runnable addTextListener (TextListener listener)
+  {
+    addListener(listener);
+    return () -> removeListener(listener);
+  }
+
+  /**
+   * Convenience for WindowListener- easily assign a lambda and get a Remover.
+   */
+  public final Runnable addWindowListener (WindowListener listener)
+  {
+    addListener(listener);
+    return () -> removeListener(listener);
   }
 
   /**
