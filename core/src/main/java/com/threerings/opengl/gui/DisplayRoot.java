@@ -144,21 +144,46 @@ public class DisplayRoot extends Root
 
   /**
    * Flushes a buffered key event that never received a matching char callback.
-   * This happens for keys that glfwGetKeyName reports as printable but that
-   * don't generate a char event (e.g., due to dead keys or modifier combos).
+   * This happens for keys that glfwGetKeyName reports as printable but that don't
+   * generate a char event (e.g., due to dead keys or modifier combos).
+   *
+   * EXPERIMENTAL: previously we dispatched these with {@code keyChar = (char)0}, which
+   * meant focused text fields couldn't insert anything (their {@code insertChar(0)}
+   * rejects the NUL as an ISO control character) and the unconsumed event would bubble
+   * up to whatever default key handlers the host app had — surfacing as the wrong
+   * actions firing while the user is typing. The Steam Deck's floating gamepad text
+   * input ("on-screen keyboard") reliably triggers this path: Steam injects OS-level
+   * key events but the matching char events don't always come through, especially in
+   * a second OSK session opened after a prior dismissal.
+   *
+   * The attempted fix here: derive a printable character from the buffered keycode
+   * using the layout-aware {@link GLFW#glfwGetKeyName} (which returns the unshifted
+   * symbol for the key, e.g. {@code "o"} for {@code GLFW_KEY_O}) and uppercase letters
+   * if the modifier mask had Shift held. Non-letter shift mappings (US 1→!, etc.) are
+   * locale-dependent and we don't have that info here, so we leave them as-is —
+   * acceptable since the char callback is the proper source of truth and only fails
+   * to arrive in unusual situations like the OSK case above.
    */
   protected void flushPendingKeyEvent ()
   {
     if (_pendingKey >= 0) {
       int key = _pendingKey;
       boolean pressed = _pendingKeyPressed;
+      int scancode = _pendingScancode;
+      int mods = _pendingMods;
       _pendingKey = -1;
+      String name = GLFW.glfwGetKeyName(key, scancode);
+      char ch = (name != null && !name.isEmpty()) ? name.charAt(0) : (char)0;
+      if ((mods & GLFW.GLFW_MOD_SHIFT) != 0 && Character.isLetter(ch)) {
+        ch = Character.toUpperCase(ch);
+      }
+      final char keyChar = ch;
       synchronized (_eventQueue) {
         _eventQueue.add(() -> {
           if (pressed) {
-            keyPressed(_tickStamp, (char)0, key, false);
+            keyPressed(_tickStamp, keyChar, key, false);
           } else {
-            keyReleased(_tickStamp, (char)0, key, false);
+            keyReleased(_tickStamp, keyChar, key, false);
           }
           updateKeyModifier(key, pressed);
         });
@@ -337,9 +362,15 @@ public class DisplayRoot extends Root
           || GLFW.glfwGetKeyName(glfwKey, scancode) != null;
 
         if (printable && pressed) {
-          // Buffer this key press — the char callback will provide the character
+          // Buffer this key press — the char callback will provide the character.
+          // We also stash the scancode and modifier mask so that, if the char callback
+          // never arrives, flushPendingKeyEvent can derive a printable character from
+          // the keycode rather than dispatching with (char)0. (See the long-form
+          // comment on flushPendingKeyEvent for the rationale.)
           _pendingKey = key;
           _pendingKeyPressed = true;
+          _pendingScancode = scancode;
+          _pendingMods = mods;
         } else {
           // Non-printable key or release: enqueue immediately with no character
           synchronized (_eventQueue) {
@@ -546,6 +577,13 @@ public class DisplayRoot extends Root
 
   /** Whether the pending key event is a press (vs release). */
   protected boolean _pendingKeyPressed;
+
+  /** Scancode of the buffered key, used by {@link #flushPendingKeyEvent} to derive a
+   * char via {@link GLFW#glfwGetKeyName} when the char callback never arrives. */
+  protected int _pendingScancode;
+
+  /** Modifier mask of the buffered key, used to apply shift to the derived char. */
+  protected int _pendingMods;
 
   /** Strong references to GLFW callbacks to prevent GC collection. */
   protected GLFWKeyCallback _keyCallback;
