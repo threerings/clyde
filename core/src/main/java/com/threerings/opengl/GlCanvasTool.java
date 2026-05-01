@@ -38,7 +38,6 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-
 import com.samskivert.util.Interval;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
@@ -104,7 +103,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     } else if (action.equals("configs")) {
       ConfigEditor.create(this).setVisible(true);
     } else if (action.equals("resources")) {
-      new ResourceEditor(_msgmgr, _cfgmgr, _colorpos).setVisible(true);
+      new ResourceEditor(RunQueue.AWT, _msgmgr, _cfgmgr, _colorpos).setVisible(true);
     } else if (action.equals("preferences")) {
       if (_pdialog == null) {
         _pdialog = EditorPanel.createDialog(

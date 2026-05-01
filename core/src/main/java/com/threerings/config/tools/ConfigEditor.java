@@ -106,6 +106,7 @@ import com.samskivert.swing.util.SwingUtil;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.QuickSort;
+import com.samskivert.util.RunQueue;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
@@ -165,7 +166,8 @@ public class ConfigEditor extends BaseConfigEditor
   {
     ConfigEditor editor = (_editorCreator != null)
       ? _editorCreator.apply(ctx)
-      : new ConfigEditor(ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
+      : new ConfigEditor(ctx.getRunQueue(),
+          ctx.getMessageManager(), ctx.getConfigManager(), ctx.getColorPository());
     if (clazz != null) {
       editor.select(clazz, name);
     }
@@ -181,25 +183,26 @@ public class ConfigEditor extends BaseConfigEditor
     MessageManager msgmgr = new MessageManager("rsrc.i18n");
     ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
     ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
-    new ConfigEditor(msgmgr, cfgmgr, colorpos).setVisible(true);
-  }
-
-  /**
-   * Creates a new config editor.
-   */
-  public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
-  {
-    this(msgmgr, cfgmgr, colorpos, null, null);
+    new ConfigEditor(RunQueue.AWT, msgmgr, cfgmgr, colorpos).setVisible(true);
   }
 
   /**
    * Creates a new config editor.
    */
   public ConfigEditor (
-    MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
+    RunQueue runQueue, MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
+  {
+    this(runQueue, msgmgr, cfgmgr, colorpos, null, null);
+  }
+
+  /**
+   * Creates a new config editor.
+   */
+  public ConfigEditor (
+    RunQueue runQueue, MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
     Class<?> clazz, String name)
   {
-    super(msgmgr, cfgmgr, colorpos, "editor.config");
+    super(runQueue, msgmgr, cfgmgr, colorpos, "editor.config");
 
     // create the undo apparatus
     _undoSupport = new UndoableEditSupport();
@@ -439,7 +442,7 @@ public class ConfigEditor extends BaseConfigEditor
     } else if (action.equals("validate_refs")) {
       validateReferences();
     } else if (action.equals("resources")) {
-      showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
+      showFrame(new ResourceEditor(_runQueue, _msgmgr, _cfgmgr, _colorpos));
     } else if (action.equals("tree_mode")) {
       boolean enabled = _treeMode.isSelected();
       for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
@@ -1132,6 +1135,12 @@ public class ConfigEditor extends BaseConfigEditor
     public ColorPository getColorPository ()
     {
       return _colorpos;
+    }
+
+    // from EditorContext
+    public RunQueue getRunQueue ()
+    {
+      return _runQueue;
     }
 
     // from EditorContext

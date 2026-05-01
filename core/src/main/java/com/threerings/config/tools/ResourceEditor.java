@@ -59,6 +59,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.RunQueue;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
@@ -105,25 +106,27 @@ public class ResourceEditor extends BaseConfigEditor
     MessageManager msgmgr = new MessageManager("rsrc.i18n");
     ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
     ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
-    new ResourceEditor(
+    new ResourceEditor(RunQueue.AWT,
       msgmgr, cfgmgr, colorpos, args.length > 0 ? args[0] : null).setVisible(true);
   }
 
   /**
    * Creates a new resource editor.
    */
-  public ResourceEditor (MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
+  public ResourceEditor (
+    RunQueue runQueue, MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
   {
-    this(msgmgr, cfgmgr, colorpos, null);
+    this(runQueue, msgmgr, cfgmgr, colorpos, null);
   }
 
   /**
    * Creates a new resource editor.
    */
   public ResourceEditor (
+    RunQueue runQueue,
     MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos, String config)
   {
-    super(msgmgr, cfgmgr, colorpos, "resource");
+    super(runQueue, msgmgr, cfgmgr, colorpos, "resource");
     setSize(550, 600);
     SwingUtil.centerWindow(this);
 
@@ -279,7 +282,7 @@ public class ResourceEditor extends BaseConfigEditor
   {
     String action = event.getActionCommand();
     if (action.equals("window")) {
-      showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
+      showFrame(new ResourceEditor(_runQueue, _msgmgr, _cfgmgr, _colorpos));
     } else if (action.equals("open")) {
       open();
     } else if (action.equals("save")) {

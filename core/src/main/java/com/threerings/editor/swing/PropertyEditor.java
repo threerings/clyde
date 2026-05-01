@@ -192,7 +192,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
   public void init (EditorContext ctx, Property property, Property[] ancestors)
   {
     init(ctx);
-    _ctx = ctx;
     _msgmgr = ctx.getMessageManager();
     _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
     _property = property;

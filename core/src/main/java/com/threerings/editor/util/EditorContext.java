@@ -28,13 +28,14 @@ package com.threerings.editor.util;
 import com.google.common.base.Predicate;
 
 import com.threerings.util.ResourceColorContext;
+import com.threerings.util.RunQueueContext;
 
 import com.threerings.config.ManagedConfig;
 
 /**
  * Provides access to the services required by the editor.
  */
-public interface EditorContext extends ResourceColorContext
+public interface EditorContext extends ResourceColorContext, RunQueueContext
 {
   /**
    * Get a filter for choosable configs, or null for all.

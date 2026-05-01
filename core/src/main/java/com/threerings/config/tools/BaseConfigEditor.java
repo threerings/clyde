@@ -39,6 +39,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.samskivert.util.RunQueue;
+
 import com.google.common.base.Predicate;
 
 import com.threerings.media.image.ColorPository;
@@ -70,6 +72,7 @@ public abstract class BaseConfigEditor extends JFrame
   {
     if (ctx.getConfigManager().isResourceClass(clazz)) {
       return new ResourceEditor(
+        ctx.getRunQueue(),
         ctx.getMessageManager(), ctx.getConfigManager().getRoot(), ctx.getColorPository(),
         ctx.getResourceManager().getResourceFile(name).toString());
 
@@ -82,8 +85,10 @@ public abstract class BaseConfigEditor extends JFrame
    * Creates a new config editor.
    */
   public BaseConfigEditor (
+    RunQueue runQueue,
     MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos, String msgs)
   {
+    _runQueue = runQueue;
     _rsrcmgr = cfgmgr.getResourceManager();
     _msgmgr = msgmgr;
     _cfgmgr = cfgmgr;
@@ -147,6 +152,12 @@ public abstract class BaseConfigEditor extends JFrame
   public Predicate<Class<?>> getTypeFilter ()
   {
     return null;
+  }
+
+  // from EditorContext
+  public RunQueue getRunQueue ()
+  {
+    return _runQueue;
   }
 
   // documentation inherited from interface ActionListener
@@ -318,6 +329,9 @@ public abstract class BaseConfigEditor extends JFrame
 
   /** The config message bundle. */
   protected MessageBundle _msgs;
+
+  /** The RunQueue for dispatching changed events. */
+  protected RunQueue _runQueue;
 
   /** The editable preferences object. */
   protected ToolUtil.EditablePrefs _eprefs;
