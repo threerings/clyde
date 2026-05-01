@@ -427,8 +427,12 @@ public class PlaceableSprite extends EntrySprite
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<PlaceableConfig> event)
   {
-    updateFromConfig();
-    _impl.update(_entry);
+    // Defer onto the main/GL thread — the rebuild creates GL-backed scene elements.
+    // Mirrors Model.configUpdated.
+    _ctx.runOnRunQueue(() -> {
+      updateFromConfig();
+      _impl.update(_entry);
+    });
   }
 
   @Override

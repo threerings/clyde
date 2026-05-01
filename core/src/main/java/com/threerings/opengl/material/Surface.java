@@ -122,7 +122,11 @@ public class Surface extends SimpleScope
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<MaterialConfig> event)
   {
-    updateFromConfigs();
+    // Defer onto the main/GL thread — updateFromConfigs() rebuilds geometry/passes that
+    // require a current GL capabilities context. Without this, edits made via the Swing
+    // ConfigEditor on the EDT crash inside GeometryConfig.createGeometry. Mirrors
+    // Model.configUpdated. runOnRunQueue runs inline if we're already on the run queue.
+    _ctx.runOnRunQueue(this::updateFromConfigs);
   }
 
   @Override

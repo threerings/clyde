@@ -1274,7 +1274,9 @@ public class Animation extends SimpleScope
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<AnimationConfig> event)
   {
-    updateFromConfig();
+    // Defer onto the main/GL thread — updateFromConfig() may build GL-backed action
+    // executors. Mirrors Model.configUpdated.
+    _ctx.runOnRunQueue(this::updateFromConfig);
   }
 
   @Override

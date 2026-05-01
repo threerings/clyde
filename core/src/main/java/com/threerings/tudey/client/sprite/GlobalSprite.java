@@ -194,7 +194,9 @@ public class GlobalSprite extends EntrySprite
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<SceneGlobalConfig> event)
   {
-    updateFromConfig();
+    // Defer onto the main/GL thread — updateFromConfig() may build GL-backed scene
+    // elements. Mirrors Model.configUpdated.
+    _ctx.runOnRunQueue(this::updateFromConfig);
   }
 
   @Override

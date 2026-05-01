@@ -1340,8 +1340,12 @@ public class ActorSprite extends Sprite
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<ActorConfig> event)
   {
-    updateFromConfig();
-    _impl.update(_actor);
+    // Defer onto the main/GL thread — the rebuild creates GL-backed scene elements.
+    // Mirrors Model.configUpdated.
+    _ctx.runOnRunQueue(() -> {
+      updateFromConfig();
+      _impl.update(_actor);
+    });
   }
 
   // documentation inherited

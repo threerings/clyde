@@ -1080,12 +1080,17 @@ public class Component
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<ManagedConfig> event)
   {
-    StyleConfig config = (StyleConfig)event.getConfig();
-    for (int ii = 0; ii < _styleConfigs.length; ii++) {
-      if (_styleConfigs[ii] == config) {
-        updateFromStyleConfig(ii);
+    // Defer onto the main/GL thread — updateFromStyleConfig() resolves Background/Border
+    // impls that may load textures and other GL resources. Mirrors Model.configUpdated.
+    // runOnRunQueue runs inline if we're already on the run queue.
+    _ctx.runOnRunQueue(() -> {
+      StyleConfig config = (StyleConfig)event.getConfig();
+      for (int ii = 0; ii < _styleConfigs.length; ii++) {
+        if (_styleConfigs[ii] == config) {
+          updateFromStyleConfig(ii);
+        }
       }
-    }
+    });
   }
 
   @Override

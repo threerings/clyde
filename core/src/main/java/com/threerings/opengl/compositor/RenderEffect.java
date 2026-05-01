@@ -247,7 +247,9 @@ public class RenderEffect extends DynamicScope
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<RenderEffectConfig> event)
   {
-    updateFromConfig();
+    // Defer onto the main/GL thread — updateFromConfig() may build GL-backed executors.
+    // Mirrors Model.configUpdated.
+    _ctx.runOnRunQueue(this::updateFromConfig);
   }
 
   // documentation inherited from interface Comparable

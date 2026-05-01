@@ -784,7 +784,13 @@ public class UserInterface extends Container
   public void configUpdated (ConfigEvent<ManagedConfig> event)
   {
     if (event.getConfig() instanceof UserInterfaceConfig) {
-      updateFromConfig();
+      // Defer onto the main/GL thread — updateFromConfig() rebuilds the component tree,
+      // which can construct GL-backed children (e.g., Models with particle systems whose
+      // Surfaces build geometry in their constructors) that require a current GL
+      // capabilities context. Without this, edits made via the Swing ConfigEditor on the
+      // EDT crash deep inside ParticleGeometry/Surface init. Mirrors Model.configUpdated.
+      // runOnRunQueue runs inline if we're already on the run queue.
+      _ctx.runOnRunQueue(this::updateFromConfig);
     } else {
       super.configUpdated(event);
     }

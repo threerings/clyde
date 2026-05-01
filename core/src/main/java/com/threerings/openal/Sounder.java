@@ -1497,7 +1497,11 @@ public class Sounder extends SimpleScope
   // documentation inherited from interface ConfigUpdateListener
   public void configUpdated (ConfigEvent<SounderConfig> event)
   {
-    updateFromConfig();
+    // Defer onto the main/run-queue thread — updateFromConfig() may build AL-backed
+    // implementations. Mirrors Model.configUpdated. Now that AlContext extends
+    // RunQueueContext, runOnRunQueue is available; runs inline if we're already on
+    // the run queue.
+    _ctx.runOnRunQueue(this::updateFromConfig);
   }
 
   @Override
