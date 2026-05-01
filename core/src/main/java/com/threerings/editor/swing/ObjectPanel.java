@@ -100,7 +100,7 @@ public class ObjectPanel extends BasePropertyEditor
     EditorContext ctx, String tlabel, Class<?>[] types,
     Property[] ancestors, Object outer, boolean omitColumns)
   {
-    init(_ctx);
+    init(ctx);
     _msgmgr = ctx.getMessageManager();
     _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
     _outer = outer;
