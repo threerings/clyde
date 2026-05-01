@@ -258,7 +258,12 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
    */
   protected void fireStateChanged ()
   {
-    Object[] listeners = listenerList.getListenerList();
+    final Object[] listeners = listenerList.getListenerList();
+//    _ctx.runOnRunQueue(() -> fireStateChangedOnQueue(listeners));
+//  }
+//
+//  private final void fireStateChangedOnQueue (Object[] listeners)
+//  {
     ChangeEvent event = null;
     for (int ii = listeners.length - 2; ii >= 0; ii -= 2) {
       if (listeners[ii] == ChangeListener.class) {

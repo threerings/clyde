@@ -36,6 +36,8 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.util.EditorContext;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
@@ -52,8 +54,9 @@ public class Vector2fPanel extends BasePropertyEditor
   /**
    * Creates a new vector panel with the specified editing mode.
    */
-  public Vector2fPanel (MessageBundle msgs, Mode mode, float step, float scale)
+  public Vector2fPanel (EditorContext ctx, MessageBundle msgs, Mode mode, float step, float scale)
   {
+    init(ctx);
     _msgs = msgs;
     _mode = mode;
     _scale = scale;

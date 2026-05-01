@@ -72,7 +72,7 @@ public class Transform2DEditor extends PropertyEditor
     try {
       mode = Enum.valueOf(Transform2DPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
     } catch (IllegalArgumentException e) { }
-    add(_panel = new Transform2DPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+    add(_panel = new Transform2DPanel(_ctx, _msgs, mode, (float)getStep(), (float)getScale()));
     _panel.setBackground(getDarkerBackground(_lineage.length));
     Color ddarker = getDarkerBackground(_lineage.length + 1);
     _panel.getTranslationPanel().setBackground(ddarker);

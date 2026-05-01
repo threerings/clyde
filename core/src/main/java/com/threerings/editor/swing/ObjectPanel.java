@@ -100,7 +100,7 @@ public class ObjectPanel extends BasePropertyEditor
     EditorContext ctx, String tlabel, Class<?>[] types,
     Property[] ancestors, Object outer, boolean omitColumns)
   {
-    _ctx = ctx;
+    init(_ctx);
     _msgmgr = ctx.getMessageManager();
     _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
     _outer = outer;
@@ -471,9 +471,6 @@ public class ObjectPanel extends BasePropertyEditor
     fireStateChanged();
     return true;
   }
-
-  /** Provides access to common services. */
-  protected EditorContext _ctx;
 
   /** The type box. */
   protected JComboBox<String> _box;

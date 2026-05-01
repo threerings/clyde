@@ -37,6 +37,8 @@ import com.samskivert.swing.HGroupLayout;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.util.EditorContext;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
@@ -53,8 +55,10 @@ public class Transform2DPanel extends BasePropertyEditor
   /**
    * Creates a new transform panel with the specified editing mode.
    */
-  public Transform2DPanel (MessageBundle msgs, Mode mode, float step, float scale)
+  public Transform2DPanel (
+    EditorContext ctx, MessageBundle msgs, Mode mode, float step, float scale)
   {
+    init(ctx);
     _msgs = msgs;
     _mode = mode;
 
@@ -65,7 +69,7 @@ public class Transform2DPanel extends BasePropertyEditor
     tcont.setBackground(null);
     tcont.setBorder(BorderFactory.createTitledBorder(getLabel("translation")));
     add(tcont);
-    tcont.add(_tpanel = new Vector2fPanel(msgs, Vector2fPanel.Mode.CARTESIAN, step, scale));
+    tcont.add(_tpanel = new Vector2fPanel(ctx, msgs, Vector2fPanel.Mode.CARTESIAN, step, scale));
     _tpanel.addChangeListener(this);
     JPanel rscont = GroupLayout.makeVBox(
       GroupLayout.NONE, GroupLayout.CENTER, GroupLayout.NONE);

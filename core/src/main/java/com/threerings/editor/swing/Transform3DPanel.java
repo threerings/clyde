@@ -37,6 +37,8 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.util.EditorContext;
+
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -53,8 +55,10 @@ public class Transform3DPanel extends BasePropertyEditor
   /**
    * Creates a new transform panel with the specified editing mode.
    */
-  public Transform3DPanel (MessageBundle msgs, Mode mode, float step, float scale)
+  public Transform3DPanel (
+    EditorContext ctx, MessageBundle msgs, Mode mode, float step, float scale)
   {
+    init(ctx);
     _msgs = msgs;
     _mode = mode;
 
@@ -69,14 +73,14 @@ public class Transform3DPanel extends BasePropertyEditor
     tcont.setBackground(null);
     tcont.setBorder(BorderFactory.createTitledBorder(getLabel("translation")));
     trpanel.add(tcont);
-    tcont.add(_tpanel = new Vector3fPanel(msgs, Vector3fPanel.Mode.CARTESIAN, step, scale));
+    tcont.add(_tpanel = new Vector3fPanel(ctx, msgs, Vector3fPanel.Mode.CARTESIAN, step, scale));
     _tpanel.addChangeListener(this);
     JPanel rcont = GroupLayout.makeVBox(
       GroupLayout.NONE, GroupLayout.CENTER, GroupLayout.NONE);
     rcont.setBackground(null);
     rcont.setBorder(BorderFactory.createTitledBorder(getLabel("rotation")));
     trpanel.add(rcont);
-    rcont.add(_rpanel = new QuaternionPanel(msgs, QuaternionPanel.Mode.XYZ));
+    rcont.add(_rpanel = new QuaternionPanel(ctx, msgs, QuaternionPanel.Mode.XYZ));
     _rpanel.addChangeListener(this);
     if (_mode == Mode.RIGID) {
       return;

@@ -70,7 +70,7 @@ public class Vector2fEditor extends PropertyEditor
     try {
       mode = Enum.valueOf(Vector2fPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
     } catch (IllegalArgumentException e) { }
-    add(_panel = new Vector2fPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+    add(_panel = new Vector2fPanel(_ctx, _msgs, mode, (float)getStep(), (float)getScale()));
     _panel.setBackground(getDarkerBackground(_lineage.length));
     _panel.addChangeListener(this);
   }

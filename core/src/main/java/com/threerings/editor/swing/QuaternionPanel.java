@@ -36,6 +36,8 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.util.EditorContext;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Vector3f;
@@ -49,8 +51,9 @@ public class QuaternionPanel extends BasePropertyEditor
   /** The available editing modes: right-handed, left-handed. */
   public enum Mode { XYZ, ZXY };
 
-  public QuaternionPanel (MessageBundle msgs, Mode mode)
+  public QuaternionPanel (EditorContext ctx, MessageBundle msgs, Mode mode)
   {
+    init(ctx);
     _msgs = msgs;
     _mode = mode;
 

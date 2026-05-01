@@ -69,7 +69,7 @@ public class QuaternionEditor extends PropertyEditor
     try {
       mode = Enum.valueOf(QuaternionPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
     } catch (IllegalArgumentException e) { }
-    add(_panel = new QuaternionPanel(_msgs, mode));
+    add(_panel = new QuaternionPanel(_ctx, _msgs, mode));
     _panel.setBackground(getDarkerBackground(_lineage.length));
     _panel.addChangeListener(this);
   }

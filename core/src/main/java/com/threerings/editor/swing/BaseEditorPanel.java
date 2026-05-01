@@ -52,7 +52,7 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
    */
   public BaseEditorPanel (EditorContext ctx, Property[] ancestors, boolean omitColumns)
   {
-    _ctx = ctx;
+    init(_ctx);
     _ancestors = ancestors;
     _omitColumns = omitColumns;
     _msgmgr = ctx.getMessageManager();
