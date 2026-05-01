@@ -191,6 +191,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
    */
   public void init (EditorContext ctx, Property property, Property[] ancestors)
   {
+    init(ctx);
     _ctx = ctx;
     _msgmgr = ctx.getMessageManager();
     _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
@@ -488,9 +489,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
       return PreparedEditable.prepare(ReflectionUtil.newInstance(type, outer));
     }
   }
-
-  /** Provides access to common services. */
-  protected EditorContext _ctx;
 
   /** The property being edited. */
   protected Property _property;

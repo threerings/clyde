@@ -81,6 +81,11 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     setBackground(null);
   }
 
+  public void init (EditorContext ctx)
+  {
+    _ctx = ctx;
+  }
+
   /**
    * Adds a listener for change events.
    */
@@ -162,7 +167,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
 
   /**
    * Set the information regarding how the property being edited here is parameterized out.
-   * 
+   *
    * @param label the parameter name, or null to clear it.
    * @param parameterInfo additional information about the path of the parameter, typically "".
    */
@@ -243,9 +248,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
    */
   protected String getLabel (Enum<?> value, MessageBundle msgs)
   {
-    if (value == null) {
-      return _msgs.get("m.null_value");
-    }
+    if (value == null) return _msgs.get("m.null_value");
     String key = "m." + StringUtil.toUSLowerCase(value.name());
     return msgs.exists(key) ? msgs.get(key) : value.toString();
   }
