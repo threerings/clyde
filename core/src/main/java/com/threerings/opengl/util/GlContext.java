@@ -25,14 +25,13 @@
 
 package com.threerings.opengl.util;
 
-import com.samskivert.util.RunQueue;
-
 import com.threerings.config.ConfigManager;
 import com.threerings.expr.DynamicScope;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ResourceColorContext;
+import com.threerings.util.RunQueueContext;
 
 import com.threerings.openal.util.AlContext;
 import com.threerings.opengl.GlApp;
@@ -44,7 +43,7 @@ import com.threerings.opengl.renderer.Renderer;
  * Provides access to the various components of the OpenGL rendering system.  Not to be confused
  * with LWJGL's {@link org.lwjgl.opengl.GLContext}.
  */
-public interface GlContext extends AlContext, ResourceColorContext
+public interface GlContext extends AlContext, ResourceColorContext, RunQueueContext
 {
   /**
    * Returns a reference to the application object.
@@ -140,27 +139,4 @@ public interface GlContext extends AlContext, ResourceColorContext
    * Returns a reference to the shader cache.
    */
   public ShaderCache getShaderCache ();
-
-  /**
-   * Get the RunQueue that is our "main event loop".
-   */
-  public RunQueue getRunQueue ();
-
-  /**
-   * Post a runnable to our RunQueue.
-   */
-  public default void postRunnable (Runnable r)
-  {
-    getRunQueue().postRunnable(r);
-  }
-
-  /**
-   * Run the runnable immediately if called from the RunQueue thread, otherwise post it.
-   */
-  public default void runOnRunQueue (Runnable r)
-  {
-    var rq = getRunQueue();
-    if (rq.isDispatchThread()) r.run();
-    else rq.postRunnable(r);
-  }
 }
