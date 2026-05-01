@@ -78,7 +78,9 @@ public abstract class ManagedConfig extends DeepObject
   }
 
   // TEMP
-  public static boolean TrackFiringKludge = false;
+  public static final boolean TrackFiringKludge = false;
+  //@DeepOmit protected transient Exception _trace;
+  // END: temp
 
   /** The type of this config. */
   @Editable // see setter
@@ -360,9 +362,11 @@ public abstract class ManagedConfig extends DeepObject
   protected void fireConfigUpdated ()
   {
     // TODO: Remove need for _firing kludge?!?!
-    if (_firing && TrackFiringKludge) {
-      log.warning("Original trace", _trace);
-      log.warning("Firing kludge is in effect.", new Exception());
+    if (_firing) {
+      if (TrackFiringKludge) {
+        //log.warning("Original trace", _trace);
+        log.warning("Firing kludge is in effect.", new Exception());
+      }
       return;
     }
     _firing = true;
@@ -370,7 +374,7 @@ public abstract class ManagedConfig extends DeepObject
       try {
         throw new Exception();
       } catch (Exception e) {
-        _trace = e;
+        //_trace = e;
       }
     }
     try {
@@ -384,14 +388,10 @@ public abstract class ManagedConfig extends DeepObject
       maybeFireOnConfigManager();
 
     } finally {
-      _firing =false;
-      _trace = null;
+      _firing = false;
+      //_trace = null;
     }
   }
-
-  // TrackFiringKludge TEMP
-  @DeepOmit
-  protected transient Exception _trace;
 
   /**
    * Fires a configuration updated event on the config manager if appropriate.
