@@ -102,7 +102,10 @@ public class ConfigEntry extends SimpleStreamableObject
   @Override
   public String toString ()
   {
-    return "[key=" + _key + ", config=" + _config + "]";
+    // Don't deep-print _config: it's a full ManagedConfig graph, which is huge in network
+    // logs and (until the latent cycle in some config's public fields is fixed) can also
+    // recurse forever in DeepObject.toString. Show key + serialized size instead.
+    return "[key=" + _key + ", bytes=" + (_bytes == null ? 0 : _bytes.length) + "]";
   }
 
   @Override
