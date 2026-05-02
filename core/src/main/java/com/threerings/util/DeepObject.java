@@ -25,6 +25,8 @@
 
 package com.threerings.util;
 
+import java.util.IdentityHashMap;
+
 import com.samskivert.util.StringUtil;
 
 /**
@@ -67,6 +69,27 @@ public abstract class DeepObject
   @Override
   public String toString ()
   {
-    return StringUtil.fieldsToString(this);
+    // TODO: cycle-break instrumentation. We hit StackOverflowError in DeepObject.toString
+    // when some config's public-field graph contains a cycle (manifested via the network
+    // writer logging > 4KB outgoing messages). This guard short-circuits with a marker
+    // naming the offending class so the cycle can be identified and fixed at its source.
+    // Once the cycle is found and removed, restore the body to a single line:
+    //   return StringUtil.fieldsToString(this);
+    IdentityHashMap<Object, Object> seen = _toStringSeen.get();
+    if (seen.containsKey(this)) {
+      return "[<cycle:" + getClass().getName() + "@" +
+          Integer.toHexString(System.identityHashCode(this)) + ">]";
+    }
+    seen.put(this, null);
+    try {
+      return StringUtil.fieldsToString(this);
+    } finally {
+      seen.remove(this);
+      if (seen.isEmpty()) _toStringSeen.remove();
+    }
   }
+
+  /** Per-thread set of DeepObjects currently being formatted; used to break toString cycles. */
+  private static final ThreadLocal<IdentityHashMap<Object, Object>> _toStringSeen =
+    ThreadLocal.withInitial(IdentityHashMap::new);
 }
