@@ -236,8 +236,7 @@ public abstract class ManagedConfig extends DeepObject
       addUpdateDependencies();
     }
     @SuppressWarnings("unchecked")
-    ConfigUpdateListener<ManagedConfig> mlistener =
-        (ConfigUpdateListener<ManagedConfig>)listener;
+    ConfigUpdateListener<ManagedConfig> mlistener = (ConfigUpdateListener<ManagedConfig>)listener;
     _listeners.add(mlistener);
   }
 
@@ -248,8 +247,7 @@ public abstract class ManagedConfig extends DeepObject
   {
     if (_listeners != null) {
       @SuppressWarnings("unchecked")
-      ConfigUpdateListener<ManagedConfig> mlistener =
-          (ConfigUpdateListener<ManagedConfig>)listener;
+      ConfigUpdateListener<ManagedConfig> mlistener = (ConfigUpdateListener<ManagedConfig>)listener;
       _listeners.remove(mlistener);
       if (_listeners.isEmpty()) {
         _listeners = null;
