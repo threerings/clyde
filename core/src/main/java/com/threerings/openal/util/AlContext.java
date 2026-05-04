@@ -33,10 +33,12 @@ import com.threerings.expr.DynamicScope;
 import com.threerings.openal.ClipProvider;
 import com.threerings.openal.SoundManager;
 
+import com.threerings.util.RunQueueContext;
+
 /**
  * Provides access to the OpenAL bits.
  */
-public interface AlContext
+public interface AlContext extends RunQueueContext
 {
   /**
    * Returns a reference to the scope.
