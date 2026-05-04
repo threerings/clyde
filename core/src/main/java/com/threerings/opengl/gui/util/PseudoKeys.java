@@ -718,8 +718,7 @@ public class PseudoKeys
       case KEY_CONTROLLER_BUTTON:
         idx = getControllerIndex(baseKey);
         return MessageBundle.tcompose("m.controller_button", String.valueOf(idx),
-            String.valueOf(getControlIndex(baseKey))
-                .replaceFirst("[Bb]utton\\s*", ""));
+            getGamepadButtonName(getControlIndex(baseKey)));
 
       case KEY_CONTROLLER_AXIS_POSITIVE:
         idx = getControllerIndex(baseKey);
@@ -913,6 +912,34 @@ public class PseudoKeys
   public int getControlIndex (int key)
   {
     return (key >> 16) & 0xFF;
+  }
+
+  public String getGamepadButtonName (int button)
+  {
+    return getGamepadButtonName(button, false);
+  }
+
+  private String getGamepadButtonName (int button, boolean playstation)
+  {
+    return switch (button) {
+    case GLFW.GLFW_GAMEPAD_BUTTON_A -> playstation ? "cross" : "A";
+    case GLFW.GLFW_GAMEPAD_BUTTON_B -> playstation ? "circle" : "B";
+    case GLFW.GLFW_GAMEPAD_BUTTON_X -> playstation ? "square" : "X";
+    case GLFW.GLFW_GAMEPAD_BUTTON_Y -> playstation ? "triangle" : "Y";
+    // The rest of these are TODO?
+    case GLFW.GLFW_GAMEPAD_BUTTON_LEFT_BUMPER  -> "Lbump";
+    case GLFW.GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER -> "Rbump";
+    case GLFW.GLFW_GAMEPAD_BUTTON_BACK         -> "select";
+    case GLFW.GLFW_GAMEPAD_BUTTON_START        -> "start";
+    case GLFW.GLFW_GAMEPAD_BUTTON_GUIDE        -> "guide";
+    case GLFW.GLFW_GAMEPAD_BUTTON_LEFT_THUMB   -> "Lstick";
+    case GLFW.GLFW_GAMEPAD_BUTTON_RIGHT_THUMB  -> "Rstick";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_UP      -> "d-up";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_RIGHT   -> "d-right";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_DOWN    -> "d-down";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_LEFT    -> "d-left";
+    default -> String.valueOf(button);
+    };
   }
 
   /**
