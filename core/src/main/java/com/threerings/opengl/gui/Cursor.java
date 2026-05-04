@@ -26,8 +26,9 @@
 package com.threerings.opengl.gui;
 
 import java.awt.Dimension;
-import java.awt.Image;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 
@@ -128,10 +129,28 @@ public class Cursor
   {
     int width = _image.getWidth(), height = _image.getHeight();
     Dimension size = toolkit.getBestCursorSize(width, height);
-    Image image = _image;
+
+    // Per Toolkit.getBestCursorSize, a (0,0) result means custom cursors aren't supported.
+    if (size.width <= 0 || size.height <= 0) return java.awt.Cursor.getDefaultCursor();
+
+    BufferedImage image = _image;
     int hx = _hx, hy = _hy;
     if (size.width != width || size.height != height) {
-      image = _image.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
+      // Render into a fresh ARGB BufferedImage rather than using Image.getScaledInstance.
+      // getScaledInstance returns a non-BufferedImage Image, which on Windows causes
+      // Toolkit.createCustomCursor to drop the alpha channel and render fully-transparent
+      // pixels as opaque black -- visible most obviously as a black box for our empty
+      // (transparent) cursor on systems where best cursor size != source size (e.g. 16->32
+      // upscaling on Windows).
+      image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+      Graphics2D g = image.createGraphics();
+      try {
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+            RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(_image, 0, 0, size.width, size.height, null);
+      } finally {
+        g.dispose();
+      }
       hx = (_hx * size.width) / width;
       hy = (_hy * size.height) / height;
     }
