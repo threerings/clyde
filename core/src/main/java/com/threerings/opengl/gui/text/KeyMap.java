@@ -45,6 +45,9 @@ public class KeyMap
    */
   public void addMapping (int modifiers, int keyCode, int command)
   {
+    // Negative key codes (e.g., GLFW_KEY_UNKNOWN / PseudoKeys.KEY_NONE = -1) have no
+    // mapping by design; ignore rather than indexing _mappings[<0].
+    if (keyCode < 0) return;
     int kidx = keyCode % BUCKETS;
 
     // override any preexisting mapping
@@ -68,6 +71,11 @@ public class KeyMap
    */
   public int lookupMapping (int modifiers, int keyCode)
   {
+    // Negative key codes (e.g., GLFW_KEY_UNKNOWN / PseudoKeys.KEY_NONE = -1) never carry
+    // a binding -- they're delivered alongside the char from standalone char callbacks.
+    // Short-circuit before the modulo, since Java's % is sign-preserving and would index
+    // _mappings[<0].
+    if (keyCode < 0) return NO_MAPPING;
     int kidx = keyCode % BUCKETS;
     int defaultCommand = NO_MAPPING;
     for (Mapping map = _mappings[kidx]; map != null; map = map.next) {
