@@ -217,6 +217,26 @@ public class Compositor
     // apply the camera state
     _camera.apply(renderer);
 
+    // Clear the back buffer up front. renderQueues() also performs a clear when its
+    // priority range starts at Integer.MIN_VALUE, but with a low-priority effect (e.g.
+    // "Uniform Blur (Skybox)" at -50 with input=PREVIOUS) that clear lands inside an
+    // intermediate FBO instead of on the back buffer. The back buffer's depth would
+    // then carry over from the previous frame, depth-failing distant geometry while
+    // the post-process quad overwrites the color. Clearing here guarantees clean
+    // back-buffer state regardless of where the lowest-priority queue ends up rendered.
+    int clearBits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
+    if (!_skipColorClear) {
+      clearBits |= GL11.GL_COLOR_BUFFER_BIT;
+      renderer.setClearColor(
+        _backgroundColor == null ? _defaultBackgroundColor : _backgroundColor);
+      renderer.setState(ColorMaskState.ALL);
+    }
+    renderer.setClearDepth(1f);
+    renderer.setState(DepthState.TEST_WRITE);
+    renderer.setClearStencil(0);
+    renderer.setState(StencilState.DISABLED);
+    GL11.glClear(clearBits);
+
     // process the effects in reverse order
     QuickSort.sort(_combinedEffects);
     renderPrevious(_combinedEffects.size());

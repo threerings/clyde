@@ -205,12 +205,17 @@ public class TextureRenderer
       _framebuffer.setDepthAttachment(_depth);
     } else if (_depthBits) {
       Renderbuffer dbuf = new Renderbuffer(_renderer);
-      dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
+      // glRenderbufferStorage requires a SIZED internal format on GL 3.0+. The unsized
+      // GL_DEPTH_COMPONENT / GL_STENCIL_INDEX worked in the LWJGL 2 era under a default
+      // GL 2.x context but is silently rejected on stricter drivers (macOS especially)
+      // under our 3.2 compatibility context -- leaving the FBO with only a color
+      // attachment, no working depth test, and the skybox overdrawing everything.
+      dbuf.setStorage(GL30.GL_DEPTH_COMPONENT24, twidth, theight);
       _framebuffer.setDepthAttachment(dbuf);
     }
     if (_stencilBits) {
       Renderbuffer sbuf = new Renderbuffer(_renderer);
-      sbuf.setStorage(GL11.GL_STENCIL_INDEX, twidth, theight);
+      sbuf.setStorage(GL30.GL_STENCIL_INDEX8, twidth, theight);
       _framebuffer.setStencilAttachment(sbuf);
     }
     if (_color == null) {
@@ -236,14 +241,15 @@ public class TextureRenderer
     _width = width;
     _height = height;
     if (_framebuffer != null) {
+      // Sized internal formats; see initFramebuffer for the why.
       if (_depth == null && _depthBits) {
         Renderbuffer dbuf = new Renderbuffer(_renderer);
-        dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, width, height);
+        dbuf.setStorage(GL30.GL_DEPTH_COMPONENT24, width, height);
         _framebuffer.setDepthAttachment(dbuf);
       }
       if (_stencilBits) {
         Renderbuffer sbuf = new Renderbuffer(_renderer);
-        sbuf.setStorage(GL11.GL_STENCIL_INDEX, width, height);
+        sbuf.setStorage(GL30.GL_STENCIL_INDEX8, width, height);
         _framebuffer.setStencilAttachment(sbuf);
       }
     }
