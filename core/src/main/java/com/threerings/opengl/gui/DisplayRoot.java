@@ -303,15 +303,23 @@ public class DisplayRoot extends Root
     _keyCallback = new GLFWKeyCallback() {
       @Override
       public void invoke (long window, int glfwKey, int scancode, int action, int mods) {
-        int key = glfwKey;
-        boolean pressed = (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT);
+        final int key = glfwKey;
+        final boolean pressed = (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT);
+        // For presses, allocate a 1-cell flag the matching char callback's runnable can
+        // read. The key event's runnable writes its consumed-status into [0] after
+        // dispatch; the char's runnable bails if [0] is true, so a focus-stealing
+        // command handler (e.g. CHAT_START_COMMAND opening the chat entry) doesn't get
+        // its dialog double-typed by the standalone char that follows.
+        final boolean[] consumed = pressed ? new boolean[1] : null;
+        _pendingKeyConsumed = consumed;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
-            if (pressed) {
-              keyPressed(_tickStamp, (char)0, key, false);
-            } else {
-              keyReleased(_tickStamp, (char)0, key, false);
-            }
+            KeyEvent event = new KeyEvent(
+              DisplayRoot.this, _tickStamp, _modifiers,
+              pressed ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED,
+              (char)0, key, false);
+            dispatchKeyEvent(getFocus(), event);
+            if (consumed != null) consumed[0] = event.isConsumed();
             updateKeyModifier(key, pressed);
           });
         }
@@ -322,9 +330,17 @@ public class DisplayRoot extends Root
     _charCallback = new GLFWCharCallback() {
       @Override
       public void invoke (long window, int codepoint) {
-        char ch = (char)codepoint;
+        final char ch = (char)codepoint;
+        // Capture (and clear) the pending key's consumed-flag at fire time. GLFW fires
+        // the char callback synchronously right after the matching key callback within
+        // the same glfwPollEvents, so this references whichever key is currently in
+        // flight. A standalone char (no preceding key in this poll, e.g. IME composed
+        // input) sees null and dispatches normally.
+        final boolean[] keyConsumed = _pendingKeyConsumed;
+        _pendingKeyConsumed = null;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
+            if (keyConsumed != null && keyConsumed[0]) return;
             keyPressed(_tickStamp, ch, PseudoKeys.KEY_NONE, false);
           });
         }
@@ -488,6 +504,11 @@ public class DisplayRoot extends Root
 
   /** Whether GLFW callbacks have been installed. */
   protected boolean _callbacksInstalled;
+
+  /** Single-cell flag set by an in-flight key press's runnable to its consumed-status
+   *  after dispatch. The matching char callback captures this reference at fire time
+   *  and reads it in its runnable to decide whether to suppress itself. */
+  protected boolean[] _pendingKeyConsumed;
 
   /** Strong references to GLFW callbacks to prevent GC collection. */
   protected GLFWKeyCallback _keyCallback;
