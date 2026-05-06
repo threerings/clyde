@@ -479,6 +479,7 @@ public abstract class GlApp extends DynamicScope
 
   /**
    * Returns the antialiasing level desired.
+   * This is the Gl multisample setting, so 0 to disable, or 2, 4, 8, 16...
    */
   protected int getAntialiasingLevel ()
   {
