@@ -310,78 +310,6 @@ public class PseudoKeys
       }
     }
 
-    // documentation inherited from interface ControllerListener
-    public void controllerPovXMoved (ControllerEvent event)
-    {
-      if (event.isConsumed()) {
-        return;
-      }
-      Object controller = event.getController();
-      int controllerIndex = 0;
-      float value = event.getValue();
-      if (value > 0f) {
-        Integer okey = _povx.put(controllerIndex, KEY_CONTROLLER_POV_X_POSITIVE);
-        if (okey != null && okey == KEY_CONTROLLER_POV_X_NEGATIVE) {
-          keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
-        }
-        keyPressed(event.getWhen(), getControllerKey(
-          KEY_CONTROLLER_POV_X_POSITIVE, controllerIndex, 0), value);
-
-      } else if (value < 0f) {
-        Integer okey = _povx.put(controllerIndex, KEY_CONTROLLER_POV_X_NEGATIVE);
-        if (okey != null && okey == KEY_CONTROLLER_POV_X_POSITIVE) {
-          keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
-        }
-        keyPressed(event.getWhen(), getControllerKey(
-          KEY_CONTROLLER_POV_X_NEGATIVE, controllerIndex, 0), -value);
-
-      } else { // value == 0f
-        Integer okey = _povx.remove(controllerIndex);
-        if (okey != null) {
-          keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
-        }
-      }
-      if (_consume) {
-        event.consume();
-      }
-    }
-
-    // documentation inherited from interface ControllerListener
-    public void controllerPovYMoved (ControllerEvent event)
-    {
-      if (event.isConsumed()) {
-        return;
-      }
-      Object controller = event.getController();
-      int controllerIndex = 0;
-      float value = event.getValue();
-      if (value > 0f) {
-        Integer okey = _povy.put(controllerIndex, KEY_CONTROLLER_POV_Y_POSITIVE);
-        if (okey != null && okey == KEY_CONTROLLER_POV_Y_NEGATIVE) {
-          keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
-        }
-        keyPressed(event.getWhen(), getControllerKey(
-          KEY_CONTROLLER_POV_Y_POSITIVE, controllerIndex, 0), value);
-
-      } else if (value < 0f) {
-        Integer okey = _povy.put(controllerIndex, KEY_CONTROLLER_POV_Y_NEGATIVE);
-        if (okey != null && okey == KEY_CONTROLLER_POV_Y_POSITIVE) {
-          keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
-        }
-        keyPressed(event.getWhen(), getControllerKey(
-          KEY_CONTROLLER_POV_Y_NEGATIVE, controllerIndex, 0), -value);
-
-      } else { // value == 0f
-        Integer okey = _povy.remove(controllerIndex);
-        if (okey != null) {
-          keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
-        }
-      }
-      if (_consume) {
-        event.consume();
-      }
-    }
-
     @Override
     public void mousePressed (MouseEvent event)
     {
@@ -547,17 +475,10 @@ public class PseudoKeys
   /** A special "key" mapping for negative movement on a controller axis. */
   public static final int KEY_CONTROLLER_AXIS_NEGATIVE = KEY_BASE + 7;
 
-  /** A special "key" mapping for positive movement on a controller pov x axis. */
-  public static final int KEY_CONTROLLER_POV_X_POSITIVE = KEY_BASE + 8;
-
-  /** A special "key" mapping for negative movement on a controller pov x axis. */
-  public static final int KEY_CONTROLLER_POV_X_NEGATIVE = KEY_BASE + 9;
-
-  /** A special "key" mapping for positive movement on a controller pov y axis. */
-  public static final int KEY_CONTROLLER_POV_Y_POSITIVE = KEY_BASE + 10;
-
-  /** A special "key" mapping for negative movement on a controller pov y axis. */
-  public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = KEY_BASE + 11;
+  @Deprecated public static final int KEY_CONTROLLER_POV_X_POSITIVE = KEY_BASE + 8;
+  @Deprecated public static final int KEY_CONTROLLER_POV_X_NEGATIVE = KEY_BASE + 9;
+  @Deprecated public static final int KEY_CONTROLLER_POV_Y_POSITIVE = KEY_BASE + 10;
+  @Deprecated public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = KEY_BASE + 11;
 
   /** A special "key" mapping for the 4th mouse button. */
   public static final int KEY_BUTTON4 = KEY_BASE + 12;
@@ -653,13 +574,6 @@ public class PseudoKeys
         var axes = GLFW.glfwGetJoystickAxes(joy);
         return axes != null && axes.remaining() > getControlIndex(key);
 
-      case KEY_CONTROLLER_POV_X_POSITIVE:
-      case KEY_CONTROLLER_POV_X_NEGATIVE:
-      case KEY_CONTROLLER_POV_Y_POSITIVE:
-      case KEY_CONTROLLER_POV_Y_NEGATIVE:
-        joy = getControllerIndex(key);
-        return GLFW.glfwJoystickPresent(joy);
-
       default:
         return true;
     }
@@ -730,22 +644,6 @@ public class PseudoKeys
         return MessageBundle.tcompose("m.controller_axis_negative", String.valueOf(idx),
           String.valueOf(getControlIndex(baseKey)));
 
-      case KEY_CONTROLLER_POV_X_POSITIVE:
-        return MessageBundle.tcompose("m.controller_pov_x_positive",
-          String.valueOf(getControllerIndex(baseKey)));
-
-      case KEY_CONTROLLER_POV_X_NEGATIVE:
-        return MessageBundle.tcompose("m.controller_pov_x_negative",
-          String.valueOf(getControllerIndex(baseKey)));
-
-      case KEY_CONTROLLER_POV_Y_POSITIVE:
-        return MessageBundle.tcompose("m.controller_pov_y_positive",
-          String.valueOf(getControllerIndex(baseKey)));
-
-      case KEY_CONTROLLER_POV_Y_NEGATIVE:
-        return MessageBundle.tcompose("m.controller_pov_y_negative",
-          String.valueOf(getControllerIndex(baseKey)));
-
       default:
         String name = getName(baseKey);
         String mkey = "k." + StringUtil.toUSLowerCase(name);
@@ -774,14 +672,6 @@ public class PseudoKeys
       case KEY_CONTROLLER_AXIS_NEGATIVE:
         return "CONTROLLER" + getControllerIndex(key) + "_AXIS" +
           getControlIndex(key) + "_NEGATIVE";
-      case KEY_CONTROLLER_POV_X_POSITIVE:
-        return "CONTROLLER" + getControllerIndex(key) + "_POV_X_POSITIVE";
-      case KEY_CONTROLLER_POV_X_NEGATIVE:
-        return "CONTROLLER" + getControllerIndex(key) + "_POV_X_NEGATIVE";
-      case KEY_CONTROLLER_POV_Y_POSITIVE:
-        return "CONTROLLER" + getControllerIndex(key) + "_POV_Y_POSITIVE";
-      case KEY_CONTROLLER_POV_Y_NEGATIVE:
-        return "CONTROLLER" + getControllerIndex(key) + "_POV_Y_NEGATIVE";
       default: {
         // Return old LWJGL-2-era short lowercase names where the i18n bundle
         // has existing translations keyed on them (k.lshift, k.return, etc.).
@@ -950,10 +840,6 @@ public class PseudoKeys
     switch (getType(key)) {
     case KEY_CONTROLLER_AXIS_POSITIVE:
     case KEY_CONTROLLER_AXIS_NEGATIVE:
-    case KEY_CONTROLLER_POV_X_POSITIVE:
-    case KEY_CONTROLLER_POV_X_NEGATIVE:
-    case KEY_CONTROLLER_POV_Y_POSITIVE:
-    case KEY_CONTROLLER_POV_Y_NEGATIVE:
       return true;
 
     default:

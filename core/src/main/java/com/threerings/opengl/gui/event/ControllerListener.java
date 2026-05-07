@@ -44,14 +44,4 @@ public interface ControllerListener extends ComponentListener
    * Dispatched when the controller is moved on an axis.
    */
   public void controllerMoved (ControllerEvent event);
-
-  /**
-   * Dispatched when the controller's pov has moved on the x axis.
-   */
-  public void controllerPovXMoved (ControllerEvent event);
-
-  /**
-   * Dispatched when the controller's pov has moved on the y axis.
-   */
-  public void controllerPovYMoved (ControllerEvent event);
 }

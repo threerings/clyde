@@ -189,14 +189,8 @@ public class DisplayRoot extends Root
         float wasValue = prev.axes(ai);
         float isValue = cur.axes(ai);
         if (wasValue != isValue) {
-          boolean xAxis = (ai == GLFW.GLFW_GAMEPAD_AXIS_LEFT_X ||
-                           ai == GLFW.GLFW_GAMEPAD_AXIS_RIGHT_X);
-          boolean yAxis = (ai == GLFW.GLFW_GAMEPAD_AXIS_LEFT_Y ||
-                           ai == GLFW.GLFW_GAMEPAD_AXIS_RIGHT_Y);
           dispatchEvent(getFocus(), new ControllerEvent(
-            this, _tickStamp, _modifiers,
-            ControllerEvent.CONTROLLER_MOVED,
-            ai, xAxis, yAxis, isValue));
+            this, _tickStamp, _modifiers, ControllerEvent.CONTROLLER_MOVED, ai, isValue));
         }
       }
     }

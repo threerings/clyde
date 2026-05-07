@@ -45,14 +45,4 @@ public class ControllerAdapter
   public void controllerMoved (ControllerEvent event)
   {
   }
-
-  // documentation inherited from interface ControllerListener
-  public void controllerPovXMoved (ControllerEvent event)
-  {
-  }
-
-  // documentation inherited from interface ControllerListener
-  public void controllerPovYMoved (ControllerEvent event)
-  {
-  }
 }

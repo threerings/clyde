@@ -40,19 +40,13 @@ public class ControllerEvent extends InputEvent
   /** An event generated when the controller is moved on an axis. */
   public static final int CONTROLLER_MOVED = 2;
 
-  /** An event generated when the controller's pov is moved on the x axis. */
-  public static final int CONTROLLER_POV_X_MOVED = 3;
-
-  /** An event generated when the controller's pov is moved on the y axis. */
-  public static final int CONTROLLER_POV_Y_MOVED = 4;
-
   /**
    * Creates a new controller button event.
    */
   public ControllerEvent (
     Object source, long when, int modifiers, int type, int controlIndex)
   {
-    this(source, when, modifiers, type, controlIndex, false, false, 0f);
+    this(source, when, modifiers, type, controlIndex, 0f);
   }
 
   /**
@@ -61,21 +55,18 @@ public class ControllerEvent extends InputEvent
   public ControllerEvent (
     Object source, long when, int modifiers, int type, float value)
   {
-    this(source, when, modifiers, type, -1, false, false, value);
+    this(source, when, modifiers, type, -1, value);
   }
 
   /**
    * Creates a new controller event.
    */
   public ControllerEvent (
-    Object source, long when, int modifiers, int type,
-    int controlIndex, boolean xAxis, boolean yAxis, float value)
+    Object source, long when, int modifiers, int type, int controlIndex, float value)
   {
     super(source, when, modifiers);
     _type = type;
     _controlIndex = controlIndex;
-    _xAxis = xAxis;
-    _yAxis = yAxis;
     _value = value;
   }
 
@@ -102,22 +93,6 @@ public class ControllerEvent extends InputEvent
   public int getControlIndex ()
   {
     return _controlIndex;
-  }
-
-  /**
-   * Checks whether the event pertains to the x axis.
-   */
-  public boolean isXAxis ()
-  {
-    return _xAxis;
-  }
-
-  /**
-   * Checks whether the event pertains to the y axis.
-   */
-  public boolean isYAxis ()
-  {
-    return _yAxis;
   }
 
   /**
@@ -148,16 +123,6 @@ public class ControllerEvent extends InputEvent
         ((ControllerListener)listener).controllerMoved(this);
       }
       break;
-    case CONTROLLER_POV_X_MOVED:
-      if (listener instanceof ControllerListener) {
-        ((ControllerListener)listener).controllerPovXMoved(this);
-      }
-      break;
-    case CONTROLLER_POV_Y_MOVED:
-      if (listener instanceof ControllerListener) {
-        ((ControllerListener)listener).controllerPovYMoved(this);
-      }
-      break;
     }
   }
 
@@ -167,8 +132,6 @@ public class ControllerEvent extends InputEvent
     super.toString(buf);
     buf.append(", type=").append(_type);
     buf.append(", controlIndex=").append(_controlIndex);
-    buf.append(", xAxis=").append(_xAxis);
-    buf.append(", yAxis=").append(_yAxis);
     buf.append(", value=").append(_value);
   }
 
@@ -177,12 +140,6 @@ public class ControllerEvent extends InputEvent
 
   /** The index of the control (button or axis) that caused the event. */
   protected int _controlIndex;
-
-  /** Whether or not the axis is the x axis. */
-  protected boolean _xAxis;
-
-  /** Whether or not the axis is the y axis. */
-  protected boolean _yAxis;
 
   /** The value of the axis. */
   protected float _value;
