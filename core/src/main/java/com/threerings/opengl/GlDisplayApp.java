@@ -368,6 +368,8 @@ public abstract class GlDisplayApp extends GlApp
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
         Math.max(0, xpos), Math.max(0, ypos), winW, winH, GLFW.GLFW_DONT_CARE);
     }
+    GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR,
+      mode.isFullscreen() ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
     updateRendererSize();
     if (onComplete != null) onComplete.run();
@@ -593,6 +595,8 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwDefaultWindowHints();
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+    // Don't auto-minimize fullscreen on focus loss; user prefers staying up across alt-tab.
+    GLFW.glfwWindowHint(GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_FALSE);
     // MSAA sample count (0 disables multisampling). The driver picks the closest supported
     // value if it can't honor the exact request. Must be set before glfwCreateWindow.
     GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, getAntialiasingLevel());
@@ -631,6 +635,8 @@ public abstract class GlDisplayApp extends GlApp
     if (_pendingMode != null && _pendingMode.isMaxed()) {
       MacFullscreen.setFullscreen(_window, true, getRunQueue(), null /*onComplete*/);
     }
+    GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR,
+      fs ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
     _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
     GL.createCapabilities();
