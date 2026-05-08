@@ -44,38 +44,34 @@ public class ControllerEvent extends InputEvent
    * Creates a new controller button event.
    */
   public ControllerEvent (
-    Object source, long when, int modifiers, int type, int controlIndex)
+    Object source, long when, int modifiers, int type, int controllerId,
+    int controlIndex)
   {
-    this(source, when, modifiers, type, controlIndex, 0f);
+    this(source, when, modifiers, type, controllerId, controlIndex, 0f);
   }
 
   /**
    * Creates a new controller pov event.
    */
   public ControllerEvent (
-    Object source, long when, int modifiers, int type, float value)
+    Object source, long when, int modifiers, int type, int controllerId,
+    float value)
   {
-    this(source, when, modifiers, type, -1, value);
+    this(source, when, modifiers, type, controllerId, -1, value);
   }
 
   /**
    * Creates a new controller event.
    */
   public ControllerEvent (
-    Object source, long when, int modifiers, int type, int controlIndex, float value)
+    Object source, long when, int modifiers, int type, int controllerId,
+    int controlIndex, float value)
   {
     super(source, when, modifiers);
     _type = type;
+    _controllerId = controllerId;
     _controlIndex = controlIndex;
     _value = value;
-  }
-
-  /**
-   * Returns a reference to the controller that caused the event.
-   */
-  public Object getController ()
-  {
-    return getSource();
   }
 
   /**
@@ -84,6 +80,14 @@ public class ControllerEvent extends InputEvent
   public int getType ()
   {
     return _type;
+  }
+
+  /**
+   * Returns a reference to the controller that caused the event.
+   */
+  public int getControllerId ()
+  {
+    return _controllerId;
   }
 
   /**
@@ -131,12 +135,16 @@ public class ControllerEvent extends InputEvent
   {
     super.toString(buf);
     buf.append(", type=").append(_type);
+    buf.append(", controllerId=").append(_controllerId);
     buf.append(", controlIndex=").append(_controlIndex);
     buf.append(", value=").append(_value);
   }
 
   /** The type of the event. */
   protected int _type;
+
+  /** The id of the controller. */
+  protected int _controllerId;
 
   /** The index of the control (button or axis) that caused the event. */
   protected int _controlIndex;

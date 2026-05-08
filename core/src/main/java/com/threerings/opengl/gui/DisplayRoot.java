@@ -179,7 +179,7 @@ public class DisplayRoot extends Root
             ? ControllerEvent.CONTROLLER_PRESSED
             : ControllerEvent.CONTROLLER_RELEASED;
           dispatchEvent(getFocus(), new ControllerEvent(
-            this, _tickStamp, _modifiers, type, bi));
+            this, _tickStamp, _modifiers, type, jid, bi));
         }
       }
 
@@ -190,7 +190,7 @@ public class DisplayRoot extends Root
         float isValue = cur.axes(ai);
         if (wasValue != isValue) {
           dispatchEvent(getFocus(), new ControllerEvent(
-            this, _tickStamp, _modifiers, ControllerEvent.CONTROLLER_MOVED, ai, isValue));
+            this, _tickStamp, _modifiers, ControllerEvent.CONTROLLER_MOVED, jid, ai, isValue));
         }
       }
     }

@@ -249,8 +249,8 @@ public class PseudoKeys
     public void controllerPressed (ControllerEvent event)
     {
       if (!event.isConsumed()) {
-        keyPressed(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
-          0, event.getControlIndex()), 1f);
+        keyPressed(event.getWhen(), _pk.getControllerKey(KEY_CONTROLLER_BUTTON,
+          event.getControllerId(), event.getControlIndex()), 1f);
         if (_consume) {
           event.consume();
         }
@@ -261,8 +261,8 @@ public class PseudoKeys
     public void controllerReleased (ControllerEvent event)
     {
       if (!event.isConsumed()) {
-        keyReleased(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
-          0, event.getControlIndex()));
+        keyReleased(event.getWhen(), _pk.getControllerKey(KEY_CONTROLLER_BUTTON,
+          event.getControllerId(), event.getControlIndex()));
         if (_consume) {
           event.consume();
         }
@@ -273,8 +273,7 @@ public class PseudoKeys
     public void controllerMoved (ControllerEvent event)
     {
       if (event.isConsumed()) return;
-      Object controller = event.getController();
-      int controllerIndex = 0;
+      int controllerIndex = event.getControllerId();
       int axisIndex = event.getControlIndex();
       float value = event.getValue();
       float dead = 0.2f;
@@ -282,26 +281,26 @@ public class PseudoKeys
         Integer okey = _axes.put(new IntTuple(controllerIndex, axisIndex),
           KEY_CONTROLLER_AXIS_POSITIVE);
         if (okey != null && okey == KEY_CONTROLLER_AXIS_NEGATIVE) {
-          keyReleased(event.getWhen(), getControllerKey(
+          keyReleased(event.getWhen(), _pk.getControllerKey(
             okey, controllerIndex, axisIndex));
         }
-        keyPressed(event.getWhen(), getControllerKey(
+        keyPressed(event.getWhen(), _pk.getControllerKey(
           KEY_CONTROLLER_AXIS_POSITIVE, controllerIndex, axisIndex), value);
 
       } else if (value < -dead) {
         Integer okey = _axes.put(new IntTuple(controllerIndex, axisIndex),
           KEY_CONTROLLER_AXIS_NEGATIVE);
         if (okey != null && okey == KEY_CONTROLLER_AXIS_POSITIVE) {
-          keyReleased(event.getWhen(), getControllerKey(
+          keyReleased(event.getWhen(), _pk.getControllerKey(
             okey, controllerIndex, axisIndex));
         }
-        keyPressed(event.getWhen(), getControllerKey(
+        keyPressed(event.getWhen(), _pk.getControllerKey(
           KEY_CONTROLLER_AXIS_NEGATIVE, controllerIndex, axisIndex), -value);
 
       } else {
         Integer okey = _axes.remove(new IntTuple(controllerIndex, axisIndex));
         if (okey != null) {
-          keyReleased(event.getWhen(), getControllerKey(
+          keyReleased(event.getWhen(), _pk.getControllerKey(
             okey, controllerIndex, axisIndex));
         }
       }
@@ -314,7 +313,7 @@ public class PseudoKeys
     public void mousePressed (MouseEvent event)
     {
       if (!event.isConsumed()) {
-        keyPressed(event.getWhen(), getMouseKey(event.getButton()), 1f);
+        keyPressed(event.getWhen(), _pk.getMouseKey(event.getButton()), 1f);
         if (_consume) {
           event.consume();
         }
@@ -325,7 +324,7 @@ public class PseudoKeys
     public void mouseReleased (MouseEvent event)
     {
       if (!event.isConsumed()) {
-        keyReleased(event.getWhen(), getMouseKey(event.getButton()));
+        keyReleased(event.getWhen(), _pk.getMouseKey(event.getButton()));
         if (_consume) {
           event.consume();
         }
@@ -415,6 +414,9 @@ public class PseudoKeys
         _pressedModifiers &= ~modKey;
       }
     }
+
+    /** Our pseudokeys. */
+    protected PseudoKeys _pk = singleton();
 
     /** The observer that we notify, if any. */
     protected Observer _observer;
@@ -522,33 +524,33 @@ public class PseudoKeys
   /**
    * Returns the "key" mapping for the identified mouse button.
    */
-  public static int getMouseKey (int button)
+  public int getMouseKey (int button)
   {
-    switch (button) {
-      case MouseEvent.BUTTON1: return KEY_BUTTON1;
-      case MouseEvent.BUTTON2: return KEY_BUTTON2;
-      case MouseEvent.BUTTON3: return KEY_BUTTON3;
-      case MouseEvent.BUTTON4: return KEY_BUTTON4;
-      case MouseEvent.BUTTON5: return KEY_BUTTON5;
-      case MouseEvent.BUTTON6: return KEY_BUTTON6;
-      case MouseEvent.BUTTON7: return KEY_BUTTON7;
-      case MouseEvent.BUTTON8: return KEY_BUTTON8;
-      case MouseEvent.BUTTON9: return KEY_BUTTON9;
-      case MouseEvent.BUTTON10: return KEY_BUTTON10;
-      case MouseEvent.BUTTON11: return KEY_BUTTON11;
-      case MouseEvent.BUTTON12: return KEY_BUTTON12;
-      case MouseEvent.BUTTON13: return KEY_BUTTON13;
-      case MouseEvent.BUTTON14: return KEY_BUTTON14;
-      case MouseEvent.BUTTON15: return KEY_BUTTON15;
-      case MouseEvent.BUTTON16: return KEY_BUTTON15;
-      default: return KEY_NONE;
-    }
+    return switch (button) {
+      case MouseEvent.BUTTON1 -> KEY_BUTTON1;
+      case MouseEvent.BUTTON2 -> KEY_BUTTON2;
+      case MouseEvent.BUTTON3 -> KEY_BUTTON3;
+      case MouseEvent.BUTTON4 -> KEY_BUTTON4;
+      case MouseEvent.BUTTON5 -> KEY_BUTTON5;
+      case MouseEvent.BUTTON6 -> KEY_BUTTON6;
+      case MouseEvent.BUTTON7 -> KEY_BUTTON7;
+      case MouseEvent.BUTTON8 -> KEY_BUTTON8;
+      case MouseEvent.BUTTON9 -> KEY_BUTTON9;
+      case MouseEvent.BUTTON10 -> KEY_BUTTON10;
+      case MouseEvent.BUTTON11 -> KEY_BUTTON11;
+      case MouseEvent.BUTTON12 -> KEY_BUTTON12;
+      case MouseEvent.BUTTON13 -> KEY_BUTTON13;
+      case MouseEvent.BUTTON14 -> KEY_BUTTON14;
+      case MouseEvent.BUTTON15 -> KEY_BUTTON15;
+      case MouseEvent.BUTTON16 -> KEY_BUTTON15;
+      default -> KEY_NONE;
+    };
   }
 
   /**
    * Returns the "key" mapping for the identified controller parameters.
    */
-  public static int getControllerKey (int type, int controllerIndex, int controlIndex)
+  public int getControllerKey (int type, int controllerIndex, int controlIndex)
   {
     return 0xFFFFFFF & ((controllerIndex << 24) | (controlIndex << 16) | type);
   }
