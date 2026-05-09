@@ -25,10 +25,13 @@
 
 package com.threerings.opengl.gui;
 
+import org.lwjgl.glfw.GLFW;
+
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
+import com.threerings.opengl.gui.text.KeyMap;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Dimension;
@@ -295,4 +298,9 @@ public class TextEditor extends EditableTextComponent
 
   /** A mutable Point containing the inset coordinates of the end of selection. */
   protected Point _sel = new Point();
+
+  { // initializer
+    _keymap.addMapping(KeyMap.ANY_MODIFIER, GLFW.GLFW_KEY_ENTER, NEWLINE);
+    _keymap.addMapping(KeyMap.ANY_MODIFIER, GLFW.GLFW_KEY_KP_ENTER, NEWLINE);
+  }
 }

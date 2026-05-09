@@ -86,4 +86,7 @@ public interface EditCommands
 
   /** A text editing command. */
   public static final int SELECT_ALL = 18;
+
+  /** A text editing command. */
+  public static final int NEWLINE = 19;
 }

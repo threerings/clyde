@@ -230,8 +230,7 @@ public abstract class EditableTextComponent extends TextComponent
   // documentation inherited
   public boolean dispatchEvent (Event event)
   {
-    if (event instanceof KeyEvent) {
-      KeyEvent kev = (KeyEvent)event;
+    if (event instanceof KeyEvent kev) {
       if (kev.getType() == KeyEvent.KEY_PRESSED) {
         int modifiers = kev.getModifiers();
         int cmd = _keymap.lookupMapping(modifiers, kev.getKeyCode());
@@ -263,10 +262,9 @@ public abstract class EditableTextComponent extends TextComponent
         }
       }
 
-    } else if (event instanceof MouseEvent &&
+    } else if (event instanceof MouseEvent mev &&
         // don't adjust the cursor/selection if we have no text
         _text.getLength() > 0 && hasGlyphs()) {
-      MouseEvent mev = (MouseEvent)event;
       int type = mev.getType();
       if (type != MouseEvent.MOUSE_PRESSED &&
           type != MouseEvent.MOUSE_DRAGGED &&
@@ -303,9 +301,8 @@ public abstract class EditableTextComponent extends TextComponent
         return true;
       }
 
-    } else if (event instanceof FocusEvent) {
+    } else if (event instanceof FocusEvent fev) {
       clearPending();
-      FocusEvent fev = (FocusEvent)event;
       switch (fev.getType()) {
       case FocusEvent.FOCUS_GAINED:
         gainedFocus();
@@ -344,8 +341,7 @@ public abstract class EditableTextComponent extends TextComponent
     }
     clearPending();
     replaceSelectedText(String.valueOf(c),
-      Character.isLetterOrDigit(c) ?
-        CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR,
+      Character.isLetterOrDigit(c) ? CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR,
       false);
     return true;
   }
@@ -444,6 +440,10 @@ public abstract class EditableTextComponent extends TextComponent
 
     case SELECT_ALL:
       setSelection(_text.getLength(), 0);
+      break;
+
+    case NEWLINE:
+      insertChar('\n');
       break;
     }
 
