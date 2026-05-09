@@ -994,7 +994,7 @@ public abstract class Root extends SimpleOverlay
         _pressedKeys.put(keyCode, new KeyRecord(event));
 
       } else { // event.getType() == KeyEvent.KEY_RELEASED
-        _pressedKeys.remove(event.getKeyCode());
+        _pressedKeys.remove(keyCode);
       }
     }
     return dispatchEvent(target, event);
