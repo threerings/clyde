@@ -88,18 +88,16 @@ public class KeyEvent extends InputEvent
   public void dispatch (ComponentListener listener)
   {
     super.dispatch(listener);
-    switch (_type) {
-    case KEY_PRESSED:
-      if (listener instanceof KeyListener) {
-        ((KeyListener)listener).keyPressed(this);
-      }
-      break;
+    if (listener instanceof KeyListener kl) {
+      switch (_type) {
+      case KEY_PRESSED:
+        kl.keyPressed(this);
+        break;
 
-    case KEY_RELEASED:
-      if (listener instanceof KeyListener) {
-        ((KeyListener)listener).keyReleased(this);
+      case KEY_RELEASED:
+        kl.keyReleased(this);
+        break;
       }
-      break;
     }
   }
 

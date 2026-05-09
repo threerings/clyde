@@ -40,9 +40,7 @@ public class TextEvent extends Event
   {
     super.dispatch(listener);
 
-    if (listener instanceof TextListener) {
-      ((TextListener)listener).textChanged(this);
-    }
+    if (listener instanceof TextListener tl) tl.textChanged(this);
   }
 
   // documentation inherited

@@ -63,9 +63,7 @@ public class ActionEvent extends InputEvent
   public void dispatch (ComponentListener listener)
   {
     super.dispatch(listener);
-    if (listener instanceof ActionListener) {
-      ((ActionListener)listener).actionPerformed(this);
-    }
+    if (listener instanceof ActionListener al) al.actionPerformed(this);
   }
 
   // documentation inherited

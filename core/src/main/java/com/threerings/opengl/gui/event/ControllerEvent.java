@@ -111,22 +111,18 @@ public class ControllerEvent extends InputEvent
   public void dispatch (ComponentListener listener)
   {
     super.dispatch(listener);
-    switch (_type) {
-    case CONTROLLER_PRESSED:
-      if (listener instanceof ControllerListener) {
-        ((ControllerListener)listener).controllerPressed(this);
+    if (listener instanceof ControllerListener cl) {
+      switch (_type) {
+      case CONTROLLER_PRESSED:
+        cl.controllerPressed(this);
+        break;
+      case CONTROLLER_RELEASED:
+        cl.controllerReleased(this);
+        break;
+      case CONTROLLER_MOVED:
+        cl.controllerMoved(this);
+        break;
       }
-      break;
-    case CONTROLLER_RELEASED:
-      if (listener instanceof ControllerListener) {
-        ((ControllerListener)listener).controllerReleased(this);
-      }
-      break;
-    case CONTROLLER_MOVED:
-      if (listener instanceof ControllerListener) {
-        ((ControllerListener)listener).controllerMoved(this);
-      }
-      break;
     }
   }
 

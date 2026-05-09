@@ -75,9 +75,7 @@ public class Event extends EventObject
    */
   public void dispatch (ComponentListener listener)
   {
-    if (listener instanceof EventListener) {
-      ((EventListener)listener).eventDispatched(this);
-    }
+    if (listener instanceof EventListener el) el.eventDispatched(this);
   }
 
   /**

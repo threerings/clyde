@@ -30,10 +30,11 @@ public class WindowEvent extends Event
   @Override
   public void dispatch (ComponentListener listener)
   {
-    if (listener instanceof WindowListener) {
+    super.dispatch(listener);
+    if (listener instanceof WindowListener wl) {
       switch (type) {
       case WINDOW_REMOVED:
-        ((WindowListener)listener).windowRemoved(this);
+        wl.windowRemoved(this);
         break;
       default:
         log.warning("TODO: Add handling for event type `" + type + "'");

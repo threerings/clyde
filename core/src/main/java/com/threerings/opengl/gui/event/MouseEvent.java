@@ -175,51 +175,35 @@ public class MouseEvent extends InputEvent
     super.dispatch(listener);
     switch (_type) {
     case MOUSE_PRESSED:
-      if (listener instanceof MouseListener) {
-        ((MouseListener)listener).mousePressed(this);
-      }
+      if (listener instanceof MouseListener ml) ml.mousePressed(this);
       break;
 
     case MOUSE_RELEASED:
-      if (listener instanceof MouseListener) {
-        ((MouseListener)listener).mouseReleased(this);
-      }
+      if (listener instanceof MouseListener ml) ml.mouseReleased(this);
       break;
 
     case MOUSE_CLICKED:
-      if (listener instanceof MouseListener) {
-        ((MouseListener)listener).mouseClicked(this);
-      }
+      if (listener instanceof MouseListener ml) ml.mouseClicked(this);
       break;
 
     case MOUSE_ENTERED:
-      if (listener instanceof MouseListener) {
-        ((MouseListener)listener).mouseEntered(this);
-      }
+      if (listener instanceof MouseListener ml) ml.mouseEntered(this);
       break;
 
     case MOUSE_EXITED:
-      if (listener instanceof MouseListener) {
-        ((MouseListener)listener).mouseExited(this);
-      }
+      if (listener instanceof MouseListener ml) ml.mouseExited(this);
       break;
 
     case MOUSE_MOVED:
-      if (listener instanceof MouseMotionListener) {
-        ((MouseMotionListener)listener).mouseMoved(this);
-      }
+      if (listener instanceof MouseMotionListener mml) mml.mouseMoved(this);
       break;
 
     case MOUSE_DRAGGED:
-      if (listener instanceof MouseMotionListener) {
-        ((MouseMotionListener)listener).mouseDragged(this);
-      }
+      if (listener instanceof MouseMotionListener mml) mml.mouseDragged(this);
       break;
 
     case MOUSE_WHEELED:
-      if (listener instanceof MouseWheelListener) {
-        ((MouseWheelListener)listener).mouseWheeled(this);
-      }
+      if (listener instanceof MouseWheelListener mwl) mwl.mouseWheeled(this);
       break;
     }
   }
