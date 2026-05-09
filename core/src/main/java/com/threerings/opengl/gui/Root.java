@@ -428,21 +428,11 @@ public abstract class Root extends SimpleOverlay
   }
 
   /**
-   * Configures a component to receive all events that are not sent to some other component. When
-   * an event is not consumed during normal processing, it is sent to the default event targets,
-   * most recently registered to least recently registered.
+   * Set the default event listener that will receive events not sent to another component.
    */
-  public void pushDefaultEventTarget (Component component)
+  public void setDefaultEventListener (ComponentListener listener)
   {
-    _defaults.add(component);
-  }
-
-  /**
-   * Pops the default event target off the stack.
-   */
-  public void popDefaultEventTarget (Component component)
-  {
-    _defaults.remove(component);
+    _defaultListener = listener;
   }
 
   /**
@@ -682,9 +672,8 @@ public abstract class Root extends SimpleOverlay
     _lastTipTime += elapsed;
     String tiptext;
     if (_hcomponent == null || _tipwin != null ||
-      (_lastMoveTime < getTooltipTimeout() &&
-       _lastTipTime > TIP_MODE_RESET) ||
-      (tiptext = _hcomponent.getTooltipText()) == null) {
+        (_lastMoveTime < getTooltipTimeout() && _lastTipTime > TIP_MODE_RESET) ||
+        (tiptext = _hcomponent.getTooltipText()) == null) {
       if (_tipwin != null) {
         _lastTipTime = 0;
       }
@@ -724,8 +713,7 @@ public abstract class Root extends SimpleOverlay
       tx = _mouseX - _tipwin.getWidth()/2;
       ty = _mouseY + 10;
     } else {
-      tx = _hcomponent.getAbsoluteX() +
-        (_hcomponent.getWidth() - _tipwin.getWidth()) / 2;
+      tx = _hcomponent.getAbsoluteX() + (_hcomponent.getWidth() - _tipwin.getWidth()) / 2;
       ty = _hcomponent.getAbsoluteY() + _hcomponent.getHeight() + 10;
     }
     tx = Math.max(5, Math.min(tx, width-_tipwin.getWidth()-5));
@@ -1034,32 +1022,21 @@ public abstract class Root extends SimpleOverlay
     // first try the "natural" target of the event if there is one
     Window sentwin = null;
     if (target != null) {
-      if (target.dispatchEvent(event)) {
-        return true;
-      }
+      if (target.dispatchEvent(event)) return true;
       sentwin = target.getWindow();
     }
 
     // next try the most recently opened modal window, if we have one
-    for (int ii = _windows.size()-1; ii >= 0; ii--) {
+    for (int ii = _windows.size()-1; ii >= 0; --ii) {
       Window window = _windows.get(ii);
       if (window.isModal()) {
-        if (window != sentwin) {
-          if (window.dispatchEvent(event)) {
-            return true;
-          }
-        }
+        if (window != sentwin && window.dispatchEvent(event)) return true;
         break;
       }
     }
 
-    // finally try the default event targets
-    for (int ii = _defaults.size()-1; ii >= 0; ii--) {
-      Component deftarg = _defaults.get(ii);
-      if (deftarg.dispatchEvent(event)) {
-        return true;
-      }
-    }
+    // finally try the default event target listener
+    event.dispatch(_defaultListener);
 
     // let our caller know that the event was not dispatched by anyone
     return false;
@@ -1338,16 +1315,15 @@ public abstract class Root extends SimpleOverlay
   protected int _tipWidth = -1;
   protected Color4f _modalShade;
 
-  protected ArrayList<Window> _windows = new ArrayList<Window>();
+  protected ArrayList<Window> _windows = new ArrayList<>();
   protected Component _hcomponent, _ccomponent;
   protected Component _focus;
-  protected ArrayList<Component> _defaults = new ArrayList<Component>();
   protected ObserverList<Tickable> _tickParticipants = ObserverList.newSafeInOrder();
   protected TickOp _tickOp = new TickOp();
-  protected CopyOnWriteArrayList<ComponentListener> _globals =
-    new CopyOnWriteArrayList<ComponentListener>();
+  protected CopyOnWriteArrayList<ComponentListener> _globals = new CopyOnWriteArrayList<>();
+  protected ComponentListener _defaultListener = null;
 
-  protected ArrayDeque<Validateable> _invalidRoots = new ArrayDeque<Validateable>();
+  protected ArrayDeque<Validateable> _invalidRoots = new ArrayDeque<>();
 
   /** A sound group for feedback effects. */
   protected SoundGroup _soundGroup;
