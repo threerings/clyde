@@ -73,10 +73,18 @@ public class Slider extends Component
     return _model;
   }
 
+  /**
+   * Is this a horizontally-aligned slider?
+   */
+  public boolean isHorizontal ()
+  {
+    return _orient == HORIZONTAL;
+  }
+
   @Override
   protected String getDefaultStyleConfig ()
   {
-    return ((_orient == HORIZONTAL) ? "Default/H" : "Default/V") + "Slider";
+    return (isHorizontal() ? "Default/H" : "Default/V") + "Slider";
   }
 
   @Override
@@ -91,13 +99,9 @@ public class Slider extends Component
   // documentation inherited
   protected Dimension computePreferredSize (int whint, int hhint)
   {
-    Dimension psize =
-      new Dimension(getFrob().getWidth(), getFrob().getHeight());
-    if (_orient == HORIZONTAL) {
-      psize.width *= 2;
-    } else {
-      psize.height *= 2;
-    }
+    Dimension psize = new Dimension(getFrob().getWidth(), getFrob().getHeight());
+    if (isHorizontal()) psize.width *= 2;
+    else psize.height *= 2;
     return psize;
   }
 
@@ -146,14 +150,12 @@ public class Slider extends Component
     Icon frob = getFrob();
     int x, y, range = _model.getRange();
     int offset = _model.getValue() - _model.getMinimum();
-    if (_orient == HORIZONTAL) {
+    if (isHorizontal()) {
       y = (getHeight() - frob.getHeight())/2;
-      x = insets.left + (getWidth() - insets.getHorizontal() -
-                frob.getWidth()) * offset / range;
+      x = insets.left + (getWidth() - insets.getHorizontal() - frob.getWidth()) * offset / range;
     } else {
       x = (getWidth() - frob.getWidth())/2;
-      y = insets.bottom + (getHeight() - insets.getVertical() -
-                 frob.getHeight()) * offset / range;
+      y = insets.bottom + (getHeight() - insets.getVertical() - frob.getHeight()) * offset / range;
     }
     frob.render(renderer, x, y, _alpha);
   }
@@ -162,7 +164,7 @@ public class Slider extends Component
   {
     Insets insets = getInsets();
     Icon frob = getFrob();
-    if (_orient == HORIZONTAL) {
+    if (isHorizontal()) {
       int fwid = frob.getWidth();
       _model.setValue(_model.getMinimum() + Math.round((mx - fwid*0.5f) * _model.getRange() /
               (getWidth() - insets.getHorizontal() - fwid)));
