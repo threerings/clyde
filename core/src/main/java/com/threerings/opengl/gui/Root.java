@@ -60,7 +60,7 @@ import com.threerings.opengl.util.Tickable;
 
 import com.threerings.opengl.gui.config.CursorConfig;
 import com.threerings.opengl.gui.event.Event;
-import com.threerings.opengl.gui.event.EventListener;
+import com.threerings.opengl.gui.event.ComponentListener;
 import com.threerings.opengl.gui.event.FocusEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
@@ -401,7 +401,7 @@ public abstract class Root extends SimpleOverlay
    * Registers a listener that will be notified of all events prior to their being dispatched
    * normally.
    */
-  public void addGlobalEventListener (EventListener listener)
+  public void addGlobalEventListener (ComponentListener listener)
   {
     _globals.add(listener);
   }
@@ -409,7 +409,7 @@ public abstract class Root extends SimpleOverlay
   /**
    * Removes a global event listener registration.
    */
-  public void removeGlobalEventListener (EventListener listener)
+  public void removeGlobalEventListener (ComponentListener listener)
   {
     _globals.remove(listener);
   }
@@ -1023,9 +1023,9 @@ public abstract class Root extends SimpleOverlay
   protected boolean dispatchEvent (Component target, Event event)
   {
     // notify our global listeners if we have any
-    for (EventListener listener : _globals) {
+    for (ComponentListener listener : _globals) {
       try {
-        listener.eventDispatched(event);
+        event.dispatch(listener);
       } catch (Exception e) {
         log.warning("Global event listener choked.", "listener", listener, e);
       }
@@ -1344,8 +1344,8 @@ public abstract class Root extends SimpleOverlay
   protected ArrayList<Component> _defaults = new ArrayList<Component>();
   protected ObserverList<Tickable> _tickParticipants = ObserverList.newSafeInOrder();
   protected TickOp _tickOp = new TickOp();
-  protected CopyOnWriteArrayList<EventListener> _globals =
-    new CopyOnWriteArrayList<EventListener>();
+  protected CopyOnWriteArrayList<ComponentListener> _globals =
+    new CopyOnWriteArrayList<ComponentListener>();
 
   protected ArrayDeque<Validateable> _invalidRoots = new ArrayDeque<Validateable>();
 
