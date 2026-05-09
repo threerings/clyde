@@ -477,10 +477,11 @@ public class PseudoKeys
   /** A special "key" mapping for negative movement on a controller axis. */
   public static final int KEY_CONTROLLER_AXIS_NEGATIVE = KEY_BASE + 7;
 
-  @Deprecated public static final int KEY_CONTROLLER_POV_X_POSITIVE = KEY_BASE + 8;
-  @Deprecated public static final int KEY_CONTROLLER_POV_X_NEGATIVE = KEY_BASE + 9;
-  @Deprecated public static final int KEY_CONTROLLER_POV_Y_POSITIVE = KEY_BASE + 10;
-  @Deprecated public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = KEY_BASE + 11;
+  // These were old and can go away, but they explain the gap in the constants.
+  // public static final int KEY_CONTROLLER_POV_X_POSITIVE = KEY_BASE + 8;
+  // public static final int KEY_CONTROLLER_POV_X_NEGATIVE = KEY_BASE + 9;
+  // public static final int KEY_CONTROLLER_POV_Y_POSITIVE = KEY_BASE + 10;
+  // public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = KEY_BASE + 11;
 
   /** A special "key" mapping for the 4th mouse button. */
   public static final int KEY_BUTTON4 = KEY_BASE + 12;
