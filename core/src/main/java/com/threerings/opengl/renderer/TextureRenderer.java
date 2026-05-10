@@ -227,7 +227,9 @@ public class TextureRenderer
     _renderer.setFramebuffer(obuffer);
 
     if (status != GL30.GL_FRAMEBUFFER_COMPLETE) {
-      log.warning("Framebuffer incomplete.", "status", status);
+      log.warning("Framebuffer incomplete.", "status", status,
+          "color?", _color != null, "depth?", _depth != null,
+          "depthBits?", _depthBits, "stencil?", _stencilBits);
       deleteFramebuffer(_framebuffer);
       _framebuffer = null;
     }
