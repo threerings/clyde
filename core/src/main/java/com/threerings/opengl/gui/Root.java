@@ -730,8 +730,8 @@ public abstract class Root extends SimpleOverlay
   protected void rescaleWindows ()
   {
     int dw = getDisplayWidth(), dh = getDisplayHeight();
-    for (Window window : _windows) {
-      window.layoutWindow(dw, dh);
+    for (int ii = _windows.size() - 1; ii >= 0; ii--) {
+      _windows.get(ii).layoutWindow(dw, dh);
     }
   }
 
