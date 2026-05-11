@@ -595,8 +595,11 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwDefaultWindowHints();
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
-    // Don't auto-minimize fullscreen on focus loss; user prefers staying up across alt-tab.
-    GLFW.glfwWindowHint(GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_FALSE);
+    // Leave GLFW_AUTO_ICONIFY at its default (true for fullscreen): on focus loss the
+    // fullscreen window iconifies so the user can interact with other apps. Without this,
+    // alt-tab away gets stuck behind the still-on-top fullscreen window. Cursor capture
+    // (set below) handles the misclick-on-second-monitor case the auto-minimize used to
+    // mask.
     // MSAA sample count (0 disables multisampling). The driver picks the closest supported
     // value if it can't honor the exact request. Must be set before glfwCreateWindow.
     GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, getAntialiasingLevel());
