@@ -201,19 +201,36 @@ public class TextureRenderer
     if (_color != null) {
       _framebuffer.setColorAttachment(_color);
     }
+    // glRenderbufferStorage requires a SIZED internal format on GL 3.0+. The unsized
+    // GL_DEPTH_COMPONENT / GL_STENCIL_INDEX worked in the LWJGL 2 era under a default
+    // GL 2.x context but is silently rejected on stricter drivers (macOS especially)
+    // under our 3.2 compatibility context -- leaving the FBO with only a color
+    // attachment, no working depth test, and the skybox overdrawing everything.
+    //
+    // When both depth AND stencil are requested, use ONE packed GL_DEPTH24_STENCIL8
+    // renderbuffer attached to both points. Separate GL_DEPTH_COMPONENT24 +
+    // GL_STENCIL_INDEX8 RBs are poorly supported (esp. Intel iGPUs) and surface as
+    // GL_FRAMEBUFFER_UNSUPPORTED.
     if (_depth != null) {
       _framebuffer.setDepthAttachment(_depth);
+      if (_stencilBits) {
+        // TODO: support a packed depth-stencil _depth texture here. Adding a separate
+        // stencil RB next to a non-packed depth texture re-introduces the unsupported
+        // combo, so for now we skip stencil. Callers needing both should pass a
+        // GL_DEPTH24_STENCIL8 texture as _depth.
+        log.warning("Stencil requested alongside caller-supplied depth texture; " +
+          "skipping stencil RB. Pass a packed depth-stencil texture if you need both.");
+      }
+    } else if (_depthBits && _stencilBits) {
+      Renderbuffer ds = new Renderbuffer(_renderer);
+      ds.setStorage(GL30.GL_DEPTH24_STENCIL8, twidth, theight);
+      _framebuffer.setDepthAttachment(ds);
+      _framebuffer.setStencilAttachment(ds);
     } else if (_depthBits) {
       Renderbuffer dbuf = new Renderbuffer(_renderer);
-      // glRenderbufferStorage requires a SIZED internal format on GL 3.0+. The unsized
-      // GL_DEPTH_COMPONENT / GL_STENCIL_INDEX worked in the LWJGL 2 era under a default
-      // GL 2.x context but is silently rejected on stricter drivers (macOS especially)
-      // under our 3.2 compatibility context -- leaving the FBO with only a color
-      // attachment, no working depth test, and the skybox overdrawing everything.
       dbuf.setStorage(GL30.GL_DEPTH_COMPONENT24, twidth, theight);
       _framebuffer.setDepthAttachment(dbuf);
-    }
-    if (_stencilBits) {
+    } else if (_stencilBits) {
       Renderbuffer sbuf = new Renderbuffer(_renderer);
       sbuf.setStorage(GL30.GL_STENCIL_INDEX8, twidth, theight);
       _framebuffer.setStencilAttachment(sbuf);
@@ -243,17 +260,26 @@ public class TextureRenderer
     _width = width;
     _height = height;
     if (_framebuffer != null) {
-      // Sized internal formats; see initFramebuffer for the why.
-      if (_depth == null && _depthBits) {
+      // Sized internal formats and packed depth-stencil; see initFramebuffer for why.
+      // TODO: previous Renderbuffer instances on _framebuffer are not explicitly freed
+      // here; if resize is called repeatedly this leaks GPU memory until the Framebuffer
+      // itself is disposed.
+      if (_depth == null && _depthBits && _stencilBits) {
+        Renderbuffer ds = new Renderbuffer(_renderer);
+        ds.setStorage(GL30.GL_DEPTH24_STENCIL8, width, height);
+        _framebuffer.setDepthAttachment(ds);
+        _framebuffer.setStencilAttachment(ds);
+      } else if (_depth == null && _depthBits) {
         Renderbuffer dbuf = new Renderbuffer(_renderer);
         dbuf.setStorage(GL30.GL_DEPTH_COMPONENT24, width, height);
         _framebuffer.setDepthAttachment(dbuf);
-      }
-      if (_stencilBits) {
+      } else if (_stencilBits && _depth == null) {
         Renderbuffer sbuf = new Renderbuffer(_renderer);
         sbuf.setStorage(GL30.GL_STENCIL_INDEX8, width, height);
         _framebuffer.setStencilAttachment(sbuf);
       }
+      // _depth != null: caller manages depth-texture resize themselves; stencil-only RB
+      // alongside a caller-supplied depth is skipped (matches initFramebuffer).
     }
   }
 
