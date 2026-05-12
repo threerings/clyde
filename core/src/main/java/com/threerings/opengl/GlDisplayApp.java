@@ -209,6 +209,12 @@ public abstract class GlDisplayApp extends GlApp
     // On macOS, tell GLFW not to change the working directory to the
     // .app bundle Resources dir (we manage resources ourselves).
     GLFW.glfwInitHint(GLFW.GLFW_COCOA_CHDIR_RESOURCES, GLFW.GLFW_FALSE);
+    // On Linux, pin GLFW to X11 (via XWayland on Wayland sessions). The Steam Overlay's
+    // gameoverlayrenderer.so only hooks GLX; it has no Wayland hook, so a Wayland-native
+    // GLFW window has no overlay. Matches LWJGL 2's X11-only behavior.
+    if (RunAnywhere.isLinux()) {
+      GLFW.glfwInitHint(GLFW.GLFW_PLATFORM, GLFW.GLFW_PLATFORM_X11);
+    }
     if (!GLFW.glfwInit()) {
       log.warning("Failed to initialize GLFW.");
       return;
@@ -595,6 +601,10 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwDefaultWindowHints();
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+    // Force GLX (not EGL) context creation on Linux: Steam Overlay's hooks live in GLX.
+    // GLFW's default is "native" which is GLX on X11, but pinning it is cheap insurance
+    // against future default changes.
+    GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_CREATION_API, GLFW.GLFW_NATIVE_CONTEXT_API);
     // Leave GLFW_AUTO_ICONIFY at its default (true for fullscreen): on focus loss the
     // fullscreen window iconifies so the user can interact with other apps. Without this,
     // alt-tab away gets stuck behind the still-on-top fullscreen window. Cursor capture
