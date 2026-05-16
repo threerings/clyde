@@ -46,7 +46,6 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
-import com.samskivert.util.ObjectUtil;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;

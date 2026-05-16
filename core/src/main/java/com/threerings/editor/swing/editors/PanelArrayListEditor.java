@@ -49,7 +49,6 @@ import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.util.ListUtil;
-import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
@@ -165,11 +164,8 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
    */
   protected void updatePaths (int idx, int newIdx)
   {
+    if (!(getRootObject() instanceof ParameterizedConfig pc)) return;
     String path = getPropertyPath();
-    ParameterizedConfig pc = ObjectUtil.as(getRootObject(), ParameterizedConfig.class);
-    if (pc == null) {
-      return;
-    }
     ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
     if (newIdx == -1) {
       builder.put(pathIndex(path, idx), "");

@@ -53,7 +53,6 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
-import com.samskivert.util.ObjectUtil;
 import com.threerings.util.DeepUtil;
 import com.threerings.util.ReflectionUtil;
 import com.threerings.util.Validatable;
@@ -454,9 +453,7 @@ public class ObjectPanel extends BasePropertyEditor
       return false;
     }
 
-    Component parentComp = MoreObjects.firstNonNull(
-        ObjectUtil.as(event.getSource(), Component.class),
-        this);
+    Component parentComp = event.getSource() instanceof Component srcComp ? srcComp : this;
     Object choice = JOptionPane.showInputDialog(
         parentComp, "Choose group container type", "Group",
         JOptionPane.PLAIN_MESSAGE, loadIcon("regroup", _ctx),
