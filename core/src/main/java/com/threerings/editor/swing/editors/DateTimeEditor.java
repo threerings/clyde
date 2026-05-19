@@ -46,7 +46,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -292,7 +291,7 @@ public class DateTimeEditor extends PropertyEditor
     }
 
     // possibly override the format
-    format = MoreObjects.firstNonNull(modeArgs.remove("format"), format);
+    format = Objects.requireNonNullElse(modeArgs.remove("format"), format);
 
     // timezone
     String tzSpec = modeArgs.remove("timezone");
@@ -323,7 +322,7 @@ public class DateTimeEditor extends PropertyEditor
     }
 
     // string to use for null
-    String nullKeySpec = MoreObjects.firstNonNull(modeArgs.remove("nullKey"), "m.null_value");
+    String nullKeySpec = Objects.requireNonNullElse(modeArgs.remove("nullKey"), "m.null_value");
     MessageBundle msgs = _msgmgr.getBundle(_property.getMessageBundle());
     if (msgs.exists(nullKeySpec)) {
       _nullStr = msgs.get(nullKeySpec);
