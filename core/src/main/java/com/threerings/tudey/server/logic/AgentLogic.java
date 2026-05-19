@@ -183,7 +183,15 @@ public class AgentLogic extends ActiveLogic
   /**
    * Creates a behavior for this agent.
    */
-  public BehaviorLogic createBehavior (ConfigReference<BehaviorConfig> ref)
+  public final BehaviorLogic createBehavior (ConfigReference<BehaviorConfig> ref)
+  {
+    return createBehavior(ref, false);
+  }
+
+  /**
+   * Create a behavior which may be the primary behavior of this agent.
+   */
+  protected BehaviorLogic createBehavior (ConfigReference<BehaviorConfig> ref, boolean primary)
   {
     // create the logic instance
     BehaviorConfig config = _scenemgr.getConfigManager().getConfig(BehaviorConfig.class, ref);
@@ -259,7 +267,7 @@ public class AgentLogic extends ActiveLogic
     _timestamp = _actor.getCreated();
 
     // initialize the behavior logic
-    _behavior = createBehavior(((ActorConfig.Agent)_config).behavior);
+    _behavior = createBehavior(((ActorConfig.Agent)_config).behavior, true /*primary*/);
     _behavior.startup();
 
     clearTurnRate();
