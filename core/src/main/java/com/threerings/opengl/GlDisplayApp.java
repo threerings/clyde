@@ -155,6 +155,22 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
+   * Re-applies the cursor input mode appropriate for the current display state: captured in
+   * fullscreen (so it can't wander onto other monitors), normal otherwise. GLFW releases
+   * {@code GLFW_CURSOR_CAPTURED} on focus loss and the reapply-on-regain is unreliable
+   * around iconify/restore (alt-tab) and momentary focus thefts, so callers (notably the
+   * focus callback in {@link com.threerings.opengl.gui.DisplayRoot}) invoke this on focus
+   * regain to put the cursor back under control.
+   */
+  public void refreshCursorMode ()
+  {
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR,
+        isFullscreen() ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
+    }
+  }
+
+  /**
    * Synchronizes the frame rate to the given FPS. Negative values are no-ops.
    */
   public void sync (int fps)
@@ -374,8 +390,7 @@ public abstract class GlDisplayApp extends GlApp
       GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL,
         Math.max(0, xpos), Math.max(0, ypos), winW, winH, GLFW.GLFW_DONT_CARE);
     }
-    GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR,
-      mode.isFullscreen() ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
+    refreshCursorMode();
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
     updateRendererSize();
     if (onComplete != null) onComplete.run();
@@ -605,11 +620,10 @@ public abstract class GlDisplayApp extends GlApp
     // GLFW's default is "native" which is GLX on X11, but pinning it is cheap insurance
     // against future default changes.
     GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_CREATION_API, GLFW.GLFW_NATIVE_CONTEXT_API);
-    // Leave GLFW_AUTO_ICONIFY at its default (true for fullscreen): on focus loss the
-    // fullscreen window iconifies so the user can interact with other apps. Without this,
-    // alt-tab away gets stuck behind the still-on-top fullscreen window. Cursor capture
-    // (set below) handles the misclick-on-second-monitor case the auto-minimize used to
-    // mask.
+    // Leave GLFW_AUTO_ICONIFY at its default (true for fullscreen) so alt-tab works: the
+    // fullscreen window iconifies on focus loss so the user can reach other apps. The
+    // two-monitor wandering case is handled by GLFW_CURSOR_CAPTURED, applied here and
+    // re-applied on focus regain via DisplayRoot's focus callback.
     // MSAA sample count (0 disables multisampling). The driver picks the closest supported
     // value if it can't honor the exact request. Must be set before glfwCreateWindow.
     GLFW.glfwWindowHint(GLFW.GLFW_SAMPLES, getAntialiasingLevel());
@@ -648,8 +662,7 @@ public abstract class GlDisplayApp extends GlApp
     if (_pendingMode != null && _pendingMode.isMaxed()) {
       MacFullscreen.setFullscreen(_window, true, getRunQueue(), null /*onComplete*/);
     }
-    GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR,
-      fs ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
+    refreshCursorMode();
     _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
     GL.createCapabilities();

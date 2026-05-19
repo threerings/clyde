@@ -410,6 +410,11 @@ public class DisplayRoot extends Root
       @Override
       public void invoke (long window, boolean focused) {
         _isActive = focused;
+        // GLFW releases GLFW_CURSOR_CAPTURED on focus loss and its auto-reapply on regain
+        // is unreliable around alt-tab and momentary focus thefts; reapply explicitly.
+        if (focused && _ctx.getApp() instanceof GlDisplayApp app) {
+          app.refreshCursorMode();
+        }
       }
     };
     GLFW.glfwSetWindowFocusCallback(window, _focusCallback);
