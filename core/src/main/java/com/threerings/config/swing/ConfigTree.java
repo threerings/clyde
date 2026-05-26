@@ -111,6 +111,38 @@ public class ConfigTree extends JTree
   }
 
   /**
+   * Returns an AccessibleContext that suppresses tree-expansion/collapse notifications.
+   *
+   * On JDK 25 + macOS 15, AccessibleJTree's {@code treeExpanded}/{@code treeCollapsed}
+   * callbacks route through {@code sun.lwawt.macosx.CAccessible.treeNodeExpanded}, which
+   * posts a notification to the AppKit main thread via {@code performSelector:onThread:}.
+   * When macOS's own accessibility subsystem simultaneously calls back into Java on the
+   * main thread (e.g. to query the focused field while the user is typing), the round-trip
+   * uses {@code LWCToolkit.doAWTRunLoopImpl} to wait on the EDT — which re-enters the main
+   * thread's already-running {@code CFRunLoopRunSpecific}, tripping the {@code cold.3}
+   * assertion and killing the process. Filter-driven tree rebuilds expand many nodes in
+   * quick succession, making the race easy to hit.
+   *
+   * Suppressing these two callbacks severs the chain at the cost of losing VoiceOver
+   * announcements for expand/collapse on this tree — acceptable for an internal dev tool.
+   *
+   * TODO: revisit once the JDK ships a fix; broaden to {@code treeNodes(Inserted|Removed
+   * |Changed)} / {@code treeStructureChanged} / {@code valueChanged} if those start
+   * triggering the same trap.
+   */
+  @Override
+  public javax.accessibility.AccessibleContext getAccessibleContext ()
+  {
+    if (accessibleContext == null) {
+      accessibleContext = new AccessibleJTree() {
+        @Override public void treeExpanded (TreeExpansionEvent e) {}
+        @Override public void treeCollapsed (TreeExpansionEvent e) {}
+      };
+    }
+    return accessibleContext;
+  }
+
+  /**
    * Releases the resources held by this tree.  This should be called when the tree is no longer
    * needed.
    */
