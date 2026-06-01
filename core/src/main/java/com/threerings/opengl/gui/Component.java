@@ -134,7 +134,7 @@ public class Component
    */
   public void setStyleConfig (String name)
   {
-    setStyleConfig(new ConfigReference<StyleConfig>(name));
+    setStyleConfig(name != null ? new ConfigReference<StyleConfig>(name) : null);
   }
 
   /**
