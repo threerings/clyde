@@ -355,9 +355,9 @@ public class TudeySceneController extends SceneController
 
     // perhaps transmit our acknowledgement and input frames
     long now = RunAnywhere.currentTimeMillis();
-    if (now - _lastTransmit >= getTransmitInterval() && _lastDelta > 0) {
+    if (now >= _nextTransmit && _lastDelta > 0) {
       transmitInput();
-      _lastTransmit = now;
+      _nextTransmit = now + getTransmitInterval();
     }
   }
 
@@ -1088,8 +1088,8 @@ public class TudeySceneController extends SceneController
   /** The latest time at which we should enqueue an input frame. */
   protected long _nextInput;
 
-  /** The time at which we last transmitted our input.  */
-  protected long _lastTransmit;
+  /** The time at which we will next transmit our input.  */
+  protected long _nextTransmit;
 
   /** The timestamp of the last delta received from the server. */
   protected int _lastDelta;
