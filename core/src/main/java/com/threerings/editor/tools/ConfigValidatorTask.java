@@ -34,7 +34,9 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.editor.util.Validator;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.config.IdConfig;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.util.IdConfigAssigner;
 
 /**
  * Validates the references in a set of configs.
@@ -64,6 +66,17 @@ public class ConfigValidatorTask extends AbstractValidatorTask
       }
     }
 
+    // validate that all IdConfigs have a properly assigned id
+    IdConfigAssigner assigner = createIdConfigAssigner();
+    for (var group : cfgmgr.getGroups()) {
+      valid &= assigner.validateIds(group, validator.getPrintStream());
+    }
+
     return valid;
+  }
+
+  protected IdConfigAssigner createIdConfigAssigner ()
+  {
+    return new IdConfigAssigner();
   }
 }

@@ -39,9 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
 
 import com.samskivert.util.ArrayUtil;
@@ -245,6 +250,30 @@ public class ConfigManager
   }
 
   /**
+   * Get an IdConfig by its id.
+   */
+  public final <T extends ManagedConfig> T getConfig (Class<T> clazz, int configId)
+  {
+    Map<Integer, ManagedConfig> byId = _configsById.get(clazz);
+    if (byId == null) {
+      ImmutableMap.Builder<Integer, ManagedConfig> builder = ImmutableMap.builder();
+      ConfigGroup<?> group = getGroup(clazz);
+      if (group != null && IdConfig.class.isAssignableFrom(clazz)) {
+        for (ManagedConfig cfg : group.getConfigs()) {
+          int id = ((IdConfig)cfg).getConfigId();
+          if (id != 0) builder.put(id, cfg);
+        }
+        group.addListener(_groupListener);
+      }
+      byId = builder.build();
+      _configsById.put(clazz, byId);
+    }
+    @SuppressWarnings("unchecked")
+    T result = (T)byId.get(configId);
+    return result;
+  }
+
+  /**
    * Retrieves a configuration by class and reference.  If the configuration is not found in this
    * manager, the request will be forwarded to the parent, and so on.
    *
@@ -356,6 +385,40 @@ public class ConfigManager
 
     return clazz.cast(cfg);
   }
+
+  /**
+   * Get the name of the config with the specified id.
+   */
+  public <T extends ManagedConfig> String toString (Class<T> clazz, int configId)
+  {
+    T cfg = getConfig(clazz, configId);
+    return (cfg == null) ? "<null>" : cfg.getName();
+  }
+
+  /**
+   * Get the names of the configs, by id.
+   */
+  public <T extends ManagedConfig> String toString (Class<T> clazz, Iterable<Integer> configs)
+  {
+    // defer to the Multiset impl if we happen to be a multiset at runtime
+    return (configs instanceof Multiset<?>)
+      ? toString(clazz, (Multiset<Integer>)configs)
+      : StreamSupport.stream(configs.spliterator(), false)
+          .map(cfgId -> toString(clazz, cfgId))
+          .collect(Collectors.joining(", ", "[", "]"));
+  }
+
+  /**
+ * Get the names of the configs, by id.
+   */
+  public <T extends ManagedConfig> String toString (Class<T> clazz, Multiset<Integer> configs)
+  {
+    return configs.entrySet()
+      .stream()
+      .map(entry -> toString(clazz, entry.getElement()) + " (x" + entry.getCount() + ")")
+      .collect(Collectors.joining(", ", "[", "]"));
+  }
+
 
   /**
    * Get the <em>raw</em> config witht the specified class/group and name.
@@ -796,6 +859,25 @@ public class ConfigManager
   }
 
   /**
+   * Internal method to clear the cache for the group represented by the specified class.
+   */
+  protected void clearGroupCache (Class<?> clazz)
+  {
+    _configsById.remove(clazz);
+  }
+
+  /**
+   * Callback when one of the groups we've populated has changed.
+   */
+  protected void groupChanged (ConfigEvent<ManagedConfig> event)
+  {
+    ConfigGroup<?> group = (ConfigGroup<?>)event.getSource();
+    group.removeListener(_groupListener);
+    clearGroupCache(group.getConfigClass());
+  }
+
+
+  /**
    * Get the export replacer a group should use when saving configs, or null.
    */
   protected Exporter.Replacer getSaveReplacer (ConfigGroup<?> group)
@@ -826,6 +908,20 @@ public class ConfigManager
 
   /** Maps manager types to their classes (as read from the manager properties). */
   protected HashMap<String, Class<?>[]> _classes;
+
+  /** The pre-calculated table of all configs with ids. */
+  protected Map<Class<?>, Map<Integer, ManagedConfig>> _configsById = Maps.newHashMap();
+
+  /** A listener for config group changes. */
+  protected ConfigGroupListener _groupListener = new ConfigGroupListener() {
+    public void configAdded (ConfigEvent<ManagedConfig> event) {
+      groupChanged(event);
+    }
+    public void configRemoved (ConfigEvent<ManagedConfig> event) {
+      groupChanged(event);
+    }
+  };
+
 
   /** Config update listeners. */
   protected ObserverList<ConfigUpdateListener<ManagedConfig>> _updateListeners;
