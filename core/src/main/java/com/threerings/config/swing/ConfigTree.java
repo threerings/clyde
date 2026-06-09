@@ -67,6 +67,7 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigGroupListener;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.IdConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.util.PasteHelper;
 
@@ -430,7 +431,12 @@ public class ConfigTree extends JTree
 
         // find a unique name
         String name = (String)node.getUserObject();
-        node.setUserObject(parent.findNameForChild(name));
+        String newName = parent.findNameForChild(name);
+        node.setUserObject(newName);
+        // and possibly clear the id
+        if (node.getConfig() instanceof IdConfig idcfg && !newName.equals(name)) {
+          idcfg.setConfigId(0);
+        }
 
         // if we're moving within the tree, remove the original node here so that we
         // can reuse our identifiers
