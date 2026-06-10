@@ -14,4 +14,12 @@ public interface IdConfig
    * Get the id for this config, or 0 if it doesn't have an id.
    */
   public int getConfigId ();
+
+  /**
+   * Should we assign an id to this config, do we think?
+   */
+  public default boolean shouldAssignId ()
+  {
+    return !(this instanceof ParameterizedConfig pcfg) || pcfg.parameters.length == 0;
+  }
 }

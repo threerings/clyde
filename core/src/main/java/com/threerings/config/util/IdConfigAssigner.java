@@ -55,7 +55,7 @@ public class IdConfigAssigner
     for (ManagedConfig cfg : group.getRawConfigs()) {
       IdConfig idcfg = (IdConfig)cfg;
       int id = idcfg.getConfigId();
-      if (!shouldAssignId(cfg)) {
+      if (!idcfg.shouldAssignId()) {
         if (id != 0) {
           out.println("Config has id but shouldn't! " + group.getName() + ": " + cfg.getName());
           success = false;
@@ -95,13 +95,5 @@ public class IdConfigAssigner
       ids.put(id, cfg);
     }
     return success;
-  }
-
-  /**
-   * Should we assign the config, which is an IdConfig, an id?
-   */
-  protected boolean shouldAssignId (ManagedConfig cfg)
-  {
-    return !(cfg instanceof ParameterizedConfig pcfg) || pcfg.parameters.length == 0;
   }
 }
