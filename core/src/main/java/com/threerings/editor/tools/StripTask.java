@@ -99,7 +99,9 @@ public class StripTask extends Task
         try {
           strip(fromDir, file);
         } catch (Exception e) {
-          System.err.println("Error stripping " + new File(fromDir, file) + ": " + e);
+          String message = "Error stripping " + new File(fromDir, file);
+          System.err.println(message + ": " + e);
+          throw new BuildException(message, e);
         }
       }
     }
