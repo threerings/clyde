@@ -54,19 +54,14 @@ public class IdConfigAssigner
 
     for (ManagedConfig cfg : group.getRawConfigs()) {
       IdConfig idcfg = (IdConfig)cfg;
-      if (cfg instanceof ParameterizedConfig) {
-        ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
-        if (pcfg.parameters.length != 0) {
-          if (idcfg.getConfigId() != 0) {
-            out.println("Config with id now has parameters! " + group.getName() + ": " +
-                        cfg.getName());
-            success = false;
-          }
-          continue;
-        }
-        // if the parameters are 0-length, then it's ok for assigning...
-      }
       int id = idcfg.getConfigId();
+      if (!shouldAssignId(cfg)) {
+        if (id != 0) {
+          out.println("Config has id but shouldn't! " + group.getName() + ": " + cfg.getName());
+          success = false;
+        }
+        continue;
+      }
       if (id == 0) {
         if (assign) {
           needsId.add(cfg);
@@ -100,5 +95,13 @@ public class IdConfigAssigner
       ids.put(id, cfg);
     }
     return success;
+  }
+
+  /**
+   * Should we assign the config, which is an IdConfig, an id?
+   */
+  protected boolean shouldAssignId (ManagedConfig cfg)
+  {
+    return !(cfg instanceof ParameterizedConfig pcfg) || pcfg.parameters.length == 0;
   }
 }
