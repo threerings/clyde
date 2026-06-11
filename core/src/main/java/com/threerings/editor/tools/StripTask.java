@@ -47,6 +47,8 @@ import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 
+import static com.threerings.ClydeLog.log;
+
 /**
  * Strips classes and properties flagged as strippable from exported files.
  */
@@ -101,6 +103,7 @@ public class StripTask extends Task
         } catch (Exception e) {
           String message = "Error stripping " + new File(fromDir, file);
           System.err.println(message + ": " + e);
+          log.warning(message, e);
           throw new BuildException(message, e);
         }
       }
