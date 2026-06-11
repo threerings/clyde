@@ -16,6 +16,14 @@ public interface IdConfig
   public int getConfigId ();
 
   /**
+   * Do we have an id?
+   */
+  public default boolean hasConfigId ()
+  {
+    return getConfigId() != 0;
+  }
+
+  /**
    * Should we assign an id to this config, do we think?
    */
   public default boolean shouldAssignId ()
