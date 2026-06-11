@@ -285,9 +285,13 @@ public class PropertyUtil
     if (object == null) {
       return null;
     }
-    if (object instanceof Object[]) {
+    if (object instanceof ConfigGroup.Data cgd) {
+      cgd.array = isStrippable(cgd.cclass) ? new ManagedConfig[0]
+        : (ManagedConfig[])strip(cfgmgr, cgd.array);
+      return cgd;
+    }
+    if (object instanceof Object[] oarray) {
       List<Object> list = Lists.newArrayList();
-      Object[] oarray = (Object[])object;
       for (Object element : oarray) {
         if (!isStrippable(element)) {
           list.add(strip(cfgmgr, element));
