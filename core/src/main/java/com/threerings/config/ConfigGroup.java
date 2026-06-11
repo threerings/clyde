@@ -71,6 +71,31 @@ public class ConfigGroup<T extends ManagedConfig>
   implements Copyable, Exportable
 {
   /**
+   * A little helper for saving a group with DerivedConfigs in it.
+   */
+  public static class Data
+    implements Exportable
+  {
+    /** The group's class. */
+    public Class<? extends ManagedConfig> cclass;
+
+    /** The raw configs. */
+    public ManagedConfig[] array;
+
+    /** Special Exportable magic method. */
+    public void readFields (Importer in)
+      throws IOException
+    {
+      in.defaultReadFields();
+      // our ConfigGroup may do this, but we'd also like to have it done for other validation
+      // and stripping tools!
+      for (var elem : array) {
+        if (elem instanceof DerivedConfig deri) deri.cclass = cclass;
+      }
+    }
+  }
+
+  /**
    * Returns the group name for the specified config class.
    */
   public static String getName (Class<?> clazz)
@@ -307,6 +332,16 @@ public class ConfigGroup<T extends ManagedConfig>
     if (array == null) {
       return; // nothing to do
     }
+
+    Object toSave;
+    if (array.getClass().componentType() == _cclass) toSave = array;
+    else {
+      var data = new Data();
+      data.cclass = _cclass;
+      data.array = array;
+      toSave = data;
+    }
+
     try {
       Closer closer = Closer.create();
       try {
@@ -314,7 +349,7 @@ public class ConfigGroup<T extends ManagedConfig>
         Exporter xport = closer.register(
             xml ? new XMLExporter(stream) : new BinaryExporter(stream));
         xport.setReplacer(_cfgmgr.getSaveReplacer(this));
-        xport.writeObject(array);
+        xport.writeObject(toSave);
 
       } finally {
         closer.close();
@@ -375,7 +410,7 @@ public class ConfigGroup<T extends ManagedConfig>
     ManagedConfig[] array;
     try {
       Importer in = new XMLImporter(new FileInputStream(file));
-      array = (ManagedConfig[])in.readObject();
+      array = readData(in.readObject());
       in.close();
 
     } catch (IOException e) {
@@ -463,6 +498,18 @@ public class ConfigGroup<T extends ManagedConfig>
     _name = getName(clazz);
   }
 
+  protected ManagedConfig[] readData (Object imported)
+    throws IOException
+  {
+    if (imported instanceof Data data) {
+      if (data.cclass != _cclass) {
+        throw new IOException("Mismatch! Expected " + _cclass + ", got " + data.cclass + ".");
+      }
+      return data.array;
+    }
+    return (ManagedConfig[])imported;
+  }
+
   /**
    * Attempts to read the initial set of configurations.
    *
@@ -477,7 +524,7 @@ public class ConfigGroup<T extends ManagedConfig>
     ManagedConfig[] configs;
     try {
       Importer in = xml ? new XMLImporter(stream) : new BinaryImporter(stream);
-      configs = (ManagedConfig[])in.readObject();
+      configs = readData(in.readObject());
       in.close();
 
     } catch (Exception e) { // IOException, ClassCastException
@@ -551,9 +598,7 @@ public class ConfigGroup<T extends ManagedConfig>
   protected void initConfig (ManagedConfig config)
   {
     config.init(_cfgmgr);
-    if (config instanceof DerivedConfig) {
-      ((DerivedConfig)config).cclass = _cclass;
-    }
+    if (config instanceof DerivedConfig deri) deri.cclass = _cclass;
   }
 
   /**

@@ -338,21 +338,20 @@ public class PropertyUtil
         (Class<? extends ManagedConfig>)property.getArgumentType(ConfigReference.class);
       @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
         (ConfigReference<ManagedConfig>)value;
-      if (object instanceof DerivedConfig) {
-        cclass = ((DerivedConfig)object).cclass;
+      if (cclass == null && object instanceof DerivedConfig deri) cclass = deri.cclass;
+      if (cclass == null) {
+        log.warning("Oh no, we don't know the config type of a config property? This will be bad.");
       }
       ArgumentMap args = ref.getArguments();
       if (args.isEmpty()) {
         return ref;
       }
       ManagedConfig config = cfgmgr.getConfig(cclass, ref.getName());
-      if (!(config instanceof ParameterizedConfig)) {
+      if (!(config instanceof ParameterizedConfig pconfig)) {
         args.clear();
         return ref;
       }
-      ParameterizedConfig pconfig = (ParameterizedConfig)config;
-      for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
-          it.hasNext(); ) {
+      for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator(); it.hasNext(); ) {
         Map.Entry<String, Object> entry = it.next();
         Parameter param = pconfig.getParameter(entry.getKey());
         if (param == null) {
