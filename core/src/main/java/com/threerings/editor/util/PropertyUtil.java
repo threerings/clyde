@@ -286,8 +286,8 @@ public class PropertyUtil
       return null;
     }
     if (object instanceof ConfigGroup.Data cgd) {
-      cgd.array = isStrippable(cgd.cclass) ? new ManagedConfig[0]
-        : (ManagedConfig[])strip(cfgmgr, cgd.array);
+      if (isStrippable(cgd.cclass)) return Array.newInstance(cgd.cclass, 0);
+      cgd.array = (ManagedConfig[])strip(cfgmgr, cgd.array);
       return cgd;
     }
     if (object instanceof Object[] oarray) {
