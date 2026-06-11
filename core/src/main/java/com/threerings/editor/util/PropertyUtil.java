@@ -346,7 +346,8 @@ public class PropertyUtil
       if (args.isEmpty()) {
         return ref;
       }
-      ManagedConfig config = cfgmgr.getConfig(cclass, ref.getName());
+      // Since we're validating config reference parameters, we need to check against the "raw".
+      ManagedConfig config = cfgmgr.getRawConfig(cclass, ref.getName());
       if (!(config instanceof ParameterizedConfig pconfig)) {
         args.clear();
         return ref;
