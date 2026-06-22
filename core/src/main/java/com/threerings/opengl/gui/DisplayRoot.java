@@ -396,7 +396,7 @@ public class DisplayRoot extends Root
         GLFW.glfwGetFramebufferSize(window, null, fh);
         int x = (int)(xpos[0] * scale);
         int y = fh[0] - (int)(ypos2[0] * scale) - 1;
-        int delta = (yoffset > 0) ? +1 : -1;
+        int delta = (int)(yoffset == 0 ? xoffset : yoffset);
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
             mouseWheeled(_tickStamp, x, y, delta, false);
