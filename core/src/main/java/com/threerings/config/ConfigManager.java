@@ -497,6 +497,17 @@ public class ConfigManager
    */
   public ConfigGroup<ManagedConfig> getGroup (ManagedConfig instance)
   {
+    var cclazz = instance.getConfigClass();
+    var instanceGroup = _groups.get(cclazz);
+    if (instanceGroup != null) {
+      @SuppressWarnings("unchecked")
+      ConfigGroup<ManagedConfig> ret = (ConfigGroup<ManagedConfig>)instanceGroup;
+      return ret;
+    }
+    if (isResourceClass(cclazz)) return null;
+
+    log.warning("Falling back to old implementation for getGroup?", "instance", instance);
+
     Class<?> clazz = (instance instanceof DerivedConfig)
       ? ((DerivedConfig)instance).cclass
       : instance.getClass();

@@ -33,6 +33,7 @@ public class DerivedConfig extends ParameterizedConfig
 
   /** The config class of the base, that we are actually deriving from. */
   @Shallow
+  @Deprecated
   public transient Class<? extends ManagedConfig> cclass;
 
   @Override
@@ -58,6 +59,12 @@ public class DerivedConfig extends ParameterizedConfig
   {
     // do not let 'base' be parameterized!
     return super.isInvalidParameterPath(path) || path.equals("base");
+  }
+
+  @Override
+  public Class<? extends ManagedConfig> getConfigClass ()
+  {
+    return cclass;
   }
 
   @Override

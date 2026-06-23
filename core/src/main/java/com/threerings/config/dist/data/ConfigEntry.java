@@ -34,6 +34,7 @@ import com.threerings.io.SimpleStreamableObject;
 
 import com.threerings.presents.dobj.DSet;
 
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.export.util.ExportUtil;
 
@@ -48,7 +49,7 @@ public class ConfigEntry extends SimpleStreamableObject
    */
   public ConfigEntry (ManagedConfig config)
   {
-    _key = new ConfigKey(config.getClass(), config.getName());
+    _key = new ConfigKey(config.getConfigClass(), config.getName());
     _bytes = ExportUtil.toBytes(_config = config);
   }
 
@@ -91,6 +92,12 @@ public class ConfigEntry extends SimpleStreamableObject
   {
     in.defaultReadObject();
     _config = (ManagedConfig)ExportUtil.fromBytes(_bytes);
+    // cclass is transient, so the exported bytes omit it; configs loaded as part of a group get
+    // it back from ConfigGroup.Data. Here the config travels standalone, so restore it from the
+    // key, which carries the config class across the wire.
+    if (_config instanceof DerivedConfig deri) {
+      deri.cclass = _key.getConfigClass();
+    }
   }
 
   // documentation inherited from interface DSet.Entry

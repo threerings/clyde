@@ -82,6 +82,26 @@ public abstract class ManagedConfig extends DeepObject
   //@DeepOmit protected transient Exception _trace;
   // END: temp
 
+  /**
+   * Get the class that should be used to find us in the ConfigManager.
+   */
+  public Class<? extends ManagedConfig> getConfigClass ()
+  {
+    Class<?> cc = getClass();
+    Class<?> sc;
+    do {
+      sc = cc.getSuperclass();
+      if (sc == ManagedConfig.class || sc == ParameterizedConfig.class) {
+        @SuppressWarnings("unchecked")
+        Class<? extends ManagedConfig> ret = (Class<? extends ManagedConfig>)cc;
+        return ret;
+      }
+      cc = sc;
+    } while (sc != null);
+    log.warning("Could not figure out config class, falling back..." + getClass());
+    return getClass();
+  }
+
   /** The type of this config. */
   @Editable // see setter
   public final Class<?> getConfigType ()

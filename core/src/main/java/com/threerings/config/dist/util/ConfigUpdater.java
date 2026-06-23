@@ -116,7 +116,7 @@ public class ConfigUpdater
   protected void addConfig (ManagedConfig config)
   {
     @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> group =
-      (ConfigGroup<ManagedConfig>)_cfgmgr.getGroup(config.getClass());
+      (ConfigGroup<ManagedConfig>)_cfgmgr.getGroup(config.getConfigClass());
     group.addConfig(config);
   }
 
@@ -141,11 +141,12 @@ public class ConfigUpdater
    */
   protected void updateConfig (ManagedConfig nconfig)
   {
-    ManagedConfig oconfig = _cfgmgr.getConfig(nconfig.getClass(), nconfig.getName());
+    var cclass = nconfig.getConfigClass();
+    ManagedConfig oconfig = _cfgmgr.getRawConfig(cclass, nconfig.getName());
     if (oconfig != null) {
       nconfig.copy(oconfig);
       oconfig.wasUpdated();
-    } else if (!_cfgmgr.isResourceClass(nconfig.getClass())) {
+    } else if (!_cfgmgr.isResourceClass(cclass)) {
       addConfig(nconfig);
     } else {
       log.warning("Attempted to update unknown resource.", "name", nconfig.getName());
