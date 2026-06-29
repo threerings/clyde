@@ -65,6 +65,7 @@ public class FieldCache
       .concurrencyLevel(1)
       .build(new CacheLoader<Class<?>, ImmutableList<Field>>() {
           public ImmutableList<Field> load (Class<?> clazz) {
+            if (Enum.class.isAssignableFrom(clazz)) return ImmutableList.of();
             ImmutableList.Builder<Field> builder = ImmutableList.builder();
             // add recurse on superclass
             Class<?> superClazz = clazz.getSuperclass();
