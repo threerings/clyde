@@ -4,7 +4,6 @@
 package com.threerings.config.util;
 
 import java.util.List;
-import java.util.TreeMap;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
@@ -67,8 +66,9 @@ public class FieldCache
       .build(new CacheLoader<Class<?>, ImmutableList<Field>>() {
           public ImmutableList<Field> load (Class<?> clazz) {
             if (clazz == Object.class ||
-                clazz == TreeMap.class ||
-                Enum.class.isAssignableFrom(clazz)) {
+                clazz == java.util.TreeMap.class ||
+                Enum.class.isAssignableFrom(clazz) ||
+                java.nio.Buffer.class.isAssignableFrom(clazz)) {
               return ImmutableList.of();
             }
             ImmutableList.Builder<Field> builder = ImmutableList.builder();
