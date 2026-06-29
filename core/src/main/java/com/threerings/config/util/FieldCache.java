@@ -4,6 +4,7 @@
 package com.threerings.config.util;
 
 import java.util.List;
+import java.util.TreeMap;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
@@ -65,7 +66,11 @@ public class FieldCache
       .concurrencyLevel(1)
       .build(new CacheLoader<Class<?>, ImmutableList<Field>>() {
           public ImmutableList<Field> load (Class<?> clazz) {
-            if (Enum.class.isAssignableFrom(clazz)) return ImmutableList.of();
+            if (clazz == Object.class ||
+                clazz == TreeMap.class ||
+                Enum.class.isAssignableFrom(clazz)) {
+              return ImmutableList.of();
+            }
             ImmutableList.Builder<Field> builder = ImmutableList.builder();
             // add recurse on superclass
             Class<?> superClazz = clazz.getSuperclass();
