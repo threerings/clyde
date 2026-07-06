@@ -206,17 +206,22 @@ public class ParameterizedConfig extends ManagedConfig
   protected void applyArguments (
     ParameterizedConfig instance, ArgumentMap args, Parameter[] params)
   {
-    for (Map.Entry<String, Object> entry : args.entrySet()) {
-      Parameter param = getParameter(params, entry.getKey());
-      if (param != null) {
-        Property prop = param.getProperty(this);
-        if (prop != null) {
-          Object value = entry.getValue();
-          if (prop.isLegalValue(value)) {
-            prop.set(instance, DeepUtil.copy(value));
+    try {
+      for (Map.Entry<String, Object> entry : args.entrySet()) {
+        Parameter param = getParameter(params, entry.getKey());
+        if (param != null) {
+          Property prop = param.getProperty(this);
+          if (prop != null) {
+            Object value = entry.getValue();
+            if (prop.isLegalValue(value)) {
+              prop.set(instance, DeepUtil.copy(value));
+            }
           }
         }
       }
+    } catch (RuntimeException re) {
+      // Add context and re-throw?
+      throw new RuntimeException("Failure applying arguments to " + getName(), re);
     }
   }
 
