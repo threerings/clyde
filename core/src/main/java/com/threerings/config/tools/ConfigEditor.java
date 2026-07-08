@@ -255,11 +255,11 @@ public class ConfigEditor extends BaseConfigEditor
 
     final JMenu edit = createMenu("edit", KeyEvent.VK_E);
     menubar.add(edit);
-	edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
-	_undo.setEnabled(false);
-	edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
-	_redo.setEnabled(false);
-	edit.addSeparator();
+    edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
+    _undo.setEnabled(false);
+    edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
+    _redo.setEnabled(false);
+    edit.addSeparator();
     final int CUT_INDEX = edit.getItemCount();
     edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
     edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
@@ -269,8 +269,6 @@ public class ConfigEditor extends BaseConfigEditor
     addFindMenu(edit);
     edit.addSeparator();
     edit.add(new JMenuItem(_findUses = createAction("find_uses", 0, -1)));
-    edit.addSeparator();
-    edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
     addEditMenuItems(edit);
     edit.addSeparator();
     edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
@@ -313,6 +311,10 @@ public class ConfigEditor extends BaseConfigEditor
     menubar.add(gmenu);
     gmenu.add(_saveAll = createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
     gmenu.add(_revertAll = createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
+
+    var tools = createMenu("tools", KeyEvent.VK_T);
+    menubar.add(tools);
+    addToolsMenuItems(tools);
 
     // create the pop-up menu
     _popup = new JPopupMenu();
@@ -660,6 +662,11 @@ public class ConfigEditor extends BaseConfigEditor
    */
   protected void addEditMenuItems (JMenu edit)
   {
+  }
+
+  protected void addToolsMenuItems (JMenu tools)
+  {
+    tools.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
   }
 
   @Override
