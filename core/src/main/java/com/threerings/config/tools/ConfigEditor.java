@@ -664,6 +664,21 @@ public class ConfigEditor extends BaseConfigEditor
   {
   }
 
+  /**
+   * Update edit actions.
+   * @param nodeSelected if a node is selected.
+   * @param cfg a leaf node is selected, this is the config.
+   */
+  protected void enableEditMenuItems (boolean nodeSelected, ManagedConfig cfg)
+  {
+    boolean writeable = !_readOnly;
+    _exportConfigs.setEnabled(nodeSelected);
+    _cut.setEnabled(nodeSelected && writeable);
+    _copy.setEnabled(nodeSelected);
+    _delete.setEnabled(nodeSelected && writeable);
+    _findUses.setEnabled(nodeSelected); // works on cfgs or folders!
+  }
+
   protected void addToolsMenuItems (JMenu tools)
   {
     tools.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
@@ -939,8 +954,9 @@ public class ConfigEditor extends BaseConfigEditor
 
         // update the editor panel
         _epanel.removeChangeListener(ManagerPanel.this);
+        ManagedConfig cfg = null;
         try {
-          ManagedConfig cfg = (node == null) ? null : node.getConfig();
+          if (node != null) cfg = node.getConfig();
           _epanel.setObject(cfg);
           _lastValue = (cfg == null) ? null : (ManagedConfig)cfg.clone();
         } finally {
@@ -948,13 +964,7 @@ public class ConfigEditor extends BaseConfigEditor
         }
 
         // enable or disable the menu items
-        boolean enable = (node != null);
-        boolean writeable = !_readOnly;
-        _exportConfigs.setEnabled(enable);
-        _cut.setEnabled(enable && writeable);
-        _copy.setEnabled(enable);
-        _delete.setEnabled(enable && writeable);
-        _findUses.setEnabled(enable);
+        enableEditMenuItems(node != null, cfg);
       }
 
       /**
