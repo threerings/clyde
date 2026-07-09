@@ -80,6 +80,17 @@ public class TagConfig extends DeepObject
     return length;
   }
 
+  /**
+   * Do we contain the specified tag?
+   */
+  public boolean hasTag (String tag)
+  {
+    for (var tt : tags) {
+      if (tag.equals(tt)) return true;
+    }
+    return derived != null && derived.hasTag(tag);
+  }
+
   // from Iterable
   public Iterator<String> iterator ()
   {

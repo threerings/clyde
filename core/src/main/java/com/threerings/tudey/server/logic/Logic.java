@@ -95,6 +95,18 @@ public abstract class Logic extends ShallowObject
   }
 
   /**
+   * Do we contain this tag?
+   */
+  public boolean hasTag (String tag)
+  {
+    // naive implementation
+    for (var tt : getTags()) {
+      if (tag.equals(tt)) return true;
+    }
+    return false;
+  }
+
+  /**
    * Checks whether this logic object corresponds to a default entrance.
    */
   public boolean isDefaultEntrance ()

@@ -420,6 +420,12 @@ public class ActorLogic extends Logic
   }
 
   @Override
+  public boolean hasTag (String tag)
+  {
+    return _config.tags.hasTag(tag);
+  }
+
+  @Override
   public boolean isDefaultEntrance ()
   {
     return _config.defaultEntrance;

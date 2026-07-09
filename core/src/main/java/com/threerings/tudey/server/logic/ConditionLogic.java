@@ -78,7 +78,7 @@ public abstract class ConditionLogic extends Logic
       _target.resolve(activator, _targets);
       try {
         for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-          if (ListUtil.contains(_targets.get(ii).getTags(), config.tag) != config.all) {
+          if (_targets.get(ii).hasTag(config.tag) != config.all) {
             return !config.all;
           }
         }
