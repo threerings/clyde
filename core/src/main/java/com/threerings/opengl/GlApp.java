@@ -92,7 +92,7 @@ public abstract class GlApp extends DynamicScope
     _compositor = new Compositor(this);
     _msgmgr = new MessageManager("rsrc.i18n");
     initSharedManagers();
-    _soundmgr = SoundManager.createSoundManager(getRunQueue());
+    _soundmgr = SoundManager.createSoundManager(getRunQueue(), getSoundManagerInitArgs());
     _clipprov = new ResourceClipProvider(_rsrcmgr);
     _imgcache = new ImageCache(this, shouldCheckTimestamps());
     _shadcache = new ShaderCache(this, shouldCheckTimestamps());
@@ -484,6 +484,14 @@ public abstract class GlApp extends DynamicScope
   protected int getAntialiasingLevel ()
   {
     return 0;
+  }
+
+  /**
+   * Return the initialization arguments for the sound manager.
+   */
+  protected SoundManager.InitArgs getSoundManagerInitArgs ()
+  {
+    return SoundManager.getDefaultInitArgs();
   }
 
   /** The OpenGL renderer. */
