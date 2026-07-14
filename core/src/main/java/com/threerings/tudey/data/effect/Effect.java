@@ -69,9 +69,8 @@ public class Effect extends SimpleStreamableObject
    */
   public void init (ConfigManager cfgmgr)
   {
-    EffectConfig config = cfgmgr.getConfig(EffectConfig.class, _config);
-    _original = (config == null) ? null : config.getOriginal(cfgmgr);
-    _original = (_original == null) ? NULL_ORIGINAL : _original;
+    _original = cfgmgr.getConfig(EffectConfig.class, _config);
+    if (_original == null) _original = NULL_ORIGINAL;
   }
 
   /**
@@ -163,8 +162,8 @@ public class Effect extends SimpleStreamableObject
   protected int _clientOid;
 
   /** The cached config implementation. */
-  protected transient EffectConfig.Original _original;
+  protected transient EffectConfig _original;
 
   /** Used when we can't resolve the effect config. */
-  protected static final EffectConfig.Original NULL_ORIGINAL = new EffectConfig.Original();
+  protected static final EffectConfig NULL_ORIGINAL = new EffectConfig();
 }

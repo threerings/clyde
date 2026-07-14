@@ -554,14 +554,13 @@ public class TudeySceneManager extends SceneManager
 
     // attempt to resolve the implementation
     EffectConfig config = _cfgmgr.getConfig(EffectConfig.class, ref);
-    EffectConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
-    if (original == null) {
+    if (config == null) {
       log.warning("Failed to resolve effect config.", "effect", ref, "where", where());
       return null;
     }
 
     // create the logic class
-    EffectLogic logic = (EffectLogic)createLogic(original.getLogicClassName());
+    EffectLogic logic = (EffectLogic)createLogic(config.getLogicClassName());
     if (logic == null) {
       return null;
     }
@@ -570,7 +569,7 @@ public class TudeySceneManager extends SceneManager
     timestamp = Math.max(timestamp, _previousTimestamp + 1);
 
     // initialize the logic and add it to the list
-    logic.init(this, ref, original, timestamp, target, translation, rotation);
+    logic.init(this, ref, config, timestamp, target, translation, rotation);
     _effectsFired.add(logic);
 
     return logic;

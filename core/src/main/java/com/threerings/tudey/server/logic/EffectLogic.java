@@ -51,7 +51,7 @@ public class EffectLogic extends Logic
    */
   public void init (
     TudeySceneManager scenemgr, ConfigReference<EffectConfig> ref,
-    EffectConfig.Original config, int timestamp, Logic target,
+    EffectConfig config, int timestamp, Logic target,
     Vector2f translation, float rotation)
   {
     super.init(scenemgr);
@@ -137,7 +137,7 @@ public class EffectLogic extends Logic
   // TODO: a way to call removed() on the action
 
   /** The effect configuration. */
-  protected EffectConfig.Original _config;
+  protected EffectConfig _config;
 
   /** The effect fired. */
   protected Effect _effect;

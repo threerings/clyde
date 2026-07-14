@@ -421,9 +421,8 @@ public abstract class ActionConfig extends DeepObject
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
       EffectConfig config = cfgmgr.getConfig(EffectConfig.class, effect);
-      EffectConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
-      if (original != null) {
-        original.getPreloads(cfgmgr, preloads);
+      if (config != null) {
+        config.getPreloads(cfgmgr, preloads);
       }
     }
 

@@ -711,8 +711,7 @@ public class TudeySceneView extends DynamicScope
     // attempt to resolve the implementation
     ConfigManager cfgmgr = _ctx.getConfigManager();
     EffectConfig config = cfgmgr.getConfig(EffectConfig.class, ref);
-    EffectConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
-    if (original == null) {
+    if (config == null) {
       log.warning("Failed to resolve effect config.", "effect", ref);
       return null;
     }
@@ -727,7 +726,7 @@ public class TudeySceneView extends DynamicScope
       }
     }
 
-    Effect effect = original.createEffect(ref, timestamp, target, translation, rotation);
+    Effect effect = config.createEffect(ref, timestamp, target, translation, rotation);
     effect.init(cfgmgr);
     return new EffectSprite(_ctx, this, effect);
   }
