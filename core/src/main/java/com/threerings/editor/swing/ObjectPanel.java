@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -338,7 +339,7 @@ public class ObjectPanel extends BasePropertyEditor
             }
           }
           regroup = allValid;
-          ungroup = allValid && (eValues.size() == 1);
+          ungroup = allValid;
         }
       }
       _ungroup.setEnabled(ungroup);
@@ -394,6 +395,18 @@ public class ObjectPanel extends BasePropertyEditor
   {
     // just force it: let's see if this ever fails
     List<?> eValues = ((Groupable<?>) getValue()).getGrouped();
+    if (eValues.size() > 1) {
+      String[] options = {
+        UIManager.getString("OptionPane.okButtonText"),
+        UIManager.getString("OptionPane.cancelButtonText")
+      };
+      if (0 != JOptionPane.showOptionDialog(this,
+          "This will discard all options after the first.", "Are you sure?",
+          JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
+          options, options[1])) { // default to cancel
+        return;
+      }
+    }
     setValue(eValues.get(0));
     fireStateChanged();
   }
