@@ -328,8 +328,8 @@ public class ObjectPanel extends BasePropertyEditor
 
     if (_ungroup != null) {
       boolean ungroup = false, regroup = false;
-      if (value instanceof Groupable<?>) {
-        List<?> eValues = ((Groupable<?>)value).getGrouped();
+      if (value instanceof Groupable<?> grouper) {
+        List<?> eValues = grouper.getGrouped();
         if (eValues != null && eValues.size() > 0) {
           boolean allValid = true;
           for (Object eValue : eValues) {
@@ -424,7 +424,7 @@ public class ObjectPanel extends BasePropertyEditor
    */
   protected boolean tryGrouping (List<?> values, ActionEvent event)
   {
-    if (values == null || values.isEmpty()) {
+    if (values.isEmpty()) {
       return false;
     }
 

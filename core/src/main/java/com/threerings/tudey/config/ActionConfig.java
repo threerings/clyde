@@ -26,7 +26,13 @@
 package com.threerings.tudey.config;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import com.threerings.io.Streamable;
 
@@ -614,14 +620,9 @@ public abstract class ActionConfig extends DeepObject
     }
 
     @Override
-    public ActionConfig[] getSubActions ()
+    public Iterable<ActionConfig> getSubActions ()
     {
-      ActionConfig[] actions = new ActionConfig[(elseAction == null ? 1 : 2)];
-      actions[0] = action;
-      if (elseAction != null) {
-        actions[1] = elseAction;
-      }
-      return actions;
+      return Arrays.asList(action, elseAction);
     }
 
     @Override
@@ -680,17 +681,11 @@ public abstract class ActionConfig extends DeepObject
     }
 
     @Override
-    public ActionConfig[] getSubActions ()
+    public Iterable<ActionConfig> getSubActions ()
     {
-      ActionConfig[] actions =
-        new ActionConfig[cases.length + (defaultAction == null ? 0 : 1)];
-      for (int ii = 0; ii < cases.length; ii++) {
-        actions[ii] = cases[ii].action;
-      }
-      if (defaultAction != null) {
-        actions[cases.length] = defaultAction;
-      }
-      return actions;
+      return Iterables.concat(
+        Iterables.transform(Arrays.asList(cases), cs -> cs.action),
+        Collections.singletonList(defaultAction));
     }
 
     @Override
@@ -766,17 +761,11 @@ public abstract class ActionConfig extends DeepObject
     }
 
     @Override
-    public ActionConfig[] getSubActions ()
+    public Iterable<ActionConfig> getSubActions ()
     {
-      ActionConfig[] actions =
-        new ActionConfig[cases.length + (defaultAction == null ? 0 : 1)];
-      for (int ii = 0; ii < cases.length; ii++) {
-        actions[ii] = cases[ii].action;
-      }
-      if (defaultAction != null) {
-        actions[cases.length] = defaultAction;
-      }
-      return actions;
+      return Iterables.concat(
+          Iterables.transform(Arrays.asList(cases), cs -> cs.action),
+          Collections.singletonList(defaultAction));
     }
 
     @Override
@@ -868,9 +857,9 @@ public abstract class ActionConfig extends DeepObject
     }
 
     @Override
-    public ActionConfig[] getSubActions ()
+    public Iterable<ActionConfig> getSubActions ()
     {
-      return actions;
+      return Arrays.asList(actions);
     }
 
     @Override
@@ -916,13 +905,9 @@ public abstract class ActionConfig extends DeepObject
     }
 
     @Override
-    public ActionConfig[] getSubActions ()
+    public Iterable<ActionConfig> getSubActions ()
     {
-      ActionConfig[] subActions = new ActionConfig[actions.length];
-      for (int ii = 0; ii < actions.length; ii++) {
-        subActions[ii] = actions[ii].action;
-      }
-      return subActions;
+      return Iterables.transform(Arrays.asList(actions), ac -> ac.action);
     }
 
     @Override
@@ -990,11 +975,9 @@ public abstract class ActionConfig extends DeepObject
     }
 
     @Override
-    public ActionConfig[] getSubActions ()
+    public Iterable<ActionConfig> getSubActions ()
     {
-      ActionConfig[] subActions = new ActionConfig[1];
-      subActions[0] = action;
-      return subActions;
+      return Collections.singletonList(action);
     }
 
     @Override
@@ -1249,18 +1232,17 @@ public abstract class ActionConfig extends DeepObject
   }
 
   /**
-   * Returns an array of any contained ActionConfigs.
+   * Returns an iterable over *Possibly null subactions*.
    */
-  public ActionConfig[] getSubActions ()
+  public Iterable<ActionConfig> getSubActions ()
   {
-    return null;
+    return ImmutableList.of();
   }
 
   // from Groupable
-  public List<ActionConfig> getGrouped ()
+  public final List<ActionConfig> getGrouped ()
   {
-    ActionConfig[] sub = getSubActions();
-    return (sub == null) ? null : Arrays.asList(sub);
+    return ImmutableList.copyOf(Iterables.filter(getSubActions(), Predicates.notNull()));
   }
 
   // from Groupable
