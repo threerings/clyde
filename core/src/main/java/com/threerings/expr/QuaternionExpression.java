@@ -149,9 +149,9 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
       if (refQ == null) {
         if (populate) {
           for (Scope sc = scope; sc != null; sc = sc.getParentScope()) {
-            if (sc instanceof DynamicScope) {
+            if (sc instanceof DynamicScope dsc) {
               refQ = new Quaternion(defvalue);
-              ((DynamicScope)sc).put(name, refQ);
+              dsc.putQuietly(name, refQ);
               break;
             }
           }
