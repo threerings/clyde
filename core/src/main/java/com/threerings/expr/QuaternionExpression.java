@@ -138,22 +138,23 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
     @Editable
     public QuaternionExpression multiplicand = new QuaternionExpression.Constant();
 
-    /** TODO: REMOVE... Scene Influencer? */
-    @Editable
-    public boolean populate;
+    // NOTE: We always populate, as there is no other way to do it now.
+    // There was speculation of having a separate influencer/something that attached and
+    // set-up the Quaternion ahead of time. But that's more moving parts!
+//    /** TODO: REMOVE... Scene Influencer? */
+//    @Editable
+//    public boolean populate;
 
     @Override
     public Evaluator<Quaternion> createEvaluator (Scope scope)
     {
       Quaternion refQ = ScopeUtil.resolve(scope, name, (Quaternion)null);
       if (refQ == null) {
-        if (populate) {
-          for (Scope sc = scope; sc != null; sc = sc.getParentScope()) {
-            if (sc instanceof DynamicScope dsc) {
-              refQ = new Quaternion(defvalue);
-              dsc.putQuietly(name, refQ);
-              break;
-            }
+        for (Scope sc = scope; sc != null /* && populate */; sc = sc.getParentScope()) {
+          if (sc instanceof DynamicScope dsc) {
+            refQ = new Quaternion(defvalue);
+            dsc.putQuietly(name, refQ);
+            break;
           }
         }
         if (refQ == null) {
