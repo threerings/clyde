@@ -96,13 +96,21 @@ public class DynamicScope
   /**
    * Sets the mapping for the named symbol in this scope.
    */
-  public void put (String name, Object value)
+  public final void put (String name, Object value)
+  {
+    putQuietly(name, value);
+    wasUpdated();
+  }
+
+  /**
+   * Put a value without triggering the wasUpdated() notification.
+   */
+  public void putQuietly (String name, Object value)
   {
     if (_symbols == null) {
       _symbols = new HashMap<String, Object>(1);
     }
     _symbols.put(name, value);
-    wasUpdated();
   }
 
   /**
