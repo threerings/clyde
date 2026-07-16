@@ -51,6 +51,7 @@ import static com.threerings.opengl.Log.log;
  */
 @EditorTypes({
   ColorizationConfig.Normal.class, ColorizationConfig.TransNormal.class,
+  ColorizationConfig.LumaTint.class,
   ColorizationConfig.CustomOffsets.class, ColorizationConfig.FullyCustom.class,
   ColorizationConfig.Translated.class
 })
@@ -244,6 +245,55 @@ public abstract class ColorizationConfig extends DeepObject
         this.colorization = ((Normal)lated.source).colorization;
       }
     }
+
+    /** Convenience for editor use: switch from a luma-tint (same fields). */
+    public TransNormal (LumaTint luma)
+    {
+      this.clazz = luma.clazz;
+      this.colorization = luma.colorization;
+    }
+  }
+
+  /**
+   */
+  public static class LumaTint extends ColorizationConfig
+  {
+    /** The colorization class whose painted region we recolor (selects which pixels match). */
+    @Editable(editor="colorization", mode="class", hgroup="c")
+    public int clazz;
+
+    /** The colorization whose resolved color sits at the pivot (the midtone). */
+    @Editable(editor="colorization", hgroup="c")
+    public int colorization;
+
+    /** Color the shadow end ramps toward (default black = neutral darkening; a warm dark color
+     * gives the SK warm-shadow look). */
+    @Editable
+    public Color4f shadowTint = new Color4f(0f, 0f, 0f, 1f);
+
+    /** Color the highlight end ramps toward (default white). */
+    @Editable
+    public Color4f highlightTint = new Color4f(1f, 1f, 1f, 1f);
+
+    @Override
+    public Colorization getColorization (ColorPository colorpos)
+    {
+      ClassRecord crec = colorpos.getClassRecord(clazz);
+      Colorization src = colorpos.getColorization(colorization);
+      return (src == null || crec == null)
+          ? null
+          : new LumaTintColorization(crec, src, shadowTint.getColor(), highlightTint.getColor());
+    }
+
+    /** Basic constructor needed explicitly when there are others, thanks Java. */
+    public LumaTint () {}
+
+    /** Convenience for editor use: switch from a TransNormal (same fields). */
+    public LumaTint (TransNormal trans)
+    {
+      this.clazz = trans.clazz;
+      this.colorization = trans.colorization;
+    }
   }
 
   /**
@@ -298,8 +348,71 @@ public abstract class ColorizationConfig extends DeepObject
     @Override
     public boolean equals (Object other)
     {
-      return super.equals(other) && Arrays.equals(offsets, ((Colorization)other).offsets);
+      // getClass(), not instanceof: a hue-locking subclass recolors differently from the additive
+      // base even with identical offsets, so the two must never collide as image-cache keys.
+      return other != null && getClass() == other.getClass() &&
+        super.equals(other) && Arrays.equals(offsets, ((Colorization)other).offsets);
     }
+  }
+
+  /**
+   * The source pixel's lightness picks a
+   * point on the ramp {@code shadowTint -> target -> highlightTint}, pivoted at the region root's
+   * lightness, so the artist controls exactly which colors shadows and highlights tend toward.
+   */
+  public static class LumaTintColorization extends CustomOffsetsColorization
+  {
+    public LumaTintColorization (
+        ClassRecord region, Colorization source, Color shadowTint, Color highlightTint)
+    {
+      super(region, source);
+      Color target = source.getColorizedRoot();
+      _tr = target.getRed();        _tg = target.getGreen();        _tb = target.getBlue();
+      _sr = shadowTint.getRed();    _sg = shadowTint.getGreen();    _sb = shadowTint.getBlue();
+      _hr = highlightTint.getRed(); _hg = highlightTint.getGreen(); _hb = highlightTint.getBlue();
+      _rootL = _hsv[2] * (1f - _hsv[1] / 2f);
+    }
+
+    @Override
+    public int recolorColor (float[] hsv)
+    {
+      float lightness = hsv[2] * (1f - hsv[1] / 2f);
+      if (lightness >= _rootL) {
+        // lighter than the root: ramp target -> highlightTint
+        float t = (_rootL < 1f) ? (lightness - _rootL) / (1f - _rootL) : 0f;
+        return 0xFF000000 | (lerp(_tr, _hr, t) << 16) | (lerp(_tg, _hg, t) << 8) | lerp(_tb, _hb, t);
+      }
+      // darker than the root: ramp target -> shadowTint
+      float t = (_rootL > 0f) ? (1f - lightness / _rootL) : 0f;
+      return 0xFF000000 | (lerp(_tr, _sr, t) << 16) | (lerp(_tg, _sg, t) << 8) | lerp(_tb, _sb, t);
+    }
+
+    private static int lerp (int from, int to, float t)
+    {
+      return Math.round(from + (to - from) * t);
+    }
+
+    @Override
+    public int hashCode ()
+    {
+      return super.hashCode() ^ ((_sr << 16) | (_sg << 8) | _sb) ^
+        Integer.rotateLeft((_hr << 16) | (_hg << 8) | _hb, 1);
+    }
+
+    @Override
+    public boolean equals (Object other)
+    {
+      if (!super.equals(other)) {   // already requires an identical runtime class
+        return false;
+      }
+      LumaTintColorization o = (LumaTintColorization)other;
+      return _sr == o._sr && _sg == o._sg && _sb == o._sb &&
+        _hr == o._hr && _hg == o._hg && _hb == o._hb;
+    }
+
+    /** Target (RGB) at the pivot, the shadow and highlight tint RGBs, and the lightness pivot. */
+    protected int _tr, _tg, _tb, _sr, _sg, _sb, _hr, _hg, _hb;
+    protected float _rootL;
   }
 
   /**
