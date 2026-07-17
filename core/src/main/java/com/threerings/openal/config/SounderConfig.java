@@ -30,6 +30,7 @@ import java.util.HashSet;
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -46,51 +47,30 @@ import com.threerings.openal.util.AlContext;
 /**
  * The configuration of a sounder.
  */
-public class SounderConfig extends ParameterizedConfig
+@EditorTypes({
+  SounderConfig.Clip.class, SounderConfig.MetaClip.class, SounderConfig.VariableClip.class,
+  SounderConfig.Stream.class, SounderConfig.MetaStream.class,
+  SounderConfig.Conditional.class, SounderConfig.Compound.class,
+  SounderConfig.Sequential.class, SounderConfig.Scripted.class, SounderConfig.Random.class,
+  DerivedConfig.class })
+public abstract class SounderConfig extends ParameterizedConfig
 {
   /**
-   * Contains the actual implementation of the sounder.
+   * Creates or updates a sounder implementation for this configuration.
+   *
+   * @param scope the sounder's expression scope.
+   * @param impl an existing implementation to reuse, if possible.
+   * @return either a reference to the existing implementation (if reused), a new
+   * implementation, or <code>null</code> if no implementation could be created.
    */
-  @EditorTypes({
-    Clip.class, MetaClip.class, VariableClip.class, Stream.class,
-    MetaStream.class, Conditional.class, Compound.class, Sequential.class,
-    Scripted.class, Random.class, Derived.class })
-  public static abstract class Implementation extends DeepObject
-    implements Exportable
-  {
-    /**
-     * Adds the implementation's update resources to the provided set.
-     */
-    public void getUpdateResources (HashSet<String> paths)
-    {
-      // nothing by default
-    }
-
-    /**
-     * Creates or updates a sounder implementation for this configuration.
-     *
-     * @param scope the sounder's expression scope.
-     * @param impl an existing implementation to reuse, if possible.
-     * @return either a reference to the existing implementation (if reused), a new
-     * implementation, or <code>null</code> if no implementation could be created.
-     */
-    public abstract Sounder.Implementation getSounderImplementation (
-      AlContext ctx, Scope scope, Sounder.Implementation impl);
-
-    /**
-     * Invalidates any cached data.
-     */
-    public void invalidate ()
-    {
-      // nothing by default
-    }
-  }
+  public abstract Sounder.Implementation getSounderImplementation (
+    AlContext ctx, Scope scope, Sounder.Implementation impl);
 
   /**
    * The superclass of the implementations describing an original sounder, as opposed to one
    * derived from another configuration.
    */
-  public static abstract class Original extends Implementation
+  public static abstract class Original extends SounderConfig
   {
     /** Whether or not the position of the sound is relative to the listener. */
     @Editable(hgroup="s", weight=-2)
@@ -224,14 +204,6 @@ public class SounderConfig extends ParameterizedConfig
     public float cutoffDistance;
 
     @Override
-    public void getUpdateResources (HashSet<String> paths)
-    {
-      if (file != null) {
-        paths.add(file);
-      }
-    }
-
-    @Override
     public Sounder.Implementation getSounderImplementation (
       AlContext ctx, Scope scope, Sounder.Implementation impl)
     {
@@ -245,6 +217,15 @@ public class SounderConfig extends ParameterizedConfig
       }
       return impl;
     }
+
+    @Override
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+      super.getUpdateResources(paths);
+      if (file != null) {
+        paths.add(file);
+      }
+    }
   }
 
   /**
@@ -255,16 +236,6 @@ public class SounderConfig extends ParameterizedConfig
     /** The files from which to choose. */
     @Editable(weight=-3)
     public PitchWeightedFile[] files = new PitchWeightedFile[0];
-
-    @Override
-    public void getUpdateResources (HashSet<String> paths)
-    {
-      for (WeightedFile wfile : files) {
-        if (wfile.file != null) {
-          paths.add(wfile.file);
-        }
-      }
-    }
 
     @Override
     public Sounder.Implementation getSounderImplementation (
@@ -279,6 +250,17 @@ public class SounderConfig extends ParameterizedConfig
         impl = new Sounder.MetaClip(ctx, scope, this);
       }
       return impl;
+    }
+
+    @Override
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+      super.getUpdateResources(paths);
+      for (WeightedFile wfile : files) {
+        if (wfile.file != null) {
+          paths.add(wfile.file);
+        }
+      }
     }
   }
 
@@ -300,14 +282,6 @@ public class SounderConfig extends ParameterizedConfig
     public String file;
 
     @Override
-    public void getUpdateResources (HashSet<String> paths)
-    {
-      if (file != null) {
-        paths.add(file);
-      }
-    }
-
-    @Override
     public Sounder.Implementation getSounderImplementation (
       AlContext ctx, Scope scope, Sounder.Implementation impl)
     {
@@ -320,6 +294,15 @@ public class SounderConfig extends ParameterizedConfig
         impl = new Sounder.VariableClip(ctx, scope, this);
       }
       return impl;
+    }
+
+    @Override
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+      super.getUpdateResources(paths);
+      if (file != null) {
+        paths.add(file);
+      }
     }
   }
 
@@ -373,16 +356,6 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     @Override
-    public void getUpdateResources (HashSet<String> paths)
-    {
-      for (QueuedFile queued : queue) {
-        if (queued.file != null) {
-          paths.add(queued.file);
-        }
-      }
-    }
-
-    @Override
     public Sounder.Implementation getSounderImplementation (
       AlContext ctx, Scope scope, Sounder.Implementation impl)
     {
@@ -395,6 +368,17 @@ public class SounderConfig extends ParameterizedConfig
         impl = new Sounder.Stream(ctx, scope, this);
       }
       return impl;
+    }
+
+    @Override
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+      super.getUpdateResources(paths);
+      for (QueuedFile queued : queue) {
+        if (queued.file != null) {
+          paths.add(queued.file);
+        }
+      }
     }
   }
 
@@ -431,16 +415,6 @@ public class SounderConfig extends ParameterizedConfig
     public float crossFade;
 
     @Override
-    public void getUpdateResources (HashSet<String> paths)
-    {
-      for (WeightedFile wfile : files) {
-        if (wfile.file != null) {
-          paths.add(wfile.file);
-        }
-      }
-    }
-
-    @Override
     public Sounder.Implementation getSounderImplementation (
       AlContext ctx, Scope scope, Sounder.Implementation impl)
     {
@@ -453,6 +427,17 @@ public class SounderConfig extends ParameterizedConfig
         impl = new Sounder.MetaStream(ctx, scope, this);
       }
       return impl;
+    }
+
+    @Override
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+      super.getUpdateResources(paths);
+      for (WeightedFile wfile : files) {
+        if (wfile.file != null) {
+          paths.add(wfile.file);
+        }
+      }
     }
   }
 
@@ -492,7 +477,7 @@ public class SounderConfig extends ParameterizedConfig
   /**
    * Plays the first sounder whose condition evaluates to true.
    */
-  public static class Conditional extends Implementation
+  public static class Conditional extends SounderConfig
   {
     /** The condition cases. */
     @Editable
@@ -515,11 +500,12 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     @Override
-    public void invalidate ()
+    protected void fireConfigUpdated ()
     {
       for (Case caze : cases) {
         caze.condition.invalidate();
       }
+      super.fireConfigUpdated();
     }
   }
 
@@ -541,7 +527,7 @@ public class SounderConfig extends ParameterizedConfig
   /**
    * Plays multiple sounders simultaneously.
    */
-  public static class Compound extends Implementation
+  public static class Compound extends SounderConfig
   {
     /** The component sounders. */
     @Editable
@@ -566,7 +552,7 @@ public class SounderConfig extends ParameterizedConfig
   /**
    * Plays multiple sounders in sequence.
    */
-  public static class Sequential extends Implementation
+  public static class Sequential extends SounderConfig
   {
     /** Whether to loop the entire sequence. */
     @Editable
@@ -606,7 +592,7 @@ public class SounderConfig extends ParameterizedConfig
   /**
    * Plays a scripted sequence of sounders.
    */
-  public static class Scripted extends Implementation
+  public static class Scripted extends SounderConfig
   {
     /** The loop duration, or zero for unlooped. */
     @Editable(min=0.0, step=0.01)
@@ -650,7 +636,7 @@ public class SounderConfig extends ParameterizedConfig
   /**
    * Plays a randomly selected sub-sounder.
    */
-  public static class Random extends Implementation
+  public static class Random extends SounderConfig
   {
     /** The component sounders. */
     @Editable
@@ -685,55 +671,5 @@ public class SounderConfig extends ParameterizedConfig
     /** The sound reference. */
     @Editable(nullable=true)
     public ConfigReference<SounderConfig> sounder;
-  }
-
-  /**
-   * A derived implementation.
-   */
-  public static class Derived extends Implementation
-  {
-    /** The sound reference. */
-    @Editable(nullable=true)
-    public ConfigReference<SounderConfig> sounder;
-
-    @Override
-    public Sounder.Implementation getSounderImplementation (
-      AlContext ctx, Scope scope, Sounder.Implementation impl)
-    {
-      SounderConfig config = ctx.getConfigManager().getConfig(SounderConfig.class, sounder);
-      return (config == null) ? null : config.getSounderImplementation(ctx, scope, impl);
-    }
-  }
-
-  /** The actual sound implementation. */
-  @Editable
-  public Implementation implementation = new Clip();
-
-  /**
-   * Creates or updates sounder implementation for this configuration.
-   *
-   * @param scope the sounder's expression scope.
-   * @param impl an existing implementation to reuse, if possible.
-   * @return either a reference to the existing implementation (if reused), a new
-   * implementation, or <code>null</code> if no implementation could be created.
-   */
-  public Sounder.Implementation getSounderImplementation (
-    AlContext ctx, Scope scope, Sounder.Implementation impl)
-  {
-    return implementation.getSounderImplementation(ctx, scope, impl);
-  }
-
-  @Override
-  protected void fireConfigUpdated ()
-  {
-    // invalidate the implementation
-    implementation.invalidate();
-    super.fireConfigUpdated();
-  }
-
-  @Override
-  protected void getUpdateResources (HashSet<String> paths)
-  {
-    implementation.getUpdateResources(paths);
   }
 }
