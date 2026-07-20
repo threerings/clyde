@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 import com.google.common.base.Predicate;
@@ -103,13 +104,8 @@ public class ActorLogic extends Logic
     _scenemgr.getActorSpace().add(_shape);
 
     // create the handlers
-    ArrayList<HandlerLogic> handlers = new ArrayList<HandlerLogic>();
-    for (HandlerConfig hconfig : config.handlers) {
-      HandlerLogic handler = createHandler(hconfig, this);
-      if (handler != null) {
-        handlers.add(handler);
-      }
-    }
+    var handlers = new ArrayList<HandlerLogic>(config.handlers.length);
+    createHandlers(handlers);
     _handlers = handlers.toArray(new HandlerLogic[handlers.size()]);
 
     // give subclasses a chance to set up
@@ -698,6 +694,17 @@ public class ActorLogic extends Logic
         _actor.setDirty(false);
       }
       _snaptime = timestamp;
+    }
+  }
+
+  /**
+   * Create the handlers for this actor.
+   */
+  protected void createHandlers (Collection<HandlerLogic> addTo)
+  {
+    for (HandlerConfig hconfig : _config.handlers) {
+      HandlerLogic handler = createHandler(hconfig, this);
+      if (handler != null) addTo.add(handler);
     }
   }
 
