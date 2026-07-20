@@ -137,14 +137,11 @@ public abstract class HandlerLogic extends Logic
     @Override
     protected void didInit ()
     {
-      ConfigManager cfgmgr = _scenemgr.getConfigManager();
-      ParameterizedHandlerConfig config = cfgmgr.getConfig(
-        ParameterizedHandlerConfig.class, ((HandlerConfig.Reference)_config).handler);
       _handlers = Lists.newArrayList();
-      ParameterizedHandlerConfig.Original original =
-        (config == null) ? null : config.getOriginal(cfgmgr);
-      if (original != null) {
-        for (HandlerConfig handler : original.handlers) {
+      var config = _scenemgr.getConfigManager().getConfig(
+        ParameterizedHandlerConfig.class, ((HandlerConfig.Reference)_config).handler);
+      if (config != null) {
+        for (HandlerConfig handler : config.handlers) {
           HandlerLogic logic = createHandler(handler, _source);
           if (logic != null) {
             _handlers.add(logic);

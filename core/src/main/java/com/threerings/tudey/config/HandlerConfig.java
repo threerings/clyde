@@ -110,12 +110,9 @@ public abstract class HandlerConfig extends DeepObject
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
       if (preloads.addConfig(ParameterizedHandlerConfig.class, handler)) {
-        ParameterizedHandlerConfig config =
-          cfgmgr.getConfig(ParameterizedHandlerConfig.class, handler);
-        ParameterizedHandlerConfig.Original original =
-          config == null ? null : config.getOriginal(cfgmgr);
-        if (original != null) {
-          original.getPreloads(cfgmgr, preloads);
+        var config = cfgmgr.getConfig(ParameterizedHandlerConfig.class, handler);
+        if (config != null) {
+          config.getPreloads(cfgmgr, preloads);
         }
       }
     }
