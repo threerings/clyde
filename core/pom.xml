@@ -21,7 +21,7 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>narya</artifactId>
-      <version>1.19</version>
+      <version>1.19.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>

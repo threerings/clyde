@@ -1288,7 +1288,7 @@ public class TudeySceneManager extends SceneManager
     sceneModel.addObserver(this);
 
     // register and fill in our tudey scene service
-    _tsobj.setTudeySceneService(addProvider(this, TudeySceneMarshaller.class));
+    _tsobj.setTudeySceneService(addLocalProvider(this, TudeySceneMarshaller.class));
   }
 
   /**

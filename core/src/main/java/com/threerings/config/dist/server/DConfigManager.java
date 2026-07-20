@@ -60,7 +60,7 @@ public class DConfigManager
     ConfigManager cfgmgr, PresentsDObjectMgr omgr, InvocationManager invmgr)
   {
     omgr.registerObject(_cfgobj = new DConfigObject());
-    _cfgobj.dconfigService = invmgr.registerProvider(this, DConfigMarshaller.class);
+    _cfgobj.setDconfigService(invmgr.registerProvider(_cfgobj, this, DConfigMarshaller.class));
     new ConfigUpdater(cfgmgr).init(_cfgobj);
   }
 
