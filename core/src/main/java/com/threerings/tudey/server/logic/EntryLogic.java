@@ -126,18 +126,12 @@ public class EntryLogic extends Logic
     _defaultEntrance = entry.isDefaultEntrance(cfgmgr);
     _shape = entry.createShape(cfgmgr);
 
-    // create the handler logic objects
-    ArrayList<HandlerLogic> handlers = new ArrayList<HandlerLogic>();
-    for (HandlerConfig config : entry.getHandlers(cfgmgr)) {
-      HandlerLogic handler = createHandler(config, this);
-      if (handler != null) {
-        handlers.add(handler);
-      }
-    }
-    _handlers = handlers.toArray(new HandlerLogic[handlers.size()]);
+    _handlers = new ArrayList<>();
+    createHandlers(entry.getHandlers(cfgmgr), this, _handlers);
 
     // give subclasses a chance to set up
     didInit();
+    //_handlers.trimToSize();
   }
 
   /**
@@ -267,9 +261,9 @@ public class EntryLogic extends Logic
     super.transfer(source, refs);
 
     // transfer the handler state
-    HandlerLogic[] shandlers = ((EntryLogic)source)._handlers;
-    for (int ii = 0; ii < _handlers.length; ii++) {
-      _handlers[ii].transfer(shandlers[ii], refs);
+    var shandlers = ((EntryLogic)source)._handlers;
+    for (int ii = 0, nn = _handlers.size(); ii < nn; ii++) {
+      _handlers.get(ii).transfer(shandlers.get(ii), refs);
     }
   }
 
@@ -322,5 +316,5 @@ public class EntryLogic extends Logic
   protected Vector2f[] _patrolPath;
 
   /** The entry's event handlers. */
-  protected HandlerLogic[] _handlers;
+  protected ArrayList<HandlerLogic> _handlers;
 }

@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -42,6 +44,7 @@ import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ConditionConfig;
 import com.threerings.tudey.config.ExpressionConfig;
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.config.ParameterizedHandlerConfig;
 import com.threerings.tudey.config.RegionConfig;
 import com.threerings.tudey.config.TargetConfig;
 import com.threerings.tudey.data.EntityKey;
@@ -296,6 +299,31 @@ public abstract class Logic extends ShallowObject
     // initialize, return the logic
     logic.init(_scenemgr, config, source);
     return logic;
+  }
+
+  /**
+   * Utility for creating handlers.
+   */
+  protected void createHandlers (
+    Iterable<ConfigReference<ParameterizedHandlerConfig>> handlers, Logic source,
+    Collection<HandlerLogic> dest)
+  {
+    for (var ref : handlers) {
+      var cfg = _scenemgr.getConfigManager().getConfig(ParameterizedHandlerConfig.class, ref);
+      if (cfg != null) createHandlers(cfg.handlers, source, dest);
+    }
+  }
+
+  /**
+   * Utility for creating handlers.
+   */
+  protected void createHandlers (
+    HandlerConfig[] handlers, Logic source, Collection<HandlerLogic> dest)
+  {
+    for (var hconfig : handlers) {
+      var handler = createHandler(hconfig, source);
+      if (handler != null) dest.add(handler);
+    }
   }
 
   /**

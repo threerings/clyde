@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -137,17 +138,9 @@ public abstract class HandlerLogic extends Logic
     @Override
     protected void didInit ()
     {
-      _handlers = Lists.newArrayList();
-      var config = _scenemgr.getConfigManager().getConfig(
-        ParameterizedHandlerConfig.class, ((HandlerConfig.Reference)_config).handler);
-      if (config != null) {
-        for (HandlerConfig handler : config.handlers) {
-          HandlerLogic logic = createHandler(handler, _source);
-          if (logic != null) {
-            _handlers.add(logic);
-          }
-        }
-      }
+      _handlers = new ArrayList<>();
+      var ref = ((HandlerConfig.Reference)_config).handler;
+      createHandlers(Collections.singletonList(ref), _source, _handlers);
     }
 
     @Override

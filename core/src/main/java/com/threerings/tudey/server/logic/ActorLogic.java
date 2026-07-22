@@ -104,9 +104,8 @@ public class ActorLogic extends Logic
     _scenemgr.getActorSpace().add(_shape);
 
     // create the handlers
-    var handlers = new ArrayList<HandlerLogic>(config.handlers.length);
-    createHandlers(handlers);
-    _handlers = handlers.toArray(new HandlerLogic[handlers.size()]);
+    _handlers = new ArrayList<>();
+    createHandlers(_config.handlers, this, _handlers);
 
     // give subclasses a chance to set up
     didInit();
@@ -514,9 +513,9 @@ public class ActorLogic extends Logic
 
     // transfer the handler state
     ActorLogic sactor = (ActorLogic)source;
-    HandlerLogic[] shandlers = sactor._handlers;
-    for (int ii = 0; ii < _handlers.length; ii++) {
-      _handlers[ii].transfer(shandlers[ii], refs);
+    var shandlers = sactor._handlers;
+    for (int ii = 0, nn = _handlers.size(); ii < nn; ii++) {
+      _handlers.get(ii).transfer(shandlers.get(ii), refs);
     }
 
     _source = (Logic)refs.get(sactor._source);
@@ -698,17 +697,6 @@ public class ActorLogic extends Logic
   }
 
   /**
-   * Create the handlers for this actor.
-   */
-  protected void createHandlers (Collection<HandlerLogic> addTo)
-  {
-    for (HandlerConfig hconfig : _config.handlers) {
-      HandlerLogic handler = createHandler(hconfig, this);
-      if (handler != null) addTo.add(handler);
-    }
-  }
-
-  /**
    * Override to perform custom initialization.
    */
   protected void didInit ()
@@ -776,7 +764,7 @@ public class ActorLogic extends Logic
   protected ShapeElement _shape;
 
   /** The actor's event handlers. */
-  protected HandlerLogic[] _handlers;
+  protected ArrayList<HandlerLogic> _handlers;
 
   /** The actor's shape observers. */
   protected ObserverList<ShapeObserver> _shapeObservers = ObserverList.newFastUnsafe();
