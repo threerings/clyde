@@ -87,13 +87,18 @@ public class TudeySceneObject extends SceneObject
   /**
    * Send an enqueue input event to the server...
    */
-  public void enqueueInput (
-    int acknowledge, int smoothedTime, InputFrame[] frames, boolean reliable)
+  public void enqueueInputReliable (int acknowledge, int smoothedTime, InputFrame[] frames)
+  {
+    _omgr.postEvent(new InputEnqueueEvent(_oid, acknowledge, smoothedTime, frames));
+  }
+
+  /**
+   * Send an enqueue input event to the server...
+   */
+  public void enqueueInputUnreliable (int acknowledge, int smoothedTime, InputFrame[] frames)
   {
     var event = new InputEnqueueEvent(_oid, acknowledge, smoothedTime, frames);
-    if (!reliable) {
-      event.setTransport(Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
-    }
+    event.setTransport(Transport.UNRELIABLE_UNORDERED);
     _omgr.postEvent(event);
   }
 
