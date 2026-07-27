@@ -28,6 +28,8 @@ package com.threerings.tudey.data;
 import javax.annotation.processing.Generated;
 import com.threerings.crowd.data.OccupantInfo;
 
+import com.threerings.presents.net.Transport;
+
 import com.threerings.whirled.data.SceneObject;
 
 /**
@@ -80,6 +82,19 @@ public class TudeySceneObject extends SceneObject
       }
     }
     return null;
+  }
+
+  /**
+   * Send an enqueue input event to the server...
+   */
+  public void enqueueInput (
+    int acknowledge, int smoothedTime, InputFrame[] frames, boolean reliable)
+  {
+    var event = new InputEnqueueEvent(_oid, acknowledge, smoothedTime, frames);
+    if (!reliable) {
+      event.setTransport(Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
+    }
+    _omgr.postEvent(event);
   }
 
   // AUTO-GENERATED: METHODS START

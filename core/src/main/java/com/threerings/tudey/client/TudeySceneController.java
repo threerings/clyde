@@ -900,8 +900,8 @@ public class TudeySceneController extends SceneController
 
     // if we know we can't send datagrams, we know it will be received
     if (!_ctx.getClient().getTransmitDatagrams()) {
-      _tsobj.tudeySceneService.enqueueInputReliable(
-        _lastDelta, smoothedTime, _input.toArray(new InputFrame[_input.size()]));
+      _tsobj.enqueueInput(
+        _lastDelta, smoothedTime, _input.toArray(new InputFrame[_input.size()]), true);
       _input.clear();
       return;
     }
@@ -917,8 +917,8 @@ public class TudeySceneController extends SceneController
     while (size > maxsize) {
       size -= _input.remove(0).getApproximateSize();
     }
-    _tsobj.tudeySceneService.enqueueInputUnreliable(
-      _lastDelta, smoothedTime, _input.toArray(new InputFrame[_input.size()]));
+    _tsobj.enqueueInput(
+      _lastDelta, smoothedTime, _input.toArray(new InputFrame[_input.size()]), false);
   }
 
   /**

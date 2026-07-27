@@ -53,6 +53,10 @@ import com.samskivert.util.RunQueue;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
+import com.threerings.presents.dobj.AccessController;
+import com.threerings.presents.dobj.DEvent;
+import com.threerings.presents.dobj.DObject;
+import com.threerings.presents.dobj.Subscriber;
 import com.threerings.presents.server.ClientManager;
 import com.threerings.presents.server.PresentsSession;
 
@@ -74,6 +78,8 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.EntityKey;
+import com.threerings.tudey.data.InputEnqueueEvent;
+import com.threerings.tudey.data.InputEnqueueListener;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyCodes;
@@ -107,7 +113,7 @@ import static com.threerings.tudey.Log.log;
  */
 public class TudeySceneManager extends SceneManager
   implements TudeySceneProvider, TudeySceneModel.Observer,
-    ActorAdvancer.Environment, RunQueue, TudeyCodes
+    ActorAdvancer.Environment, RunQueue, TudeyCodes, InputEnqueueListener
 {
   /**
    * An interface for objects that take part in the server tick.
@@ -1046,30 +1052,20 @@ public class TudeySceneManager extends SceneManager
     client.enteredPlace();
   }
 
-  // documentation inherited from interface TudeySceneProvider
-  public void enqueueInputReliable (
-    ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
-  {
-    // these are handled in exactly the same way; the methods are separate to provide different
-    // transport options
-    enqueueInputUnreliable(caller, acknowledge, smoothedTime, frames);
-  }
-
-  // documentation inherited from interface TudeySceneProvider
-  public void enqueueInputUnreliable (
-    ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
+  // from InputEnqueueListener
+  public void enqueueInput (InputEnqueueEvent event)
   {
     // forward to client liaison
-    ClientLiaison client = _clients.get(caller.getOid());
+    ClientLiaison client = _clients.get(event.getSourceOid());
     if (client != null) {
       // ping is current time minus client's smoothed time estimate
       int currentTime = _timestamp + (int)(RunAnywhere.currentTimeMillis() - _lastTick);
-      client.enqueueInput(acknowledge, currentTime - smoothedTime, frames);
+      client.enqueueInput(event.acknowledge, currentTime - event.smoothedTime, event.frames);
     } else {
       // this doesn't require a warning; it's probably an out-of-date packet from a client
       // that has just left the scene
       log.debug("Received input from unknown client.",
-        "who", caller, "where", where());
+          "who", event.getSourceOid(), "where", where());
     }
   }
 
@@ -1266,6 +1262,20 @@ public class TudeySceneManager extends SceneManager
   protected PlaceObject createPlaceObject ()
   {
     return (_tsobj = new TudeySceneObject());
+  }
+
+  @Override
+  protected AccessController getAccessController ()
+  {
+    final var ac = super.getAccessController();
+    return new AccessController() {
+      public boolean allowSubscribe (DObject obj, Subscriber<?> sub) {
+        return ac.allowSubscribe(obj, sub);
+      }
+      public boolean allowDispatch (DObject obj, DEvent evt) {
+        return ac.allowDispatch(obj, evt) || evt instanceof InputEnqueueEvent;
+      }
+    };
   }
 
   @Override
