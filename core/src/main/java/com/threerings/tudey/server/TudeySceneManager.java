@@ -1273,7 +1273,7 @@ public class TudeySceneManager extends SceneManager
         return ac.allowSubscribe(obj, sub);
       }
       public boolean allowDispatch (DObject obj, DEvent evt) {
-        return ac.allowDispatch(obj, evt) || evt instanceof InputEnqueueEvent;
+        return evt instanceof InputEnqueueEvent || ac.allowDispatch(obj, evt);
       }
     };
   }
