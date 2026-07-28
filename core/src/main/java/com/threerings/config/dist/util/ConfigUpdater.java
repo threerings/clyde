@@ -62,12 +62,15 @@ public class ConfigUpdater
   {
     // apply all changes made to date
     for (ConfigEntry entry : cfgobj.added) {
+      log.info("INIT-add from server: " + entry.getKey());
       addConfig(entry.getConfig());
     }
     for (ConfigEntry entry : cfgobj.updated) {
+      log.info("INIT-update from server: " + entry.getKey());
       updateConfig(entry.getConfig());
     }
     for (ConfigKey key : cfgobj.removed) {
+      log.info("INIT-remove from server: " + key);
       removeConfig(key);
     }
 
