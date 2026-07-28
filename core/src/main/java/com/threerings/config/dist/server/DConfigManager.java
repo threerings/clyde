@@ -144,11 +144,20 @@ public class DConfigManager
   {
     // make sure they're an admin
     if (((BodyObject)caller).getTokens().isAdmin()) {
+      log.info("Updating configs...",
+          "adds", add.length, "add0", firstKey(add),
+          "updates", update.length, "update0", firstKey(update),
+          "remove", remove.length, "remove0", remove.length > 0 ? remove[0] : null);
       updateConfigs(caller.getOid(),
         Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
     } else {
       log.warning("Non-admin tried to update configs.", "who", caller);
     }
+  }
+
+  private String firstKey (ConfigEntry[] entries)
+  {
+    return entries.length > 0 ? entries[0].getKey().toString() : null;
   }
 
   /** The config object. */

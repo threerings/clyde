@@ -98,6 +98,8 @@ public class DConfigDirector extends BasicDirector
     new ConfigUpdater(_cfgmgr) {
       @Override public void entryAdded (EntryAddedEvent<DSet.Entry> event) {
         int clientOid = ((DConfigObject.ClientEntryAddedEvent)event).getClientOid();
+        log.info("Got ADD", "client", clientOid, "(self)", _ctx.getClient().getClientOid(),
+            "entry", event.getKey());
         if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
           try {
             super.entryAdded(event);
@@ -108,6 +110,8 @@ public class DConfigDirector extends BasicDirector
       }
       @Override public void entryUpdated (EntryUpdatedEvent<DSet.Entry> event) {
         int clientOid = ((DConfigObject.ClientEntryUpdatedEvent)event).getClientOid();
+        log.info("Got UPDATE", "client", clientOid, "(self)", _ctx.getClient().getClientOid(),
+            "entry", event.getKey());
         if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
           try {
             super.entryUpdated(event);
@@ -118,6 +122,8 @@ public class DConfigDirector extends BasicDirector
       }
       @Override public void entryRemoved (EntryRemovedEvent<DSet.Entry> event) {
         int clientOid = ((DConfigObject.ClientEntryRemovedEvent)event).getClientOid();
+        log.info("Got REMOVE", "client", clientOid, "(self)", _ctx.getClient().getClientOid(),
+            "entry", event.getKey());
         if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
           try {
             super.entryRemoved(event);
