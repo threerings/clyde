@@ -108,6 +108,7 @@ public class ToolUtil
       String dstr = ResourceUtil.getPreferredResourceDir();
       _resourceDir = (dstr == null) ? null : new File(dstr);
       _rsrcmgr.initResourceDir(dstr);
+      log.info("INITIALIZING Tool Resource manager", "dstr", dstr);
     }
 
     /**
