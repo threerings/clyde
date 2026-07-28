@@ -246,8 +246,8 @@ public class DConfigDirector extends BasicDirector
    */
   protected boolean clientIsAdmin ()
   {
-    Object clobj = _ctx.getClient().getClientObject();
-    return clobj instanceof BodyObject && ((BodyObject)clobj).getTokens().isAdmin();
+    return _ctx.getClient().getClientObject() instanceof BodyObject body &&
+      body.getTokens().isAdmin();
   }
 
   /** The root config manager. */
