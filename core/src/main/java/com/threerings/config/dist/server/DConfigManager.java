@@ -34,6 +34,7 @@ import com.threerings.presents.annotation.EventThread;
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.server.InvocationManager;
 import com.threerings.presents.server.PresentsDObjectMgr;
+import com.threerings.presents.server.PresentsObjectAccess;
 
 import com.threerings.crowd.data.BodyObject;
 
@@ -59,7 +60,9 @@ public class DConfigManager
   @Inject public DConfigManager (
     ConfigManager cfgmgr, PresentsDObjectMgr omgr, InvocationManager invmgr)
   {
-    omgr.registerObject(_cfgobj = new DConfigObject());
+    _cfgobj = new DConfigObject();
+    _cfgobj.setAccessController(PresentsObjectAccess.DEFAULT);
+    omgr.registerObject(_cfgobj);
     _cfgobj.setDconfigService(invmgr.registerProvider(this, DConfigMarshaller.class));
     new ConfigUpdater(cfgmgr).init(_cfgobj);
   }
