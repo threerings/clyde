@@ -73,7 +73,8 @@ import static com.threerings.tudey.Log.log;
   ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
   ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
   ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
-  ActionConfig.ServerLog.class, ActionConfig.Fail.class/*, ActionConfig.RemoveLogic.class*/ })
+  ActionConfig.ServerLog.class, ActionConfig.ServerLogTarget.class,
+  ActionConfig.Fail.class/*, ActionConfig.RemoveLogic.class*/ })
 public abstract class ActionConfig extends DeepObject
   implements Exportable, Streamable, Groupable<ActionConfig>
 {
@@ -1159,6 +1160,23 @@ public abstract class ActionConfig extends DeepObject
     public String getLogicClassName ()
     {
       return "com.threerings.tudey.server.logic.ActionLogic$ServerLog";
+    }
+  }
+
+  public static class ServerLogTarget extends ActionConfig
+  {
+    /** The log message. */
+    @Editable(width=25, units="i.serverlog")
+    public String message = "";
+
+    /** The target. */
+    @Editable
+    public TargetConfig target = new TargetConfig.Source();
+
+    @Override
+    public String getLogicClassName ()
+    {
+      return "com.threerings.tudey.server.logic.ActionLogic$ServerLogTarget";
     }
   }
 

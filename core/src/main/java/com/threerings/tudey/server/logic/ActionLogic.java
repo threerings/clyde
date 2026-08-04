@@ -1223,6 +1223,29 @@ public abstract class ActionLogic extends Logic
     protected ActionLogic _action;
   }
 
+  public static class ServerLogTarget extends Targeted
+  {
+    @Override
+    public boolean execute (int timestamp, Logic activator)
+    {
+      var config = (ActionConfig.ServerLogTarget)_config;
+      _target.resolve(activator, _targets);
+      boolean success = false;
+      for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+        log.info(config.message, String.valueOf(ii), _targets.get(ii));
+        success = true;
+      }
+      _targets.clear();
+      return success;
+    }
+
+    @Override
+    protected void didInit ()
+    {
+      _target = createTarget(((ActionConfig.ServerLogTarget)_config).target, _source);
+    }
+  }
+
   /**
    * Handles a server log action.
    */
