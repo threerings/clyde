@@ -841,7 +841,7 @@ public class TudeySceneView extends DynamicScope
           sprite.update(timestamp, actor, uids.contains(id));
         }
 
-      } else if (_loadingActors != null && _loadingActors.containsKey(id)) {
+      } else if (_loadingActors != null) {
         _loadingActors.put(id, actor);
 
       } else {
