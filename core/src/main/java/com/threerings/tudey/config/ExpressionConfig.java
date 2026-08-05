@@ -55,8 +55,8 @@ import com.threerings.probs.FloatVariable;
   ExpressionConfig.Or.class, ExpressionConfig.Xor.class,
   ExpressionConfig.Less.class, ExpressionConfig.Greater.class,
   ExpressionConfig.Equals.class, ExpressionConfig.LessEquals.class,
-  ExpressionConfig.GreaterEquals.class, ExpressionConfig.Variable.class,
-  ExpressionConfig.NumTargets.class })
+  ExpressionConfig.GreaterEquals.class, ExpressionConfig.IsNull.class,
+  ExpressionConfig.Variable.class, ExpressionConfig.NumTargets.class })
 @Strippable
 public abstract class ExpressionConfig extends DeepObject
   implements Exportable, Streamable
@@ -498,6 +498,18 @@ public abstract class ExpressionConfig extends DeepObject
     public String getLogicClassName ()
     {
       return "com.threerings.tudey.server.logic.ExpressionLogic$GreaterEquals";
+    }
+  }
+
+  /**
+   * Does this expression evaluate to null?
+   */
+  public static class IsNull extends UnaryOperation
+  {
+    @Override
+    public String getLogicClassName ()
+    {
+      return "com.threerings.tudey.server.logic.ExpressionLogic$IsNull";
     }
   }
 

@@ -470,6 +470,18 @@ public abstract class ExpressionLogic extends Logic
   }
 
   /**
+   * Evaluates an isNull expression.
+   */
+  public static class IsNull extends UnaryOperation
+  {
+    @Override
+    public Object evaluate (Logic activator, Object previous)
+    {
+      return Boolean.valueOf(null == _operand.evaluate(activator, previous));
+    }
+  }
+
+  /**
    * Initializes the logic.
    */
   public void init (TudeySceneManager scenemgr, ExpressionConfig config, Logic source)
