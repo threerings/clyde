@@ -669,10 +669,20 @@ public class ConfigManager
           validator.pushWhere(config.getName());
           try {
             result &= config.validateReferences(validator);
+          } catch (Exception e1) {
+            log.warning("Failure validating!", "where", validator.getWhere(), e1);
+            validator.output("Failure validating: " + e1);
+            result = false;
+
           } finally {
             validator.popWhere();
           }
         }
+      } catch (Exception e2) {
+        log.warning("Oh no, trouble validating!", "where", validator.getWhere(), e2);
+        validator.output("Failure validating: " + e2);
+        result = false;
+
       } finally {
         validator.popWhere();
       }
