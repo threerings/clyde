@@ -20,6 +20,8 @@ import com.threerings.expr.Scope;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
+import static com.threerings.ClydeLog.log;
+
 /**
  * Represents a config that is directly derived from another config.
  *
@@ -90,7 +92,12 @@ public class DerivedConfig extends ParameterizedConfig
     Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
 
     // keep a hard reference to our source
-    _source = _cfgmgr.getConfig(clazz, ref, scope);
+    try {
+      _source = _cfgmgr.getConfig(clazz, ref, scope);
+    } catch (Exception e) {
+      log.warning("Could not get source", "this", getName(), "base", ref.getName(), "args", ref.getArguments(), e);
+      _source = null;
+    }
     if (_source == null) {
       return null;
     }
