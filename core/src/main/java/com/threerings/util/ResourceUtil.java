@@ -50,9 +50,7 @@ public class ResourceUtil
    */
   public static String getPreferredResourceDir ()
   {
-    var dir = _prefs.get(_prefPrefix + "resource_dir", null);
-    log.info("Noting preferred resource dir as we read from prefs", "dir", dir);
-    return dir;
+    return _prefs.get(_prefPrefix + "resource_dir", null);
   }
 
   /**
@@ -62,7 +60,6 @@ public class ResourceUtil
    */
   public static void setPreferredResourceDir (String dir)
   {
-    log.info("Set preferred resource dir: " + dir);
     if (dir == null) {
       _prefs.remove(_prefPrefix + "resource_dir");
     } else {
