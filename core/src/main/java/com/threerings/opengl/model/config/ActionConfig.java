@@ -34,6 +34,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Function;
+import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
@@ -256,8 +257,11 @@ public abstract class ActionConfig extends DeepObject
     {
       final Transform3D transform = ScopeUtil.resolve(
         scope, "worldTransform", new Transform3D());
+      final MutableBoolean noShake = ScopeUtil.resolve(
+        scope, "noShake", new MutableBoolean());
       return new Executor() {
         public void execute () {
+          if (noShake.value) return;
           transform.extractTranslation(_translation);
           CameraHandler camhand = ctx.getCameraHandler();
           float dist = camhand.getViewerTranslation().distance(_translation);
