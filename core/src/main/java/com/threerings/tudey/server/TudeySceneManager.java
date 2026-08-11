@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -476,9 +477,23 @@ public class TudeySceneManager extends SceneManager
    *
    * @param actor if non-null, the already-created actor object.
    */
-  public ActorLogic spawnActor (
+  public final ActorLogic spawnActor (
     int timestamp, Vector2f translation, float rotation,
     ConfigReference<ActorConfig> ref, Actor actor)
+  {
+    return spawnActor(timestamp, translation, rotation, ref, actor, null);
+  }
+
+  /**
+   * Spawns an actor with the referenced configuration.
+   *
+   * @param actor if non-null, the already-created actor object.
+   * @param preStartup if non-null, called with the new logic before its startup handlers run,
+   * typically to set the source and activator.
+   */
+  public ActorLogic spawnActor (
+    int timestamp, Vector2f translation, float rotation,
+    ConfigReference<ActorConfig> ref, Actor actor, Consumer<? super ActorLogic> preStartup)
   {
     // return immediately if the place has shut down
     if (!_plobj.isActive()) {
@@ -501,7 +516,7 @@ public class TudeySceneManager extends SceneManager
 
     // initialize the logic and add it to the map
     int id = (actor == null) ? ++_lastActorId : actor.getId();
-    logic.init(this, ref, original, id, timestamp, translation, rotation, actor);
+    logic.init(this, ref, original, id, timestamp, translation, rotation, actor, preStartup);
     _actors.put(id, logic);
     addMappings(logic);
 

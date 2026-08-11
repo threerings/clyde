@@ -28,6 +28,7 @@ package com.threerings.tudey.server.logic;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -74,11 +75,14 @@ public class ActorLogic extends Logic
 
   /**
    * Initializes the actor.
+   *
+   * @param preStartup if non-null, called after initialization but before the startup
+   * handlers run, so that the source and activator can be set in time to be visible to them.
    */
   public void init (
     TudeySceneManager scenemgr, ConfigReference<ActorConfig> ref,
     ActorConfig.Original config, int id, int timestamp, Vector2f translation,
-    float rotation, Actor actor)
+    float rotation, Actor actor, Consumer<? super ActorLogic> preStartup)
   {
     super.init(scenemgr);
     _config = config;
@@ -109,6 +113,9 @@ public class ActorLogic extends Logic
 
     // give subclasses a chance to set up
     didInit();
+
+    // let the spawner configure us before the startup handlers run
+    if (preStartup != null) preStartup.accept(this);
 
     // run the startup handlers
     if (actor == null) {

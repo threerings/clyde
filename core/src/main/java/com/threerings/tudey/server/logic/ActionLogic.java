@@ -149,14 +149,14 @@ public abstract class ActionLogic extends Logic
     protected boolean spawnActor (
         int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
     {
-      ActorLogic logic = _scenemgr.spawnActor(
-          timestamp, getTranslation(target), getRotation(target), actor);
-      initLogic(logic, activator);
+      _scenemgr.spawnActor(
+          timestamp, getTranslation(target), getRotation(target), actor, null,
+          spawned -> initLogic(spawned, activator));
       return true;
     }
 
     /**
-     * Initializes the logic.
+     * Initializes the logic, before the spawned actor's startup handlers have run.
      */
     protected void initLogic (ActorLogic logic, Logic activator)
     {
@@ -247,9 +247,9 @@ public abstract class ActionLogic extends Logic
               r.getInRange(-steps, steps + 1) * config.stepSize);
           if (locations.add(location) && (translation == null || !_scenemgr.collides(
                 config.collisionMask, new Segment(translation, location)))) {
-            ActorLogic logic = _scenemgr.spawnActor(
-                timestamp, location, getRotation(target), actor);
-            initLogic(logic, activator);
+            _scenemgr.spawnActor(
+                timestamp, location, getRotation(target), actor, null,
+                spawned -> initLogic(spawned, activator));
             success = true;
             break;
           }
