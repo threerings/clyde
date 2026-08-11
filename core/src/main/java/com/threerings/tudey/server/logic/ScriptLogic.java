@@ -71,24 +71,24 @@ public abstract class ScriptLogic extends Logic
     {
       _agent.stopMoving();
       _agent.clearTargetRotation();
-      _started = timestamp;
+      _end = timestamp + ((ScriptConfig.Wait)_config).wait;
     }
 
     @Override
     public boolean tick (int timestamp)
     {
-      return timestamp - _started > ((ScriptConfig.Wait)_config).wait;
+      return timestamp > _end;
     }
 
     @Override
     public void transfer (Logic source, Map<Object, Object> refs)
     {
       super.transfer(source, refs);
-      _started = ((Wait)source)._started;
+      _end = ((Wait)source)._end;
     }
 
-    /** When the wait started. */
-    protected int _started;
+    /** When the wait will end. */
+    protected int _end;
   }
 
   /**
