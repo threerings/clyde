@@ -509,6 +509,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     registerEditorClass("choice", ChoiceEditor.class);
     registerEditorClass("colorization", ColorizationEditor.class);
     registerEditorClass("config", ConfigEditor.class);
+    //registerEditorClass("configId", ConfigIdEditor.class);
     registerEditorClass("resource", ResourceEditor.class);
     registerEditorClass("table", TableArrayListEditor.class);
     registerEditorClass("mask", MaskEditor.class);

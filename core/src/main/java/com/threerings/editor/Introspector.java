@@ -205,6 +205,10 @@ public class Introspector
     if (sclazz != null) {
       Collections.addAll(properties, getProperties(sclazz));
     }
+    // and all interface properties
+    for (var iclazz : clazz.getInterfaces()) {
+      Collections.addAll(properties, getProperties(iclazz));
+    }
 
     // find the getters and setters
     HashMap<String, Method> unpaired = new HashMap<String, Method>();

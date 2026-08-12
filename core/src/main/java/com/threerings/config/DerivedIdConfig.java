@@ -5,14 +5,12 @@ import com.threerings.editor.Editable;
 public class DerivedIdConfig extends DerivedConfig
   implements IdConfig
 {
-  @Editable(constant=true, weight=-1, units="i.config_id") // could be made editable ...
   @Override // from IdConfig
   public void setConfigId (int id)
   {
     _configId = id;
   }
 
-  @Editable // see setter
   @Override // from IdConfig
   public int getConfigId ()
   {
