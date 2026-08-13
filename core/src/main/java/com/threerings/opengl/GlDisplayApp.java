@@ -483,8 +483,9 @@ public abstract class GlDisplayApp extends GlApp
   @Override
   public void startup ()
   {
-    // On macOS with -XstartOnFirstThread, main() IS the AppKit main thread.
-    // GLFW requires all window/event operations on this thread.
+    // This thread becomes the game main/GL thread, running the GLFW loop. On macOS it is
+    // NOT the AppKit main thread: AWT owns that, and the glfw_async build marshals Cocoa
+    // calls to it (see MacFullscreen).
     _mainThread = Thread.currentThread();
     _running = true;
     init();
@@ -535,7 +536,8 @@ public abstract class GlDisplayApp extends GlApp
   }
 
   /**
-   * The main render/event loop. Runs on the main thread.
+   * The main render/event loop. Runs on the game main thread (on macOS, distinct from
+   * the AppKit main thread).
    */
   protected void mainLoop ()
   {
