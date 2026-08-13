@@ -389,14 +389,17 @@ public class DisplayRoot extends Root
     _scrollCallback = new GLFWScrollCallback() {
       @Override
       public void invoke (long window, double xoffset, double yoffset) {
-        double[] xpos = new double[1], ypos2 = new double[1];
-        GLFW.glfwGetCursorPos(window, xpos, ypos2);
+        double[] xpos = new double[1], ypos = new double[1];
+        GLFW.glfwGetCursorPos(window, xpos, ypos);
         float scale = _ctx.getWindowScaleFactor();
         int[] fh = new int[1];
         GLFW.glfwGetFramebufferSize(window, null, fh);
         int x = (int)(xpos[0] * scale);
-        int y = fh[0] - (int)(ypos2[0] * scale) - 1;
-        int delta = (int)(yoffset == 0 ? xoffset : yoffset);
+        int y = fh[0] - (int)(ypos[0] * scale) - 1;
+        if (yoffset == 0) yoffset = xoffset; // use x if no y?
+        int delta = yoffset > 0 ? Math.max(1, (int)yoffset)
+          : yoffset < 0 ? Math.min(-1, (int)yoffset)
+          : 0;
         synchronized (_eventQueue) {
           _eventQueue.add(() -> {
             mouseWheeled(_tickStamp, x, y, delta, false);
