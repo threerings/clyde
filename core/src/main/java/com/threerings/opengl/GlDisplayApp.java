@@ -45,6 +45,7 @@ import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.util.DisplayMode;
 import com.threerings.opengl.util.GlUtil;
+import com.threerings.opengl.util.MacContextUpdate;
 import com.threerings.opengl.util.MacFullscreen;
 
 import static com.threerings.opengl.Log.log;
@@ -561,6 +562,10 @@ public abstract class GlDisplayApp extends GlApp
         }
       }
 
+      // Apply any context update deferred from the AppKit thread (see MacContextUpdate);
+      // safe here because no frame is being encoded.
+      MacContextUpdate.processPending();
+
       updateFrame();
     }
   }
@@ -666,6 +671,8 @@ public abstract class GlDisplayApp extends GlApp
     _pendingMode = null;
     GLFW.glfwMakeContextCurrent(_window);
     GL.createCapabilities();
+    // macOS: reroute AppKit-thread NSOpenGLContext updates into our frame loop.
+    MacContextUpdate.install(_window);
     GLFW.glfwSwapInterval(_vsync ? 1 : 0);
     GLFW.glfwSetFramebufferSizeCallback(_window, (win, w, h) -> {
       _fbWidth = w;
