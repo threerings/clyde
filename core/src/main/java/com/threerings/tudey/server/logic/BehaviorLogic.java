@@ -611,7 +611,7 @@ public abstract class BehaviorLogic extends Logic
         if (target == _currentTarget) {
           continue;
         }
-        Vector2f[] path = _targets.get(ii).getPatrolPath();
+        Vector2f[] path = target.getPatrolPath();
         if (path == null) {
           continue;
         }
