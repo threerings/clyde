@@ -1132,6 +1132,7 @@ public abstract class ActionLogic extends Logic
             actor.set(flag.getInt(actor), config.on);
             ret = true;
           } catch (NoSuchFieldException e) {
+            log.info("Pointless flag-set attempt", "flag", config.flag, "actor", actor);
             // that's ok; just fall through
 
           } catch (IllegalAccessException e) {
