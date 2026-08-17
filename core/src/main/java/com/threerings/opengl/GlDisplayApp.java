@@ -58,6 +58,7 @@ public abstract class GlDisplayApp extends GlApp
   public GlDisplayApp ()
   {
     _vsync = !Boolean.getBoolean("no_vsync");
+    _borderless = Boolean.getBoolean("borderless");
   }
 
   /**
@@ -130,6 +131,49 @@ public abstract class GlDisplayApp extends GlApp
       GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_RESIZABLE,
         resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
     }
+  }
+
+  /**
+   * Sets whether the window is "borderless": undecorated (no OS title bar or frame) and, when
+   * windowed, sized to fill its monitor -- a windowed "fake fullscreen". Turning it off restores
+   * the decoration; the caller should follow with a {@link #setDisplayMode} to restore a normal
+   * windowed size and position.
+   *
+   * <p>Must be called on the main/render thread, as it touches the GLFW window directly.
+   */
+  public void setBorderless (boolean borderless)
+  {
+    _borderless = borderless;
+    if (_window != MemoryUtil.NULL) {
+      GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_DECORATED,
+        borderless ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
+      if (borderless && !isFullscreen()) {
+        fillMonitorBorderless();
+      }
+    }
+  }
+
+  /**
+   * Positions and sizes the (undecorated) window to cover its monitor's full video mode, producing
+   * a borderless fullscreen window.
+   *
+   * TODO: on multi-monitor setups, fill the monitor under the window's center rather than always
+   * the primary.
+   */
+  protected void fillMonitorBorderless ()
+  {
+    long monitor = GLFW.glfwGetPrimaryMonitor();
+    if (monitor == MemoryUtil.NULL) {
+      return;
+    }
+    int[] mx = { 0 }, my = { 0 };
+    GLFW.glfwGetMonitorPos(monitor, mx, my);
+    GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
+    if (vidMode == null) {
+      return;
+    }
+    GLFW.glfwSetWindowMonitor(_window, MemoryUtil.NULL, mx[0], my[0],
+      vidMode.width(), vidMode.height(), GLFW.GLFW_DONT_CARE);
   }
 
   /**
@@ -623,6 +667,9 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwDefaultWindowHints();
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+    // Borderless: create the window with no OS decoration (title bar / frame). We size it to
+    // fill the monitor after creation, below.
+    GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, _borderless ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
     // Force GLX (not EGL) context creation on Linux: Steam Overlay's hooks live in GLX.
     // GLFW's default is "native" which is GLX on X11, but pinning it is cheap insurance
     // against future default changes.
@@ -641,7 +688,9 @@ public abstract class GlDisplayApp extends GlApp
     // divide pixel dims by the monitor content scale), but on Windows (DPI-aware) and on
     // Linux/X11 are just pixels (divide by 1). We have no live window yet to query a
     // real fb/win ratio, so we pick the divisor by platform.
-    boolean fs = _pendingMode != null && _pendingMode.isFullscreen();
+    // Borderless overrides a saved (exclusive) fullscreen mode: we create a windowed window and
+    // fill the monitor below, giving a borderless "fake fullscreen" regardless of the saved pref.
+    boolean fs = !_borderless && _pendingMode != null && _pendingMode.isFullscreen();
     long monitor = fs ? GLFW.glfwGetPrimaryMonitor() : MemoryUtil.NULL;
     int initWidth, initHeight;
     if (_pendingMode != null && fs) {
@@ -666,7 +715,12 @@ public abstract class GlDisplayApp extends GlApp
       log.warning("Couldn't create window!");
       return false;
     }
-    if (_pendingMode != null && _pendingMode.isMaxed()) {
+    // Borderless: size/position the undecorated window to fill its monitor. Skip when going to
+    // real (exclusive) fullscreen, which covers the monitor already.
+    if (_borderless && !fs) {
+      fillMonitorBorderless();
+    }
+    if (!_borderless && _pendingMode != null && _pendingMode.isMaxed()) {
       MacFullscreen.setFullscreen(_window, true, getRunQueue(), null /*onComplete*/);
     }
     refreshCursorMode();
@@ -732,6 +786,9 @@ public abstract class GlDisplayApp extends GlApp
 
   /** Whether the window should be resizable. */
   protected boolean _resizable = true;
+
+  /** Whether the window is borderless: undecorated and filling its monitor. */
+  protected boolean _borderless;
 
   /** Whether the window was resized. */
   protected volatile boolean _wasResized;
