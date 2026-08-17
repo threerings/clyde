@@ -16,6 +16,9 @@ public class DisplayMode
     /** Mac only: "Green button" fullscreen mode. */
     MAXED,
 
+    /** An undecorated window filling its monitor -- a non-Mac alternative to MAXED. */
+    BORDERLESS,
+
     ;
   }
 
@@ -70,12 +73,25 @@ public class DisplayMode
     return mode == Mode.MAXED;
   }
 
+  public boolean isBorderless ()
+  {
+    return mode == Mode.BORDERLESS;
+  }
+
   /**
    * Turn this mode into a maxed mode.
    */
   public DisplayMode asMaxed ()
   {
     return new DisplayMode(width, height, 0, Mode.MAXED);
+  }
+
+  /**
+   * Turn this mode into a borderless mode (undecorated, filling the monitor).
+   */
+  public DisplayMode asBorderless ()
+  {
+    return new DisplayMode(width, height, 0, Mode.BORDERLESS);
   }
 
   @Override
@@ -97,6 +113,7 @@ public class DisplayMode
     return width + " x " + height + switch (mode) {
       case Mode.FULLSCREEN -> " @" + frequency + "Hz";
       case Mode.MAXED -> " (maxed)";
+      case Mode.BORDERLESS -> " (borderless)";
       default -> "";
     };
   }

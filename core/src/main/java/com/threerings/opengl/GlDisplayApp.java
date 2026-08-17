@@ -58,7 +58,6 @@ public abstract class GlDisplayApp extends GlApp
   public GlDisplayApp ()
   {
     _vsync = !Boolean.getBoolean("no_vsync");
-    _borderless = Boolean.getBoolean("borderless");
   }
 
   /**
@@ -130,26 +129,6 @@ public abstract class GlDisplayApp extends GlApp
     if (_window != MemoryUtil.NULL) {
       GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_RESIZABLE,
         resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
-    }
-  }
-
-  /**
-   * Sets whether the window is "borderless": undecorated (no OS title bar or frame) and, when
-   * windowed, sized to fill its monitor -- a windowed "fake fullscreen". Turning it off restores
-   * the decoration; the caller should follow with a {@link #setDisplayMode} to restore a normal
-   * windowed size and position.
-   *
-   * <p>Must be called on the main/render thread, as it touches the GLFW window directly.
-   */
-  public void setBorderless (boolean borderless)
-  {
-    _borderless = borderless;
-    if (_window != MemoryUtil.NULL) {
-      GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_DECORATED,
-        borderless ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
-      if (borderless && !isFullscreen()) {
-        fillMonitorBorderless();
-      }
     }
   }
 
@@ -330,6 +309,7 @@ public abstract class GlDisplayApp extends GlApp
   public DisplayMode getCurrentDisplayMode ()
   {
     if (isFullscreen()) return getDesktopDisplayMode();
+    if (_borderless) return getDesktopDisplayMode().asBorderless();
     var mode = new DisplayMode(getWindowWidth(), getWindowHeight());
     return MacFullscreen.isFullscreen(_window) ? mode.asMaxed() : mode;
   }
@@ -393,6 +373,12 @@ public abstract class GlDisplayApp extends GlApp
       return;
     }
 
+    // Past the async transitions: apply the window decoration for the target mode (borderless is
+    // undecorated). Fullscreen ignores decoration, so this is a harmless no-op there.
+    _borderless = mode.isBorderless();
+    GLFW.glfwSetWindowAttrib(_window, GLFW.GLFW_DECORATED,
+      _borderless ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
+
     // 3. If going to fullscreen, do that
     if (mode.isFullscreen()) {
       // Fullscreen: pixel dimensions match monitor video mode directly
@@ -400,6 +386,10 @@ public abstract class GlDisplayApp extends GlApp
       GLFW.glfwSetWindowMonitor(_window, monitor, 0, 0,
         mode.width, mode.height,
         mode.frequency > 0 ? mode.frequency : GLFW.GLFW_DONT_CARE);
+
+    // 3b. Borderless: an undecorated window filling the monitor (a "fake fullscreen").
+    } else if (mode.isBorderless()) {
+      fillMonitorBorderless();
 
     // 4. If the new mode is windowed
     } else if (mode.isWindowed()) {
@@ -667,8 +657,9 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwDefaultWindowHints();
     GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
     GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, _resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
-    // Borderless: create the window with no OS decoration (title bar / frame). We size it to
-    // fill the monitor after creation, below.
+    // Borderless: derive from the pending mode; create the window with no OS decoration (title
+    // bar / frame), then size it to fill the monitor after creation, below.
+    _borderless = _pendingMode != null && _pendingMode.isBorderless();
     GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, _borderless ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
     // Force GLX (not EGL) context creation on Linux: Steam Overlay's hooks live in GLX.
     // GLFW's default is "native" which is GLX on X11, but pinning it is cheap insurance
