@@ -128,19 +128,14 @@ public class NumberEditor extends PropertyEditor
   protected Number fromDouble (double value)
   {
     Class<?> type = Primitives.unwrap(_property.getType());
-    if (type == Byte.TYPE) {
-      return (byte)value;
-    } else if (type == Double.TYPE) {
-      return value;
-    } else if (type == Float.TYPE) {
-      return (float)value;
-    } else if (type == Integer.TYPE) {
-      return (int)value;
-    } else if (type == Long.TYPE) {
-      return (long)value;
-    } else { // type == Short.TYPE
-      return (short)value;
-    }
+    if (type == Float.TYPE) return (float)value;
+    else if (type == Double.TYPE) return value;
+
+    long val = Math.round(value);
+    if (type == Integer.TYPE) return (int)val;
+    else if (type == Byte.TYPE) return (byte)val;
+    else if (type == Long.TYPE) return val;
+    else return (short)value; // type == Short.TYPE
   }
 
   @Override
