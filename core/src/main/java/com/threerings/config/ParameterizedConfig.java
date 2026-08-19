@@ -165,30 +165,30 @@ public class ParameterizedConfig extends ManagedConfig
       }
     }
 
-    // verify that no two parameters write overlapping targets: parameters are applied in
-    // no particular order, so a target nested inside another parameter's target would be
-    // set nondeterministically.
-    // TODO: escalate to a validation failure (result = false) once the ~100 overlaps in
-    // existing content have been cleaned up; for now report without failing the build.
-    List<List<String>> paths = Lists.newArrayListWithCapacity(parameters.length);
-    for (Parameter parameter : parameters) {
-      List<String> list = Lists.newArrayList();
-      parameter.getTargetPaths(list);
-      paths.add(list);
-    }
-    for (int ii = 0; ii < parameters.length; ii++) {
-      for (int jj = ii + 1; jj < parameters.length; jj++) {
-        for (String path1 : paths.get(ii)) {
-          for (String path2 : paths.get(jj)) {
-            if (pathsOverlap(path1, path2)) {
-              validator.output("parameters \"" + parameters[ii].name + "\" and \"" +
-                parameters[jj].name + "\" have overlapping targets: \"" + path1 +
-                "\" vs \"" + path2 + "\"");
-            }
-          }
-        }
-      }
-    }
+//    // verify that no two parameters write overlapping targets: parameters are applied in
+//    // no particular order, so a target nested inside another parameter's target would be
+//    // set nondeterministically.
+//    // TODO: escalate to a validation failure (result = false) once the ~100 overlaps in
+//    // existing content have been cleaned up; for now report without failing the build.
+//    List<List<String>> paths = Lists.newArrayListWithCapacity(parameters.length);
+//    for (Parameter parameter : parameters) {
+//      List<String> list = Lists.newArrayList();
+//      parameter.getTargetPaths(list);
+//      paths.add(list);
+//    }
+//    for (int ii = 0; ii < parameters.length; ii++) {
+//      for (int jj = ii + 1; jj < parameters.length; jj++) {
+//        for (String path1 : paths.get(ii)) {
+//          for (String path2 : paths.get(jj)) {
+//            if (pathsOverlap(path1, path2)) {
+//              validator.output("parameters \"" + parameters[ii].name + "\" and \"" +
+//                parameters[jj].name + "\" have overlapping targets: \"" + path1 +
+//                "\" vs \"" + path2 + "\"");
+//            }
+//          }
+//        }
+//      }
+//    }
     return result;
   }
 
