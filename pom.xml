@@ -139,6 +139,20 @@
 
   <profiles>
     <profile>
+      <!-- m2e (the maven importer inside eclipse/jdtls) defines m2e.version during IDE
+           builds; send those to target/ide so the IDE can never clobber the CLI build
+           output in target/classes (jdtls once stomped it with error-stub classes) -->
+      <id>m2e-separate-output</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <directory>${project.basedir}/target/ide</directory>
+      </build>
+    </profile>
+    <profile>
       <id>release-extras</id>
       <activation>
         <property><name>performRelease</name><value>true</value></property>
