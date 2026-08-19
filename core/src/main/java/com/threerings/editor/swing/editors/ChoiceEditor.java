@@ -36,6 +36,7 @@ import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.ListCellRenderer;
 
 import com.samskivert.util.StringUtil;
 
@@ -63,6 +64,7 @@ public class ChoiceEditor extends PropertyEditor
   public void update ()
   {
     Object[] options = getOptions();
+    _box.setRenderer(getPropertyRenderer(options.getClass().getComponentType()));
     _box.setModel(new DefaultComboBoxModel<Object>(options));
     _box.setSelectedItem(_property.get(_object));
   }
@@ -72,6 +74,7 @@ public class ChoiceEditor extends PropertyEditor
   {
     add(new JLabel(getPropertyLabel() + ":"));
     add(_box = new JComboBox<>());
+    _renderer = _box.getRenderer();
     _box.addActionListener(this);
   }
 
@@ -98,6 +101,44 @@ public class ChoiceEditor extends PropertyEditor
     return new Object[0];
   }
 
+  /**
+   * Get the combobox renderer to use with the property we've got.
+   */
+  protected ListCellRenderer<Object> getPropertyRenderer (Class<?> componentType)
+  {
+    Object mobj = _property.getMemberObject(_object);
+    if (mobj != null) {
+      Class<?> mclass = mobj.getClass();
+      Member member = _property.getMember();
+      String mname = member.getName();
+      mname = (member instanceof Method) ? mname.substring(3) : StringUtil.capitalize(mname);
+
+      for (; componentType != null; componentType = componentType.getSuperclass()) {
+        try {
+          var method = mclass.getMethod("format" + mname + "Option", componentType);
+          if (method != null) return (list, value, index, isSelected, cellHasFocus) -> {
+            try {
+              value = method.invoke(mobj, value);
+            } catch (Exception e) {
+              log.warning("Oh no: " + e);
+            }
+            return _renderer.getListCellRendererComponent(
+              list, value, index, isSelected, cellHasFocus);
+          };
+        } catch (NoSuchMethodException nsme) {
+          // fall through
+        } catch (Exception e) {
+          log.warning("Error retrieving formatter?.", "class", mclass, "member", mname, e);
+        }
+      }
+    }
+    // just use the default
+    return _renderer;
+  }
+
   /** The combo box. */
   protected JComboBox<Object> _box;
+
+  /** The default combobox cell renderer. */
+  protected ListCellRenderer<Object> _renderer;
 }
