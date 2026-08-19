@@ -164,7 +164,53 @@ public class ParameterizedConfig extends ManagedConfig
         validator.popWhere();
       }
     }
+
+    // verify that no two parameters write overlapping targets: parameters are applied in
+    // no particular order, so a target nested inside another parameter's target would be
+    // set nondeterministically.
+    // TODO: escalate to a validation failure (result = false) once the ~100 overlaps in
+    // existing content have been cleaned up; for now report without failing the build.
+    List<List<String>> paths = Lists.newArrayListWithCapacity(parameters.length);
+    for (Parameter parameter : parameters) {
+      List<String> list = Lists.newArrayList();
+      parameter.getTargetPaths(list);
+      paths.add(list);
+    }
+    for (int ii = 0; ii < parameters.length; ii++) {
+      for (int jj = ii + 1; jj < parameters.length; jj++) {
+        for (String path1 : paths.get(ii)) {
+          for (String path2 : paths.get(jj)) {
+            if (pathsOverlap(path1, path2)) {
+              validator.output("parameters \"" + parameters[ii].name + "\" and \"" +
+                parameters[jj].name + "\" have overlapping targets: \"" + path1 +
+                "\" vs \"" + path2 + "\"");
+            }
+          }
+        }
+      }
+    }
     return result;
+  }
+
+  /**
+   * Checks whether two parameter paths overlap: equal, or one addressing state inside the
+   * other's target, either of which makes parameter application order-dependent.
+   */
+  protected static boolean pathsOverlap (String path1, String path2)
+  {
+    return path1.equals(path2) || encloses(path1, path2) || encloses(path2, path1);
+  }
+
+  /**
+   * Checks whether the inner path addresses state inside the outer path's target.
+   */
+  protected static boolean encloses (String outer, String inner)
+  {
+    if (inner.length() <= outer.length() || !inner.startsWith(outer)) {
+      return false;
+    }
+    char next = inner.charAt(outer.length());
+    return next == '.' || next == '[';
   }
 
   @Override

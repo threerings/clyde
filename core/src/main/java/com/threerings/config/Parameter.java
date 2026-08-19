@@ -105,6 +105,14 @@ public abstract class Parameter extends DeepObject
     }
 
     @Override
+    public void getTargetPaths (List<String> results)
+    {
+      for (String path : paths) {
+        results.add(path);
+      }
+    }
+
+    @Override
     protected Property createProperty (ParameterizedConfig reference)
     {
       try {
@@ -330,6 +338,14 @@ public abstract class Parameter extends DeepObject
     }
 
     @Override
+    public void getTargetPaths (List<String> results)
+    {
+      for (Direct direct : directs) {
+        direct.getTargetPaths(results);
+      }
+    }
+
+    @Override
     public void validateOuters (String where, ParameterizedConfig outer)
     {
       if (_outer != outer) {
@@ -499,6 +515,11 @@ public abstract class Parameter extends DeepObject
    * @return true if the paths are valid.
    */
   public abstract boolean validatePaths (Validator validator, ParameterizedConfig reference);
+
+  /**
+   * Adds the property paths that this parameter writes to the supplied list.
+   */
+  public abstract void getTargetPaths (List<String> results);
 
   /**
    * Validates the parameter's outer object references.
