@@ -53,6 +53,7 @@ import com.threerings.util.ToolUtil;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.util.FieldCache;
 
 import com.threerings.editor.util.EditorContext;
@@ -60,6 +61,8 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.export.util.ExportFileUtil;
 
 import com.threerings.tudey.data.TudeySceneModel;
+
+import static com.threerings.ClydeLog.log;
 
 /**
  * Utilitiies for searching for and in ConfigReferences.
@@ -573,8 +576,7 @@ public class ConfigSearcher extends JFrame
 
     // make a list of sub-fields
     Multiset<T> attrs = null;
-    if (val instanceof ConfigReference) {
-      ConfigReference<?> ref = (ConfigReference<?>)val;
+    if (val instanceof ConfigReference ref) {
       Class<?> refType = asClass(getFirstGenericType(valGenericType));
 
       attrs = addAll(attrs, detector.apply(ref, refType));
@@ -588,9 +590,9 @@ public class ConfigSearcher extends JFrame
         attrs = addAll(attrs, findAttributes(Array.get(val, ii), subType, detector, seen));
       }
 
-    } else if (val instanceof Collection) {
+    } else if (val instanceof Collection coll) {
       java.lang.reflect.Type subType = getFirstGenericType(valGenericType);
-      for (Object o : ((Collection)val)) {
+      for (Object o : coll) {
         attrs = addAll(attrs, findAttributes(o, subType, detector, seen));
       }
 
@@ -602,7 +604,20 @@ public class ConfigSearcher extends JFrame
         } catch (IllegalAccessException iae) {
           continue;
         }
-        attrs = addAll(attrs, findAttributes(o, f.getGenericType(), detector, seen));
+        // Pretend bare-string config fields are in fact ConfigReferences
+        var ftype = f.getGenericType();
+        if (o != null && ftype == String.class &&
+            f.getAnnotation(Reference.class) instanceof Reference ref) {
+          o = new ConfigReference<ManagedConfig>((String)o);
+          ftype = new ParameterizedType() {
+            public java.lang.reflect.Type[] getActualTypeArguments () {
+              return new java.lang.reflect.Type[] { ref.value() };
+            }
+            public java.lang.reflect.Type getOwnerType () { return null; }
+            public java.lang.reflect.Type getRawType () { return ConfigReference.class; }
+          };
+        }
+        attrs = addAll(attrs, findAttributes(o, ftype, detector, seen));
       }
     }
     return (attrs != null) ? attrs : ImmutableMultiset.<T>of();
@@ -627,9 +642,7 @@ public class ConfigSearcher extends JFrame
    */
   protected static Class<?> asClass (java.lang.reflect.Type type)
   {
-    if (type instanceof Class) {
-      return (Class)type;
-    }
+    if (type instanceof Class cc) return cc;
     // TODO: more
 
     return null;
@@ -640,8 +653,8 @@ public class ConfigSearcher extends JFrame
    */
   protected static java.lang.reflect.Type getFirstGenericType (java.lang.reflect.Type type)
   {
-    if (type instanceof ParameterizedType) {
-      java.lang.reflect.Type[] args = ((ParameterizedType)type).getActualTypeArguments();
+    if (type instanceof ParameterizedType ptype) {
+      java.lang.reflect.Type[] args = ptype.getActualTypeArguments();
       return (args.length > 0) ? args[0] : null;
     }
     // TODO: more?
