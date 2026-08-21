@@ -34,6 +34,8 @@ import java.lang.invoke.MethodType;
 
 import com.samskivert.util.RunAnywhere;
 
+import proguard.annotation.Keep;
+
 import org.lwjgl.glfw.GLFWNativeNSGL;
 import org.lwjgl.system.JNI;
 import org.lwjgl.system.macosx.ObjCRuntime;
@@ -150,6 +152,7 @@ public final class MacContextUpdate
    * no logging, no GL.
    */
   @SuppressWarnings("unused") // invoked via the method handle in install()
+  @Keep
   private static void updateRequested (MemorySegment self, MemorySegment sel)
   {
     _pending = true;
