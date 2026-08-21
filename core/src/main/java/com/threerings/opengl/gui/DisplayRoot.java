@@ -144,6 +144,18 @@ public class DisplayRoot extends Root
    */
   protected void pollGamepads ()
   {
+    // Gamepad state is machine-global: GLFW exposes it by polling, not as focused-window events
+    // like keys, so without this guard every running client acts on the same controller -- one
+    // pad can then drive several clients in lockstep (a multiboxing aid). Restrict the pad to the
+    // focused window, matching how key input is already focus-gated above.
+    //
+    // TODO: unlike the key path above (which synthesizes KEY_RELEASED on focus loss), we don't
+    // release held gamepad controls here, so a stick/button physically held at the instant focus
+    // is lost stays "on" until focus returns (the pawn may coast). Add a release pass driving each
+    // held button/axis to rest (triggers rest at -1, sticks/buttons at 0) if that becomes an issue.
+    if (!_isActive) {
+      return;
+    }
     for (int jid = GLFW.GLFW_JOYSTICK_1; jid <= GLFW.GLFW_JOYSTICK_LAST; jid++) {
       if (!GLFW.glfwJoystickPresent(jid)) {
         continue;
