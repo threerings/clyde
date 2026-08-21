@@ -6,6 +6,13 @@ public class FBXFile {
 	private int version;
 	private FBXNode root;
 
+	/**
+	 * Create a file for writing with {@link FBXWriter}.
+	 */
+	public FBXFile (int version, FBXNode root) {
+		this(null, version, root);
+	}
+
 	FBXFile(String filePath, int version, FBXNode root) {
 		this.filePath = filePath;
 		this.version = version;

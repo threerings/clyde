@@ -128,13 +128,18 @@ public class ModelFbxParser extends AbstractFbxParser
           if (texture != null) {
             Long textureId = texture.getData();
             FBXNode video = findNodeToDest(textureId, "Video");
-            String filename = textures.get(video);
-            if (filename == null) {
+            String filename = (video == null) ? null : textures.get(video);
+            if (filename == null && video != null) {
               filename = extractTexture(video, dir);
               if (filename != null) {
                 if (messages != null) messages.add("Extracted " + filename + ".");
                 textures.put(video, filename);
               }
+            }
+            if (filename == null) {
+              // no embedded image: fall back to the name of the referenced file
+              filename = getTextureFilename(texture);
+              if (filename == null) filename = getTextureFilename(video);
             }
             if (filename != null) mesh.texture = filename;
           }
@@ -232,6 +237,18 @@ public class ModelFbxParser extends AbstractFbxParser
 //        double[] normalsW = norms.getChildProperty("NormalsW");
     double[] uvData = uvs != null ? uvs.<double[]>getChildProperty("UV") : null;
     int[] uvIndex = uvs != null ? uvs.<int[]>getChildProperty("UVIndex") : null;
+    FBXNode colors = geom.getChildByName("LayerElementColor");
+    double[] colorData = null;
+    int[] colorIndex = null;
+    boolean colorByVertice = false;
+    if (colors != null) {
+      colorData = colors.getChildProperty("Colors");
+      colorByVertice =
+        "ByVertice".equals(colors.<String>getChildProperty("MappingInformationType"));
+      if ("IndexToDirect".equals(colors.<String>getChildProperty("ReferenceInformationType"))) {
+        colorIndex = colors.getChildProperty("ColorIndex");
+      }
+    }
     String mappingType = norms.getChildProperty("MappingInformationType");
     NormalMapping normalMapping;
     if ("ByPolygonVertex".equals(mappingType)) normalMapping = NormalMapping.BY_POLYGON_VERTEX;
@@ -308,6 +325,18 @@ public class ModelFbxParser extends AbstractFbxParser
         }
       }
 
+      // Set vertex color
+      if (colorData != null) {
+        int ci = colorByVertice ? idx : ii;
+        if (colorIndex != null) ci = colorIndex[ci];
+        if (ci != -1) {
+          ci *= 4;
+          vv.color = new float[] {
+            (float)colorData[ci], (float)colorData[ci + 1],
+            (float)colorData[ci + 2], (float)colorData[ci + 3] };
+        }
+      }
+
       if (isSkin) {
         verticesLookup.put(idx, meshVerts.size());
         meshVerts.add((ModelDef.SkinVertex)vv);
@@ -364,6 +393,29 @@ public class ModelFbxParser extends AbstractFbxParser
     }
 
     return mesh;
+  }
+
+  /**
+   * Get the basename of the file a Texture or Video node references, or null.
+   */
+  protected String getTextureFilename (FBXNode node)
+  {
+    if (node == null) return null;
+    for (String child : new String[] { "RelativeFilename", "FileName", "Filename" }) {
+      FBXNode filename = node.getChildByName(child);
+      if (filename != null && filename.getNumProperties() == 1 &&
+          filename.getData() instanceof String name && !name.isEmpty()) {
+        return basename(name);
+      }
+    }
+    return null;
+  }
+
+  protected static String basename (String path)
+  {
+    int foreslash = path.lastIndexOf('/');
+    int backslash = path.lastIndexOf('\\');
+    return path.substring(1 + Math.max(foreslash, backslash));
   }
 
   protected String extractTexture (FBXNode node, File dir)

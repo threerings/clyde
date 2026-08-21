@@ -10,6 +10,13 @@ public class FBXNode {
 	private List<FBXNode> children;
 	private List<FBXProperty> properties;
 
+	/**
+	 * Create a detached node, suitable for building a document to pass to {@link FBXWriter}.
+	 */
+	public FBXNode (String name) {
+		this(name, null);
+	}
+
 	FBXNode(String name, FBXNode parent) {
 		this.name = name;
 		this.parent = parent;
@@ -23,6 +30,35 @@ public class FBXNode {
 
 	void add(FBXProperty property) {
 		properties.add(property);
+	}
+
+	/**
+	 * Add and return a new child of this node.
+	 */
+	public FBXNode addChild (String name) {
+		FBXNode child = new FBXNode(name, this);
+		add(child);
+		return child;
+	}
+
+	/**
+	 * Add a new child with the supplied property data, returning the new child.
+	 */
+	public FBXNode addChild (String name, Object... propertyData) {
+		FBXNode child = addChild(name);
+		for (Object data : propertyData) {
+			child.addProperty(data);
+		}
+		return child;
+	}
+
+	/**
+	 * Add a property with the supplied data, inferring the data type.
+	 * Returns this node, for chaining.
+	 */
+	public FBXNode addProperty (Object data) {
+		add(new FBXProperty(FBXDataType.typeFor(data), data, this));
+		return this;
 	}
 
 	public FBXNode getParent() {

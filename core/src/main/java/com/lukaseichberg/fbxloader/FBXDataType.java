@@ -35,6 +35,30 @@ public enum FBXDataType {
 		return this.category == category;
 	}
 
+	/**
+	 * Infer the type for a piece of property data, for building documents to write.
+	 */
+	public static FBXDataType typeFor (Object data) {
+		return switch (data) {
+			case Short _ -> SHORT;
+			case Boolean _ -> BOOLEAN;
+			case Integer _ -> INT;
+			case Float _ -> FLOAT;
+			case Double _ -> DOUBLE;
+			case Long _ -> LONG;
+			case float[] _ -> FLOAT_ARRAY;
+			case double[] _ -> DOUBLE_ARRAY;
+			case long[] _ -> LONG_ARRAY;
+			case int[] _ -> INT_ARRAY;
+			case boolean[] _ -> BOOLEAN_ARRAY;
+			case byte[] _ -> RAW;
+			case String _ -> STRING;
+			case null -> throw new IllegalArgumentException("Property data may not be null");
+			default -> throw new IllegalArgumentException(
+					"No FBX data type for: " + data.getClass().getName());
+		};
+	}
+
 	public boolean isArray() {
 		return category == FBXDataCategory.ARRAY;
 	}
