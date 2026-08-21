@@ -145,19 +145,16 @@ public class DisplayRoot extends Root
   protected void pollGamepads ()
   {
     // Gamepad state is machine-global: GLFW exposes it by polling, not as focused-window events
-    // like keys, so without this guard every running client acts on the same controller -- one
-    // pad can then drive several clients in lockstep (a multiboxing aid). Restrict the pad to the
-    // focused window, matching how key input is already focus-gated above.
-    //
-    // TODO: unlike the key path above (which synthesizes KEY_RELEASED on focus loss), we don't
-    // release held gamepad controls here, so a stick/button physically held at the instant focus
-    // is lost stays "on" until focus returns (the pawn may coast). Add a release pass driving each
-    // held button/axis to rest (triggers rest at -1, sticks/buttons at 0) if that becomes an issue.
-    if (!_isActive) {
-      return;
-    }
+    // like keys, so without a focus check every running client would act on the same controller --
+    // one pad driving several clients in lockstep (a multiboxing aid). When unfocused we stop
+    // reading the pad and instead drive its state to rest, which releases any control still held at
+    // focus loss (like the key path's release above) rather than leaving the pawn coasting.
     for (int jid = GLFW.GLFW_JOYSTICK_1; jid <= GLFW.GLFW_JOYSTICK_LAST; jid++) {
       if (!GLFW.glfwJoystickPresent(jid)) {
+        continue;
+      }
+      // Unfocused with no prior state: nothing was ever held, so nothing to release.
+      if (!_isActive && _gamepadStates[jid] == null) {
         continue;
       }
       // Ensure we have state storage for this joystick
@@ -166,12 +163,15 @@ public class DisplayRoot extends Root
         _prevGamepadStates[jid] = GLFWGamepadState.calloc();
       }
 
-      // Swap current → previous, read new state into current
+      // Swap current → previous, then refill current: from the live pad when focused, else from
+      // rest so held controls diff to a release exactly once (idempotent while unfocused).
       GLFWGamepadState tmp = _prevGamepadStates[jid];
       _prevGamepadStates[jid] = _gamepadStates[jid];
       _gamepadStates[jid] = tmp;
 
-      if (GLFW.glfwJoystickIsGamepad(jid)) {
+      if (!_isActive) {
+        setGamepadStateToRest(_gamepadStates[jid]);
+      } else if (GLFW.glfwJoystickIsGamepad(jid)) {
         GLFW.glfwGetGamepadState(jid, _gamepadStates[jid]);
       } else {
         // Fall back to raw joystick API for non-mapped controllers
@@ -224,6 +224,21 @@ public class DisplayRoot extends Root
       for (int ii = 0; ii < Math.min(buttons.remaining(), GLFW.GLFW_GAMEPAD_BUTTON_LAST + 1); ii++) {
         state.buttons(ii, buttons.get(ii));
       }
+    }
+  }
+
+  /**
+   * Fills a gamepad state with its neutral values: buttons released, sticks centered, and the two
+   * triggers at their -1 resting position (GLFW triggers rest at -1, not 0).
+   */
+  protected static void setGamepadStateToRest (GLFWGamepadState state)
+  {
+    for (int bi = 0; bi <= GLFW.GLFW_GAMEPAD_BUTTON_LAST; bi++) {
+      state.buttons(bi, (byte)0);
+    }
+    for (int ai = 0; ai <= GLFW.GLFW_GAMEPAD_AXIS_LAST; ai++) {
+      state.axes(ai, (ai == GLFW.GLFW_GAMEPAD_AXIS_LEFT_TRIGGER ||
+        ai == GLFW.GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER) ? -1f : 0f);
     }
   }
 
