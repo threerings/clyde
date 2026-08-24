@@ -27,6 +27,7 @@ package com.threerings.tudey.config;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.DerivedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -45,47 +46,17 @@ import com.threerings.tudey.util.TudeyContext;
 /**
  * The configuration of a global scene object.
  */
-public class SceneGlobalConfig extends ParameterizedConfig
+@EditorTypes({ SceneGlobalConfig.EnvironmentModel.class, SceneGlobalConfig.Camera.class,
+  DerivedConfig.class })
+public abstract class SceneGlobalConfig extends ParameterizedConfig
 {
   /** Used when we can't resolve the global's underlying original implementation. */
   public static final Original NULL_ORIGINAL = new EnvironmentModel();
 
   /**
-   * Contains the actual implementation of the global.
-   */
-  @EditorTypes({ EnvironmentModel.class, Camera.class, Derived.class })
-  public static abstract class Implementation extends DeepObject
-    implements Exportable
-  {
-    /**
-     * Returns a reference to the config's underlying original implementation.
-     */
-    public abstract Original getOriginal (ConfigManager cfgmgr);
-
-    /**
-     * Creates or updates a sprite implementation for this configuration.
-     *
-     * @param scope the global's expression scope.
-     * @param impl an existing implementation to reuse, if possible.
-     * @return either a reference to the existing implementation (if reused), a new
-     * implementation, or <code>null</code> if no implementation could be created.
-     */
-    public abstract GlobalSprite.Implementation getSpriteImplementation (
-      TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl);
-
-    /**
-     * Invalidates any cached data.
-     */
-    public void invalidate ()
-    {
-      // nothing by default
-    }
-  }
-
-  /**
    * Superclass of the original implementations.
    */
-  public static abstract class Original extends Implementation
+  public static abstract class Original extends SceneGlobalConfig
   {
     /** Tags used to identify the global within the scene. */
     @Editable
@@ -117,17 +88,13 @@ public class SceneGlobalConfig extends ParameterizedConfig
     }
 
     @Override
-    public Original getOriginal (ConfigManager cfgmgr)
+    protected void fireConfigUpdated ()
     {
-      return this;
-    }
-
-    @Override
-    public void invalidate ()
-    {
+      // invalidate the implementation
       for (HandlerConfig handler : handlers) {
         handler.invalidate();
       }
+      super.fireConfigUpdated();
     }
   }
 
@@ -155,8 +122,8 @@ public class SceneGlobalConfig extends ParameterizedConfig
     public GlobalSprite.Implementation getSpriteImplementation (
       TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
     {
-      if (impl instanceof GlobalSprite.EnvironmentModel) {
-        ((GlobalSprite.EnvironmentModel)impl).setConfig(this);
+      if (impl instanceof GlobalSprite.EnvironmentModel emodel) {
+        emodel.setConfig(this);
       } else {
         impl = new GlobalSprite.EnvironmentModel(ctx, scope, this);
       }
@@ -187,51 +154,13 @@ public class SceneGlobalConfig extends ParameterizedConfig
     public GlobalSprite.Implementation getSpriteImplementation (
       TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
     {
-      if (impl instanceof GlobalSprite.Camera) {
-        ((GlobalSprite.Camera)impl).setConfig(this);
+      if (impl instanceof GlobalSprite.Camera cam) {
+        cam.setConfig(this);
       } else {
         impl = new GlobalSprite.Camera(ctx, scope, this);
       }
       return impl;
     }
-  }
-
-  /**
-   * A derived implementation.
-   */
-  public static class Derived extends Implementation
-  {
-    /** The global reference. */
-    @Editable(nullable=true)
-    public ConfigReference<SceneGlobalConfig> sceneGlobal;
-
-    @Override
-    public Original getOriginal (ConfigManager cfgmgr)
-    {
-      SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
-      return (config == null) ? null : config.getOriginal(cfgmgr);
-    }
-
-    @Override
-    public GlobalSprite.Implementation getSpriteImplementation (
-      TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
-    {
-      SceneGlobalConfig config = ctx.getConfigManager().getConfig(
-        SceneGlobalConfig.class, sceneGlobal);
-      return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
-    }
-  }
-
-  /** The actual global implementation. */
-  @Editable
-  public Implementation implementation = new EnvironmentModel();
-
-  /**
-   * Returns a reference to the config's underlying original implementation.
-   */
-  public Original getOriginal (ConfigManager cfgmgr)
-  {
-    return implementation.getOriginal(cfgmgr);
   }
 
   /**
@@ -242,17 +171,6 @@ public class SceneGlobalConfig extends ParameterizedConfig
    * @return either a reference to the existing implementation (if reused), a new
    * implementation, or <code>null</code> if no implementation could be created.
    */
-  public GlobalSprite.Implementation getSpriteImplementation (
-    TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
-  {
-    return implementation.getSpriteImplementation(ctx, scope, impl);
-  }
-
-  @Override
-  protected void fireConfigUpdated ()
-  {
-    // invalidate the implementation
-    implementation.invalidate();
-    super.fireConfigUpdated();
-  }
+  public abstract GlobalSprite.Implementation getSpriteImplementation (
+    TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl);
 }

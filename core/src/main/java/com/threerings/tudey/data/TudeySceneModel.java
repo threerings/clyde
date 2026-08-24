@@ -650,10 +650,8 @@ public class TudeySceneModel extends SceneModel
      */
     public SceneGlobalConfig.Original getConfig (ConfigManager cfgmgr)
     {
-      SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
-      SceneGlobalConfig.Original original = (config == null) ?
-        null : config.getOriginal(cfgmgr);
-      return (original == null) ? SceneGlobalConfig.NULL_ORIGINAL : original;
+      return cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal) instanceof
+        SceneGlobalConfig.Original orig ? orig : SceneGlobalConfig.NULL_ORIGINAL;
     }
 
     @Override
