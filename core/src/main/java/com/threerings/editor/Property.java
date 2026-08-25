@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -99,6 +100,31 @@ public abstract class Property extends DeepObject
   public Class<?>[] getComponentSubtypes ()
   {
     return getSubtypes(getComponentType());
+  }
+
+  /**
+   * Returns the available subtypes of the specified type, absent any property context: the
+   * classes listed in its {@link EditorTypes} annotation (nested annotations expanded), followed
+   * by any registered for it in the editor type config (rsrc/config/editor/type.properties, keyed
+   * by the annotation's key or the type name), or just the type itself if neither lists anything.
+   */
+  public static List<Class<?>> getSubtypesOf (Class<?> type)
+  {
+    List<Class<?>> types = new ArrayList<>();
+    EditorTypes annotation = type.getAnnotation(EditorTypes.class);
+    String key = null;
+    if (annotation != null) {
+      key = annotation.key();
+      addSubtypes(annotation, types);
+    }
+    if (StringUtil.isBlank(key)) {
+      key = type.getName();
+    }
+    addConfigTypes(key, types);
+    if (types.isEmpty()) {
+      types.add(type);
+    }
+    return types;
   }
 
   /**
@@ -585,12 +611,13 @@ public abstract class Property extends DeepObject
   }
 
   /**
-   * Returns an array containing the available subtypes of the specified type, first looking to
-   * subtypes listed in the annotation, then attempting to find a method using reflection.
+   * Returns an array containing the available subtypes of the specified type: null first, if the
+   * property is nullable, then either the types from an {@link EditorTypes} annotation on the
+   * property itself (plus any registered under its key) or those of {@link #getSubtypesOf}.
    */
   protected Class<?>[] getSubtypes (Class<?> type)
   {
-    ArrayList<Class<?>> types = new ArrayList<Class<?>>();
+    List<Class<?>> types = new ArrayList<>();
 
     // start with the null class, if allowed
     boolean nullable = nullable();
@@ -598,36 +625,26 @@ public abstract class Property extends DeepObject
       types.add(null);
     }
 
-    // look for a subtype annotation and add its types
+    // an annotation on the property itself takes precedence over the type's
     EditorTypes ownAnnotation = getAnnotation(EditorTypes.class);
-    EditorTypes annotation = (ownAnnotation == null) ?
-      type.getAnnotation(EditorTypes.class) : ownAnnotation;
-    if (annotation != null) {
-      addSubtypes(annotation, types);
-    }
+    if (ownAnnotation == null) {
+      types.addAll(getSubtypesOf(type));
 
-    // get the config key and add the config types
-    String key = (annotation == null) ? type.getName() : annotation.key();
-    if (StringUtil.isBlank(key)) {
-      if (annotation == ownAnnotation) {
+    } else {
+      addSubtypes(ownAnnotation, types);
+      String key = ownAnnotation.key();
+      if (StringUtil.isBlank(key)) {
         Member member = getMember();
         key = member.getDeclaringClass().getName() + "." + member.getName();
-      } else {
-        key = type.getName();
+      }
+      addConfigTypes(key, types);
+
+      // if we don't have at least one non-null class, add the type itself
+      if (types.size() == (nullable ? 1 : 0)) {
+        types.add(type);
       }
     }
-    Class<?>[] ctypes = _configTypes.get(key);
-    if (ctypes != null) {
-      Collections.addAll(types, ctypes);
-    }
-
-    // if we don't have at least one non-null class, add the type itself
-    if (types.size() == (nullable ? 1 : 0)) {
-      types.add(type);
-    }
-
-    // convert to array, return
-    return types.toArray(new Class<?>[types.size()]);
+    return types.toArray(new Class<?>[0]);
   }
 
   /**
@@ -778,6 +795,17 @@ public abstract class Property extends DeepObject
       types.add(clazz);
     } else {
       addSubtypes(annotation, types);
+    }
+  }
+
+  /**
+   * Adds the classes registered under the specified key in the editor type config, if any.
+   */
+  protected static void addConfigTypes (String key, Collection<Class<?>> types)
+  {
+    Class<?>[] ctypes = _configTypes.get(key);
+    if (ctypes != null) {
+      Collections.addAll(types, ctypes);
     }
   }
 

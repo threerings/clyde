@@ -50,6 +50,7 @@ import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Property;
 
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -165,15 +166,13 @@ public class ConfigGroup<T extends ManagedConfig>
   }
 
   /**
-   * Get the classes of possible raw config types that we can use in this group.
+   * Get the classes of possible raw config types that we can use in this group: those declared
+   * by the config class's {@link EditorTypes} plus any registered for it in the editor type
+   * config. The first is the default for new configs.
    */
   public List<Class<?>> getRawConfigClasses ()
   {
-    // TODO: pre-cache? it's nice to ignore this for non-editing contexts..
-    EditorTypes anno = _cclass.getAnnotation(EditorTypes.class);
-    return (anno == null)
-      ? ImmutableList.<Class<?>>of(_cclass)
-      : ImmutableList.copyOf(anno.value());
+    return ImmutableList.copyOf(Property.getSubtypesOf(_cclass));
   }
 
   /**
