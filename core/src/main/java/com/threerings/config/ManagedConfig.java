@@ -250,6 +250,7 @@ public abstract class ManagedConfig extends DeepObject
    */
   public void addListener (ConfigUpdateListener<?> listener)
   {
+    if (disableConfigUpdates) return;
     if (_listeners == null) {
       // we disable duplicate checking for performance; don't fuck up
       (_listeners = WeakObserverList.newSafeInOrder()).setCheckDuplicates(false);
@@ -396,6 +397,10 @@ public abstract class ManagedConfig extends DeepObject
       }
     }
     try {
+      if (disableConfigUpdates) {
+        log.warning("Config updates are disabled here. What's happening!", new Exception());
+        return;
+      }
       if (_listeners != null) {
         final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, this);
         _listeners.apply(listener -> {
@@ -471,6 +476,9 @@ public abstract class ManagedConfig extends DeepObject
     }
     _updateResources = null;
   }
+
+  // TEMP: A mode, for a server, for great efficiency?!
+  public static boolean disableConfigUpdates;
 
   /** The name of this configuration. */
   protected String _name;
