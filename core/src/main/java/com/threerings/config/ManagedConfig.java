@@ -77,10 +77,10 @@ public abstract class ManagedConfig extends DeepObject
     }
   }
 
-  // TEMP
-  public static final boolean TrackFiringKludge = false;
-  //@DeepOmit protected transient Exception _trace;
-  // END: temp
+//  // TEMP
+//  public static final boolean TrackFiringKludge = false;
+//  @DeepOmit protected transient Exception _trace;
+//  // END: temp
 
   /**
    * Get the class that should be used to find us in the ConfigManager.
@@ -250,6 +250,7 @@ public abstract class ManagedConfig extends DeepObject
    */
   public void addListener (ConfigUpdateListener<?> listener)
   {
+    if (disableConfigUpdates) return;
     if (_listeners == null) {
       // we disable duplicate checking for performance; don't fuck up
       (_listeners = WeakObserverList.newSafeInOrder()).setCheckDuplicates(false);
@@ -381,21 +382,25 @@ public abstract class ManagedConfig extends DeepObject
   {
     // TODO: Remove need for _firing kludge?!?!
     if (_firing) {
-      if (TrackFiringKludge) {
-        //log.warning("Original trace", _trace);
-        log.warning("Firing kludge is in effect.", new Exception());
-      }
+//      if (TrackFiringKludge) {
+//        //log.warning("Original trace", _trace);
+//        log.warning("Firing kludge is in effect.", new Exception());
+//      }
       return;
     }
     _firing = true;
-    if (TrackFiringKludge) {
-      try {
-        throw new Exception();
-      } catch (Exception e) {
-        //_trace = e;
-      }
-    }
+//    if (TrackFiringKludge) {
+//      try {
+//        throw new Exception();
+//      } catch (Exception e) {
+//        _trace = e;
+//      }
+//    }
     try {
+      if (disableConfigUpdates) {
+        log.warning("Config updates are disabled here. What's happening!", new Exception());
+        return;
+      }
       if (_listeners != null) {
         final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, this);
         _listeners.apply(listener -> {
@@ -407,7 +412,7 @@ public abstract class ManagedConfig extends DeepObject
 
     } finally {
       _firing = false;
-      //_trace = null;
+//      _trace = null;
     }
   }
 
@@ -471,6 +476,9 @@ public abstract class ManagedConfig extends DeepObject
     }
     _updateResources = null;
   }
+
+  // TEMP: A mode, for a server, for great efficiency?!
+  public static boolean disableConfigUpdates;
 
   /** The name of this configuration. */
   protected String _name;
