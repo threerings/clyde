@@ -68,7 +68,8 @@ public abstract class ConditionConfig extends DeepObject
     public String tag = "";
 
     /** Whether or not all targets must match the condition (as opposed to any). */
-    @Editable(hgroup="t")
+    @Editable(hgroup="t",
+      tip="~Whether or not all targets must match the condition (as opposed to any).")
     public boolean all;
 
     /** The target to check. */
@@ -98,7 +99,8 @@ public abstract class ConditionConfig extends DeepObject
     public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
 
     /** Whether or not all targets must match the condition (as opposed to any). */
-    @Editable(hgroup="c")
+    @Editable(hgroup="c",
+      tip="~Whether or not all targets must match the condition (as opposed to any).")
     public boolean all;
 
     /** The target to check. */
@@ -124,11 +126,13 @@ public abstract class ConditionConfig extends DeepObject
   public static class Intersecting extends ConditionConfig
   {
     /** Whether or not to require all targets in the first region. */
-    @Editable(hgroup="a")
+    @Editable(hgroup="a",
+      tip="~Whether or not to require all targets in the first region.")
     public boolean allFirst;
 
     /** Whether or not to require all targets in the second region. */
-    @Editable(hgroup="a")
+    @Editable(hgroup="a",
+      tip="~Whether or not to require all targets in the second region.")
     public boolean allSecond;
 
     /** The first region to check. */
@@ -193,11 +197,13 @@ public abstract class ConditionConfig extends DeepObject
     public float maximum;
 
     /** Whether or not to require all targets in the first region. */
-    @Editable(hgroup="a")
+    @Editable(hgroup="a",
+      tip="~Whether or not all targets must match the condition (as opposed to any).")
     public boolean allFirst;
 
     /** Whether or not to require all targets in the second region. */
-    @Editable(hgroup="a")
+    @Editable(hgroup="a",
+      tip="~Whether or not all targets must match the condition (as opposed to any).")
     public boolean allSecond;
 
     /** The first target to check. */
@@ -476,7 +482,8 @@ public abstract class ConditionConfig extends DeepObject
   public static class Is extends ConditionConfig
   {
     /** Whether or not all targets must match the condition (as opposed to any). */
-    @Editable(hgroup="t")
+    @Editable(hgroup="t",
+      tip="~Whether or not all targets must match the condition (as opposed to any).")
     public boolean all;
 
     /** The target to check. */
