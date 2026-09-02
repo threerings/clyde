@@ -106,13 +106,13 @@ public class DraggableSpinner extends JSpinner
     // set the minimum fraction digits in the display based on the step size
     double step = model.getStepSize().doubleValue();
     int digits = (int)Math.round(-Math.log(step) / Math.log(10.0));
-    ((NumberEditor)getEditor()).getFormat().setMinimumFractionDigits(
-      Math.max(digits, 0));
-    ((NumberEditor)getEditor()).getTextField().setValue(getValue());
+    var editor = (NumberEditor)getEditor();
+    editor.getFormat().setMinimumFractionDigits(Math.max(digits, 0));
+    editor.getTextField().setValue(getValue());
 
     // set the preferred width to allow some room to grow
     Dimension dim = getPreferredSize();
-    setPreferredSize(new Dimension(65, dim.height));
+    setPreferredSize(new Dimension(85, dim.height));
   }
 
   /**
