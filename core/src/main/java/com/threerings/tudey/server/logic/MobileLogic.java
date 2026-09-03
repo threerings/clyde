@@ -38,6 +38,8 @@ import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActorAdvancer;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Controls the state of a mobile actor.
  */
@@ -121,10 +123,18 @@ public class MobileLogic extends ActorLogic
   {
     // wake the actor up if it's in stasis
     if (_inStasis) {
-      _scenemgr.addTickParticipant(this);
-      _inStasis = false;
-      _advancer.jump(_scenemgr.getTimestamp());
-      leftStasis();
+      if (isDestroyed()) {
+        // An actor destroyed before it ever woke (spawned and destroyed in one tick) is still
+        // snapshotted once, on the way out. Waking it would leave a ticking ghost behind after
+        // removal: invisible, but still running its behavior and attacks for several seconds.
+        log.warning("Not waking destroyed actor from stasis.", "actor", _actor.getConfig(),
+          "id", _actor.getId(), "where", _scenemgr.where());
+      } else {
+        _scenemgr.addTickParticipant(this);
+        _inStasis = false;
+        _advancer.jump(_scenemgr.getTimestamp());
+        leftStasis();
+      }
     }
     return super.getSnapshot();
   }
@@ -168,6 +178,15 @@ public class MobileLogic extends ActorLogic
     super.wasDestroyed();
 
     // deregister as tick participant
+    _scenemgr.removeTickParticipant(this);
+  }
+
+  @Override
+  protected void wasRemoved ()
+  {
+    super.wasRemoved();
+
+    // a removed actor must never tick, however it got re-registered since being destroyed
     _scenemgr.removeTickParticipant(this);
   }
 
