@@ -458,23 +458,13 @@ public abstract class ConditionLogic extends Logic
     @Override
     public boolean isSatisfied (Logic activator)
     {
-      ConditionConfig.FlagSet config = (ConditionConfig.FlagSet)_config;
+      var config = (ConditionConfig.FlagSet)_config;
       _target.resolve(activator, _targets);
       try {
         for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
           Logic logic = _targets.get(ii);
-          if (logic instanceof ActorLogic) {
-            Actor actor = ((ActorLogic)logic).getActor();
-            try {
-              Field flag = actor.getClass().getField(config.flagName);
-              if (actor.isSet(flag.getInt(actor))) {
-                return config.set;
-              }
-            } catch (NoSuchFieldException e) {
-              log.warning("Flag field not found in class for Flag Set Condition.", e);
-            } catch (IllegalAccessException e) {
-              log.warning("Cannot access flag field for Flag Set Condition.", e);
-            }
+          if (logic instanceof ActorLogic al && al.getActor().isFlagSet(config.flagName)) {
+            return config.set;
           }
         }
         return !config.set;

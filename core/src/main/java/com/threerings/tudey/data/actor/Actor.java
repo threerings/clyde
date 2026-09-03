@@ -43,6 +43,8 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeyContext;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Represents an active, stateful element of the scene.
  */
@@ -243,6 +245,22 @@ public class Actor extends DeepObject
   public boolean isSet (int flag)
   {
     return (_flags & flag) != 0;
+  }
+
+  /**
+   * Do a more expensive reflective lookup to see if a named flag is set on this
+   * actor type.
+   */
+  public boolean isFlagSet (String flag)
+  {
+    try {
+      return isSet(getClass().getField(flag).getInt(this));
+    } catch (NoSuchFieldException e) {
+      log.warning("Flag field not found in class.", "flag", flag, "class", getClass(), e);
+    } catch (IllegalAccessException e) {
+      log.warning("Cannot access flag field!", "flag", flag, "class", getClass(), e);
+    }
+    return false;
   }
 
   /**
