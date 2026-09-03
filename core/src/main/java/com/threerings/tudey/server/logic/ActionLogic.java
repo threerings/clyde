@@ -1125,8 +1125,8 @@ public abstract class ActionLogic extends Logic
       boolean ret = false;
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (target instanceof ActorLogic) {
-          Actor actor = ((ActorLogic)target).getActor();
+        if (target instanceof ActorLogic al) {
+          Actor actor = al.getActor();
           try {
             Field flag = actor.getClass().getField(config.flag);
             actor.set(flag.getInt(actor), config.on);
