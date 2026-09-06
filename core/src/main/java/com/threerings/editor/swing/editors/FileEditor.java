@@ -36,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import com.threerings.util.MessageBundle;
@@ -43,6 +44,8 @@ import com.threerings.util.MessageBundle;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.swing.PropertyEditor;
 import com.threerings.editor.swing.editors.util.RecentDirectoryList;
+
+import static com.threerings.editor.Log.log;
 
 /**
  * Edits file properties.
@@ -86,7 +89,9 @@ public class FileEditor extends PropertyEditor
           });
         }
       }
-      _chooser.setSelectedFile(getPropertyFile());
+      var propFile = getPropertyFile();
+      _chooser.setSelectedFile(propFile);
+      SwingUtilities.invokeLater(() -> _chooser.ensureFileIsVisible(propFile));
       _chooser.setAccessory(new RecentDirectoryList("files:" + getClass().getName()));
       int result = _chooser.showOpenDialog(this);
       if (key != null) {
