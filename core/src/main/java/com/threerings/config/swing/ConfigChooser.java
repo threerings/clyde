@@ -71,6 +71,8 @@ import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ReferenceConstraints;
 
+import static com.threerings.editor.Log.log;
+
 /**
  * A simple dialog that allows the user to select a configuration from a tree.
  */
@@ -206,7 +208,9 @@ public abstract class ConfigChooser extends JPanel
     @Override
     public void setSelectedConfig (String config)
     {
-      _chooser.setSelectedFile(config == null ? null : _rsrcmgr.getResourceFile(config));
+      var file = config == null ? null : _rsrcmgr.getResourceFile(config);
+      _chooser.setSelectedFile(file);
+      SwingUtilities.invokeLater(() -> _chooser.ensureFileIsVisible(file));
     }
 
     @Override
