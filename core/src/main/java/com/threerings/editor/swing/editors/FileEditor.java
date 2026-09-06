@@ -36,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import com.threerings.util.MessageBundle;
