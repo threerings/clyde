@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.data.actor;
 
+import proguard.annotation.Keep;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
@@ -36,9 +38,11 @@ import com.threerings.tudey.config.ActorConfig;
 public class Agent extends Active
 {
   /** A flag indicating that the actor is turning left. */
+  @Keep
   public static final int TURNING_LEFT = (Active.LAST_FLAG << 1);
 
   /** A flag indicating that the actor is turning right. */
+  @Keep
   public static final int TURNING_RIGHT = (Active.LAST_FLAG << 2);
 
   /** The value of the last flag defined in this class. */

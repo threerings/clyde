@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.data.actor;
 
+import proguard.annotation.Keep;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
@@ -52,6 +54,7 @@ public class Actor extends DeepObject
   implements Streamable, Deltable
 {
   /** A flag indicating that the actor has changed its position in a discontinuous fashion. */
+  @Keep
   public static final int WARP = (1 << 0);
 
   /** The value of the last flag defined in this class. */

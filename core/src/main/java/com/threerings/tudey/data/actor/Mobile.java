@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.data.actor;
 
+import proguard.annotation.Keep;
+
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
@@ -43,6 +45,7 @@ import com.threerings.tudey.util.MobileAdvancer;
 public class Mobile extends Actor
 {
   /** A flag indicating that the actor is in motion. */
+  @Keep
   public static final int MOVING = (Actor.LAST_FLAG << 1);
 
   /** The value of the last flag defined in this class. */
