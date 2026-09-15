@@ -41,13 +41,6 @@
     <module>core</module>
   </modules>
 
-  <repositories>
-    <repository>
-      <id>ooo-maven-repo</id>
-      <url>http://ooo-maven.googlecode.com/hg/repository</url>
-    </repository>
-  </repositories>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
