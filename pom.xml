@@ -43,6 +43,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- javac -Xlint categories: -serial because our streaming/export looks like serialization,
+         -this-escape because we have so many and they've been tested, -removal because we still
+         use finalizers (todo). projectx builds us with -Djavac.lint=none to hide our warnings
+         when working up there; build in this directory to see them. -->
+    <javac.lint>all,-serial,-this-escape,-removal</javac.lint>
   </properties>
 
   <build>
@@ -55,13 +60,9 @@
           <configuration>
             <release>25</release>
             <fork>true</fork>
-            <showDeprecation>true</showDeprecation>
             <showWarnings>true</showWarnings>
             <compilerArgs>
-              <arg>-Xlint</arg>
-              <arg>-Xlint:-serial</arg> <!-- our streaming/export looks like serialization -->
-              <arg>-Xlint:-this-escape</arg> <!-- we have so many, they've been tested -->
-              <arg>-Xlint:-removal</arg> <!-- we use finalizers, todo -->
+              <arg>-Xlint:${javac.lint}</arg>
               <arg>-Xmaxwarns</arg>
               <arg>9999</arg>
             </compilerArgs>
