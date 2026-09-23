@@ -48,10 +48,12 @@ public class ModelFbxParser extends AbstractFbxParser
     try {
       return new ModelFbxParser().parse(in, dir, messages);
     } catch (IOException ioe) {
+      log.warning("Error reading", ioe);
       messages.add(ioe.getMessage());
       return null;
       //throw ioe;
     } catch (RuntimeException re) {
+      log.warning("An error occurred parsing the model", re);
       messages.add(re.getMessage());
       return null;
       //throw re;
