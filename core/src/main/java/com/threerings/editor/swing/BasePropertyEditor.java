@@ -107,14 +107,15 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
    */
   public String getLabel (Class<?> type)
   {
-    if (type == null) {
-      return _msgs.get("m.null_value");
-    }
-    String name = type.getName();
-    name = name.substring(
-      Math.max(name.lastIndexOf('$'), name.lastIndexOf('.')) + 1);
+    if (type == null) return _msgs.get("m.null_value");
+    var fullName = type.getName();
+    var innerSplit = fullName.lastIndexOf('$');
+    var name = fullName.substring(Math.max(innerSplit, fullName.lastIndexOf('.')) + 1);
     name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(name));
-    return getLabel(name, Introspector.getMessageBundle(type));
+    name = getLabel(name, Introspector.getMessageBundle(type));
+    if (innerSplit == -1) return name;
+    var outerName = fullName.substring(fullName.lastIndexOf('.', innerSplit) + 1, innerSplit);
+    return outerName + " / " + name;
   }
 
   /**
