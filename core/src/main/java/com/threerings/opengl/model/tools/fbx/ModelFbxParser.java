@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import com.samskivert.util.Logger;
 import com.samskivert.util.StringUtil;
 
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -123,7 +124,16 @@ public class ModelFbxParser extends AbstractFbxParser
         mesh.offsetScale = newScale();
 
         // then, after we've potentially set-up bone weights, assign the textures
-        FBXNode material = findNodeToDest(id, "Material");
+        List<FBXNode> materials = findNodesToDest(id, "Material", null);
+        if (materials.size() > 1) {
+          // TODO: split the mesh by material, per its LayerElementMaterial layer
+          warn("Mesh '" + name + "' has " + materials.size() + " materials but only one is " +
+            "supported; using '" + rawName(materials.get(0)) + "' and ignoring '" +
+            Joiner.on("', '").join(Lists.transform(
+              materials.subList(1, materials.size()), AbstractFbxParser::rawName)) + "'.",
+            messages);
+        }
+        FBXNode material = Iterables.getFirst(materials, null);
         if (material != null) {
           Long materialId = material.getData();
           FBXNode texture = findNodeToDest(materialId, "Texture");
@@ -426,9 +436,7 @@ public class ModelFbxParser extends AbstractFbxParser
     if (layer == null) return null;
     String problem = layer.validate();
     if (problem == null) return layer;
-    String msg = "Ignoring " + what + " for mesh '" + meshName + "': " + problem;
-    log.warning(msg);
-    if (messages != null) messages.add(msg);
+    warn("Ignoring " + what + " for mesh '" + meshName + "': " + problem, messages);
     return null;
   }
 

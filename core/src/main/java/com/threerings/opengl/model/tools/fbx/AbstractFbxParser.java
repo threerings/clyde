@@ -16,6 +16,7 @@ import com.samskivert.util.Logger;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -163,13 +164,23 @@ public abstract class AbstractFbxParser
     return findNodeToDest(destId, name, null);
   }
 
-  protected FBXNode findNodeToDest (Long destId, String name, String type)
+  protected FBXNode findNodeToDest (Long destId, String name, @Nullable String type)
   {
+    return Iterables.getFirst(findNodesToDest(destId, name, type), null);
+  }
+
+  /**
+   * Find every node of the specified name (and type, if non-null) connected to a destination,
+   * in file order.
+   */
+  protected List<FBXNode> findNodesToDest (Long destId, String name, @Nullable String type)
+  {
+    List<FBXNode> nodes = Lists.newArrayList();
     for (Connection conn : connsByDest.get(destId)) {
       FBXNode node = findNode(conn.srcId, name, type);
-      if (node != null) return node;
+      if (node != null) nodes.add(node);
     }
-    return null;
+    return nodes;
   }
 
   protected float[] getXYZ (FBXNode propertyNode)
@@ -331,6 +342,16 @@ public abstract class AbstractFbxParser
   }
 
   /**
+   * Get the name of an fbx object, without the "\0\1Class" suffix that follows it.
+   */
+  protected static String rawName (FBXNode node)
+  {
+    String name = node.getData(1);
+    int idx = name.indexOf('\0');
+    return (idx < 0) ? name : name.substring(0, idx);
+  }
+
+  /**
    * Sanitize a name for our purposes.
    * <ul>
    *   <li> Strip leading/trailing unprintables.
@@ -371,6 +392,15 @@ public abstract class AbstractFbxParser
     Joiner jj = Joiner.on(", ");
     if (!convertedNames.isEmpty()) messages.add("Converted names: " + jj.join(convertedNames));
     if (!names.isEmpty()) messages.add("Other names: " + jj.join(names));
+  }
+
+  /**
+   * Log a warning about the import and also report it to the user, if they asked for messages.
+   */
+  protected void warn (String message, @Nullable List<String> messages)
+  {
+    log.warning(message);
+    if (messages != null) messages.add(message);
   }
 
   /**
