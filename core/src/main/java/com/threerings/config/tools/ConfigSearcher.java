@@ -576,7 +576,7 @@ public class ConfigSearcher extends JFrame
 
     // make a list of sub-fields
     Multiset<T> attrs = null;
-    if (val instanceof ConfigReference ref) {
+    if (val instanceof ConfigReference<?> ref) {
       Class<?> refType = asClass(getFirstGenericType(valGenericType));
 
       attrs = addAll(attrs, detector.apply(ref, refType));
@@ -590,7 +590,7 @@ public class ConfigSearcher extends JFrame
         attrs = addAll(attrs, findAttributes(Array.get(val, ii), subType, detector, seen));
       }
 
-    } else if (val instanceof Collection coll) {
+    } else if (val instanceof Collection<?> coll) {
       java.lang.reflect.Type subType = getFirstGenericType(valGenericType);
       for (Object o : coll) {
         attrs = addAll(attrs, findAttributes(o, subType, detector, seen));
@@ -642,7 +642,7 @@ public class ConfigSearcher extends JFrame
    */
   protected static Class<?> asClass (java.lang.reflect.Type type)
   {
-    if (type instanceof Class cc) return cc;
+    if (type instanceof Class<?> cc) return cc;
     // TODO: more
 
     return null;
