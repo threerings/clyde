@@ -33,9 +33,14 @@ public class DerivedConfig extends ParameterizedConfig
   @Editable(editor="derivedRef", nullable=true)
   public ConfigReference<? extends ManagedConfig> base;
 
-  /** The config class of the base, that we are actually deriving from. */
+  /** The config class of the base, that we are actually deriving from.
+   * Note: This is an implementation detail of the config system. Do not use or depend on this
+   * value unless your code is "operating on configs" not just using them.
+   * */
   @Shallow
-  @Deprecated
+  // @Deprecated // Not really! I need to clean this stuff up. If this sticks around as a
+  // public field like this maybe I'll keep the annotation and suppress warnings at all
+  // usage sites. :|
   public transient Class<? extends ManagedConfig> cclass;
 
   @Override
