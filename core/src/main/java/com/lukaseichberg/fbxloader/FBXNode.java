@@ -175,6 +175,10 @@ public class FBXNode {
 	 * May cause a runtime error if the type is not as anticipated!
 	 */
 	public <T> T getChildProperty (String name, int index) {
-		return getChildByName(name).getData(index);
+		FBXNode child = getChildByName(name);
+		if (child == null) {
+			throw new IllegalArgumentException("No child '" + name + "' in " + getFullName());
+		}
+		return child.getData(index);
 	}
 }

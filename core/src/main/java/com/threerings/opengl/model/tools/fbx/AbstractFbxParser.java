@@ -190,6 +190,17 @@ public abstract class AbstractFbxParser
   }
 
   /**
+   * Read the vector at the specified offset of a data array into engine space.
+   */
+  protected float[] getXYZ (double[] data, int offset)
+  {
+    return new float[] {
+      (float)data[offset + xAxis] * xAxisSign,
+      (float)data[offset + yAxis] * yAxisSign,
+      (float)data[offset + zAxis] * zAxisSign };
+  }
+
+  /**
    * Get the rotation out of a property node.
    */
   protected float[] getRotation (FBXNode propertyNode)

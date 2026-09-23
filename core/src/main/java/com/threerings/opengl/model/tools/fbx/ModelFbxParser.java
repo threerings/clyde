@@ -113,7 +113,7 @@ public class ModelFbxParser extends AbstractFbxParser
         // See if we have skin and material
         FBXNode skin = findNodeToDest(geomId, "Deformer", "Skin"); // ok to not find...
         Long skinId = skin != null ? skin.<Long>getData() : null;
-        ModelDef.TriMeshDef mesh = parseMesh(geom, skinId);
+        ModelDef.TriMeshDef mesh = parseMesh(geom, skinId, name, messages);
         spat = mesh;
 
         mesh.offsetTranslation = newTranslation();
@@ -223,37 +223,35 @@ public class ModelFbxParser extends AbstractFbxParser
    * Parse a mesh, which won't have a `name` or `texture` yet assigned.
    * Assumption: The bone nodes have already been parsed and are mapped by id.
    * @param skinId if null, parse a trimesh, otherwise a skinmesh with bone weights.
+   * @param name the name of the mesh, for messages.
+   * @param messages if provided, is populated with a list of import messages.
    */
-  protected ModelDef.TriMeshDef parseMesh (FBXNode geom, Long skinId)
+  protected ModelDef.TriMeshDef parseMesh (
+    FBXNode geom, Long skinId, String name, @Nullable List<String> messages)
   {
     boolean isSkin = skinId != null;
     ModelDef.TriMeshDef mesh = isSkin ? new ModelDef.SkinMeshDef() : new ModelDef.TriMeshDef();
-    FBXNode norms = geom.getChildByName("LayerElementNormal");
-    FBXNode uvs = geom.getChildByName("LayerElementUV");
 
     double[] vertices = geom.getChildProperty("Vertices");
     int[] pvi = geom.getChildProperty("PolygonVertexIndex");
-    double[] normals = norms.getChildProperty("Normals");
-//        double[] normalsW = norms.getChildProperty("NormalsW");
-    double[] uvData = uvs != null ? uvs.<double[]>getChildProperty("UV") : null;
-    int[] uvIndex = uvs != null ? uvs.<int[]>getChildProperty("UVIndex") : null;
-    FBXNode colors = geom.getChildByName("LayerElementColor");
-    double[] colorData = null;
-    int[] colorIndex = null;
-    boolean colorByVertice = false;
-    if (colors != null) {
-      colorData = colors.getChildProperty("Colors");
-      colorByVertice =
-        "ByVertice".equals(colors.<String>getChildProperty("MappingInformationType"));
-      if ("IndexToDirect".equals(colors.<String>getChildProperty("ReferenceInformationType"))) {
-        colorIndex = colors.getChildProperty("ColorIndex");
-      }
+
+    // Normals are required: every vertex needs one when the geometry buffers are built.
+    LayerElement normals = LayerElement.read(
+      geom, "LayerElementNormal", "Normals", "NormalsIndex", 3);
+    if (normals == null) throw new RuntimeException("Mesh '" + name + "' has no normals.");
+    String problem = normals.validate();
+    if (problem != null) {
+      throw new RuntimeException("Bad normals in mesh '" + name + "': " + problem);
     }
-    String mappingType = norms.getChildProperty("MappingInformationType");
-    NormalMapping normalMapping;
-    if ("ByPolygonVertex".equals(mappingType)) normalMapping = NormalMapping.BY_POLYGON_VERTEX;
-    else if ("ByVertice".equals(mappingType)) normalMapping = NormalMapping.BY_VERTICE;
-    else throw new RuntimeException("Unknown normal mapping: " + mappingType);
+
+    // UVs and colors are optional, so an inconsistent layer is dropped rather than failing the
+    // whole import. The FBX SDK is known to triangulate a mesh without re-indexing its vertex
+    // colors, leaving one color per corner of the *original* polygons; those can't be recovered.
+    LayerElement uvs = dropIfInvalid(
+      LayerElement.read(geom, "LayerElementUV", "UV", "UVIndex", 2), "UVs", name, messages);
+    LayerElement colors = dropIfInvalid(
+      LayerElement.read(geom, "LayerElementColor", "Colors", "ColorIndex", 4),
+      "vertex colors", name, messages);
 
     ListMultimap<Integer, Integer> verticesLookup = null;
     List<ModelDef.SkinVertex> meshVerts = null;
@@ -273,8 +271,6 @@ public class ModelFbxParser extends AbstractFbxParser
 //            }
 //        }
 
-    int nidx = 0;
-    int uidx = 0;
     float[] defaultTcoords = new float[2];
     for (int ii = 0, nn = pvi.length; ii < nn; ++ii) {
       ModelDef.Vertex vv = isSkin ? new ModelDef.SkinVertex() : new ModelDef.Vertex();
@@ -287,54 +283,25 @@ public class ModelFbxParser extends AbstractFbxParser
       }
       // Handle negative indices (they mark end of polygon, need to be made positive)
       if (idx < 0) idx = ~idx;
+      int poly = ii / 3; // we just established that every polygon is a triangle
 
-      // Set vertex position
-      int vi = idx * 3;
-      vv.location = new float[] {
-        (float)vertices[vi + xAxis] * xAxisSign,
-        (float)vertices[vi + yAxis] * yAxisSign,
-        (float)vertices[vi + zAxis] * zAxisSign
-      };
+      vv.location = getXYZ(vertices, idx * 3);
 
-      // Set normal
-      if (normalMapping == NormalMapping.BY_POLYGON_VERTEX) {
-        vv.normal = new float[] {
-          (float)normals[nidx + xAxis] * xAxisSign,
-          (float)normals[nidx + yAxis] * yAxisSign,
-          (float)normals[nidx + zAxis] * zAxisSign
-        };
-        nidx += 3;
+      int ni = normals.offset(ii, idx, poly);
+      if (ni < 0) throw new RuntimeException("Mesh '" + name + "' has a vertex with no normal.");
+      vv.normal = getXYZ(normals.data, ni);
 
-      } else if (normalMapping == NormalMapping.BY_VERTICE) {
-        vv.normal = new float[] {
-          (float)normals[vi + xAxis] * xAxisSign,
-          (float)normals[vi + yAxis] * yAxisSign,
-          (float)normals[vi + zAxis] * zAxisSign
-        };
-
-      } else {
-        log.warning("Unhandled normalMappingType " + normalMapping);
-      }
-
-      // Set UV coordinates
       if (uvs != null) {
-        int uvIdx = uvIndex[uidx++];
-        if (uvIdx != -1) {
-          uvIdx *= 2;
-          vv.tcoords = new float[] { (float)uvData[uvIdx], (float)uvData[uvIdx + 1] };
-        }
+        int ui = uvs.offset(ii, idx, poly);
+        if (ui >= 0) vv.tcoords = new float[] { (float)uvs.data[ui], (float)uvs.data[ui + 1] };
       }
 
-      // Set vertex color
-      if (colorData != null) {
-        int ci = colorByVertice ? idx : ii;
-        if (colorIndex != null) ci = colorIndex[ci];
-        if (ci != -1) {
-          ci *= 4;
-          vv.color = new float[] {
-            (float)colorData[ci], (float)colorData[ci + 1],
-            (float)colorData[ci + 2], (float)colorData[ci + 3] };
-        }
+      // Every vertex of a colored mesh must have a color or the buffers misalign, so white.
+      if (colors != null) {
+        int ci = colors.offset(ii, idx, poly);
+        vv.color = (ci < 0) ? new float[] { 1f, 1f, 1f, 1f } : new float[] {
+          (float)colors.data[ci], (float)colors.data[ci + 1],
+          (float)colors.data[ci + 2], (float)colors.data[ci + 3] };
       }
 
       if (isSkin) {
@@ -445,10 +412,171 @@ public class ModelFbxParser extends AbstractFbxParser
     return basename;
   }
 
-  enum NormalMapping {
-    BY_POLYGON_VERTEX,
-    BY_VERTICE,
-  };
+  /**
+   * Validate an optional layer, dropping it with a warning rather than failing the import.
+   *
+   * @param what a description of the layer's contents, for messages.
+   * @return the layer if it's usable, otherwise null.
+   */
+  protected LayerElement dropIfInvalid (
+    @Nullable LayerElement layer, String what, String meshName, @Nullable List<String> messages)
+  {
+    if (layer == null) return null;
+    String problem = layer.validate();
+    if (problem == null) return layer;
+    String msg = "Ignoring " + what + " for mesh '" + meshName + "': " + problem;
+    log.warning(msg);
+    if (messages != null) messages.add(msg);
+    return null;
+  }
+
+  /**
+   * Count the polygons described by a PolygonVertexIndex array, whose final index in
+   * each polygon is negated.
+   */
+  protected static int countPolygons (int[] pvi)
+  {
+    int count = 0;
+    for (int idx : pvi) {
+      if (idx < 0) count++;
+    }
+    return count;
+  }
+
+  /**
+   * One of a geometry's per-vertex layers (normals, uvs, colors) with its mapping and
+   * reference information resolved, so that the element for any polygon vertex can be
+   * looked up uniformly.
+   */
+  protected static class LayerElement
+  {
+    /** The element data, `stride` doubles per element. */
+    public final double[] data;
+
+    /** The number of doubles per element. */
+    public final int stride;
+
+    /**
+     * Read the named layer of a geometry.
+     *
+     * @param dataName the name of the layer's data array, like "Normals".
+     * @param indexName the name of the layer's index array, like "NormalsIndex".
+     * @return the layer, or null if the geometry doesn't have one.
+     */
+    public static LayerElement read (
+      FBXNode geom, String layerName, String dataName, String indexName, int stride)
+    {
+      FBXNode node = geom.getChildByName(layerName);
+      return (node == null) ? null : new LayerElement(geom, node, dataName, indexName, stride);
+    }
+
+    /**
+     * Validate the layer's arrays against its geometry.
+     *
+     * @return a description of the problem, or null if the layer is consistent.
+     */
+    public String validate ()
+    {
+      double[] vertices = _geom.getChildProperty("Vertices");
+      int[] pvi = _geom.getChildProperty("PolygonVertexIndex");
+      int expected = _mapping.count(vertices.length / 3, pvi);
+      int elements = data.length / stride;
+      if (_index == null) {
+        return (elements >= expected) ? null
+          : elements + " elements for " + expected + " " + _mapping.what;
+      }
+      if (_index.length < expected) {
+        return _index.length + " indices for " + expected + " " + _mapping.what;
+      }
+      for (int ii : _index) {
+        if (ii >= elements) return "index " + ii + " out of " + elements + " elements";
+      }
+      return null;
+    }
+
+    /**
+     * Get the offset into `data` of the element for a polygon vertex, or -1 if it has none.
+     *
+     * @param polyVertex the index of the polygon vertex.
+     * @param point the index of its control point.
+     * @param poly the index of its polygon.
+     */
+    public int offset (int polyVertex, int point, int poly)
+    {
+      int ii = _mapping.select(polyVertex, point, poly);
+      if (_index != null) ii = _index[ii];
+      return (ii < 0) ? -1 : ii * stride;
+    }
+
+    protected LayerElement (
+      FBXNode geom, FBXNode node, String dataName, String indexName, int stride)
+    {
+      _geom = geom;
+      this.stride = stride;
+      data = node.getChildProperty(dataName);
+      _mapping = Mapping.fromFbx(node.<String>getChildProperty("MappingInformationType"));
+      String reference = node.getChildProperty("ReferenceInformationType");
+      if ("Direct".equals(reference)) _index = null;
+      else if ("IndexToDirect".equals(reference)) _index = node.getChildProperty(indexName);
+      else throw new RuntimeException("Unknown reference type: " + reference);
+    }
+
+    /**
+     * How elements map onto the geometry: the FBX "MappingInformationType".
+     */
+    protected enum Mapping
+    {
+      BY_POLYGON_VERTEX("polygon vertices"),
+      BY_CONTROL_POINT("control points"),
+      BY_POLYGON("polygons"),
+      ALL_SAME("mesh");
+
+      /** What the elements are mapped to, for messages. */
+      public final String what;
+
+      public static Mapping fromFbx (String type)
+      {
+        switch (type) {
+        case "ByPolygonVertex": return BY_POLYGON_VERTEX;
+        case "ByVertice": case "ByVertex": return BY_CONTROL_POINT; // the sdk writes "ByVertice"
+        case "ByPolygon": return BY_POLYGON;
+        case "AllSame": return ALL_SAME;
+        default: throw new RuntimeException("Unsupported mapping type: " + type); // eg "ByEdge"
+        }
+      }
+
+      /** The number of elements a layer needs for the specified geometry. */
+      public int count (int points, int[] pvi)
+      {
+        switch (this) {
+        case BY_POLYGON_VERTEX: return pvi.length;
+        case BY_CONTROL_POINT: return points;
+        case BY_POLYGON: return countPolygons(pvi);
+        default: return 1;
+        }
+      }
+
+      /** The index of the element for a polygon vertex. */
+      public int select (int polyVertex, int point, int poly)
+      {
+        switch (this) {
+        case BY_POLYGON_VERTEX: return polyVertex;
+        case BY_CONTROL_POINT: return point;
+        case BY_POLYGON: return poly;
+        default: return 0;
+        }
+      }
+
+      Mapping (String what)
+      {
+        this.what = what;
+      }
+    }
+
+    protected final FBXNode _geom;
+    protected final Mapping _mapping;
+    protected final int[] _index;
+  }
 }
 
 /**
