@@ -216,7 +216,7 @@ public abstract class ActionConfig extends DeepObject
     public float stepSize = 1;
 
     /** The number of steps to take. */
-    @Editable(hgroup="s")
+    @Editable(hgroup="s", min=0)
     @Strippable
     public int steps = 1;
 

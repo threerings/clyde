@@ -259,6 +259,13 @@ public abstract class ActionLogic extends Logic
     }
 
     @Override
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+      super.transfer(source, refs);
+      _cs.transfer(((SpawnRandomTranslatedActor)source)._cs, refs);
+    }
+
+    @Override
     protected void didInit ()
     {
       super.didInit();
