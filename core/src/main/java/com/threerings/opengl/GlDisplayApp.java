@@ -46,6 +46,7 @@ import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.util.DisplayMode;
 import com.threerings.opengl.util.GlUtil;
 import com.threerings.opengl.util.MacContextUpdate;
+import com.threerings.opengl.util.MacEventLoop;
 import com.threerings.opengl.util.MacFullscreen;
 
 import static com.threerings.opengl.Log.log;
@@ -580,13 +581,14 @@ public abstract class GlDisplayApp extends GlApp
     GLFW.glfwPollEvents();
     GLFW.glfwShowWindow(_window);
 
+    boolean pollEvents = shouldPollEvents();
     while (_running) {
       if (GLFW.glfwWindowShouldClose(_window)) {
         _running = false;
         break;
       }
 
-      GLFW.glfwPollEvents();
+      if (pollEvents) GLFW.glfwPollEvents();
 
       // Process any queued tasks
       Runnable task;
@@ -604,6 +606,19 @@ public abstract class GlDisplayApp extends GlApp
 
       updateFrame();
     }
+  }
+
+  /**
+   * Returns whether {@link #mainLoop} should pump window events with {@code glfwPollEvents}.
+   *
+   * <p>Not when AWT already runs AppKit's event loop (macOS): glfw_async runs each poll as a
+   * second event pump nested inside AWT's, which on macOS 27 defeats AppKit's own tracking of
+   * window-frame drags and clicks (edge resize, the close button). AWT's loop already delivers
+   * every event to our window, so the poll adds nothing there.
+   */
+  protected boolean shouldPollEvents ()
+  {
+    return !MacEventLoop.isRunning();
   }
 
   @Override
@@ -740,7 +755,7 @@ public abstract class GlDisplayApp extends GlApp
   protected void updateFrame ()
   {
     try {
-      // glfwPollEvents() is called at the top of the main loop, before task processing.
+      // Events were pumped (see shouldPollEvents) at the top of the main loop, before tasks.
       updateView();
       // Check if window is visible/not iconified
       if (GLFW.glfwGetWindowAttrib(_window, GLFW.GLFW_VISIBLE) != 0) {

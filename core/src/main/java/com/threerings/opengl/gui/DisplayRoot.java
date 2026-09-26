@@ -353,10 +353,10 @@ public class DisplayRoot extends Root
       public void invoke (long window, int codepoint) {
         final char ch = (char)codepoint;
         // Capture (and clear) the pending key's consumed-flag at fire time. GLFW fires
-        // the char callback synchronously right after the matching key callback within
-        // the same glfwPollEvents, so this references whichever key is currently in
-        // flight. A standalone char (no preceding key in this poll, e.g. IME composed
-        // input) sees null and dispatches normally.
+        // the char callback synchronously right after the matching key callback, in the
+        // same round of event dispatch, so this references whichever key is currently in
+        // flight. A standalone char (no preceding key, e.g. IME composed input) sees null
+        // and dispatches normally.
         final boolean[] keyConsumed = _pendingKeyConsumed;
         _pendingKeyConsumed = null;
         synchronized (_eventQueue) {
