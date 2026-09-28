@@ -80,7 +80,7 @@ public class Compass extends SimpleOverlay
   protected void drawAxis (Renderer renderer, Text label, float x, float y)
   {
     // draw the label (coordinates fudged to get the text lined up right)
-    label.render(renderer, (int)(29f + 28f*x), (int)(29f + 28f*y), 1f);
+    label.render(renderer, (int)(29f + 28f*x), (int)(29f + 28f*y), 1f, 1f);
 
     // draw the line (in the same color)
     renderer.setTextureState(null);

@@ -291,9 +291,10 @@ public class LabelRenderer
 
   protected void renderText (Renderer renderer, int contWidth, int contHeight, float alpha)
   {
+    float scale = _container.getRootScale();
     if (_fit == Label.Fit.WRAP) {
       _config.glyphs.render(
-        renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing);
+        renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing, scale);
       return;
     }
 
@@ -308,7 +309,7 @@ public class LabelRenderer
       _config.glyphs.render(renderer, 0, 0,
         getWidth(width, height, _textRotation),
         getHeight(width, height, _textRotation),
-        _container.getHorizontalAlignment(), alpha);
+        _container.getHorizontalAlignment(), alpha, scale);
       return;
     }
 
@@ -319,7 +320,7 @@ public class LabelRenderer
       width, height);
     try {
       _config.glyphs.render(
-        renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing);
+        renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing, scale);
     } finally {
       renderer.setScissor(oscissor);
     }
@@ -559,7 +560,7 @@ public class LabelRenderer
     }
 
     public void render (Renderer renderer, int tx, int ty, int halign,
-              float alpha, int spacing) {
+              float alpha, int spacing, float scale) {
       // render the lines from the bottom up
       for (int ii = lines.length-1; ii >= 0; ii--) {
         int lx = tx;
@@ -577,23 +578,23 @@ public class LabelRenderer
             a = 0f;
           }
         }
-        lines[ii].render(renderer, lx, ty, a);
+        lines[ii].render(renderer, lx, ty, a, scale);
         ty += lines[ii].getSize().height + (ii > 0 ? spacing : 0);
       }
     }
 
     public void render (Renderer renderer, int tx, int ty,
-        int width, int height, int halign, float alpha) {
+        int width, int height, int halign, float alpha, float scale) {
       // render only the first line
-      float scale = 1f;
+      float fit = 1f;
       if (size.width > width) {
-        scale = (float)width/size.width;
+        fit = (float)width/size.width;
       }
       if (size.height > height) {
-        scale = Math.min(scale, (float)height/size.height);
+        fit = Math.min(fit, (float)height/size.height);
       }
-      width = (int)(size.width * scale);
-      height = (int)(size.height * scale);
+      width = (int)(size.width * fit);
+      height = (int)(size.height * fit);
       if (height < size.height) {
         ty += (size.height - height)/2;
       }
@@ -602,7 +603,7 @@ public class LabelRenderer
       } else if (halign == CENTER) {
         tx += (size.width - width)/2;
       }
-      lines[0].render(renderer, tx, ty, width, height, alpha);
+      lines[0].render(renderer, tx, ty, width, height, alpha, scale);
     }
   }
 

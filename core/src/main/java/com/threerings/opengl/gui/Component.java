@@ -1344,6 +1344,21 @@ public class Component
   }
 
   /**
+   * Returns the scale of the root in which we're displayed (the number of pixels per unit of our
+   * coordinates), or one if we're not in a root.
+   */
+  protected float getRootScale ()
+  {
+    Window window;
+    Root root;
+    if ((window = getWindow()) == null ||
+      (root = window.getRoot()) == null) {
+      return 1f;
+    }
+    return root.getScale();
+  }
+
+  /**
    * Searches for the next component that should receive the keyboard focus. If such a component
    * can be found, it will be returned. If no other focusable component can be found and this
    * component is focusable, this component will be returned. Otherwise, null will be returned.

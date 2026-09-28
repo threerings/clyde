@@ -59,14 +59,19 @@ public abstract class Text
 
   /**
    * Renders this text to the display.
+   *
+   * @param scale the number of pixels per unit of the coordinates in which we're drawn (that of
+   * the root, for interface text), at which to rasterize the text.
    */
-  public abstract void render (Renderer renderer, int x, int y, float alpha);
+  public abstract void render (Renderer renderer, int x, int y, float alpha, float scale);
 
   /**
    * Optional rendering this text scaled to a certain height/width.
+   *
+   * @param scale the number of pixels per unit of the coordinates in which we're drawn.
    */
-  public void render (Renderer renderer, int x, int y, int w, int h, float alpha)
+  public void render (Renderer renderer, int x, int y, int w, int h, float alpha, float scale)
   {
-    render(renderer, x, y, alpha);
+    render(renderer, x, y, alpha, scale);
   }
 }

@@ -79,7 +79,7 @@ public class Stats extends SimpleOverlay
   @Override
   protected void draw ()
   {
-    _stats.render(_ctx.getRenderer(), 16, getY(), 1f);
+    _stats.render(_ctx.getRenderer(), 16, getY(), 1f, 1f);
   }
 
   /**

@@ -269,6 +269,7 @@ public class TextArea extends TextComponent
     }
 
     // render the lines
+    float scale = getRootScale();
     for (int ii = start; ii < stop; ii++) {
       Line line = _lines.get(ii);
       y -= line.height;
@@ -277,7 +278,7 @@ public class TextArea extends TextComponent
       } else if (halign == UIConstants.CENTER) {
         x = insets.left + (_width - insets.getHorizontal() - line.getWidth()) / 2;
       }
-      line.render(renderer, x, y, _alpha);
+      line.render(renderer, x, y, _alpha, scale);
     }
   }
 
@@ -451,12 +452,12 @@ public class TextArea extends TextComponent
     /**
      * Renders this line of text.
      */
-    public void render (Renderer renderer, int x, int y, float alpha)
+    public void render (Renderer renderer, int x, int y, float alpha, float scale)
     {
       int dx = x;
       for (int ii = 0, ll = segments.size(); ii < ll; ii++) {
         Text text = segments.get(ii);
-        text.render(renderer, dx, y, alpha);
+        text.render(renderer, dx, y, alpha, scale);
         dx += text.getSize().width;
       }
     }

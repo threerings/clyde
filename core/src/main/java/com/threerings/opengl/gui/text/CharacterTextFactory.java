@@ -32,11 +32,12 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -55,10 +56,12 @@ import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.util.GlUtil;
 
 /**
- * Formats text by rendering individual characters into a set of shared textures, then returning
- * {@link Text} instances that render groups of quads, one for each character.
+ * Formats text by rendering individual characters into sets of shared textures, one set for each
+ * scale at which the text is drawn, then returning {@link Text} instances that render groups of
+ * quads, one for each character.
  */
 public class CharacterTextFactory extends TextFactory
   implements UIConstants
@@ -102,18 +105,6 @@ public class CharacterTextFactory extends TextFactory
     applyRenderingHints(graphics);
     _frc = graphics.getFontRenderContext();
     graphics.dispose();
-  }
-
-  /**
-   * Renders a string directly, without creating a text object.
-   */
-  public void render (Renderer renderer, String text, int x, int y, Color4f color)
-  {
-    for (int ii = 0, nn = text.length(); ii < nn; ii++) {
-      Glyph glyph = getGlyph(text.charAt(ii));
-      glyph.render(renderer, x, y);
-      x += glyph.width;
-    }
   }
 
   @Override
@@ -171,35 +162,38 @@ public class CharacterTextFactory extends TextFactory
         }
         return x;
       }
-      public void render (Renderer renderer, int x, int y, float alpha) {
+      public void render (Renderer renderer, int x, int y, float alpha, float scale) {
+        GlyphAtlas atlas = getAtlas(scale);
+
         // add the descent above the baseline
         y += _metrics.getDescent() + _descentOffset;
 
         // multi-pixel outlines go below the character
         if (outlines != null && effectSize > 1) {
-          renderGlyphs(renderer, outlines, effectColor, x, y, alpha);
+          renderGlyphs(renderer, atlas, outlines, effectColor, x, y, alpha);
         }
         // as do shadows
         if (effect == SHADOW) {
           renderGlyphs(
-            renderer, glyphs, effectColor, x + effectSize - 1, y - effectSize, alpha);
+            renderer, atlas, glyphs, effectColor, x + effectSize - 1, y - effectSize, alpha);
           x += 1;
         }
 
         // now draw the characters
-        renderGlyphs(renderer, glyphs, color, x, y, alpha);
+        renderGlyphs(renderer, atlas, glyphs, color, x, y, alpha);
 
         // single-pixel outlines go on top of the character
         if (outlines != null && effectSize == 1) {
-          renderGlyphs(renderer, outlines, effectColor, x, y, alpha);
+          renderGlyphs(renderer, atlas, outlines, effectColor, x, y, alpha);
         }
       }
       protected void renderGlyphs (
-        Renderer renderer, Glyph[] glyphs, Color4f color, int x, int y, float alpha) {
+        Renderer renderer, GlyphAtlas atlas, Glyph[] glyphs, Color4f color,
+        int x, int y, float alpha) {
         float a = color.a * alpha;
         renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
         for (Glyph glyph : glyphs) {
-          glyph.render(renderer, x, y);
+          atlas.render(renderer, glyph, x, y);
           x += glyph.width;
         }
       }
@@ -320,24 +314,30 @@ public class CharacterTextFactory extends TextFactory
   }
 
   /**
-   * Inserts the glyph image into the current texture (creating a new texture if there is no
-   * current texture or the current texture doesn't have enough room), returns the texture unit
-   * data, and populates the supplied array with the texture coordinates.
+   * Returns the atlas of our glyphs rasterized at the specified scale, creating it if necessary.
    */
-  protected TextureUnit[] addGlyphToTexture (
-    Renderer renderer, BufferedImage image, float[] tcoords)
+  protected GlyphAtlas getAtlas (float scale)
   {
-    // try to add to the current texture; if there's not enough room, create a new one
-    TextureUnit[] units = (_texture == null) ? null : _texture.add(image, tcoords);
-    if (units == null) {
-      _texture = new GlyphTexture(renderer);
-      units = _texture.add(image, tcoords);
+    // kept in most recently used order
+    for (int ii = 0, nn = _atlases.size(); ii < nn; ii++) {
+      GlyphAtlas atlas = _atlases.get(ii);
+      if (atlas.scale == scale) {
+        if (ii > 0) {
+          _atlases.add(0, _atlases.remove(ii));
+        }
+        return atlas;
+      }
     }
-    return units;
+    GlyphAtlas atlas = new GlyphAtlas(scale);
+    _atlases.add(0, atlas);
+    if (_atlases.size() > MAX_ATLASES) {
+      _atlases.remove(MAX_ATLASES).dispose();
+    }
+    return atlas;
   }
 
   /**
-   * A single glyph.
+   * A single glyph, independent of the scale at which it's drawn.
    */
   protected class Glyph
   {
@@ -349,70 +349,40 @@ public class CharacterTextFactory extends TextFactory
       width = _metrics.charWidth(_c = c);
       _effect = effect;
       _size = size;
-      _vector = _font.createGlyphVector(_frc, Character.toString(c));
+      _outline = _font.createGlyphVector(_frc, Character.toString(c)).getOutline();
+      Rectangle2D bounds = _outline.getBounds2D();
+      if (!bounds.isEmpty()) {
+        _bounds = bounds;
+      }
+    }
 
+    /**
+     * Renders this glyph at the specified scale into a new image. Populates the supplied
+     * rectangle with the image's offset from the pen, in pixels with y up, and its size.
+     */
+    protected BufferedImage createImage (float scale, Rectangle bounds)
+    {
       // size from the outline we fill; getPixelBounds() measures the font's own glyph image,
       // which can be narrower
-      Rectangle2D bounds = _vector.getOutline().getBounds2D();
-      if (!bounds.isEmpty()) {
-        int x1 = (int)Math.floor(bounds.getMinX()), y1 = (int)Math.floor(bounds.getMinY());
-        int x2 = (int)Math.ceil(bounds.getMaxX()), y2 = (int)Math.ceil(bounds.getMaxY());
-        _bounds = new Rectangle(x1, -y2, x2 - x1, y2 - y1);
-        int grow = 1 + (_effect == OUTLINE ? Math.round(size/2f) : 0);
-        _bounds.grow(grow, grow);
-      }
-    }
+      int x1 = (int)Math.floor(_bounds.getMinX() * scale);
+      int y1 = (int)Math.floor(_bounds.getMinY() * scale);
+      int x2 = (int)Math.ceil(_bounds.getMaxX() * scale);
+      int y2 = (int)Math.ceil(_bounds.getMaxY() * scale);
+      bounds.set(x1, -y2, x2 - x1, y2 - y1);
+      int grow = 1 + (_effect == OUTLINE ? (int)Math.ceil(_size * scale / 2f) : 0);
+      bounds.grow(grow, grow);
 
-    /**
-     * Renders this glyph at the specified position.
-     */
-    public void render (Renderer renderer, int x, int y)
-    {
-      if (_units == null) {
-        if (_bounds == null) {
-          return; // whitespace
-        }
-        float[] tcoords = new float[4];
-        _units = addGlyphToTexture(renderer, createImage(), tcoords);
-        _s1 = tcoords[0];
-        _t1 = tcoords[1];
-        _s2 = tcoords[2];
-        _t2 = tcoords[3];
-        _vector = null;
-      }
-      int lx = x + _bounds.x;
-      int ly = y + _bounds.y;
-      int ux = lx + _bounds.width;
-      int uy = ly + _bounds.height;
-
-      renderer.setTextureState(_units);
-      renderer.setMatrixMode(GL11.GL_MODELVIEW);
-      GL11.glBegin(GL11.GL_QUADS);
-      GL11.glTexCoord2f(_s1, _t1);
-      GL11.glVertex2f(lx, ly);
-      GL11.glTexCoord2f(_s2, _t1);
-      GL11.glVertex2f(ux, ly);
-      GL11.glTexCoord2f(_s2, _t2);
-      GL11.glVertex2f(ux, uy);
-      GL11.glTexCoord2f(_s1, _t2);
-      GL11.glVertex2f(lx, uy);
-      GL11.glEnd();
-    }
-
-    /**
-     * Renders this glyph into a new image the size of its bounds.
-     */
-    protected BufferedImage createImage ()
-    {
       BufferedImage image = new BufferedImage(
-        _bounds.width, _bounds.height, BufferedImage.TYPE_INT_ARGB);
+        bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
       Graphics2D graphics = image.createGraphics();
       try {
         applyRenderingHints(graphics);
-        Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
+        Shape outline = new AffineTransform(
+          scale, 0f, 0f, scale, -bounds.x, bounds.y + bounds.height)
+          .createTransformedShape(_outline);
         if (_effect == OUTLINE) {
           graphics.setStroke(new BasicStroke(
-            _size, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
+            _size * scale, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
           graphics.draw(outline);
         } else {
           graphics.fill(outline);
@@ -429,29 +399,144 @@ public class CharacterTextFactory extends TextFactory
     /** The effect and effect size. */
     protected int _effect, _size;
 
-    /** Stores the glyph vector. */
-    protected GlyphVector _vector;
+    /** The outline, relative to the pen with y down. */
+    protected Shape _outline;
 
-    /** The glyph bounds. */
-    protected Rectangle _bounds;
+    /** The bounds of the outline, or null if it's blank. */
+    protected Rectangle2D _bounds;
+  }
 
-    /** The glyph texture units. */
-    protected TextureUnit[] _units;
+  /**
+   * Our glyphs rasterized at one scale, and the textures that hold them.
+   */
+  protected static class GlyphAtlas
+  {
+    /** The number of pixels per unit at which glyphs are rasterized. */
+    public final float scale;
 
-    /** The texture coordinates of the glyph. */
-    protected float _s1, _t1, _s2, _t2;
+    public GlyphAtlas (float scale)
+    {
+      this.scale = scale;
+    }
+
+    /**
+     * Renders a glyph with its pen at the specified position.
+     */
+    public void render (Renderer renderer, Glyph glyph, int x, int y)
+    {
+      if (glyph._bounds == null) {
+        return; // whitespace
+      }
+      Raster raster = _rasters.get(glyph);
+      if (raster == null) {
+        _rasters.put(glyph, raster = createRaster(renderer, glyph));
+      }
+      raster.render(renderer, x, y);
+    }
+
+    /**
+     * Deletes our textures.
+     */
+    public void dispose ()
+    {
+      for (GlyphTexture texture : _textures) {
+        texture.delete();
+      }
+    }
+
+    /**
+     * Rasterizes a glyph into one of our textures.
+     */
+    protected Raster createRaster (Renderer renderer, Glyph glyph)
+    {
+      Rectangle bounds = new Rectangle();
+      BufferedImage image = glyph.createImage(scale, bounds);
+
+      // try to add to the current texture; if there's not enough room, create a new one
+      Raster raster = new Raster();
+      float[] tcoords = new float[4];
+      GlyphTexture texture = _textures.isEmpty() ? null : _textures.get(_textures.size() - 1);
+      if (texture == null || (raster.units = texture.add(image, tcoords)) == null) {
+        int size = Math.max(TEXTURE_SIZE, GlUtil.nextPowerOfTwo(
+          Math.max(bounds.width, bounds.height)));
+        _textures.add(texture = new GlyphTexture(renderer, size, scale != 1f));
+        raster.units = texture.add(image, tcoords);
+      }
+      raster.s1 = tcoords[0];
+      raster.t1 = tcoords[1];
+      raster.s2 = tcoords[2];
+      raster.t2 = tcoords[3];
+
+      // at one, we draw as we always have; otherwise each texel covers exactly one pixel, and we
+      // nudge the quad so that pixel centers don't land on texel edges when a glyph falls on a
+      // half pixel
+      float bias = (scale == 1f) ? 0f : SNAP_BIAS;
+      raster.x1 = (bounds.x + bias) / scale;
+      raster.y1 = (bounds.y + bias) / scale;
+      raster.x2 = (bounds.x + bounds.width + bias) / scale;
+      raster.y2 = (bounds.y + bounds.height + bias) / scale;
+      return raster;
+    }
+
+    /** The glyphs rasterized so far. */
+    protected Map<Glyph, Raster> _rasters = new IdentityHashMap<Glyph, Raster>();
+
+    /** Our textures; the last is the one being populated. */
+    protected ArrayList<GlyphTexture> _textures = new ArrayList<GlyphTexture>();
+  }
+
+  /**
+   * A glyph rasterized at one scale.
+   */
+  protected static class Raster
+  {
+    /** The texture units holding the glyph image. */
+    public TextureUnit[] units;
+
+    /** The corners of the glyph's quad relative to the pen, in unscaled units. */
+    public float x1, y1, x2, y2;
+
+    /** The texture coordinates of the glyph image. */
+    public float s1, t1, s2, t2;
+
+    /**
+     * Renders the glyph with its pen at the specified position.
+     */
+    public void render (Renderer renderer, int x, int y)
+    {
+      float lx = x + x1, ly = y + y1;
+      float ux = x + x2, uy = y + y2;
+
+      renderer.setTextureState(units);
+      renderer.setMatrixMode(GL11.GL_MODELVIEW);
+      GL11.glBegin(GL11.GL_QUADS);
+      GL11.glTexCoord2f(s1, t1);
+      GL11.glVertex2f(lx, ly);
+      GL11.glTexCoord2f(s2, t1);
+      GL11.glVertex2f(ux, ly);
+      GL11.glTexCoord2f(s2, t2);
+      GL11.glVertex2f(ux, uy);
+      GL11.glTexCoord2f(s1, t2);
+      GL11.glVertex2f(lx, uy);
+      GL11.glEnd();
+    }
   }
 
   /**
    * A shared texture.
    */
-  protected class GlyphTexture
+  protected static class GlyphTexture
   {
-    public GlyphTexture (Renderer renderer)
+    /**
+     * @param snap if true, sample nearest texels even when minifying: the glyphs are drawn with a
+     * pixel for every texel, and must stay on the pixel grid.
+     */
+    public GlyphTexture (Renderer renderer, int size, boolean snap)
     {
+      _size = size;
       _texture = new Texture2D(renderer);
-      _texture.setImage(GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false, false);
-      _texture.setFilters(GL11.GL_LINEAR, GL11.GL_NEAREST);
+      _texture.setImage(GL11.GL_RGBA, size, size, false, false);
+      _texture.setFilters(snap ? GL11.GL_NEAREST : GL11.GL_LINEAR, GL11.GL_NEAREST);
       _units = new TextureUnit[] { new TextureUnit(_texture) };
     }
 
@@ -463,12 +548,12 @@ public class CharacterTextFactory extends TextFactory
       int width = image.getWidth(), height = image.getHeight();
 
       // move up to the next row if necessary
-      if (_x + width > TEXTURE_SIZE) {
+      if (_x + width > _size) {
         _y += _height;
         _x = 0;
         _height = 0;
       }
-      if (_y + height > TEXTURE_SIZE) {
+      if (_x + width > _size || _y + height > _size) {
         return null; // out of room in this texture
       }
 
@@ -476,10 +561,10 @@ public class CharacterTextFactory extends TextFactory
       _texture.setSubimage(image, true, _x, _y, width, height);
 
       // set the texture coordinates
-      tcoords[0] = (float)_x / TEXTURE_SIZE;
-      tcoords[1] = (float)_y / TEXTURE_SIZE;
-      tcoords[2] = (float)(_x + width) / TEXTURE_SIZE;
-      tcoords[3] = (float)(_y + height) / TEXTURE_SIZE;
+      tcoords[0] = (float)_x / _size;
+      tcoords[1] = (float)_y / _size;
+      tcoords[2] = (float)(_x + width) / _size;
+      tcoords[3] = (float)(_y + height) / _size;
 
       // advance to the next position
       _x += width;
@@ -488,6 +573,17 @@ public class CharacterTextFactory extends TextFactory
       // return the texture units
       return _units;
     }
+
+    /**
+     * Deletes the texture.
+     */
+    public void delete ()
+    {
+      _texture.delete();
+    }
+
+    /** The width and height of the texture. */
+    protected int _size;
 
     /** The shared texture unit array. */
     protected TextureUnit[] _units;
@@ -561,8 +657,8 @@ public class CharacterTextFactory extends TextFactory
   /** Cached glyphs. */
   protected HashIntMap<Glyph> _glyphs = new HashIntMap<Glyph>();
 
-  /** The glyph texture currently being populated. */
-  protected GlyphTexture _texture;
+  /** Our glyphs rasterized at each scale in use, most recently used first. */
+  protected ArrayList<GlyphAtlas> _atlases = new ArrayList<GlyphAtlas>();
 
   /** The offset for the descent value. */
   protected int _descentOffset;
@@ -573,6 +669,16 @@ public class CharacterTextFactory extends TextFactory
   protected static Map<FactoryKey, CharacterTextFactory> _instances =
     Maps.newHashMap();
 
-  /** The width/height of the glyph textures. */
+  /** The width/height of the glyph textures (larger if a glyph needs it). */
   protected static final int TEXTURE_SIZE = 256;
+
+  /** The most scales for which we keep glyphs: the root's and one (for billboards and such) are
+   * typically all that's in use, plus one left behind when the root's changes. */
+  protected static final int MAX_ATLASES = 3;
+
+  /** The fraction of a pixel by which we nudge glyphs rasterized at scales other than one.
+   * TODO: at arbitrary scales (e.g. a "max" UI scale of 45/32) some glyphs still land exactly on
+   * a tie; Apple's GPU snaps them whole, but if another tears them, align each quad to the pixel
+   * grid using its absolute position instead. */
+  protected static final float SNAP_BIAS = 1/8f;
 }

@@ -115,8 +115,9 @@ public class TextEditor extends EditableTextComponent
       try {
         int x = insets.left;
         int y = _height - insets.top - lineHeight;
+        float scale = getRootScale();
         for (Text text : _glyphs) {
-          text.render(renderer, x, y, _alpha);
+          text.render(renderer, x, y, _alpha, scale);
           y -= lineHeight;
         }
       } finally {

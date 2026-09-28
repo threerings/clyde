@@ -130,7 +130,7 @@ public class TextBillboard extends SimpleSceneElement
   {
     if (_text != null) {
       Dimension size = _text.getSize();
-      _text.render(_ctx.getRenderer(), -size.width / 2, -size.height / 2, 1f);
+      _text.render(_ctx.getRenderer(), -size.width / 2, -size.height / 2, 1f, 1f);
     }
   }
 

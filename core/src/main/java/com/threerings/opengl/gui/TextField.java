@@ -118,7 +118,7 @@ public class TextField extends EditableTextComponent
         _width - insets.getHorizontal(),
         _height - insets.getVertical());
       try {
-        _glyphs.render(renderer, insets.left - _txoff, insets.bottom, _alpha);
+        _glyphs.render(renderer, insets.left - _txoff, insets.bottom, _alpha, getRootScale());
 
       } finally {
         renderer.setScissor(oscissor);
