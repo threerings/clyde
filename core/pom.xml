@@ -11,6 +11,10 @@
   <packaging>jar</packaging>
   <name>Clyde Core</name>
 
+  <properties>
+    <lwjgl.version>3.4.3</lwjgl.version>
+  </properties>
+
   <dependencies>
     <!-- exported dependencies -->
     <dependency>
@@ -47,47 +51,47 @@
     <dependency>
         <groupId>org.lwjgl</groupId>
         <artifactId>lwjgl</artifactId>
-        <version>3.4.1</version>
+        <version>${lwjgl.version}</version>
     </dependency>
     <dependency>
         <groupId>org.lwjgl</groupId>
         <artifactId>lwjgl-opengl</artifactId>
-        <version>3.4.1</version>
+        <version>${lwjgl.version}</version>
     </dependency>
     <dependency>
         <groupId>org.lwjgl</groupId>
         <artifactId>lwjgl-openal</artifactId>
-        <version>3.4.1</version>
+        <version>${lwjgl.version}</version>
     </dependency>
     <dependency>
         <groupId>org.lwjgl</groupId>
         <artifactId>lwjgl-glfw</artifactId>
-        <version>3.4.1</version>
+        <version>${lwjgl.version}</version>
     </dependency>
     <dependency>
         <groupId>org.lwjglx</groupId>
         <artifactId>lwjgl3-awt</artifactId>
-        <version>0.2.4</version>
+        <version>0.2.5</version>
     </dependency>
 
     <!-- LWJGL native libraries for all platforms. LWJGL auto-loads the
          matching native at runtime; extras are ignored. -->
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>3.4.1</version><classifier>natives-linux</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>3.4.1</version><classifier>natives-macos</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>3.4.1</version><classifier>natives-macos-arm64</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>3.4.1</version><classifier>natives-windows</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>3.4.1</version><classifier>natives-linux</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>3.4.1</version><classifier>natives-macos</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>3.4.1</version><classifier>natives-macos-arm64</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>3.4.1</version><classifier>natives-windows</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>3.4.1</version><classifier>natives-linux</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>3.4.1</version><classifier>natives-macos</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>3.4.1</version><classifier>natives-macos-arm64</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>3.4.1</version><classifier>natives-windows</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>3.4.1</version><classifier>natives-linux</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>3.4.1</version><classifier>natives-macos</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>3.4.1</version><classifier>natives-macos-arm64</classifier></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>3.4.1</version><classifier>natives-windows</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>${lwjgl.version}</version><classifier>natives-linux</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>${lwjgl.version}</version><classifier>natives-macos</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>${lwjgl.version}</version><classifier>natives-macos-arm64</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><version>${lwjgl.version}</version><classifier>natives-windows</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>${lwjgl.version}</version><classifier>natives-linux</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>${lwjgl.version}</version><classifier>natives-macos</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>${lwjgl.version}</version><classifier>natives-macos-arm64</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-opengl</artifactId><version>${lwjgl.version}</version><classifier>natives-windows</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>${lwjgl.version}</version><classifier>natives-linux</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>${lwjgl.version}</version><classifier>natives-macos</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>${lwjgl.version}</version><classifier>natives-macos-arm64</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-openal</artifactId><version>${lwjgl.version}</version><classifier>natives-windows</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>${lwjgl.version}</version><classifier>natives-linux</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>${lwjgl.version}</version><classifier>natives-macos</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>${lwjgl.version}</version><classifier>natives-macos-arm64</classifier></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl-glfw</artifactId><version>${lwjgl.version}</version><classifier>natives-windows</classifier></dependency>
 
     <!-- optional/provided dependencies -->
    <dependency>
