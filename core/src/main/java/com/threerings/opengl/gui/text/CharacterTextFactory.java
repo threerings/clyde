@@ -26,7 +26,6 @@
 package com.threerings.opengl.gui.text;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -34,6 +33,7 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
@@ -90,29 +90,18 @@ public class CharacterTextFactory extends TextFactory
   public CharacterTextFactory (Font font, boolean antialias, float descentModifier , int heightModifier)
   {
     _font = font;
+    _antialias = antialias;
 
     // we need a graphics context to retrieve the metrics
-    _scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-    _graphics = _scratch.createGraphics();
-    _metrics = _graphics.getFontMetrics(font);
+    Graphics2D graphics = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics();
+    _metrics = graphics.getFontMetrics(font);
     _descentOffset = Math.round(_metrics.getHeight() * descentModifier);
     _heightModifier = heightModifier;
 
-    // create a test glyph to determine the size
-    FontRenderContext ctx = _graphics.getFontRenderContext();
-    GlyphVector vector = _font.createGlyphVector(ctx, "J");
-    java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
-
-    // allow up to four times the sample dimensions for descenders, effects, etc.
-    _scratch = new BufferedImage(bounds.width*4, bounds.height*4, BufferedImage.TYPE_INT_ARGB);
-    _graphics.dispose();
-    _graphics = _scratch.createGraphics();
-    _graphics.setFont(font);
-    _graphics.setBackground(new Color(0, true));
-    _graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-      antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
-    _graphics.setRenderingHint(
-      RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+    // and to lay out the glyphs
+    applyRenderingHints(graphics);
+    _frc = graphics.getFontRenderContext();
+    graphics.dispose();
   }
 
   /**
@@ -320,23 +309,29 @@ public class CharacterTextFactory extends TextFactory
   }
 
   /**
-   * Inserts the glyph image in the scratch pad into the current texture (creating a new
-   * texture if there is no current texture or the current texture doesn't have enough
-   * room), returns the texture unit data, and populates the supplied array with the
-   * texture coordinates.
+   * Configures a graphics context for laying out and rendering our glyphs.
+   */
+  protected void applyRenderingHints (Graphics2D graphics)
+  {
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+      _antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+    graphics.setRenderingHint(
+      RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+  }
+
+  /**
+   * Inserts the glyph image into the current texture (creating a new texture if there is no
+   * current texture or the current texture doesn't have enough room), returns the texture unit
+   * data, and populates the supplied array with the texture coordinates.
    */
   protected TextureUnit[] addGlyphToTexture (
-    Renderer renderer, int width, int height, float[] tcoords)
+    Renderer renderer, BufferedImage image, float[] tcoords)
   {
-    // make sure the width and height don't exceed the borders of the scratchpad
-    width = Math.min(Math.max(width, 0), _scratch.getWidth());
-    height = Math.min(Math.max(height, 0), _scratch.getHeight());
-
     // try to add to the current texture; if there's not enough room, create a new one
-    TextureUnit[] units = (_texture == null) ? null : _texture.add(width, height, tcoords);
+    TextureUnit[] units = (_texture == null) ? null : _texture.add(image, tcoords);
     if (units == null) {
       _texture = new GlyphTexture(renderer);
-      units = _texture.add(width, height, tcoords);
+      units = _texture.add(image, tcoords);
     }
     return units;
   }
@@ -354,12 +349,15 @@ public class CharacterTextFactory extends TextFactory
       width = _metrics.charWidth(_c = c);
       _effect = effect;
       _size = size;
-      FontRenderContext ctx = _graphics.getFontRenderContext();
-      _vector = _font.createGlyphVector(ctx, Character.toString(c));
-      java.awt.Rectangle bounds = _vector.getPixelBounds(ctx, 0f, 0f);
-      if (bounds.width > 0 && bounds.height > 0) {
-        _bounds = new Rectangle(
-          bounds.x, -bounds.y - bounds.height, bounds.width, bounds.height);
+      _vector = _font.createGlyphVector(_frc, Character.toString(c));
+
+      // size from the outline we fill; getPixelBounds() measures the font's own glyph image,
+      // which can be narrower
+      Rectangle2D bounds = _vector.getOutline().getBounds2D();
+      if (!bounds.isEmpty()) {
+        int x1 = (int)Math.floor(bounds.getMinX()), y1 = (int)Math.floor(bounds.getMinY());
+        int x2 = (int)Math.ceil(bounds.getMaxX()), y2 = (int)Math.ceil(bounds.getMaxY());
+        _bounds = new Rectangle(x1, -y2, x2 - x1, y2 - y1);
         int grow = 1 + (_effect == OUTLINE ? Math.round(size/2f) : 0);
         _bounds.grow(grow, grow);
       }
@@ -374,18 +372,8 @@ public class CharacterTextFactory extends TextFactory
         if (_bounds == null) {
           return; // whitespace
         }
-        // render the glyph to the scratch image
-        _graphics.clearRect(0, 0, _scratch.getWidth(), _scratch.getHeight());
-        Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
-        if (_effect == OUTLINE) {
-          _graphics.setStroke(new BasicStroke(
-            _size, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
-          _graphics.draw(outline);
-        } else {
-          _graphics.fill(outline);
-        }
         float[] tcoords = new float[4];
-        _units = addGlyphToTexture(renderer, _bounds.width, _bounds.height, tcoords);
+        _units = addGlyphToTexture(renderer, createImage(), tcoords);
         _s1 = tcoords[0];
         _t1 = tcoords[1];
         _s2 = tcoords[2];
@@ -409,6 +397,30 @@ public class CharacterTextFactory extends TextFactory
       GL11.glTexCoord2f(_s1, _t2);
       GL11.glVertex2f(lx, uy);
       GL11.glEnd();
+    }
+
+    /**
+     * Renders this glyph into a new image the size of its bounds.
+     */
+    protected BufferedImage createImage ()
+    {
+      BufferedImage image = new BufferedImage(
+        _bounds.width, _bounds.height, BufferedImage.TYPE_INT_ARGB);
+      Graphics2D graphics = image.createGraphics();
+      try {
+        applyRenderingHints(graphics);
+        Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
+        if (_effect == OUTLINE) {
+          graphics.setStroke(new BasicStroke(
+            _size, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
+          graphics.draw(outline);
+        } else {
+          graphics.fill(outline);
+        }
+      } finally {
+        graphics.dispose();
+      }
+      return image;
     }
 
     /** The glyph character. */
@@ -444,10 +456,12 @@ public class CharacterTextFactory extends TextFactory
     }
 
     /**
-     * Attempts to copy the glyph in the scratch image into this texture.
+     * Attempts to copy the glyph image into this texture.
      */
-    public TextureUnit[] add (int width, int height, float[] tcoords)
+    public TextureUnit[] add (BufferedImage image, float[] tcoords)
     {
+      int width = image.getWidth(), height = image.getHeight();
+
       // move up to the next row if necessary
       if (_x + width > TEXTURE_SIZE) {
         _y += _height;
@@ -458,9 +472,8 @@ public class CharacterTextFactory extends TextFactory
         return null; // out of room in this texture
       }
 
-      // copy the scratch image into the texture
-      _texture.setSubimage(
-        _scratch.getSubimage(0, 0, width, height), true, _x, _y, width, height);
+      // copy the image into the texture
+      _texture.setSubimage(image, true, _x, _y, width, height);
 
       // set the texture coordinates
       tcoords[0] = (float)_x / TEXTURE_SIZE;
@@ -536,9 +549,11 @@ public class CharacterTextFactory extends TextFactory
   /** The font being rendered by this factory. */
   protected Font _font;
 
-  /** A scratchpad image and its graphics context. */
-  protected BufferedImage _scratch;
-  protected Graphics2D _graphics;
+  /** Whether or not to antialias the glyphs. */
+  protected boolean _antialias;
+
+  /** The context in which glyphs are laid out. */
+  protected FontRenderContext _frc;
 
   /** The font metrics. */
   protected FontMetrics _metrics;
