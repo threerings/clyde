@@ -43,6 +43,8 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 
+import com.samskivert.util.RunAnywhere;
+
 import static com.threerings.opengl.Log.log;
 
 /**
@@ -69,9 +71,13 @@ public class GlCanvas extends JPanel
     // alongside the profile: lwjgl3-awt rejects a non-null profile with version < 3.2,
     // since the OpenGL profile concept doesn't exist below 3.2. Drivers will typically
     // hand back a higher compatibility context (4.x) than the minimum we ask for.
-    data.majorVersion = 3;
-    data.minorVersion = 2;
-    data.profile = GLData.Profile.COMPATIBILITY;
+    // macOS has no compatibility profiles: its legacy 2.1 context (what GLFW gives the game)
+    // is what we get by leaving both unset, whereas any version of 3 or above gets core.
+    if (!RunAnywhere.isMacOS()) {
+      data.majorVersion = 3;
+      data.minorVersion = 2;
+      data.profile = GLData.Profile.COMPATIBILITY;
+    }
 
     // create the AWT GL canvas
     _awtCanvas = new LockableGLCanvas(data);
