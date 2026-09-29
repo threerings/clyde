@@ -126,16 +126,21 @@ public class CharacterTextFactory extends TextFactory
     final String text, final Color4f color, final int effect,
     final int effectSize, final Color4f effectColor, boolean useAdvance)
   {
-    // get/create glyphs
+    // get/create glyphs and place them, noting the pen position of each and then of the end
     final Glyph[] glyphs = new Glyph[text.length()];
-    int width = 0;
+    final float[] positions = new float[glyphs.length + 1];
+    float pen = 0f;
     for (int ii = 0; ii < glyphs.length; ii++) {
       glyphs[ii] = getGlyph(text.charAt(ii));
-      width += glyphs[ii].width;
+      if (ii > 0) {
+        pen += getKerning(text.charAt(ii - 1), text.charAt(ii));
+      }
+      positions[ii] = pen;
+      pen += glyphs[ii].advance;
     }
+    positions[glyphs.length] = pen;
 
-    final Dimension size = new Dimension(width, getHeight());
-    final float[] positions = getPositions(text, width);
+    final Dimension size = new Dimension((int)Math.ceil(pen), getHeight());
 
     // and outlines, if necessary
     final Glyph[] outlines = (effect == OUTLINE) ? new Glyph[text.length()] : null;
@@ -209,11 +214,13 @@ public class CharacterTextFactory extends TextFactory
   {
     ArrayList<Text> lines = new ArrayList<Text>();
     StringBuilder line = new StringBuilder();
-    int width = 0;
+    // measured exactly as createText places glyphs, so each line fits the width it's wrapped to
+    float width = 0f;
     for (int ii = 0, nn = text.length(); ii < nn; ii++) {
       char c = text.charAt(ii);
       Glyph glyph = getGlyph(c);
-      if (c == '\n' || width + glyph.width > maxWidth) {
+      float kerning = (line.length() > 0) ? getKerning(line.charAt(line.length() - 1), c) : 0f;
+      if (c == '\n' || width + kerning + glyph.advance > maxWidth) {
         String extra = "";
         if (c != '\n' && c != ' ') {
           // scan backwards, see if we can break on a space
@@ -231,13 +238,17 @@ public class CharacterTextFactory extends TextFactory
           line.toString(), color, effect, effectSize, effectColor, true));
         line.setLength(0);
         line.append(extra);
-        width = 0;
+        width = 0f;
         for (int jj = 0, ll = extra.length(); jj < ll; jj++) {
-          width += getGlyph(extra.charAt(jj)).width;
+          if (jj > 0) {
+            width += getKerning(extra.charAt(jj - 1), extra.charAt(jj));
+          }
+          width += getGlyph(extra.charAt(jj)).advance;
         }
       } else {
         line.append(c);
-        width += glyph.width;
+        width += kerning;
+        width += glyph.advance;
       }
     }
     // add the final line
@@ -268,31 +279,21 @@ public class CharacterTextFactory extends TextFactory
   }
 
   /**
-   * Returns the pen positions of the glyphs of the supplied text, followed by that of its end.
-   * They follow the font's own fractional, kerned spacing, which is what the outlines we draw
-   * were designed for, stretched to the width of our whole-pixel advances so that everything laid
-   * out around the text stays put.
+   * Returns the adjustment the font's kerning makes to the pen between two characters.
    */
-  protected float[] getPositions (String text, int width)
+  protected float getKerning (char left, char right)
   {
-    int length = text.length();
-    float[] positions = new float[length + 1];
-    positions[length] = width;
-    if (length == 0) {
-      return positions;
+    int key = (left << 16) | right;
+    Float kerning = _kerning.get(key);
+    if (kerning == null) {
+      char[] pair = { left, right };
+      GlyphVector vector = _layoutFont.layoutGlyphVector(
+        _layoutFrc, pair, 0, 2, Font.LAYOUT_LEFT_TO_RIGHT);
+      // shaping may make one glyph of the two, which we can't place separately
+      _kerning.put(key, kerning = (vector.getNumGlyphs() == 2)
+        ? (float)vector.getGlyphPosition(1).getX() - getGlyph(left).advance : 0f);
     }
-    char[] chars = text.toCharArray();
-    GlyphVector vector = _layoutFont.layoutGlyphVector(
-      _layoutFrc, chars, 0, length, Font.LAYOUT_LEFT_TO_RIGHT);
-    if (vector.getNumGlyphs() != length) {
-      // shaping merged or split glyphs, so they don't match up with our characters
-      vector = _font.createGlyphVector(_layoutFrc, chars);
-    }
-    float end = (float)vector.getGlyphPosition(length).getX();
-    for (int ii = 0; ii < length; ii++) {
-      positions[ii] = (end > 0f) ? (float)vector.getGlyphPosition(ii).getX() * width / end : 0f;
-    }
-    return positions;
+    return kerning;
   }
 
   /**
@@ -372,12 +373,13 @@ public class CharacterTextFactory extends TextFactory
    */
   protected class Glyph
   {
-    /** The advance width of this glyph. */
-    public int width;
+    /** The advance of this glyph, by the font's own (fractional) spacing. */
+    public float advance;
 
     public Glyph (char c, int effect, int size)
     {
-      width = _metrics.charWidth(_c = c);
+      advance = (float)_layoutFont.createGlyphVector(_layoutFrc, Character.toString(_c = c))
+        .getGlyphPosition(1).getX();
       _effect = effect;
       _size = size;
       _outline = _font.createGlyphVector(_frc, Character.toString(c)).getOutline();
@@ -691,6 +693,9 @@ public class CharacterTextFactory extends TextFactory
 
   /** Cached glyphs. */
   protected HashIntMap<Glyph> _glyphs = new HashIntMap<Glyph>();
+
+  /** Cached kerning between pairs of characters, keyed by the pair. */
+  protected HashIntMap<Float> _kerning = new HashIntMap<Float>();
 
   /** Our glyphs rasterized at each scale in use, most recently used first. */
   protected ArrayList<GlyphAtlas> _atlases = new ArrayList<GlyphAtlas>();
