@@ -32,11 +32,14 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -101,10 +104,15 @@ public class CharacterTextFactory extends TextFactory
     _descentOffset = Math.round(_metrics.getHeight() * descentModifier);
     _heightModifier = heightModifier;
 
-    // and to lay out the glyphs
+    // and to create the glyph outlines
     applyRenderingHints(graphics);
     _frc = graphics.getFontRenderContext();
     graphics.dispose();
+
+    // the glyphs are placed according to the font's own fractional, kerned spacing
+    _layoutFont = font.deriveFont(
+      Collections.singletonMap(TextAttribute.KERNING, TextAttribute.KERNING_ON));
+    _layoutFrc = new FontRenderContext(null, antialias, true);
   }
 
   @Override
@@ -127,6 +135,7 @@ public class CharacterTextFactory extends TextFactory
     }
 
     final Dimension size = new Dimension(width, getHeight());
+    final float[] positions = getPositions(text, width);
 
     // and outlines, if necessary
     final Glyph[] outlines = (effect == OUTLINE) ? new Glyph[text.length()] : null;
@@ -144,23 +153,15 @@ public class CharacterTextFactory extends TextFactory
         return size;
       }
       public int getHitPos (int x, int y) {
-        int tx = 0;
         for (int ii = 0; ii < glyphs.length; ii++) {
-          int hwidth = glyphs[ii].width/2;
-          tx += hwidth;
-          if (x < tx) {
+          if (x < (positions[ii] + positions[ii + 1]) / 2) {
             return ii;
           }
-          tx += (glyphs[ii].width - hwidth);
         }
         return glyphs.length;
       }
       public int getCursorPos (int index) {
-        int x = 0;
-        for (int ii = 0, nn = Math.min(index, glyphs.length); ii < nn; ii++) {
-          x += glyphs[ii].width;
-        }
-        return x;
+        return Math.round(positions[Math.max(0, Math.min(index, glyphs.length))]);
       }
       public void render (Renderer renderer, int x, int y, float alpha, float scale) {
         GlyphAtlas atlas = getAtlas(scale);
@@ -192,9 +193,11 @@ public class CharacterTextFactory extends TextFactory
         int x, int y, float alpha) {
         float a = color.a * alpha;
         renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
-        for (Glyph glyph : glyphs) {
-          atlas.render(renderer, glyph, x, y);
-          x += glyph.width;
+        // offsets in whole pixels from the start of the run, so the glyphs snap to the pixel grid
+        // together rather than each on its own
+        float scale = atlas.scale;
+        for (int ii = 0; ii < glyphs.length; ii++) {
+          atlas.render(renderer, glyphs[ii], x + Math.round(positions[ii] * scale) / scale, y);
         }
       }
     };
@@ -262,6 +265,34 @@ public class CharacterTextFactory extends TextFactory
       _glyphs.put(key, glyph = new Glyph(c, effect, size));
     }
     return glyph;
+  }
+
+  /**
+   * Returns the pen positions of the glyphs of the supplied text, followed by that of its end.
+   * They follow the font's own fractional, kerned spacing, which is what the outlines we draw
+   * were designed for, stretched to the width of our whole-pixel advances so that everything laid
+   * out around the text stays put.
+   */
+  protected float[] getPositions (String text, int width)
+  {
+    int length = text.length();
+    float[] positions = new float[length + 1];
+    positions[length] = width;
+    if (length == 0) {
+      return positions;
+    }
+    char[] chars = text.toCharArray();
+    GlyphVector vector = _layoutFont.layoutGlyphVector(
+      _layoutFrc, chars, 0, length, Font.LAYOUT_LEFT_TO_RIGHT);
+    if (vector.getNumGlyphs() != length) {
+      // shaping merged or split glyphs, so they don't match up with our characters
+      vector = _font.createGlyphVector(_layoutFrc, chars);
+    }
+    float end = (float)vector.getGlyphPosition(length).getX();
+    for (int ii = 0; ii < length; ii++) {
+      positions[ii] = (end > 0f) ? (float)vector.getGlyphPosition(ii).getX() * width / end : 0f;
+    }
+    return positions;
   }
 
   /**
@@ -422,7 +453,7 @@ public class CharacterTextFactory extends TextFactory
     /**
      * Renders a glyph with its pen at the specified position.
      */
-    public void render (Renderer renderer, Glyph glyph, int x, int y)
+    public void render (Renderer renderer, Glyph glyph, float x, float y)
     {
       if (glyph._bounds == null) {
         return; // whitespace
@@ -502,7 +533,7 @@ public class CharacterTextFactory extends TextFactory
     /**
      * Renders the glyph with its pen at the specified position.
      */
-    public void render (Renderer renderer, int x, int y)
+    public void render (Renderer renderer, float x, float y)
     {
       float lx = x + x1, ly = y + y1;
       float ux = x + x2, uy = y + y2;
@@ -648,8 +679,12 @@ public class CharacterTextFactory extends TextFactory
   /** Whether or not to antialias the glyphs. */
   protected boolean _antialias;
 
-  /** The context in which glyphs are laid out. */
+  /** The context in which we create glyph outlines. */
   protected FontRenderContext _frc;
+
+  /** Our font with kerning enabled, and the (fractional) context, for placing glyphs. */
+  protected Font _layoutFont;
+  protected FontRenderContext _layoutFrc;
 
   /** The font metrics. */
   protected FontMetrics _metrics;
