@@ -623,7 +623,7 @@ public abstract class EditableTextComponent extends TextComponent
     String text = _text.getText(start, length);
     int newpos = _text.remove(start, length, nextUndoId(null));
     if (newpos != -1) {
-      setCursorPos(0);
+      setCursorPos(newpos);
     }
     return text;
   }
