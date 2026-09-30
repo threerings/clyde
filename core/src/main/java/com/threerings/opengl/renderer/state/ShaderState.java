@@ -35,16 +35,22 @@ import com.threerings.opengl.renderer.Renderer;
 public class ShaderState extends RenderState
 {
   /** A state that disables shading. */
-  public static final ShaderState DISABLED = new ShaderState(null, null, false);
+  public static final ShaderState DISABLED = new ShaderState(null, null, false, false);
 
   /**
    * Creates a new shader state.
+   *
+   * @param fixedFunctionEmulation whether the program is a vertex shader standing in for the
+   * fixed-function vertex stage (see {@link #isFixedFunctionEmulation}).
    */
-  public ShaderState (Program program, Uniform[] uniforms, boolean vertexProgramTwoSide)
+  public ShaderState (
+    Program program, Uniform[] uniforms, boolean vertexProgramTwoSide,
+    boolean fixedFunctionEmulation)
   {
     _program = program;
     _uniforms = uniforms;
     _vertexProgramTwoSide = vertexProgramTwoSide;
+    _fixedFunctionEmulation = fixedFunctionEmulation;
   }
 
   /**
@@ -71,6 +77,17 @@ public class ShaderState extends RenderState
     return _vertexProgramTwoSide;
   }
 
+  /**
+   * Checks whether the program is a vertex shader that writes the fog coordinate and secondary
+   * color as the fixed-function vertex stage would, so the fixed-function fragment stage's
+   * fog and color sum should work as if no program were bound.  (Our other vertex shaders
+   * write a fog factor for their fragment shaders to blend instead.)
+   */
+  public boolean isFixedFunctionEmulation ()
+  {
+    return _fixedFunctionEmulation;
+  }
+
   @Override
   public int getType ()
   {
@@ -80,7 +97,7 @@ public class ShaderState extends RenderState
   @Override
   public void apply (Renderer renderer)
   {
-    renderer.setShaderState(_program, _vertexProgramTwoSide);
+    renderer.setShaderState(_program, _vertexProgramTwoSide, _fixedFunctionEmulation);
     if (_program != null && _uniforms != null) {
       _program.setUniforms(_uniforms);
     }
@@ -94,4 +111,7 @@ public class ShaderState extends RenderState
 
   /** Whether or not to enable two-sided vertex program mode. */
   protected boolean _vertexProgramTwoSide;
+
+  /** Whether the program stands in for the fixed-function vertex stage. */
+  protected boolean _fixedFunctionEmulation;
 }

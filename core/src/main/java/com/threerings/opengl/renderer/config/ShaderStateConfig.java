@@ -28,11 +28,13 @@ package com.threerings.opengl.renderer.config;
 import java.util.List;
 
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLCapabilities;
 
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
+import com.samskivert.util.RunAnywhere;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -43,12 +45,16 @@ import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.geometry.config.PassDescriptor;
+import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Shader;
 import com.threerings.opengl.renderer.config.ShaderConfig.UniformConfig;
+import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.renderer.state.MaterialState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.ShaderState;
+import com.threerings.opengl.renderer.util.SnippetUtil;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -73,7 +79,48 @@ public abstract class ShaderStateConfig extends DeepObject
     public ShaderState getState (
       GlContext ctx, Scope scope, RenderState[] states, List<Updater> updaters)
     {
-      return ShaderState.DISABLED;
+      // Apple's fixed-function lighting turns every vertex behind a spot light black (NaN),
+      // so there we light with a vertex shader that follows the fixed-function equations
+      return (RunAnywhere.isMacOS() && hasSpotLight(states)) ?
+        getFixedFunctionEmulation(ctx, states) : ShaderState.DISABLED;
+    }
+
+    /**
+     * Checks whether the states light with a spot light.
+     */
+    protected boolean hasSpotLight (RenderState[] states)
+    {
+      LightState lstate = (LightState)states[RenderState.LIGHT_STATE];
+      Light[] lights = (lstate == null) ? null : lstate.getLights();
+      if (lights != null) {
+        for (Light light : lights) {
+          if (light != null && light.getType() == Light.Type.SPOT) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Returns a state whose vertex shader does the fixed-function vertex processing for the
+     * supplied states, or the disabled state if we can't make one.
+     */
+    protected ShaderState getFixedFunctionEmulation (GlContext ctx, RenderState[] states)
+    {
+      if (!GL.getCapabilities().GL_ARB_vertex_shader || ctx.getApp().getCompatibilityMode()) {
+        return ShaderState.DISABLED;
+      }
+      String source = SnippetUtil.getFixedFunctionVertexShader(states);
+      Shader shader = (source == null) ?
+        null : ctx.getShaderCache().getGeneratedShader(GL20.GL_VERTEX_SHADER, source);
+      Program program = (shader == null) ? null : ctx.getShaderCache().getProgram(shader, null);
+      if (program == null) {
+        return ShaderState.DISABLED;
+      }
+      // a source means lighting is enabled with a material state
+      MaterialState mstate = (MaterialState)states[RenderState.MATERIAL_STATE];
+      return new ShaderState(program, null, mstate.getTwoSide(), true);
     }
   }
 
@@ -157,7 +204,7 @@ public abstract class ShaderStateConfig extends DeepObject
         }
       }
       return new ShaderState(
-        program, uniforms.toArray(new Uniform[uniforms.size()]), vertexProgramTwoSide);
+        program, uniforms.toArray(new Uniform[uniforms.size()]), vertexProgramTwoSide, false);
     }
 
     /**

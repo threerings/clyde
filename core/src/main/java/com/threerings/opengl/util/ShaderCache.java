@@ -41,6 +41,7 @@ import org.lwjgl.opengl.GL20;
 
 import com.samskivert.util.ArrayUtil;
 
+import com.threerings.util.ArrayKey;
 import com.threerings.util.CacheUtil;
 
 import com.threerings.opengl.renderer.Program;
@@ -83,6 +84,28 @@ public class ShaderCache extends ResourceCache
   public Shader getShader (String path, String[] defs, String[] ddefs)
   {
     return _shaders.getResource(new ShaderKey(path, defs, ddefs));
+  }
+
+  /**
+   * Returns a shader compiled from generated source, which also serves as its cache key.
+   *
+   * @return the shader, or null if it failed to compile.
+   */
+  public Shader getGeneratedShader (int type, String source)
+  {
+    ArrayKey key = new ArrayKey(type, source);
+    Shader shader = _generatedShaders.get(key);
+    if (shader == null) {
+      shader = new Shader(_ctx.getRenderer(), type);
+      if (!shader.setSource(source)) {
+        log.warning("Error compiling generated shader.",
+          "source", source, "log", shader.getInfoLog());
+        return null;
+      }
+      maybeCheckLog(shader, "source", source);
+      _generatedShaders.put(key, shader);
+    }
+    return shader;
   }
 
   /**
@@ -248,6 +271,9 @@ public class ShaderCache extends ResourceCache
 
   /** The set of linked shader programs. */
   protected Map<ProgramKey, Program> _programs = CacheUtil.softValues();
+
+  /** Shaders compiled from generated source. */
+  protected Map<ArrayKey, Shader> _generatedShaders = CacheUtil.softValues();
 
   /** Maps file extensions to shader types. */
   protected static final Map<String, Integer> TYPES = ImmutableMap.of(

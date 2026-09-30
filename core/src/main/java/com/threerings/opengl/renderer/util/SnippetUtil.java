@@ -29,16 +29,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+
+import com.samskivert.util.ArrayUtil;
 
 import com.threerings.util.ArrayKey;
 import com.threerings.util.CacheUtil;
 
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.CullState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.renderer.state.MaterialState;
 import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.state.ShaderState;
 import com.threerings.opengl.renderer.state.TextureState;
 
 /**
@@ -136,6 +142,39 @@ public class SnippetUtil
   }
 
   /**
+   * Returns the source of a vertex shader that does the fixed-function vertex processing for
+   * the supplied states: lighting, texture coordinate generation, and the fog and clip
+   * coordinates.  Link it without a fragment shader so the fixed-function fragment stage does
+   * the rest, and render it with a {@link ShaderState#isFixedFunctionEmulation} state so that
+   * stage's fog and color sum stay on.
+   *
+   * <p>Unlike the snippets above, this follows the fixed-function equations exactly (color
+   * material, specular, the texture matrix applied after generation).
+   *
+   * @return the source, or null if lighting is enabled without a material state, which would
+   * leave the lighting to whatever material the previous pass set.
+   */
+  public static String getFixedFunctionVertexShader (RenderState[] states)
+  {
+    LightState lstate = (LightState)states[RenderState.LIGHT_STATE];
+    Light.Type[] lights = (lstate == null) ? null : getLightTypes(lstate.getLights());
+    MaterialState mstate = (MaterialState)states[RenderState.MATERIAL_STATE];
+    if (lights != null && mstate == null) {
+      return null;
+    }
+    LightingModel model = (lights == null) ? null : new LightingModel(mstate);
+    TextureState tstate = (TextureState)states[RenderState.TEXTURE_STATE];
+    int[][] genModes = getGenModes((tstate == null) ? null : tstate.getUnits());
+    ArrayKey key = new ArrayKey(lights, model, genModes);
+    String source = _fixedFunctionVertexShaders.get(key);
+    if (source == null) {
+      _fixedFunctionVertexShaders.put(
+        key, source = createFixedFunctionVertexShader(lights, model, genModes));
+    }
+    return source;
+  }
+
+  /**
    * Creates and returns the definition for the supplied fog parameters.
    */
   protected static String createFogParamDef (String name, String eyeVertex, int mode)
@@ -163,13 +202,21 @@ public class SnippetUtil
   protected static ArrayKey createTexCoordKey (
     String name, String eyeVertex, String eyeNormal, TextureUnit[] units)
   {
+    return new ArrayKey(name, eyeVertex, eyeNormal, getGenModes(units));
+  }
+
+  /**
+   * Returns the s, t, r, and q generation modes of each unit (null for null units).
+   */
+  protected static int[][] getGenModes (TextureUnit[] units)
+  {
     int[][] genModes = new int[units == null ? 0 : units.length][];
     for (int ii = 0; ii < genModes.length; ii++) {
       TextureUnit unit = units[ii];
       genModes[ii] = (unit == null) ? null :
         new int[] { unit.genModeS, unit.genModeT, unit.genModeR, unit.genModeQ };
     }
-    return new ArrayKey(name, eyeVertex, eyeNormal, genModes);
+    return genModes;
   }
 
   /**
@@ -251,8 +298,18 @@ public class SnippetUtil
         return "dot(gl_EyePlane" + Character.toUpperCase(element) +
           "[" + idx + "], " + eyeVertex + ")";
       default:
-        return "(gl_TextureMatrix[" + idx + "] * gl_MultiTexCoord" + idx + ")." + element;
+        return "(gl_TextureMatrix[" + idx + "] * gl_MultiTexCoord" + idx + ")." +
+          getSwizzle(element);
     }
+  }
+
+  /**
+   * Returns the GLSL swizzle for the named texture coordinate element.
+   */
+  protected static char getSwizzle (char element)
+  {
+    // GLSL spells the r coordinate p, since r is already the first (red) component
+    return (element == 'r') ? 'p' : element;
   }
 
   /**
@@ -370,11 +427,290 @@ public class SnippetUtil
     buf.append("float d = length(lvec); ");
     buf.append("vec4 nvec = lvec/d; ");
     buf.append("float cosa = -dot(nvec.xyz, " + lightSource + ".spotDirection); ");
-    buf.append("gl_" + dest + "Color += step(" + lightSource +
-      ".spotCosCutoff, cosa) * pow(cosa, " + lightSource + ".spotExponent) * (" +
+    buf.append("gl_" + dest + "Color += " + getSpotFactor(lightSource, "cosa") + " * (" +
       lightProduct + ".ambient + " + lightProduct + ".diffuse * max(dot(" + eyeNormal +
       ", nvec), 0.0)) / (" + lightSource + ".constantAttenuation + d*(" + lightSource +
       ".linearAttenuation + d*" + lightSource + ".quadraticAttenuation)); } ");
+  }
+
+  /**
+   * Returns the expression for a spot light's falloff, given the cosine of the angle between
+   * the spot direction and the vertex.
+   */
+  protected static String getSpotFactor (String lightSource, String cosa)
+  {
+    return "(" + cosa + " < " + lightSource + ".spotCosCutoff ? 0.0 : " +
+      getLightingPow(cosa, lightSource + ".spotExponent") + ")";
+  }
+
+  /**
+   * Returns an expression raising the base, clamped at zero, to the exponent the way the
+   * lighting equations do, where 0^0 = 1.
+   */
+  protected static String getLightingPow (String base, String exponent)
+  {
+    // pow is undefined for a negative base and for 0^0; Apple's GL makes those NaN, and NaN
+    // draws black, so the base bottoms out at a tiny positive value rather than zero
+    return "pow(max(" + base + ", 1e-30), " + exponent + ")";
+  }
+
+  /**
+   * Creates and returns the source of a fixed-function vertex shader.
+   *
+   * @param model the lighting model, or null if lighting is disabled.
+   */
+  protected static String createFixedFunctionVertexShader (
+    Light.Type[] lights, LightingModel model, int[][] genModes)
+  {
+    StringBuilder buf = new StringBuilder("void main ()\n{\n");
+
+    // ftransform() is invariant with the fixed-function transform, so these passes still
+    // depth test equal against fixed-function passes over the same geometry
+    buf.append("  gl_Position = ftransform();\n");
+    buf.append("  vec4 eyeVertex = gl_ModelViewMatrix * gl_Vertex;\n");
+    buf.append("  gl_ClipVertex = eyeVertex;\n");
+
+    // a zero normal stays zero (lit only by ambient), where normalize() would make it NaN
+    buf.append("  vec3 normal = gl_NormalMatrix * gl_Normal;\n");
+    buf.append("  float normalLength2 = dot(normal, normal);\n");
+    buf.append("  vec3 eyeNormal = (normalLength2 > 0.0) ? " +
+      "normal * inversesqrt(normalLength2) : normal;\n");
+
+    if (lights == null) {
+      buf.append("  gl_FrontColor = gl_Color;\n");
+    } else {
+      appendFixedFunctionLighting(lights, model, buf);
+    }
+    appendFixedFunctionTexCoords(genModes, buf);
+
+    // the fixed-function fragment stage computes the fog factor from this distance
+    buf.append("  gl_FogFragCoord = abs(eyeVertex.z);\n");
+    return buf.append("}\n").toString();
+  }
+
+  /**
+   * Appends the fixed-function lighting equations for the supplied lights.
+   */
+  protected static void appendFixedFunctionLighting (
+    Light.Type[] lights, LightingModel model, StringBuilder buf)
+  {
+    appendMaterialColors("front", "Front", GL11.GL_FRONT, model, buf);
+    if (model.twoSide()) {
+      appendMaterialColors("back", "Back", GL11.GL_BACK, model, buf);
+    }
+    if (model.specular()) {
+      buf.append("  vec3 eyeDirection = " + (model.localViewer() ?
+        "-normalize(eyeVertex.xyz)" : "vec3(0.0, 0.0, 1.0)") + ";\n");
+    }
+    for (int ii = 0; ii < lights.length; ii++) {
+      Light.Type type = lights[ii];
+      if (type == null) {
+        continue;
+      }
+      String light = "gl_LightSource[" + ii + "]";
+      buf.append("  {\n");
+      if (type == Light.Type.DIRECTIONAL) {
+        buf.append("    vec3 lightDirection = normalize(" + light + ".position.xyz);\n");
+        buf.append("    float attenuation = 1.0;\n");
+      } else {
+        buf.append("    vec3 lightDirection = " + light + ".position.xyz - eyeVertex.xyz;\n");
+        buf.append("    float lightDistance = length(lightDirection);\n");
+        buf.append("    lightDirection /= lightDistance;\n");
+        buf.append("    float attenuation = 1.0 / (" + light + ".constantAttenuation + " +
+          "lightDistance*(" + light + ".linearAttenuation + lightDistance*" + light +
+          ".quadraticAttenuation));\n");
+        if (type == Light.Type.SPOT) {
+          buf.append("    float spotCosine = dot(-lightDirection, normalize(" + light +
+            ".spotDirection));\n");
+          buf.append("    attenuation *= " + getSpotFactor(light, "spotCosine") + ";\n");
+        }
+      }
+      if (model.specular()) {
+        buf.append("    vec3 halfVector = normalize(lightDirection + eyeDirection);\n");
+      }
+      appendLightContribution("front", "Front", "eyeNormal", light, model, buf);
+      if (model.twoSide()) {
+        appendLightContribution("back", "Back", "-eyeNormal", light, model, buf);
+      }
+      buf.append("  }\n");
+    }
+    appendLitColors("front", "Front", model, buf);
+    if (model.twoSide()) {
+      appendLitColors("back", "Back", model, buf);
+    }
+  }
+
+  /**
+   * Appends the declarations of one side's material colors, which color material takes from
+   * the vertex color, and starts its lit color at its emission plus the global ambient light.
+   *
+   * @param glSide the side as it appears in the GLSL built-ins ("Front" or "Back").
+   * @param face the side's GL face constant.
+   */
+  protected static void appendMaterialColors (
+    String side, String glSide, int face, LightingModel model, StringBuilder buf)
+  {
+    String material = "gl_" + glSide + "Material";
+    buf.append("  vec4 " + side + "Ambient = " +
+      (model.tracks(GL11.GL_AMBIENT, face) ? "gl_Color" : material + ".ambient") + ";\n");
+    buf.append("  vec4 " + side + "Diffuse = " +
+      (model.tracks(GL11.GL_DIFFUSE, face) ? "gl_Color" : material + ".diffuse") + ";\n");
+    if (model.specular()) {
+      buf.append("  vec4 " + side + "Specular = " +
+        (model.tracks(GL11.GL_SPECULAR, face) ? "gl_Color" : material + ".specular") + ";\n");
+      buf.append("  vec4 " + side + "Highlights = vec4(0.0);\n");
+    }
+    buf.append("  vec4 " + side + "Color = " +
+      (model.tracks(GL11.GL_EMISSION, face) ? "gl_Color" : material + ".emission") +
+      " + " + side + "Ambient * gl_LightModel.ambient;\n");
+  }
+
+  /**
+   * Appends one light's contribution to one side, given that side's normal.
+   */
+  protected static void appendLightContribution (
+    String side, String glSide, String normal, String light, LightingModel model,
+    StringBuilder buf)
+  {
+    buf.append("    float " + side + "Dot = max(dot(" + normal + ", lightDirection), 0.0);\n");
+    buf.append("    " + side + "Color += attenuation * (" + side + "Ambient * " + light +
+      ".ambient + " + side + "Dot * " + side + "Diffuse * " + light + ".diffuse);\n");
+    if (model.specular()) {
+      // highlights only where the light reaches the surface
+      buf.append("    " + side + "Highlights += (" + side + "Dot > 0.0 ? attenuation * " +
+        getLightingPow("dot(" + normal + ", halfVector)", "gl_" + glSide + "Material.shininess") +
+        " : 0.0) * " + side + "Specular * " + light + ".specular;\n");
+    }
+  }
+
+  /**
+   * Appends the assignment of one side's lit colors.
+   */
+  protected static void appendLitColors (
+    String side, String glSide, LightingModel model, StringBuilder buf)
+  {
+    String highlights = model.specular() ? side + "Highlights.rgb" : "vec3(0.0)";
+    String rgb = side + "Color.rgb";
+    if (model.specular() && !model.separateSpecular()) {
+      rgb += " + " + highlights;
+    }
+    // the lit alpha is the diffuse alpha
+    buf.append("  gl_" + glSide + "Color = vec4(" + rgb + ", " + side + "Diffuse.a);\n");
+    if (model.separateSpecular()) {
+      buf.append("  gl_" + glSide + "SecondaryColor = vec4(" + highlights + ", 0.0);\n");
+    }
+  }
+
+  /**
+   * Appends the fixed-function texture coordinates for units with the supplied generation
+   * modes.
+   */
+  protected static void appendFixedFunctionTexCoords (int[][] genModes, StringBuilder buf)
+  {
+    boolean sphereMapped = anyGenModesEqual(genModes, GL11.GL_SPHERE_MAP);
+    if (sphereMapped || anyGenModesEqual(genModes, GL13.GL_REFLECTION_MAP)) {
+      buf.append("  vec3 reflection = reflect(normalize(eyeVertex.xyz), eyeNormal);\n");
+    }
+    if (sphereMapped) {
+      buf.append("  vec2 sphereMap = reflection.xy / " +
+        "(2.0 * length(reflection + vec3(0.0, 0.0, 1.0))) + 0.5;\n");
+    }
+    for (int ii = 0; ii < genModes.length; ii++) {
+      int[] modes = genModes[ii];
+      if (modes == null) {
+        continue;
+      }
+      String coords = "gl_MultiTexCoord" + ii;
+      if (modes[0] != -1 || modes[1] != -1 || modes[2] != -1 || modes[3] != -1) {
+        coords = "vec4(" + getFixedFunctionTexCoordElement(ii, 0, modes[0]) + ", " +
+          getFixedFunctionTexCoordElement(ii, 1, modes[1]) + ", " +
+          getFixedFunctionTexCoordElement(ii, 2, modes[2]) + ", " +
+          getFixedFunctionTexCoordElement(ii, 3, modes[3]) + ")";
+      }
+      // generated coordinates go through the texture matrix too
+      buf.append("  gl_TexCoord[" + ii + "] = gl_TextureMatrix[" + ii + "] * " + coords + ";\n");
+    }
+  }
+
+  /**
+   * Returns the expression for one element (0-3 for s-q) of a unit's texture coordinates.
+   */
+  protected static String getFixedFunctionTexCoordElement (int unit, int element, int mode)
+  {
+    char swizzle = "xyzw".charAt(element);
+    switch (mode) {
+      case GL11.GL_OBJECT_LINEAR:
+        return "dot(gl_ObjectPlane" + "STRQ".charAt(element) + "[" + unit + "], gl_Vertex)";
+      case GL11.GL_EYE_LINEAR:
+        return "dot(gl_EyePlane" + "STRQ".charAt(element) + "[" + unit + "], eyeVertex)";
+      case GL11.GL_SPHERE_MAP:
+        return "sphereMap." + swizzle;
+      case GL13.GL_NORMAL_MAP:
+        return "eyeNormal." + swizzle;
+      case GL13.GL_REFLECTION_MAP:
+        return "reflection." + swizzle;
+      default:
+        return "gl_MultiTexCoord" + unit + "." + swizzle;
+    }
+  }
+
+  /**
+   * Checks whether any of the supplied units' generation modes equal the given mode.
+   */
+  protected static boolean anyGenModesEqual (int[][] genModes, int mode)
+  {
+    for (int[] modes : genModes) {
+      if (modes != null && ArrayUtil.indexOf(modes, mode) != -1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * The parts of a material state that shape the fixed-function lighting equations (the
+   * colors themselves come from the GL state).
+   */
+  protected record LightingModel (
+    int colorMaterialMode, int colorMaterialFace, boolean twoSide, boolean localViewer,
+    boolean separateSpecular, boolean specular)
+  {
+    public LightingModel (MaterialState state)
+    {
+      this(state.getColorMaterialMode(), state.getColorMaterialFace(), state.getTwoSide(),
+        state.getLocalViewer(), state.getSeparateSpecular(), hasSpecular(state));
+    }
+
+    /**
+     * Checks whether color material replaces the given property of the given face with the
+     * vertex color.
+     */
+    public boolean tracks (int property, int face)
+    {
+      boolean tracked = (colorMaterialMode == property) ||
+        (colorMaterialMode == GL11.GL_AMBIENT_AND_DIFFUSE &&
+          (property == GL11.GL_AMBIENT || property == GL11.GL_DIFFUSE));
+      return tracked &&
+        (colorMaterialFace == face || colorMaterialFace == GL11.GL_FRONT_AND_BACK);
+    }
+
+    /**
+     * Checks whether the state can produce specular highlights.
+     */
+    protected static boolean hasSpecular (MaterialState state)
+    {
+      return state.getColorMaterialMode() == GL11.GL_SPECULAR ||
+        !isBlack(state.getFrontSpecular()) ||
+        (state.getTwoSide() && !isBlack(state.getBackSpecular()));
+    }
+
+    /**
+     * Checks whether the color has no red, green, or blue.
+     */
+    protected static boolean isBlack (Color4f color)
+    {
+      return color.r == 0f && color.g == 0f && color.b == 0f;
+    }
   }
 
   /** Cached fog param snippets. */
@@ -388,4 +724,7 @@ public class SnippetUtil
 
   /** Cached fragment lighting snippets. */
   protected static Map<ArrayKey, String> _fragmentLighting = CacheUtil.softValues();
+
+  /** Cached fixed-function vertex shader sources. */
+  protected static Map<ArrayKey, String> _fixedFunctionVertexShaders = CacheUtil.softValues();
 }

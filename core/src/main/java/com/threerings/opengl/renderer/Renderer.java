@@ -63,6 +63,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.state.ShaderState;
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -1137,6 +1138,7 @@ public class Renderer
     boolean lightingEnabled = (lights != null);
     if (_lightingEnabled != Boolean.valueOf(lightingEnabled)) {
       setCapability(GL11.GL_LIGHTING, _lightingEnabled = lightingEnabled);
+      updateColorSumEnabled();
     }
     if (!lightingEnabled) {
       return;
@@ -1327,6 +1329,7 @@ public class Renderer
       GL11.glLightModeli(GL12.GL_LIGHT_MODEL_COLOR_CONTROL,
         (_separateSpecular = separateSpecular) ?
           GL12.GL_SEPARATE_SPECULAR_COLOR : GL12.GL_SINGLE_COLOR);
+      updateColorSumEnabled();
     }
     if (_flatShading != Boolean.valueOf(flatShading)) {
       GL11.glShadeModel((_flatShading = flatShading) ? GL11.GL_FLAT : GL11.GL_SMOOTH);
@@ -1419,8 +1422,12 @@ public class Renderer
 
   /**
    * Sets the GLSL shader state.
+   *
+   * @param fixedFunctionEmulation whether the program stands in for the fixed-function vertex
+   * stage (see {@link ShaderState#isFixedFunctionEmulation}).
    */
-  public void setShaderState (Program program, boolean vertexProgramTwoSide)
+  public void setShaderState (
+    Program program, boolean vertexProgramTwoSide, boolean fixedFunctionEmulation)
   {
     if (_program != program) {
       int id = (program == null) ? 0 : program.getId();
@@ -1434,8 +1441,10 @@ public class Renderer
         _vertexProgramTwoSide = vertexProgramTwoSide);
     }
 
-    // fog state depends on shader state
+    // fog and color sum state depend on shader state
+    _fixedFunctionEmulation = fixedFunctionEmulation;
     updateFogEnabled();
+    updateColorSumEnabled();
   }
 
   /**
@@ -1447,6 +1456,7 @@ public class Renderer
       _program = INVALID_PROGRAM;
       _vertexProgramTwoSide = null;
     }
+    _colorSumEnabled = null;
     _states[RenderState.SHADER_STATE] = null;
   }
 
@@ -2018,9 +2028,27 @@ public class Renderer
    */
   protected void updateFogEnabled ()
   {
-    boolean fogEnabled = (_wouldEnableFog && _program == null);
+    // our shaders blend the fog themselves, except for fixed-function emulation, so other
+    // vertex-only programs (the characters' Vertex/Skin passes) get none; the character art
+    // is tuned to that, so leave it be
+    boolean fogEnabled = _wouldEnableFog && (_program == null || _fixedFunctionEmulation);
     if (_fogEnabled != Boolean.valueOf(fogEnabled)) {
       setCapability(GL11.GL_FOG, _fogEnabled = fogEnabled);
+    }
+  }
+
+  /**
+   * Updates the color sum enabled state, which depends on the shader state, the lighting,
+   * and the separate specular setting.
+   */
+  protected void updateColorSumEnabled ()
+  {
+    // fixed-function lighting adds the separate specular color by itself, but with a vertex
+    // shader the fixed-function fragment stage only adds it if the color sum is enabled
+    boolean colorSumEnabled = _fixedFunctionEmulation &&
+      Boolean.TRUE.equals(_lightingEnabled) && Boolean.TRUE.equals(_separateSpecular);
+    if (_colorSumEnabled != Boolean.valueOf(colorSumEnabled)) {
+      setCapability(GL14.GL_COLOR_SUM, _colorSumEnabled = colorSumEnabled);
     }
   }
 
@@ -2970,6 +2998,12 @@ public class Renderer
 
   /** Whether or not two-sided vertex program mode is enabled. */
   protected Boolean _vertexProgramTwoSide = false;
+
+  /** Whether the bound program stands in for the fixed-function vertex stage. */
+  protected boolean _fixedFunctionEmulation;
+
+  /** Whether or not the color sum is enabled. */
+  protected Boolean _colorSumEnabled = false;
 
   /** Whether or not stencil testing is enabled. */
   protected Boolean _stencilTestEnabled = false;
