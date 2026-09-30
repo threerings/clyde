@@ -226,8 +226,12 @@ public final class Triangle
       return false;
     }
 
-    // calculate t, ray intersects triangle
-    origin.addScaled(dir, e2.dot(qvec) / determinant, result);
+    // calculate t parameter and test bounds
+    float t = e2.dot(qvec) / determinant;
+    if (t < 0f) {
+      return false;
+    }
+    origin.addScaled(dir, t, result);
     return true;
   }
 
