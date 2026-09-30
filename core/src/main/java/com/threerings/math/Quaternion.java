@@ -753,6 +753,6 @@ public final class Quaternion
     }
     Quaternion oquat = (Quaternion)other;
     return (x == oquat.x && y == oquat.y && z == oquat.z && w == oquat.w) ||
-      (x == -oquat.x && y == -oquat.y && z == -oquat.z && w == -oquat.x);
+      (x == -oquat.x && y == -oquat.y && z == -oquat.z && w == -oquat.w);
   }
 }
