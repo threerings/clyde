@@ -81,6 +81,9 @@ public class AnchorLayout extends LayoutManager
     /** If we use the container dimensions for sizing. */
     public boolean fitToContainer;
 
+    /** If the component fills the container, ignoring the anchor points and offset. */
+    public boolean fill;
+
     /** The fixed offset from the parent anchor to the child anchor. */
     public int ox, oy;
 
@@ -95,6 +98,19 @@ public class AnchorLayout extends LayoutManager
     public Anchor (
         float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer)
     {
+      this(cx, cy, px, py, ox, oy, fitToContainer, false);
+    }
+
+    /**
+     * Creates a new anchor.
+     *
+     * @param fill if true, the component is sized to fill the container and the anchor points
+     * and offset are ignored.
+     */
+    public Anchor (
+        float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer,
+        boolean fill)
+    {
       this.cx = cx;
       this.cy = cy;
       this.px = px;
@@ -102,6 +118,7 @@ public class AnchorLayout extends LayoutManager
       this.ox = ox;
       this.oy = oy;
       this.fitToContainer = fitToContainer;
+      this.fill = fill;
     }
   }
 
@@ -154,6 +171,10 @@ public class AnchorLayout extends LayoutManager
       }
       Anchor anchor = _anchors.get(comp);
       if (anchor == null) {
+        continue;
+      }
+      if (anchor.fill) {
+        comp.setBounds(0, 0, width, height);
         continue;
       }
       int px = Math.round(width * anchor.px);

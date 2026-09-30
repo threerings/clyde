@@ -319,13 +319,17 @@ public abstract class LayoutConfig extends DeepObject
       @Editable
       public boolean fitToContainer;
 
+      /** If the child is sized to fill the container, ignoring the anchor and offset. */
+      @Editable
+      public boolean fill;
+
       /**
        * Creates the constraints for this child.
        */
       public Object createConstraints ()
       {
         return new AnchorLayout.Anchor(
-            childX, childY, parentX, parentY, offsetX, offsetY, fitToContainer);
+            childX, childY, parentX, parentY, offsetX, offsetY, fitToContainer, fill);
       }
     }
 
