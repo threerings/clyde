@@ -29,6 +29,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UTFDataFormatException;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -55,10 +56,10 @@ public abstract class Streamer<T>
    * Previously, exporting would write modified UTF-8, because that's what's built-in to Java.
    * But that's a pain in the ass when communicating with other languages.
    *
-   * Code expecting to read "regular" will not properly decode "modified", but the other
-   * way around works. So, "regular" is the universal writer and "modified" is the universal
-   * reader. From now on, that's what exporting will do here on the Java side, but I'll
-   * soon drop support for reading "modified" in other languages.
+   * Code expecting to read "regular" will not properly decode "modified", and Java's built-in
+   * "modified" reader rejects the four-byte sequences "regular" uses for supplementary
+   * characters (emoji, say). So {@link #readUTF} reads both, and "regular" is the universal
+   * writer. I'll soon drop support for reading "modified" in other languages.
    */
   public static void writeUTF (DataOutputStream out, String s)
     throws IOException
@@ -70,6 +71,56 @@ public abstract class Streamer<T>
     }
     out.writeShort(bytes.length);
     out.write(bytes);
+  }
+
+  /**
+   * Reads a String written by {@link #writeUTF}, or the <em>modified</em> UTF-8 written by older
+   * exports. The two differ only in how they encode NUL (an overlong {@code C0 80}) and
+   * supplementary characters (a surrogate pair as two three-byte sequences), and decoding each
+   * byte sequence as written handles both.
+   */
+  public static String readUTF (DataInputStream in)
+    throws IOException
+  {
+    byte[] bytes = new byte[in.readUnsignedShort()];
+    in.readFully(bytes);
+    char[] chars = new char[bytes.length]; // never more chars than bytes
+    int count = 0;
+    for (int ii = 0; ii < bytes.length; ) {
+      int lead = bytes[ii] & 0xFF;
+      int trailing, cp;
+      if (lead < 0x80) {
+        trailing = 0;
+        cp = lead;
+      } else if (lead >= 0xC0 && lead < 0xE0) {
+        trailing = 1;
+        cp = lead & 0x1F;
+      } else if (lead >= 0xE0 && lead < 0xF0) {
+        trailing = 2;
+        cp = lead & 0x0F;
+      } else if (lead >= 0xF0 && lead < 0xF8) {
+        trailing = 3;
+        cp = lead & 0x07;
+      } else {
+        throw new UTFDataFormatException("Malformed UTF-8 at byte " + ii);
+      }
+      if (ii + trailing >= bytes.length) {
+        throw new UTFDataFormatException("Truncated UTF-8 at byte " + ii);
+      }
+      for (int jj = 1; jj <= trailing; jj++) {
+        int next = bytes[ii + jj];
+        if ((next & 0xC0) != 0x80) {
+          throw new UTFDataFormatException("Malformed UTF-8 at byte " + (ii + jj));
+        }
+        cp = (cp << 6) | (next & 0x3F);
+      }
+      if (cp > Character.MAX_CODE_POINT) {
+        throw new UTFDataFormatException("Malformed UTF-8 at byte " + ii);
+      }
+      count += Character.toChars(cp, chars, count);
+      ii += trailing + 1;
+    }
+    return new String(chars, 0, count);
   }
 
   /**
@@ -90,7 +141,7 @@ public abstract class Streamer<T>
           public Enum<?> read (DataInputStream in) throws IOException {
             @SuppressWarnings("unchecked")
             Class<Exporter.DummyEnum> eclass = (Class<Exporter.DummyEnum>)clazz;
-            return Enum.valueOf(eclass, in.readUTF());
+            return Enum.valueOf(eclass, readUTF(in));
           }
         });
       } else if (Encodable.class.isAssignableFrom(clazz)) {
@@ -170,7 +221,7 @@ public abstract class Streamer<T>
         writeUTF(out, value.getName());
       }
       public Class<?> read (DataInputStream in) throws IOException, ClassNotFoundException {
-        return Class.forName(in.readUTF());
+        return Class.forName(readUTF(in));
       }
     });
 
@@ -234,7 +285,7 @@ public abstract class Streamer<T>
         writeUTF(out, value);
       }
       public String read (DataInputStream in) throws IOException {
-        return in.readUTF();
+        return readUTF(in);
       }
     });
     _streamers.put(boolean[].class, new Streamer<boolean[]>() {
@@ -364,7 +415,7 @@ public abstract class Streamer<T>
         writeUTF(out, value.toString());
       }
       public File read (DataInputStream in) throws IOException {
-        return new File(in.readUTF());
+        return new File(readUTF(in));
       }
     });
 

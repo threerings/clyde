@@ -427,7 +427,7 @@ public class BinaryImporter extends Importer
       return clazz;
     }
     // if not, read and map the value
-    _classes.put(classId, clazz = getClassWrapper(_in.readUTF(), _in.readByte()));
+    _classes.put(classId, clazz = getClassWrapper(Streamer.readUTF(_in), _in.readByte()));
     return clazz;
   }
 
