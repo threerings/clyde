@@ -2493,14 +2493,16 @@ public class Renderer
       _finalizedRenderbuffers = null;
     }
     if (_finalizedShaders != null) {
-      for (int id : IntListUtil.compact(_finalizedShaders)) {
+      for (int id : _finalizedShaders) {
+        if (id == 0) continue;
         GL20.glDeleteShader(id);
         _shaderObjectCount--;
       }
       _finalizedShaders = null;
     }
     if (_finalizedPrograms != null) {
-      for (int id : IntListUtil.compact(_finalizedPrograms)) {
+      for (int id : _finalizedPrograms) {
+        if (id == 0) continue;
         GL20.glDeleteProgram(id);
         _shaderObjectCount--;
       }
