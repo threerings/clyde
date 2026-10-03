@@ -31,6 +31,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+
 import org.apache.tools.ant.DirectoryScanner;
 
 import com.samskivert.util.ArrayUtil;
@@ -107,22 +111,30 @@ public class XMLToBinaryConverter
   }
 
   /**
-   * Performs the actual conversion.
+   * Performs the actual conversion. The result replaces the destination only once it's complete,
+   * so a failed conversion leaves any existing file (and its timestamp) untouched.
    */
   public static void convert (String source, String dest, boolean compress)
     throws IOException
   {
-    XMLImporter in = new XMLImporter(new FileInputStream(source));
-    BinaryExporter out = new BinaryExporter(new FileOutputStream(dest), compress);
+    File temp = new File(dest + ".tmp");
     try {
-      while (true) {
-        out.writeObject(in.readObject());
+      XMLImporter in = new XMLImporter(new FileInputStream(source));
+      BinaryExporter out = new BinaryExporter(new FileOutputStream(temp), compress);
+      try {
+        while (true) {
+          out.writeObject(in.readObject());
+        }
+      } catch (EOFException e) {
+        // no problem
+      } finally {
+        in.close();
+        out.close();
       }
-    } catch (EOFException e) {
-      // no problem
+      Files.move(temp.toPath(), Paths.get(dest),
+        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     } finally {
-      in.close();
-      out.close();
+      temp.delete();
     }
   }
 }
