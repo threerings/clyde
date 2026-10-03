@@ -136,15 +136,38 @@ public final class Quaternion
    */
   public Quaternion fromAxes (Vector3f nx, Vector3f ny, Vector3f nz)
   {
-    float x2 = (1f + nx.x - ny.y - nz.z)/4f;
-    float y2 = (1f - nx.x + ny.y - nz.z)/4f;
-    float z2 = (1f - nx.x - ny.y + nz.z)/4f;
-    float w2 = (1f - x2 - y2 - z2);
-    return set(
-      FloatMath.sqrt(x2) * (ny.z >= nz.y ? +1f : -1f),
-      FloatMath.sqrt(y2) * (nz.x >= nx.z ? +1f : -1f),
-      FloatMath.sqrt(z2) * (nx.y >= ny.x ? +1f : -1f),
-      FloatMath.sqrt(w2));
+    // take the root of the largest of 4w^2, 4x^2, 4y^2, 4z^2 (always >= 1) and derive the rest
+    // from the off-diagonal sums and differences; this stays accurate near zero components and
+    // gets the relative signs right for half turns
+    float trace = nx.x + ny.y + nz.z;
+    float x, y, z, w;
+    if (trace > 0f) {
+      float s = 2f * FloatMath.sqrt(1f + trace); // 4w
+      x = (ny.z - nz.y) / s;
+      y = (nz.x - nx.z) / s;
+      z = (nx.y - ny.x) / s;
+      w = 0.25f * s;
+    } else if (nx.x > ny.y && nx.x > nz.z) {
+      float s = 2f * FloatMath.sqrt(1f + nx.x - ny.y - nz.z); // 4x
+      x = 0.25f * s;
+      y = (ny.x + nx.y) / s;
+      z = (nz.x + nx.z) / s;
+      w = (ny.z - nz.y) / s;
+    } else if (ny.y > nz.z) {
+      float s = 2f * FloatMath.sqrt(1f - nx.x + ny.y - nz.z); // 4y
+      x = (ny.x + nx.y) / s;
+      y = 0.25f * s;
+      z = (nz.y + ny.z) / s;
+      w = (nz.x - nx.z) / s;
+    } else {
+      float s = 2f * FloatMath.sqrt(1f - nx.x - ny.y + nz.z); // 4z
+      x = (nz.x + nx.z) / s;
+      y = (nz.y + ny.z) / s;
+      z = 0.25f * s;
+      w = (nx.y - ny.x) / s;
+    }
+    // q and -q are the same rotation; keep w >= 0 so results don't change sign
+    return (w < 0f) ? set(-x, -y, -z, -w) : set(x, y, z, w);
   }
 
   /**
