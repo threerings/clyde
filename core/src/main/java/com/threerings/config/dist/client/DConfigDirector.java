@@ -170,7 +170,7 @@ public class DConfigDirector extends BasicDirector
     }
     try {
       ManagedConfig config = event.getConfig();
-      ConfigKey key = new ConfigKey(config.getClass(), config.getName());
+      ConfigKey key = new ConfigKey(config.getConfigClass(), config.getName());
       if (_added.remove(key) == null) {
         _updated.remove(key);
         _removed.add(key);
