@@ -452,7 +452,7 @@ public class Validator
     @Override
     public int hashCode ()
     {
-      return Objects.hash(path, this.extensions);
+      return Objects.hash(path, Arrays.hashCode(this.extensions));
     }
 
     @Override
