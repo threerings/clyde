@@ -82,8 +82,17 @@ public abstract class ShaderObject
   {
     super.finalize();
     if (_id > 0) {
-      _renderer.shaderObjectFinalized(_id);
+      wasFinalized();
     }
+  }
+
+  /**
+   * Called when this object is finalized without having been deleted, to have the renderer
+   * delete it on its own thread.
+   */
+  protected void wasFinalized ()
+  {
+    _renderer.shaderFinalized(_id);
   }
 
   /** The renderer that loaded this object. */

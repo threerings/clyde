@@ -2426,11 +2426,19 @@ public class Renderer
   }
 
   /**
-   * Called when a shader object has been finalized.
+   * Called when a shader has been finalized.
    */
-  protected synchronized void shaderObjectFinalized (int id)
+  protected synchronized void shaderFinalized (int id)
   {
-    _finalizedShaderObjects = IntListUtil.add(_finalizedShaderObjects, id);
+    _finalizedShaders = IntListUtil.add(_finalizedShaders, id);
+  }
+
+  /**
+   * Called when a shader program has been finalized.
+   */
+  protected synchronized void programFinalized (int id)
+  {
+    _finalizedPrograms = IntListUtil.add(_finalizedPrograms, id);
   }
 
   /**
@@ -2484,16 +2492,19 @@ public class Renderer
       GL30.glDeleteRenderbuffers(idbuf);
       _finalizedRenderbuffers = null;
     }
-    if (_finalizedShaderObjects != null) {
-      for (int id : _finalizedShaderObjects) {
-        // technically glDeleteObject is supposed to silently ignore zero values, but
-        // instead, at least on some systems, it raises an invalid value error
-        if (id != 0) {
-          GL20.glDeleteProgram(id);
-          _shaderObjectCount--;
-        }
+    if (_finalizedShaders != null) {
+      for (int id : IntListUtil.compact(_finalizedShaders)) {
+        GL20.glDeleteShader(id);
+        _shaderObjectCount--;
       }
-      _finalizedShaderObjects = null;
+      _finalizedShaders = null;
+    }
+    if (_finalizedPrograms != null) {
+      for (int id : IntListUtil.compact(_finalizedPrograms)) {
+        GL20.glDeleteProgram(id);
+        _shaderObjectCount--;
+      }
+      _finalizedPrograms = null;
     }
     if (_finalizedTextures != null) {
       int[] compacted = IntListUtil.compact(_finalizedTextures);
@@ -3093,8 +3104,11 @@ public class Renderer
   /** The list of render buffers to be deleted. */
   protected int[] _finalizedRenderbuffers;
 
-  /** The list of shader objects to be deleted. */
-  protected int[] _finalizedShaderObjects;
+  /** The list of shaders to be deleted. */
+  protected int[] _finalizedShaders;
+
+  /** The list of shader programs to be deleted. */
+  protected int[] _finalizedPrograms;
 
   /** The list of textures to be deleted. */
   protected int[] _finalizedTextures;

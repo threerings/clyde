@@ -550,6 +550,12 @@ public class Program extends ShaderObject
     _renderer.shaderObjectDeleted();
   }
 
+  @Override
+  protected void wasFinalized ()
+  {
+    _renderer.programFinalized(_id);
+  }
+
   /**
    * Creates an invalid program (used by the renderer to force reapplication).
    */
