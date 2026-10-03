@@ -2077,12 +2077,13 @@ public class Renderer
       GL11.glTranslatef(translation.x, translation.y, translation.z);
     }
     Quaternion rotation = transform.getRotation();
-    if (!rotation.equals(Quaternion.IDENTITY)) {
-      float w = FloatMath.clamp(rotation.w, -1f, +1f);
-      float angle = 2f * FloatMath.acos(w);
-      float rsina = 1f / FloatMath.sqrt(1f - w*w);
-      GL11.glRotatef(FloatMath.toDegrees(angle),
-        rotation.x * rsina, rotation.y * rsina, rotation.z * rsina);
+    // billboard rotations are identity give or take rounding, which can push |w| past one,
+    // so take the angle and axis from the vector part
+    float vlen = FloatMath.sqrt(
+      rotation.x*rotation.x + rotation.y*rotation.y + rotation.z*rotation.z);
+    if (vlen > 0f) {
+      GL11.glRotatef(FloatMath.toDegrees(2f * FloatMath.atan2(vlen, rotation.w)),
+        rotation.x / vlen, rotation.y / vlen, rotation.z / vlen);
     }
     if (type == Transform3D.UNIFORM) {
       float scale = transform.getScale();
