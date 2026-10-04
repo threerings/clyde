@@ -66,6 +66,11 @@ public abstract class ScriptConfig extends DeepObject
     @Editable
     public TargetConfig target = new TargetConfig.Source();
 
+    /** How far to search for a way around obstacles, in half-unit pathfinding steps. A target
+     * the search can't reach gets walked toward and then snapped onto. */
+    @Editable(min=1, step=1)
+    public float maxPathLength = 10f;
+
     @Override
     public String getLogicClassName ()
     {

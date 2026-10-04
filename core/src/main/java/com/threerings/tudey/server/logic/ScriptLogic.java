@@ -204,7 +204,7 @@ public abstract class ScriptLogic extends Logic
       }
       Vector2f loc = _finalTarget.getTranslation();
       _path = _scenemgr.getPathfinder().getPath(
-          _agent, MAX_PATH_LENGTH, loc.x, loc.y, true, true);
+          _agent, ((ScriptConfig.Move)_config).maxPathLength, loc.x, loc.y, true, true);
       _pidx = 0;
     }
 
@@ -531,7 +531,4 @@ public abstract class ScriptLogic extends Logic
 
   /** The scripted logic. */
   protected BehaviorLogic.Scripted _scripted;
-
-  /** The maximum path length for a move. */
-  protected static final float MAX_PATH_LENGTH = 10f;
 }
