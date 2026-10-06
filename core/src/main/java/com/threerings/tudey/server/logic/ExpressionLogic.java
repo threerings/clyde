@@ -26,7 +26,6 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
@@ -438,7 +437,7 @@ public abstract class ExpressionLogic extends Logic
     @Override
     public Object evaluate (Logic activator, Object previous)
     {
-      return Objects.equals(_firstOperand.evaluate(activator, previous),
+      return valuesEqual(_firstOperand.evaluate(activator, previous),
         _secondOperand.evaluate(activator, previous));
     }
   }
@@ -601,6 +600,39 @@ public abstract class ExpressionLogic extends Logic
     }
     log.warning("Cannot coerce value to double.", "value", value);
     return 0.0;
+  }
+
+  /**
+   * Compares two weakly typed values for equality, comparing numerically when both values
+   * are numbers or numeric strings.
+   */
+  protected static boolean valuesEqual (Object a, Object b)
+  {
+    if (a == null || b == null) {
+      return a == b;
+    }
+    if (a instanceof Boolean || b instanceof Boolean) {
+      return a.equals(b);
+    }
+    Double da = toNumber(a), db = toNumber(b);
+    return (da != null && db != null) ? da.doubleValue() == db.doubleValue() : a.equals(b);
+  }
+
+  /**
+   * Returns the numeric value of a number or numeric string, or null.
+   */
+  protected static Double toNumber (Object value)
+  {
+    if (value instanceof Double dval) return dval;
+    if (value instanceof Number nval) return nval.doubleValue();
+    if (value instanceof String sval) {
+      try {
+        return Double.parseDouble(sval);
+      } catch (NumberFormatException e) {
+        // not numeric
+      }
+    }
+    return null;
   }
 
   /** The expression configuration. */
