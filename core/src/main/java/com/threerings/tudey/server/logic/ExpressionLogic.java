@@ -555,17 +555,10 @@ public abstract class ExpressionLogic extends Logic
    */
   protected static boolean coerceToBoolean (Object value)
   {
-    if (value == null) {
-      return false;
-    }
-    if (value instanceof Boolean) {
-      return ((Boolean)value).booleanValue();
-    }
-    if (value instanceof Number) {
-      return ((Number)value).doubleValue() != 0.0;
-    }
-    if (value instanceof String) {
-      String str = (String)value;
+    if (value == null) return false;
+    if (value instanceof Boolean bval) return bval.booleanValue();
+    if (value instanceof Number nval) return nval.doubleValue() != 0.0;
+    if (value instanceof String str) {
       try {
         return Double.parseDouble(str) != 0.0;
       } catch (NumberFormatException e) {
@@ -581,17 +574,10 @@ public abstract class ExpressionLogic extends Logic
    */
   protected static double coerceToDouble (Object value)
   {
-    if (value == null) {
-      return 0.0;
-    }
-    if (value instanceof Boolean) {
-      return ((Boolean)value).booleanValue() ? 1.0 : 0.0;
-    }
-    if (value instanceof Number) {
-      return ((Number)value).doubleValue();
-    }
-    if (value instanceof String) {
-      String str = (String)value;
+    if (value == null) return 0.0;
+    if (value instanceof Boolean bval) return bval.booleanValue() ? 1.0 : 0.0;
+    if (value instanceof Number nval) return nval.doubleValue();
+    if (value instanceof String str) {
       try {
         return Double.parseDouble(str);
       } catch (NumberFormatException e) {
