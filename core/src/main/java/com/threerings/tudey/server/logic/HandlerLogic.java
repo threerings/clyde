@@ -213,8 +213,10 @@ public abstract class HandlerLogic extends Logic
     @Override
     public void shutdown (int timestamp, Logic activator, boolean endScene)
     {
-      _interval.cancel();
-      _interval = null;
+      if (_interval != null) {
+        _interval.cancel();
+        _interval = null;
+      }
     }
 
     @Override
@@ -222,8 +224,11 @@ public abstract class HandlerLogic extends Logic
     {
       super.transfer(source, refs);
 
-      startup(0);
-      _limit = ((Timer)source)._limit;
+      int limit = ((Timer)source)._limit;
+      if (limit > 0) {
+        startup(0);
+        _limit = limit;
+      }
     }
 
     /** The number of times remaining to fire. */
