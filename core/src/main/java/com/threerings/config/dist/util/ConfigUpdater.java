@@ -146,13 +146,22 @@ public class ConfigUpdater
   {
     var cclass = nconfig.getConfigClass();
     ManagedConfig oconfig = _cfgmgr.getRawConfig(cclass, nconfig.getName());
-    if (oconfig != null) {
+    if (oconfig == null) {
+      if (!_cfgmgr.isResourceClass(cclass)) {
+        addConfig(nconfig);
+      } else {
+        log.warning("Attempted to update unknown resource.", "name", nconfig.getName());
+      }
+    } else if (oconfig.getClass() == nconfig.getClass()) {
+      // same concrete class: copy the new state into the existing instance in place, which
+      // preserves its identity for current listeners
       nconfig.copy(oconfig);
       oconfig.wasUpdated();
-    } else if (!_cfgmgr.isResourceClass(cclass)) {
-      addConfig(nconfig);
     } else {
-      log.warning("Attempted to update unknown resource.", "name", nconfig.getName());
+      // the concrete class changed (e.g. Original <-> DerivedConfig); copy() can't write into a
+      // different-typed instance (it would return a new object we'd drop), so replace it in the
+      // group, which re-points listeners from the old config onto the new one
+      addConfig(nconfig);
     }
   }
 
