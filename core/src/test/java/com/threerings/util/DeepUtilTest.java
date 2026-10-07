@@ -145,6 +145,52 @@ public class DeepUtilTest extends TestCase
     assertEquals(false, DeepUtil.hashCode(c1) == DeepUtil.hashCode(c2));
   }
 
+  public void testRecords ()
+  {
+    // a record of immutable values is itself immutable, so it's shared rather than copied
+    Point point = new Point(1, 2, "label");
+    assertSame(point, DeepUtil.copy(point));
+
+    // one with a mutable component is copied, sharing its immutable components
+    Shape shape = new Shape(point, new float[] { 1f, 2f });
+    Shape copy = DeepUtil.copy(shape);
+    assertNotSame(shape, copy);
+    assertSame(shape.origin(), copy.origin());
+    assertNotSame(shape.weights(), copy.weights());
+
+    // a record's own equals() compares array components by reference, but DeepUtil's is deep
+    assertEquals(false, shape.equals(copy));
+    assertEquals(true, DeepUtil.equals(shape, copy));
+    assertEquals(DeepUtil.hashCode(shape), DeepUtil.hashCode(copy));
+    copy.weights()[0] = 3f;
+    assertEquals(false, DeepUtil.equals(shape, copy));
+
+    // a record can't be copied into an existing one, so we get a new one instead
+    Shape dest = new Shape(point, new float[0]);
+    assertNotSame(dest, DeepUtil.copy(shape, dest));
+
+    // records in fields are copied and compared deeply too
+    Holder h1 = new Holder();
+    h1.shape = shape;
+    Holder h2 = DeepUtil.copy(h1);
+    assertNotSame(h1.shape, h2.shape);
+    assertEquals(true, DeepUtil.equals(h1, h2));
+    assertEquals(DeepUtil.hashCode(h1), DeepUtil.hashCode(h2));
+
+    // records of different types share no state to transfer
+    assertSame(point, DeepUtil.transfer(shape, point));
+  }
+
+  public void testNonPublicRecord ()
+  {
+    try {
+      DeepUtil.copy(new Hidden(new int[] { 1 }));
+      fail("Copied a non-public record.");
+    } catch (IllegalArgumentException iae) {
+      // expected: we don't get around access checks for records
+    }
+  }
+
   // Parent calls this so that it retains a reference to its outer...
   protected int incremented (int value)
   {
@@ -253,5 +299,16 @@ public class DeepUtilTest extends TestCase
     {
       return Float.floatToIntBits(v1) ^ (int)v2;
     }
+  }
+
+  public record Point (int x, int y, String label) {}
+
+  public record Shape (Point origin, float[] weights) {}
+
+  record Hidden (int[] values) {}
+
+  public static class Holder
+  {
+    public Shape shape;
   }
 }

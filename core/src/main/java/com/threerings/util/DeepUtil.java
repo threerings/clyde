@@ -47,7 +47,9 @@ import static com.threerings.ClydeLog.log;
 
 /**
  * Various methods that use reflection to perform "deep" operations: copying, comparison, etc.
- * The usual warnings about circular references apply.
+ * The usual warnings about circular references apply. Records are handled through their public
+ * API, so they must be public, and a record is copied into a new instance (or shared, if it's
+ * immutable), never into a destination object.
  */
 public class DeepUtil
 {
@@ -208,6 +210,9 @@ public class DeepUtil
         handler = IMMUTABLE_OBJECT_HANDLER;
       } else if (clazz.isArray()) {
         handler = ARRAY_OBJECT_HANDLER;
+      } else if (Record.class.isAssignableFrom(clazz) && clazz != Record.class) {
+        // (Record itself has no state; transfer() reaches it between different record types)
+        handler = new RecordObjectHandler(clazz);
       } else {
         handler = new ReflectiveObjectHandler(clazz);
       }
@@ -236,6 +241,47 @@ public class DeepUtil
         fields.add(field);
       }
     }
+  }
+
+  /**
+   * Copies a value as for an unannotated object field: via {@link Copyable} if it implements it,
+   * otherwise deeply.
+   *
+   * @param dest an existing object to copy into, if possible.
+   * @param outer the outer object reference to use for inner object creation, if any.
+   */
+  protected static Object copyValue (Object value, Object dest, Object outer)
+  {
+    if (value == null) {
+      return null;
+    }
+    return (value instanceof Copyable) ?
+      ((Copyable)value).copy(dest, outer) : DeepUtil.copy(value, dest, outer);
+  }
+
+  /**
+   * Compares values as for an unannotated object field. Arrays and records are compared deeply,
+   * since their own equals() compares arrays by reference.
+   */
+  protected static boolean valueEquals (Object v1, Object v2)
+  {
+    if (v1 == null) {
+      return v2 == null;
+    }
+    return (v1.getClass().isArray() || v1 instanceof Record) ?
+      DeepUtil.equals(v1, v2) : v1.equals(v2);
+  }
+
+  /**
+   * Hashes a value as for an unannotated object field, consistently with {@link #valueEquals}.
+   */
+  protected static int valueHashCode (Object value)
+  {
+    if (value == null) {
+      return 0;
+    }
+    return (value.getClass().isArray() || value instanceof Record) ?
+      DeepUtil.hashCode(value) : value.hashCode();
   }
 
   /**
@@ -366,6 +412,60 @@ public class DeepUtil
 
     /** The handlers for each field. */
     protected FieldHandler[] _handlers;
+  }
+
+  /**
+   * Handles a record through its public API (see {@link RecordUtil}): its components are handled
+   * like unannotated object fields, and copies are built by its canonical constructor. A record
+   * can't be copied into an existing one, so the destination object is never used.
+   */
+  protected static class RecordObjectHandler extends ObjectHandler<Record>
+  {
+    // TODO: honor @Deep, @Shallow and @DeepOmit on components, which needs RECORD_COMPONENT in
+    // their @Targets; for now they're silently ignored (they only reach the private fields)
+    public RecordObjectHandler (Class<?> clazz)
+    {
+      _clazz = clazz.asSubclass(Record.class);
+    }
+
+    @Override
+    public Record copy (Record source, Record dest, Object outer)
+    {
+      Object[] values = RecordUtil.getValues(source);
+      boolean copied = false;
+      for (int ii = 0; ii < values.length; ii++) {
+        Object value = copyValue(values[ii], null, null);
+        copied |= (value != values[ii]);
+        values[ii] = value;
+      }
+      // if every component copied to itself, the record is immutable and can be shared
+      return copied ? RecordUtil.newInstance(_clazz, values) : source;
+    }
+
+    @Override
+    public boolean equals (Record o1, Record o2)
+    {
+      Object[] v1 = RecordUtil.getValues(o1), v2 = RecordUtil.getValues(o2);
+      for (int ii = 0; ii < v1.length; ii++) {
+        if (!valueEquals(v1[ii], v2[ii])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public int hashCode (Record object)
+    {
+      int hash = 1;
+      for (Object value : RecordUtil.getValues(object)) {
+        hash = 31*hash + valueHashCode(value);
+      }
+      return hash;
+    }
+
+    /** The record class. */
+    protected Class<? extends Record> _clazz;
   }
 
   /**
@@ -778,36 +878,15 @@ public class DeepUtil
   protected static FieldHandler DEFAULT_OBJECT_FIELD_HANDLER = new FieldHandler() {
     public void copy (Field field, Object source, Object dest)
         throws IllegalAccessException {
-      Object v1 = field.get(source), v2 = field.get(dest);
-      if (v1 == null) {
-        field.set(dest, null);
-      } else if (v1 instanceof Copyable) {
-        field.set(dest, ((Copyable)v1).copy(v2, dest));
-      } else {
-        field.set(dest, DeepUtil.copy(v1, v2, dest));
-      }
+      field.set(dest, copyValue(field.get(source), field.get(dest), dest));
     }
     public boolean equals (Field field, Object o1, Object o2)
         throws IllegalAccessException {
-      Object v1 = field.get(o1), v2 = field.get(o2);
-      if (v1 == null) {
-        return v2 == null;
-      } else if (v1.getClass().isArray()) {
-        return DeepUtil.equals(v1, v2);
-      } else {
-        return v1.equals(v2);
-      }
+      return valueEquals(field.get(o1), field.get(o2));
     }
     public int hashCode (Field field, Object object)
         throws IllegalAccessException {
-      Object value = field.get(object);
-      if (value == null) {
-        return 0;
-      } else if (value.getClass().isArray()) {
-        return DeepUtil.hashCode(value);
-      } else {
-        return value.hashCode();
-      }
+      return valueHashCode(field.get(object));
     }
   };
 
