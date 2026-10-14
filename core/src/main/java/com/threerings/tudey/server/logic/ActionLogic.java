@@ -645,8 +645,9 @@ public abstract class ActionLogic extends Logic
     public boolean execute (int timestamp, Logic activator)
     {
       OidList occupants = _scenemgr.getPlaceObject().occupants;
-      for (int ii = 0, nn = occupants.size(); ii < nn; ii++) {
-        moveBody(occupants.get(ii));
+      // moveBody removes each body from occupants immediately, so iterate over a copy
+      for (int bodyOid : Lists.newArrayList(occupants)) {
+        moveBody(bodyOid);
       }
       return true;
     }
