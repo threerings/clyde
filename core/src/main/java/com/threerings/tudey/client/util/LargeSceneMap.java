@@ -214,6 +214,7 @@ public class LargeSceneMap
   public void clearMap ()
   {
     _buffers.clear();
+    _dirty.clear();
     _textures.clear();
     _traversable.clear();
     _missing.clear();
@@ -293,6 +294,34 @@ public class LargeSceneMap
     return _missing;
   }
 
+  /**
+   * Computes the tile extent of everything on the map, storing it in the supplied rectangle.
+   * Walks every tile, so callers should cache the result.
+   *
+   * @return a reference to the result, which is left empty if the map is.
+   */
+  public Rectangle calculateBounds (Rectangle result)
+  {
+    int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE;
+    int maxx = Integer.MIN_VALUE, maxy = Integer.MIN_VALUE;
+    for (CoordIntMap.CoordIntEntry entry : _types.coordIntEntrySet()) {
+      if (entry.getIntValue() == NULL_VALUE) {
+        continue;
+      }
+      Coord coord = entry.getKey();
+      minx = Math.min(minx, coord.x);
+      miny = Math.min(miny, coord.y);
+      maxx = Math.max(maxx, coord.x);
+      maxy = Math.max(maxy, coord.y);
+    }
+    if (minx > maxx) {
+      result.set(0, 0, 0, 0);
+    } else {
+      result.set(minx, miny, maxx - minx + 1, maxy - miny + 1);
+    }
+    return result;
+  }
+
   /** Logs the missing tile. */
   protected void logMissingTile (Coord coord)
   {
@@ -332,6 +361,12 @@ public class LargeSceneMap
 
   /** The alpha the x, y location should be rendered at. */
   protected float getAlphaAtLocation (Coord coord)
+  {
+    return 1f;
+  }
+
+  /** The brightness the x, y location should be rendered at, which leaves alpha alone. */
+  protected float getShadeAtLocation (Coord coord)
   {
     return 1f;
   }
@@ -468,16 +503,21 @@ public class LargeSceneMap
     int bx = (((x % getBufferWidth()) + getBufferWidth()) % getBufferWidth());
     int by = (((y % getBufferWidth()) + getBufferWidth()) % getBufferWidth());
 
-    putColor(getBuffer(tx, ty), _types.get(x, y), bx, by,
-      getAlphaAtLocation(coord), _traversable.contains(coord));
+    ByteBuffer buf = getBuffer(tx, ty);
+    _dirty.add(buf);
+    putColor(buf, _types.get(x, y), bx, by,
+      getAlphaAtLocation(coord), getShadeAtLocation(coord), _traversable.contains(coord));
   }
 
   /**
-   * Creates all the textures.
+   * Creates or refreshes the textures whose buffers have changed.
    */
   protected void createTextures ()
   {
     for (Map.Entry<Coord, ByteBuffer> entry : _buffers.entrySet()) {
+      if (!_dirty.contains(entry.getValue())) {
+        continue;
+      }
       Texture2D texture = _textures.get(entry.getKey());
       if (texture == null) {
         texture = new Texture2D(_ctx.getRenderer());
@@ -489,6 +529,7 @@ public class LargeSceneMap
         0, GL11.GL_RGBA, getBufferWidth(), getBufferWidth(), false,
         GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, entry.getValue());
     }
+    _dirty.clear();
   }
 
   /**
@@ -496,11 +537,29 @@ public class LargeSceneMap
    */
   protected void putColor (ByteBuffer buf, int type, int x, int y, float alpha, boolean walkable)
   {
+    putColor(buf, type, x, y, alpha, 1f, walkable);
+  }
+
+  /**
+   * Puts the color corresponding to the specified type into the supplied buffer, with its
+   * color channels scaled by the given shade.
+   */
+  protected void putColor (
+    ByteBuffer buf, int type, int x, int y, float alpha, float shade, boolean walkable)
+  {
     int offset = (y * getBufferWidth() + x) * 4;
     byte[] color = getColor(offset, type, alpha, walkable);
 
     buf.position(offset);
-    buf.put(color);
+    if (shade == 1f) {
+      buf.put(color);
+    } else {
+      // write the shaded channels straight to the buffer: the color array may be shared
+      for (int ii = 0; ii < 3; ii++) {
+        buf.put((byte)Math.round((color[ii] & 0xFF) * shade));
+      }
+      buf.put(color[3]);
+    }
     buf.rewind();
   }
 
@@ -598,6 +657,9 @@ public class LargeSceneMap
   }
 
   protected Map<Coord, ByteBuffer> _buffers = Maps.newHashMap();
+
+  /** The buffers changed since their textures were last uploaded. */
+  protected Set<ByteBuffer> _dirty = Sets.newIdentityHashSet();
 
   /** The application context. */
   protected TudeyContext _ctx;
