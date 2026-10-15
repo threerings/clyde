@@ -1089,18 +1089,11 @@ public final class Matrix4f
         break;
       }
     }
-    // now that we have a nice orthogonal matrix, we can extract the rotation quaternion
-    // using the method described in http://en.wikipedia.org/wiki/Rotation_matrix#Conversions
-    float x2 = Math.abs(1f + n00 - n11 - n22);
-    float y2 = Math.abs(1f - n00 + n11 - n22);
-    float z2 = Math.abs(1f - n00 - n11 + n22);
-    float w2 = Math.abs(1f + n00 + n11 + n22);
-    result.set(
-      0.5f * FloatMath.sqrt(x2) * (n12 >= n21 ? +1f : -1f),
-      0.5f * FloatMath.sqrt(y2) * (n20 >= n02 ? +1f : -1f),
-      0.5f * FloatMath.sqrt(z2) * (n01 >= n10 ? +1f : -1f),
-      0.5f * FloatMath.sqrt(w2));
-    return result;
+    // our stored elements are column-major (nij == R[j][i]), so hand them to the quaternion
+    // extractor transposed: it wants the rotation matrix in row-major order
+    return result.fromRotationMatrix(n00, n10, n20,
+                                     n01, n11, n21,
+                                     n02, n12, n22);
   }
 
   /**
