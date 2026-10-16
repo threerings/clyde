@@ -33,6 +33,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.delta.DeltaFinal;
 import com.threerings.delta.Deltable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
@@ -45,16 +46,16 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeyContext;
 
-import static com.threerings.tudey.Log.log;
-
 /**
  * Represents an active, stateful element of the scene.
  */
+// the classes whose flags configs may name; games add theirs in rsrc/config/editor/type.properties
+@EditorTypes({ Actor.class, Mobile.class, Agent.class })
 public class Actor extends DeepObject
   implements Streamable, Deltable
 {
   /** A flag indicating that the actor has changed its position in a discontinuous fashion. */
-  @Keep
+  @Keep @ActorFlag
   public static final int WARP = (1 << 0);
 
   /** The value of the last flag defined in this class. */
@@ -248,22 +249,6 @@ public class Actor extends DeepObject
   public boolean isSet (int flag)
   {
     return (_flags & flag) != 0;
-  }
-
-  /**
-   * Do a more expensive reflective lookup to see if a named flag is set on this
-   * actor type.
-   */
-  public boolean isFlagSet (String flag)
-  {
-    try {
-      return isSet(getClass().getField(flag).getInt(this));
-    } catch (NoSuchFieldException e) {
-      log.warning("Flag field not found in class.", "flag", flag, "class", getClass(), e);
-    } catch (IllegalAccessException e) {
-      log.warning("Cannot access flag field!", "flag", flag, "class", getClass(), e);
-    }
-    return false;
   }
 
   /**

@@ -47,6 +47,8 @@ import com.threerings.editor.FileConstraints;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 
+import com.threerings.util.Validatable;
+
 /**
  * Validates configs and resources.
  */
@@ -146,6 +148,7 @@ public class Validator
     _configs.clear();
     _resources.clear();
     _hasNulls = false;
+    _hasInvalids = false;
     _configsByConstraints = null;
   }
 
@@ -168,6 +171,10 @@ public class Validator
         getReferences(cfgmgr, element);
       }
       return;
+    }
+    if (object instanceof Validatable validatable && !validatable.isValid()) {
+      output("has an invalid " + object.getClass().getSimpleName() + ": " + object);
+      _hasInvalids = true;
     }
     for (Property property : Introspector.getProperties(object)) {
       getReferences(cfgmgr, object, property);
@@ -323,6 +330,9 @@ public class Validator
       output("has null config references");
       result = false;
     }
+    if (_hasInvalids) {
+      result = false;
+    }
     for (ConfigId configId : _configs) {
       if (cfgmgr.getConfig(configId.clazz, configId.name) == null) {
         noteMissing(configId);
@@ -476,6 +486,9 @@ public class Validator
 
   /** If we have null config references. */
   protected boolean _hasNulls;
+
+  /** If we have {@link Validatable} objects that aren't valid. */
+  protected boolean _hasInvalids;
 
   /** Configs organized by their constraints. Initialized only when needed. */
   protected ListMultimap<ReferenceConstraints, ConfigId> _configsByConstraints;

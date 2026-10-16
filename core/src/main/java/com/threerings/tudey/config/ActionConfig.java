@@ -34,6 +34,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import proguard.annotation.Keep;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
@@ -47,11 +49,13 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.Validatable;
 
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.ActorSprite;
+import com.threerings.tudey.data.actor.ActorFlagName;
 import com.threerings.tudey.util.Coord;
 
 import static com.threerings.tudey.Log.log;
@@ -1063,18 +1067,43 @@ public abstract class ActionConfig extends DeepObject
    */
   @Strippable
   public static class SetFlag extends ActionConfig
+    implements Validatable
   {
     /** The target to modify. */
     @Editable
     public TargetConfig target = new TargetConfig.Source();
 
     /** The flag name */
-    @Editable
+    @Editable(editor="choice")
     public String flag = "";
 
     /** The value to set. */
     @Editable
     public boolean on = true;
+
+    /**
+     * Returns the options for the flag name.
+     */
+    @Keep
+    public String[] getFlagOptions ()
+    {
+      return ActorFlagName.getEditorOptions(flag);
+    }
+
+    /**
+     * Formats a flag name option.
+     */
+    @Keep
+    public String formatFlagOption (String option)
+    {
+      return ActorFlagName.formatEditorOption(option);
+    }
+
+    // from Validatable
+    public boolean isValid ()
+    {
+      return ActorFlagName.isValid(flag);
+    }
 
     @Override
     public String getLogicClassName ()

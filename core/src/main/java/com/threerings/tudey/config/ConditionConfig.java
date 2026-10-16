@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import proguard.annotation.Keep;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
@@ -38,8 +40,11 @@ import com.threerings.editor.Groupable;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.Validatable;
 
 import com.threerings.opengl.util.PreloadableSet;
+
+import com.threerings.tudey.data.actor.ActorFlagName;
 
 /**
  * Configurations for handler conditions.
@@ -340,9 +345,10 @@ public abstract class ConditionConfig extends DeepObject
    * Determines whether an actor's flag is set.
    */
   public static class FlagSet extends ConditionConfig
+    implements Validatable
   {
     /** The name of the flag definition. */
-    @Editable(hgroup="f")
+    @Editable(editor="choice", hgroup="f")
     public String flagName = "WARP";
 
     /** If we're checking for set or not set. */
@@ -352,6 +358,30 @@ public abstract class ConditionConfig extends DeepObject
     /** The target to check. */
     @Editable
     public TargetConfig target = new TargetConfig.Source();
+
+    /**
+     * Returns the options for the flag name.
+     */
+    @Keep
+    public String[] getFlagNameOptions ()
+    {
+      return ActorFlagName.getEditorOptions(flagName);
+    }
+
+    /**
+     * Formats a flag name option.
+     */
+    @Keep
+    public String formatFlagNameOption (String option)
+    {
+      return ActorFlagName.formatEditorOption(option);
+    }
+
+    // from Validatable
+    public boolean isValid ()
+    {
+      return ActorFlagName.isValid(flagName);
+    }
 
     @Override
     public String getLogicClassName ()
