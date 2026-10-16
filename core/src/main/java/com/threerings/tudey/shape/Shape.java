@@ -390,17 +390,20 @@ public abstract class Shape
   protected static void nearestPointOnSegment (
     Vector2f start, Vector2f end, Vector2f point, Vector2f result)
   {
-    // Calculate the perpendicular projection of point onto the line of the segment
-    float r = point.subtract(start).dot(end.subtract(start)) / start.distanceSquared(end);
-    // The nearest point on the line is before the start
-    if (r <= 0) {
+    // project point onto the segment's line, parameterized so that 0 is start and 1 is end
+    float ex = end.x - start.x, ey = end.y - start.y;
+    float lenSq = ex*ex + ey*ey;
+    if (lenSq == 0f) {
+      result.set(start); // degenerate zero-length segment; nearest point is the (sole) endpoint
+      return;
+    }
+    float r = ((point.x - start.x)*ex + (point.y - start.y)*ey) / lenSq;
+    if (r <= 0f) {
       result.set(start);
-    // The nearest point on the line is after the start
-    } else if (r >= 1) {
+    } else if (r >= 1f) {
       result.set(end);
-    // The nearest point on the line is in the segment
     } else {
-      result.set(start.add(end.subtract(start).mult(r)));
+      result.set(start.x + ex*r, start.y + ey*r);
     }
   }
 
