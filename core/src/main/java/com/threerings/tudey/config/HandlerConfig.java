@@ -81,12 +81,12 @@ public abstract class HandlerConfig extends DeepObject
    */
   public static class Optional extends HandlerConfig
   {
-    @Editable
-    public HandlerConfig handler;
-
     /** To start... a condition? */
     @Editable
-    public String nonBlank;
+    public String nonBlank = "";
+
+    @Editable(nullable=true)
+    public HandlerConfig handler;
 
     @Override
     public String getLogicClassName ()
