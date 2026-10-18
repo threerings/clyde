@@ -1114,7 +1114,7 @@ public class TudeySceneView extends DynamicScope
 
     // track the target sprite, if any
     if (_targetSprite != null) {
-      Vector3f translation = _targetSprite.getModel().getLocalTransform().getTranslation();
+      Vector3f translation = _targetSprite.getCameraTranslation();
       _camhand.getTarget().set(translation).addLocal(_camcfg.offset);
       _camhand.updatePosition();
     }

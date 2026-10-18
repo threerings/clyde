@@ -170,6 +170,18 @@ public class ActorSprite extends Sprite
     }
 
     /**
+     * Returns where the camera should follow the sprite, if not where its model is drawn: a
+     * sprite drawn off where it really is just for show (a rider on a rumbling vehicle, say)
+     * returns where it really is, so the view doesn't shake with it.
+     *
+     * @return the translation, or null to follow the model.
+     */
+    public Vector3f getCameraTranslation ()
+    {
+      return null;
+    }
+
+    /**
      * Returns true if the sprite should update on this tick.
      */
     public boolean shouldUpdate (boolean updated, Actor actor)
@@ -1361,6 +1373,15 @@ public class ActorSprite extends Sprite
   public Actor getLastKnownActor ()
   {
     return _advancer == null ? _history.getLastKnownActor() : _actor;
+  }
+
+  /**
+   * Returns where the camera should follow the sprite (see Implementation.getCameraTranslation).
+   */
+  public Vector3f getCameraTranslation ()
+  {
+    Vector3f translation = (_impl == null) ? null : _impl.getCameraTranslation();
+    return (translation != null) ? translation : _model.getLocalTransform().getTranslation();
   }
 
   @Override
