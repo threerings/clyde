@@ -42,10 +42,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
 
@@ -165,7 +163,7 @@ public class ConfigManager
       if (group == null) {
         @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
           (Class<ManagedConfig>)clazz;
-        group = new ConfigGroup<ManagedConfig>(cclass);
+        group = ConfigGroup.create(cclass);
       }
       group.init(this);
       _groups.put(clazz, group);
@@ -246,7 +244,7 @@ public class ConfigManager
    */
   public final <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
   {
-    return getConfig(clazz, name, null, null);
+    return getConfig(clazz, name, 0, null, null);
   }
 
   /**
@@ -254,23 +252,7 @@ public class ConfigManager
    */
   public final <T extends ManagedConfig> T getConfig (Class<T> clazz, int configId)
   {
-    Map<Integer, ManagedConfig> byId = _configsById.get(clazz);
-    if (byId == null) {
-      ImmutableMap.Builder<Integer, ManagedConfig> builder = ImmutableMap.builder();
-      ConfigGroup<?> group = getGroup(clazz);
-      if (group != null && IdConfig.class.isAssignableFrom(clazz)) {
-        for (ManagedConfig cfg : group.getConfigs()) {
-          int id = ((IdConfig)cfg).getConfigId();
-          if (id != 0) builder.put(id, cfg);
-        }
-        group.addListener(_groupListener);
-      }
-      byId = builder.build();
-      _configsById.put(clazz, byId);
-    }
-    @SuppressWarnings("unchecked")
-    T result = (T)byId.get(configId);
-    return result;
+    return getConfig(clazz, null, configId, null, null);
   }
 
   /**
@@ -353,18 +335,40 @@ public class ConfigManager
    * @param args the configuration arguments, or <code>null</code> for none.
    * @return the requested configuration, or <code>null</code> if not found.
    */
-  public <T extends ManagedConfig> T getConfig (
+  public final <T extends ManagedConfig> T getConfig (
     Class<T> clazz, String name, Scope scope, ArgumentMap args)
   {
-    // check for a null name
-    if (name == null) {
+    return getConfig(clazz, name, 0, scope, args);
+  }
+
+  /**
+   * Retrieves an IdConfig by class, id, scope, and arguments.  If the configuration is not
+   * found in this manager, the request will be forwarded to the parent, and so on.
+   *
+   * @param scope the scope in which to create the config, or <code>null</code> for none.
+   * @param args the configuration arguments, or <code>null</code> for none.
+   * @return the requested configuration, or <code>null</code> if not found.
+   */
+  public final <T extends ManagedConfig> T getConfig (
+    Class<T> clazz, int id, Scope scope, ArgumentMap args)
+  {
+    return getConfig(clazz, null, id, scope, args);
+  }
+
+  /**
+   * Retrieve a configuration by name, or by id if the name is null.
+   */
+  private final <T extends ManagedConfig> T getConfig (
+    Class<T> clazz, String name, int id, Scope scope, ArgumentMap args)
+  {
+    if (name == null && id == 0) {
       return null;
     }
 
     ManagedConfig cfg;
-    // for resource-loaded configs, go through the cache
+    // for resource-loaded configs, go through the cache (they have no ids)
     if (isResourceClass(clazz)) {
-      cfg = getResourceConfig(name);
+      cfg = (name == null) ? null : getResourceConfig(name);
       if (cfg != null && !clazz.isInstance(cfg)) {
         throw new ClassCastException("[config=" + name + ", expected=" + clazz +
           ", actual=" + cfg.getClass() + "]");
@@ -373,9 +377,11 @@ public class ConfigManager
     } else {
       // otherwise, look for a group of the desired type
       ConfigGroup<T> group = getGroup(clazz);
-      cfg = (group == null) ? null : group.getRawConfig(name); // TODO ??
+      cfg = (group == null) ? null
+        : (name != null) ? group.getRawConfig(name)
+        : group.getRawConfig(id);
       if (cfg == null) {
-        return (_parent == null) ? null : _parent.getConfig(clazz, name, scope, args);
+        return (_parent == null) ? null : _parent.getConfig(clazz, name, id, scope, args);
       }
     }
 
@@ -822,7 +828,7 @@ public class ConfigManager
   protected <T extends ManagedConfig> void registerGroup (
       Class<T> clazz, java.util.function.Consumer<Exception> exceptionConsumer)
   {
-    ConfigGroup<T> group = new ConfigGroup<T>(clazz);
+    ConfigGroup<T> group = ConfigGroup.create(clazz);
     group.init(this, exceptionConsumer);
     _groups.put(clazz, group);
   }
@@ -880,25 +886,6 @@ public class ConfigManager
   }
 
   /**
-   * Internal method to clear the cache for the group represented by the specified class.
-   */
-  protected void clearGroupCache (Class<?> clazz)
-  {
-    _configsById.remove(clazz);
-  }
-
-  /**
-   * Callback when one of the groups we've populated has changed.
-   */
-  protected void groupChanged (ConfigEvent<ManagedConfig> event)
-  {
-    ConfigGroup<?> group = (ConfigGroup<?>)event.getSource();
-    group.removeListener(_groupListener);
-    clearGroupCache(group.getConfigClass());
-  }
-
-
-  /**
    * Get the export replacer a group should use when saving configs, or null.
    */
   protected Exporter.Replacer getSaveReplacer (ConfigGroup<?> group)
@@ -929,20 +916,6 @@ public class ConfigManager
 
   /** Maps manager types to their classes (as read from the manager properties). */
   protected HashMap<String, Class<?>[]> _classes;
-
-  /** The pre-calculated table of all configs with ids. */
-  protected Map<Class<?>, Map<Integer, ManagedConfig>> _configsById = Maps.newHashMap();
-
-  /** A listener for config group changes. */
-  protected ConfigGroupListener _groupListener = new ConfigGroupListener() {
-    public void configAdded (ConfigEvent<ManagedConfig> event) {
-      groupChanged(event);
-    }
-    public void configRemoved (ConfigEvent<ManagedConfig> event) {
-      groupChanged(event);
-    }
-  };
-
 
   /** Config update listeners. */
   protected ObserverList<ConfigUpdateListener<ManagedConfig>> _updateListeners;
