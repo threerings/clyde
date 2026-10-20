@@ -45,6 +45,7 @@ import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.scene.BackgroundColorEffect;
 import com.threerings.opengl.scene.Scene;
@@ -328,7 +329,7 @@ public abstract class ViewerEffectConfig extends DeepObject
   }
 
   /**
-   * Offsets the ambient light color.
+   * Offsets the ambient light color, and optionally scales the lights' diffuse colors.
    */
   public static class AmbientLightOffset extends ViewerEffectConfig
   {
@@ -347,6 +348,10 @@ public abstract class ViewerEffectConfig extends DeepObject
     /** The offset amount. */
     @Editable
     public Color4fExpression amount = new Color4fExpression.Constant();
+
+    /** What the lights' diffuse colors (as a sun's) are multiplied by at full amplitude. */
+    @Editable(min=0.0, step=0.01)
+    public float lightScale = 1f;
 
     @Override
     public void preload (GlContext ctx)
@@ -398,6 +403,15 @@ public abstract class ViewerEffectConfig extends DeepObject
             _lastGlobalAmbient.b -= _lastAmount.b;
             _lastGlobalAmbient = null;
           }
+          for (int ii = 0; ii < _lastLightCount; ii++) {
+            Light light = _lastLights[ii];
+            light.diffuse.r -= _lastDiffuse[ii].r;
+            light.diffuse.g -= _lastDiffuse[ii].g;
+            light.diffuse.b -= _lastDiffuse[ii].b;
+            light.dirty = true;
+            _lastLights[ii] = null;
+          }
+          _lastLightCount = 0;
         }
         protected void addCurrent () {
           transform.extractTranslation(_translation);
@@ -413,9 +427,36 @@ public abstract class ViewerEffectConfig extends DeepObject
           _lastGlobalAmbient.r += _lastAmount.r;
           _lastGlobalAmbient.g += _lastAmount.g;
           _lastGlobalAmbient.b += _lastAmount.b;
+          // the lights are the scene's own, shared with everything they light; the renderer
+          // only reapplies a light marked dirty
+          if (lightScale != 1f) {
+            Light[] lights = lightState.getLights();
+            if (_lastLights.length < lights.length) {
+              _lastLights = new Light[lights.length];
+              _lastDiffuse = new Color4f[lights.length];
+              for (int ii = 0; ii < lights.length; ii++) {
+                _lastDiffuse[ii] = new Color4f();
+              }
+            }
+            float factor = (lightScale - 1f) * scale;
+            for (int ii = 0; ii < lights.length; ii++) {
+              Light light = lights[ii];
+              Color4f last = _lastDiffuse[ii].set(light.diffuse.r * factor,
+                light.diffuse.g * factor, light.diffuse.b * factor, 0f);
+              light.diffuse.r += last.r;
+              light.diffuse.g += last.g;
+              light.diffuse.b += last.b;
+              light.dirty = true;
+              _lastLights[ii] = light;
+            }
+            _lastLightCount = lights.length;
+          }
         }
         protected Color4f _lastAmount = new Color4f();
         protected Color4f _lastGlobalAmbient;
+        protected Light[] _lastLights = new Light[0];
+        protected Color4f[] _lastDiffuse = new Color4f[0];
+        protected int _lastLightCount;
         protected boolean _completed;
         protected Vector3f _translation = new Vector3f();
       };
