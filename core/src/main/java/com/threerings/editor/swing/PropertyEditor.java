@@ -35,8 +35,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -556,12 +554,16 @@ public abstract class PropertyEditor extends BasePropertyEditor
     registerEditorClass(Vector3f.class, Vector3fEditor.class);
 
     // editors from packages we can't reference: see PropertyEditorProvider
-    try {
-      for (PropertyEditorProvider provider : ServiceLoader.load(PropertyEditorProvider.class)) {
-        provider.getNamedEditors().forEach(PropertyEditor::registerEditorClass);
+    for (Class<?> clazz : Property.getSubtypesOf(PropertyEditorProvider.class)) {
+      if (clazz == PropertyEditorProvider.class) {
+        continue; // what getSubtypesOf returns when none are registered
       }
-    } catch (ServiceConfigurationError e) {
-      log.warning("Failed to load property editor providers.", e);
+      try {
+        clazz.asSubclass(PropertyEditorProvider.class).getConstructor().newInstance()
+          .getNamedEditors().forEach(PropertyEditor::registerEditorClass);
+      } catch (ReflectiveOperationException | ClassCastException e) {
+        log.warning("Failed to create property editor provider.", "class", clazz, e);
+      }
     }
   }
 }
