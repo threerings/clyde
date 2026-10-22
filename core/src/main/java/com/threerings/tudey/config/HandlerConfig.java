@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.config;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -46,7 +48,8 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * Configurations for server-side event handlers.
  */
 @EditorTypes({
-  HandlerConfig.None.class, HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
+  HandlerConfig.None.class, HandlerConfig.Optional.class,
+  HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
   HandlerConfig.Reference.class, HandlerConfig.Tick.class,
   HandlerConfig.Timer.class, HandlerConfig.WarnTimer.class, HandlerConfig.Signal.class,
   HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
@@ -70,6 +73,32 @@ public abstract class HandlerConfig extends DeepObject
     public String getLogicClassName ()
     {
       return TudeyCodes.NO_LOGIC;
+    }
+  }
+
+  /**
+   * Possibly a no-op, decided at startup if the arg is blank.
+   */
+  public static class Optional extends HandlerConfig
+  {
+    /** To start... a condition? */
+    @Editable
+    public String nonBlank = "";
+
+    @Editable(nullable=true)
+    public HandlerConfig handler;
+
+    @Override
+    public String getLogicClassName ()
+    {
+      return (handler == null || StringUtil.isBlank(nonBlank)) ? TudeyCodes.NO_LOGIC
+        : handler.getLogicClassName();
+    }
+
+    @Override
+    public HandlerConfig getLogicConfig ()
+    {
+      return handler;
     }
   }
 
@@ -557,6 +586,14 @@ public abstract class HandlerConfig extends DeepObject
    * Returns the name of the server-side logic class for this handler.
    */
   public abstract String getLogicClassName ();
+
+  /**
+   * Get the config object to pass to the logic's init.
+   */
+  public HandlerConfig getLogicConfig ()
+  {
+    return this; // by default just ourselves
+  }
 
   /**
    * Adds the resources to preload for this handler into the provided set.

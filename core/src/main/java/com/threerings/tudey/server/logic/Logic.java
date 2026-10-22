@@ -297,7 +297,7 @@ public abstract class Logic extends ShallowObject
     }
 
     // initialize, return the logic
-    logic.init(_scenemgr, config, source);
+    logic.init(_scenemgr, config.getLogicConfig(), source);
     return logic;
   }
 

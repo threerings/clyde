@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -183,7 +185,11 @@ public abstract class PropertyEditor extends BasePropertyEditor
    */
   public static void registerEditorClass (String name, Class<? extends PropertyEditor> clazz)
   {
-    _classesByName.put(name, clazz);
+    Class<?> previous = _classesByName.put(name, clazz);
+    if (previous != null && previous != clazz) {
+      log.warning("Editor name registered twice, last one wins.",
+        "name", name, "previous", previous, "now", clazz);
+    }
   }
 
   /**
@@ -545,5 +551,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
     registerEditorClass(Transform3D.class, Transform3DEditor.class);
     registerEditorClass(Vector2f.class, Vector2fEditor.class);
     registerEditorClass(Vector3f.class, Vector3fEditor.class);
+
+    // editors from packages we can't reference: see PropertyEditorProvider
+    try {
+      for (PropertyEditorProvider provider : ServiceLoader.load(PropertyEditorProvider.class)) {
+        provider.getNamedEditors().forEach(PropertyEditor::registerEditorClass);
+      }
+    } catch (ServiceConfigurationError e) {
+      log.warning("Failed to load property editor providers.", e);
+    }
   }
 }

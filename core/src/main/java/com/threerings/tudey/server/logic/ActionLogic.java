@@ -25,7 +25,6 @@
 
 package com.threerings.tudey.server.logic;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +55,7 @@ import com.threerings.tudey.config.ClientActionConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.ActorFlagName;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyOccupantInfo;
@@ -1131,20 +1131,8 @@ public abstract class ActionLogic extends Logic
       _target.resolve(activator, _targets);
       boolean ret = false;
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-        Logic target = _targets.get(ii);
-        if (target instanceof ActorLogic al) {
-          Actor actor = al.getActor();
-          try {
-            Field flag = actor.getClass().getField(config.flag);
-            actor.set(flag.getInt(actor), config.on);
-            ret = true;
-          } catch (NoSuchFieldException e) {
-            log.info("Pointless flag-set attempt", "flag", config.flag, "actor", actor);
-            // that's ok; just fall through
-
-          } catch (IllegalAccessException e) {
-            log.warning("Cannot access flag field for Set Flag Action.", e);
-          }
+        if (_targets.get(ii) instanceof ActorLogic al) {
+          ret |= _flag.set(al.getActor(), config.on);
         }
       }
       _targets.clear();
@@ -1154,8 +1142,13 @@ public abstract class ActionLogic extends Logic
     @Override
     protected void didInit ()
     {
-      _target = createTarget(((ActionConfig.SetFlag)_config).target, _source);
+      var config = (ActionConfig.SetFlag)_config;
+      _target = createTarget(config.target, _source);
+      _flag = ActorFlagName.of(config.flag);
     }
+
+    /** The flag to set. */
+    protected ActorFlagName _flag;
   }
 
   /**

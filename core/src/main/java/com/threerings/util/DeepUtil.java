@@ -697,6 +697,7 @@ public class DeepUtil
     _objectHandlers.put(Short.class, IMMUTABLE_OBJECT_HANDLER);
     _objectHandlers.put(String.class, IMMUTABLE_OBJECT_HANDLER);
     _objectHandlers.put(File.class, IMMUTABLE_OBJECT_HANDLER);
+    _objectHandlers.put(Class.class, IMMUTABLE_OBJECT_HANDLER);
   }
 
   /** Field handler for object arrays. */

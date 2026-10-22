@@ -38,6 +38,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.common.base.Predicates;
@@ -96,6 +97,50 @@ public class ConfigGroup<T extends ManagedConfig>
     }
   }
 
+  public static class IdConfigGroup<T extends ManagedConfig> extends ConfigGroup<T>
+  {
+    protected IdConfigGroup (Class<T> clazz) { super(clazz); }
+
+    public IdConfigGroup () { super(); }
+
+    @Override
+    public ManagedConfig getRawConfig (int id)
+    {
+      return _configsById.get(id);
+    }
+
+    @Override
+    protected ManagedConfig insertConfig (ManagedConfig config)
+    {
+      var oldCfg = super.insertConfig(config);
+      if (oldCfg instanceof IdConfig oldIdCfg && oldIdCfg.hasConfigId()) {
+        _configsById.remove(oldIdCfg.getConfigId(), oldCfg);
+      }
+      if (config instanceof IdConfig idCfg && idCfg.hasConfigId()) {
+        var other = _configsById.put(idCfg.getConfigId(), config);
+        if (other != null) {
+          log.warning("Config id collision", "group", _name, "id", idCfg.getConfigId(),
+            "config", config.getName(), "other", other.getName());
+          // but: nothing else, for now
+        }
+      }
+      return oldCfg;
+    }
+
+    @Override
+    protected ManagedConfig deleteConfig (ManagedConfig config)
+    {
+      var oldCfg = super.deleteConfig(config);
+      if (oldCfg instanceof IdConfig oldIdCfg && oldIdCfg.hasConfigId()) {
+        _configsById.remove(oldIdCfg.getConfigId(), oldCfg);
+      }
+      return oldCfg;
+    }
+
+    /** Configurations mapped by id, if applicable. */
+    protected final Map<Integer, ManagedConfig> _configsById = new HashMap<>();
+  }
+
   /**
    * Returns the group name for the specified config class.
    */
@@ -108,9 +153,19 @@ public class ConfigGroup<T extends ManagedConfig>
   }
 
   /**
+   * Create a ConfigGroup for the specified config class.
+   */
+  public static <T extends ManagedConfig> ConfigGroup<T> create (Class<T> clazz)
+  {
+    return IdConfig.class.isAssignableFrom(clazz)
+      ? new IdConfigGroup<T>(clazz)
+      : new ConfigGroup<T>(clazz);
+  }
+
+  /**
    * Creates a new config group for the specified class.
    */
-  public ConfigGroup (Class<T> clazz)
+  protected ConfigGroup (Class<T> clazz)
   {
     initConfigClass(clazz);
   }
@@ -137,15 +192,16 @@ public class ConfigGroup<T extends ManagedConfig>
   {
     _cfgmgr = cfgmgr;
 
+    // init configs deserialized or copied in before we had a manager
+    // (before reading, since insertConfig() inits whatever it reads)
+    for (ManagedConfig config : getRawConfigs()) {
+      config.init(cfgmgr);
+    }
+
     // load the existing configurations (first checking for an xml file, then a binary file)
     if (_cfgmgr.getConfigPath() != null &&
         (readConfigs(true, exceptionConsumer) || readConfigs(false, exceptionConsumer))) {
       log.debug("Read configurations for group " + _name + ".");
-    }
-
-    // provide the configurations with a reference to the manager
-    for (ManagedConfig config : getRawConfigs()) {
-      initConfig(config);
     }
   }
 
@@ -184,6 +240,14 @@ public class ConfigGroup<T extends ManagedConfig>
   }
 
   /**
+   * Retrieves a configuration by id.
+   */
+  public T getConfig (int id)
+  {
+    return actualize(getRawConfig(id));
+  }
+
+  /**
    * Get the <em>raw</em> configuration by name.
    * This method is for editing and other "configging the configs" uses and may
    * return a DerivedConfig instance.
@@ -191,6 +255,17 @@ public class ConfigGroup<T extends ManagedConfig>
   public ManagedConfig getRawConfig (String name)
   {
     return _configsByName.get(name);
+  }
+
+  /**
+   * Get the <em>raw</em> configuration by id.
+   * This method is for editing and other "configging the configs" uses and may
+   * return a DerivedConfig instance.
+   */
+  public ManagedConfig getRawConfig (int id)
+  {
+    log.warning("Attempted config lookup by id for non-id group.", "group", _cclass, "id", id);
+    return null;
   }
 
   /**
@@ -248,7 +323,7 @@ public class ConfigGroup<T extends ManagedConfig>
   /**
    * Adds a configuration to the set.
    */
-  public void addConfig (ManagedConfig config)
+  public final void addConfig (ManagedConfig config)
   {
     addConfig(config, true);
   }
@@ -258,14 +333,13 @@ public class ConfigGroup<T extends ManagedConfig>
    *
    * Don't use this unless you know what you're doing.
    */
-  public void addConfig (ManagedConfig config, boolean fireEvents)
+  public final void addConfig (ManagedConfig config, boolean fireEvents)
   {
     if (!_cclass.isInstance(config) && !(config instanceof DerivedConfig)) {
       Class<?> clazz = (config == null) ? null : config.getClass();
       throw new IllegalArgumentException(clazz + " is not of type " + _cclass);
     }
-    ManagedConfig oldCfg = _configsByName.put(config.getName(), config);
-    initConfig(config);
+    var oldCfg = insertConfig(config);
     if (fireEvents) {
       if (oldCfg != null) {
         // tell any listeners that the old one has changed. They should in turn end up
@@ -280,9 +354,9 @@ public class ConfigGroup<T extends ManagedConfig>
   /**
    * Removes a configuration from the set.
    */
-  public void removeConfig (ManagedConfig config)
+  public final void removeConfig (ManagedConfig config)
   {
-    ManagedConfig oldCfg = _configsByName.remove(config.getName());
+    ManagedConfig oldCfg = deleteConfig(config);
     if (oldCfg != null) {
       // notify listeners that the config has "changed" and then remove it
       oldCfg.wasUpdated();
@@ -482,8 +556,11 @@ public class ConfigGroup<T extends ManagedConfig>
   // documentation inherited from interface Copyable
   public Object copy (Object dest, Object outer)
   {
-    @SuppressWarnings("unchecked") ConfigGroup<T> other =
-      (dest instanceof ConfigGroup) ? (ConfigGroup<T>)dest : new ConfigGroup<T>(_cclass);
+    ConfigGroup<T> other;
+    if (dest != null && dest.getClass() == getClass()) {
+      @SuppressWarnings("unchecked") ConfigGroup<T> that = (ConfigGroup<T>)dest;
+      other = that;
+    } else other = create(_cclass);
     other.load(getRawConfigs(), false, true);
     return other;
   }
@@ -585,19 +662,29 @@ public class ConfigGroup<T extends ManagedConfig>
   protected void initConfigs (ManagedConfig[] configs)
   {
     for (ManagedConfig config : configs) {
-      initConfig(config);
-      _configsByName.put(config.getName(), config);
+      insertConfig(config);
     }
   }
 
   /**
-   * Initialize a config.
-   * Lame.
+   * Inserts the specified config, initializing it if we have a manager, and returns the config
+   * it replaced, if any.
    */
-  protected void initConfig (ManagedConfig config)
+  protected ManagedConfig insertConfig (ManagedConfig config)
   {
-    config.init(_cfgmgr);
     if (config instanceof DerivedConfig deri) deri.cclass = _cclass;
+    // a group being deserialized or copied has no manager yet; init(ConfigManager) does it later
+    if (_cfgmgr != null) config.init(_cfgmgr);
+
+    return _configsByName.put(config.getName(), config);
+  }
+
+  /**
+   * Deletes the specified config, return what was actually removed.
+   */
+  protected ManagedConfig deleteConfig (ManagedConfig config)
+  {
+    return _configsByName.remove(config.getName());
   }
 
   /**

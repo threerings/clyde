@@ -136,35 +136,52 @@ public final class Quaternion
    */
   public Quaternion fromAxes (Vector3f nx, Vector3f ny, Vector3f nz)
   {
+    // the axes are the columns of the rotation matrix
+    return fromRotationMatrix(nx.x, ny.x, nz.x,
+                              nx.y, ny.y, nz.y,
+                              nx.z, ny.z, nz.z);
+  }
+
+  /**
+   * Sets this quaternion to the rotation component of the given matrix, whose nine elements are
+   * supplied in row-major order (mRC is row R, column C). The matrix is assumed orthogonal.
+   *
+   * @return a reference to this quaternion, for chaining.
+   */
+  public Quaternion fromRotationMatrix (
+    float m00, float m01, float m02,
+    float m10, float m11, float m12,
+    float m20, float m21, float m22)
+  {
     // take the root of the largest of 4w^2, 4x^2, 4y^2, 4z^2 (always >= 1) and derive the rest
     // from the off-diagonal sums and differences; this stays accurate near zero components and
     // gets the relative signs right for half turns
-    float trace = nx.x + ny.y + nz.z;
+    float trace = m00 + m11 + m22;
     float x, y, z, w;
     if (trace > 0f) {
       float s = 2f * FloatMath.sqrt(1f + trace); // 4w
-      x = (ny.z - nz.y) / s;
-      y = (nz.x - nx.z) / s;
-      z = (nx.y - ny.x) / s;
+      x = (m21 - m12) / s;
+      y = (m02 - m20) / s;
+      z = (m10 - m01) / s;
       w = 0.25f * s;
-    } else if (nx.x > ny.y && nx.x > nz.z) {
-      float s = 2f * FloatMath.sqrt(1f + nx.x - ny.y - nz.z); // 4x
+    } else if (m00 > m11 && m00 > m22) {
+      float s = 2f * FloatMath.sqrt(1f + m00 - m11 - m22); // 4x
       x = 0.25f * s;
-      y = (ny.x + nx.y) / s;
-      z = (nz.x + nx.z) / s;
-      w = (ny.z - nz.y) / s;
-    } else if (ny.y > nz.z) {
-      float s = 2f * FloatMath.sqrt(1f - nx.x + ny.y - nz.z); // 4y
-      x = (ny.x + nx.y) / s;
+      y = (m10 + m01) / s;
+      z = (m20 + m02) / s;
+      w = (m21 - m12) / s;
+    } else if (m11 > m22) {
+      float s = 2f * FloatMath.sqrt(1f - m00 + m11 - m22); // 4y
+      x = (m10 + m01) / s;
       y = 0.25f * s;
-      z = (nz.y + ny.z) / s;
-      w = (nz.x - nx.z) / s;
+      z = (m21 + m12) / s;
+      w = (m02 - m20) / s;
     } else {
-      float s = 2f * FloatMath.sqrt(1f - nx.x - ny.y + nz.z); // 4z
-      x = (nz.x + nx.z) / s;
-      y = (nz.y + ny.z) / s;
+      float s = 2f * FloatMath.sqrt(1f - m00 - m11 + m22); // 4z
+      x = (m20 + m02) / s;
+      y = (m21 + m12) / s;
       z = 0.25f * s;
-      w = (nx.y - ny.x) / s;
+      w = (m10 - m01) / s;
     }
     // q and -q are the same rotation; keep w >= 0 so results don't change sign
     return (w < 0f) ? set(-x, -y, -z, -w) : set(x, y, z, w);

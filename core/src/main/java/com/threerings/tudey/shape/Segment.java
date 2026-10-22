@@ -272,14 +272,10 @@ public class Segment extends Shape
   public Vector2f getPenetration (Circle circle, Vector2f result)
   {
     Vector2f center = circle.getCenter();
-    Vector2f D = center.subtract(_start);
-    Vector2f axis = _end.subtract(_start);
-    float d = D.dot(axis);
-    d = FloatMath.clamp(d, 0, 1);
-    _start.add(axis.multLocal(d), D);
-    float dist = center.distance(D);
+    nearestPointOnSegment(_start, _end, center, result);
+    float dist = center.distance(result);
     return (dist == 0f) ? result.set(Vector2f.ZERO) :
-      center.subtract(D, result).multLocal(circle.radius / dist - 1f);
+      center.subtract(result, result).multLocal(circle.radius / dist - 1f);
   }
 
   @Override

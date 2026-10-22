@@ -38,8 +38,11 @@ import com.threerings.editor.Groupable;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.Validatable;
 
 import com.threerings.opengl.util.PreloadableSet;
+
+import com.threerings.tudey.data.actor.ActorFlagName;
 
 /**
  * Configurations for handler conditions.
@@ -340,9 +343,10 @@ public abstract class ConditionConfig extends DeepObject
    * Determines whether an actor's flag is set.
    */
   public static class FlagSet extends ConditionConfig
+    implements Validatable
   {
     /** The name of the flag definition. */
-    @Editable(hgroup="f")
+    @Editable(editor="actorFlag", hgroup="f")
     public String flagName = "WARP";
 
     /** If we're checking for set or not set. */
@@ -352,6 +356,12 @@ public abstract class ConditionConfig extends DeepObject
     /** The target to check. */
     @Editable
     public TargetConfig target = new TargetConfig.Source();
+
+    // from Validatable
+    public boolean isValid ()
+    {
+      return ActorFlagName.isValid(flagName);
+    }
 
     @Override
     public String getLogicClassName ()

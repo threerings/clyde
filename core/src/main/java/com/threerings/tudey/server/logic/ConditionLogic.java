@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.server.logic;
 
-import java.lang.reflect.Field;
-
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -38,7 +36,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.data.EntityKey;
-import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.ActorFlagName;
 import com.threerings.tudey.config.ConditionConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
@@ -463,7 +461,7 @@ public abstract class ConditionLogic extends Logic
       try {
         for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
           Logic logic = _targets.get(ii);
-          if (logic instanceof ActorLogic al && al.getActor().isFlagSet(config.flagName)) {
+          if (logic instanceof ActorLogic al && _flag.isSet(al.getActor())) {
             return config.set;
           }
         }
@@ -477,8 +475,13 @@ public abstract class ConditionLogic extends Logic
     @Override
     protected void didInit ()
     {
-      _target = createTarget(((ConditionConfig.FlagSet)_config).target, _source);
+      var config = (ConditionConfig.FlagSet)_config;
+      _target = createTarget(config.target, _source);
+      _flag = ActorFlagName.of(config.flagName);
     }
+
+    /** The flag to check. */
+    protected ActorFlagName _flag;
 
     /** Holds targets during evaluation. */
     protected ArrayList<Logic> _targets = Lists.newArrayList();
