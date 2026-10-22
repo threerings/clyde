@@ -29,8 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import proguard.annotation.Keep;
-
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
@@ -348,7 +346,7 @@ public abstract class ConditionConfig extends DeepObject
     implements Validatable
   {
     /** The name of the flag definition. */
-    @Editable(editor="choice", hgroup="f")
+    @Editable(editor="actorFlag", hgroup="f")
     public String flagName = "WARP";
 
     /** If we're checking for set or not set. */
@@ -358,24 +356,6 @@ public abstract class ConditionConfig extends DeepObject
     /** The target to check. */
     @Editable
     public TargetConfig target = new TargetConfig.Source();
-
-    /**
-     * Returns the options for the flag name.
-     */
-    @Keep
-    public String[] getFlagNameOptions ()
-    {
-      return ActorFlagName.getEditorOptions(flagName);
-    }
-
-    /**
-     * Formats a flag name option.
-     */
-    @Keep
-    public String formatFlagNameOption (String option)
-    {
-      return ActorFlagName.formatEditorOption(option);
-    }
 
     // from Validatable
     public boolean isValid ()

@@ -34,8 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import proguard.annotation.Keep;
-
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
@@ -1074,30 +1072,12 @@ public abstract class ActionConfig extends DeepObject
     public TargetConfig target = new TargetConfig.Source();
 
     /** The flag name */
-    @Editable(editor="choice")
+    @Editable(editor="actorFlag")
     public String flag = "";
 
     /** The value to set. */
     @Editable
     public boolean on = true;
-
-    /**
-     * Returns the options for the flag name.
-     */
-    @Keep
-    public String[] getFlagOptions ()
-    {
-      return ActorFlagName.getEditorOptions(flag);
-    }
-
-    /**
-     * Formats a flag name option.
-     */
-    @Keep
-    public String formatFlagOption (String option)
-    {
-      return ActorFlagName.formatEditorOption(option);
-    }
 
     // from Validatable
     public boolean isValid ()
