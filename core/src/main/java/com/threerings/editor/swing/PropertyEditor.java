@@ -96,6 +96,8 @@ import com.threerings.editor.swing.editors.Transform3DEditor;
 import com.threerings.editor.swing.editors.Vector2fEditor;
 import com.threerings.editor.swing.editors.Vector3fEditor;
 
+import com.threerings.tudey.editor.swing.ActorFlagEditor;
+
 import static com.threerings.editor.Log.log;
 
 /**
@@ -526,6 +528,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     registerEditorClass("time", DateTimeEditor.TimeOnlyEditor.class);
     registerEditorClass("configType", ConfigTypeEditor.class);
     registerEditorClass("derivedRef", DerivedConfigReferenceEditor.class);
+    registerEditorClass("actorFlag", ActorFlagEditor.class);
 
     registerEditorClass(Boolean.class, BooleanEditor.class);
     registerEditorClass(Boolean.TYPE, BooleanEditor.class);
