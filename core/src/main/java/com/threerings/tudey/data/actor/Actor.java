@@ -342,6 +342,14 @@ public class Actor extends DeepObject
   }
 
   /**
+   * Returns the id of another actor is actually viewed when this one is. Normally 0.
+   */
+  public int getViewActorId ()
+  {
+    return 0;
+  }
+
+  /**
    * Returns if the actor is affected by direction flags.
    */
   public boolean directionAffected ()

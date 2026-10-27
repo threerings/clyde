@@ -170,9 +170,7 @@ public class ActorSprite extends Sprite
     }
 
     /**
-     * Returns where the camera should follow the sprite, if not where its model is drawn: a
-     * sprite drawn off where it really is just for show (a rider on a rumbling vehicle, say)
-     * returns where it really is, so the view doesn't shake with it.
+     * Returns where the camera should follow the sprite, if not where its model is drawn.
      *
      * @return the translation, or null to follow the model.
      */

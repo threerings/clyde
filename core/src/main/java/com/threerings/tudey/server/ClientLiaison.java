@@ -231,9 +231,8 @@ public class ClientLiaison
       }
     }
 
-    // translate the local interest bounds based on the actor translation
-    Vector2f translation = (_target == null) ?
-      Vector2f.ZERO : _target.getActor().getTranslation();
+    // translate the local interest bounds to where the target's view is centered
+    Vector2f translation = (_target == null) ? Vector2f.ZERO : getViewLogic().getTranslation();
     _localInterest.getMinimumExtent().add(translation, _worldInterest.getMinimumExtent());
     _localInterest.getMaximumExtent().add(translation, _worldInterest.getMaximumExtent());
 
@@ -365,6 +364,20 @@ public class ClientLiaison
     _updated.clear();
     _removed.clear();
     _fired.clear();
+  }
+
+  /**
+   * Returns the logic that the target's view is centered on (see Actor.getViewActorId): the
+   * target's own, unless it's viewing another that's still around.
+   */
+  protected ActorLogic getViewLogic ()
+  {
+    int viewId = _target.getActor().getViewActorId();
+    if (viewId != 0) {
+      var view = _scenemgr.getActorLogic(viewId);
+      if (view != null) return view;
+    }
+    return _target;
   }
 
   /**
