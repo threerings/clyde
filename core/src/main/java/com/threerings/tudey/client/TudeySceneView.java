@@ -904,17 +904,6 @@ public class TudeySceneView extends DynamicScope
   }
 
   /**
-   * Adds a participant to tick at each frame.
-   *
-   * @param prepend if true, prepend the participant so that it is ticked last (participants
-   * are usually ticked in reverse order of addition).
-   */
-  public void addTickParticipant (TickParticipant participant, boolean prepend)
-  {
-    _tickParticipants.add(prepend ? 0 : _tickParticipants.size(), participant);
-  }
-
-  /**
    * Removes a participant from the tick list.
    */
   public void removeTickParticipant (TickParticipant participant)
@@ -1103,7 +1092,11 @@ public class TudeySceneView extends DynamicScope
     for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
       TickParticipant tp = _tickParticipants.get(ii);
       if (!tp.tick(delayedTime)) {
-        _tickParticipants.remove(ii);
+        var removed = _tickParticipants.remove(ii);
+        if (removed != tp) { // do a quick validation
+          log.warning("Bad! We removed the wrong tick participant",
+            "ticked", tp, "removed", removed);
+        }
       }
       if (_dumpTickers) {
         dumpTicker(tp, System.nanoTime() - start);

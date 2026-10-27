@@ -28,9 +28,9 @@ import java.util.Map;
 /**
  * Supplies custom property editors from packages the editor framework can't reference directly,
  * such as game-specific editors that would otherwise drag game data into the editor framework.
- * Implementations are found with {@link java.util.ServiceLoader} when {@link PropertyEditor} is
- * initialized: list each one in the jar's
- * META-INF/services/com.threerings.editor.swing.PropertyEditorProvider.
+ * {@link PropertyEditor} creates one of each implementation listed under
+ * <code>com.threerings.editor.swing.PropertyEditorProvider</code> in
+ * rsrc/config/editor/type.properties, using its public no-arg constructor.
  */
 public interface PropertyEditorProvider
 {
