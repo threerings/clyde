@@ -1112,10 +1112,15 @@ public class TudeySceneView extends DynamicScope
       _camtrans.tick(elapsed);
     }
 
-    // track the target sprite, if any
+    // track the target sprite, if any, or the one it views (see Actor.getViewActorId)
     if (_targetSprite != null) {
-      Vector3f translation = _targetSprite.getCameraTranslation();
-      _camhand.getTarget().set(translation).addLocal(_camcfg.offset);
+      var ts = _targetSprite;
+      int viewId = ts.getActor().getViewActorId();
+      if (viewId != 0) {
+        var view = _actorSprites.get(viewId);
+        if (view != null) ts = view;
+      }
+      _camhand.getTarget().set(ts.getCameraTranslation()).addLocal(_camcfg.offset);
       _camhand.updatePosition();
     }
 
