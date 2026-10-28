@@ -425,10 +425,9 @@ public class LabelRenderer
     }
 
     // render up some new text
-    TextFactory tfact = _container.getTextFactory(this);
     Glyphs glyphs = new Glyphs();
     glyphs.fade = _fade;
-    glyphs.lines = tfact.wrapText(
+    glyphs.lines = config.textFactory.wrapText(
       _value, config.color, config.effect, config.effectSize, config.effectColor, twidth);
     for (int ii = 0; ii < glyphs.lines.length; ii++) {
       glyphs.size.width = Math.max(glyphs.size.width, glyphs.lines[ii].getSize().width);
@@ -493,6 +492,7 @@ public class LabelRenderer
   {
     public String text;
     public Color4f color;
+    public TextFactory textFactory;
     public int effect;
     public int effectSize;
     public Color4f effectColor;
@@ -512,7 +512,7 @@ public class LabelRenderer
       if (text != other.text && (text == null || !text.equals(other.text))) {
         return false;
       }
-      if (!color.equals(other.color)) {
+      if (!color.equals(other.color) || textFactory != other.textFactory) {
         return false;
       }
       if (effectColor != other.effectColor &&
