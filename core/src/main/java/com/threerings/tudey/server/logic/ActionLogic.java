@@ -1131,8 +1131,9 @@ public abstract class ActionLogic extends Logic
       _target.resolve(activator, _targets);
       boolean ret = false;
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-        if (_targets.get(ii) instanceof ActorLogic al) {
-          ret |= _flag.set(al.getActor(), config.on);
+        if (_targets.get(ii) instanceof ActorLogic al && _flag.set(al.getActor(), config.on)) {
+          al.wasUpdated(); // or a static actor's clients never see it
+          ret = true;
         }
       }
       _targets.clear();
