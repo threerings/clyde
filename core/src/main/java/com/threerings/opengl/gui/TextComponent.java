@@ -187,6 +187,7 @@ public abstract class TextComponent extends Component
     LabelRenderer.Config config = new LabelRenderer.Config();
     config.text = forLabel.getText();
     config.color = getColor();
+    config.textFactory = getTextFactory(forLabel);
     config.effect = getTextEffect();
     config.effectSize = getEffectSize();
     config.effectColor = getEffectColor();
