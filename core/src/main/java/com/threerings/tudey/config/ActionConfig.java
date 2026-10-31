@@ -232,6 +232,12 @@ public abstract class ActionConfig extends DeepObject
     @Strippable
     public TargetConfig collisionSource = new TargetConfig.Source();
 
+    /** Whether the collision check runs from each location target itself, so each spawn is in
+     * plain sight of the target it's beside, rather than from the collision source. */
+    @Editable(hgroup="c")
+    @Strippable
+    public boolean collisionFromLocation;
+
     @Override
     public String getLogicClassName ()
     {

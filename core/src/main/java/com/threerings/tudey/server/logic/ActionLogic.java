@@ -231,7 +231,13 @@ public abstract class ActionLogic extends Logic
       int steps = config.steps;
       boolean success = false;
       Vector2f translation = null;
-      if (config.collisionMask != 0) {
+      if (config.collisionMask == 0) {
+        // no check
+
+      } else if (config.collisionFromLocation) {
+        translation = getTranslation(target);
+
+      } else {
         ArrayList<Logic> cTargets = Lists.newArrayList();
         _cs.resolve(activator, cTargets);
         if (cTargets.size() > 0) {
