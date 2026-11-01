@@ -31,6 +31,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Color4fExpression;
+import com.threerings.expr.FloatExpression;
 import com.threerings.expr.ObjectExpression.Evaluator;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
@@ -353,6 +354,11 @@ public abstract class ViewerEffectConfig extends DeepObject
     @Editable(min=0.0, step=0.01)
     public float lightScale = 1f;
 
+    /** How much of the light scale applies, from 0 to 1, so that the lights can rise and fall
+     * with a changing amount (a pulse's, say). */
+    @Editable
+    public FloatExpression lightBlend = new FloatExpression.Constant(1f);
+
     @Override
     public void preload (GlContext ctx)
     {
@@ -373,6 +379,7 @@ public abstract class ViewerEffectConfig extends DeepObject
       final Transform3D transform = ScopeUtil.resolve(
         scope, "worldTransform", new Transform3D());
       final Evaluator<Color4f> evaluator = amount.createEvaluator(scope);
+      final FloatExpression.Evaluator blendEvaluator = lightBlend.createEvaluator(scope);
       return new ViewerEffect() {
         @Override public void activate (Scene scene) {
           addCurrent();
@@ -438,7 +445,7 @@ public abstract class ViewerEffectConfig extends DeepObject
                 _lastDiffuse[ii] = new Color4f();
               }
             }
-            float factor = (lightScale - 1f) * scale;
+            float factor = (lightScale - 1f) * scale * blendEvaluator.evaluate();
             for (int ii = 0; ii < lights.length; ii++) {
               Light light = lights[ii];
               Color4f last = _lastDiffuse[ii].set(light.diffuse.r * factor,
@@ -466,6 +473,7 @@ public abstract class ViewerEffectConfig extends DeepObject
     public void invalidate ()
     {
       amount.invalidate();
+      lightBlend.invalidate();
     }
   }
 
