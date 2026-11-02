@@ -100,6 +100,22 @@ public abstract class HandlerConfig extends DeepObject
     {
       return handler;
     }
+
+    @Override
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+      if (handler != null && !StringUtil.isBlank(nonBlank)) {
+        handler.getPreloads(cfgmgr, preloads);
+      }
+    }
+
+    @Override
+    public void invalidate ()
+    {
+      if (handler != null) {
+        handler.invalidate();
+      }
+    }
   }
 
   /**
