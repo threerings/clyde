@@ -181,7 +181,7 @@ public abstract class GlCanvasApp extends GlApp
   {
     willShutdown();
     _canvas.shutdown();
-    System.exit(0);
+    System.exit(_exitStatus);
   }
 
   @Override

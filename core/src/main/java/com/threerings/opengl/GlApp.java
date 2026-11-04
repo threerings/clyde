@@ -183,6 +183,15 @@ public abstract class GlApp extends DynamicScope
   public abstract void shutdown ();
 
   /**
+   * Sets the status with which the app exits once it shuts down (0 unless set). An app run by a
+   * launcher can tell it why it's exiting this way.
+   */
+  public void setExitStatus (int status)
+  {
+    _exitStatus = status;
+  }
+
+  /**
    * Convenience method for translation.
    */
   public String xlate (String bundle, String msg)
@@ -520,6 +529,9 @@ public abstract class GlApp extends DynamicScope
 
   /** The shader cache. */
   protected ShaderCache _shadcache;
+
+  /** The status with which the app exits (see {@link #setExitStatus}). */
+  protected int _exitStatus;
 
   /** The sound manager. */
   protected SoundManager _soundmgr;

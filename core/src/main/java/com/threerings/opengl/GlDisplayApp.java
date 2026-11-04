@@ -551,7 +551,7 @@ public abstract class GlDisplayApp extends GlApp
       _scale = 0;
     }
     GLFW.glfwTerminate();
-    System.exit(0);
+    System.exit(_exitStatus);
   }
 
   @Override
