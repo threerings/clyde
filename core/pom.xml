@@ -20,7 +20,7 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>ooo-util</artifactId>
-      <version>1.5</version>
+      <version>1.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
@@ -30,12 +30,12 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>nenya</artifactId>
-      <version>1.7.2</version>
+      <version>1.7.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>vilya</artifactId>
-      <version>1.7.1</version>
+      <version>1.8-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>net.sf.proguard</groupId>
