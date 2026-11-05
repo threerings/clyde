@@ -137,6 +137,24 @@ public class ConfigGroup<T extends ManagedConfig>
       return oldCfg;
     }
 
+    @Override
+    protected void configUpdated (ManagedConfig config)
+    {
+      // also skips a replaced config, which addConfig() updates after inserting its replacement
+      if (!(config instanceof IdConfig idCfg) || getRawConfig(config.getName()) != config) return;
+      int id = idCfg.getConfigId();
+      if (id != 0 && _configsById.get(id) == config) return;
+
+      _configsById.values().remove(config);
+      if (id != 0) {
+        var other = _configsById.put(id, config);
+        if (other != null) {
+          log.warning("Config id collision", "group", _name, "id", id,
+            "config", config.getName(), "other", other.getName());
+        }
+      }
+    }
+
     /** Configurations mapped by id, if applicable. */
     protected final Map<Integer, ManagedConfig> _configsById = new HashMap<>();
   }
@@ -677,6 +695,14 @@ public class ConfigGroup<T extends ManagedConfig>
     if (_cfgmgr != null) config.init(_cfgmgr);
 
     return _configsByName.put(config.getName(), config);
+  }
+
+  /**
+   * Called by our manager when one of its configs has been updated, which may be one of ours.
+   */
+  protected void configUpdated (ManagedConfig config)
+  {
+    // nothing by default
   }
 
   /**
