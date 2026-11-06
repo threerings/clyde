@@ -509,6 +509,9 @@ public class TudeySceneView extends DynamicScope
         @Override protected void addUpdateDependencies () {
           // no-op
         }
+        @Override protected boolean allowsUpdates () {
+          return true; // merge/unmerge rebuild the model via wasUpdated()
+        }
       });
       _scene.add(model);
 

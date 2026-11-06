@@ -276,4 +276,11 @@ public class RenderEffectConfig extends BoundConfig
     implementation.invalidate();
     super.wasUpdated();
   }
+
+  @Override
+  protected boolean allowsUpdates ()
+  {
+    // bound instances update at runtime when their scope changes (e.g. render settings)
+    return true;
+  }
 }
