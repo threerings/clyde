@@ -192,6 +192,24 @@ public class RenderableView extends Component
   }
 
   /**
+   * Sets whether the view may draw outside of its bounds. The view is projected exactly as
+   * if bounded, but the frustum is widened to cover the whole screen so that nothing is clipped
+   * at the component's edges. Has no effect on static views, which render to a texture.
+   */
+  public void setUnclipped (boolean unclipped)
+  {
+    _unclipped = unclipped;
+  }
+
+  /**
+   * Checks whether the view may draw outside of its bounds.
+   */
+  public boolean isUnclipped ()
+  {
+    return _unclipped;
+  }
+
+  /**
    * Sets the array of config models.
    */
   public void setConfigModels (Model[] models)
@@ -410,6 +428,9 @@ public class RenderableView extends Component
 
     // update the camera handler/camera position
     _camhand.updatePerspective();
+    if (_unclipped && !_static) {
+      unclipView(ocamera.getViewport());
+    }
     Transform3D viewNodeTransform = getViewNodeTransform();
     if (viewNodeTransform == null) {
       _camhand.updatePosition();
@@ -497,6 +518,30 @@ public class RenderableView extends Component
   }
 
   /**
+   * Expands the camera's viewport to the full viewport, extending the projection by the same
+   * amount so that everything inside our bounds renders exactly where it would have.
+   */
+  protected void unclipView (Rectangle full)
+  {
+    Rectangle viewport = _camera.getViewport();
+    if (viewport.width <= 0 || viewport.height <= 0) {
+      return;
+    }
+    float left = _camera.getLeft(), right = _camera.getRight();
+    float bottom = _camera.getBottom(), top = _camera.getTop();
+    float xscale = (right - left) / viewport.width;
+    float yscale = (top - bottom) / viewport.height;
+    _camera.setProjection(
+      left - (viewport.x - full.x) * xscale,
+      right + (full.x + full.width - viewport.x - viewport.width) * xscale,
+      bottom - (viewport.y - full.y) * yscale,
+      top + (full.y + full.height - viewport.y - viewport.height) * yscale,
+      _camera.getNear(), _camera.getFar(), _camera.getNearFarNormal(), _camera.isOrtho(),
+      _camera.isMirrored());
+    viewport.set(full);
+  }
+
+  /**
    * Returns the transform corresponding to the view node, or <code>null</code> for none.
    */
   protected Transform3D getViewNodeTransform ()
@@ -563,6 +608,9 @@ public class RenderableView extends Component
 
   /** If we use hints while computing preferred size. */
   protected boolean _usePreferredSizeHints;
+
+  /** If we may draw outside of our bounds. */
+  protected boolean _unclipped;
 
   /** A scoped reference to the camera's view transform. */
   @Scoped
