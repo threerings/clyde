@@ -323,13 +323,17 @@ public abstract class LayoutConfig extends DeepObject
       @Editable
       public boolean fill;
 
+      /** If the anchored position is clamped to keep the child inside the container. */
+      @Editable
+      public boolean clamp;
+
       /**
        * Creates the constraints for this child.
        */
       public Object createConstraints ()
       {
         return new AnchorLayout.Anchor(
-            childX, childY, parentX, parentY, offsetX, offsetY, fitToContainer, fill);
+            childX, childY, parentX, parentY, offsetX, offsetY, fitToContainer, fill, clamp);
       }
     }
 

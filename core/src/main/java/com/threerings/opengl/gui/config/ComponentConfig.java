@@ -1007,6 +1007,10 @@ public abstract class ComponentConfig extends DeepObject
     @Editable
     public boolean usePreferredSizeHints = false;
 
+    /** If the view may draw outside of its bounds (ignored for static views). */
+    @Editable
+    public boolean unclipped;
+
     /** A set of models to include in the view. */
     @Editable
     public ViewModel[] models = new ViewModel[0];
@@ -1039,6 +1043,7 @@ public abstract class ComponentConfig extends DeepObject
       // make static if specified and ensure that it will be validated
       view.setStatic(staticView);
       view.setUsePreferredSizeHints(usePreferredSizeHints);
+      view.setUnclipped(unclipped);
       view.invalidate();
 
       // create/reconfigure the models as necessary

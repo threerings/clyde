@@ -250,7 +250,7 @@ public abstract class ManagedConfig extends DeepObject
    */
   public void addListener (ConfigUpdateListener<?> listener)
   {
-    if (disableConfigUpdates) return;
+    if (!allowsUpdates()) return;
     if (_listeners == null) {
       // we disable duplicate checking for performance; don't fuck up
       (_listeners = WeakObserverList.newSafeInOrder()).setCheckDuplicates(false);
@@ -397,8 +397,9 @@ public abstract class ManagedConfig extends DeepObject
 //      }
 //    }
     try {
-      if (disableConfigUpdates) {
-        log.warning("Config updates are disabled here. What's happening!", new Exception());
+      if (!allowsUpdates()) {
+        log.warning("Config updates are disabled here. What's happening!",
+          "class", getClass(), "name", _name, new Exception());
         return;
       }
       if (_listeners != null) {
@@ -414,6 +415,15 @@ public abstract class ManagedConfig extends DeepObject
       _firing = false;
 //      _trace = null;
     }
+  }
+
+  /**
+   * Whether this config accepts listeners and fires update events. Configs that are mutated at
+   * runtime even when {@link #disableConfigUpdates} is set must override this to return true.
+   */
+  protected boolean allowsUpdates ()
+  {
+    return !disableConfigUpdates;
   }
 
   /**
@@ -477,7 +487,12 @@ public abstract class ManagedConfig extends DeepObject
     _updateResources = null;
   }
 
-  // TEMP: A mode, for a server, for great efficiency?!
+  /**
+   * When set, configs neither accept listeners nor fire update events (unless they override
+   * {@link #allowsUpdates}), which skips the dependency gathering and listener bookkeeping. For
+   * deployments whose configs never change at runtime: a production server or client. Set it
+   * before any configs are loaded.
+   */
   public static boolean disableConfigUpdates;
 
   /** The name of this configuration. */

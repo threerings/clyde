@@ -852,6 +852,10 @@ public class ConfigManager
    */
   protected void fireConfigUpdated (ManagedConfig config)
   {
+    var group = _groups.get(config.getConfigClass());
+    if (group != null) {
+      group.configUpdated(config);
+    }
     if (_updateListeners != null && !_ignoreUpdates) {
       final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
       _updateListeners.apply(listener -> {

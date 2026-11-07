@@ -84,6 +84,10 @@ public class AnchorLayout extends LayoutManager
     /** If the component fills the container, ignoring the anchor points and offset. */
     public boolean fill;
 
+    /** If the anchored position is clamped to keep the component inside the container. An
+     * oversized component hugs the lower-left. */
+    public boolean clamp;
+
     /** The fixed offset from the parent anchor to the child anchor. */
     public int ox, oy;
 
@@ -98,7 +102,7 @@ public class AnchorLayout extends LayoutManager
     public Anchor (
         float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer)
     {
-      this(cx, cy, px, py, ox, oy, fitToContainer, false);
+      this(cx, cy, px, py, ox, oy, fitToContainer, false, false);
     }
 
     /**
@@ -106,10 +110,12 @@ public class AnchorLayout extends LayoutManager
      *
      * @param fill if true, the component is sized to fill the container and the anchor points
      * and offset are ignored.
+     * @param clamp if true, the anchored position is clamped to keep the component inside the
+     * container.
      */
     public Anchor (
         float cx, float cy, float px, float py, int ox, int oy, boolean fitToContainer,
-        boolean fill)
+        boolean fill, boolean clamp)
     {
       this.cx = cx;
       this.cy = cy;
@@ -119,6 +125,7 @@ public class AnchorLayout extends LayoutManager
       this.oy = oy;
       this.fitToContainer = fitToContainer;
       this.fill = fill;
+      this.clamp = clamp;
     }
   }
 
@@ -183,7 +190,12 @@ public class AnchorLayout extends LayoutManager
         comp.getPreferredSize(width, height) : comp.getPreferredSize(-1, -1);
       int cx = Math.round(size.width * anchor.cx);
       int cy = Math.round(size.height * anchor.cy);
-      comp.setBounds(px - cx + anchor.ox, py - cy + anchor.oy, size.width, size.height);
+      int x = px - cx + anchor.ox, y = py - cy + anchor.oy;
+      if (anchor.clamp) {
+        x = Math.max(0, Math.min(x, width - size.width));
+        y = Math.max(0, Math.min(y, height - size.height));
+      }
+      comp.setBounds(x, y, size.width, size.height);
     }
   }
 
