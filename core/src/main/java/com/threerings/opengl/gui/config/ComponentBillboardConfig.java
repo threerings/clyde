@@ -111,8 +111,8 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof ComponentBillboard) {
-      ((ComponentBillboard)impl).setConfig(ctx, this);
+    if (impl instanceof ComponentBillboard componentBillboard) {
+      componentBillboard.setConfig(ctx, this);
     } else {
       impl = new ComponentBillboard(ctx, scope, this);
     }

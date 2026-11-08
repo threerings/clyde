@@ -95,8 +95,8 @@ public abstract class Preloadable extends DeepObject
     public void preload (GlContext ctx)
     {
       _config = ctx.getConfigManager().getConfig(_clazz, _ref);
-      if (_config instanceof LoadableConfig) {
-        ((LoadableConfig)_config).preload(ctx);
+      if (_config instanceof LoadableConfig loadableConfig) {
+        loadableConfig.preload(ctx);
       }
     }
 

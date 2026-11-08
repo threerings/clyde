@@ -168,8 +168,8 @@ public class AlphaState extends RenderState
   public boolean equals (Object other)
   {
     AlphaState ostate;
-    return other instanceof AlphaState &&
-      _alphaTestFunc == (ostate = (AlphaState)other)._alphaTestFunc &&
+    return other instanceof AlphaState alphaState &&
+      _alphaTestFunc == (ostate = alphaState)._alphaTestFunc &&
       _alphaTestRef == ostate._alphaTestRef &&
       _srcBlendFactor == ostate._srcBlendFactor &&
       _destBlendFactor == ostate._destBlendFactor;

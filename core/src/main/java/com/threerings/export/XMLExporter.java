@@ -157,9 +157,8 @@ public class XMLExporter extends Exporter
   {
     // replace any existing value
     for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals(name)) {
+      if (node instanceof Element child && node.getNodeName().equals(name)) {
         // remove any children
-        Element child = (Element)node;
         child.setTextContent(null);
         write(child, value, clazz);
         return;
@@ -290,22 +289,22 @@ public class XMLExporter extends Exporter
           write("outer", outer, Object.class);
         }
       }
-      if (value instanceof Exportable) {
-        writeFields((Exportable)value);
-      } else if (value instanceof Object[]) {
+      if (value instanceof Exportable exportable) {
+        writeFields(exportable);
+      } else if (value instanceof Object[] array) {
         @SuppressWarnings("unchecked") Class<Object> ctype =
           (Class<Object>)cclazz.getComponentType();
-        writeEntries((Object[])value, ctype);
-      } else if (value instanceof Collection) {
-        if (value instanceof EnumSet) {
-          writeEntries((EnumSet)value);
-        } else if (value instanceof Multiset) {
-          writeEntries((Multiset)value);
+        writeEntries(array, ctype);
+      } else if (value instanceof Collection collection) {
+        if (value instanceof EnumSet enumSet) {
+          writeEntries(enumSet);
+        } else if (value instanceof Multiset multiset) {
+          writeEntries(multiset);
         } else {
-          writeEntries((Collection)value);
+          writeEntries(collection);
         }
-      } else if (value instanceof Map) {
-        writeEntries((Map)value);
+      } else if (value instanceof Map map) {
+        writeEntries(map);
       } else {
         throw new IOException("Value is not exportable [class=" + cclazz + "].");
       }
@@ -382,10 +381,9 @@ public class XMLExporter extends Exporter
   {
     // replace any existing value
     for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals(name)) {
+      if (node instanceof Element child && node.getNodeName().equals(name)) {
         // remove any children and replace with a single text node (which may be empty,
         // hence calling setTextContent with null rather than the value)
-        Element child = (Element)node;
         child.setTextContent(null);
         child.appendChild(_document.createTextNode(value));
         return;

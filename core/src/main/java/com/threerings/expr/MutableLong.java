@@ -57,7 +57,7 @@ public class MutableLong
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof MutableLong && ((MutableLong)other).value == value;
+    return other instanceof MutableLong mutableLong && mutableLong.value == value;
   }
 
   @Override

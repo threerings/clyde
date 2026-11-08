@@ -93,8 +93,8 @@ public class EntryLogic extends Logic
       if (config.actor != null) {
         _actor = _scenemgr.spawnActor(
           _scenemgr.getNextTimestamp(), _translation, _rotation, config.actor);
-        if (_actor instanceof EntryStateLogic) {
-          ((EntryStateLogic)_actor).setEntry(this);
+        if (_actor instanceof EntryStateLogic entryStateLogic) {
+          entryStateLogic.setEntry(this);
         }
       }
     }

@@ -171,8 +171,8 @@ public class AreaConfig extends ParameterizedConfig
     public AreaCursor.Implementation getCursorImplementation (
       TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
     {
-      if (impl instanceof AreaCursor.Original) {
-        ((AreaCursor.Original)impl).setConfig(this);
+      if (impl instanceof AreaCursor.Original original) {
+        original.setConfig(this);
       } else {
         impl = new AreaCursor.Original(ctx, scope, this);
       }
@@ -186,8 +186,8 @@ public class AreaConfig extends ParameterizedConfig
       if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
         return null;
       }
-      if (impl instanceof AreaSprite.Original) {
-        ((AreaSprite.Original)impl).setConfig(this);
+      if (impl instanceof AreaSprite.Original original) {
+        original.setConfig(this);
       } else {
         impl = new AreaSprite.Original(ctx, scope, this);
       }

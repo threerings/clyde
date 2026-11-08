@@ -92,8 +92,8 @@ public class ScriptedConfig extends ModelConfig.Implementation
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof Scripted) {
-      ((Scripted)impl).setConfig(ctx, this);
+    if (impl instanceof Scripted scripted) {
+      scripted.setConfig(ctx, this);
     } else {
       impl = new Scripted(ctx, scope, this);
     }

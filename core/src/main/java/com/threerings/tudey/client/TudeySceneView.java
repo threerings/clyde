@@ -173,12 +173,12 @@ public class TudeySceneView extends DynamicScope
       {
         if (_dumpInfluences) {
           Object user = element.getUserObject();
-          if (user instanceof EntrySprite) {
+          if (user instanceof EntrySprite entrySprite) {
             log.info(msg, "diff", diff,
-                "entry", ((EntrySprite)user).getEntry().getReference());
-          } else if (user instanceof ActorSprite) {
+                "entry", entrySprite.getEntry().getReference());
+          } else if (user instanceof ActorSprite actorSprite) {
             log.info(msg, "diff", diff,
-                "actor", ((ActorSprite)user).getActor().getConfig());
+                "actor", actorSprite.getActor().getConfig());
           } else {
             super.dumpInfluence(element, msg, diff);
           }
@@ -419,10 +419,10 @@ public class TudeySceneView extends DynamicScope
    */
   public Sprite getSprite (EntityKey key)
   {
-    if (key instanceof EntityKey.Entry) {
-      return getEntrySprite(((EntityKey.Entry)key).getKey());
-    } else if (key instanceof EntityKey.Actor) {
-      return getActorSprite(((EntityKey.Actor)key).getId());
+    if (key instanceof EntityKey.Entry entry) {
+      return getEntrySprite(entry.getKey());
+    } else if (key instanceof EntityKey.Actor actor) {
+      return getActorSprite(actor.getId());
     } else {
       return null;
     }
@@ -691,8 +691,8 @@ public class TudeySceneView extends DynamicScope
     }
     Actor actor = original.createActor(ref, id, timestamp, translation, rotation);
     actor.init(cfgmgr);
-    if (actor instanceof Prespawnable && source != null) {
-      ((Prespawnable)actor).noteSource(source.getActor());
+    if (actor instanceof Prespawnable prespawnable && source != null) {
+      prespawnable.noteSource(source.getActor());
     }
     ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
     _actorSprites.put(id, sprite);
@@ -720,8 +720,8 @@ public class TudeySceneView extends DynamicScope
     }
     if (target != null) {
       Sprite sprite = getSprite(target);
-      if (sprite instanceof ActorSprite) {
-        Actor a = ((ActorSprite)sprite).getActor();
+      if (sprite instanceof ActorSprite actorSprite) {
+        Actor a = actorSprite.getActor();
         translation = (translation == null)
           ? a.getTranslation()
           : translation.add(a.getTranslation());
@@ -887,8 +887,8 @@ public class TudeySceneView extends DynamicScope
     if (fired != null) {
       int last = _records.get(_records.size() - 2).getTimestamp();
       for (Effect effect : fired) {
-        if (effect.getTimestamp() > last && !(effect instanceof Prefireable &&
-            ((Prefireable)effect).getClientOid() == _ctx.getClient().getClientOid())) {
+        if (effect.getTimestamp() > last && !(effect instanceof Prefireable prefireable &&
+            prefireable.getClientOid() == _ctx.getClient().getClientOid())) {
           effect.init(_ctx.getConfigManager());
           new EffectSprite(_ctx, this, effect);
         }
@@ -1261,12 +1261,11 @@ public class TudeySceneView extends DynamicScope
   // documentation inherited from interface ChatDisplay
   public boolean displayMessage (ChatMessage msg, boolean alreadyDisplayed)
   {
-    if (!(msg instanceof UserMessage) || msg instanceof TellFeedbackMessage ||
+    if (!(msg instanceof UserMessage umsg) || msg instanceof TellFeedbackMessage ||
         !(ChatCodes.PLACE_CHAT_TYPE.equals(msg.localtype) ||
           getChatType().equals(msg.localtype))) {
       return false;
     }
-    UserMessage umsg = (UserMessage)msg;
     TudeyOccupantInfo info =
       (TudeyOccupantInfo)_ctx.getOccupantDirector().getOccupantInfo(umsg.speaker);
     if (info == null) {
@@ -1526,8 +1525,8 @@ public class TudeySceneView extends DynamicScope
     addPreloads(actor);
     int id = actor.getId();
     int timestamp = _records.get(_records.size() - 1).getTimestamp();
-    if (actor instanceof Prespawnable &&
-        ((Prespawnable)actor).getClientOid() == _ctx.getClient().getClientOid()) {
+    if (actor instanceof Prespawnable prespawnable &&
+        prespawnable.getClientOid() == _ctx.getClient().getClientOid()) {
       ActorSprite sprite = _actorSprites.remove(-actor.getCreated());
       if (sprite != null) {
         _actorSprites.put(id, sprite);
@@ -1664,11 +1663,9 @@ public class TudeySceneView extends DynamicScope
   protected void dumpTicker (TickParticipant tp, long time)
   {
     time /= 1000L;
-    if (tp instanceof ActorSprite) {
-      ActorSprite sprite = (ActorSprite)tp;
+    if (tp instanceof ActorSprite sprite) {
       log.info("  ", "time", time, "actor", sprite.getActor().getConfig());
-    } else if (tp instanceof EffectSprite) {
-      EffectSprite sprite = (EffectSprite)tp;
+    } else if (tp instanceof EffectSprite sprite) {
       log.info("  ", "time", time, "effect", sprite.getEffect().getConfig());
     } else {
       log.info("  ", "time", time, "ticker", tp);
@@ -1745,7 +1742,7 @@ public class TudeySceneView extends DynamicScope
     public boolean apply (SceneElement element)
     {
       Object obj = element.getUserObject();
-      return obj instanceof Sprite && (((Sprite)obj).getFloorFlags() & _mask) != 0;
+      return obj instanceof Sprite sprite && (sprite.getFloorFlags() & _mask) != 0;
     }
 
     /** The floor mask. */

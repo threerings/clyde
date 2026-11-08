@@ -241,8 +241,8 @@ public abstract class ColorizationConfig extends DeepObject
     public TransNormal (Translated lated)
     {
       this.clazz = lated.clazz;
-      if (lated.source instanceof Normal) {
-        this.colorization = ((Normal)lated.source).colorization;
+      if (lated.source instanceof Normal normal) {
+        this.colorization = normal.colorization;
       }
     }
 

@@ -195,8 +195,8 @@ public abstract class Easing extends DeepObject
     @Override
     public Easing copy (Easing result)
     {
-      CubicInOvershoot that = (result instanceof CubicInOvershoot)
-        ? (CubicInOvershoot)result
+      CubicInOvershoot that = (result instanceof CubicInOvershoot cubicInOvershoot)
+        ? cubicInOvershoot
         : new CubicInOvershoot();
       that.overshoot = this.overshoot;
       return that;
@@ -222,8 +222,8 @@ public abstract class Easing extends DeepObject
     @Override
     public Easing copy (Easing result)
     {
-      CubicOutOvershoot that = (result instanceof CubicOutOvershoot)
-        ? (CubicOutOvershoot)result
+      CubicOutOvershoot that = (result instanceof CubicOutOvershoot cubicOutOvershoot)
+        ? cubicOutOvershoot
         : new CubicOutOvershoot();
       that.overshoot = this.overshoot;
       return that;

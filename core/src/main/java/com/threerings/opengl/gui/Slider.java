@@ -108,8 +108,7 @@ public class Slider extends Component
   // documentation inherited
   public boolean dispatchEvent (Event event)
   {
-    if (isEnabled() && event instanceof MouseEvent) {
-      MouseEvent mev = (MouseEvent)event;
+    if (isEnabled() && event instanceof MouseEvent mev) {
       int mx = mev.getX() - getAbsoluteX(), my = mev.getY() - getAbsoluteY();
       switch (mev.getType()) {
       case MouseEvent.MOUSE_PRESSED:

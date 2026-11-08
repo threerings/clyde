@@ -822,8 +822,8 @@ public abstract class ActionConfig extends DeepObject
     public boolean shouldPreExecute ()
     {
       for (ActionConfig action : actions) {
-        if (action instanceof PreExecutable &&
-            ((PreExecutable)action).shouldPreExecute()) {
+        if (action instanceof PreExecutable preExecutable &&
+            preExecutable.shouldPreExecute()) {
           return true;
         }
       }
@@ -834,8 +834,7 @@ public abstract class ActionConfig extends DeepObject
     public void preExecute (TudeySceneView view, ActorSprite sprite, int timestamp)
     {
       for (ActionConfig action : actions) {
-        if (action instanceof PreExecutable) {
-          PreExecutable preex = (PreExecutable)action;
+        if (action instanceof PreExecutable preex) {
           if (preex.shouldPreExecute()) {
             preex.preExecute(view, sprite, timestamp);
           }
@@ -1208,14 +1207,13 @@ public abstract class ActionConfig extends DeepObject
     // documentation inherited from interface PreExecutable
     public boolean shouldPreExecute ()
     {
-      return (action instanceof PreExecutable) && ((PreExecutable)action).shouldPreExecute();
+      return (action instanceof PreExecutable preExecutable) && preExecutable.shouldPreExecute();
     }
 
     // documentation inherited from interface PreExecutable
     public void preExecute (TudeySceneView view, ActorSprite sprite, int timestamp)
     {
-      if (action instanceof PreExecutable) {
-        PreExecutable preex = (PreExecutable)action;
+      if (action instanceof PreExecutable preex) {
         if (preex.shouldPreExecute()) {
           preex.preExecute(view, sprite, timestamp);
         }

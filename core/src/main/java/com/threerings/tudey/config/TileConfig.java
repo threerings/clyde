@@ -262,8 +262,8 @@ public class TileConfig extends ParameterizedConfig
     public TileCursor.Implementation getCursorImplementation (
       TudeyContext ctx, Scope scope, TileCursor.Implementation impl)
     {
-      if (impl instanceof TileCursor.Original) {
-        ((TileCursor.Original)impl).setConfig(this);
+      if (impl instanceof TileCursor.Original original) {
+        original.setConfig(this);
       } else {
         impl = new TileCursor.Original(ctx, scope, this);
       }
@@ -274,8 +274,8 @@ public class TileConfig extends ParameterizedConfig
     public TileSprite.Implementation getSpriteImplementation (
       TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
     {
-      if (impl instanceof TileSprite.Original) {
-        ((TileSprite.Original)impl).setConfig(this);
+      if (impl instanceof TileSprite.Original original) {
+        original.setConfig(this);
       } else {
         impl = new TileSprite.Original(ctx, scope, this);
       }

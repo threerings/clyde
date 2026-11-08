@@ -338,8 +338,8 @@ public class ResourceEditor extends BaseConfigEditor
   public ConfigManager getConfigManager ()
   {
     Object config = _epanel.getObject();
-    return (config instanceof ParameterizedConfig) ?
-      ((ParameterizedConfig)config).getConfigManager() : _cfgmgr;
+    return (config instanceof ParameterizedConfig pconfig) ?
+      pconfig.getConfigManager() : _cfgmgr;
   }
 
   /**

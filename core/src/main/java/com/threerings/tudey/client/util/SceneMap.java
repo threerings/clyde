@@ -289,8 +289,7 @@ public class SceneMap
    */
   protected void addEntry (Entry entry, boolean retexture)
   {
-    if (entry instanceof TileEntry) {
-      TileEntry tentry = (TileEntry)entry;
+    if (entry instanceof TileEntry tentry) {
       TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
       tentry.getRegion(config, _region);
       for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
@@ -306,8 +305,7 @@ public class SceneMap
       return;
     }
     int flags = _flagMask & entry.getCollisionFlags(_sceneModel.getConfigManager());
-    if (entry instanceof PlaceableEntry) {
-      PlaceableEntry pentry = (PlaceableEntry)entry;
+    if (entry instanceof PlaceableEntry pentry) {
       PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
       if (flags == 0 && !config.floorTile) {
         return;
@@ -346,8 +344,7 @@ public class SceneMap
    */
   protected void removeEntry (Entry entry, boolean retexture)
   {
-    if (entry instanceof TileEntry) {
-      TileEntry tentry = (TileEntry)entry;
+    if (entry instanceof TileEntry tentry) {
       TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
       tentry.getRegion(config, _region);
       for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {

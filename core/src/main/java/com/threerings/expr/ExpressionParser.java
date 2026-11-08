@@ -143,10 +143,10 @@ public class ExpressionParser<T>
           // increment the function's arity
           int size = _operation.size();
           Object fn = (size < 2) ? null : _operation.get(size - 2);
-          if (!(fn instanceof FunctionCall)) {
+          if (!(fn instanceof FunctionCall functionCall)) {
             throw new Exception("Misplaced separator.");
           }
-          ((FunctionCall)fn).arity++;
+          functionCall.arity++;
           break;
 
         case OperatorStreamTokenizer.TT_OPERATOR:
@@ -165,10 +165,9 @@ public class ExpressionParser<T>
           }
           while (!_operation.isEmpty()) {
             Object top = _operation.peek();
-            if (!(top instanceof Operator)) {
+            if (!(top instanceof Operator otop)) {
               break;
             }
-            Operator otop = (Operator)top;
             if ((op.rightAssociative ? (op.precedence <= otop.precedence) :
                 (op.precedence < otop.precedence))) {
               break;
@@ -201,8 +200,8 @@ public class ExpressionParser<T>
             }
             if (!_operation.isEmpty() && clazz.isInstance(_operation.peek())) {
               top = _operation.pop();
-              if (top instanceof FunctionCall && lastToken != '(') {
-                ((FunctionCall)top).arity++;
+              if (top instanceof FunctionCall functionCall && lastToken != '(') {
+                functionCall.arity++;
               }
               handle(top);
             }
@@ -234,10 +233,10 @@ public class ExpressionParser<T>
     throws Exception
   {
     T result;
-    if (value instanceof Double) {
-      result = handleNumber(((Double)value).doubleValue());
-    } else if (value instanceof String) {
-      result = handleString((String)value);
+    if (value instanceof Double dval) {
+      result = handleNumber(dval.doubleValue());
+    } else if (value instanceof String str) {
+      result = handleString(str);
     } else { // value instanceof Identifier
       result = ((Identifier)value).handle(this);
     }

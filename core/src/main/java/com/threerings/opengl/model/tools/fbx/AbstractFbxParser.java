@@ -152,8 +152,7 @@ public abstract class AbstractFbxParser
   protected FBXNode findNode (Long id, String name, String type)
   {
     Object obj = objectsById.get(id);
-    if (!(obj instanceof FBXNode)) return null;
-    FBXNode node = (FBXNode)obj;
+    if (!(obj instanceof FBXNode node)) return null;
     if (name != null && !name.equals(node.getName())) return null;
     if (type != null && !type.equals(node.<String>getData(2))) return null;
     return node;
@@ -408,12 +407,10 @@ public abstract class AbstractFbxParser
    */
   protected Object formatObj (Object obj, Long id) {
     if (obj == null) return "Unknown{" + id + "}";
-    if (obj instanceof ModelDef.SpatialDef) {
-      ModelDef.SpatialDef spat = (ModelDef.SpatialDef)obj;
+    if (obj instanceof ModelDef.SpatialDef spat) {
       return obj.getClass().getName() + "{" + spat.name + "}";
     }
-    if (obj instanceof FBXNode) {
-      FBXNode node = (FBXNode)obj;
+    if (obj instanceof FBXNode node) {
       if ("Deformer".equals(node.getName())) {
         List<Object> logArgs = Lists.newArrayList();
         for (int ii = 0, nn = node.getNumChildren(); ii < nn; ++ii) {

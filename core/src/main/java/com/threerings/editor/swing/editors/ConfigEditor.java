@@ -89,11 +89,10 @@ public class ConfigEditor extends PropertyEditor
         new Supplier<Predicate<? super ManagedConfig>>() {
               public Predicate<? super ManagedConfig> get () {
                 // if we're not editing a ManagedConfig, anything goes
-                if (!(_object instanceof ManagedConfig)) {
+                if (!(_object instanceof ManagedConfig ourCfg)) {
                   return Predicates.alwaysTrue();
                 }
                 // if we are, don't let ourselves be referenced
-                final ManagedConfig ourCfg = (ManagedConfig)_object;
                 return cfg -> (ourCfg.getName() != cfg.getName()) ||
                   (ourCfg.getConfigGroup() != cfg.getConfigGroup());
               }

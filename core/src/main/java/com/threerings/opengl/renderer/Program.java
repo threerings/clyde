@@ -120,8 +120,8 @@ public class Program extends ShaderObject
     @Override
     public Uniform clone (Uniform uniform)
     {
-      IntegerUniform clone = (uniform instanceof IntegerUniform) ?
-        ((IntegerUniform)uniform) : new IntegerUniform(_location);
+      IntegerUniform clone = (uniform instanceof IntegerUniform integerUniform) ?
+        integerUniform : new IntegerUniform(_location);
       clone.value = value;
       return clone;
     }
@@ -129,8 +129,8 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof IntegerUniform &&
-        ((IntegerUniform)other).value == value;
+      return other instanceof IntegerUniform integerUniform &&
+        integerUniform.value == value;
     }
 
     @Override
@@ -174,8 +174,8 @@ public class Program extends ShaderObject
     @Override
     public Uniform clone (Uniform uniform)
     {
-      FloatUniform clone = (uniform instanceof FloatUniform) ?
-        ((FloatUniform)uniform) : new FloatUniform(_location);
+      FloatUniform clone = (uniform instanceof FloatUniform floatUniform) ?
+        floatUniform : new FloatUniform(_location);
       clone.value = value;
       return clone;
     }
@@ -183,8 +183,8 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof FloatUniform &&
-        ((FloatUniform)other).value == value;
+      return other instanceof FloatUniform floatUniform &&
+        floatUniform.value == value;
     }
 
     @Override
@@ -228,8 +228,8 @@ public class Program extends ShaderObject
     @Override
     public Uniform clone (Uniform uniform)
     {
-      Vector2fUniform clone = (uniform instanceof Vector2fUniform) ?
-        ((Vector2fUniform)uniform) : new Vector2fUniform(_location);
+      Vector2fUniform clone = (uniform instanceof Vector2fUniform vector2fUniform) ?
+        vector2fUniform : new Vector2fUniform(_location);
       clone.value.set(value);
       return clone;
     }
@@ -237,8 +237,8 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof Vector2fUniform &&
-        ((Vector2fUniform)other).value.equals(value);
+      return other instanceof Vector2fUniform vector2fUniform &&
+        vector2fUniform.value.equals(value);
     }
 
     @Override
@@ -282,8 +282,8 @@ public class Program extends ShaderObject
     @Override
     public Uniform clone (Uniform uniform)
     {
-      Vector3fUniform clone = (uniform instanceof Vector3fUniform) ?
-        ((Vector3fUniform)uniform) : new Vector3fUniform(_location);
+      Vector3fUniform clone = (uniform instanceof Vector3fUniform vector3fUniform) ?
+        vector3fUniform : new Vector3fUniform(_location);
       clone.value.set(value);
       return clone;
     }
@@ -291,8 +291,8 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof Vector3fUniform &&
-        ((Vector3fUniform)other).value.equals(value);
+      return other instanceof Vector3fUniform vector3fUniform &&
+        vector3fUniform.value.equals(value);
     }
 
     @Override
@@ -336,8 +336,8 @@ public class Program extends ShaderObject
     @Override
     public Uniform clone (Uniform uniform)
     {
-      Vector4fUniform clone = (uniform instanceof Vector4fUniform) ?
-        ((Vector4fUniform)uniform) : new Vector4fUniform(_location);
+      Vector4fUniform clone = (uniform instanceof Vector4fUniform vector4fUniform) ?
+        vector4fUniform : new Vector4fUniform(_location);
       clone.value.set(value);
       return clone;
     }
@@ -345,8 +345,8 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof Vector4fUniform &&
-        ((Vector4fUniform)other).value.equals(value);
+      return other instanceof Vector4fUniform vector4fUniform &&
+        vector4fUniform.value.equals(value);
     }
 
     @Override
@@ -391,8 +391,8 @@ public class Program extends ShaderObject
     @Override
     public Uniform clone (Uniform uniform)
     {
-      Matrix4fUniform clone = (uniform instanceof Matrix4fUniform) ?
-        ((Matrix4fUniform)uniform) : new Matrix4fUniform(_location);
+      Matrix4fUniform clone = (uniform instanceof Matrix4fUniform matrix4fUniform) ?
+        matrix4fUniform : new Matrix4fUniform(_location);
       clone.value.set(value);
       return clone;
     }
@@ -400,8 +400,8 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof Matrix4fUniform &&
-        ((Matrix4fUniform)other).value.equals(value);
+      return other instanceof Matrix4fUniform matrix4fUniform &&
+        matrix4fUniform.value.equals(value);
     }
 
     @Override

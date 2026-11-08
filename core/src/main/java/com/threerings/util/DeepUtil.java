@@ -255,8 +255,8 @@ public class DeepUtil
     if (value == null) {
       return null;
     }
-    return (value instanceof Copyable) ?
-      ((Copyable)value).copy(dest, outer) : DeepUtil.copy(value, dest, outer);
+    return (value instanceof Copyable copyable) ?
+      copyable.copy(dest, outer) : DeepUtil.copy(value, dest, outer);
   }
 
   /**

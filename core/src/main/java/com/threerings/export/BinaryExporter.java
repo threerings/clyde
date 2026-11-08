@@ -269,8 +269,8 @@ public class BinaryExporter extends Exporter
     }
     boolean track;
     // intern all strings before looking them up. Strings are immutable. We can share them.
-    if (value instanceof String) {
-      value = ((String)value).intern();
+    if (value instanceof String str) {
+      value = str.intern();
       track = true;
 
     } else {
@@ -331,22 +331,22 @@ public class BinaryExporter extends Exporter
         write(outer, Object.class);
       }
     }
-    if (value instanceof Exportable) {
-      writeFields((Exportable)value);
-    } else if (value instanceof Object[]) {
+    if (value instanceof Exportable exportable) {
+      writeFields(exportable);
+    } else if (value instanceof Object[] array) {
       @SuppressWarnings("unchecked") Class<Object> ctype =
         (Class<Object>)cclazz.getComponentType();
-      writeEntries((Object[])value, ctype);
-    } else if (value instanceof Collection) {
-      if (value instanceof EnumSet) {
-        writeEntries((EnumSet<?>)value);
-      } else if (value instanceof Multiset) {
-        writeEntries((Multiset)value);
+      writeEntries(array, ctype);
+    } else if (value instanceof Collection collection) {
+      if (value instanceof EnumSet<?> enumSet) {
+        writeEntries(enumSet);
+      } else if (value instanceof Multiset multiset) {
+        writeEntries(multiset);
       } else {
-        writeEntries((Collection)value);
+        writeEntries(collection);
       }
-    } else if (value instanceof Map) {
-      writeEntries((Map)value);
+    } else if (value instanceof Map map) {
+      writeEntries(map);
     } else if (value instanceof Multimap) {
       throw new IOException("TODO: Multimap support");
     } else {
@@ -589,10 +589,9 @@ public class BinaryExporter extends Exporter
     @Override
     public boolean equals (Object o)
     {
-      if (!(o instanceof FieldData)) {
+      if (!(o instanceof FieldData that)) {
         return false;
       }
-      FieldData that = (FieldData)o;
       return this.name.equals(that.name) && this.clazz.equals(that.clazz);
     }
 

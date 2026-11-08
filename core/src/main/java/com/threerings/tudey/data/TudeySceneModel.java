@@ -1535,8 +1535,8 @@ public class TudeySceneModel extends SceneModel
   public boolean addEntry (final Entry entry, int layer, boolean assignId)
   {
     // assign id if appropriate
-    if (assignId && entry instanceof IdEntry) {
-      ((IdEntry)entry).setId(++_lastEntryId);
+    if (assignId && entry instanceof IdEntry idEntry) {
+      idEntry.setId(++_lastEntryId);
     }
     // add to map
     Entry oentry = add(entry, layer);
@@ -1602,10 +1602,9 @@ public class TudeySceneModel extends SceneModel
    */
   public boolean containsEntry (Object key)
   {
-    if (!(key instanceof Coord)) {
+    if (!(key instanceof Coord coord)) {
       return _entries.containsKey(key);
     }
-    Coord coord = (Coord)key;
     return _tiles.containsKey(coord.x, coord.y);
   }
 
@@ -1616,10 +1615,9 @@ public class TudeySceneModel extends SceneModel
    */
   public Entry getEntry (Object key)
   {
-    if (!(key instanceof Coord)) {
+    if (!(key instanceof Coord coord)) {
       return _entries.get(key);
     }
-    Coord coord = (Coord)key;
     int value = _tiles.get(coord.x, coord.y);
     return (value == -1) ? null : decodeTileEntry(coord, value);
   }
@@ -2064,8 +2062,8 @@ public class TudeySceneModel extends SceneModel
     for (Entry entry : in.read("entries", new Entry[0], Entry[].class)) {
       _entries.put(entry.getKey(), entry);
       _references.put(entry.getReference(), entry.getReference());
-      if (entry instanceof IdEntry) {
-        _lastEntryId = Math.max(_lastEntryId, ((IdEntry)entry).getId());
+      if (entry instanceof IdEntry idEntry) {
+        _lastEntryId = Math.max(_lastEntryId, idEntry.getId());
       }
     }
 
@@ -2528,8 +2526,7 @@ public class TudeySceneModel extends SceneModel
   protected Entry add (Entry entry, int layer)
   {
     validateLayer(layer);
-    if (entry instanceof TileEntry) {
-      TileEntry tentry = (TileEntry)entry;
+    if (entry instanceof TileEntry tentry) {
       Coord coord = tentry.getLocation();
       int idx = addTileConfig(tentry.tile);
       int ovalue = _tiles.put(coord.x, coord.y, tentry.encode(idx));
@@ -2564,7 +2561,7 @@ public class TudeySceneModel extends SceneModel
    */
   protected Entry update (Entry nentry)
   {
-    if (!(nentry instanceof TileEntry)) {
+    if (!(nentry instanceof TileEntry tentry)) {
       Entry oentry = _entries.put(nentry.getKey(), nentry);
       if (oentry == null) {
         // remove the entry (a warning will be logged)
@@ -2577,7 +2574,6 @@ public class TudeySceneModel extends SceneModel
       }
       return oentry;
     }
-    TileEntry tentry = (TileEntry)nentry;
     Coord coord = tentry.getLocation();
     int idx = addTileConfig(tentry.tile);
     int ovalue = _tiles.put(coord.x, coord.y, tentry.encode(idx));
@@ -2602,7 +2598,7 @@ public class TudeySceneModel extends SceneModel
    */
   protected Entry remove (Object key)
   {
-    if (!(key instanceof Coord)) {
+    if (!(key instanceof Coord coord)) {
       _layerMap.remove(key);
       Entry oentry = _entries.remove(key);
       if (oentry != null) {
@@ -2611,7 +2607,6 @@ public class TudeySceneModel extends SceneModel
       }
       return oentry;
     }
-    Coord coord = (Coord)key;
     int ovalue = _tiles.remove(coord.x, coord.y);
     if (ovalue == -1) {
       return null;

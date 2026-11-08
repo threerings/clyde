@@ -100,10 +100,9 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     @Override
     public boolean equals (Object other)
     {
-      if (!(other instanceof CoordIntEntry)) {
+      if (!(other instanceof CoordIntEntry oentry)) {
         return false;
       }
-      CoordIntEntry oentry = (CoordIntEntry)other;
       return _key.equals(oentry._key) && getIntValue() == oentry.getIntValue();
     }
 
@@ -352,26 +351,24 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
   @Override
   public boolean containsKey (Object key)
   {
-    if (!(key instanceof Coord)) {
+    if (!(key instanceof Coord coord)) {
       return false;
     }
-    Coord coord = (Coord)key;
     return containsKey(coord.x, coord.y);
   }
 
   @Override
   public boolean containsValue (Object value)
   {
-    return value instanceof Integer && containsValue(((Integer)value).intValue());
+    return value instanceof Integer ival && containsValue(ival.intValue());
   }
 
   @Override
   public Integer get (Object key)
   {
-    if (!(key instanceof Coord)) {
+    if (!(key instanceof Coord coord)) {
       return null;
     }
-    Coord coord = (Coord)key;
     int value = get(coord.x, coord.y);
     return (value == _empty) ? null : value;
   }
@@ -386,10 +383,9 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
   @Override
   public Integer remove (Object key)
   {
-    if (!(key instanceof Coord)) {
+    if (!(key instanceof Coord coord)) {
       return null;
     }
-    Coord coord = (Coord)key;
     int ovalue = remove(coord.x, coord.y);
     return (ovalue == _empty) ? null : ovalue;
   }

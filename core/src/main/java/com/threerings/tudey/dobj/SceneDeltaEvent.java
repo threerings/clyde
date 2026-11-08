@@ -158,8 +158,8 @@ public class SceneDeltaEvent extends DEvent
   @Override
   protected void notifyListener (Object listener)
   {
-    if (listener instanceof SceneDeltaListener) {
-      ((SceneDeltaListener)listener).sceneDeltaReceived(this);
+    if (listener instanceof SceneDeltaListener sceneDeltaListener) {
+      sceneDeltaListener.sceneDeltaReceived(this);
     }
   }
 

@@ -402,8 +402,8 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void apply (UserInterface iface, Component comp)
     {
-      if (comp instanceof ToggleButton) {
-        ((ToggleButton)comp).setSelected(selected);
+      if (comp instanceof ToggleButton toggleButton) {
+        toggleButton.setSelected(selected);
       }
     }
   }
@@ -420,8 +420,8 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void apply (UserInterface iface, Component comp)
     {
-      if (comp instanceof TextComponent) {
-        ((TextComponent)comp).setText(text);
+      if (comp instanceof TextComponent textComponent) {
+        textComponent.setText(text);
       }
     }
   }
@@ -454,8 +454,8 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void apply (UserInterface iface, Component comp)
     {
-      if (comp instanceof UserInterface) {
-        ((UserInterface)comp).setConfig(userInterface);
+      if (comp instanceof UserInterface ui) {
+        ui.setConfig(userInterface);
       }
     }
   }
@@ -472,8 +472,8 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void apply (UserInterface iface, Component comp)
     {
-      if (comp instanceof UserInterface) {
-        ((UserInterface)comp).runScript(interfaceScript);
+      if (comp instanceof UserInterface userInterface) {
+        userInterface.runScript(interfaceScript);
       }
     }
   }
@@ -490,8 +490,8 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void apply (UserInterface iface, Component comp)
     {
-      if (comp instanceof UserInterface) {
-        ((UserInterface)comp).runInitScript(interfaceScript);
+      if (comp instanceof UserInterface userInterface) {
+        userInterface.runInitScript(interfaceScript);
       }
     }
   }
@@ -512,8 +512,8 @@ public abstract class ActionConfig extends DeepObject
     @Override
     public void apply (UserInterface iface, Component comp)
     {
-      if (comp instanceof RenderableView) {
-        Model[] models = ((RenderableView)comp).getConfigModels();
+      if (comp instanceof RenderableView renderableView) {
+        Model[] models = renderableView.getConfigModels();
         if (index < models.length) {
           models[index].createAnimation(animation).start();
         }

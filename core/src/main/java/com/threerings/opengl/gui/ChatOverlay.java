@@ -121,8 +121,7 @@ public class ChatOverlay extends Container
   {
     String format = msg.getFormat();
     String text = msg.message;
-    if (format != null && msg instanceof UserMessage) {
-      UserMessage umsg = (UserMessage)msg;
+    if (format != null && msg instanceof UserMessage umsg) {
       text = _msgs.get(format, umsg.getSpeakerDisplayName(), text);
     }
     BoundedRangeModel model = _area.getScrollModel();
@@ -168,8 +167,8 @@ public class ChatOverlay extends Container
    */
   protected Color4f getColor (ChatMessage msg)
   {
-    if (msg instanceof SystemMessage) {
-      return _systemColors[((SystemMessage)msg).attentionLevel];
+    if (msg instanceof SystemMessage systemMessage) {
+      return _systemColors[systemMessage.attentionLevel];
     } else if (msg instanceof TellFeedbackMessage) {
       return _systemColors[SystemMessage.FEEDBACK];
     } else {

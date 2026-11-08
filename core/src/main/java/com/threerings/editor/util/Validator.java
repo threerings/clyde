@@ -160,14 +160,14 @@ public class Validator
     if (object == null) {
       return;
     }
-    if (object instanceof Object[]) {
-      for (Object element : (Object[])object) {
+    if (object instanceof Object[] array) {
+      for (Object element : array) {
         getReferences(cfgmgr, element);
       }
       return;
     }
-    if (object instanceof Iterable) {
-      for (Object element : ((Iterable<?>)object)) {
+    if (object instanceof Iterable<?> iterable) {
+      for (Object element : iterable) {
         getReferences(cfgmgr, element);
       }
       return;
@@ -226,8 +226,8 @@ public class Validator
     Class<?> type = property.getType();
     if (ConfigReference.class.equals(type)) {
       Class<?> clazz = property.getArgumentType(ConfigReference.class);
-      if (clazz == null && (object instanceof DerivedConfig)) {
-        clazz = ((DerivedConfig)object).cclass;
+      if (clazz == null && (object instanceof DerivedConfig dconfig)) {
+        clazz = dconfig.cclass;
       }
       @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
         (Class<ManagedConfig>)clazz;
@@ -245,13 +245,13 @@ public class Validator
         ? Arrays.asList((ConfigReference<?>[])value)
         : (List<ConfigReference<?>>)value;
       Type ctype = property.getGenericComponentType();
-      if (!(ctype instanceof ParameterizedType)) {
+      if (!(ctype instanceof ParameterizedType ptype)) {
         output("can't determine type of refs");
         return;
       }
       @SuppressWarnings("unchecked")
       Class<ManagedConfig> cclass = (Class<ManagedConfig>)
-          ((ParameterizedType)ctype).getActualTypeArguments()[0];
+          ptype.getActualTypeArguments()[0];
       for (ConfigReference<?> ref : list) {
         if (ref == null) {
           _hasNulls = true;
@@ -300,11 +300,10 @@ public class Validator
       return;
     }
     ManagedConfig config = cfgmgr.getRawConfig(clazz, ref.getName());
-    if (!(config instanceof ParameterizedConfig)) {
+    if (!(config instanceof ParameterizedConfig pconfig)) {
       args.clear();
       return;
     }
-    ParameterizedConfig pconfig = (ParameterizedConfig)config;
     for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
         it.hasNext(); ) {
       Map.Entry<String, Object> entry = it.next();
@@ -455,8 +454,8 @@ public class Validator
     @Override
     public boolean equals (Object o)
     {
-      return (o instanceof Resource) && ((Resource)o).path.equals(this.path)
-        && Arrays.equals(((Resource)o).extensions, this.extensions);
+      return (o instanceof Resource resource) && resource.path.equals(this.path)
+        && Arrays.equals(resource.extensions, this.extensions);
     }
 
     @Override

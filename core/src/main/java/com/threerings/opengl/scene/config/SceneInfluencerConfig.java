@@ -55,8 +55,8 @@ public class SceneInfluencerConfig extends ModelConfig.Implementation
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof SceneInfluencer) {
-      ((SceneInfluencer)impl).setConfig(ctx, this);
+    if (impl instanceof SceneInfluencer sceneInfluencer) {
+      sceneInfluencer.setConfig(ctx, this);
     } else {
       impl = new SceneInfluencer(ctx, scope, this);
     }

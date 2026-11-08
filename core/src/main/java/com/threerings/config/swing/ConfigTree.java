@@ -409,10 +409,10 @@ public class ConfigTree extends JTree
           onode = transfer.onode;
         } else {
           data = ((SerializableWrapper)data).getObject();
-          if (!(data instanceof ConfigTreeNode)) {
+          if (!(data instanceof ConfigTreeNode configTreeNode)) {
             return false; // some other kind of wrapped transfer
           }
-          node = (ConfigTreeNode)data;
+          node = configTreeNode;
         }
         if (!node.verifyConfigClass(_groups[0].getConfigClass())) {
           return false; // some other kind of config

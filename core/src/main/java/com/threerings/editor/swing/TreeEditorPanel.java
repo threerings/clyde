@@ -220,11 +220,11 @@ public class TreeEditorPanel extends BaseEditorPanel
         NodeObject dnobj;
         DefaultMutableTreeNode dnode;
         int idx;
-        if (snobj.comp instanceof Integer && pnobj.property != null &&
+        if (snobj.comp instanceof Integer ival && pnobj.property != null &&
             pnobj.property.isLegalComponentValue(value)) {
           dnobj = pnobj;
           dnode = pnode;
-          idx = (Integer)snobj.comp;
+          idx = ival;
 
         } else if (snobj.property != null && snobj.property.getComponentType() != null &&
             snobj.property.isLegalComponentValue(value)) {
@@ -242,8 +242,8 @@ public class TreeEditorPanel extends BaseEditorPanel
           pnobj = (NodeObject)pnode.getUserObject();
           if (pnobj.value == dnobj.value) {
             NodeObject nobj = (NodeObject)node.getUserObject();
-            if (nobj.comp instanceof Integer) {
-              oidx = (Integer)nobj.comp;
+            if (nobj.comp instanceof Integer ival) {
+              oidx = ival;
             }
           }
         }
@@ -591,13 +591,13 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
     NodeObject nodeobj = (NodeObject)node.getUserObject();
     NodeObject pnobj = (NodeObject)parent.getUserObject();
-    if (!(nodeobj.comp instanceof Integer)) {
+    if (!(nodeobj.comp instanceof Integer ival)) {
       if (!revertToDefaults) {
         return;
       }
-      if (nodeobj.comp instanceof String) {
+      if (nodeobj.comp instanceof String str) {
         ArgumentMap args = ((ConfigReference)pnobj.value).getArguments();
-        args.remove((String)nodeobj.comp);
+        args.remove(str);
         nodeobj.value = nodeobj.property.get(args);
       } else {
         nodeobj.value = nodeobj.property.get(
@@ -611,9 +611,9 @@ public class TreeEditorPanel extends BaseEditorPanel
       fireStateChanged();
       return;
     }
-    int idx = (Integer)nodeobj.comp;
-    if (pnobj.value instanceof List) {
-      ((List)pnobj.value).remove(idx);
+    int idx = ival;
+    if (pnobj.value instanceof List list) {
+      list.remove(idx);
     } else {
       int len = Array.getLength(pnobj.value);
       Object narray = Array.newInstance(
@@ -826,14 +826,13 @@ public class TreeEditorPanel extends BaseEditorPanel
       } else if (value instanceof String) {
         dval = "\"" + value + "\"";
 
-      } else if (value instanceof Enum) {
-        Enum<?> eval = (Enum)value;
+      } else if (value instanceof Enum en) {
+        Enum<?> eval = en;
         dval = getLabel(eval, _msgmgr.getBundle(
           Introspector.getMessageBundle(eval.getDeclaringClass())));
 
-      } else if (value instanceof Integer &&
+      } else if (value instanceof Integer ival &&
           property.getAnnotation().editor().equals("colorization")) {
-        int ival = (Integer)value;
         String mode = property.getAnnotation().mode();
         if (mode.equals("class")) {
           ClassRecord crec = _ctx.getColorPository().getClassRecord(ival);
@@ -852,8 +851,7 @@ public class TreeEditorPanel extends BaseEditorPanel
       node.setUserObject(new NodeObject(label + ": " + dval, value, property, comp));
       node.setAllowsChildren(false);
 
-    } else if (value instanceof ConfigReference) {
-      ConfigReference<?> ref = (ConfigReference)value;
+    } else if (value instanceof ConfigReference<?> ref) {
       String name = ref.getName();
       node.setUserObject(new NodeObject(label + ": " + name, value, property, comp));
       node.setAllowsChildren(true);
@@ -864,8 +862,8 @@ public class TreeEditorPanel extends BaseEditorPanel
         // if we can't figure out the reftype class, there's a good chance our
         // object is a DerivedConfig, and we need to extract the reftype manually.
         if (refTypeClass == null) {
-          if (_object instanceof DerivedConfig) {
-            refTypeClass = ((DerivedConfig)_object).cclass;
+          if (_object instanceof DerivedConfig dconfig) {
+            refTypeClass = dconfig.cclass;
           }
           if (refTypeClass == null) {
             log.warning("Couldn't determine config reference type", "ref", ref);
@@ -874,8 +872,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
           (Class<ManagedConfig>)refTypeClass;
         ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
-        if (config instanceof ParameterizedConfig) {
-          ParameterizedConfig pconfig = (ParameterizedConfig)config;
+        if (config instanceof ParameterizedConfig pconfig) {
           if (pconfig.parameters.length > 0) {
             for (Parameter param : pconfig.parameters) {
               Property aprop = param.getArgumentProperty(pconfig);
@@ -910,7 +907,7 @@ public class TreeEditorPanel extends BaseEditorPanel
       Class<?>[] componentSubtypes = (property != null) ?
         property.getComponentSubtypes() : new Class<?>[0];
       int ccount = node.getChildCount();
-      int length = (value instanceof List) ? ((List)value).size() : Array.getLength(value);
+      int length = (value instanceof List list) ? list.size() : Array.getLength(value);
       for (int ii = 0; ii < length; ii++) {
         DefaultMutableTreeNode child;
         if (ii < ccount) {
@@ -919,7 +916,7 @@ public class TreeEditorPanel extends BaseEditorPanel
           node.insert(child = new DefaultMutableTreeNode(), ii);
         }
         populateNode(child, String.valueOf(ii),
-          (value instanceof List) ? ((List)value).get(ii) : Array.get(value, ii),
+          (value instanceof List list) ? list.get(ii) : Array.get(value, ii),
             componentSubtypes, null, ii);
       }
       for (int ii = length; ii < ccount; ii++) {
@@ -945,8 +942,8 @@ public class TreeEditorPanel extends BaseEditorPanel
         path.getPathComponent(ii)).getUserObject();
       if (obj.comp instanceof Integer) {
         buf.append('[').append(obj.comp).append(']');
-      } else if (obj.comp instanceof String) {
-        buf.append("[\"").append(((String)obj.comp).replace("\"", "\\\"")).append("\"]");
+      } else if (obj.comp instanceof String str) {
+        buf.append("[\"").append(str.replace("\"", "\\\"")).append("\"]");
       } else { // obj.comp == null
         buf.append('.').append(obj.property.getName());
       }

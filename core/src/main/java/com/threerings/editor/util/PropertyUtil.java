@@ -422,8 +422,8 @@ public class PropertyUtil
     if (object == null) {
       return;
     }
-    if (object instanceof Object[]) {
-      for (Object element : (Object[])object) {
+    if (object instanceof Object[] array) {
+      for (Object element : array) {
         getResources(cfgmgr, element, paths, refs);
       }
       return;

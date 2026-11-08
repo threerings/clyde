@@ -129,8 +129,8 @@ public class StackedStream extends ResourceStream
    */
   protected boolean sameStack (com.threerings.openal.Stream other)
   {
-    if (other instanceof StackedStream) {
-      String stack = ((StackedStream)other).getStack();
+    if (other instanceof StackedStream stackedStream) {
+      String stack = stackedStream.getStack();
       return _stack == null ? stack == null : _stack.equals(stack);
     }
     return false;

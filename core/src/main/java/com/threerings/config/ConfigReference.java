@@ -92,8 +92,8 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
   public Object copy (Object dest)
   {
     ConfigReference<?> cref;
-    if (dest instanceof ConfigReference) {
-      cref = (ConfigReference<?>)dest;
+    if (dest instanceof ConfigReference<?> dref) {
+      cref = dref;
       cref._name = _name;
     } else {
       cref = new ConfigReference<T>(_name);
@@ -105,10 +105,9 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof ConfigReference)) {
+    if (!(other instanceof ConfigReference<?> oref)) {
       return false;
     }
-    ConfigReference<?> oref = (ConfigReference<?>)other;
     return _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
   }
 

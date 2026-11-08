@@ -51,8 +51,8 @@ public abstract class GlContextWrapper
    */
   public static GlContext getBase (GlContext ctx)
   {
-    return (ctx instanceof GlContextWrapper) ?
-      getBase(((GlContextWrapper)ctx).getWrapped()) : ctx;
+    return (ctx instanceof GlContextWrapper glContextWrapper) ?
+      getBase(glContextWrapper.getWrapped()) : ctx;
   }
 
   /**

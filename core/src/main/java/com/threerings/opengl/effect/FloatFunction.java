@@ -85,7 +85,7 @@ public abstract class FloatFunction extends DeepObject
     @Override
     public FloatFunction copy (FloatFunction result)
     {
-      Constant cresult = (result instanceof Constant) ? ((Constant)result) : new Constant();
+      Constant cresult = (result instanceof Constant constant) ? constant : new Constant();
       cresult.value = value;
       return cresult;
     }
@@ -145,7 +145,7 @@ public abstract class FloatFunction extends DeepObject
     @Override
     public FloatFunction copy (FloatFunction result)
     {
-      Linear lresult = (result instanceof Linear) ? ((Linear)result) : new Linear();
+      Linear lresult = (result instanceof Linear linear) ? linear : new Linear();
       lresult.start = start;
       lresult.end = end;
       lresult.easing = easing.copy(lresult.easing);
@@ -221,7 +221,7 @@ public abstract class FloatFunction extends DeepObject
     @Override
     public FloatFunction copy (FloatFunction result)
     {
-      InAndOut iresult = (result instanceof InAndOut) ? ((InAndOut)result) : new InAndOut();
+      InAndOut iresult = (result instanceof InAndOut inAndOut) ? inAndOut : new InAndOut();
       iresult.start = start;
       iresult.end = end;
       iresult.in = in;
@@ -306,8 +306,8 @@ public abstract class FloatFunction extends DeepObject
     @Override
     public FloatFunction copy (FloatFunction result)
     {
-      ThreePoint tresult = (result instanceof ThreePoint) ?
-        ((ThreePoint)result) : new ThreePoint();
+      ThreePoint tresult = (result instanceof ThreePoint threePoint) ?
+        threePoint : new ThreePoint();
       tresult.start = start;
       tresult.middle = middle;
       tresult.end = end;
@@ -441,8 +441,8 @@ public abstract class FloatFunction extends DeepObject
     @Override
     public FloatFunction copy (FloatFunction result)
     {
-      Multipoint mresult = (result instanceof Multipoint) ?
-        ((Multipoint)result) : new Multipoint();
+      Multipoint mresult = (result instanceof Multipoint multipoint) ?
+        multipoint : new Multipoint();
       mresult.start = start;
       if (mresult.middle.length != middle.length) {
         Point[] oarray = mresult.middle;

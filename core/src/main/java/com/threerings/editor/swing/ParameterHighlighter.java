@@ -47,11 +47,10 @@ public class ParameterHighlighter
    */
   protected void registerDescendant (Component c)
   {
-    if (c instanceof Container) {
-      ((Container)c).addContainerListener(_containerListener);
+    if (c instanceof Container container) {
+      container.addContainerListener(_containerListener);
     }
-    if (c instanceof BasePropertyEditor) {
-      BasePropertyEditor pe = (BasePropertyEditor)c;
+    if (c instanceof BasePropertyEditor pe) {
       String path = _editor.getComponentPath(pe, false);
       if (path.startsWith(".")) {
         path = path.substring(1);
@@ -64,8 +63,7 @@ public class ParameterHighlighter
       _pathToEditor.put(path, pe);
       _editorToPath.put(pe, path);
 //            log.info("+", "path", path, "pe", pe.getClass());
-      if (pe instanceof PathTableArrayListEditor) {
-        PathTableArrayListEditor paths = (PathTableArrayListEditor)pe;
+      if (pe instanceof PathTableArrayListEditor paths) {
         _params.put(paths, new ParameterWatcher(paths));
       }
     }
@@ -76,11 +74,10 @@ public class ParameterHighlighter
    */
   protected void unregisterDescendant (Component c)
   {
-    if (c instanceof Container) {
-      ((Container)c).removeContainerListener(_containerListener);
+    if (c instanceof Container container) {
+      container.removeContainerListener(_containerListener);
     }
-    if (c instanceof BasePropertyEditor) {
-      BasePropertyEditor pe = (BasePropertyEditor)c;
+    if (c instanceof BasePropertyEditor pe) {
       String path = _editorToPath.remove(pe);
       if (path != null) {
         _pathToEditor.remove(path);
@@ -142,8 +139,8 @@ public class ParameterHighlighter
     {
       PropertyEditor name = null;
       for (Container p = paths; p != null; p = p.getParent()) {
-        if (p instanceof EditorPanel) {
-          name = ((EditorPanel)p).getPropertyEditor("name");
+        if (p instanceof EditorPanel editorPanel) {
+          name = editorPanel.getPropertyEditor("name");
           break;
         }
       }

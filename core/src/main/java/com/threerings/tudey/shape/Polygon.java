@@ -123,8 +123,8 @@ public class Polygon extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    Polygon presult = (result instanceof Polygon) ?
-      ((Polygon)result) : new Polygon(_vertices.length);
+    Polygon presult = (result instanceof Polygon polygon) ?
+      polygon : new Polygon(_vertices.length);
     if (presult.getVertexCount() != _vertices.length) {
       presult.initVertices(_vertices.length);
     }
@@ -138,8 +138,8 @@ public class Polygon extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    Polygon presult = (result instanceof Polygon) ?
-      ((Polygon)result) : new Polygon(_vertices.length);
+    Polygon presult = (result instanceof Polygon polygon) ?
+      polygon : new Polygon(_vertices.length);
     if (presult.getVertexCount() != _vertices.length) {
       presult.initVertices(_vertices.length);
     }
@@ -222,7 +222,7 @@ public class Polygon extends Shape
         }
       }
     }
-    Polygon poly = (result instanceof Polygon) ? (Polygon)result : null;
+    Polygon poly = (result instanceof Polygon polygon) ? polygon : null;
     if (poly != null) {
       poly._vertices = vertices;
     } else {

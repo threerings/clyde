@@ -197,10 +197,9 @@ public final class Vector4f
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Vector4f)) {
+    if (!(other instanceof Vector4f ovec)) {
       return false;
     }
-    Vector4f ovec = (Vector4f)other;
     return (x == ovec.x && y == ovec.y && z == ovec.z && w == ovec.w);
   }
 }

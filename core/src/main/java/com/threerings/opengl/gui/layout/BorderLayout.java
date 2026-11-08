@@ -97,8 +97,8 @@ public class BorderLayout extends LayoutManager
   // documentation inherited
   public void addLayoutComponent (Component comp, Object constraints)
   {
-    if (constraints instanceof Integer) {
-      int val = ((Integer)constraints).intValue();
+    if (constraints instanceof Integer ival) {
+      int val = ival.intValue();
       if (val != IGNORE.intValue()) {
         _components[val] = comp;
       }

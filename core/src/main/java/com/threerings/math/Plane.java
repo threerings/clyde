@@ -329,10 +329,9 @@ public class Plane
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Plane)) {
+    if (!(other instanceof Plane oplane)) {
       return false;
     }
-    Plane oplane = (Plane)other;
     return constant == oplane.constant && _normal.equals(oplane.getNormal());
   }
 

@@ -57,8 +57,8 @@ public class ShapeModelConfig extends ModelConfig.Implementation
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof ShapeModel) {
-      ((ShapeModel)impl).setConfig(ctx, this);
+    if (impl instanceof ShapeModel shapeModel) {
+      shapeModel.setConfig(ctx, this);
     } else {
       impl = new ShapeModel(ctx, scope, this);
     }

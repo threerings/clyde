@@ -428,7 +428,7 @@ public class Pathfinder
    */
   protected void addFlags (Entry entry)
   {
-    if (!(entry instanceof TileEntry)) {
+    if (!(entry instanceof TileEntry tentry)) {
       ConfigManager cfgmgr = _scenemgr.getConfigManager();
       Shape shape = entry.createShape(cfgmgr);
       if (shape != null) {
@@ -436,7 +436,6 @@ public class Pathfinder
       }
       return;
     }
-    TileEntry tentry = (TileEntry)entry;
     TileConfig.Original config = tentry.getConfig(_scenemgr.getConfigManager());
     tentry.getRegion(config, _region);
     for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
@@ -454,7 +453,7 @@ public class Pathfinder
    */
   protected void removeFlags (Entry entry)
   {
-    if (!(entry instanceof TileEntry)) {
+    if (!(entry instanceof TileEntry tentry)) {
       ConfigManager cfgmgr = _scenemgr.getConfigManager();
       Shape shape = entry.createShape(cfgmgr);
       if (shape != null) {
@@ -462,7 +461,6 @@ public class Pathfinder
       }
       return;
     }
-    TileEntry tentry = (TileEntry)entry;
     TileConfig.Original config = tentry.getConfig(_scenemgr.getConfigManager());
     tentry.getRegion(config, _region);
     for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {

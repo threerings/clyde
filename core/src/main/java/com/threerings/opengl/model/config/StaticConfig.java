@@ -100,8 +100,8 @@ public class StaticConfig extends ModelConfig.Imported
         getGeometryMaterials(ctx, meshes.visible, materialMappings),
         influences.getFlags()));
     }
-    if (impl instanceof Static) {
-      ((Static)impl).setConfig(ctx, resolved);
+    if (impl instanceof Static stat) {
+      stat.setConfig(ctx, resolved);
     } else {
       impl = new Static(ctx, scope, resolved);
     }

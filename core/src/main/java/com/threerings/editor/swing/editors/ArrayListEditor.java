@@ -123,8 +123,8 @@ public abstract class ArrayListEditor extends PropertyEditor
     Object values = _property.get(_object);
     Object value = values.getClass().isArray() ?
       Array.get(values, idx) : ((List)values).get(idx);
-    if (value instanceof String) {
-      value = StringUtil.trim((String)value);
+    if (value instanceof String str) {
+      value = StringUtil.trim(str);
     }
     return value;
   }
@@ -135,8 +135,8 @@ public abstract class ArrayListEditor extends PropertyEditor
   protected void setValue (int idx, Object value)
   {
     Object values = _property.get(_object);
-    if (value instanceof String) {
-      value = StringUtil.trim((String)value);
+    if (value instanceof String str) {
+      value = StringUtil.trim(str);
     }
     if (values.getClass().isArray()) {
       Array.set(values, idx, value);

@@ -733,8 +733,8 @@ public class ConfigGroup<T extends ManagedConfig>
         addConfig(clone ? (ManagedConfig)nconfig.clone() : nconfig);
 
       } else if (!nconfig.equals(oconfig)) {
-        if (nconfig instanceof DerivedConfig) {
-          ((DerivedConfig)nconfig).cclass = _cclass;
+        if (nconfig instanceof DerivedConfig dconfig) {
+          dconfig.cclass = _cclass;
         }
         ManagedConfig copied = (ManagedConfig)nconfig.copy(oconfig);
         if (copied == oconfig) {

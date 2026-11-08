@@ -85,8 +85,8 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof MetaParticleSystem) {
-      ((MetaParticleSystem)impl).setConfig(ctx, this);
+    if (impl instanceof MetaParticleSystem metaParticleSystem) {
+      metaParticleSystem.setConfig(ctx, this);
     } else {
       impl = new MetaParticleSystem(ctx, scope, this);
     }

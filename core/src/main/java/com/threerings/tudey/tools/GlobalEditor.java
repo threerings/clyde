@@ -197,8 +197,7 @@ public class GlobalEditor extends EditorTool
     // extract the scene's globals
     _globals.clear();
     for (Entry entry : scene.getEntries()) {
-      if (entry instanceof GlobalEntry) {
-        GlobalEntry global = (GlobalEntry)entry;
+      if (entry instanceof GlobalEntry global) {
         _globals.put(global.getId(), global);
       }
     }
@@ -210,10 +209,9 @@ public class GlobalEditor extends EditorTool
   @Override
   public void entryAdded (Entry entry)
   {
-    if (_ignoreAdd || !(entry instanceof GlobalEntry)) {
+    if (_ignoreAdd || !(entry instanceof GlobalEntry gentry)) {
       return;
     }
-    GlobalEntry gentry = (GlobalEntry)entry;
     int id = gentry.getId();
     _globals.put(id, gentry);
 
@@ -246,10 +244,10 @@ public class GlobalEditor extends EditorTool
   @Override
   public void entryRemoved (Entry oentry)
   {
-    if (_ignoreRemove || !(oentry instanceof GlobalEntry)) {
+    if (_ignoreRemove || !(oentry instanceof GlobalEntry gentry)) {
       return;
     }
-    int id = ((GlobalEntry)oentry).getId();
+    int id = gentry.getId();
     _globals.remove(id);
     EditableGlobals editable = (EditableGlobals)_epanel.getObject();
     int idx = editable.getIndex(id);

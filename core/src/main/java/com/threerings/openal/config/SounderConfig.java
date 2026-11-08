@@ -210,8 +210,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (file == null) {
         return null;
       }
-      if (impl instanceof Sounder.Clip) {
-        ((Sounder.Clip)impl).setConfig(this);
+      if (impl instanceof Sounder.Clip clip) {
+        clip.setConfig(this);
       } else {
         impl = new Sounder.Clip(ctx, scope, this);
       }
@@ -244,8 +244,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (files.length == 0) {
         return null;
       }
-      if (impl instanceof Sounder.MetaClip) {
-        ((Sounder.MetaClip)impl).setConfig(this);
+      if (impl instanceof Sounder.MetaClip metaClip) {
+        metaClip.setConfig(this);
       } else {
         impl = new Sounder.MetaClip(ctx, scope, this);
       }
@@ -288,8 +288,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (file == null) {
         return null;
       }
-      if (impl instanceof Sounder.VariableClip) {
-        ((Sounder.VariableClip)impl).setConfig(this);
+      if (impl instanceof Sounder.VariableClip variableClip) {
+        variableClip.setConfig(this);
       } else {
         impl = new Sounder.VariableClip(ctx, scope, this);
       }
@@ -362,8 +362,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (queue.length == 0 || queue[0].file == null) {
         return null;
       }
-      if (impl instanceof Sounder.Stream) {
-        ((Sounder.Stream)impl).setConfig(this);
+      if (impl instanceof Sounder.Stream stream) {
+        stream.setConfig(this);
       } else {
         impl = new Sounder.Stream(ctx, scope, this);
       }
@@ -421,8 +421,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (files.length == 0) {
         return null;
       }
-      if (impl instanceof Sounder.MetaStream) {
-        ((Sounder.MetaStream)impl).setConfig(this);
+      if (impl instanceof Sounder.MetaStream metaStream) {
+        metaStream.setConfig(this);
       } else {
         impl = new Sounder.MetaStream(ctx, scope, this);
       }
@@ -491,8 +491,8 @@ public abstract class SounderConfig extends ParameterizedConfig
     public Sounder.Implementation getSounderImplementation (
       AlContext ctx, Scope scope, Sounder.Implementation impl)
     {
-      if (impl instanceof Sounder.Conditional) {
-        ((Sounder.Conditional)impl).setConfig(this);
+      if (impl instanceof Sounder.Conditional conditional) {
+        conditional.setConfig(this);
       } else {
         impl = new Sounder.Conditional(ctx, scope, this);
       }
@@ -540,8 +540,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (sounders.length == 0) {
         return null;
       }
-      if (impl instanceof Sounder.Compound) {
-        ((Sounder.Compound)impl).setConfig(this);
+      if (impl instanceof Sounder.Compound compound) {
+        compound.setConfig(this);
       } else {
         impl = new Sounder.Compound(ctx, scope, this);
       }
@@ -569,8 +569,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (sounders.length == 0) {
         return null;
       }
-      if (impl instanceof Sounder.Sequential) {
-        ((Sounder.Sequential)impl).setConfig(this);
+      if (impl instanceof Sounder.Sequential sequential) {
+        sequential.setConfig(this);
       } else {
         impl = new Sounder.Sequential(ctx, scope, this);
       }
@@ -609,8 +609,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (sounders.length == 0) {
         return null;
       }
-      if (impl instanceof Sounder.Scripted) {
-        ((Sounder.Scripted)impl).setConfig(this);
+      if (impl instanceof Sounder.Scripted scripted) {
+        scripted.setConfig(this);
       } else {
         impl = new Sounder.Scripted(ctx, scope, this);
       }
@@ -649,8 +649,8 @@ public abstract class SounderConfig extends ParameterizedConfig
       if (sounders.length == 0) {
         return null;
       }
-      if (impl instanceof Sounder.Random) {
-        ((Sounder.Random)impl).setConfig(this);
+      if (impl instanceof Sounder.Random random) {
+        random.setConfig(this);
       } else {
         impl = new Sounder.Random(ctx, scope, this);
       }

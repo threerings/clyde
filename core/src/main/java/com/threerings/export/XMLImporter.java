@@ -332,10 +332,10 @@ public class XMLImporter extends Importer
       if (wasRead) {
         return value;
       }
-      if (value instanceof Exportable) {
-        readFields((Exportable)value);
-      } else if (value instanceof Object[]) {
-        readEntries((Object[])value, cclazz.getComponentType());
+      if (value instanceof Exportable exportable) {
+        readFields(exportable);
+      } else if (value instanceof Object[] array) {
+        readEntries(array, cclazz.getComponentType());
       } else if (value instanceof Collection) {
         if (value instanceof Multiset) {
           @SuppressWarnings("unchecked") Multiset<Object> multiset =
@@ -406,8 +406,8 @@ public class XMLImporter extends Importer
   {
     int idx = 0;
     for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals("entry")) {
-        array[idx++] = read((Element)node, cclazz);
+      if (node instanceof Element element && node.getNodeName().equals("entry")) {
+        array[idx++] = read(element, cclazz);
       }
     }
   }
@@ -421,8 +421,8 @@ public class XMLImporter extends Importer
     throws IOException
   {
     for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals("entry")) {
-        collection.add(read((Element)node, Object.class));
+      if (node instanceof Element element && node.getNodeName().equals("entry")) {
+        collection.add(read(element, Object.class));
       }
     }
     return collection;
@@ -437,11 +437,11 @@ public class XMLImporter extends Importer
     throws IOException
   {
     for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals("element")) {
-        Object element = read((Element)node, Object.class);
+      if (node instanceof Element enode && node.getNodeName().equals("element")) {
+        Object element = read(enode, Object.class);
         for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
-          if (node instanceof Element && node.getNodeName().equals("count")) {
-            multiset.setCount(element, (Integer)read((Element)node, Integer.class));
+          if (node instanceof Element cnode && node.getNodeName().equals("count")) {
+            multiset.setCount(element, (Integer)read(cnode, Integer.class));
             break;
           }
         }
@@ -459,11 +459,11 @@ public class XMLImporter extends Importer
     throws IOException
   {
     for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals("key")) {
-        Object key = read((Element)node, Object.class);
+      if (node instanceof Element knode && node.getNodeName().equals("key")) {
+        Object key = read(knode, Object.class);
         for (node = node.getNextSibling(); node != null; node = node.getNextSibling()) {
-          if (node instanceof Element && node.getNodeName().equals("value")) {
-            map.put(key, read((Element)node, Object.class));
+          if (node instanceof Element element && node.getNodeName().equals("value")) {
+            map.put(key, read(element, Object.class));
             break;
           }
         }
@@ -495,8 +495,8 @@ public class XMLImporter extends Importer
   protected static Element findElement (Node first, String name)
   {
     for (Node node = first; node != null; node = node.getNextSibling()) {
-      if (node instanceof Element && node.getNodeName().equals(name)) {
-        return (Element)node;
+      if (node instanceof Element element && node.getNodeName().equals(name)) {
+        return element;
       }
     }
     return null;

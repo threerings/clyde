@@ -271,7 +271,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
         (Class<ManagedConfig>)getArgumentType();
     ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
-    if (!(config instanceof ParameterizedConfig) ||
+    if (!(config instanceof ParameterizedConfig pconfig) ||
         getProperty().isAnnotationPresent(NoDependency.class)) {
       _arguments.removeAll();
       value.getArguments().clear();
@@ -300,7 +300,6 @@ public class ConfigReferenceEditor extends PropertyEditor
     // scan through the parameters
     int idx = 0;
     Object nargs = value.getArguments();
-    ParameterizedConfig pconfig = (ParameterizedConfig)config;
     for (Parameter parameter : pconfig.parameters) {
       Property property = parameter.getArgumentProperty(pconfig);
       if (property == null) {

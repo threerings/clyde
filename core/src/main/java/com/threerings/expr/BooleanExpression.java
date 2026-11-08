@@ -566,19 +566,18 @@ public abstract class BooleanExpression extends DeepObject
       }
       protected BooleanExpression coerceToBooleanExpression (Object object)
           throws Exception {
-        if (object instanceof BooleanExpression) {
-          return (BooleanExpression)object;
+        if (object instanceof BooleanExpression booleanExpression) {
+          return booleanExpression;
         } else {
           throw new Exception("Cannot coerce to boolean expression " + object);
         }
       }
       protected FloatExpression coerceToFloatExpression (Object object)
           throws Exception {
-        if (object instanceof FloatExpression) {
-          return (FloatExpression)object;
-        } else if (object instanceof Reference) {
+        if (object instanceof FloatExpression floatExpression) {
+          return floatExpression;
+        } else if (object instanceof Reference ref) {
           // convert to a float reference
-          Reference ref = (Reference)object;
           FloatExpression.Reference nref = new FloatExpression.Reference();
           nref.name = ref.name;
           return nref;
@@ -588,11 +587,10 @@ public abstract class BooleanExpression extends DeepObject
       }
       protected StringExpression coerceToStringExpression (Object object)
         throws Exception {
-        if (object instanceof StringExpression) {
-          return (StringExpression)object;
-        } else if (object instanceof Reference) {
+        if (object instanceof StringExpression stringExpression) {
+          return stringExpression;
+        } else if (object instanceof Reference ref) {
           // convert to a string reference
-          Reference ref = (Reference)object;
           StringExpression.Reference nref = new StringExpression.Reference();
           nref.name = ref.name;
           return nref;

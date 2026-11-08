@@ -523,10 +523,10 @@ public class Animation extends SimpleScope
     protected boolean actionsVisible ()
     {
       for (Scope scope = getParentScope(); scope != null; scope = scope.getParentScope()) {
-        if (scope instanceof Model) {
+        if (scope instanceof Model model) {
           // a visible model doesn't mean that the parents are also visible, so we
           // only know for sure if it's invisible.
-          if (!((Model)scope).isVisible()) {
+          if (!model.isVisible()) {
             return false;
           }
         }
@@ -1342,8 +1342,8 @@ public class Animation extends SimpleScope
   protected void started (float overrideBlendOut)
   {
     // notify the containing implementation
-    if (_parentScope instanceof Articulated) {
-      ((Articulated)_parentScope).animationStarted(this, overrideBlendOut);
+    if (_parentScope instanceof Articulated articulated) {
+      articulated.animationStarted(this, overrideBlendOut);
     }
 
     // notify observers
@@ -1356,8 +1356,8 @@ public class Animation extends SimpleScope
   protected void stopped (boolean completed)
   {
     // notify the containing implementation
-    if (_parentScope instanceof Articulated) {
-      ((Articulated)_parentScope).animationStopped(this, completed);
+    if (_parentScope instanceof Articulated articulated) {
+      articulated.animationStopped(this, completed);
     }
 
     // notify observers

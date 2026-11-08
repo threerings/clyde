@@ -860,10 +860,9 @@ public final class Transform3D
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Transform3D)) {
+    if (!(other instanceof Transform3D otrans)) {
       return false;
     }
-    Transform3D otrans = (Transform3D)other;
     if (_type != otrans.getType()) {
       return false;
     }

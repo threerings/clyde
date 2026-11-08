@@ -118,8 +118,8 @@ public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
         protected CameraConfig[] _camcfgs = cameras;
         protected boolean _activated;
       }
-      if (effect instanceof CameraEffect) {
-        ((CameraEffect)effect).setConfig(this);
+      if (effect instanceof CameraEffect cameraEffect) {
+        cameraEffect.setConfig(this);
       } else {
         effect = new CameraEffect();
       }

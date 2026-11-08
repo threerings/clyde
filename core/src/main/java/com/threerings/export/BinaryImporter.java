@@ -404,8 +404,8 @@ public class BinaryImporter extends Importer
         _classData.put(cclazz, cdata = new ClassData());
       }
       _fields = cdata.readFields();
-      if (value instanceof Exportable) {
-        readFields((Exportable)value);
+      if (value instanceof Exportable exportable) {
+        readFields(exportable);
       }
       _fields = null;
     }

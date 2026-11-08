@@ -1022,8 +1022,7 @@ public class Component
     boolean processed = !event.propagateUpHierarchy();
 
     // handle focus traversal
-    if (event instanceof KeyEvent) {
-      KeyEvent kev = (KeyEvent)event;
+    if (event instanceof KeyEvent kev) {
       if (kev.getType() == KeyEvent.KEY_PRESSED) {
         int modifiers = kev.getModifiers(), keyCode = kev.getKeyCode();
         if (keyCode == GLFW.GLFW_KEY_TAB && getWindow() != null) {
@@ -1039,9 +1038,8 @@ public class Component
     }
 
     // handle mouse hover detection
-    if (event instanceof MouseEvent) {
+    if (event instanceof MouseEvent mev) {
       int ostate = getState();
-      MouseEvent mev = (MouseEvent)event;
       switch (mev.getType()) {
       case MouseEvent.MOUSE_ENTERED:
         _hover = true;
@@ -1334,8 +1332,8 @@ public class Component
    */
   protected Window getWindow ()
   {
-    if (this instanceof Window) {
-      return (Window)this;
+    if (this instanceof Window window) {
+      return window;
     } else if (_parent != null) {
       return _parent.getWindow();
     } else {

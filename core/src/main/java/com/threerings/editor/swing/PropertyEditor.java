@@ -354,8 +354,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
   {
     BaseEditorPanel bep = null;
     for (Component c = this; c != null; c = c.getParent()) {
-      if (c instanceof BaseEditorPanel) {
-        bep = (BaseEditorPanel)c;
+      if (c instanceof BaseEditorPanel baseEditorPanel) {
+        bep = baseEditorPanel;
       }
     }
     return bep;

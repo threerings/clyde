@@ -139,8 +139,8 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
       _resolved = new SoftReference<Resolved>(
         resolved = generator.generate(ctx, influences.getFlags()));
     }
-    if (impl instanceof Static) {
-      ((Static)impl).setConfig(ctx, resolved);
+    if (impl instanceof Static stat) {
+      stat.setConfig(ctx, resolved);
     } else {
       impl = new Static(ctx, scope, resolved);
     }
@@ -157,8 +157,8 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
   protected int getSuggestedInfluenceFlags (ConfigManager cfgmgr)
   {
     int flags = super.getSuggestedInfluenceFlags(cfgmgr);
-    if (generator instanceof Quad) {
-      flags |= ModelConfig.getSuggestedInfluenceFlags(cfgmgr, ((Quad)generator).material);
+    if (generator instanceof Quad quad) {
+      flags |= ModelConfig.getSuggestedInfluenceFlags(cfgmgr, quad.material);
     }
     return flags;
   }

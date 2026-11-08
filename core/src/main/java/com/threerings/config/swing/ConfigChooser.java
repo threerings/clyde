@@ -98,7 +98,7 @@ public abstract class ConfigChooser extends JPanel
   {
     ConfigChooser chooser = createInstance(msgmgr, cfgmgr, clazz);
     if (constraints != null) {
-      if (!(chooser instanceof TreeChooser)) {
+      if (!(chooser instanceof TreeChooser treeChooser)) {
         throw new UnsupportedOperationException(
             "Constraints can't yet be used with resources");
       }
@@ -114,7 +114,7 @@ public abstract class ConfigChooser extends JPanel
           desc = msgs.get(desc);
         }
       }
-      ((TreeChooser)chooser)._filterPanel.addConstraint(
+      treeChooser._filterPanel.addConstraint(
           desc, PropertyUtil.getRawConfigPredicate(constraints), false);
     }
     return chooser;
@@ -268,9 +268,9 @@ public abstract class ConfigChooser extends JPanel
       // create the dialog
       Component root = SwingUtilities.getRoot(parent);
       String title = _msgs.get("m.select_config", _label);
-      final JDialog dialog = (root instanceof Dialog) ?
-        new JDialog((Dialog)root, title, true) :
-          new JDialog((Frame)(root instanceof Frame ? root : null), title, true);
+      final JDialog dialog = (root instanceof Dialog owner) ?
+        new JDialog(owner, title, true) :
+          new JDialog(root instanceof Frame frame ? frame : null, title, true);
       dialog.add(this, BorderLayout.CENTER);
 
       // add the tree of configurations

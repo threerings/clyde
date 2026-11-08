@@ -176,7 +176,7 @@ public class ConfigTypeEditor extends ChoiceEditor
     @Override
     public boolean equals (Object other)
     {
-      return (other instanceof ClassBox) && (clazz == ((ClassBox)other).clazz);
+      return (other instanceof ClassBox classBox) && (clazz == classBox.clazz);
     }
 
     @Override

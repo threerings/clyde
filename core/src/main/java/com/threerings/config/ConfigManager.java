@@ -514,8 +514,8 @@ public class ConfigManager
 
     log.warning("Falling back to old implementation for getGroup?", "instance", instance);
 
-    Class<?> clazz = (instance instanceof DerivedConfig)
-      ? ((DerivedConfig)instance).cclass
+    Class<?> clazz = (instance instanceof DerivedConfig dconfig)
+      ? dconfig.cclass
       : instance.getClass();
     for (Class<?> c = clazz; c != ManagedConfig.class; c = c.getSuperclass()) {
       ConfigGroup<?> group = _groups.get(c);
@@ -775,8 +775,8 @@ public class ConfigManager
   // documentation inherited from interface Copyable
   public Object copy (Object dest, Object outer)
   {
-    ConfigManager other = (dest instanceof ConfigManager) ?
-      (ConfigManager)dest : new ConfigManager();
+    ConfigManager other = (dest instanceof ConfigManager cfgmgr) ?
+      cfgmgr : new ConfigManager();
     for (ConfigGroup<?> group : _groups.values()) {
       Class<?> clazz = group.getConfigClass();
       ConfigGroup<?> ogroup = other._groups.get(clazz);

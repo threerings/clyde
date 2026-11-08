@@ -21,8 +21,7 @@ public enum ExporterReplacers
     @Override
     public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
     {
-      if ((value instanceof ShapeConfig.Compound) && (clazz != ShapeConfig.Compound.class)) {
-        ShapeConfig.Compound cc = (ShapeConfig.Compound)value;
+      if ((value instanceof ShapeConfig.Compound cc) && (clazz != ShapeConfig.Compound.class)) {
         if (cc.shapes.length == 1) {
           ShapeConfig.TransformedShape ts = cc.shapes[0];
           if (ts.transform.equals(new ShapeConfig.TransformedShape().transform)) {
@@ -44,9 +43,8 @@ public enum ExporterReplacers
     @Override
     public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
     {
-      if ((value instanceof ActionConfig.Compound) &&
+      if ((value instanceof ActionConfig.Compound ac) &&
           (clazz != ActionConfig.Compound.class)) {
-        ActionConfig.Compound ac = (ActionConfig.Compound)value;
         switch (ac.actions.length) {
         case 0: return new Exporter.Replacement(new ActionConfig.None(), clazz);
         case 1: return new Exporter.Replacement(ac.actions[0], clazz);

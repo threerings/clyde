@@ -106,8 +106,8 @@ public class Compound extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    Compound cresult = (result instanceof Compound) ?
-      ((Compound)result) : new Compound(_shapes.length);
+    Compound cresult = (result instanceof Compound compound) ?
+      compound : new Compound(_shapes.length);
     if (cresult.getShapeCount() != _shapes.length) {
       cresult._shapes = new Shape[_shapes.length];
     }
@@ -121,8 +121,8 @@ public class Compound extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    Compound cresult = (result instanceof Compound) ?
-      ((Compound)result) : new Compound(_shapes.length);
+    Compound cresult = (result instanceof Compound compound) ?
+      compound : new Compound(_shapes.length);
     if (cresult.getShapeCount() != _shapes.length) {
       cresult._shapes = new Shape[_shapes.length];
     }
@@ -136,8 +136,8 @@ public class Compound extends Shape
   @Override
   public Shape sweep (Vector2f translation, Shape result)
   {
-    Compound cresult = (result instanceof Compound) ?
-      ((Compound)result) : new Compound(_shapes.length);
+    Compound cresult = (result instanceof Compound compound) ?
+      compound : new Compound(_shapes.length);
     if (cresult.getShapeCount() != _shapes.length) {
       cresult._shapes = new Shape[_shapes.length];
     }

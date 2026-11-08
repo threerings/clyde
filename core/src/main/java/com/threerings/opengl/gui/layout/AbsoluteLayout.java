@@ -62,15 +62,13 @@ public class AbsoluteLayout extends LayoutManager
   public void addLayoutComponent (Component comp, Object constraints)
   {
     // various sanity checking
-    if (constraints instanceof Point) {
-      Point p = (Point)constraints;
+    if (constraints instanceof Point p) {
       if (p.x < 0 || p.y < 0) {
         throw new IllegalArgumentException(
           "Components must be laid out at positive coords: " + p);
       }
 
-    } else if (constraints instanceof Rectangle) {
-      Rectangle r = (Rectangle)constraints;
+    } else if (constraints instanceof Rectangle r) {
       if (r.x < 0 || r.y < 0) {
         throw new IllegalArgumentException(
           "Components must be laid out at positive coords: " + r);
@@ -113,12 +111,10 @@ public class AbsoluteLayout extends LayoutManager
         continue;
       }
       Object cons = _spots.get(comp);
-      if (cons instanceof Point) {
-        Point p = (Point)cons;
+      if (cons instanceof Point p) {
         Dimension d = comp.getPreferredSize(-1, -1);
         rec.add(p.x, p.y, d.width, d.height);
-      } else if (cons instanceof Rectangle) {
-        Rectangle r = (Rectangle)cons;
+      } else if (cons instanceof Rectangle r) {
         rec.add(r.x, r.y, r.width, r.height);
       }
     }
@@ -136,14 +132,12 @@ public class AbsoluteLayout extends LayoutManager
         continue;
       }
       Object cons = _spots.get(comp);
-      if (cons instanceof Point) {
-        Point p = (Point)cons;
+      if (cons instanceof Point p) {
         Dimension d = comp.getPreferredSize(-1, -1);
         comp.setBounds(insets.left + p.x,
             (_flipped ? height - d.height - insets.top - p.y :
                   insets.bottom + p.y), d.width, d.height);
-      } else if (cons instanceof Rectangle) {
-        Rectangle r = (Rectangle)cons;
+      } else if (cons instanceof Rectangle r) {
         comp.setBounds(insets.left + r.x,
             (_flipped ? height - r.height - insets.top - r.y :
                   insets.bottom + r.y), r.width, r.height);

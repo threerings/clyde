@@ -45,8 +45,8 @@ public class GetPathEditor extends ObjectEditor
   {
     BasePropertyEditor editor = this;
     for (Component comp = this; comp != null; ) {
-      if (comp instanceof BasePropertyEditor) {
-        editor = (BasePropertyEditor)comp;
+      if (comp instanceof BasePropertyEditor bpe) {
+        editor = bpe;
       }
       comp = comp.getParent();
     }

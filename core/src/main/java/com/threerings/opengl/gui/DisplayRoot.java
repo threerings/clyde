@@ -70,8 +70,8 @@ public class DisplayRoot extends Root
    */
   protected void initCallbacksIfNeeded ()
   {
-    if (!_callbacksInstalled && _ctx.getApp() instanceof GlDisplayApp) {
-      _glfwWindow = ((GlDisplayApp)_ctx.getApp()).getWindow();
+    if (!_callbacksInstalled && _ctx.getApp() instanceof GlDisplayApp app) {
+      _glfwWindow = app.getWindow();
       if (_glfwWindow != 0) {
         setupCallbacks(_glfwWindow);
         _callbacksInstalled = true;
@@ -522,8 +522,8 @@ public class DisplayRoot extends Root
    */
   protected long getWindow ()
   {
-    if (_ctx.getApp() instanceof GlDisplayApp) {
-      return ((GlDisplayApp)_ctx.getApp()).getWindow();
+    if (_ctx.getApp() instanceof GlDisplayApp app) {
+      return app.getWindow();
     }
     return 0;
   }

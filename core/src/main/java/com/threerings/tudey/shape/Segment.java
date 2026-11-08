@@ -125,7 +125,7 @@ public class Segment extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    Segment sresult = (result instanceof Segment) ? ((Segment)result) : new Segment();
+    Segment sresult = (result instanceof Segment segment) ? segment : new Segment();
     transform.transformPoint(_start, sresult._start);
     transform.transformPoint(_end, sresult._end);
     sresult.updateBounds();
@@ -135,7 +135,7 @@ public class Segment extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+    Capsule cresult = (result instanceof Capsule capsule) ? capsule : new Capsule();
     cresult.getStart().set(_start);
     cresult.getEnd().set(_end);
     cresult.radius = amount;
@@ -146,7 +146,7 @@ public class Segment extends Shape
   @Override
   public Shape sweep (Vector2f translation, Shape result)
   {
-    Polygon presult = (result instanceof Polygon) ? ((Polygon)result) : new Polygon(4);
+    Polygon presult = (result instanceof Polygon polygon) ? polygon : new Polygon(4);
     if (presult.getVertexCount() != 4) {
       presult.initVertices(4);
     }

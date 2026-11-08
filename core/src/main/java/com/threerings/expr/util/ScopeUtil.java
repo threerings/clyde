@@ -255,9 +255,8 @@ public class ScopeUtil
       return clazz.cast(object);
     }
     Member member = getScoped(object.getClass()).get(name);
-    if (member instanceof Field) {
+    if (member instanceof Field field) {
       if (clazz.isAssignableFrom(Variable.class)) {
-        final Field field = (Field)member;
         return clazz.cast(new Variable() {
           public boolean getBoolean () {
             try {
@@ -401,7 +400,7 @@ public class ScopeUtil
         });
       } else {
         try {
-          Object value = ((Field)member).get(object);
+          Object value = field.get(object);
           if (clazz.isInstance(value)) {
             return clazz.cast(value);
           }
@@ -410,8 +409,7 @@ public class ScopeUtil
             object.getClass(), "field", member, e);
         }
       }
-    } else if (member instanceof Method && clazz.isAssignableFrom(Function.class)) {
-      final Method method = (Method)member;
+    } else if (member instanceof Method method && clazz.isAssignableFrom(Function.class)) {
       return clazz.cast(new Function() {
         public Object call (Object... args) {
           try {
