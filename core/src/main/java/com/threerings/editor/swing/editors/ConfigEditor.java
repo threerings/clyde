@@ -93,7 +93,7 @@ public class ConfigEditor extends PropertyEditor
                   return Predicates.alwaysTrue();
                 }
                 // if we are, don't let ourselves be referenced
-                return cfg -> (ourCfg.getName() != cfg.getName()) ||
+                return cfg -> !Objects.equals(ourCfg.getName(), cfg.getName()) ||
                   (ourCfg.getConfigGroup() != cfg.getConfigGroup());
               }
             });
