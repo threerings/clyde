@@ -69,6 +69,14 @@ public class AgentLogic extends ActiveLogic
   }
 
   /**
+   * Checks whether our Follow behavior may follow the specified target.
+   */
+  public boolean canFollow (Logic target)
+  {
+    return true;
+  }
+
+  /**
    * Returns the logic currently being targeted by our behavior, if any.
    */
   public Logic getBehaviorTarget ()
