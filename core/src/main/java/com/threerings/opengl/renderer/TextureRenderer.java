@@ -354,8 +354,8 @@ public class TextureRenderer
    */
   protected static void maybeDeleteAttachment (Object attachment)
   {
-    if (attachment instanceof Renderbuffer) {
-      ((Renderbuffer)attachment).delete();
+    if (attachment instanceof Renderbuffer renderbuffer) {
+      renderbuffer.delete();
     }
   }
 

@@ -586,13 +586,13 @@ public class SceneEditor extends TudeyTool
     tool.setReference(ref);
 
     // and we need to customize some stuff for a few tools
-    if (entry instanceof PlaceableEntry) {
-      _placer.setAngle(((PlaceableEntry)entry).transform
+    if (entry instanceof PlaceableEntry pentry) {
+      _placer.setAngle(pentry.transform
           .update(Transform3D.RIGID)
           .getRotation().getRotationZ());
 
-    } else if (entry instanceof TileEntry) {
-      _tileBrush.setRotation(((TileEntry)entry).rotation);
+    } else if (entry instanceof TileEntry tentry) {
+      _tileBrush.setRotation(tentry.rotation);
     }
   }
 
@@ -662,8 +662,7 @@ public class SceneEditor extends TudeyTool
     Set<Object> toRemoveKeys = Sets.newHashSet();
     List<TileEntry> temp = Lists.newArrayList();
     for (Entry entry : entries) {
-      if (entry instanceof TileEntry) {
-        TileEntry tentry = (TileEntry)entry;
+      if (entry instanceof TileEntry tentry) {
         TileConfig.Original config = tentry.getConfig(getConfigManager());
         Rectangle region = new Rectangle();
         tentry.getRegion(config, region);
@@ -683,8 +682,8 @@ public class SceneEditor extends TudeyTool
       return;
     }
     for (Entry entry : entries) {
-      if (entry instanceof TileEntry) {
-        clearPaint((TileEntry)entry);
+      if (entry instanceof TileEntry tentry) {
+        clearPaint(tentry);
         _layers.setSelectedLayer(0);
       }
     }
@@ -700,9 +699,9 @@ public class SceneEditor extends TudeyTool
       return;
     }
     for (Entry entry : entries) {
-      if (entry instanceof TileEntry) {
+      if (entry instanceof TileEntry tentry) {
         clearPaint((TileEntry)_scene.getEntry(entry.getKey()));
-        clearPaint((TileEntry)entry);
+        clearPaint(tentry);
         _layers.setSelectedLayer(0);
       }
     }
@@ -1223,7 +1222,7 @@ public class SceneEditor extends TudeyTool
     _canvas.setPreferredSize(new Dimension(1, 1));
     _pane.setResizeWeight(1.0);
     _pane.setOneTouchExpandable(true);
-    JComponent bcomp = (_canvas instanceof JComponent) ? ((JComponent)_canvas) : ccont;
+    JComponent bcomp = (_canvas instanceof JComponent component) ? component : ccont;
     bindAction(bcomp, KeyEvent.VK_UP, 0, "raise_grid");
     bindAction(bcomp, KeyEvent.VK_DOWN, 0, "lower_grid");
     bindAction(bcomp, KeyEvent.VK_RIGHT, 0, "snap_grid");

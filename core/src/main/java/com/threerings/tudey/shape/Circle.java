@@ -94,7 +94,7 @@ public class Circle extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();
+    Circle cresult = (result instanceof Circle circle) ? circle : new Circle();
     transform.transformPoint(_center, cresult._center);
     cresult.radius = radius * transform.approximateUniformScale();
     cresult.updateBounds();
@@ -104,7 +104,7 @@ public class Circle extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();
+    Circle cresult = (result instanceof Circle circle) ? circle : new Circle();
     cresult.getCenter().set(_center);
     cresult.radius = radius + amount;
     cresult.updateBounds();
@@ -114,7 +114,7 @@ public class Circle extends Shape
   @Override
   public Shape sweep (Vector2f translation, Shape result)
   {
-    Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+    Capsule cresult = (result instanceof Capsule capsule) ? capsule : new Capsule();
     cresult.getStart().set(_center);
     _center.add(translation, cresult.getEnd());
     cresult.radius = radius;

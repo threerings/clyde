@@ -329,8 +329,8 @@ public class MaterialState extends RenderState
   public boolean equals (Object other)
   {
     MaterialState ostate;
-    return other instanceof MaterialState &&
-      _frontAmbient.equals((ostate = (MaterialState)other)._frontAmbient) &&
+    return other instanceof MaterialState materialState &&
+      _frontAmbient.equals((ostate = materialState)._frontAmbient) &&
       _frontDiffuse.equals(ostate._frontDiffuse) &&
       _frontSpecular.equals(ostate._frontSpecular) &&
       _frontEmission.equals(ostate._frontEmission) &&

@@ -55,8 +55,8 @@ public class ViewerAffecterConfig extends ModelConfig.Implementation
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof ViewerAffecter) {
-      ((ViewerAffecter)impl).setConfig(ctx, this);
+    if (impl instanceof ViewerAffecter viewerAffecter) {
+      viewerAffecter.setConfig(ctx, this);
     } else {
       impl = new ViewerAffecter(ctx, scope, this);
     }

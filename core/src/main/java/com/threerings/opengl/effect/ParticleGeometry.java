@@ -744,8 +744,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
     public static ParticleGeometry create (
       GlContext ctx, Scope scope, PassDescriptor[] passes, GeometryConfig geom)
     {
-      if (geom instanceof GeometryConfig.IndexedStored) {
-        GeometryConfig.IndexedStored stored = (GeometryConfig.IndexedStored)geom;
+      if (geom instanceof GeometryConfig.IndexedStored stored) {
         if (stored.getTexCoordArray(0) != null) {
           return new Meshes(ctx, scope, passes, stored);
         }

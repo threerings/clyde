@@ -116,8 +116,8 @@ public class LogPanel extends JPanel
     if (event.getSource() == _show) {
       if (_dialog == null) {
         Object win = SwingUtilities.getWindowAncestor(this);
-        if (win instanceof Frame) {
-          _dialog = new LogDialog((Frame)win);
+        if (win instanceof Frame frame) {
+          _dialog = new LogDialog(frame);
         } else { // win instanceof Dialog
           _dialog = new LogDialog((Dialog)win);
         }

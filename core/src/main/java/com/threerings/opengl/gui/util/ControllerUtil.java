@@ -67,17 +67,17 @@ public class ControllerUtil
   public static void postAction (ActionEvent event)
   {
     Object source = event.getSource();
-    if (!(source instanceof Component)) {
+    if (!(source instanceof Component component)) {
       log.warning("Tried to dispatch action on non-component [event=" + event + "].");
       return;
     }
     String action = event.getAction();
     Object argument = event.getArgument();
-    for (Component comp = (Component)source; comp != null; comp = comp.getParent()) {
-      if (!(comp instanceof ControllerProvider)) {
+    for (Component comp = component; comp != null; comp = comp.getParent()) {
+      if (!(comp instanceof ControllerProvider controllerProvider)) {
         continue;
       }
-      Controller ctrl = ((ControllerProvider)comp).getController();
+      Controller ctrl = controllerProvider.getController();
       if (ctrl.handleAction(source, action, argument)) {
         return;
       }

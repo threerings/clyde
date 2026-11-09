@@ -198,7 +198,7 @@ public class DateTimeEditor extends PropertyEditor
     _field.getDocument().removeDocumentListener(this);
     Object prop = _property.get(_object);
     boolean rewrite = false;
-    if (prop instanceof Long && (0 == ((Long)prop).longValue())) {
+    if (prop instanceof Long lval && lval == 0) {
       rewrite = true;
       prop = Calendars.now()
         .addHours(1)

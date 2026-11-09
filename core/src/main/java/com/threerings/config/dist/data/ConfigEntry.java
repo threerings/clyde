@@ -118,8 +118,7 @@ public class ConfigEntry extends SimpleStreamableObject
   @Override
   public boolean equals (Object other)
   {
-    ConfigEntry oentry;
-    return other instanceof ConfigEntry && (oentry = (ConfigEntry)other)._key.equals(_key) &&
+    return other instanceof ConfigEntry oentry && oentry._key.equals(_key) &&
       Arrays.equals(oentry._bytes, _bytes);
   }
 

@@ -97,8 +97,8 @@ public class EffectSprite extends Sprite
       if (config.model == null) {
         return;
       }
-      if (sprite instanceof ActorSprite && config.attachToTarget) {
-        ((ActorSprite)sprite).spawnAttachedTransientModel(
+      if (sprite instanceof ActorSprite actorSprite && config.attachToTarget) {
+        actorSprite.spawnAttachedTransientModel(
           config.model, config.rotateWithTarget);
         return;
       }

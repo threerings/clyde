@@ -143,8 +143,8 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
     if (path.startsWith(".")) {
       path = path.substring(1);
     }
-    if (path.length() > 0 && _object instanceof ParameterizedConfig) {
-      if (((ParameterizedConfig)_object).isInvalidParameterPath(path)) {
+    if (path.length() > 0 && _object instanceof ParameterizedConfig pconfig) {
+      if (pconfig.isInvalidParameterPath(path)) {
         getToolkit().beep();
         return;
       }
@@ -172,8 +172,8 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
     Point pt = getMousePosition();
     if (pt != null) {
       for (Component comp = findComponentAt(pt); comp != null; comp = comp.getParent()) {
-        if (comp instanceof PropertyEditor) {
-          String file = ((PropertyEditor)comp).getEditedFilePath();
+        if (comp instanceof PropertyEditor editor) {
+          String file = editor.getEditedFilePath();
           if (file == null) {
             break; // do the beep
           }

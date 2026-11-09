@@ -177,10 +177,9 @@ public class Line
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Line)) {
+    if (!(other instanceof Line oline)) {
       return false;
     }
-    Line oline = (Line)other;
     return constant == oline.constant && _normal.equals(oline.getNormal());
   }
 

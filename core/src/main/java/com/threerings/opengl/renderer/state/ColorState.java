@@ -92,7 +92,7 @@ public class ColorState extends RenderState
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof ColorState && _color.equals(((ColorState)other)._color);
+    return other instanceof ColorState colorState && _color.equals(colorState._color);
   }
 
   @Override

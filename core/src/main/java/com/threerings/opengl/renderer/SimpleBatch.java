@@ -449,8 +449,8 @@ public class SimpleBatch extends Batch
     BufferObject buffer = (astate == null) ? null : astate.getElementArrayBuffer();
     if (buffer != null) {
       key[idx++] = buffer.getId();
-    } else if (_command instanceof CallList) {
-      key[idx++] = ((CallList)_command).getList().getId();
+    } else if (_command instanceof CallList callList) {
+      key[idx++] = callList.getList().getId();
     } else {
       key[idx++] = 0;
     }

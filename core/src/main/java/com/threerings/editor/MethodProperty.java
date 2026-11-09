@@ -87,8 +87,8 @@ public class MethodProperty extends Property
     } catch (InvocationTargetException ite) {
       // if the source is a runtime exception, rethrow it
       Throwable cause = ite.getCause();
-      if (cause instanceof RuntimeException) {
-        throw (RuntimeException)cause;
+      if (cause instanceof RuntimeException rex) {
+        throw rex;
       }
       log.warning("Failed to set property [setter=" + _setter + "].", ite);
 

@@ -88,7 +88,7 @@ public class PointState extends RenderState
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof PointState && _pointSize == ((PointState)other)._pointSize;
+    return other instanceof PointState pointState && _pointSize == pointState._pointSize;
   }
 
   @Override

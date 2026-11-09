@@ -587,8 +587,8 @@ public class ArticulatedConfig extends ModelConfig.Imported
     if (root == null) {
       return null;
     }
-    if (impl instanceof Articulated) {
-      ((Articulated)impl).setConfig(ctx, this);
+    if (impl instanceof Articulated articulated) {
+      articulated.setConfig(ctx, this);
     } else {
       impl = new Articulated(ctx, scope, this);
     }

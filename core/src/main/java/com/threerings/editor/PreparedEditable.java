@@ -38,8 +38,8 @@ public interface PreparedEditable
    * Prepare the instance, if it's a PreparedEditable, and return it.
    */
   public static <T> T prepare (T instance) {
-    if (instance instanceof PreparedEditable) {
-      ((PreparedEditable)instance).prepareInstanceToEdit();
+    if (instance instanceof PreparedEditable preparedEditable) {
+      preparedEditable.prepareInstanceToEdit();
     }
     return instance;
   }

@@ -106,10 +106,9 @@ public class EntryEdit extends AbstractUndoableEdit
   public boolean addEdit (UndoableEdit edit)
   {
     // make sure it's an entry edit with the same id as this one
-    if (!(edit instanceof EntryEdit)) {
+    if (!(edit instanceof EntryEdit oedit)) {
       return false;
     }
-    EntryEdit oedit = (EntryEdit)edit;
     if ((oedit._id != _id) || (oedit._layer != _layer)) {
       return false;
     }

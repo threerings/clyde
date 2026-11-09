@@ -88,7 +88,7 @@ public class LineState extends RenderState
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof LineState && _lineWidth == ((LineState)other)._lineWidth;
+    return other instanceof LineState lineState && _lineWidth == lineState._lineWidth;
   }
 
   @Override

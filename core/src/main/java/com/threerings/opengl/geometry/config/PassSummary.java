@@ -76,10 +76,9 @@ public class PassSummary extends DeepObject
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof PassSummary)) {
+    if (!(other instanceof PassSummary osummary)) {
       return false;
     }
-    PassSummary osummary = (PassSummary)other;
     return vertexAttribs.equals(osummary.vertexAttribs) &&
       texCoordSets.equals(osummary.texCoordSets) &&
       colors == osummary.colors && normals == osummary.normals;

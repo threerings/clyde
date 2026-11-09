@@ -50,8 +50,8 @@ public class ArrayKey
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof ArrayKey &&
-      Arrays.deepEquals(_elements, ((ArrayKey)other)._elements);
+    return other instanceof ArrayKey arrayKey &&
+      Arrays.deepEquals(_elements, arrayKey._elements);
   }
 
   @Override

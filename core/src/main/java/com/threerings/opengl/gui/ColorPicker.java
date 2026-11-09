@@ -148,8 +148,7 @@ public class ColorPicker extends Component
   @Override
   public boolean dispatchEvent (Event event)
   {
-    if (isEnabled() && event instanceof MouseEvent) {
-      MouseEvent mev = (MouseEvent)event;
+    if (isEnabled() && event instanceof MouseEvent mev) {
       int oidx = _sidx;
       float swatchWidth = (float)getWidth() / _colors.length;
       int midx = (int)((float)(mev.getX() - getAbsoluteX()) / swatchWidth);

@@ -253,9 +253,9 @@ public class ConfigFlattener
       if (!list.isEmpty()) {
         Set<String> paramNames;
         Map<ArgumentMap, String> newNames;
-        if (cfg instanceof ParameterizedConfig) {
+        if (cfg instanceof ParameterizedConfig pconfig) {
           paramNames = Sets.newHashSet();
-          for (Parameter p : ((ParameterizedConfig)cfg).parameters) {
+          for (Parameter p : pconfig.parameters) {
             paramNames.add(p.name);
           }
           newNames = Maps.newHashMap();
@@ -392,8 +392,8 @@ public class ConfigFlattener
    */
   protected void clearParameters (ManagedConfig cfg)
   {
-    if (cfg instanceof ParameterizedConfig) {
-      ((ParameterizedConfig)cfg).parameters = Parameter.EMPTY_ARRAY;
+    if (cfg instanceof ParameterizedConfig pconfig) {
+      pconfig.parameters = Parameter.EMPTY_ARRAY;
     }
   }
 
@@ -420,8 +420,8 @@ public class ConfigFlattener
       if (obj instanceof String || Primitives.isWrapperType(obj.getClass())) {
         return obj.hashCode();
 
-      } else if (obj instanceof ArgumentMap) {
-        return generateHash((ArgumentMap)obj);
+      } else if (obj instanceof ArgumentMap argumentMap) {
+        return generateHash(argumentMap);
       }
     }
     return 0;

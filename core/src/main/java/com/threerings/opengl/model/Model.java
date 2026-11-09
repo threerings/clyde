@@ -618,8 +618,8 @@ public class Model extends DynamicScope
     while (curScope != null && !(curScope instanceof Model)) {
       curScope = curScope.getParentScope();
     }
-    if (curScope instanceof Model) {
-      parentVis = ((Model)curScope).isShowing();
+    if (curScope instanceof Model model) {
+      parentVis = model.isShowing();
     }
 
     return parentVis;

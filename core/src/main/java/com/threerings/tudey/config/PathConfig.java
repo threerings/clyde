@@ -163,8 +163,8 @@ public class PathConfig extends ParameterizedConfig
     public PathCursor.Implementation getCursorImplementation (
       TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
     {
-      if (impl instanceof PathCursor.Original) {
-        ((PathCursor.Original)impl).setConfig(this);
+      if (impl instanceof PathCursor.Original original) {
+        original.setConfig(this);
       } else {
         impl = new PathCursor.Original(ctx, scope, this);
       }
@@ -178,8 +178,8 @@ public class PathConfig extends ParameterizedConfig
       if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
         return null;
       }
-      if (impl instanceof PathSprite.Original) {
-        ((PathSprite.Original)impl).setConfig(this);
+      if (impl instanceof PathSprite.Original original) {
+        original.setConfig(this);
       } else {
         impl = new PathSprite.Original(ctx, scope, this);
       }

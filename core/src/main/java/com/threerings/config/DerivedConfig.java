@@ -126,8 +126,7 @@ public class DerivedConfig extends ParameterizedConfig
     instance.init(_cfgmgr);
     instance.setName(getName());
     instance.setComment(getComment());
-    if (instance instanceof ParameterizedConfig) {
-      ParameterizedConfig instanceP = (ParameterizedConfig)instance;
+    if (instance instanceof ParameterizedConfig instanceP) {
       // have the instance keep a hard reference to us, after all we could be held softly
       // by the real DerivedConfig if we are a clone based on parameters...!
       instanceP._base = this;
@@ -144,11 +143,10 @@ public class DerivedConfig extends ParameterizedConfig
     // translate our parameter paths...
     List<Parameter> newParams = Lists.newArrayList();
     for (Parameter p : parameters) {
-      if (p instanceof Parameter.Direct) {
-        newParams.add(translateDirectParameter(instance, (Parameter.Direct)p));
+      if (p instanceof Parameter.Direct direct) {
+        newParams.add(translateDirectParameter(instance, direct));
 
-      } else if (p instanceof Parameter.Choice) {
-        Parameter.Choice pChoice = (Parameter.Choice)p;
+      } else if (p instanceof Parameter.Choice pChoice) {
         List<Parameter.Direct> newDirects = Lists.newArrayList();
         for (Parameter.Direct direct : pChoice.directs) {
           newDirects.add(translateDirectParameter(instance, direct));

@@ -51,11 +51,10 @@ public class PathTableArrayListEditor extends TableArrayListEditor
         super.getTableCellRendererComponent(
           table, value, isSelected, hasFocus, row, column);
         Color color = isSelected ? table.getSelectionForeground() : table.getForeground();
-        if (value instanceof String) {
-          String p = (String)value;
+        if (value instanceof String p) {
           Object root = getRootObject();
-          if (((root instanceof ParameterizedConfig) &&
-              ((ParameterizedConfig)root).isInvalidParameterPath(p))
+          if (((root instanceof ParameterizedConfig pconfig) &&
+              pconfig.isInvalidParameterPath(p))
               ||
               (PathProperty.createPath(_ctx.getConfigManager(), root, p) == null)) {
             color = isSelected ? Color.red.brighter() : Color.red;

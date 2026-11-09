@@ -88,8 +88,8 @@ public abstract class ColorFunctionVariable extends DeepObject
     @Override
     public ColorFunction getValue (ColorFunction result)
     {
-      ColorFunction.Constant cresult = (result instanceof ColorFunction.Constant) ?
-        ((ColorFunction.Constant)result) : new ColorFunction.Constant();
+      ColorFunction.Constant cresult = (result instanceof ColorFunction.Constant constant) ?
+        constant : new ColorFunction.Constant();
       value.getValue(cresult.value);
       return cresult;
     }
@@ -115,8 +115,8 @@ public abstract class ColorFunctionVariable extends DeepObject
     @Override
     public ColorFunction getValue (ColorFunction result)
     {
-      ColorFunction.Linear lresult = (result instanceof ColorFunction.Linear) ?
-        ((ColorFunction.Linear)result) : new ColorFunction.Linear();
+      ColorFunction.Linear lresult = (result instanceof ColorFunction.Linear linear) ?
+        linear : new ColorFunction.Linear();
       start.getValue(lresult.start);
       end.getValue(lresult.end);
       lresult.easing = easing.copy(lresult.easing);

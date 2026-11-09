@@ -315,13 +315,13 @@ public class CoordSet extends AbstractSet<Coord>
   @Override
   public boolean remove (Object object)
   {
-    return (object instanceof Coord) && _coords.remove(((Coord)object).encode());
+    return (object instanceof Coord coord) && _coords.remove(coord.encode());
   }
 
   @Override
   public boolean contains (Object object)
   {
-    return (object instanceof Coord) && _coords.contains(((Coord)object).encode());
+    return (object instanceof Coord coord) && _coords.contains(coord.encode());
   }
 
   @Override

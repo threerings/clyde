@@ -131,8 +131,8 @@ public class PolygonState extends RenderState
   public boolean equals (Object other)
   {
     PolygonState ostate;
-    return other instanceof PolygonState &&
-      _frontPolygonMode == (ostate = (PolygonState)other)._frontPolygonMode &&
+    return other instanceof PolygonState polygonState &&
+      _frontPolygonMode == (ostate = polygonState)._frontPolygonMode &&
       _backPolygonMode == ostate._backPolygonMode &&
       _polygonOffsetFactor == ostate._polygonOffsetFactor &&
       _polygonOffsetUnits == ostate._polygonOffsetUnits;

@@ -381,14 +381,14 @@ public class TechniqueConfig extends DeepObject
      */
     protected TransformState getTransformState (Batch batch)
     {
-      if (batch instanceof SimpleBatch) {
+      if (batch instanceof SimpleBatch simpleBatch) {
         TransformState state =
-          (TransformState)((SimpleBatch)batch).getStates()[RenderState.TRANSFORM_STATE];
+          (TransformState)simpleBatch.getStates()[RenderState.TRANSFORM_STATE];
         if (state != null) {
           return state;
         }
-      } else if (batch instanceof CompoundBatch) {
-        List<Batch> batches = ((CompoundBatch)batch).getBatches();
+      } else if (batch instanceof CompoundBatch compoundBatch) {
+        List<Batch> batches = compoundBatch.getBatches();
         if (!batches.isEmpty()) {
           return getTransformState(batches.get(0));
         }

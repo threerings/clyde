@@ -57,7 +57,7 @@ public class MutableInteger
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof MutableInteger && ((MutableInteger)other).value == value;
+    return other instanceof MutableInteger mutableInteger && mutableInteger.value == value;
   }
 
   @Override

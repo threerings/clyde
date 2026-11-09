@@ -89,7 +89,7 @@ public class Point extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    Point presult = (result instanceof Point) ? ((Point)result) : new Point();
+    Point presult = (result instanceof Point point) ? point : new Point();
     transform.transformPoint(_location, presult._location);
     presult.updateBounds();
     return presult;
@@ -98,7 +98,7 @@ public class Point extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();
+    Circle cresult = (result instanceof Circle circle) ? circle : new Circle();
     cresult.getCenter().set(_location);
     cresult.radius = amount;
     cresult.updateBounds();
@@ -108,7 +108,7 @@ public class Point extends Shape
   @Override
   public Shape sweep (Vector2f translation, Shape result)
   {
-    Segment sresult = (result instanceof Segment) ? ((Segment)result) : new Segment();
+    Segment sresult = (result instanceof Segment segment) ? segment : new Segment();
     sresult.getStart().set(_location);
     _location.add(translation, sresult.getEnd());
     sresult.updateBounds();

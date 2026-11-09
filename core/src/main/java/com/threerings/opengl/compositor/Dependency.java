@@ -581,7 +581,7 @@ public abstract class Dependency
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof RenderEffect && ((RenderEffect)other).config == config;
+      return other instanceof RenderEffect renderEffect && renderEffect.config == config;
     }
   }
 

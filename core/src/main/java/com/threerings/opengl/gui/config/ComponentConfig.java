@@ -803,8 +803,8 @@ public abstract class ComponentConfig extends DeepObject
     protected Component maybeRecreate (
       GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
     {
-      _ochild = (comp instanceof com.threerings.opengl.gui.ScrollPane) ?
-        ((com.threerings.opengl.gui.ScrollPane)comp).getChild() : null;
+      _ochild = (comp instanceof com.threerings.opengl.gui.ScrollPane scrollPane) ?
+        scrollPane.getChild() : null;
       if (_ochild != null) {
         _ochild.getParent().remove(_ochild);
       }

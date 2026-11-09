@@ -214,10 +214,9 @@ public class Coord
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Coord)) {
+    if (!(other instanceof Coord ocoord)) {
       return false;
     }
-    Coord ocoord = (Coord)other;
     return x == ocoord.x && y == ocoord.y;
   }
 }

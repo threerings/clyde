@@ -210,8 +210,8 @@ public abstract class Scene extends DynamicScope
   public void add (SceneElement element)
   {
     // set the parent scope if appropriate
-    if (element instanceof DynamicScope) {
-      ((DynamicScope)element).setParentScope(this);
+    if (element instanceof DynamicScope dynamicScope) {
+      dynamicScope.setParentScope(this);
     }
 
     // add to data structures
@@ -281,8 +281,8 @@ public abstract class Scene extends DynamicScope
     removeFromSpatial(element);
 
     // clear the scope if appropriate
-    if (element instanceof DynamicScope && clearParentScope) {
-      ((DynamicScope)element).setParentScope(null);
+    if (element instanceof DynamicScope dynamicScope && clearParentScope) {
+      dynamicScope.setParentScope(null);
     }
   }
 

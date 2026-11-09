@@ -129,7 +129,7 @@ public class Capsule extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+    Capsule cresult = (result instanceof Capsule capsule) ? capsule : new Capsule();
     transform.transformPoint(_start, cresult._start);
     transform.transformPoint(_end, cresult._end);
     cresult.radius = radius * transform.approximateUniformScale();
@@ -140,7 +140,7 @@ public class Capsule extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+    Capsule cresult = (result instanceof Capsule capsule) ? capsule : new Capsule();
     cresult.getStart().set(_start);
     cresult.getEnd().set(_end);
     cresult.radius = radius + amount;
@@ -152,7 +152,7 @@ public class Capsule extends Shape
   public Shape sweep (Vector2f translation, Shape result)
   {
     // TODO: not supported at present; would need rounded polygons
-    Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+    Capsule cresult = (result instanceof Capsule capsule) ? capsule : new Capsule();
     cresult.getStart().set(_start);
     cresult.getEnd().set(_end);
     cresult.radius = radius;

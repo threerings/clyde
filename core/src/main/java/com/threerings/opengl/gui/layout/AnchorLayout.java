@@ -133,8 +133,8 @@ public class AnchorLayout extends LayoutManager
   public void addLayoutComponent (Component comp, Object constraints)
   {
     Anchor anchor;
-    if (constraints instanceof Anchor) {
-      anchor = (Anchor)constraints;
+    if (constraints instanceof Anchor a) {
+      anchor = a;
     } else if (constraints == null) {
       anchor = CENTER;
     } else {

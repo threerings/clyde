@@ -209,8 +209,8 @@ public class LayerChanger extends EditorTool
     public boolean equals (Object other)
     {
       LayerInfo that;
-      return (other instanceof LayerInfo) &&
-        ((that = (LayerInfo)other).layer == this.layer) &&
+      return (other instanceof LayerInfo layerInfo) &&
+        ((that = layerInfo).layer == this.layer) &&
         that.name.equals(this.name);
     }
 

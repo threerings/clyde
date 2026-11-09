@@ -343,8 +343,8 @@ public abstract class ActionLogic extends Logic
       _target.resolve(activator, _targets);
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (target instanceof ActorLogic) {
-          ((ActorLogic)target).destroy(
+        if (target instanceof ActorLogic actorLogic) {
+          actorLogic.destroy(
             timestamp, activator, ((ActionConfig.DestroyActor)_config).endScene);
           success = true;
         }
@@ -400,17 +400,15 @@ public abstract class ActionLogic extends Logic
       _target.resolve(activator, _targets);
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (!(target instanceof ActorLogic)) {
+        if (!(target instanceof ActorLogic logic)) {
           continue;
         }
-        ActorLogic logic = (ActorLogic)target;
         Actor actor = logic.getActor();
         Vector2f translation = actor.getTranslation();
         float rotation = ((ActionConfig.RotateActor)_config).rotation.getValue();
         logic.move(translation.x, translation.y,
             FloatMath.normalizeAngle(actor.getRotation() + rotation));
-        if (actor instanceof Mobile) {
-          Mobile mobile = (Mobile)actor;
+        if (actor instanceof Mobile mobile) {
           mobile.setDirection(FloatMath.normalizeAngle(mobile.getDirection() + rotation));
         }
         success = true;
@@ -439,7 +437,7 @@ public abstract class ActionLogic extends Logic
       ActionConfig.WarpActor config = (ActionConfig.WarpActor)_config;
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (!(target instanceof ActorLogic)) {
+        if (!(target instanceof ActorLogic actorTarget)) {
           continue;
         }
         _location.resolve(activator, _locations);
@@ -448,7 +446,6 @@ public abstract class ActionLogic extends Logic
         }
         Logic location = Randoms.threadLocal().pick(_locations, null);
         _locations.clear();
-        ActorLogic actorTarget = (ActorLogic)target;
         warp(actorTarget, location);
         if (config.resetMap) {
           actorTarget.resetMap(location.getTranslation());
@@ -610,10 +607,10 @@ public abstract class ActionLogic extends Logic
       _target.resolve(activator, _targets);
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (!(target instanceof PawnLogic)) {
+        if (!(target instanceof PawnLogic pawnLogic)) {
           continue;
         }
-        int pawnId = ((PawnLogic)target).getActor().getId();
+        int pawnId = pawnLogic.getActor().getId();
         TudeyOccupantInfo info =
           ((TudeySceneObject)_scenemgr.getPlaceObject()).getOccupantInfo(pawnId);
         if (info != null) {
@@ -1171,10 +1168,10 @@ public abstract class ActionLogic extends Logic
       boolean success = false;
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (!(target instanceof PawnLogic)) {
+        if (!(target instanceof PawnLogic pawnLogic)) {
           continue;
         }
-        int pawnId = ((PawnLogic)target).getActor().getId();
+        int pawnId = pawnLogic.getActor().getId();
         TudeyOccupantInfo info =
           ((TudeySceneObject)_scenemgr.getPlaceObject()).getOccupantInfo(pawnId);
         if (info != null) {

@@ -214,9 +214,8 @@ public class ModelFbxParser extends AbstractFbxParser
       if (!"OO".equals(conn.type)) continue;
       Object src = objectsById.get(conn.srcId);
       Object dest = objectsById.get(conn.destId);
-      if (src instanceof ModelDef.SpatialDef && dest instanceof ModelDef.SpatialDef) {
-        ModelDef.SpatialDef child = (ModelDef.SpatialDef)src;
-        if (child.parent == null) child.parent = ((ModelDef.SpatialDef)dest).name;
+      if (src instanceof ModelDef.SpatialDef child && dest instanceof ModelDef.SpatialDef pdef) {
+        if (child.parent == null) child.parent = pdef.name;
         else log.warning("Connection has parent assigned already!", "child", child.name);
 //            } else {
 //                log.warning("unfound conn",
@@ -347,8 +346,8 @@ public class ModelFbxParser extends AbstractFbxParser
         String boneName = null;
         for (Connection clusterConn : connsByDest.get(clusterId)) {
           Object obj = objectsById.get(clusterConn.srcId);
-          if (obj instanceof ModelDef.SpatialDef) {
-            boneName = ((ModelDef.SpatialDef)obj).name;
+          if (obj instanceof ModelDef.SpatialDef sdef) {
+            boneName = sdef.name;
           }
         }
         if (boneName == null) log.warning("Couldn't find bone!", "cluster", clusterId);
@@ -409,7 +408,7 @@ public class ModelFbxParser extends AbstractFbxParser
         content.getNumProperties() != 1) return null;
 
     Object data = content.getData();
-    if (!(data instanceof byte[])) return null;
+    if (!(data instanceof byte[] bytes)) return null;
 
     if (!"Clip".equals(type.getData())) {
       log.warning("Texture type is not clip?", "type", type.getData());
@@ -420,7 +419,7 @@ public class ModelFbxParser extends AbstractFbxParser
     int foreslash = fullname.lastIndexOf('/');
     int backslash = fullname.lastIndexOf('\\');
     String basename = fullname.substring(1 + Math.max(foreslash, backslash));
-    Files.write((byte[])data, new File(dir, basename));
+    Files.write(bytes, new File(dir, basename));
     return basename;
   }
 
@@ -633,19 +632,17 @@ class ModelXmlFormatter extends XmlFormatter
   @Override
   protected Collection<? extends Object> getNodes (Object node)
   {
-    if (node instanceof ModelDef) return ((ModelDef)node).spatials.values();
-    if (node instanceof ModelDef.Vertex) {
-      ModelDef.Vertex vv = (ModelDef.Vertex)node;
-      if (vv instanceof ModelDef.SkinVertex) {
-        ModelDef.SkinVertex sv = (ModelDef.SkinVertex)vv;
+    if (node instanceof ModelDef modelDef) return modelDef.spatials.values();
+    if (node instanceof ModelDef.Vertex vv) {
+      if (vv instanceof ModelDef.SkinVertex sv) {
         if (sv.boneWeights.size() > 0) {
           return Lists.newArrayList(Iterables.concat(vv.extras, sv.boneWeights.values()));
         }
       }
       return vv.extras;
     }
-    if (node instanceof ModelDef.TriMeshDef) {
-      return ((ModelDef.TriMeshDef)node).vertices;
+    if (node instanceof ModelDef.TriMeshDef triMeshDef) {
+      return triMeshDef.vertices;
     }
     return super.getNodes(node);
   }
@@ -654,32 +651,27 @@ class ModelXmlFormatter extends XmlFormatter
   protected List<Object> getProperties (Object node)
   {
     List<Object> list = Lists.newArrayList();
-    if (node instanceof ModelDef.SpatialDef) {
-      ModelDef.SpatialDef spat = (ModelDef.SpatialDef)node;
+    if (node instanceof ModelDef.SpatialDef spat) {
       list.add("name"); list.add(spat.name);
       list.add("parent"); list.add(spat.parent);
       list.add("translation"); list.add(spat.translation);
       list.add("rotation"); list.add(spat.rotation);
       list.add("scale"); list.add(spat.scale);
-      if (spat instanceof ModelDef.TriMeshDef) {
-        ModelDef.TriMeshDef triMesh = (ModelDef.TriMeshDef)spat;
+      if (spat instanceof ModelDef.TriMeshDef triMesh) {
         list.add("offsetTranslation"); list.add(triMesh.offsetTranslation);
         list.add("offsetRotation"); list.add(triMesh.offsetRotation);
         list.add("offsetScale"); list.add(triMesh.offsetScale);
         list.add("tag"); list.add(triMesh.tag);
         list.add("texture"); list.add(triMesh.texture);
       }
-    } else if (node instanceof ModelDef.Vertex) {
-      ModelDef.Vertex vv = (ModelDef.Vertex)node;
+    } else if (node instanceof ModelDef.Vertex vv) {
       list.add("location"); list.add(vv.location);
       list.add("normal"); list.add(vv.normal);
       list.add("tcoords"); list.add(vv.tcoords);
       list.add("color"); list.add(vv.color);
-    } else if (node instanceof ModelDef.Extra) {
-      ModelDef.Extra ee = (ModelDef.Extra)node;
+    } else if (node instanceof ModelDef.Extra ee) {
       list.add("tcoords"); list.add(ee.tcoords);
-    } else if (node instanceof ModelDef.BoneWeight) {
-      ModelDef.BoneWeight bw = (ModelDef.BoneWeight)node;
+    } else if (node instanceof ModelDef.BoneWeight bw) {
       list.add("bone"); list.add(bw.bone);
       list.add("weight"); list.add(bw.weight);
     }

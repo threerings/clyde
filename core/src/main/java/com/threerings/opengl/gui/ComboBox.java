@@ -90,7 +90,7 @@ public class ComboBox<T> extends Label
     // from Formatter
     public Icon getIcon (T o)
     {
-      return (o instanceof Icon) ? (Icon)o : null;
+      return (o instanceof Icon icon) ? icon : null;
     }
   }
 
@@ -280,8 +280,7 @@ public class ComboBox<T> extends Label
   @Override // from Component
   public boolean dispatchEvent (Event event)
   {
-    if (event instanceof MouseEvent && isEnabled()) {
-      MouseEvent mev = (MouseEvent)event;
+    if (event instanceof MouseEvent mev && isEnabled()) {
       switch (mev.getType()) {
       case MouseEvent.MOUSE_PRESSED:
         if (_menu == null) {

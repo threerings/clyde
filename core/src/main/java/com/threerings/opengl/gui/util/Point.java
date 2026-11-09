@@ -90,10 +90,9 @@ public class Point
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Point)) {
+    if (!(other instanceof Point opoint)) {
       return false;
     }
-    Point opoint = (Point)other;
     return x == opoint.x && y == opoint.y;
   }
 

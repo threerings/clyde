@@ -918,8 +918,8 @@ public abstract class GeometryConfig extends DeepObject
     @Override
     public boolean canMerge (ClientArrayConfig oarray)
     {
-      return super.canMerge(oarray) && oarray instanceof AttributeArrayConfig &&
-        ((AttributeArrayConfig)oarray).name.equals(name);
+      return super.canMerge(oarray) && oarray instanceof AttributeArrayConfig oattr &&
+        oattr.name.equals(name);
     }
   }
 

@@ -71,9 +71,9 @@ public class FindDialog extends JDialog
     Component root = SwingUtilities.getRoot(parent);
     MessageBundle msgs = ctx.getMessageManager().getBundle(EditorMessageBundle.DEFAULT);
     String title = msgs.get("m.find");
-    FindDialog dialog = (root instanceof Dialog) ?
-      new FindDialog((Dialog)root, ctx, title) :
-      new FindDialog((Frame)(root instanceof Frame ? root : null), ctx, title);
+    FindDialog dialog = (root instanceof Dialog owner) ?
+      new FindDialog(owner, ctx, title) :
+      new FindDialog(root instanceof Frame frame ? frame : null, ctx, title);
     SwingUtil.centerWindow(dialog);
     dialog.setAlwaysOnTop(true);
     return dialog;
@@ -200,8 +200,8 @@ public class FindDialog extends JDialog
   protected boolean goFind (Component comp)
   {
     if (_viewport == null) {
-      if (comp instanceof JScrollPane) {
-        _viewport = ((JScrollPane)comp).getViewport();
+      if (comp instanceof JScrollPane scrollPane) {
+        _viewport = scrollPane.getViewport();
         _first = testViewport(_first);
         _last = testViewport(_last);
       }
@@ -211,8 +211,7 @@ public class FindDialog extends JDialog
         return true;
       }
     }
-    if (comp instanceof Container) {
-      Container cont = (Container)comp;
+    if (comp instanceof Container cont) {
       for (int ii = 0, nn = cont.getComponentCount(); ii < nn; ii++) {
         if (goFind(cont.getComponent(ii))) {
           return true;
@@ -243,20 +242,19 @@ public class FindDialog extends JDialog
   protected JComponent testTerm (Component comp)
   {
     JComponent found = null;
-    if (comp instanceof JTextComponent) {
-      String text = ((JTextComponent)comp).getText().toLowerCase();
+    if (comp instanceof JTextComponent textComponent) {
+      String text = textComponent.getText().toLowerCase();
       //log.info("Found text component", "text", text);
       if (text.contains(_term)) {
         found = (JComponent)comp;
       }
-    } else if (comp instanceof AbstractButton) {
-      String text = ((AbstractButton)comp).getText().toLowerCase();
+    } else if (comp instanceof AbstractButton abstractButton) {
+      String text = abstractButton.getText().toLowerCase();
       //log.info("Found button", "text", text);
       if (text.contains(_term)) {
         found = (JComponent)comp;
       }
-    } else if (comp instanceof JTable) {
-      JTable table = (JTable)comp;
+    } else if (comp instanceof JTable table) {
       OUTER:
       for (int ii = 0, nn = table.getRowCount(); ii < nn; ii++) {
         for (int jj = 0, mm = table.getColumnCount(); jj < mm; jj++) {

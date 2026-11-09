@@ -46,8 +46,8 @@ public class RecentDirectoryList extends AbstractRecentList
 
     // find our chooser and configure it
     for (Component c = this; ((c = c.getParent()) != null); ) {
-      if (c instanceof JFileChooser) {
-        configureChooser((JFileChooser)c);
+      if (c instanceof JFileChooser fileChooser) {
+        configureChooser(fileChooser);
         break;
       }
     }

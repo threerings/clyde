@@ -746,9 +746,9 @@ public abstract class Exporter
    */
   protected static Class<?> getClass (Object value)
   {
-    if (value instanceof Enum) {
+    if (value instanceof Enum en) {
       // check enum first- no getting around this with interfaces
-      return ((Enum)value).getDeclaringClass();
+      return en.getDeclaringClass();
 
     } else if (value instanceof Exportable) {
       return value.getClass(); // you're the boss

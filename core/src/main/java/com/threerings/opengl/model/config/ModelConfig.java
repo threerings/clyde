@@ -1004,10 +1004,10 @@ public class ModelConfig extends ParameterizedConfig
     if (matcfg == null) {
       log.warning("Missing valid material", "config", material);
       return null;
-    } else if (matcfg.implementation instanceof MaterialConfig.Derived) {
-      return getTechniques(cfgmgr, ((MaterialConfig.Derived)matcfg.implementation).material);
-    } else if (matcfg.implementation instanceof MaterialConfig.Original) {
-      return ((MaterialConfig.Original)matcfg.implementation).techniques;
+    } else if (matcfg.implementation instanceof MaterialConfig.Derived derived) {
+      return getTechniques(cfgmgr, derived.material);
+    } else if (matcfg.implementation instanceof MaterialConfig.Original original) {
+      return original.techniques;
     } else {
       log.warning("Unknown mat impl", "config", material);
       return null;
@@ -1016,11 +1016,11 @@ public class ModelConfig extends ParameterizedConfig
 
   private static Iterable<PassConfig> getPasses (TechniqueConfig.Enqueuer enqueuer)
   {
-    if (enqueuer instanceof TechniqueConfig.NormalEnqueuer) {
-      return Arrays.asList(((TechniqueConfig.NormalEnqueuer)enqueuer).passes);
-    } else if (enqueuer instanceof TechniqueConfig.CompoundEnqueuer) {
+    if (enqueuer instanceof TechniqueConfig.NormalEnqueuer normalEnqueuer) {
+      return Arrays.asList(normalEnqueuer.passes);
+    } else if (enqueuer instanceof TechniqueConfig.CompoundEnqueuer compoundEnqueuer) {
       return Iterables.concat(Iterables.transform(
-        Arrays.asList(((TechniqueConfig.CompoundEnqueuer)enqueuer).enqueuers),
+        Arrays.asList(compoundEnqueuer.enqueuers),
         ModelConfig::getPasses)); // recurse
     }
     return Collections.emptyList();

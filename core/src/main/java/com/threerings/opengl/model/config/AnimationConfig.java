@@ -283,8 +283,8 @@ public class AnimationConfig extends ParameterizedConfig
       if (targets == null) {
         return null;
       }
-      if (impl instanceof Animation.Imported) {
-        ((Animation.Imported)impl).setConfig(this);
+      if (impl instanceof Animation.Imported imported) {
+        imported.setConfig(this);
       } else {
         impl = new Animation.Imported(ctx, scope, this);
       }
@@ -373,8 +373,8 @@ public class AnimationConfig extends ParameterizedConfig
     public Animation.Implementation getAnimationImplementation (
       GlContext ctx, Scope scope, Animation.Implementation impl)
     {
-      if (impl instanceof Animation.Procedural) {
-        ((Animation.Procedural)impl).setConfig(this);
+      if (impl instanceof Animation.Procedural procedural) {
+        procedural.setConfig(this);
       } else {
         impl = new Animation.Procedural(ctx, scope, this);
       }
@@ -409,8 +409,8 @@ public class AnimationConfig extends ParameterizedConfig
     {
       if (animations.length == 0) {
         impl = null;
-      } else if (impl instanceof Animation.Sequential) {
-        ((Animation.Sequential)impl).setConfig(this);
+      } else if (impl instanceof Animation.Sequential sequential) {
+        sequential.setConfig(this);
       } else {
         impl = new Animation.Sequential(ctx, scope, this);
       }
@@ -441,8 +441,8 @@ public class AnimationConfig extends ParameterizedConfig
     {
       if (animations.length == 0) {
         impl = null;
-      } else if (impl instanceof Animation.RandomLoop) {
-        ((Animation.RandomLoop)impl).setConfig(this);
+      } else if (impl instanceof Animation.RandomLoop randomLoop) {
+        randomLoop.setConfig(this);
       } else {
         impl = new Animation.RandomLoop(ctx, scope, this);
       }

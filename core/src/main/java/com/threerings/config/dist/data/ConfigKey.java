@@ -111,10 +111,9 @@ public class ConfigKey extends SimpleStreamableObject
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof ConfigKey)) {
+    if (!(other instanceof ConfigKey okey)) {
       return false;
     }
-    ConfigKey okey = (ConfigKey)other;
     return _cclass == okey._cclass && _name.equals(okey._name);
   }
 

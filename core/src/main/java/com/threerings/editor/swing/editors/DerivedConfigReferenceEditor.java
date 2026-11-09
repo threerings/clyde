@@ -33,10 +33,9 @@ public class DerivedConfigReferenceEditor extends ConfigReferenceEditor
         return false;
       }
       ManagedConfig refValue = group.getRawConfig(n);
-      if (!(refValue instanceof DerivedConfig)) {
+      if (!(refValue instanceof DerivedConfig derValue)) {
         break;
       }
-      DerivedConfig derValue = (DerivedConfig)refValue;
       if (derValue.base == null) {
         break;
       }

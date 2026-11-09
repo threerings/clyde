@@ -179,8 +179,8 @@ public class PlaceableConfig extends ParameterizedConfig
     public PlaceableCursor.Implementation getCursorImplementation (
       TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl)
     {
-      if (impl instanceof PlaceableCursor.Original) {
-        ((PlaceableCursor.Original)impl).setConfig(this);
+      if (impl instanceof PlaceableCursor.Original original) {
+        original.setConfig(this);
       } else {
         impl = new PlaceableCursor.Original(ctx, scope, this);
       }
@@ -327,8 +327,8 @@ public class PlaceableConfig extends ParameterizedConfig
       if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
         return null;
       }
-      if (impl instanceof PlaceableSprite.Marker) {
-        ((PlaceableSprite.Marker)impl).setConfig(this);
+      if (impl instanceof PlaceableSprite.Marker marker) {
+        marker.setConfig(this);
       } else {
         impl = new PlaceableSprite.Marker(ctx, scope, this);
       }

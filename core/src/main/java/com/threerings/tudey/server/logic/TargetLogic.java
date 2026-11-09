@@ -88,8 +88,8 @@ public abstract class TargetLogic extends Logic
     {
       _target.resolve(activator, _targets);
       for (Logic target : _targets) {
-        if (target instanceof Activated && ((Activated)target).getActivator() != null) {
-          results.add(((Activated)target).getActivator());
+        if (target instanceof Activated activated && activated.getActivator() != null) {
+          results.add(activated.getActivator());
         }
       }
       _targets.clear();
@@ -455,8 +455,8 @@ public abstract class TargetLogic extends Logic
       _target.resolve(activator, _targets);
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
-        if (target instanceof AgentLogic) {
-          Logic result = ((AgentLogic)target).getBehaviorTarget();
+        if (target instanceof AgentLogic agentLogic) {
+          Logic result = agentLogic.getBehaviorTarget();
           if (result != null) {
             results.add(result);
           }

@@ -95,8 +95,8 @@ public abstract class FloatFunctionVariable extends DeepObject
     @Override
     public FloatFunction getValue (FloatFunction result)
     {
-      FloatFunction.Constant cresult = (result instanceof FloatFunction.Constant) ?
-        ((FloatFunction.Constant)result) : new FloatFunction.Constant();
+      FloatFunction.Constant cresult = (result instanceof FloatFunction.Constant constant) ?
+        constant : new FloatFunction.Constant();
       cresult.value = value.getValue();
       return cresult;
     }
@@ -126,8 +126,8 @@ public abstract class FloatFunctionVariable extends DeepObject
     @Override
     public FloatFunction getValue (FloatFunction result)
     {
-      FloatFunction.Linear lresult = (result instanceof FloatFunction.Linear) ?
-        ((FloatFunction.Linear)result) : new FloatFunction.Linear();
+      FloatFunction.Linear lresult = (result instanceof FloatFunction.Linear linear) ?
+        linear : new FloatFunction.Linear();
       lresult.start = start.getValue();
       lresult.end = end.getValue();
       lresult.easing = easing.copy(lresult.easing);
@@ -163,8 +163,8 @@ public abstract class FloatFunctionVariable extends DeepObject
     @Override
     public FloatFunction getValue (FloatFunction result)
     {
-      FloatFunction.InAndOut ioresult = (result instanceof FloatFunction.InAndOut) ?
-        ((FloatFunction.InAndOut)result) : new FloatFunction.InAndOut();
+      FloatFunction.InAndOut ioresult = (result instanceof FloatFunction.InAndOut inAndOut) ?
+        inAndOut : new FloatFunction.InAndOut();
       ioresult.start = start.getValue();
       ioresult.end = end.getValue();
       ioresult.in = in.getValue();
@@ -207,8 +207,8 @@ public abstract class FloatFunctionVariable extends DeepObject
     @Override
     public FloatFunction getValue (FloatFunction result)
     {
-      FloatFunction.ThreePoint tpresult = (result instanceof FloatFunction.ThreePoint) ?
-        ((FloatFunction.ThreePoint)result) : new FloatFunction.ThreePoint();
+      FloatFunction.ThreePoint tpresult = (result instanceof FloatFunction.ThreePoint threePoint) ?
+        threePoint : new FloatFunction.ThreePoint();
       tpresult.start = start.getValue();
       tpresult.middle = middle.getValue();
       tpresult.end = end.getValue();
@@ -261,8 +261,8 @@ public abstract class FloatFunctionVariable extends DeepObject
     @Override
     public FloatFunction getValue (FloatFunction result)
     {
-      FloatFunction.Multipoint mpresult = (result instanceof FloatFunction.Multipoint) ?
-        ((FloatFunction.Multipoint)result) : new FloatFunction.Multipoint();
+      FloatFunction.Multipoint mpresult = (result instanceof FloatFunction.Multipoint multipoint) ?
+        multipoint : new FloatFunction.Multipoint();
       mpresult.start = start.getValue();
       if (mpresult.middle.length != middle.length) {
         mpresult.middle = new FloatFunction.Multipoint.Point[middle.length];

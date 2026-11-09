@@ -61,10 +61,9 @@ public class IdentityKey
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof IdentityKey)) {
+    if (!(other instanceof IdentityKey okey)) {
       return false;
     }
-    IdentityKey okey = (IdentityKey)other;
     if (_elements.length != okey._elements.length) {
       return false;
     }

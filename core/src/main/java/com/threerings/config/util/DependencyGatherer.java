@@ -99,11 +99,10 @@ public abstract class DependencyGatherer
     protected Class<? extends ManagedConfig> getParameterConfigType (ConfigId id, String param)
     {
       ManagedConfig cfg = _cfgmgr.getRawConfig(id.clazz, id.name);
-      if (!(cfg instanceof ParameterizedConfig)) {
+      if (!(cfg instanceof ParameterizedConfig pcfg)) {
         log.warning("Expected parameterized config, got none", "id", id, "cfg", cfg);
         return null;
       }
-      ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
       Parameter p = pcfg.getParameter(param);
       if (p == null) {
         log.warning("Missing parameter!", "id", id, "param", param);
@@ -180,10 +179,9 @@ public abstract class DependencyGatherer
      */
     protected void populateParameters (Class<? extends ManagedConfig> clazz, ManagedConfig cfg)
     {
-      if (!(cfg instanceof ParameterizedConfig)) {
+      if (!(cfg instanceof ParameterizedConfig pcfg)) {
         return;
       }
-      ParameterizedConfig pcfg = (ParameterizedConfig)cfg;
       ConfigId id = new ConfigId(clazz, cfg.getName());
       for (Parameter param : pcfg.parameters) {
         Property prop = param.getProperty(pcfg);
@@ -266,8 +264,7 @@ public abstract class DependencyGatherer
         !seen.add(val)) {
       return;
     }
-    if (val instanceof ConfigReference<?>) {
-      ConfigReference<?> ref = (ConfigReference<?>)val;
+    if (val instanceof ConfigReference<?> ref) {
       Class<? extends ManagedConfig> clazz = getConfigReferenceType(type);
       if (clazz == null) {
         if (shouldWarn()) {
@@ -284,11 +281,11 @@ public abstract class DependencyGatherer
         findReferences(Array.get(val, ii), cType, seen);
       }
 
-    } else if (val instanceof Collection) {
-      Type cType = (type instanceof ParameterizedType)
-          ? ((ParameterizedType)type).getActualTypeArguments()[0]
+    } else if (val instanceof Collection collection) {
+      Type cType = (type instanceof ParameterizedType ptype)
+          ? ptype.getActualTypeArguments()[0]
           : null;
-      for (Object o : ((Collection)val)) {
+      for (Object o : collection) {
         if (o == null) {
           continue;
         }
@@ -298,8 +295,7 @@ public abstract class DependencyGatherer
         findReferences(o, eType, seen);
       }
 
-    } else if (val instanceof DerivedConfig) {
-      DerivedConfig dCfg = (DerivedConfig)val;
+    } else if (val instanceof DerivedConfig dCfg) {
       findReferences(dCfg.base, dCfg.cclass, seen);
 
     } else {
@@ -312,18 +308,18 @@ public abstract class DependencyGatherer
           continue; // don't worry about it
         }
 
-        if ((o instanceof ConfigReference<?>) &&
+        if ((o instanceof ConfigReference<?> ref) &&
             (f.getAnnotation(NoDependency.class) != null)) {
-          noteNoDependency((ConfigReference<?>)o, f);
+          noteNoDependency(ref, f);
           continue;
         }
 
-        if (o instanceof String) {
+        if (o instanceof String str) {
           // this may be a reference! (otherwise: we don't care)
           Reference refAnno = f.getAnnotation(Reference.class);
           if (refAnno != null) {
             // add it!
-            String newValue = addBareReference(refAnno.value(), (String)o);
+            String newValue = addBareReference(refAnno.value(), str);
             if (newValue != null) {
               try {
                 f.set(val, newValue);
@@ -376,8 +372,8 @@ public abstract class DependencyGatherer
       }
       Class<? extends ManagedConfig> pclazz = getParameterConfigType(id, entry.getKey());
       if (pclazz != null) {
-        if (value instanceof ConfigReference<?>) {
-          findReferences((ConfigReference<?>)value, pclazz, seen);
+        if (value instanceof ConfigReference<?> cref) {
+          findReferences(cref, pclazz, seen);
 
         } else if (value instanceof List<?>) {
           @SuppressWarnings("unchecked")
@@ -432,8 +428,7 @@ public abstract class DependencyGatherer
    */
   protected Class<? extends ManagedConfig> getConfigReferenceType (Type type)
   {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType ptype = (ParameterizedType)type;
+    if (type instanceof ParameterizedType ptype) {
       Type rawType = ptype.getRawType();
       if (ConfigReference.class.equals(rawType)) {
         @SuppressWarnings("unchecked")

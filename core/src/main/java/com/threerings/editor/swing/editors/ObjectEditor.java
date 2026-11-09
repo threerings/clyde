@@ -49,8 +49,8 @@ public class ObjectEditor extends PropertyEditor
   public void stateChanged (ChangeEvent event)
   {
     Object value = _panel.getValue();
-    if (value instanceof ComponentConfig) {
-      ((ComponentConfig)value).editorHighlight = _highlighted;
+    if (value instanceof ComponentConfig componentConfig) {
+      componentConfig.editorHighlight = _highlighted;
     }
 
     _property.set(_object, value);

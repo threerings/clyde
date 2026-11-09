@@ -81,9 +81,8 @@ public abstract class AbstractButton extends Label
   // documentation inherited
   public boolean dispatchEvent (Event event)
   {
-    if (isEnabled() && event instanceof MouseEvent) {
+    if (isEnabled() && event instanceof MouseEvent mev) {
       int ostate = getState();
-      MouseEvent mev = (MouseEvent)event;
       switch (mev.getType()) {
       default:
         return super.dispatchEvent(event);

@@ -768,8 +768,8 @@ public class ConfigEditor extends BaseConfigEditor
         try {
           ManagedConfig cfg = (ManagedConfig)PreparedEditable.prepare(
             clazz.getConstructor().newInstance());
-          if (cfg instanceof DerivedConfig) {
-            ((DerivedConfig)cfg).cclass = group.getConfigClass();
+          if (cfg instanceof DerivedConfig dconfig) {
+            dconfig.cclass = group.getConfigClass();
           }
           newNode(cfg);
         } catch (Exception e) {
@@ -1457,10 +1457,9 @@ public class ConfigEditor extends BaseConfigEditor
     @Override
     public boolean addEdit (UndoableEdit edit)
     {
-      if (!(edit instanceof ConfigEdit)) {
+      if (!(edit instanceof ConfigEdit that)) {
         return false;
       }
-      ConfigEdit that = (ConfigEdit)edit;
 
       // for now we can only merge changes to the same config
       if (_type != Type.CHANGE || that._type != Type.CHANGE ||

@@ -68,8 +68,7 @@ public final class ActorDelta extends ReflectiveDelta
   @Override
   public Delta merge (Delta other)
   {
-    ActorDelta odelta;
-    if (!(other instanceof ActorDelta && (odelta = (ActorDelta)other).getId() == _id)) {
+    if (!(other instanceof ActorDelta odelta && odelta.getId() == _id)) {
       throw new IllegalArgumentException("Cannot merge delta " + other);
     }
     ActorDelta merged = new ActorDelta();

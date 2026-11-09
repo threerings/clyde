@@ -75,10 +75,10 @@ public class Introspector
   public static Property[] getProperties (Object object)
   {
     Property[] sprops = getProperties(object.getClass());
-    if (!(object instanceof DynamicallyEditable)) {
+    if (!(object instanceof DynamicallyEditable deditable)) {
       return sprops;
     }
-    Property[] dprops = ((DynamicallyEditable)object).getDynamicProperties();
+    Property[] dprops = deditable.getDynamicProperties();
     if (sprops.length == 0) {
       return dprops;
     } else if (dprops.length == 0) {

@@ -165,8 +165,8 @@ public class ArrayDelta extends Delta
       Object value;
       if (_mask.isSet(ii)) {
         value = _values[idx++];
-        if (value instanceof Delta) {
-          value = ((Delta)value).apply(Array.get(original, ii));
+        if (value instanceof Delta delta) {
+          value = delta.apply(Array.get(original, ii));
         }
       } else {
         if (ii < olen) {
@@ -183,8 +183,7 @@ public class ArrayDelta extends Delta
   @Override
   public Delta merge (Delta other)
   {
-    ArrayDelta aother;
-    if (!(other instanceof ArrayDelta && (aother = (ArrayDelta)other)._clazz == _clazz)) {
+    if (!(other instanceof ArrayDelta aother && aother._clazz == _clazz)) {
       throw new IllegalArgumentException("Cannot merge delta " + other);
     }
     ArrayDelta merged = new ArrayDelta();
@@ -199,10 +198,9 @@ public class ArrayDelta extends Delta
         Object ovalue = _values[oidx++];
         if (aother._mask.isSet(ii)) {
           Object nvalue = aother._values[nidx++];
-          if (nvalue instanceof Delta) {
-            Delta ndelta = (Delta)nvalue;
-            value = (ovalue instanceof Delta) ?
-              ((Delta)ovalue).merge(ndelta) : ndelta.apply(ovalue);
+          if (nvalue instanceof Delta ndelta) {
+            value = (ovalue instanceof Delta delta) ?
+              delta.merge(ndelta) : ndelta.apply(ovalue);
           } else {
             value = nvalue;
           }

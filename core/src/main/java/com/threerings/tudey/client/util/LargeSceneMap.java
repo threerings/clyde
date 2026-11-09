@@ -376,8 +376,7 @@ public class LargeSceneMap
    */
   protected void addEntry (TudeySceneModel.Entry entry)
   {
-    if (entry instanceof TudeySceneModel.TileEntry) {
-      TudeySceneModel.TileEntry tentry = (TudeySceneModel.TileEntry)entry;
+    if (entry instanceof TudeySceneModel.TileEntry tentry) {
       TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
       tentry.getRegion(config, _region);
       for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
@@ -391,9 +390,7 @@ public class LargeSceneMap
     }
 
     int flags = _flagMask & entry.getCollisionFlags(_sceneModel.getConfigManager());
-    if (entry instanceof TudeySceneModel.PlaceableEntry) {
-      TudeySceneModel.PlaceableEntry pentry =
-        (TudeySceneModel.PlaceableEntry)entry;
+    if (entry instanceof TudeySceneModel.PlaceableEntry pentry) {
       PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
       if (config.defaultEntrance) {
         Vector2f trans = pentry.getTranslation(_sceneModel.getConfigManager());
@@ -430,8 +427,7 @@ public class LargeSceneMap
    */
   protected void removeEntry (TudeySceneModel.Entry entry)
   {
-    if (entry instanceof TudeySceneModel.TileEntry) {
-      TudeySceneModel.TileEntry tentry = (TudeySceneModel.TileEntry)entry;
+    if (entry instanceof TudeySceneModel.TileEntry tentry) {
       TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
       tentry.getRegion(config, _region);
       for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {

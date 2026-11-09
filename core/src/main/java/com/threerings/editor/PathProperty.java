@@ -315,8 +315,8 @@ public class PathProperty extends Property
     Property prop = null;
     if (tok.nextToken() == StreamTokenizer.TT_NUMBER) {
       final int idx = (int)tok.nval;
-      if (value instanceof List) {
-        if (idx >= 0 && idx < ((List)value).size()) {
+      if (value instanceof List<?> vlist) {
+        if (idx >= 0 && idx < vlist.size()) {
           prop = new IndexProperty(base, idx) {
             public Object get (Object object) {
               return ((List)base.get(object)).get(idx);
@@ -344,8 +344,8 @@ public class PathProperty extends Property
       final String arg = tok.sval;
       Class<?> refTypeClass = base.getArgumentType(ConfigReference.class);
       if (refTypeClass == null) {
-        if (object instanceof DerivedConfig) {
-          refTypeClass = ((DerivedConfig)object).cclass;
+        if (object instanceof DerivedConfig dconfig) {
+          refTypeClass = dconfig.cclass;
         }
         if (refTypeClass == null) {
           log.warning("Couldn't determine config reference type.", "ref", value);
@@ -364,10 +364,9 @@ public class PathProperty extends Property
         return null;
       }
       ManagedConfig config = cfgmgr.getRawConfig(clazz, ref.getName());
-      if (!(config instanceof ParameterizedConfig)) {
+      if (!(config instanceof ParameterizedConfig pconfig)) {
         return null;
       }
-      ParameterizedConfig pconfig = (ParameterizedConfig)config;
       Parameter parameter = pconfig.getParameter(arg);
       if (parameter == null) {
         return null;
@@ -412,10 +411,9 @@ public class PathProperty extends Property
         protected Property getArgumentProperty (ConfigReference<ManagedConfig> ref) {
           ManagedConfig config = (ref == null) ?
             null : cfgmgr.getRawConfig(clazz, ref.getName());
-          if (!(config instanceof ParameterizedConfig)) {
+          if (!(config instanceof ParameterizedConfig pconfig)) {
             return null;
           }
-          ParameterizedConfig pconfig = (ParameterizedConfig)config;
           Parameter parameter = pconfig.getParameter(arg);
           if (parameter == null) {
             return null;
@@ -443,61 +441,61 @@ public class PathProperty extends Property
       return value;
 
     } else if (type == String.class) {
-      return (value instanceof Enum<?>)
-        ? ((Enum<?>)value).name()
+      return (value instanceof Enum<?> en)
+        ? en.name()
         : value.toString();
 
-    } else if (value instanceof String) {
+    } else if (value instanceof String str) {
       if (type == Byte.class) {
         try {
-          return Byte.valueOf((String)value);
+          return Byte.valueOf(str);
         } catch (NumberFormatException e) {
           return Byte.valueOf((byte)0);
         }
       } else if (type == Double.class) {
         try {
-          return Double.valueOf((String)value);
+          return Double.valueOf(str);
         } catch (NumberFormatException e) {
           return Double.valueOf(0.0);
         }
       } else if (type == Float.class) {
         try {
-          return Float.valueOf((String)value);
+          return Float.valueOf(str);
         } catch (NumberFormatException e) {
           return Float.valueOf(0f);
         }
       } else if (type == Integer.class) {
         try {
-          return Integer.valueOf((String)value);
+          return Integer.valueOf(str);
         } catch (NumberFormatException e) {
           return Integer.valueOf(0);
         }
       } else if (type == Long.class) {
         try {
-          return Long.valueOf((String)value);
+          return Long.valueOf(str);
         } catch (NumberFormatException e) {
           return Long.valueOf(0L);
         }
       } else if (type == Short.class) {
         try {
-          return Short.valueOf((String)value);
+          return Short.valueOf(str);
         } catch (NumberFormatException e) {
           return Short.valueOf((short)0);
         }
       }
-    } else if (value instanceof Number) {
+    } else if (value instanceof Number num) {
       if (type == Byte.class) {
-        return ((Number)value).byteValue();
+        return num.byteValue();
       } else if (type == Double.class) {
-        return ((Number)value).doubleValue();
+        return num.doubleValue();
       } else if (type == Float.class) {
-        return ((Number)value).floatValue();
+        return num.floatValue();
       } else if (type == Integer.class) {
-        return ((Number)value).intValue();
+        return num.intValue();
       } else if (type == Long.class) {
-        return ((Number)value).longValue();
+        return num.longValue();
       } else if (type == Short.class) {
-        return ((Number)value).shortValue();
+        return num.shortValue();
       }
     }
     throw new IllegalArgumentException("Can't coerce " + value + " to " + type);

@@ -199,8 +199,8 @@ public abstract class Property extends DeepObject
   {
     Class<?> type = getType();
     Type gtype = getGenericType();
-    if (gtype instanceof GenericArrayType) {
-      return ((GenericArrayType)gtype).getGenericComponentType();
+    if (gtype instanceof GenericArrayType gatype) {
+      return gatype.getGenericComponentType();
 
     } else if (type.isArray()) {
       return type.getComponentType();
@@ -666,13 +666,12 @@ public abstract class Property extends DeepObject
    */
   protected static Type[] getTypeArguments (Type type, Class<?> clazz)
   {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType ptype = (ParameterizedType)type;
+    if (type instanceof ParameterizedType ptype) {
       return getTypeArguments(
         (Class<?>)ptype.getRawType(), ptype.getActualTypeArguments(), clazz);
 
-    } else if (type instanceof Class<?>) {
-      return getTypeArguments((Class<?>)type, null, clazz);
+    } else if (type instanceof Class<?> cls) {
+      return getTypeArguments(cls, null, clazz);
     }
     return null;
   }
@@ -713,8 +712,7 @@ public abstract class Property extends DeepObject
   protected static Type[] getTypeArguments (
     Type type, TypeVariable<?>[] params, Type[] values, Class<?> clazz)
   {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType ptype = (ParameterizedType)type;
+    if (type instanceof ParameterizedType ptype) {
       Type[] args = ptype.getActualTypeArguments();
       for (int ii = 0; ii < args.length; ii++) {
         Type arg = args[ii];
@@ -727,8 +725,8 @@ public abstract class Property extends DeepObject
       }
       return getTypeArguments((Class<?>)ptype.getRawType(), args, clazz);
 
-    } else if (type instanceof Class<?>) {
-      return getTypeArguments((Class<?>)type, null, clazz);
+    } else if (type instanceof Class<?> cls) {
+      return getTypeArguments(cls, null, clazz);
     }
     return null;
   }
@@ -738,15 +736,15 @@ public abstract class Property extends DeepObject
    */
   protected Class<?> getTypeClass (Type type)
   {
-    if (type instanceof Class<?>) {
-      return (Class<?>)type;
+    if (type instanceof Class<?> cls) {
+      return cls;
 
-    } else if (type instanceof ParameterizedType) {
-      return (Class<?>)((ParameterizedType)type).getRawType();
+    } else if (type instanceof ParameterizedType ptype) {
+      return (Class<?>)ptype.getRawType();
 
-    } else if (type instanceof GenericArrayType) {
+    } else if (type instanceof GenericArrayType gatype) {
       // TODO: is there a better way to do this?
-      Class<?> cclass = getTypeClass(((GenericArrayType)type).getGenericComponentType());
+      Class<?> cclass = getTypeClass(gatype.getGenericComponentType());
       return Array.newInstance(cclass, 0).getClass();
     }
     return null;

@@ -160,8 +160,7 @@ public final class Rectangle
   // documentation inherited
   public boolean equals (Object other)
   {
-    if (other instanceof Rectangle) {
-      Rectangle orect = (Rectangle)other;
+    if (other instanceof Rectangle orect) {
       return x == orect.x && y == orect.y &&
         width == orect.width && height == orect.height;
     }

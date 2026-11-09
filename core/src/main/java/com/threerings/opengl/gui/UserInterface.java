@@ -975,8 +975,8 @@ public class UserInterface extends Container
             value = new MutableBoolean(c.isAdded());
           } else if (arg.equals("hoverable")) {
             value = new MutableBoolean(c.isHoverable());
-          } else if (arg.equals("selected") && c instanceof ToggleButton) {
-            value = new MutableBoolean(((ToggleButton)c).isSelected());
+          } else if (arg.equals("selected") && c instanceof ToggleButton toggleButton) {
+            value = new MutableBoolean(toggleButton.isSelected());
           }
         }
         if (clazz.isInstance(value)) {

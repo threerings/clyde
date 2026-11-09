@@ -600,10 +600,9 @@ public final class Vector3f
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Vector3f)) {
+    if (!(other instanceof Vector3f ovec)) {
       return false;
     }
-    Vector3f ovec = (Vector3f)other;
     return (x == ovec.x && y == ovec.y && z == ovec.z);
   }
 }

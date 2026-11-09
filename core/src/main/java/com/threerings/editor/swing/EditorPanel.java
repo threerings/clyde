@@ -97,9 +97,9 @@ public class EditorPanel extends BaseEditorPanel
   {
     Component root = SwingUtilities.getRoot(parent);
     MessageBundle msgs = ctx.getMessageManager().getBundle(EditorMessageBundle.DEFAULT);
-    final JDialog dialog = (root instanceof Dialog) ?
-      new JDialog((Dialog)root, title) :
-        new JDialog((Frame)(root instanceof Frame ? root : null), title);
+    final JDialog dialog = (root instanceof Dialog owner) ?
+      new JDialog(owner, title) :
+        new JDialog(root instanceof Frame frame ? frame : null, title);
     EditorPanel epanel = new EditorPanel(ctx, catmode);
     dialog.add(epanel, BorderLayout.CENTER);
     epanel.setObject(object);
@@ -455,11 +455,11 @@ public class EditorPanel extends BaseEditorPanel
    */
   protected void updateDynamicProperties ()
   {
-    if (!(_object instanceof DynamicallyEditable)) {
+    if (!(_object instanceof DynamicallyEditable deditable)) {
       return;
     }
     int ocount = _dynamic.getComponentCount();
-    Property[] properties = ((DynamicallyEditable)_object).getDynamicProperties();
+    Property[] properties = deditable.getDynamicProperties();
     int idx = 0;
     for (; idx < properties.length; idx++) {
       Property property = properties[idx];

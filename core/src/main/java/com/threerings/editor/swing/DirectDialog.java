@@ -74,9 +74,9 @@ public class DirectDialog extends JDialog
     Component root = SwingUtilities.getRoot(parent);
     MessageBundle msgs = ctx.getMessageManager().getBundle(EditorMessageBundle.DEFAULT);
     String title = msgs.get("m.direct");
-    DirectDialog dialog = (root instanceof Dialog) ?
-      new DirectDialog((Dialog)root, ctx, title) :
-      new DirectDialog((Frame)(root instanceof Frame ? root : null), ctx, title);
+    DirectDialog dialog = (root instanceof Dialog owner) ?
+      new DirectDialog(owner, ctx, title) :
+      new DirectDialog(root instanceof Frame frame ? frame : null, ctx, title);
     SwingUtil.centerWindow(dialog);
     dialog.setAlwaysOnTop(true);
     return dialog;
@@ -140,8 +140,8 @@ public class DirectDialog extends JDialog
     String name = _field.getText().trim();
     for (Parameter param : pc.parameters) {
       if (param.name.equals(name)) {
-        if (param instanceof Parameter.Direct) {
-          direct = (Parameter.Direct)param;
+        if (param instanceof Parameter.Direct pdirect) {
+          direct = pdirect;
           break;
         } else {
           _status.setText(_msgs.get("m.param_name_in_use"));

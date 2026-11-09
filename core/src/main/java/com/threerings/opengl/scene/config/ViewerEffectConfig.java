@@ -125,8 +125,8 @@ public abstract class ViewerEffectConfig extends DeepObject
         }
         protected boolean _activated, _completed;
       }
-      if (effect instanceof SoundEffect) {
-        ((SoundEffect)effect).sounder.setConfig(sounder);
+      if (effect instanceof SoundEffect soundEffect) {
+        soundEffect.sounder.setConfig(sounder);
       } else {
         effect = new SoundEffect();
       }
@@ -146,8 +146,8 @@ public abstract class ViewerEffectConfig extends DeepObject
     @Override
     public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
     {
-      if (effect instanceof BackgroundColorEffect) {
-        ((BackgroundColorEffect)effect).getBackgroundColor().set(color);
+      if (effect instanceof BackgroundColorEffect backgroundColorEffect) {
+        backgroundColorEffect.getBackgroundColor().set(color);
       } else {
         effect = new BackgroundColorEffect(color);
       }
@@ -221,8 +221,8 @@ public abstract class ViewerEffectConfig extends DeepObject
           ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
         protected Scene _scene;
       }
-      if (effect instanceof SkyboxEffect) {
-        ((SkyboxEffect)effect).model.setConfig(model);
+      if (effect instanceof SkyboxEffect skyboxEffect) {
+        skyboxEffect.model.setConfig(model);
       } else {
         effect = new SkyboxEffect();
       }
@@ -279,8 +279,8 @@ public abstract class ViewerEffectConfig extends DeepObject
           ctx.getCompositor().getCamera().getWorldTransform();
         protected Scene _scene;
       }
-      if (effect instanceof ParticlesEffect) {
-        ((ParticlesEffect)effect).model.setConfig(model);
+      if (effect instanceof ParticlesEffect particlesEffect) {
+        particlesEffect.model.setConfig(model);
       } else {
         effect = new ParticlesEffect();
       }
@@ -320,8 +320,8 @@ public abstract class ViewerEffectConfig extends DeepObject
           return "RenderEffect:" + renderEffect;
         }
       }
-      if (effect instanceof RenderEffectEffect) {
-        ((RenderEffectEffect)effect).reffect.setConfig(RenderEffect.this.renderEffect);
+      if (effect instanceof RenderEffectEffect ree) {
+        ree.reffect.setConfig(RenderEffect.this.renderEffect);
       } else {
         effect = new RenderEffectEffect();
       }

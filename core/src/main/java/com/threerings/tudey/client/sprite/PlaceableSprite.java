@@ -332,10 +332,10 @@ public class PlaceableSprite extends EntrySprite
     @Override
     public boolean dispatchEvent (Event event)
     {
-      if (!(event instanceof MouseEvent)) {
+      if (!(event instanceof MouseEvent mev)) {
         return false;
       }
-      int type = ((MouseEvent)event).getType();
+      int type = mev.getType();
       if (type == MouseEvent.MOUSE_ENTERED) {
         setHover(true);
       } else if (type == MouseEvent.MOUSE_EXITED) {

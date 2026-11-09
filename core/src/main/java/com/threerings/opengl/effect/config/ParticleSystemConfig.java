@@ -347,8 +347,8 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
   public Model.Implementation getModelImplementation (
     GlContext ctx, Scope scope, Model.Implementation impl)
   {
-    if (impl instanceof ParticleSystem) {
-      ((ParticleSystem)impl).setConfig(ctx, this);
+    if (impl instanceof ParticleSystem particleSystem) {
+      particleSystem.setConfig(ctx, this);
     } else {
       impl = new ParticleSystem(ctx, scope, this);
     }

@@ -69,7 +69,7 @@ public abstract class EntityKey extends SimpleStreamableObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof Entry && ((Entry)other)._key.equals(_key);
+      return other instanceof Entry entry && entry._key.equals(_key);
     }
 
     @Override
@@ -119,7 +119,7 @@ public abstract class EntityKey extends SimpleStreamableObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof Actor && ((Actor)other)._id == _id;
+      return other instanceof Actor actor && actor._id == _id;
     }
 
     @Override

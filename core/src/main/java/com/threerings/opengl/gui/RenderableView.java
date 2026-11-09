@@ -557,8 +557,8 @@ public class RenderableView extends Component
     }
     for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
       Compositable compositable = _compositables.get(ii);
-      if (compositable instanceof Model) {
-        Transform3D xform = ((Model)compositable).getPointWorldTransform(_viewNode);
+      if (compositable instanceof Model model) {
+        Transform3D xform = model.getPointWorldTransform(_viewNode);
         if (xform != null) {
           return xform;
         }

@@ -110,8 +110,7 @@ public class PopupMenu extends PopupWindow
   // documentation inherited
   public boolean dispatchEvent (Event event)
   {
-    if (event instanceof MouseEvent) {
-      MouseEvent mev = (MouseEvent)event;
+    if (event instanceof MouseEvent mev) {
       // if the mouse clicked outside of our window bounds, dismiss
       // ourselves
       if (mev.getType() == MouseEvent.MOUSE_PRESSED &&

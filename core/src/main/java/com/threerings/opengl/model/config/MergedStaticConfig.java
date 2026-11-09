@@ -101,8 +101,8 @@ public class MergedStaticConfig extends ModelConfig.Implementation
     if (resolved == null) {
       _resolved = new SoftReference<Resolved>(resolved = resolve(ctx));
     }
-    if (impl instanceof Static) {
-      ((Static)impl).setConfig(ctx, resolved);
+    if (impl instanceof Static stat) {
+      stat.setConfig(ctx, resolved);
     } else {
       impl = new Static(ctx, scope, resolved);
     }
@@ -132,11 +132,10 @@ public class MergedStaticConfig extends ModelConfig.Implementation
       ModelConfig config = cfgmgr.getConfig(ModelConfig.class, cmodel.model);
       ModelConfig.Implementation original = (config == null) ? null : config.getOriginal();
       MeshSet mset = null;
-      if (original instanceof StaticConfig) {
-        mset = ((StaticConfig)original).meshes;
+      if (original instanceof StaticConfig staticConfig) {
+        mset = staticConfig.meshes;
 
-      } else if (original instanceof StaticSetConfig) {
-        StaticSetConfig ssconfig = (StaticSetConfig)original;
+      } else if (original instanceof StaticSetConfig ssconfig) {
         if (ssconfig.model != null && ssconfig.meshes != null) {
           mset = ssconfig.meshes.get(ssconfig.model);
         }

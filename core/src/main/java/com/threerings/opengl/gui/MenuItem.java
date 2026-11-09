@@ -92,8 +92,8 @@ public class MenuItem extends AbstractButton
   protected void fireAction (long when, int modifiers)
   {
     for (Component ancestor = _parent; ancestor != null; ancestor = ancestor.getParent()) {
-      if (ancestor instanceof PopupMenu) {
-        ((PopupMenu)ancestor).itemSelected(this, when, modifiers);
+      if (ancestor instanceof PopupMenu popupMenu) {
+        popupMenu.itemSelected(this, when, modifiers);
         return;
       }
     }

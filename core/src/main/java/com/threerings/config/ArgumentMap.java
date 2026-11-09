@@ -105,8 +105,8 @@ public class ArgumentMap extends AbstractMap<String, Object>
   public Object copy (Object dest, Object outer)
   {
     ArgumentMap cmap;
-    if (dest instanceof ArgumentMap) {
-      cmap = (ArgumentMap)dest;
+    if (dest instanceof ArgumentMap argumentMap) {
+      cmap = argumentMap;
       cmap.clear();
     } else {
       cmap = new ArgumentMap();
@@ -214,8 +214,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
        */
       protected int findEntryIndex (Object value)
       {
-        if (value instanceof Map.Entry<?,?>) {
-          Map.Entry<?,?> entry = (Map.Entry<?,?>)value;
+        if (value instanceof Map.Entry<?,?> entry) {
           int idx = findKeyIndex(entry.getKey());
           return ((idx >= 0) &&
               Objects.equals(entry.getValue(), _entries.get(idx).getValue()))
@@ -246,10 +245,9 @@ public class ArgumentMap extends AbstractMap<String, Object>
     if (other == this) {
       return true;
     }
-    if (!(other instanceof ArgumentMap)) {
+    if (!(other instanceof ArgumentMap omap)) {
       return false;
     }
-    ArgumentMap omap = (ArgumentMap)other;
     int size = size();
     if (size != omap.size()) {
       return false;
@@ -299,8 +297,8 @@ public class ArgumentMap extends AbstractMap<String, Object>
    */
   protected int findKeyIndex (Object key)
   {
-    if (key instanceof String) {
-      return _entries.binarySearch(_key.as((String)key));
+    if (key instanceof String str) {
+      return _entries.binarySearch(_key.as(str));
     }
     if (key != null) {
       for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {

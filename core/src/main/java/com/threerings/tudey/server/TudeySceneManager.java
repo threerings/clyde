@@ -618,10 +618,10 @@ public class TudeySceneManager extends SceneManager
    */
   public Logic getLogic (EntityKey key)
   {
-    if (key instanceof EntityKey.Entry) {
-      return getEntryLogic(((EntityKey.Entry)key).getKey());
-    } else if (key instanceof EntityKey.Actor) {
-      return getActorLogic(((EntityKey.Actor)key).getId());
+    if (key instanceof EntityKey.Entry entry) {
+      return getEntryLogic(entry.getKey());
+    } else if (key instanceof EntityKey.Actor actor) {
+      return getActorLogic(actor.getId());
     } else {
       return null;
     }
@@ -1012,24 +1012,24 @@ public class TudeySceneManager extends SceneManager
     Transform2D result = new Transform2D(Vector2f.ZERO, 0f);
     if (portalKey instanceof Logic || portalKey instanceof EntityKey.Actor) {
       // make sure the logic is still active
-      Logic entrance = (portalKey instanceof EntityKey.Actor) ?
-        getActorLogic(((EntityKey.Actor)portalKey).getId()) : (Logic)portalKey;
+      Logic entrance = (portalKey instanceof EntityKey.Actor actor) ?
+        getActorLogic(actor.getId()) : (Logic)portalKey;
       if (entrance != null && entrance.isActive()) {
         return entrance.getPortalTransform();
       }
-    } else if (portalKey instanceof String) {
-      Logic entrance = Randoms.threadLocal().pick(getTagged((String)portalKey), null);
+    } else if (portalKey instanceof String str) {
+      Logic entrance = Randoms.threadLocal().pick(getTagged(str), null);
       if (entrance != null) {
         return new Transform2D(entrance.getTranslation(), entrance.getRotation());
       }
-    } else if (portalKey instanceof Transform2D) {
-      return (Transform2D)portalKey;
+    } else if (portalKey instanceof Transform2D xform) {
+      return xform;
 
     } else if (portalKey != null) {
       // get the translation/rotation from the entering portal
       Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(
-        portalKey instanceof EntityKey.Entry ?
-          ((EntityKey.Entry)portalKey).getKey() : portalKey);
+        portalKey instanceof EntityKey.Entry ekey ?
+          ekey.getKey() : portalKey);
       if (entry != null) {
         return new Transform2D(entry.getTranslation(_cfgmgr), entry.getRotation(_cfgmgr));
       }
@@ -1098,8 +1098,8 @@ public class TudeySceneManager extends SceneManager
 
     // retrieve the actor and ensure it's a pawn
     ActorLogic target = _actors.get(pawnId);
-    if (target instanceof PawnLogic) {
-      client.setTarget((PawnLogic)target);
+    if (target instanceof PawnLogic pawnLogic) {
+      client.setTarget(pawnLogic);
 
     } else if (target == null) {
       // TODO: downgrade this to DEBUG?
@@ -1662,21 +1662,20 @@ public class TudeySceneManager extends SceneManager
   {
     long elapsed = (System.nanoTime() - started) / 1000L;
     String cname;
-    if (participant instanceof Interval.RunBuddy) {
+    if (participant instanceof Interval.RunBuddy runBuddy) {
       cname = StringUtil.shortClassName(
-        ((Interval.RunBuddy)participant).getIntervalClassName());
+        runBuddy.getIntervalClassName());
     } else {
       cname = StringUtil.shortClassName(participant);
     }
-    if (participant instanceof Logic) {
-      Logic logic = (Logic)participant;
+    if (participant instanceof Logic logic) {
       participant = logic.getSceneManager().getLogic(logic.getEntityKey());
     }
     ConfigReference<?> ref = null;
-    if (participant instanceof ActorLogic) {
-      ref = ((ActorLogic)participant).getActor().getConfig();
-    } else if (participant instanceof EntryLogic) {
-      ref = ((EntryLogic)participant).getEntry().getReference();
+    if (participant instanceof ActorLogic actorLogic) {
+      ref = actorLogic.getActor().getConfig();
+    } else if (participant instanceof EntryLogic entryLogic) {
+      ref = entryLogic.getEntry().getReference();
     }
     if (ref != null) {
       String rname = ref.getName();

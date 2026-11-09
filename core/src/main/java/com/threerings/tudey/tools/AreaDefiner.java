@@ -93,8 +93,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     if (_editor.getMouseRay(_pick)) {
       SceneElement element = _editor.getView().getScene().getIntersection(
         _pick, _isect, AREA_FILTER);
-      if (element instanceof Model) {
-        Model model = (Model)element;
+      if (element instanceof Model model) {
         AreaSprite sprite = (AreaSprite)model.getUserObject();
         AreaEntry entry = (AreaEntry)sprite.getEntry();
         int idx = sprite.getVertexIndex(model);

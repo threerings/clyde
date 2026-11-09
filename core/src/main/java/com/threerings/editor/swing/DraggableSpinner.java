@@ -163,9 +163,9 @@ public class DraggableSpinner extends JSpinner
     @Override
     public void setValue (Object value)
     {
-      if (value instanceof Float && ((Float)value) == 0f) {
+      if (value instanceof Float fval && fval == 0f) {
         super.setValue(0f);
-      } else if (value instanceof Double && ((Double)value) == 0.0) {
+      } else if (value instanceof Double dval && dval == 0.0) {
         super.setValue(0.0);
       } else {
         super.setValue(value);

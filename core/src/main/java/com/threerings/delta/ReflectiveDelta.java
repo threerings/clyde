@@ -167,11 +167,11 @@ public class ReflectiveDelta extends Delta
   @Override
   public Delta merge (Delta other)
   {
-    if (!(other instanceof ReflectiveDelta)) {
+    if (!(other instanceof ReflectiveDelta reflectiveDelta)) {
       throw new IllegalArgumentException("Cannot merge delta " + other);
     }
     ReflectiveDelta merged = new ReflectiveDelta();
-    populateMerged((ReflectiveDelta)other, merged);
+    populateMerged(reflectiveDelta, merged);
     return merged;
   }
 
@@ -209,10 +209,9 @@ public class ReflectiveDelta extends Delta
         Object ovalue = _values[oidx++];
         if (other._mask.isSet(ii)) {
           Object nvalue = other._values[nidx++];
-          if (nvalue instanceof Delta) {
-            Delta ndelta = (Delta)nvalue;
-            value = (ovalue instanceof Delta) ?
-              ((Delta)ovalue).merge(ndelta) : ndelta.apply(ovalue);
+          if (nvalue instanceof Delta ndelta) {
+            value = (ovalue instanceof Delta delta) ?
+              delta.merge(ndelta) : ndelta.apply(ovalue);
           } else {
             value = nvalue;
           }
@@ -878,8 +877,8 @@ public class ReflectiveDelta extends Delta
       Object value;
       if (mask.isSet(midx.value++)) {
         value = values[vidx.value++];
-        if (value instanceof Delta) {
-          value = ((Delta)value).apply(field.get(original));
+        if (value instanceof Delta delta) {
+          value = delta.apply(field.get(original));
         }
       } else {
         value = field.get(original);

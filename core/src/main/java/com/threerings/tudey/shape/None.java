@@ -72,7 +72,7 @@ public class None extends Shape
   @Override
   public Shape transform (Transform2D transform, Shape result)
   {
-    None nresult = (result instanceof None) ? ((None)result) : new None();
+    None nresult = (result instanceof None none) ? none : new None();
     transform.transformPoint(_location, nresult._location);
     nresult.updateBounds();
     return nresult;
@@ -81,7 +81,7 @@ public class None extends Shape
   @Override
   public Shape expand (float amount, Shape result)
   {
-    None nresult = (result instanceof None) ? ((None)result) : new None();
+    None nresult = (result instanceof None none) ? none : new None();
     nresult.getCenter().set(_location);
     nresult.updateBounds();
     return nresult;
@@ -90,7 +90,7 @@ public class None extends Shape
   @Override
   public Shape sweep (Vector2f translation, Shape result)
   {
-    None nresult = (result instanceof None) ? ((None)result) : new None();
+    None nresult = (result instanceof None none) ? none : new None();
     _location.add(translation, nresult.getCenter());
     nresult.updateBounds();
     return nresult;
