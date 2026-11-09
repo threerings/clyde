@@ -344,8 +344,7 @@ public abstract class ActionLogic extends Logic
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
         if (target instanceof ActorLogic actorLogic) {
-          actorLogic.destroy(
-            timestamp, activator, ((ActionConfig.DestroyActor)_config).endScene);
+          actorLogic.destroy(timestamp, activator, ((ActionConfig.DestroyActor)_config).endScene);
           success = true;
         }
       }

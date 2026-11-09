@@ -210,8 +210,7 @@ public class ReflectiveDelta extends Delta
         if (other._mask.isSet(ii)) {
           Object nvalue = other._values[nidx++];
           if (nvalue instanceof Delta ndelta) {
-            value = (ovalue instanceof Delta delta) ?
-              delta.merge(ndelta) : ndelta.apply(ovalue);
+            value = (ovalue instanceof Delta delta) ? delta.merge(ndelta) : ndelta.apply(ovalue);
           } else {
             value = nvalue;
           }

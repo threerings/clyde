@@ -92,8 +92,7 @@ public class CullState extends RenderState
   @Override
   public boolean equals (Object other)
   {
-    return other instanceof CullState cullState &&
-      _cullFace == cullState._cullFace;
+    return other instanceof CullState cullState && _cullFace == cullState._cullFace;
   }
 
   @Override

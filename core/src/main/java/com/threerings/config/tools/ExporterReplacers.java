@@ -43,8 +43,7 @@ public enum ExporterReplacers
     @Override
     public Exporter.Replacement getReplacement (Object value, Class<?> clazz)
     {
-      if ((value instanceof ActionConfig.Compound ac) &&
-          (clazz != ActionConfig.Compound.class)) {
+      if ((value instanceof ActionConfig.Compound ac) && (clazz != ActionConfig.Compound.class)) {
         switch (ac.actions.length) {
         case 0: return new Exporter.Replacement(new ActionConfig.None(), clazz);
         case 1: return new Exporter.Replacement(ac.actions[0], clazz);

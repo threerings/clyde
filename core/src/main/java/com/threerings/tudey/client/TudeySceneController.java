@@ -205,11 +205,9 @@ public class TudeySceneController extends SceneController
   public void submitRequest (Sprite source, String name)
   {
     if (source instanceof ActorSprite actorSprite) {
-      _tsobj.tudeySceneService.submitActorRequest(
-        actorSprite.getActor().getId(), name);
+      _tsobj.tudeySceneService.submitActorRequest(actorSprite.getActor().getId(), name);
     } else if (source instanceof EntrySprite entrySprite) {
-      _tsobj.tudeySceneService.submitEntryRequest(
-        entrySprite.getEntry().getKey(), name);
+      _tsobj.tudeySceneService.submitEntryRequest(entrySprite.getEntry().getKey(), name);
     } else {
       log.warning("Tried to submit request from unknown sprite type.",
         "source", source, "name", name);

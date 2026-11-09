@@ -199,8 +199,7 @@ public class ArrayDelta extends Delta
         if (aother._mask.isSet(ii)) {
           Object nvalue = aother._values[nidx++];
           if (nvalue instanceof Delta ndelta) {
-            value = (ovalue instanceof Delta delta) ?
-              delta.merge(ndelta) : ndelta.apply(ovalue);
+            value = (ovalue instanceof Delta delta) ? delta.merge(ndelta) : ndelta.apply(ovalue);
           } else {
             value = nvalue;
           }

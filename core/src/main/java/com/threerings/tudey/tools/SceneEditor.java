@@ -587,9 +587,7 @@ public class SceneEditor extends TudeyTool
 
     // and we need to customize some stuff for a few tools
     if (entry instanceof PlaceableEntry pentry) {
-      _placer.setAngle(pentry.transform
-          .update(Transform3D.RIGID)
-          .getRotation().getRotationZ());
+      _placer.setAngle(pentry.transform.update(Transform3D.RIGID).getRotation().getRotationZ());
 
     } else if (entry instanceof TileEntry tentry) {
       _tileBrush.setRotation(tentry.rotation);
