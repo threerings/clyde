@@ -228,11 +228,7 @@ public class ConfigGroup<T extends ManagedConfig>
       if (readXml || readConfigs(false, exceptionConsumer)) {
         log.debug("Read configurations for group " + _name + ".");
       }
-      noteFileChecksum();
-      if (!readXml && _fileChecksum != NO_FILE_CHECKSUM) {
-        // an xml file we couldn't read (say, git conflict markers) must never be saved over
-        _fileChecksum = UNREADABLE_CHECKSUM;
-      }
+      noteFileChecksum(readXml);
     }
   }
 
@@ -401,7 +397,7 @@ public class ConfigGroup<T extends ManagedConfig>
   public final void save ()
   {
     save(getConfigFile(true));
-    noteFileChecksum();
+    noteFileChecksum(true);
   }
 
   /**
@@ -526,16 +522,17 @@ public class ConfigGroup<T extends ManagedConfig>
    */
   public void revert ()
   {
-    load(getConfigFile(true));
-    noteFileChecksum();
+    noteFileChecksum(load(getConfigFile(true)));
   }
 
   /**
    * Loads the configurations from the specified file.
+   *
+   * @return whether it could be read.
    */
-  public final void load (File file)
+  public final boolean load (File file)
   {
-    load(file, false);
+    return load(file, false);
   }
 
   /**
@@ -543,8 +540,9 @@ public class ConfigGroup<T extends ManagedConfig>
    *
    * @param merge if true, merge with the existing configurations; do not delete configurations
    * that do not exist in the file.
+   * @return whether it could be read.
    */
-  public void load (File file, boolean merge)
+  public boolean load (File file, boolean merge)
   {
     // read in the array of configurations
     ManagedConfig[] array;
@@ -555,10 +553,11 @@ public class ConfigGroup<T extends ManagedConfig>
 
     } catch (IOException e) {
       log.warning("Error reading configurations [file=" + file + "].", e);
-      return;
+      return false;
     }
     validateOuters(array);
     load(Arrays.asList(array), merge, false);
+    return true;
   }
 
   /**
@@ -705,11 +704,17 @@ public class ConfigGroup<T extends ManagedConfig>
 
   /**
    * Notes our xml file and its checksum, to tell later whether it changed on disk.
+   *
+   * @param read whether we just read or wrote the file: if it exists and we couldn't read it
+   * (say, git conflict markers), it must never be saved over.
    */
-  protected void noteFileChecksum ()
+  protected void noteFileChecksum (boolean read)
   {
     _checksumFile = getConfigFile(true);
     _fileChecksum = calculateChecksum(_checksumFile);
+    if (!read && _fileChecksum != NO_FILE_CHECKSUM) {
+      _fileChecksum = UNREADABLE_CHECKSUM;
+    }
   }
 
   /**

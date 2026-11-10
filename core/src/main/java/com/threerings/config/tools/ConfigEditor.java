@@ -565,6 +565,8 @@ public class ConfigEditor extends BaseConfigEditor
   {
     assignIds(groups);
     List<String> notes = new ArrayList<>();
+    // in one note: after a pull, Save All may leave dozens of groups alone
+    List<String> leftAlone = new ArrayList<>();
     for (ConfigGroup<?> group : groups) {
       boolean dirty = DirtyGroupManager.isDirty(group);
       switch (group.calculateFileState()) {
@@ -572,16 +574,24 @@ public class ConfigEditor extends BaseConfigEditor
           group.save();
           DirtyGroupManager.setDirty(group, false);
         }
-        case CHANGED -> notes.add(dirty
-          ? _msgs.get("m.saved_beside", group.getName(), group.saveAsMine().getName())
-          : _msgs.get("m.left_alone", group.getName()));
+        case CHANGED -> {
+          if (dirty) {
+            notes.add(_msgs.get("m.saved_beside", group.getName(), group.saveAsMine().getName()));
+          } else {
+            leftAlone.add(group.getName());
+          }
+        }
         case UNREADABLE -> notes.add("<font color=red>" + (dirty
           ? _msgs.get("m.unreadable_saved_beside", group.getName(), group.saveAsMine().getName())
           : _msgs.get("m.unreadable", group.getName())) + "</font>");
       }
     }
+    if (!leftAlone.isEmpty()) {
+      notes.add(_msgs.get("m.left_alone", String.join(", ", leftAlone)));
+    }
     if (!notes.isEmpty()) {
-      JOptionPane.showMessageDialog(this, "<html>" + String.join("<br><br>", notes),
+      JOptionPane.showMessageDialog(this,
+        "<html><body style='width: 450px'>" + String.join("<br><br>", notes),
         _msgs.get("t.not_saved"), JOptionPane.WARNING_MESSAGE);
     }
   }
