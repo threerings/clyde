@@ -719,6 +719,9 @@ public abstract class BehaviorLogic extends Logic
       float cdist = Float.MAX_VALUE;
       for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
         Logic target = _targets.get(ii);
+        if (!_agent.canFollow(target)) {
+          continue;
+        }
         float dist = target.getTranslation().distanceSquared(trans);
         if (dist < cdist) {
           _currentTarget = target;
