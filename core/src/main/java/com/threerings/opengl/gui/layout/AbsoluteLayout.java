@@ -61,24 +61,15 @@ public class AbsoluteLayout extends LayoutManager
   // documentation inherited
   public void addLayoutComponent (Component comp, Object constraints)
   {
-    // various sanity checking
-    if (constraints instanceof Point p) {
-      if (p.x < 0 || p.y < 0) {
-        throw new IllegalArgumentException(
-          "Components must be laid out at positive coords: " + p);
-      }
-
-    } else if (constraints instanceof Rectangle r) {
-      if (r.x < 0 || r.y < 0) {
-        throw new IllegalArgumentException(
-          "Components must be laid out at positive coords: " + r);
-      }
+    // negative coords are allowed: the component overhangs the container's edge, and the
+    // overhang doesn't count toward our preferred size
+    if (constraints instanceof Rectangle r) {
       if (r.width < 0 || r.height < 0) {
         throw new IllegalArgumentException(
           "Constraints must specify positive dimensions: " + r);
       }
 
-    } else {
+    } else if (!(constraints instanceof Point)) {
       throw new IllegalArgumentException(
         "Components must be added to an AbsoluteLayout with " +
         "Point or Rectangle constraints.");
