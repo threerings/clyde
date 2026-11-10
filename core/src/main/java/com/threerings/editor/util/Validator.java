@@ -250,8 +250,7 @@ public class Validator
         return;
       }
       @SuppressWarnings("unchecked")
-      Class<ManagedConfig> cclass = (Class<ManagedConfig>)
-          ptype.getActualTypeArguments()[0];
+      Class<ManagedConfig> cclass = (Class<ManagedConfig>)ptype.getActualTypeArguments()[0];
       for (ConfigReference<?> ref : list) {
         if (ref == null) {
           _hasNulls = true;

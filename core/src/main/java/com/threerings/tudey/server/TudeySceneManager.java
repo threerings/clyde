@@ -1663,8 +1663,7 @@ public class TudeySceneManager extends SceneManager
     long elapsed = (System.nanoTime() - started) / 1000L;
     String cname;
     if (participant instanceof Interval.RunBuddy runBuddy) {
-      cname = StringUtil.shortClassName(
-        runBuddy.getIntervalClassName());
+      cname = StringUtil.shortClassName(runBuddy.getIntervalClassName());
     } else {
       cname = StringUtil.shortClassName(participant);
     }

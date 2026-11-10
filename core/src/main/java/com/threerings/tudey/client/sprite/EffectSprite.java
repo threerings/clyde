@@ -98,8 +98,7 @@ public class EffectSprite extends Sprite
         return;
       }
       if (sprite instanceof ActorSprite actorSprite && config.attachToTarget) {
-        actorSprite.spawnAttachedTransientModel(
-          config.model, config.rotateWithTarget);
+        actorSprite.spawnAttachedTransientModel(config.model, config.rotateWithTarget);
         return;
       }
       Transform3D transform;

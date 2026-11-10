@@ -822,8 +822,7 @@ public abstract class ActionConfig extends DeepObject
     public boolean shouldPreExecute ()
     {
       for (ActionConfig action : actions) {
-        if (action instanceof PreExecutable preExecutable &&
-            preExecutable.shouldPreExecute()) {
+        if (action instanceof PreExecutable preExecutable && preExecutable.shouldPreExecute()) {
           return true;
         }
       }

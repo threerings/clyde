@@ -174,11 +174,9 @@ public class TudeySceneView extends DynamicScope
         if (_dumpInfluences) {
           Object user = element.getUserObject();
           if (user instanceof EntrySprite entrySprite) {
-            log.info(msg, "diff", diff,
-                "entry", entrySprite.getEntry().getReference());
+            log.info(msg, "diff", diff, "entry", entrySprite.getEntry().getReference());
           } else if (user instanceof ActorSprite actorSprite) {
-            log.info(msg, "diff", diff,
-                "actor", actorSprite.getActor().getConfig());
+            log.info(msg, "diff", diff, "actor", actorSprite.getActor().getConfig());
           } else {
             super.dumpInfluence(element, msg, diff);
           }

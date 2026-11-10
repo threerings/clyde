@@ -775,8 +775,7 @@ public class ConfigManager
   // documentation inherited from interface Copyable
   public Object copy (Object dest, Object outer)
   {
-    ConfigManager other = (dest instanceof ConfigManager cfgmgr) ?
-      cfgmgr : new ConfigManager();
+    ConfigManager other = (dest instanceof ConfigManager cfgmgr) ? cfgmgr : new ConfigManager();
     for (ConfigGroup<?> group : _groups.values()) {
       Class<?> clazz = group.getConfigClass();
       ConfigGroup<?> ogroup = other._groups.get(clazz);

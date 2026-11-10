@@ -129,8 +129,7 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof IntegerUniform integerUniform &&
-        integerUniform.value == value;
+      return other instanceof IntegerUniform integerUniform && integerUniform.value == value;
     }
 
     @Override
@@ -183,8 +182,7 @@ public class Program extends ShaderObject
     @Override
     public boolean equals (Object other)
     {
-      return other instanceof FloatUniform floatUniform &&
-        floatUniform.value == value;
+      return other instanceof FloatUniform floatUniform && floatUniform.value == value;
     }
 
     @Override
