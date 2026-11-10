@@ -402,9 +402,7 @@ public class ConfigEditor extends BaseConfigEditor
     } else if (action.equals("folder")) {
       item.newFolder();
     } else if (action.equals("save_group")) {
-      assignIds(item.group);
-      item.group.save();
-      DirtyGroupManager.setDirty(item.group, false);
+      saveGroups(ImmutableList.<ConfigGroup<?>>of(item.group));
     } else if (action.equals("revert_group")) {
       if (!DirtyGroupManager.isDirty(item.group) || showCantUndo()) {
         item.group.revert();
@@ -455,9 +453,8 @@ public class ConfigEditor extends BaseConfigEditor
         ((ManagerPanel)_tabs.getComponentAt(ii)).setTreeModeEnabled(enabled);
       }
     } else if (action.equals("save_all")) {
-      assignIds(panel.cfgmgr.getGroups());
-      panel.cfgmgr.saveAll();
-      DirtyGroupManager.setDirty(panel.cfgmgr, false);
+      // every group, edited or not: saving rewrites old configs through the save replacer
+      saveGroups(panel.cfgmgr.getGroups());
     } else if (action.equals("revert_all")) {
       if (!DirtyGroupManager.isDirty(panel.cfgmgr) || showCantUndo()) {
         panel.cfgmgr.revertAll();
@@ -556,6 +553,37 @@ public class ConfigEditor extends BaseConfigEditor
     if (name == null) return null;
     ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
     return new ConfigId(item.group.getConfigClass(), name);
+  }
+
+  /**
+   * Saves the groups, except that one whose file changed on disk since we loaded or saved it,
+   * or can't be read, isn't saved over that file: if it has no edits, it's left alone, and if
+   * it does, they're saved beside the file so they can be merged by hand (the group stays
+   * dirty: the edits aren't in its file yet).
+   */
+  protected void saveGroups (Collection<ConfigGroup<?>> groups)
+  {
+    assignIds(groups);
+    List<String> notes = new ArrayList<>();
+    for (ConfigGroup<?> group : groups) {
+      boolean dirty = DirtyGroupManager.isDirty(group);
+      switch (group.calculateFileState()) {
+        case UNCHANGED -> {
+          group.save();
+          DirtyGroupManager.setDirty(group, false);
+        }
+        case CHANGED -> notes.add(dirty
+          ? _msgs.get("m.saved_beside", group.getName(), group.saveAsMine().getName())
+          : _msgs.get("m.left_alone", group.getName()));
+        case UNREADABLE -> notes.add("<font color=red>" + (dirty
+          ? _msgs.get("m.unreadable_saved_beside", group.getName(), group.saveAsMine().getName())
+          : _msgs.get("m.unreadable", group.getName())) + "</font>");
+      }
+    }
+    if (!notes.isEmpty()) {
+      JOptionPane.showMessageDialog(this, "<html>" + String.join("<br><br>", notes),
+        _msgs.get("t.not_saved"), JOptionPane.WARNING_MESSAGE);
+    }
   }
 
   /**

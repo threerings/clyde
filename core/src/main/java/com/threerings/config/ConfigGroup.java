@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.lang.reflect.Array;
 
@@ -39,7 +40,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.zip.CRC32C;
+import java.util.zip.CheckedInputStream;
+
+import javax.annotation.Nullable;
 
 import com.google.common.base.Predicates;
 import com.google.common.io.Closer;
@@ -217,9 +223,16 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     // load the existing configurations (first checking for an xml file, then a binary file)
-    if (_cfgmgr.getConfigPath() != null &&
-        (readConfigs(true, exceptionConsumer) || readConfigs(false, exceptionConsumer))) {
-      log.debug("Read configurations for group " + _name + ".");
+    if (_cfgmgr.getConfigPath() != null) {
+      boolean readXml = readConfigs(true, exceptionConsumer);
+      if (readXml || readConfigs(false, exceptionConsumer)) {
+        log.debug("Read configurations for group " + _name + ".");
+      }
+      noteFileChecksum();
+      if (!readXml && _fileChecksum != NO_FILE_CHECKSUM) {
+        // an xml file we couldn't read (say, git conflict markers) must never be saved over
+        _fileChecksum = UNREADABLE_CHECKSUM;
+      }
     }
   }
 
@@ -388,6 +401,41 @@ public class ConfigGroup<T extends ManagedConfig>
   public final void save ()
   {
     save(getConfigFile(true));
+    noteFileChecksum();
+  }
+
+  /**
+   * Compares this group's file with when we last loaded or saved it. If it changed (say,
+   * someone pulled while it was open in an editor) or can't be read, saving over it would
+   * undo the change.
+   */
+  public FileState calculateFileState ()
+  {
+    File file = getConfigFile(true);
+    if (!Objects.equals(file, _checksumFile)) {
+      // the resource directory moved since we loaded (the in-game editor points it at a
+      // checkout), so there's nothing to compare against until we save there
+      return FileState.UNCHANGED;
+    }
+    long checksum = calculateChecksum(file);
+    if (checksum == UNREADABLE_CHECKSUM || _fileChecksum == UNREADABLE_CHECKSUM) {
+      return FileState.UNREADABLE;
+    }
+    return checksum == _fileChecksum ? FileState.UNCHANGED : FileState.CHANGED;
+  }
+
+  /**
+   * Saves this group's configurations beside its file, as <name>.xml.mine (not .xml, which the
+   * build would pick up).
+   *
+   * @return the file saved.
+   */
+  public File saveAsMine ()
+  {
+    File file = getConfigFile(true);
+    File mine = new File(file.getParentFile(), file.getName() + ".mine");
+    save(mine);
+    return mine;
   }
 
   /**
@@ -479,6 +527,7 @@ public class ConfigGroup<T extends ManagedConfig>
   public void revert ()
   {
     load(getConfigFile(true));
+    noteFileChecksum();
   }
 
   /**
@@ -655,6 +704,33 @@ public class ConfigGroup<T extends ManagedConfig>
   }
 
   /**
+   * Notes our xml file and its checksum, to tell later whether it changed on disk.
+   */
+  protected void noteFileChecksum ()
+  {
+    _checksumFile = getConfigFile(true);
+    _fileChecksum = calculateChecksum(_checksumFile);
+  }
+
+  /**
+   * Returns a checksum of the file, NO_FILE_CHECKSUM if there's none (configs from a bundle or
+   * a .dat file, or no resource directory), or UNREADABLE_CHECKSUM.
+   */
+  protected static long calculateChecksum (@Nullable File file)
+  {
+    if (file == null || !file.exists()) {
+      return NO_FILE_CHECKSUM;
+    }
+    try (var in = new CheckedInputStream(new FileInputStream(file), new CRC32C())) {
+      in.transferTo(OutputStream.nullOutputStream());
+      return in.getChecksum().getValue();
+    } catch (IOException e) {
+      log.warning("Error reading configurations for checksum [file=" + file + "].", e);
+      return UNREADABLE_CHECKSUM;
+    }
+  }
+
+  /**
    * Returns the path of the config resource associated with this group.
    */
   protected String getConfigPath (boolean xml)
@@ -813,4 +889,16 @@ public class ConfigGroup<T extends ManagedConfig>
 
   /** Configuration event listeners. */
   protected ObserverList<ConfigGroupListener> _listeners;
+
+  /** How a group's file compares with when we last loaded or saved it. */
+  public enum FileState { UNCHANGED, CHANGED, UNREADABLE }
+
+  /** Our xml file when we last loaded or saved it. */
+  protected File _checksumFile;
+
+  /** That file's checksum then (see calculateChecksum). */
+  protected long _fileChecksum = NO_FILE_CHECKSUM;
+
+  /** Checksums for a missing or unreadable file: a CRC32C is never negative. */
+  protected static final long NO_FILE_CHECKSUM = -1L, UNREADABLE_CHECKSUM = -2L;
 }
