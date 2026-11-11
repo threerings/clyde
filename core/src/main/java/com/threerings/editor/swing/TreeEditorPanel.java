@@ -612,7 +612,7 @@ public class TreeEditorPanel extends BaseEditorPanel
       return;
     }
     int idx = ival;
-    if (pnobj.value instanceof List list) {
+    if (pnobj.value instanceof List<?> list) {
       list.remove(idx);
     } else {
       int len = Array.getLength(pnobj.value);
@@ -826,8 +826,7 @@ public class TreeEditorPanel extends BaseEditorPanel
       } else if (value instanceof String) {
         dval = "\"" + value + "\"";
 
-      } else if (value instanceof Enum en) {
-        Enum<?> eval = en;
+      } else if (value instanceof Enum<?> eval) {
         dval = getLabel(eval, _msgmgr.getBundle(
           Introspector.getMessageBundle(eval.getDeclaringClass())));
 
@@ -907,7 +906,7 @@ public class TreeEditorPanel extends BaseEditorPanel
       Class<?>[] componentSubtypes = (property != null) ?
         property.getComponentSubtypes() : new Class<?>[0];
       int ccount = node.getChildCount();
-      int length = (value instanceof List list) ? list.size() : Array.getLength(value);
+      int length = (value instanceof List<?> list) ? list.size() : Array.getLength(value);
       for (int ii = 0; ii < length; ii++) {
         DefaultMutableTreeNode child;
         if (ii < ccount) {
@@ -916,7 +915,7 @@ public class TreeEditorPanel extends BaseEditorPanel
           node.insert(child = new DefaultMutableTreeNode(), ii);
         }
         populateNode(child, String.valueOf(ii),
-          (value instanceof List list) ? list.get(ii) : Array.get(value, ii),
+          (value instanceof List<?> list) ? list.get(ii) : Array.get(value, ii),
             componentSubtypes, null, ii);
       }
       for (int ii = length; ii < ccount; ii++) {

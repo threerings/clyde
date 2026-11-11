@@ -281,7 +281,7 @@ public abstract class DependencyGatherer
         findReferences(Array.get(val, ii), cType, seen);
       }
 
-    } else if (val instanceof Collection collection) {
+    } else if (val instanceof Collection<?> collection) {
       Type cType = (type instanceof ParameterizedType ptype)
           ? ptype.getActualTypeArguments()[0]
           : null;
