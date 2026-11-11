@@ -181,8 +181,8 @@ public abstract class GlDisplayApp extends GlApp
 
   /**
    * Re-applies the cursor input mode appropriate for the current display state: captured in
-   * fullscreen (so it can't wander onto other monitors), normal otherwise. GLFW releases
-   * {@code GLFW_CURSOR_CAPTURED} on focus loss and the reapply-on-regain is unreliable
+   * fullscreen (so it can't wander onto other monitors) except on macOS, normal otherwise.
+   * GLFW releases {@code GLFW_CURSOR_CAPTURED} on focus loss and the reapply-on-regain is unreliable
    * around iconify/restore (alt-tab) and momentary focus thefts, so callers (notably the
    * focus callback in {@link com.threerings.opengl.gui.DisplayRoot}) invoke this on focus
    * regain to put the cursor back under control.
@@ -190,8 +190,11 @@ public abstract class GlDisplayApp extends GlApp
   public void refreshCursorMode ()
   {
     if (_window != MemoryUtil.NULL) {
+      // GLFW's Cocoa backend doesn't implement CAPTURED: it hides the cursor without confining
+      // it. TODO: confine natively on macOS if second-monitor wandering is reported there.
+      boolean capture = isFullscreen() && !RunAnywhere.isMacOS();
       GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR,
-        isFullscreen() ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
+        capture ? GLFW.GLFW_CURSOR_CAPTURED : GLFW.GLFW_CURSOR_NORMAL);
     }
   }
 
