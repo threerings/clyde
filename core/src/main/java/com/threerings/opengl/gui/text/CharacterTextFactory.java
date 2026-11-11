@@ -44,6 +44,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
@@ -568,7 +569,9 @@ public class CharacterTextFactory extends TextFactory
     {
       _size = size;
       _texture = new Texture2D(renderer);
-      _texture.setImage(GL11.GL_RGBA, size, size, false, false);
+      // init as a transparent texture because glyphs may sample unwritten pixels when scaled
+      _texture.setImage(0, GL11.GL_RGBA, size, size, false, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
+        BufferUtils.createByteBuffer(size * size * 4));
       _texture.setFilters(snap ? GL11.GL_NEAREST : GL11.GL_LINEAR, GL11.GL_NEAREST);
       _units = new TextureUnit[] { new TextureUnit(_texture) };
     }
