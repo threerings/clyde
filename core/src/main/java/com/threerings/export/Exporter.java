@@ -746,7 +746,7 @@ public abstract class Exporter
    */
   protected static Class<?> getClass (Object value)
   {
-    if (value instanceof Enum en) {
+    if (value instanceof Enum<?> en) {
       // check enum first- no getting around this with interfaces
       return en.getDeclaringClass();
 

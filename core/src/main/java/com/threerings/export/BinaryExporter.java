@@ -337,17 +337,17 @@ public class BinaryExporter extends Exporter
       @SuppressWarnings("unchecked") Class<Object> ctype =
         (Class<Object>)cclazz.getComponentType();
       writeEntries(array, ctype);
-    } else if (value instanceof Collection collection) {
+    } else if (value instanceof Collection<?> collection) {
       if (value instanceof EnumSet<?> enumSet) {
         writeEntries(enumSet);
-      } else if (value instanceof Multiset multiset) {
+      } else if (value instanceof Multiset<?> multiset) {
         writeEntries(multiset);
       } else {
         writeEntries(collection);
       }
-    } else if (value instanceof Map map) {
+    } else if (value instanceof Map<?,?> map) {
       writeEntries(map);
-    } else if (value instanceof Multimap) {
+    } else if (value instanceof Multimap<?,?>) {
       throw new IOException("TODO: Multimap support");
     } else {
       throw new IOException("Value is not exportable [class=" + cclazz + "].");

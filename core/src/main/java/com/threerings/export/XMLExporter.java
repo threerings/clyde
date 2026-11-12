@@ -295,15 +295,15 @@ public class XMLExporter extends Exporter
         @SuppressWarnings("unchecked") Class<Object> ctype =
           (Class<Object>)cclazz.getComponentType();
         writeEntries(array, ctype);
-      } else if (value instanceof Collection collection) {
-        if (value instanceof EnumSet enumSet) {
+      } else if (value instanceof Collection<?> collection) {
+        if (value instanceof EnumSet<?> enumSet) {
           writeEntries(enumSet);
-        } else if (value instanceof Multiset multiset) {
+        } else if (value instanceof Multiset<?> multiset) {
           writeEntries(multiset);
         } else {
           writeEntries(collection);
         }
-      } else if (value instanceof Map map) {
+      } else if (value instanceof Map<?,?> map) {
         writeEntries(map);
       } else {
         throw new IOException("Value is not exportable [class=" + cclazz + "].");
