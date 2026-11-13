@@ -126,6 +126,15 @@ public abstract class Logic extends ShallowObject
   }
 
   /**
+   * Determines whether this logic object's intersection handlers may fire. A subclass can switch
+   * them off for a while, as when its actor is lifted out of reach.
+   */
+  public boolean canSense ()
+  {
+    return true;
+  }
+
+  /**
    * Determines whether this logic object is "visible" to the specified pawn.
    */
   public boolean isVisible (PawnLogic pawn)
