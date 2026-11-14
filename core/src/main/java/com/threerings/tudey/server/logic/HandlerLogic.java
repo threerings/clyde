@@ -525,7 +525,7 @@ public abstract class HandlerLogic extends Logic
     // documentation inherited from interface TudeySceneManager.IntersectionSensor
     public void trigger (int timestamp, ActorLogic actor)
     {
-      if (timestamp >= _minTimestamp) {
+      if (timestamp >= _minTimestamp && _source.canSense()) {
         execute(timestamp, actor);
         _minTimestamp = Math.round(timestamp +
           ((HandlerConfig.Intersection)_config).refractoryPeriod * 1000f);
@@ -566,7 +566,9 @@ public abstract class HandlerLogic extends Logic
     // documentation inherited from interface TudeySceneManager.IntersectionSensor
     public void trigger (int timestamp, ActorLogic actor)
     {
-      activate(timestamp, actor);
+      if (_source.canSense()) {
+        activate(timestamp, actor);
+      }
     }
   }
 
@@ -593,7 +595,9 @@ public abstract class HandlerLogic extends Logic
     // documentation inherited from interface TudeySceneManager.IntersectionSensor
     public void trigger (int timestamp, ActorLogic actor)
     {
-      activate(timestamp, actor);
+      if (_source.canSense()) {
+        activate(timestamp, actor);
+      }
     }
   }
 
@@ -620,7 +624,7 @@ public abstract class HandlerLogic extends Logic
     // documentation inherited from interface TudeySceneManager.IntersectionSensor
     public void trigger (int timestamp, ActorLogic actor)
     {
-      if (_condition.isSatisfied(actor)) {
+      if (_source.canSense() && _condition.isSatisfied(actor)) {
         activate(timestamp, actor);
       }
     }
