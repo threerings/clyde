@@ -400,9 +400,7 @@ public final class Color4f
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Color4f ocolor)) {
-      return false;
-    }
-    return (r == ocolor.r && g == ocolor.g && b == ocolor.b && a == ocolor.a);
+    return other instanceof Color4f ocolor &&
+      r == ocolor.r && g == ocolor.g && b == ocolor.b && a == ocolor.a;
   }
 }

@@ -788,10 +788,8 @@ public final class Quaternion
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Quaternion oquat)) {
-      return false;
-    }
-    return (x == oquat.x && y == oquat.y && z == oquat.z && w == oquat.w) ||
-      (x == -oquat.x && y == -oquat.y && z == -oquat.z && w == -oquat.w);
+    return other instanceof Quaternion oquat &&
+      ((x == oquat.x && y == oquat.y && z == oquat.z && w == oquat.w) ||
+       (x == -oquat.x && y == -oquat.y && z == -oquat.z && w == -oquat.w));
   }
 }

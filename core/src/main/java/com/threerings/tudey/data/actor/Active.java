@@ -135,11 +135,8 @@ public class Active extends Mobile
   @Override
   public boolean equals (Object other)
   {
-    if (!super.equals(other)) {
-      return false;
-    }
-    Active oactive = (Active)other;
-    return _activity == oactive._activity &&
+    return super.equals(other) && other instanceof Active oactive &&
+      _activity == oactive._activity &&
       _activityStarted == oactive._activityStarted;
   }
 

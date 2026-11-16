@@ -105,10 +105,8 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof ConfigReference<?> oref)) {
-      return false;
-    }
-    return _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
+    return other instanceof ConfigReference<?> oref &&
+      _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
   }
 
   @Override

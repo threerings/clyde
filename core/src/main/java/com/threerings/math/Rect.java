@@ -518,10 +518,8 @@ public final class Rect
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Rect orect)) {
-      return false;
-    }
-    return _minExtent.equals(orect._minExtent) && _maxExtent.equals(orect._maxExtent);
+    return other instanceof Rect orect &&
+      _minExtent.equals(orect._minExtent) && _maxExtent.equals(orect._maxExtent);
   }
 
   /**

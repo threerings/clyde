@@ -902,10 +902,7 @@ public final class Matrix3f
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Matrix3f omat)) {
-      return false;
-    }
-    return
+    return other instanceof Matrix3f omat &&
       m00 == omat.m00 && m10 == omat.m10 && m20 == omat.m20 &&
       m01 == omat.m01 && m11 == omat.m11 && m21 == omat.m21 &&
       m02 == omat.m02 && m12 == omat.m12 && m22 == omat.m22;

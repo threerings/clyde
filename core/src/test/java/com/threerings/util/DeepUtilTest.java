@@ -253,10 +253,8 @@ public class DeepUtilTest extends TestCase
     @Override
     public boolean equals (Object other)
     {
-      if (!(other instanceof Child ochild)) {
-        return false;
-      }
-      return v1 == ochild.v1 && v2 == ochild.v2 && Arrays.deepEquals(v3, ochild.v3);
+      return other instanceof Child ochild &&
+        v1 == ochild.v1 && v2 == ochild.v2 && Arrays.deepEquals(v3, ochild.v3);
     }
 
     @Override
@@ -286,10 +284,7 @@ public class DeepUtilTest extends TestCase
     @Override
     public boolean equals (Object other)
     {
-      if (!(other instanceof Other oother)) {
-        return false;
-      }
-      return v1 == oother.v1 && v2 == oother.v2;
+      return other instanceof Other oother && v1 == oother.v1 && v2 == oother.v2;
     }
 
     @Override

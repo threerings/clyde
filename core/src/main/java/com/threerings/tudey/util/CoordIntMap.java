@@ -100,10 +100,8 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     @Override
     public boolean equals (Object other)
     {
-      if (!(other instanceof CoordIntEntry oentry)) {
-        return false;
-      }
-      return _key.equals(oentry._key) && getIntValue() == oentry.getIntValue();
+      return other instanceof CoordIntEntry oentry &&
+        _key.equals(oentry._key) && getIntValue() == oentry.getIntValue();
     }
 
     @Override

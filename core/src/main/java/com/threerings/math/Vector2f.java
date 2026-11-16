@@ -599,9 +599,6 @@ public final class Vector2f
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Vector2f ovec)) {
-      return false;
-    }
-    return (x == ovec.x && y == ovec.y);
+    return other instanceof Vector2f ovec && x == ovec.x && y == ovec.y;
   }
 }

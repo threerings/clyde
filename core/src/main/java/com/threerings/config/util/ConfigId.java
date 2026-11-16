@@ -34,10 +34,8 @@ public class ConfigId
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof ConfigId that)) {
-      return false;
-    }
-    return (this.clazz == that.clazz) && this.name.equals(that.name);
+    return other instanceof ConfigId that &&
+      this.clazz == that.clazz && this.name.equals(that.name);
   }
 
   @Override

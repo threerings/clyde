@@ -402,11 +402,9 @@ public abstract class ColorizationConfig extends DeepObject
     @Override
     public boolean equals (Object other)
     {
-      if (!super.equals(other)) {   // already requires an identical runtime class
-        return false;
-      }
-      LumaTintColorization o = (LumaTintColorization)other;
-      return _sr == o._sr && _sg == o._sg && _sb == o._sb &&
+      // super already requires an identical runtime class
+      return super.equals(other) && other instanceof LumaTintColorization o &&
+        _sr == o._sr && _sg == o._sg && _sb == o._sb &&
         _hr == o._hr && _hg == o._hg && _hb == o._hb;
     }
 
