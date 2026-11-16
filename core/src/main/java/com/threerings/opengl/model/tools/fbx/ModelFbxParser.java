@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +17,6 @@ import javax.annotation.Nullable;
 import com.samskivert.util.Logger;
 import com.samskivert.util.StringUtil;
 
-import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -98,6 +98,7 @@ public class ModelFbxParser extends AbstractFbxParser
       String name = sanitizeName(node.<String>getData(1));
       String type = node.getData(2);
       ModelDef.SpatialDef spat;
+      List<ModelDef.TriMeshDef> splitParts = Lists.newArrayList();
       boolean isRoot = false;
       if ("LimbNode".equals(type) || "Null".equals(type)) {
         spat = new ModelDef.NodeDef();
@@ -116,51 +117,43 @@ public class ModelFbxParser extends AbstractFbxParser
         // See if we have skin and material
         FBXNode skin = findNodeToDest(geomId, "Deformer", "Skin"); // ok to not find...
         Long skinId = skin != null ? skin.<Long>getData() : null;
-        ModelDef.TriMeshDef mesh = parseMesh(geom, skinId, name, messages);
-        spat = mesh;
-
-        mesh.offsetTranslation = newTranslation();
-        mesh.offsetRotation = newRotation();
-        mesh.offsetScale = newScale();
-
-        // then, after we've potentially set-up bone weights, assign the textures
         List<FBXNode> materials = findNodesToDest(id, "Material", null);
-        if (materials.size() > 1) {
-          // TODO: split the mesh by material, per its LayerElementMaterial layer
-          warn("Mesh '" + name + "' has " + materials.size() + " materials but only one is " +
-            "supported; using '" + rawName(materials.get(0)) + "' and ignoring '" +
-            Joiner.on("', '").join(Lists.transform(
-              materials.subList(1, materials.size()), AbstractFbxParser::rawName)) + "'.",
-            messages);
-        }
-        FBXNode material = Iterables.getFirst(materials, null);
-        if (material != null) {
-          Long materialId = material.getData();
-          FBXNode texture = findNodeToDest(materialId, "Texture");
-          if (texture != null) {
-            Long textureId = texture.getData();
-            FBXNode video = findNodeToDest(textureId, "Video");
-            String filename = (video == null) ? null : textures.get(video);
-            if (filename == null && video != null) {
-              filename = extractTexture(video, dir);
-              if (filename != null) {
-                if (messages != null) messages.add("Extracted " + filename + ".");
-                textures.put(video, filename);
-              }
-            }
-            if (filename == null) {
-              // no embedded image: fall back to the name of the referenced file
-              filename = getTextureFilename(texture);
-              if (filename == null) filename = getTextureFilename(video);
-            }
-            if (filename != null) mesh.texture = filename;
+        int[] polyMaterials = getPolygonMaterials(geom, materials.size(), name, messages);
+        ModelDef.TriMeshDef[] parts = parseMesh(
+          geom, skinId, name, polyMaterials, Math.max(1, materials.size()), messages);
+
+        // A mesh has one texture (and so one material mapping): the faces of the first material
+        // used stay on this node, and those of each other material become a child of it.
+        ModelDef.TriMeshDef mesh = null;
+        for (int ii = 0; ii < parts.length; ii++) {
+          ModelDef.TriMeshDef part = parts[ii];
+          if (part == null) continue;
+          part.offsetTranslation = newTranslation();
+          part.offsetRotation = newRotation();
+          part.offsetScale = newScale();
+          // after we've potentially set-up bone weights, assign the textures
+          if (ii < materials.size()) {
+            assignTexture(part, materials.get(ii), textures, dir, messages);
+          }
+          String partName = name;
+          if (mesh == null) {
+            mesh = part;
+          } else {
+            partName = name + " (" + rawName(materials.get(ii)) + ")";
+            part.name = partName;
+            part.parent = name;
+            part.translation = newTranslation();
+            part.rotation = newRotation();
+            part.scale = newScale();
+            splitParts.add(part);
+          }
+          if (messages != null) {
+            messages.add(Logger.format("Added mesh",
+              "type", part.getClass().getSimpleName(),
+              "texture", part.texture, "tag", part.tag, "name", partName));
           }
         }
-        if (messages != null) {
-          messages.add(Logger.format("Added mesh",
-            "type", mesh.getClass().getSimpleName(),
-            "texture", mesh.texture, "tag", mesh.tag, "name", name));
-        }
+        spat = mesh;
 
       } else {
         log.warning("Unknown node type seen: " + type);
@@ -205,6 +198,9 @@ public class ModelFbxParser extends AbstractFbxParser
         result.get(spat.rotation);
       }
       model.addSpatial(spat);
+      for (ModelDef.TriMeshDef part : splitParts) {
+        model.addSpatial(part);
+      }
 
       //log.info("Found node", "name", spat.name, "type", type, "type", spat.getClass());
     }
@@ -231,17 +227,23 @@ public class ModelFbxParser extends AbstractFbxParser
   }
 
   /**
-   * Parse a mesh, which won't have a `name` or `texture` yet assigned.
+   * Parse a mesh into one part per material, none of which will have a `name` or `texture` yet
+   * assigned.
    * Assumption: The bone nodes have already been parsed and are mapped by id.
    * @param skinId if null, parse a trimesh, otherwise a skinmesh with bone weights.
    * @param name the name of the mesh, for messages.
+   * @param polyMaterials the index of each polygon's material (see getPolygonMaterials).
+   * @param materialCount how many materials the mesh has (at least one).
    * @param messages if provided, is populated with a list of import messages.
+   * @return the faces of each material, by index: null for a material no face uses, though
+   * there's always at least one part.
    */
-  protected ModelDef.TriMeshDef parseMesh (
-    FBXNode geom, Long skinId, String name, @Nullable List<String> messages)
+  protected ModelDef.TriMeshDef[] parseMesh (
+    FBXNode geom, Long skinId, String name, int[] polyMaterials, int materialCount,
+    @Nullable List<String> messages)
   {
     boolean isSkin = skinId != null;
-    ModelDef.TriMeshDef mesh = isSkin ? new ModelDef.SkinMeshDef() : new ModelDef.TriMeshDef();
+    ModelDef.TriMeshDef[] parts = new ModelDef.TriMeshDef[materialCount];
 
     double[] vertices = geom.getChildProperty("Vertices");
     int[] pvi = geom.getChildProperty("PolygonVertexIndex");
@@ -320,7 +322,7 @@ public class ModelFbxParser extends AbstractFbxParser
         meshVerts.add((ModelDef.SkinVertex)vv);
       } else {
         // Since there are no bone weights, we can add the vertex to the mesh instead
-        mesh.addVertex(vv);
+        getPart(parts, polyMaterials[poly], isSkin).addVertex(vv);
       }
     }
 
@@ -366,11 +368,98 @@ public class ModelFbxParser extends AbstractFbxParser
         }
       }
 
-      // now that bone weights have been assigned, we can add the vertices
-      for (ModelDef.SkinVertex vv : meshVerts) mesh.addVertex(vv);
+      // now that bone weights have been assigned, we can add the vertices (three per polygon)
+      for (int ii = 0, nn = meshVerts.size(); ii < nn; ii++) {
+        getPart(parts, polyMaterials[ii / 3], isSkin).addVertex(meshVerts.get(ii));
+      }
     }
 
-    return mesh;
+    if (pvi.length == 0) {
+      getPart(parts, 0, isSkin); // an empty mesh is still a mesh
+    }
+    return parts;
+  }
+
+  /**
+   * Get the part of a mesh holding the faces of a material, creating it if need be.
+   */
+  protected static ModelDef.TriMeshDef getPart (
+    ModelDef.TriMeshDef[] parts, int material, boolean isSkin)
+  {
+    if (parts[material] == null) {
+      parts[material] = isSkin ? new ModelDef.SkinMeshDef() : new ModelDef.TriMeshDef();
+    }
+    return parts[material];
+  }
+
+  /**
+   * Get the index (into the mesh's materials) of each of a geometry's polygons' material.
+   * The parser only reads triangles, so the polygon count comes from its vertex count.
+   */
+  protected int[] getPolygonMaterials (
+    FBXNode geom, int materialCount, String meshName, @Nullable List<String> messages)
+  {
+    int[] pvi = geom.getChildProperty("PolygonVertexIndex");
+    int[] result = new int[pvi.length / 3];
+    FBXNode layer = geom.getChildByName("LayerElementMaterial");
+    if (layer == null || materialCount < 2) {
+      return result;
+    }
+    int[] materials = layer.getChildProperty("Materials");
+    String mapping = layer.getChildProperty("MappingInformationType");
+    if ("AllSame".equals(mapping) && materials.length > 0) {
+      Arrays.fill(result, materials[0]);
+    } else if ("ByPolygon".equals(mapping) && materials.length >= result.length) {
+      System.arraycopy(materials, 0, result, 0, result.length);
+    } else {
+      warn("Unreadable materials layer (" + mapping + ", " + materials.length + " for " +
+        result.length + " polygons) in mesh '" + meshName + "'; using its first material.",
+        messages);
+      return new int[result.length];
+    }
+    int bad = 0;
+    for (int ii = 0; ii < result.length; ii++) {
+      if (result[ii] < 0 || result[ii] >= materialCount) {
+        result[ii] = 0;
+        bad++;
+      }
+    }
+    if (bad > 0) {
+      warn(bad + " polygons of mesh '" + meshName + "' have a material outside its " +
+        materialCount + "; using its first for them.", messages);
+    }
+    return result;
+  }
+
+  /**
+   * Set a mesh's texture to that of its material, if it has one, extracting it if embedded.
+   *
+   * @param textures the textures extracted so far, by their video nodes.
+   */
+  protected void assignTexture (
+    ModelDef.TriMeshDef mesh, FBXNode material, Map<FBXNode, String> textures, File dir,
+    @Nullable List<String> messages)
+    throws IOException
+  {
+    Long materialId = material.getData();
+    FBXNode texture = findNodeToDest(materialId, "Texture");
+    if (texture == null) return;
+    Long textureId = texture.getData();
+    FBXNode video = findNodeToDest(textureId, "Video");
+    String filename = (video == null) ? null : textures.get(video);
+    if (filename == null && video != null) {
+      filename = extractTexture(video, dir);
+      if (filename != null) {
+        if (messages != null) messages.add("Extracted " + filename + ".");
+        textures.put(video, filename);
+      }
+    }
+    if (filename == null) {
+      // no embedded image: fall back to the name of the referenced file
+      filename = getTextureFilename(texture);
+      if (filename == null) filename = getTextureFilename(video);
+    }
+    if (filename != null) mesh.texture = filename;
   }
 
   /**
