@@ -957,7 +957,8 @@ public class ModelDef
     @Override
     public boolean equals (Object obj)
     {
-      return obj instanceof Vertex overt &&
+      // exact class match, so a Vertex never equals a SkinVertex (keeps equals symmetric)
+      return obj instanceof Vertex overt && overt.getClass() == getClass() &&
         Arrays.equals(location, overt.location) &&
         Arrays.equals(normal, overt.normal) &&
         Arrays.equals(tcoords, overt.tcoords) &&
@@ -1066,8 +1067,7 @@ public class ModelDef
     @Override
     public boolean equals (Object obj)
     {
-      return super.equals(obj) && obj instanceof SkinVertex oskin &&
-        boneWeights.equals(oskin.boneWeights);
+      return super.equals(obj) && boneWeights.equals(((SkinVertex)obj).boneWeights);
     }
 
     /**
