@@ -179,8 +179,8 @@ public class ShaderCache extends ResourceCache
     @Override
     public boolean equals (Object other)
     {
-      ShaderKey okey = (ShaderKey)other;
-      return path.equals(okey.path) && Arrays.equals(defs, okey.defs);
+      return other instanceof ShaderKey okey &&
+        path.equals(okey.path) && Arrays.equals(defs, okey.defs);
     }
   }
 
@@ -205,8 +205,8 @@ public class ShaderCache extends ResourceCache
     @Override
     public boolean equals (Object other)
     {
-      ProgramKey okey = (ProgramKey)other;
-      return _vertex.get() == okey._vertex.get() && _fragment.get() == okey._fragment.get();
+      return other instanceof ProgramKey okey &&
+        _vertex.get() == okey._vertex.get() && _fragment.get() == okey._fragment.get();
     }
 
     /** The vertex and fragment shaders. */

@@ -108,8 +108,8 @@ public class ImageCache extends ResourceCache
     @Override
     public boolean equals (Object other)
     {
-      ImageKey okey = (ImageKey)other;
-      return path.equals(okey.path) && Arrays.equals(zations, okey.zations);
+      return other instanceof ImageKey okey &&
+        path.equals(okey.path) && Arrays.equals(zations, okey.zations);
     }
   }
 

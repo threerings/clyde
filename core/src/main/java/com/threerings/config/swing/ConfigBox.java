@@ -191,7 +191,7 @@ public class ConfigBox extends JComboBox<ConfigBox.ConfigItem>
     @Override
     public boolean equals (Object other)
     {
-      return Objects.equals(name, ((ConfigItem)other).name);
+      return other instanceof ConfigItem oitem && Objects.equals(name, oitem.name);
     }
 
     @Override

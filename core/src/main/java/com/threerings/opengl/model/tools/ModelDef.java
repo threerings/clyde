@@ -957,8 +957,8 @@ public class ModelDef
     @Override
     public boolean equals (Object obj)
     {
-      Vertex overt = (Vertex)obj;
-      return Arrays.equals(location, overt.location) &&
+      return obj instanceof Vertex overt &&
+        Arrays.equals(location, overt.location) &&
         Arrays.equals(normal, overt.normal) &&
         Arrays.equals(tcoords, overt.tcoords) &&
         Arrays.equals(color, overt.color) &&
@@ -983,7 +983,7 @@ public class ModelDef
     @Override
     public boolean equals (Object other)
     {
-      return Arrays.equals(tcoords, ((Extra)other).tcoords);
+      return other instanceof Extra oextra && Arrays.equals(tcoords, oextra.tcoords);
     }
 
     @Override
@@ -1066,7 +1066,8 @@ public class ModelDef
     @Override
     public boolean equals (Object obj)
     {
-      return super.equals(obj) && boneWeights.equals(((SkinVertex)obj).boneWeights);
+      return super.equals(obj) && obj instanceof SkinVertex oskin &&
+        boneWeights.equals(oskin.boneWeights);
     }
 
     /**
@@ -1103,7 +1104,7 @@ public class ModelDef
     @Override
     public boolean equals (Object other)
     {
-      return weight == ((BoneWeight)other).weight;
+      return other instanceof BoneWeight oweight && weight == oweight.weight;
     }
 
     @Override

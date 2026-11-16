@@ -177,7 +177,7 @@ public class WeakObserverSet<T>
     @Override
     public boolean equals (Object other)
     {
-      return get() == ((ObserverRef<?>)other).get();
+      return other instanceof ObserverRef<?> oref && get() == oref.get();
     }
 
     @Override
