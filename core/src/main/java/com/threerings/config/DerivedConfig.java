@@ -54,9 +54,8 @@ public class DerivedConfig extends ParameterizedConfig
   @Override
   public void wasUpdated ()
   {
-    // release our derivation and clear the hard reference to the source
+    // release our derivation
     _derivation = NO_DERIVATION;
-    _source = null;
 
     super.wasUpdated();
   }
@@ -90,25 +89,19 @@ public class DerivedConfig extends ParameterizedConfig
       return null;
     }
 
-    // loose types slip lines
-    @SuppressWarnings("unchecked")
-    ConfigReference<ManagedConfig> ref = (ConfigReference<ManagedConfig>)base;
-    @SuppressWarnings("unchecked")
-    Class<ManagedConfig> clazz = (Class<ManagedConfig>)cclass;
-
-    // keep a hard reference to our source
+    // create an instance of our own, rather than copying the base's shared one, so that each
+    // resolution costs one copy (updates still arrive via our dependency on the base)
     try {
-      _source = _cfgmgr.getConfig(clazz, ref, scope);
+      ManagedConfig source = _cfgmgr.getRawConfig(cclass, base.getName());
+      if (source == null) {
+        return null;
+      }
+      instance = cclass.cast(source.createInstance(scope, base.getArguments()));
     } catch (Exception e) {
-      log.warning("Could not get source", "this", getName(), "base", ref.getName(), "args", ref.getArguments(), e);
-      _source = null;
-    }
-    if (_source == null) {
+      log.warning("Could not create instance", "this", getName(), "base", base.getName(),
+        "args", base.getArguments(), e);
       return null;
     }
-
-    // instance must be a clone so that we can change the name
-    instance = (ManagedConfig)_source.clone();
     initializeInstance(instance);
     // the instance should listen for changes from us
     addListener(instance);
@@ -203,10 +196,6 @@ public class DerivedConfig extends ParameterizedConfig
 //        newParam.paths = newPaths.toArray(ArrayUtil.EMPTY_STRING);
 //        return newParam;
   }
-
-  /** A hard reference to the instance of the config from which we create our derivation. */
-  @DeepOmit
-  protected transient ManagedConfig _source;
 
   /** The derivation we create. */
   @DeepOmit

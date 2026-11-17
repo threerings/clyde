@@ -75,44 +75,27 @@ public class ParameterizedConfig extends ManagedConfig
   @Override
   public ManagedConfig getInstance (Scope scope, ArgumentMap args)
   {
-    if (args == null || args.isEmpty() || parameters.length == 0) {
+    ArgumentMap filteredArgs = filterArguments(args);
+    if (filteredArgs == null) {
       return getBound(scope);
-    }
-    // filter the arguments, removing any non-parameters
-    ArgumentMap filteredArgs = args;
-    ArgumentMap derivedArgs = null;
-    for (String name : args.keySet()) {
-      if (getParameter(name) == null) {
-        // We found an argument with no corresponding parameter: make a new args map.
-        // Normally derivedArgs will be a clone, but we don't a clone of a fresh copy
-        filteredArgs = derivedArgs = new ArgumentMap();
-        for (Map.Entry<String, Object> entry : args.entrySet()) {
-          name = entry.getKey();
-          if (getParameter(name) != null) {
-            filteredArgs.put(name, entry.getValue());
-          }
-        }
-        if (filteredArgs.isEmpty()) {
-          return getBound(scope);
-        }
-        break;
-      }
     }
     if (_derived == null) {
       _derived = CacheUtil.softValues(1);
     }
     ParameterizedConfig instance = _derived.get(filteredArgs);
     if (instance == null) {
-      if (derivedArgs == null) {
-        derivedArgs = filteredArgs.clone();
-      }
-      _derived.put(derivedArgs, instance = (ParameterizedConfig)clone());
-      instance.init(_cfgmgr);
-      instance._base = this;
-      instance._args = derivedArgs;
-      applyArguments(instance, derivedArgs);
+      ArgumentMap derivedArgs = ownArguments(args, filteredArgs);
+      _derived.put(derivedArgs, instance = derive(derivedArgs));
     }
     return instance.getBound(scope);
+  }
+
+  @Override
+  public ManagedConfig createInstance (Scope scope, ArgumentMap args)
+  {
+    ArgumentMap filteredArgs = filterArguments(args);
+    return derive(filteredArgs == null ? null : ownArguments(args, filteredArgs))
+      .getBound(scope);
   }
 
   @Override
@@ -236,6 +219,53 @@ public class ParameterizedConfig extends ManagedConfig
   protected ManagedConfig getBound (Scope scope)
   {
     return this;
+  }
+
+  /**
+   * Returns the arguments that match our parameters: the supplied map itself if they all do,
+   * a new map if only some do, or null if none do.
+   */
+  protected ArgumentMap filterArguments (ArgumentMap args)
+  {
+    if (args == null || args.isEmpty() || parameters.length == 0) {
+      return null;
+    }
+    for (String name : args.keySet()) {
+      if (getParameter(name) == null) {
+        ArgumentMap filteredArgs = new ArgumentMap();
+        for (Map.Entry<String, Object> entry : args.entrySet()) {
+          if (getParameter(entry.getKey()) != null) {
+            filteredArgs.put(entry.getKey(), entry.getValue());
+          }
+        }
+        return filteredArgs.isEmpty() ? null : filteredArgs;
+      }
+    }
+    return args;
+  }
+
+  /**
+   * Returns filtered arguments that are safe to keep: the caller's map is copied, since the
+   * caller may change it later, but a map made by {@link #filterArguments} is already ours.
+   */
+  protected static ArgumentMap ownArguments (ArgumentMap args, ArgumentMap filteredArgs)
+  {
+    return (filteredArgs == args) ? args.clone() : filteredArgs;
+  }
+
+  /**
+   * Creates an unbound copy of this config with the supplied arguments, or none if null.
+   */
+  protected ParameterizedConfig derive (ArgumentMap args)
+  {
+    ParameterizedConfig instance = (ParameterizedConfig)clone();
+    instance.init(_cfgmgr);
+    instance._base = this;
+    if (args != null) {
+      instance._args = args;
+      applyArguments(instance, args);
+    }
+    return instance;
   }
 
   /**

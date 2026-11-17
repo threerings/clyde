@@ -246,6 +246,18 @@ public abstract class ManagedConfig extends DeepObject
   }
 
   /**
+   * Creates a new instance in the specified scope with the supplied arguments. Unlike
+   * {@link #getInstance(Scope, ArgumentMap)}, the result is never cached or shared: it belongs
+   * to the caller, who may modify it.
+   */
+  public ManagedConfig createInstance (Scope scope, ArgumentMap args)
+  {
+    ManagedConfig instance = (ManagedConfig)clone();
+    instance.init(_cfgmgr);
+    return instance;
+  }
+
+  /**
    * Adds a listener to notify on updates.
    */
   public void addListener (ConfigUpdateListener<?> listener)
