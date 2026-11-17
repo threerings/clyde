@@ -9,7 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
@@ -58,6 +60,17 @@ public class DerivedConfig extends ParameterizedConfig
     _derivation = NO_DERIVATION;
 
     super.wasUpdated();
+  }
+
+  @Override
+  protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getUpdateReferences ()
+  {
+    // The base by name: it fires for its own changes and for those of what it references.
+    // The base's instance with our arguments would be a copy of its own, built just to watch,
+    // that would subscribe in turn to everything it references, all for each derived config.
+    return (base == null)
+      ? ImmutableSetMultimap.of()
+      : ImmutableSetMultimap.of(cclass, new ConfigReference<ManagedConfig>(base.getName()));
   }
 
   @Override

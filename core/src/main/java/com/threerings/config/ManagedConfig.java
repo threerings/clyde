@@ -455,9 +455,7 @@ public abstract class ManagedConfig extends DeepObject
    */
   protected void addUpdateDependencies ()
   {
-    // gather up the dependencies
-    SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> refs =
-        DependencyGatherer.gather(_cfgmgr, this);
+    SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> refs = getUpdateReferences();
 
     _updateConfigs = new ArrayList<ManagedConfig>(refs.size());
     for (Map.Entry<Class<? extends ManagedConfig>, Set<ConfigReference<?>>> entry :
@@ -480,6 +478,14 @@ public abstract class ManagedConfig extends DeepObject
     for (String path : _updateResources) {
       rsrcmgr.addModificationObserver(path, this);
     }
+  }
+
+  /**
+   * Returns references to the configs whose updates should update us.
+   */
+  protected SetMultimap<Class<? extends ManagedConfig>, ConfigReference<?>> getUpdateReferences ()
+  {
+    return DependencyGatherer.gather(_cfgmgr, this);
   }
 
   /**
