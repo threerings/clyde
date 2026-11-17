@@ -1,5 +1,7 @@
 package com.threerings.config;
 
+import java.util.Arrays;
+
 import com.threerings.editor.Editable;
 
 /**
@@ -28,10 +30,12 @@ public interface IdConfig
   }
 
   /**
-   * Should we assign an id to this config, do we think?
+   * Should we assign an id to this config, do we think? Parameters named with a leading
+   * underscore are per-instance arguments: the config is complete without them.
    */
   public default boolean shouldAssignId ()
   {
-    return !(this instanceof ParameterizedConfig pcfg) || pcfg.parameters.length == 0;
+    return !(this instanceof ParameterizedConfig pcfg) ||
+      Arrays.stream(pcfg.parameters).allMatch(param -> param.name.startsWith("_"));
   }
 }
