@@ -69,7 +69,6 @@ import com.threerings.editor.swing.editors.BooleanEditor;
 import com.threerings.editor.swing.editors.ChoiceEditor;
 import com.threerings.editor.swing.editors.Color4fEditor;
 import com.threerings.editor.swing.editors.ColorizationEditor;
-import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.editor.swing.editors.ConfigReferencePanelArrayListEditor;
 import com.threerings.editor.swing.editors.ConfigTypeEditor;
@@ -120,7 +119,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
     // if a String, and the @Reference annotation is present, it's a bare config reference.
     } else if (type == String.class && property.isAnnotationPresent(Reference.class)) {
-      clazz = ConfigEditor.class;
+      clazz = ConfigReferenceEditor.ByAnnotation.class;
     }
     PropertyEditor editor;
     // then by type
@@ -526,7 +525,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
   static {
     registerEditorClass("choice", ChoiceEditor.class);
     registerEditorClass("colorization", ColorizationEditor.class);
-    registerEditorClass("config", ConfigEditor.class);
+    registerEditorClass("config", ConfigReferenceEditor.ByAnnotation.class);
     //registerEditorClass("configId", ConfigIdEditor.class);
     registerEditorClass("resource", ResourceEditor.class);
     registerEditorClass("table", TableArrayListEditor.class);
@@ -545,7 +544,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     registerEditorClass(Byte.class, NumberEditor.class);
     registerEditorClass(Byte.TYPE, NumberEditor.class);
     registerEditorClass(Color4f.class, Color4fEditor.class);
-    registerEditorClass(ConfigReference.class, ConfigReferenceEditor.class);
+    registerEditorClass(ConfigReference.class, ConfigReferenceEditor.ByType.class);
     registerEditorClass(Double.class, NumberEditor.class);
     registerEditorClass(Double.TYPE, NumberEditor.class);
     registerEditorClass(File.class, FileEditor.class);

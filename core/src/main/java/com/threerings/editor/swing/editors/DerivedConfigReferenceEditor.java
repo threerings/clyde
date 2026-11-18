@@ -6,28 +6,27 @@ package com.threerings.editor.swing.editors;
 import javax.swing.JOptionPane;
 
 import com.threerings.config.ConfigGroup;
-import com.threerings.config.ConfigReference;
 import com.threerings.config.DerivedConfig;
 import com.threerings.config.ManagedConfig;
 
 /**
  * An editor for the configuration references in a DerivedConfig.
  */
-public class DerivedConfigReferenceEditor extends ConfigReferenceEditor
+public class DerivedConfigReferenceEditor extends ConfigReferenceEditor.ByType
 {
   @Override
-  protected Class<?> getArgumentType ()
+  protected Class<? extends ManagedConfig> getConfigClass ()
   {
     return ((DerivedConfig)_object).cclass;
   }
 
   @Override
-  protected boolean validateNewValue (ConfigReference<?> value)
+  protected boolean validateNewConfig (String value)
   {
     DerivedConfig der = (DerivedConfig)_object;
     ConfigGroup<ManagedConfig> group = der.getConfigManager().getGroup(der);
     String name = der.getName();
-    for (String n = value.getName(); true; ) {
+    for (String n = value; true; ) {
       if (name.equals(n)) {
         JOptionPane.showMessageDialog(this, _msgs.get("e.derived_cfg_loop"));
         return false;
