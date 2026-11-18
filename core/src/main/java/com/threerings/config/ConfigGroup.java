@@ -103,7 +103,7 @@ public class ConfigGroup<T extends ManagedConfig>
     }
   }
 
-  public static class IdConfigGroup<T extends ManagedConfig> extends ConfigGroup<T>
+  private static class IdConfigGroup<T extends ManagedConfig> extends ConfigGroup<T>
   {
     protected IdConfigGroup (Class<T> clazz) { super(clazz); }
 
