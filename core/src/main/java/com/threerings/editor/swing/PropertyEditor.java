@@ -379,6 +379,18 @@ public abstract class PropertyEditor extends BasePropertyEditor
   }
 
   /**
+   * Shortens a config name to its last two path components, for a compact button label.
+   */
+  protected String getShortConfigName (String name)
+  {
+    int lastSlash = name.lastIndexOf('/');
+    if (lastSlash > 0) {
+      lastSlash = name.lastIndexOf('/', lastSlash - 1);
+    }
+    return name.substring(lastSlash + 1);
+  }
+
+  /**
    * Gets the mode string by walking up the lineage.
    */
   protected String getMode ()

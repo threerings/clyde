@@ -359,12 +359,7 @@ public class ConfigReferenceEditor extends PropertyEditor
 
   protected String getButtonName (ConfigReference<?> ref)
   {
-    String name = ref.getName();
-    int lastSlash = name.lastIndexOf('/');
-    if (lastSlash > 0) {
-      lastSlash = name.lastIndexOf('/', lastSlash - 1);
-    }
-    return name.substring(lastSlash + 1);
+    return getShortConfigName(ref.getName());
   }
 
   /** The config button. */
