@@ -25,9 +25,6 @@
 
 package com.threerings.config;
 
-import java.lang.ref.SoftReference;
-
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -129,8 +126,7 @@ public class ParameterizedConfig extends ManagedConfig
    */
   public boolean isInvalidParameterPath (String path)
   {
-    // let's throw NPE if possible, and everything's valid except for 'comment'.
-    // You can't parameterize the comment or the type (if using DerivedConfig).
+    // throws NPE on a null path. The comment and the type can't be parameterized.
     return path.equals("comment") || path.equals("config_type");
   }
 
