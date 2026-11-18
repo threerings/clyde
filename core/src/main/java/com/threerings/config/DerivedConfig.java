@@ -110,6 +110,7 @@ public class DerivedConfig extends ParameterizedConfig
         return null;
       }
       instance = cclass.cast(source.createInstance(scope, base.getArguments()));
+      if (instance == null) return null; // the base is itself derived, and missing its own base
     } catch (Exception e) {
       log.warning("Could not create instance", "this", getName(), "base", base.getName(),
         "args", base.getArguments(), e);
