@@ -41,6 +41,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
@@ -50,6 +51,7 @@ import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
+import com.threerings.config.IdConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.NoDependency;
 import com.threerings.config.Parameter;
@@ -58,6 +60,7 @@ import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
+import com.threerings.config.util.ReferenceUtil;
 
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.PropertyEditor;
@@ -268,8 +271,8 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
   }
 
   /**
-   * Edits a bare config name: a String marked with {@link Reference}, or one using the old
-   * "config" editor mode.
+   * Edits a bare reference marked with {@link Reference}: a config name (String) or the id (int)
+   * of an {@link IdConfig}. Also serves Strings using the old "config" editor mode.
    */
   public static class ByAnnotation extends ConfigReferenceEditor
   {
@@ -291,20 +294,66 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
     @Override
     protected String getConfigName (Object value)
     {
-      return (String)value;
+      if (!(value instanceof Integer id)) {
+        return Strings.emptyToNull((String)value);
+      }
+      if (id == 0) {
+        return null;
+      }
+      Class<? extends ManagedConfig> clazz = getConfigClass();
+      ManagedConfig config = (clazz == null)
+        ? null
+        : _ctx.getConfigManager().getRawConfig(clazz, id);
+      return (config == null) ? "#" + id : config.getName(); // a missing id shows in red
     }
 
     @Override
     protected Object toValue (String name)
     {
-      return name;
+      return holdsIds() ? ReferenceUtil.getId(_ctx.getConfigManager(), getConfigClass(), name)
+        : name;
+    }
+
+    @Override
+    protected Object getNullValue ()
+    {
+      return holdsIds() ? 0 : null;
+    }
+
+    @Override
+    protected Predicate<? super ManagedConfig> getChooserFilter ()
+    {
+      // a config can only be referenced by id once it has one
+      return holdsIds() ? cfg -> (cfg instanceof IdConfig idcfg) && idcfg.hasConfigId() : null;
     }
 
     @Override
     protected void layoutButtons (JPanel cpanel)
     {
-      add(new JLabel(getPropertyLabel() + ":"));
+      String label = getPropertyLabel();
+      if (!label.isEmpty()) { // array and list elements have no name
+        add(new JLabel(label + ":"));
+      }
       add(cpanel);
+    }
+
+    @Override
+    protected void didInit ()
+    {
+      super.didInit();
+      Class<? extends ManagedConfig> clazz = getConfigClass();
+      if (holdsIds() && clazz != null && !IdConfig.class.isAssignableFrom(clazz)) {
+        log.warning("@Reference by id needs an IdConfig.",
+          "property", _property.getName(), "class", clazz);
+      }
+    }
+
+    /**
+     * Whether we store config ids rather than names.
+     */
+    protected boolean holdsIds ()
+    {
+      return ReferenceUtil.holdsIds(_property.getType());
     }
   }
 
@@ -340,7 +389,7 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
       if (nname != null && !validateNewConfig(nname)) {
         return;
       }
-      nvalue = (nname == null) ? null : toValue(nname);
+      nvalue = (nname == null) ? getNullValue() : toValue(nname);
 
     } else if (source == _edit) {
       BaseConfigEditor editor = BaseConfigEditor.createEditor(_ctx, getConfigClass(), oname);
@@ -349,7 +398,7 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
       return;
 
     } else if (source == _clear) {
-      nvalue = null;
+      nvalue = getNullValue();
 
     } else {
       super.actionPerformed(event);
@@ -394,6 +443,22 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
    * Returns the value to store for a reference to the named config.
    */
   protected abstract Object toValue (String name);
+
+  /**
+   * Returns the value to store for no reference.
+   */
+  protected Object getNullValue ()
+  {
+    return null;
+  }
+
+  /**
+   * Returns an extra filter on what the chooser offers, or null for none.
+   */
+  protected Predicate<? super ManagedConfig> getChooserFilter ()
+  {
+    return null;
+  }
 
   /**
    * Adds the panel holding the config buttons, plus anything that precedes them.
@@ -457,13 +522,13 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
       _name.setText(name == null ? _msgs.get("m.null_value") : name);
       return;
     }
-    if (_edit != null) {
-      _edit.setEnabled(name != null);
-    }
     if (_clear != null) {
       _clear.setEnabled(name != null);
     }
     if (name == null) {
+      if (_edit != null) {
+        _edit.setEnabled(false);
+      }
       _config.setToolTipText(null);
       _config.setText(_msgs.get("m.null_value"));
       _config.setForeground(_property.nullable() ? _normalColor : Color.red);
@@ -479,6 +544,9 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
     boolean valid = (config != null) && PropertyUtil.getRawConfigPredicate(
         _property.getAnnotation(ReferenceConstraints.class)).apply(config);
     _config.setForeground(valid ? _normalColor : Color.red);
+    if (_edit != null) {
+      _edit.setEnabled(config != null);
+    }
     updateDetails(value, config, valid, transfer);
   }
 
@@ -500,6 +568,10 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
         Predicate<? super ManagedConfig> filter = _ctx.getChoosingFilter(clazz);
         if (filter != null) {
           _chooser.addHiddenConstraint(filter);
+        }
+        Predicate<? super ManagedConfig> ourFilter = getChooserFilter();
+        if (ourFilter != null) {
+          _chooser.addHiddenConstraint(ourFilter);
         }
         // a config being edited may not refer to itself
         _chooser.addHiddenConstraint(cfg -> !(_object instanceof ManagedConfig ourCfg) ||

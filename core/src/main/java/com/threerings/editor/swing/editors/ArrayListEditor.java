@@ -43,7 +43,11 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.config.ManagedConfig;
+import com.threerings.config.Reference;
+
 import com.threerings.editor.EditorMessageBundle;
+import com.threerings.editor.Introspector;
 import com.threerings.editor.swing.PropertyEditor;
 import com.threerings.export.ObjectMarshaller;
 import com.threerings.util.DeepUtil;
@@ -101,8 +105,20 @@ public abstract class ArrayListEditor extends PropertyEditor
       units = _property.getAnnotation().units();
       bundle = _property.getMessageBundle();
     }
-    return _msgs.get("m." + action + "_entry", (units.length() > 0) ?
-      getLabel(units, bundle) : getLabel(_property.getComponentType()));
+    Reference ref = _property.getAnnotation(Reference.class);
+    return _msgs.get("m." + action + "_entry", (units.length() > 0) ? getLabel(units, bundle)
+      : (ref != null) ? getReferenceLabel(ref.value())
+      : getLabel(_property.getComponentType()));
+  }
+
+  /**
+   * Returns a label for the configs a {@link Reference} array holds: "Item" for ItemConfig.
+   */
+  protected String getReferenceLabel (Class<? extends ManagedConfig> clazz)
+  {
+    String name = StringUtil.toUSLowerCase(
+      StringUtil.unStudlyName(clazz.getSimpleName().replaceFirst("Config$", "")));
+    return getLabel(name, Introspector.getMessageBundle(clazz));
   }
 
   /**

@@ -51,10 +51,12 @@ import com.threerings.util.ResourceUtil;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Reference;
 import com.threerings.config.util.FieldCache;
+import com.threerings.config.util.ReferenceUtil;
 
 import com.threerings.editor.util.EditorContext;
 
@@ -136,7 +138,8 @@ public class ConfigSearcher extends JFrame
   public static <T> Multiset<T> findAttributes (
       Object val, java.lang.reflect.Type valType, AttributeDetector<T> detector)
   {
-    return findAttributes(val, valType, detector, Sets.newIdentityHashSet());
+    ConfigManager cfgmgr = (val instanceof ManagedConfig mcfg) ? mcfg.getConfigManager() : null;
+    return findAttributes(val, valType, detector, Sets.newIdentityHashSet(), cfgmgr);
   }
 
   /**
@@ -562,7 +565,7 @@ public class ConfigSearcher extends JFrame
    */
   protected static <T> Multiset<T> findAttributes (
     Object val, java.lang.reflect.Type valGenericType, AttributeDetector<T> detector,
-    Set<Object> seen)
+    Set<Object> seen, ConfigManager cfgmgr)
   {
     if (val == null) {
       return ImmutableMultiset.<T>of();
@@ -574,6 +577,11 @@ public class ConfigSearcher extends JFrame
       return ImmutableMultiset.<T>of();
     }
 
+    // resolve config ids with the manager of the config we're in
+    if (val instanceof ManagedConfig mcfg && mcfg.getConfigManager() != null) {
+      cfgmgr = mcfg.getConfigManager();
+    }
+
     // make a list of sub-fields
     Multiset<T> attrs = null;
     if (val instanceof ConfigReference<?> ref) {
@@ -581,19 +589,20 @@ public class ConfigSearcher extends JFrame
 
       attrs = addAll(attrs, detector.apply(ref, refType));
       for (Object value : ref.getArguments().values()) {
-        attrs = addAll(attrs, findAttributes(value, null, detector, seen));
+        attrs = addAll(attrs, findAttributes(value, null, detector, seen, cfgmgr));
       }
 
     } else if (c.isArray()) {
       java.lang.reflect.Type subType = (java.lang.reflect.Type)c.getComponentType();
       for (int ii = 0, nn = Array.getLength(val); ii < nn; ii++) {
-        attrs = addAll(attrs, findAttributes(Array.get(val, ii), subType, detector, seen));
+        attrs = addAll(attrs,
+            findAttributes(Array.get(val, ii), subType, detector, seen, cfgmgr));
       }
 
     } else if (val instanceof Collection<?> coll) {
       java.lang.reflect.Type subType = getFirstGenericType(valGenericType);
       for (Object o : coll) {
-        attrs = addAll(attrs, findAttributes(o, subType, detector, seen));
+        attrs = addAll(attrs, findAttributes(o, subType, detector, seen, cfgmgr));
       }
 
     } else {
@@ -604,21 +613,45 @@ public class ConfigSearcher extends JFrame
         } catch (IllegalAccessException iae) {
           continue;
         }
-        // Pretend bare-string config fields are in fact ConfigReferences
-        var ftype = f.getGenericType();
-        if (o != null && ftype == String.class &&
-            f.getAnnotation(Reference.class) instanceof Reference ref) {
-          o = new ConfigReference<ManagedConfig>((String)o);
-          ftype = new ParameterizedType() {
-            public java.lang.reflect.Type[] getActualTypeArguments () {
-              return new java.lang.reflect.Type[] { ref.value() };
-            }
-            public java.lang.reflect.Type getOwnerType () { return null; }
-            public java.lang.reflect.Type getRawType () { return ConfigReference.class; }
-          };
+        // pretend bare reference fields (names or ids) are in fact ConfigReferences
+        if (o != null && f.getAnnotation(Reference.class) instanceof Reference ref) {
+          attrs = addAll(attrs, findBareReferenceAttributes(o, ref, detector, seen, cfgmgr));
+          continue;
         }
-        attrs = addAll(attrs, findAttributes(o, ftype, detector, seen));
+        attrs = addAll(attrs, findAttributes(o, f.getGenericType(), detector, seen, cfgmgr));
       }
+    }
+    return (attrs != null) ? attrs : ImmutableMultiset.<T>of();
+  }
+
+  /**
+   * Finds the attributes of a bare reference value, as if it held ConfigReferences.
+   */
+  protected static <T> Multiset<T> findBareReferenceAttributes (
+    Object val, Reference ref, AttributeDetector<T> detector, Set<Object> seen,
+    ConfigManager cfgmgr)
+  {
+    List<String> names;
+    if (cfgmgr != null) {
+      names = ReferenceUtil.getNames(cfgmgr, ref.value(), val);
+    } else if (val instanceof String name) {
+      names = List.of(name); // names need no manager
+    } else {
+      log.warning("TODO: Can't search bare references without a config manager.",
+        "class", ref.value(), "value", val);
+      return ImmutableMultiset.<T>of();
+    }
+    java.lang.reflect.Type rtype = new ParameterizedType() {
+      public java.lang.reflect.Type[] getActualTypeArguments () {
+        return new java.lang.reflect.Type[] { ref.value() };
+      }
+      public java.lang.reflect.Type getOwnerType () { return null; }
+      public java.lang.reflect.Type getRawType () { return ConfigReference.class; }
+    };
+    Multiset<T> attrs = null;
+    for (String name : names) {
+      attrs = addAll(attrs, findAttributes(
+          new ConfigReference<ManagedConfig>(name), rtype, detector, seen, cfgmgr));
     }
     return (attrs != null) ? attrs : ImmutableMultiset.<T>of();
   }

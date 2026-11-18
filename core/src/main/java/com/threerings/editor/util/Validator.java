@@ -5,11 +5,13 @@ package com.threerings.editor.util;
 
 import java.io.PrintStream;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import java.util.Arrays;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +43,7 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.util.ConfigId;
+import com.threerings.config.util.ReferenceUtil;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
@@ -209,7 +212,7 @@ public class Validator
     // see if it's a reference property
     Reference refAnno = property.getAnnotation(Reference.class);
     if (refAnno != null) {
-      noteReference(cfgmgr, refAnno.value(), (String)value, property);
+      noteBareReferences(cfgmgr, refAnno.value(), value, property);
       return;
     }
     // also check the old way...
@@ -283,6 +286,57 @@ public class Validator
       }
       _configsByConstraints.put(constraints, configId);
     }
+  }
+
+  /**
+   * Note the configs referenced by a {@link Reference} property: names or ids, alone or in an
+   * array or list. A blank name or zero id is "none", like a null.
+   */
+  protected void noteBareReferences (
+      ConfigManager cfgmgr, Class<? extends ManagedConfig> clazz, Object value,
+      Property property)
+  {
+    boolean multiple = value.getClass().isArray() || (value instanceof Collection);
+    if (multiple ? hasNoneElement(value) : isNone(value) && !property.nullable()) {
+      if (multiple) {
+        _hasNulls = true;
+      } else if (isNullValidated()) {
+        output("Non-nullable property is none: " + property.getName());
+      }
+    }
+    ReferenceUtil.visit(cfgmgr, clazz, value, new ReferenceUtil.Visitor() {
+      public void name (String name) {
+        noteReference(cfgmgr, clazz, name, property);
+      }
+      @Override public void missingId (int id) {
+        output("Reference to a missing config id: " + property.getName() + " = " + id);
+        _hasInvalids = true;
+      }
+    });
+  }
+
+  /**
+   * Whether an element of a bare reference array or list is "none".
+   */
+  protected boolean hasNoneElement (Object value)
+  {
+    if (value instanceof Collection<?> coll) {
+      return coll.stream().anyMatch(this::isNone);
+    }
+    for (int ii = 0, nn = Array.getLength(value); ii < nn; ii++) {
+      if (isNone(Array.get(value, ii))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Whether a bare reference value is "none": null, a blank name or a zero id.
+   */
+  protected boolean isNone (Object value)
+  {
+    return (value == null) || "".equals(value) || Integer.valueOf(0).equals(value);
   }
 
   /**
