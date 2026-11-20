@@ -206,7 +206,10 @@ public abstract class ConfigReferenceEditor extends PropertyEditor
       for (Parameter parameter : pconfig.parameters) {
         Property property = parameter.getArgumentProperty(pconfig);
         if (property == null) {
-          continue;
+          property = _ctx.getArgumentHint(getConfigClass(), parameter.name);
+          if (property == null) {
+            continue;
+          }
         }
         PropertyEditor editor = null;
         if (idx < ocount) {

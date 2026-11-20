@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -1216,16 +1214,22 @@ public class ConfigEditor extends BaseConfigEditor
       return _runQueue;
     }
 
-    // from EditorContext
+    @Override // from EditorContext
     public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
     {
       return ConfigEditor.this.getChoosingFilter(clazz);
     }
 
-    // from EditorContext
+    @Override // from EditorContext
     public Predicate<Class<?>> getTypeFilter ()
     {
       return ConfigEditor.this.getTypeFilter();
+    }
+
+    @Override // from EditorContext
+    public Property getArgumentHint (Class<? extends ManagedConfig> clazz, String name)
+    {
+      return ConfigEditor.this.getArgumentHint(clazz, name);
     }
 
     // documentation inherited from interface ItemListener

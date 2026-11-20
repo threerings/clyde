@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -39,8 +37,6 @@ import java.util.Objects;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-
-import com.google.common.base.Predicate;
 
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
@@ -317,18 +313,6 @@ public abstract class GlApp extends DynamicScope
   public ColorPository getColorPository ()
   {
     return _colorpos;
-  }
-
-  // from EditorContext
-  public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
-  {
-    return null;
-  }
-
-  // from EditorContext
-  public Predicate<Class<?>> getTypeFilter ()
-  {
-    return null;
   }
 
   // documentation inherited from interface GlContext

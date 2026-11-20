@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -25,12 +23,16 @@
 
 package com.threerings.editor.util;
 
+import java.util.Arrays;
+
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 import com.threerings.util.ResourceColorContext;
 import com.threerings.util.RunQueueContext;
 
 import com.threerings.config.ManagedConfig;
+import com.threerings.editor.Property;
 
 /**
  * Provides access to the services required by the editor.
@@ -40,10 +42,36 @@ public interface EditorContext extends ResourceColorContext, RunQueueContext
   /**
    * Get a filter for choosable configs, or null for all.
    */
-  public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz);
+  public default Predicate<? super ManagedConfig> getChoosingFilter (
+    Class<? extends ManagedConfig> clazz)
+  {
+    return null;
+  }
 
   /**
    * Get a type filter for general selectable types, or null for all.
    */
-  public Predicate<Class<?>> getTypeFilter ();
+  public default Predicate<Class<?>> getTypeFilter ()
+  {
+    return null;
+  }
+
+  /**
+   * Use the typeFilter to filder the types!
+   */
+  public default Class<?>[] filterTypes (Class<?>[] types)
+  {
+    Predicate<Class<?>> pred = getTypeFilter();
+    return pred == null ? types
+      : Iterables.toArray(Iterables.filter(Arrays.asList(types), pred), Class.class);
+  }
+
+  /**
+   * Get a property for editing an argument whose parameter can't be resolved, because the
+   * configs its paths lead into aren't loaded, or null to leave the argument uneditable.
+   */
+  public default Property getArgumentHint (Class<? extends ManagedConfig> clazz, String name)
+  {
+    return null;
+  }
 }
