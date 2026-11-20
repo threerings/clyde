@@ -1303,7 +1303,7 @@ public class TudeySceneManager extends SceneManager
     _cfgmgr = sceneModel.getConfigManager();
 
     // create the pathfinder
-    _pathfinder = new Pathfinder(this);
+    _pathfinder = createPathfinder();
 
     // get a reference to the ticker
     _ticker = getTicker();
@@ -1314,6 +1314,14 @@ public class TudeySceneManager extends SceneManager
 
     // register and fill in our tudey scene service
     _tsobj.setTudeySceneService(addProvider(this, TudeySceneMarshaller.class, true));
+  }
+
+  /**
+   * Creates the scene's pathfinder.
+   */
+  protected Pathfinder createPathfinder ()
+  {
+    return new Pathfinder(this);
   }
 
   /**

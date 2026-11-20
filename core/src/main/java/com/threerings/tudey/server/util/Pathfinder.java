@@ -211,6 +211,7 @@ public class Pathfinder
   public void collisionFlagsChanged (ActorLogic logic, int oflags)
   {
     int nflags = logic.getCollisionFlags();
+    boolean soft = isSoft(logic.getActor());
     Shape shape = logic.getShape();
     Rect bounds = shape.getBounds();
     Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
@@ -224,35 +225,7 @@ public class Pathfinder
           for (int xs = 0; xs < SUBDIVISION; xs++) {
             updateQuadSubdivision(xx, yy, xs, ys);
             if (shape.intersects(_quad)) {
-              // remove an entry from the flag list
-              int sx = xx * SUBDIVISION + xs;
-              int sy = yy * SUBDIVISION + ys;
-              int coord = Coord.encode(sx, sy);
-              List<Integer> list = _actorFlagLists.get(coord);
-              if (oflags != 0 && list != null) {
-                list.remove((Integer)oflags);
-              }
-              if (nflags != 0) {
-                if (list == null) {
-                  _actorFlagLists.put(coord,
-                    list = Lists.newArrayListWithCapacity(1));
-                }
-                list.add(nflags);
-              }
-              if (list == null) {
-                continue;
-              }
-              int nsize = list.size();
-              if (nsize == 0) {
-                _actorFlagLists.remove(coord);
-                _actorFlags.remove(sx, sy);
-                continue;
-              }
-              int combined = 0;
-              for (int ii = 0; ii < nsize; ii++) {
-                combined |= list.get(ii);
-              }
-              _actorFlags.put(sx, sy, combined);
+              changeFlags(soft, xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, oflags, nflags);
             }
           }
         }
@@ -293,6 +266,7 @@ public class Pathfinder
     AStarPathUtil.TraversalPred pred;
     final Actor actor = logic.getActor();
     final int collisionMask = actor.getCollisionMask();
+    final boolean passes = passesSoft(actor);
     if (width == 1 && height == 1) {
       // simpler predicates for the common case of 1x1 actors
       if (collideActor) {
@@ -301,7 +275,8 @@ public class Pathfinder
             return (collisionMask & _entryFlags.get(
               MathUtil.floorDiv(x, SUBDIVISION),
               MathUtil.floorDiv(y, SUBDIVISION))) == 0 &&
-                (collisionMask & _actorFlags.get(x, y)) == 0;
+                ((collisionMask & _actorFlags.get(x, y)) == 0 ||
+                  (passes && (collisionMask & getHardFlags(x, y)) == 0));
           }
         };
       } else {
@@ -324,7 +299,8 @@ public class Pathfinder
                 if ((collisionMask & _entryFlags.get(
                     MathUtil.floorDiv(xx, SUBDIVISION),
                     MathUtil.floorDiv(yy, SUBDIVISION))) != 0 ||
-                      (collisionMask & _actorFlags.get(xx, yy)) != 0) {
+                      ((collisionMask & _actorFlags.get(xx, yy)) != 0 &&
+                        (!passes || (collisionMask & getHardFlags(xx, yy)) != 0))) {
                   return false;
                 }
               }
@@ -479,7 +455,7 @@ public class Pathfinder
    */
   protected void addFlags (ActorLogic logic)
   {
-    addFlags(logic.getShape(), logic.getCollisionFlags(), false);
+    addFlags(logic.getShape(), logic.getCollisionFlags(), false, isSoft(logic.getActor()));
   }
 
   /**
@@ -487,13 +463,24 @@ public class Pathfinder
    */
   protected void removeFlags (ActorLogic logic)
   {
-    removeFlags(logic.getShape(), logic.getCollisionFlags(), false, logic.getShapeElement());
+    removeFlags(logic.getShape(), logic.getCollisionFlags(), false, isSoft(logic.getActor()),
+      logic.getShapeElement());
   }
 
   /**
    * Adds the specified flags to the flag map(s).
    */
   protected void addFlags (Shape shape, int flags, boolean entry)
+  {
+    addFlags(shape, flags, entry, false);
+  }
+
+  /**
+   * Adds the specified flags to the flag map(s).
+   *
+   * @param soft for an actor, whether it's soft (see isSoft).
+   */
+  protected void addFlags (Shape shape, int flags, boolean entry, boolean soft)
   {
     if (flags == 0) {
       return; // nothing to do
@@ -516,19 +503,7 @@ public class Pathfinder
             for (int xs = 0; xs < SUBDIVISION; xs++) {
               updateQuadSubdivision(xx, yy, xs, ys);
               if (shape.intersects(_quad)) {
-                // set the bits in the combined flags
-                int sx = xx * SUBDIVISION + xs;
-                int sy = yy * SUBDIVISION + ys;
-                _actorFlags.setBits(sx, sy, flags);
-
-                // add an entry to the list of separate flags
-                int coord = Coord.encode(sx, sy);
-                List<Integer> list = _actorFlagLists.get(coord);
-                if (list == null) {
-                  _actorFlagLists.put(coord,
-                    list = Lists.newArrayListWithCapacity(1));
-                }
-                list.add(flags);
+                changeFlags(soft, xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, 0, flags);
               }
             }
           }
@@ -541,6 +516,17 @@ public class Pathfinder
    * Removes the flags for the specified shape.
    */
   protected void removeFlags (Shape shape, int flags, boolean entry, SpaceElement skip)
+  {
+    removeFlags(shape, flags, entry, false, skip);
+  }
+
+  /**
+   * Removes the flags for the specified shape.
+   *
+   * @param soft for an actor, whether it's soft (see isSoft).
+   */
+  protected void removeFlags (
+    Shape shape, int flags, boolean entry, boolean soft, SpaceElement skip)
   {
     if (flags == 0) {
       return; // nothing to do
@@ -563,32 +549,106 @@ public class Pathfinder
             for (int xs = 0; xs < SUBDIVISION; xs++) {
               updateQuadSubdivision(xx, yy, xs, ys);
               if (shape.intersects(_quad)) {
-                // remove an entry from the flag list
-                int sx = xx * SUBDIVISION + xs;
-                int sy = yy * SUBDIVISION + ys;
-                int coord = Coord.encode(sx, sy);
-                List<Integer> list = _actorFlagLists.get(coord);
-                if (list == null) {
-                  continue;
-                }
-                list.remove((Integer)flags);
-                int nsize = list.size();
-                if (nsize == 0) {
-                  _actorFlagLists.remove(coord);
-                  _actorFlags.remove(sx, sy);
-                  continue;
-                }
-                int combined = 0;
-                for (int ii = 0; ii < nsize; ii++) {
-                  combined |= list.get(ii);
-                }
-                _actorFlags.put(sx, sy, combined);
+                changeFlags(soft, xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, flags, 0);
               }
             }
           }
         }
       }
     }
+  }
+
+  /**
+   * Replaces one actor's flags in a cell of the actor collision map with another set.
+   *
+   * @param soft whether the actor is soft (see isSoft).
+   * @param oflags the flags to remove, or 0 for none.
+   * @param nflags the flags to add, or 0 for none.
+   */
+  protected void changeFlags (boolean soft, int sx, int sy, int oflags, int nflags)
+  {
+    int coord = Coord.encode(sx, sy);
+    if (soft) {
+      changeFlagList(_softFlagLists, coord, oflags, nflags);
+    }
+    List<Integer> list = changeFlagList(_actorFlagLists, coord, oflags, nflags);
+    if (list == null) {
+      _actorFlags.remove(sx, sy);
+      return;
+    }
+    int combined = 0;
+    for (int ii = 0, nn = list.size(); ii < nn; ii++) {
+      combined |= list.get(ii);
+    }
+    _actorFlags.put(sx, sy, combined);
+  }
+
+  /**
+   * Replaces one actor's flags in a cell's list of separate sets of flags with another set.
+   *
+   * @return the cell's list, or null if it's now empty (and gone).
+   */
+  protected static List<Integer> changeFlagList (
+    IntMap<List<Integer>> lists, int coord, int oflags, int nflags)
+  {
+    List<Integer> list = lists.get(coord);
+    if (oflags != 0 && list != null) {
+      list.remove((Integer)oflags);
+    }
+    if (nflags != 0) {
+      if (list == null) {
+        lists.put(coord, list = Lists.newArrayListWithCapacity(1));
+      }
+      list.add(nflags);
+    }
+    if (list != null && list.isEmpty()) {
+      lists.remove(coord);
+      return null;
+    }
+    return list;
+  }
+
+  /**
+   * Returns the combined flags of the actors in a cell of the actor collision map, but for the
+   * soft ones (see isSoft). Only asked of a cell the combined flags block, for a traverser that
+   * passes soft actors.
+   */
+  protected int getHardFlags (int sx, int sy)
+  {
+    int coord = Coord.encode(sx, sy);
+    List<Integer> soft = _softFlagLists.get(coord);
+    if (soft == null) {
+      return _actorFlags.get(sx, sy);
+    }
+    // each soft actor's set cancels one equal set in the full list
+    _softSets.addAll(soft);
+    int combined = 0;
+    for (Integer flags : _actorFlagLists.get(coord)) {
+      if (!_softSets.remove(flags)) {
+        combined |= flags;
+      }
+    }
+    _softSets.clear();
+    return combined;
+  }
+
+  /**
+   * Determines whether an actor is soft: one that some traversers pass straight through (see
+   * passesSoft), though it blocks the rest. Asked as the actor's flags are added and removed, so
+   * the answer mustn't change in between.
+   */
+  protected boolean isSoft (Actor actor)
+  {
+    return false;
+  }
+
+  /**
+   * Determines whether a traverser passes straight through soft actors (see isSoft), so its
+   * paths may run through them.
+   */
+  protected boolean passesSoft (Actor traverser)
+  {
+    return false;
   }
 
   /**
@@ -662,6 +722,12 @@ public class Pathfinder
 
   /** Maps encoded coordinates to lists of separate sets of actor flags. */
   protected IntMap<List<Integer>> _actorFlagLists = IntMaps.newHashIntMap();
+
+  /** Maps encoded coordinates to lists of the soft actors' sets among those (see isSoft). */
+  protected IntMap<List<Integer>> _softFlagLists = IntMaps.newHashIntMap();
+
+  /** Holds the soft actors' sets of flags for a cell during getHardFlags. */
+  protected List<Integer> _softSets = Lists.newArrayList();
 
   /** Used to store tile shapes for intersecting testing. */
   protected Polygon _quad = new Polygon(4);
