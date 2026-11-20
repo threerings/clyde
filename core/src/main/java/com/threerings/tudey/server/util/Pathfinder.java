@@ -586,7 +586,7 @@ public class Pathfinder
   /**
    * Replaces one actor's flags in a cell's list of separate sets of flags with another set.
    *
-   * @return the cell's list, or null if it's now empty (and gone).
+   * @return the cell's list, or null if the cell has none (any longer).
    */
   protected static List<Integer> changeFlagList (
     IntMap<List<Integer>> lists, int coord, int oflags, int nflags)
@@ -621,10 +621,14 @@ public class Pathfinder
       return _actorFlags.get(sx, sy);
     }
     // each soft actor's set cancels one equal set in the full list
-    _softSets.addAll(soft);
+    for (int ii = 0, nn = soft.size(); ii < nn; ii++) {
+      _softSets.add(soft.get(ii));
+    }
+    List<Integer> all = _actorFlagLists.get(coord);
     int combined = 0;
-    for (Integer flags : _actorFlagLists.get(coord)) {
-      if (!_softSets.remove(flags)) {
+    for (int ii = 0, nn = all.size(); ii < nn; ii++) {
+      int flags = all.get(ii);
+      if (!_softSets.remove((Integer)flags)) {
         combined |= flags;
       }
     }
