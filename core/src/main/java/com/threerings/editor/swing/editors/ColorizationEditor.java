@@ -201,7 +201,7 @@ public class ColorizationEditor extends PropertyEditor
     @Override
     public boolean equals (Object other)
     {
-      return record == ((ClassItem)other).record;
+      return other instanceof ClassItem oitem && record == oitem.record;
     }
 
     @Override
@@ -240,7 +240,7 @@ public class ColorizationEditor extends PropertyEditor
     @Override
     public boolean equals (Object other)
     {
-      return record == ((ColorItem)other).record;
+      return other instanceof ColorItem oitem && record == oitem.record;
     }
 
     @Override

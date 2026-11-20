@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -40,8 +38,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import com.samskivert.util.RunQueue;
-
-import com.google.common.base.Predicate;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
@@ -140,18 +136,6 @@ public abstract class BaseConfigEditor extends JFrame
   public ColorPository getColorPository ()
   {
     return _colorpos;
-  }
-
-  // from EditorContext
-  public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
-  {
-    return null;
-  }
-
-  // from EditorContext
-  public Predicate<Class<?>> getTypeFilter ()
-  {
-    return null;
   }
 
   // from EditorContext

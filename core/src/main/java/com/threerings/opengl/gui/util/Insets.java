@@ -101,11 +101,8 @@ public class Insets
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Insets oi)) {
-      return false;
-    }
-    return (left == oi.left) && (top == oi.top) &&
-      (right == oi.right) && (bottom == oi.bottom);
+    return other instanceof Insets oi &&
+      left == oi.left && top == oi.top && right == oi.right && bottom == oi.bottom;
   }
 
   @Override

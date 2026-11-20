@@ -666,13 +666,10 @@ public class CharacterTextFactory extends TextFactory
     @Override
     public boolean equals (Object obj)
     {
-      if (!(obj instanceof FactoryKey key)) {
-        return false;
-      }
-
-      return (antialias == key.antialias) &&
-        (descentModifier == key.descentModifier) &&
-        (heightModifier == key.heightModifier) &&
+      return obj instanceof FactoryKey key &&
+        antialias == key.antialias &&
+        descentModifier == key.descentModifier &&
+        heightModifier == key.heightModifier &&
         Objects.equals(font, key.font);
     }
   }

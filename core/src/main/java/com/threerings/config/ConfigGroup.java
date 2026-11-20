@@ -103,11 +103,17 @@ public class ConfigGroup<T extends ManagedConfig>
     }
   }
 
-  public static class IdConfigGroup<T extends ManagedConfig> extends ConfigGroup<T>
+  private static class IdConfigGroup<T extends ManagedConfig> extends ConfigGroup<T>
   {
     protected IdConfigGroup (Class<T> clazz) { super(clazz); }
 
     public IdConfigGroup () { super(); }
+
+    @Override
+    public boolean hasIds ()
+    {
+      return true;
+    }
 
     @Override
     public ManagedConfig getRawConfig (int id)
@@ -246,6 +252,15 @@ public class ConfigGroup<T extends ManagedConfig>
   public Class<T> getConfigClass ()
   {
     return _cclass;
+  }
+
+  /**
+   * Are this group's configs {@link IdConfig}s, which may be looked up by id?
+   */
+  public boolean hasIds ()
+  {
+    return false;
+    //return IdConfig.class.isAssignableFrom(_cclass);
   }
 
   /**

@@ -103,7 +103,8 @@ public abstract class Dependency
     @Override
     public boolean equals (Object other)
     {
-      return getClass() == other.getClass() && ((Planar)other).worldPlane.equals(worldPlane);
+      return other != null && getClass() == other.getClass() &&
+        ((Planar)other).worldPlane.equals(worldPlane);
     }
   }
 
@@ -368,7 +369,8 @@ public abstract class Dependency
     @Override
     public boolean equals (Object other)
     {
-      return getClass() == other.getClass() && ((CubeTexture)other).origin.equals(origin);
+      return other != null && getClass() == other.getClass() &&
+        ((CubeTexture)other).origin.equals(origin);
     }
   }
 
@@ -403,7 +405,8 @@ public abstract class Dependency
     @Override
     public boolean equals (Object other)
     {
-      return getClass() == other.getClass() && ((Shadows)other).data.equals(data);
+      return other != null && getClass() == other.getClass() &&
+        ((Shadows)other).data.equals(data);
     }
   }
 

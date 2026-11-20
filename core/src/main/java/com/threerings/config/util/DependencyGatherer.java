@@ -19,6 +19,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -128,6 +129,12 @@ public abstract class DependencyGatherer
       // don't do that here
     }
 
+    @Override
+    protected ConfigManager getConfigManager ()
+    {
+      return _cfgmgr;
+    }
+
 //        @Override
 //        protected boolean shouldWarn ()
 //        {
@@ -166,11 +173,22 @@ public abstract class DependencyGatherer
      */
     public void gather (ConfigManager cfgmgr)
     {
-      for (ConfigGroup<?> group : cfgmgr.getGroups()) {
-        for (ManagedConfig cfg : group.getRawConfigs()) {
-          findReferences(cfg);
+      _gathering = cfgmgr;
+      try {
+        for (ConfigGroup<?> group : cfgmgr.getGroups()) {
+          for (ManagedConfig cfg : group.getRawConfigs()) {
+            findReferences(cfg);
+          }
         }
+      } finally {
+        _gathering = null;
       }
+    }
+
+    @Override
+    protected ConfigManager getConfigManager ()
+    {
+      return _gathering;
     }
 
     /**
@@ -220,6 +238,9 @@ public abstract class DependencyGatherer
           ? null
           : value;
     }
+
+    /** The config manager whose configs we're gathering from, while we gather. */
+    protected ConfigManager _gathering;
 
     /** A mapping of config/parameter to the type of config that parameter expects, if any. */
     protected final Table<ConfigId, String, Class<? extends ManagedConfig>> _paramCfgTypes =
@@ -314,11 +335,9 @@ public abstract class DependencyGatherer
           continue;
         }
 
-        if (o instanceof String str) {
-          // this may be a reference! (otherwise: we don't care)
-          Reference refAnno = f.getAnnotation(Reference.class);
-          if (refAnno != null) {
-            // add it!
+        Reference refAnno = f.getAnnotation(Reference.class);
+        if (refAnno != null) {
+          if (o instanceof String str) {
             String newValue = addBareReference(refAnno.value(), str);
             if (newValue != null) {
               try {
@@ -328,9 +347,11 @@ public abstract class DependencyGatherer
                 throw new RuntimeException(iae); // shouldn't happen
               }
             }
+          } else if (o != null) {
+            findBareReferences(refAnno.value(), o);
           }
 
-        } else {
+        } else if (!(o instanceof String)) { // an unannotated String is no reference
           findReferences(o, f.getGenericType(), seen);
         }
       }
@@ -375,6 +396,9 @@ public abstract class DependencyGatherer
         if (value instanceof ConfigReference<?> cref) {
           findReferences(cref, pclazz, seen);
 
+        } else if (isBareReference(value)) {
+          findBareReferences(pclazz, value);
+
         } else if (value instanceof List<?>) {
           @SuppressWarnings("unchecked")
           List<ConfigReference<ManagedConfig>> list =
@@ -393,6 +417,63 @@ public abstract class DependencyGatherer
         findReferences(value, value.getClass(), seen);
       }
     }
+  }
+
+  /**
+   * Add the configs referenced by a {@link Reference} value: a name or id, or an array or list
+   * of them. Renamed names can only be written back into arrays.
+   */
+  protected void findBareReferences (Class<? extends ManagedConfig> clazz, Object value)
+  {
+    if (value instanceof String name) {
+      if (!name.isEmpty() && addBareReference(clazz, name) != null) {
+        log.warning("TODO: Can't rewrite a renamed reference in an argument.",
+          "class", clazz, "name", name);
+      }
+      return;
+    }
+    if (value instanceof String[] names) {
+      for (int ii = 0; ii < names.length; ii++) {
+        if (!Strings.isNullOrEmpty(names[ii])) {
+          String newValue = addBareReference(clazz, names[ii]);
+          if (newValue != null) {
+            names[ii] = newValue;
+          }
+        }
+      }
+      return;
+    }
+    ConfigManager cfgmgr = getConfigManager();
+    if (cfgmgr == null) {
+      log.warning("TODO: Can't resolve bare references without a config manager.",
+        "class", clazz, "value", value);
+      return;
+    }
+    boolean ids = (value instanceof Integer) || (value instanceof int[]);
+    ReferenceUtil.visit(cfgmgr, clazz, value, name -> {
+      // an id survives renames, but a name in a list can't be rewritten
+      if (addBareReference(clazz, name) != null && !ids) {
+        log.warning("TODO: Can't rewrite a renamed reference in a list.",
+          "class", clazz, "name", name);
+      }
+    });
+  }
+
+  /**
+   * Whether an argument value is a bare reference: a config name or id, or an array of either.
+   */
+  protected boolean isBareReference (Object value)
+  {
+    return (value instanceof String) || (value instanceof Integer) ||
+      (value instanceof String[]) || (value instanceof int[]);
+  }
+
+  /**
+   * Returns the config manager for resolving config ids, or null if we have none.
+   */
+  protected ConfigManager getConfigManager ()
+  {
+    return null;
   }
 
   /**

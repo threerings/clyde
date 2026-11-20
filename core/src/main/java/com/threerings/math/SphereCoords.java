@@ -198,10 +198,7 @@ public class SphereCoords
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof SphereCoords ocoords)) {
-      return false;
-    }
-    return (azimuth == ocoords.azimuth && elevation == ocoords.elevation &&
-      distance == ocoords.distance);
+    return other instanceof SphereCoords ocoords && azimuth == ocoords.azimuth &&
+      elevation == ocoords.elevation && distance == ocoords.distance;
   }
 }

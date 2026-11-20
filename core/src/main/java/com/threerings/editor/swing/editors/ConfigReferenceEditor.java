@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -34,86 +32,377 @@ import java.io.File;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 
 import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigGroup;
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
+import com.threerings.config.IdConfig;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.NoDependency;
-import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
+import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
 import com.threerings.config.swing.ConfigChooser;
 import com.threerings.config.tools.BaseConfigEditor;
+import com.threerings.config.util.ReferenceUtil;
 
 import com.threerings.editor.Property;
-import com.threerings.editor.util.PropertyUtil;
 import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.editor.util.PropertyUtil;
 
 import static com.threerings.editor.Log.log;
 
 /**
- * An editor for configuration references.
+ * Edits a reference to a config: a button naming the config, which opens a chooser, plus edit
+ * and clear buttons. The subclasses differ in how the reference is stored.
  */
-public class ConfigReferenceEditor extends PropertyEditor
-  implements ActionListener, ChangeListener, ConfigUpdateListener<ManagedConfig>
+public abstract class ConfigReferenceEditor extends PropertyEditor
+  implements ActionListener
 {
   /**
-   * Set this instance to not try to transfer arguments if a new config is selected.
+   * Edits a {@link ConfigReference}, including its arguments.
+   */
+  public static class ByType extends ConfigReferenceEditor
+    implements ChangeListener, ConfigUpdateListener<ManagedConfig>
+  {
+    @Override
+    public void setNoTransfer (boolean noTransfer)
+    {
+      _noTransfer = noTransfer;
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+      fireStateChanged();
+    }
+
+    // documentation inherited from interface ConfigUpdateListener
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
+    {
+      update();
+    }
+
+    @Override
+    public void addNotify ()
+    {
+      super.addNotify();
+      if (_listenee != null) {
+        update();
+      }
+    }
+
+    @Override
+    public void removeNotify ()
+    {
+      super.removeNotify();
+      if (_listenee != null) {
+        _listenee.removeListener(this);
+      }
+    }
+
+    @Override
+    public String getComponentPath (Component comp, boolean mouse)
+    {
+      PropertyEditor editor = getNextChildComponent(PropertyEditor.class, comp);
+      return editor == null ? "" :
+        ("[\"" + editor.getProperty().getName().replace("\"", "\\\"") + "\"]" +
+         editor.getComponentPath(comp, mouse));
+    }
+
+    @Override
+    protected Class<? extends ManagedConfig> getConfigClass ()
+    {
+      @SuppressWarnings("unchecked")
+      Class<? extends ManagedConfig> clazz =
+        (Class<? extends ManagedConfig>)_property.getArgumentType(ConfigReference.class);
+      return clazz;
+    }
+
+    @Override
+    protected String getConfigName (Object value)
+    {
+      return (value == null) ? null : ((ConfigReference<?>)value).getName();
+    }
+
+    @Override
+    protected Object toValue (String name)
+    {
+      return new ConfigReference<ManagedConfig>(name);
+    }
+
+    @Override
+    protected void layoutButtons (JPanel cpanel)
+    {
+      makeCollapsible(_ctx, getPropertyLabel(), false);
+      _content.add(cpanel);
+      cpanel.add(new JLabel(_msgs.get("m.config") + ":"));
+    }
+
+    @Override
+    protected void didInit ()
+    {
+      super.didInit();
+      if (_config != null) {
+        _content.add(_arguments = GroupLayout.makeVBox(
+          GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
+        _arguments.setBackground(null);
+      }
+    }
+
+    @Override
+    protected void updateDetails (
+      Object value, ManagedConfig config, boolean valid, boolean transfer)
+    {
+      // make sure we're not listening to anything
+      if (_listenee != null) {
+        _listenee.removeListener(this);
+        _listenee = null;
+      }
+      ConfigReference<?> ref = (ConfigReference<?>)value;
+      if (ref == null) {
+        _arguments.removeAll();
+        return;
+      }
+      if (!(config instanceof ParameterizedConfig pconfig) ||
+          getProperty().isAnnotationPresent(NoDependency.class)) {
+        _arguments.removeAll();
+        ref.getArguments().clear();
+        return;
+      }
+      if (!valid) {
+        return;
+      }
+
+      // store the existing editors mapped by name in case we want to reuse their values
+      int ocount = _arguments.getComponentCount();
+      HashMap<String, PropertyEditor> oeditors = new HashMap<String, PropertyEditor>();
+      if (transfer && !_noTransfer) {
+        for (int ii = 0; ii < ocount; ii++) {
+          PropertyEditor editor = (PropertyEditor)_arguments.getComponent(ii);
+          oeditors.put(editor.getProperty().getName(), editor);
+        }
+      }
+
+      // scan through the parameters
+      int idx = 0;
+      Object nargs = ref.getArguments();
+      for (Parameter parameter : pconfig.parameters) {
+        Property property = parameter.getArgumentProperty(pconfig);
+        if (property == null) {
+          property = _ctx.getArgumentHint(getConfigClass(), parameter.name);
+          if (property == null) {
+            continue;
+          }
+        }
+        PropertyEditor editor = null;
+        if (idx < ocount) {
+          // see if we can copy the argument to the new set and reuse the editor
+          PropertyEditor oeditor = (PropertyEditor)_arguments.getComponent(idx);
+          if (oeditor.getProperty().equals(property)) {
+            if (transfer) {
+              property.set(nargs, property.get(oeditor.getObject()));
+            }
+            editor = oeditor;
+          } else {
+            _arguments.remove(idx);
+          }
+        }
+        if (editor == null) {
+          editor = PropertyEditor.createEditor(_ctx, property, _lineage);
+          editor.addChangeListener(this);
+          _arguments.add(editor, idx);
+
+          // see if we can reuse the value from the previous editor
+          PropertyEditor oeditor = oeditors.get(parameter.name);
+          if (oeditor != null) {
+            Property oproperty = oeditor.getProperty();
+            if (property.getGenericType().equals(oproperty.getGenericType())) {
+              Object ovalue = oproperty.get(oeditor.getObject());
+              if (property.isLegalValue(ovalue)) {
+                property.set(nargs, ovalue);
+              }
+            }
+          }
+        }
+        editor.setObject(nargs);
+        idx++;
+      }
+
+      // remove the remaining editors
+      while (ocount > idx) {
+        _arguments.remove(--ocount);
+      }
+      // we may need to refresh the panel
+      SwingUtil.refresh(_arguments);
+
+      // clear out any arguments that don't correspond to parameters
+      for (Iterator<String> it = ref.getArguments().keySet().iterator(); it.hasNext(); ) {
+        if (pconfig.getParameter(it.next()) == null) {
+          it.remove();
+        }
+      }
+
+      // listen for parameter changes
+      (_listenee = pconfig).addListener(this);
+    }
+
+    /** Holds the argument panels. */
+    protected JPanel _arguments;
+
+    /** The config that we're listening to, if any. */
+    protected ParameterizedConfig _listenee;
+
+    /** Should we suppress transferring arguments? */
+    protected boolean _noTransfer;
+  }
+
+  /**
+   * Edits a bare reference marked with {@link Reference}: a config name (String) or the id (int)
+   * of an {@link IdConfig}. Also serves Strings using the old "config" editor mode.
+   */
+  public static class ByAnnotation extends ConfigReferenceEditor
+  {
+    @Override
+    protected Class<? extends ManagedConfig> getConfigClass ()
+    {
+      Reference ref = _property.getAnnotation(Reference.class);
+      if (ref != null) {
+        return ref.value();
+      }
+      ConfigGroup<?>[] groups = _ctx.getConfigManager().getGroups(getMode());
+      if (groups.length == 0) {
+        log.warning("Missing groups for config editor.", "mode", getMode());
+        return null;
+      }
+      return groups[0].getConfigClass();
+    }
+
+    @Override
+    protected String getConfigName (Object value)
+    {
+      if (!(value instanceof Integer id)) {
+        return Strings.emptyToNull((String)value);
+      }
+      if (id == 0) {
+        return null;
+      }
+      Class<? extends ManagedConfig> clazz = getConfigClass();
+      ManagedConfig config = (clazz == null)
+        ? null
+        : _ctx.getConfigManager().getRawConfig(clazz, id);
+      return (config == null) ? "#" + id : config.getName(); // a missing id shows in red
+    }
+
+    @Override
+    protected Object toValue (String name)
+    {
+      return holdsIds() ? ReferenceUtil.getId(_ctx.getConfigManager(), getConfigClass(), name)
+        : name;
+    }
+
+    @Override
+    protected Object getNullValue ()
+    {
+      return holdsIds() ? 0 : null;
+    }
+
+    @Override
+    protected Predicate<? super ManagedConfig> getChooserFilter ()
+    {
+      // a config can only be referenced by id once it has one
+      return holdsIds() ? cfg -> (cfg instanceof IdConfig idcfg) && idcfg.hasConfigId() : null;
+    }
+
+    @Override
+    protected void layoutButtons (JPanel cpanel)
+    {
+      String label = getPropertyLabel();
+      if (!label.isEmpty()) { // array and list elements have no name
+        add(new JLabel(label + ":"));
+      }
+      add(cpanel);
+    }
+
+    @Override
+    protected void didInit ()
+    {
+      super.didInit();
+      Class<? extends ManagedConfig> clazz = getConfigClass();
+      if (holdsIds() && clazz != null && !IdConfig.class.isAssignableFrom(clazz)) {
+        log.warning("@Reference by id needs an IdConfig.",
+          "property", _property.getName(), "class", clazz);
+      }
+    }
+
+    /**
+     * Whether we store config ids rather than names.
+     */
+    protected boolean holdsIds ()
+    {
+      return ReferenceUtil.holdsIds(_property.getType());
+    }
+  }
+
+  /**
+   * Sets this editor not to carry argument values over when a different config is chosen.
+   * Only references with arguments have any to carry.
    */
   public void setNoTransfer (boolean noTransfer)
   {
-    _noTransfer = noTransfer;
+    // nothing by default
   }
 
   // documentation inherited from interface ActionListener
+  @Override
   public void actionPerformed (ActionEvent event)
   {
-    ConfigReference<?> ovalue = (ConfigReference<?>)_property.get(_object);
-    ConfigReference<?> nvalue;
     Object source = event.getSource();
+    String oname = getConfigName(_property.get(_object));
+    Object nvalue;
     if (source == _config) {
-      if (_chooser == null) {
-        @SuppressWarnings("unchecked")
-        Class<ManagedConfig> clazz = (Class<ManagedConfig>)getArgumentType();
-        _chooser = ConfigChooser.createInstance(_msgmgr, _ctx.getConfigManager(), clazz,
-          getProperty().getAnnotation(ReferenceConstraints.class));
-        Predicate<? super ManagedConfig> filter = _ctx.getChoosingFilter(clazz);
-        if (filter != null) _chooser.addHiddenConstraint(filter);
+      ConfigChooser chooser = getChooser();
+      if (chooser == null) {
+        return; // no config class: getConfigClass() complained
       }
-      _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
-      if (!_chooser.showDialog(this)) {
+      chooser.setSelectedConfig(oname);
+      if (!chooser.showDialog(this)) {
         return;
       }
-      String config = _chooser.getSelectedConfig();
-      nvalue = (config == null) ? null : new ConfigReference<ManagedConfig>(config);
-      if (nvalue != null && !validateNewValue(nvalue)) {
+      String nname = chooser.getSelectedConfig();
+      if (Objects.equals(oname, nname) || (nname == null && !_property.nullable())) {
         return;
       }
+      if (nname != null && !validateNewConfig(nname)) {
+        return;
+      }
+      nvalue = (nname == null) ? getNullValue() : toValue(nname);
 
     } else if (source == _edit) {
-      BaseConfigEditor editor = BaseConfigEditor.createEditor(
-        _ctx, getArgumentType(), ovalue.getName());
+      BaseConfigEditor editor = BaseConfigEditor.createEditor(_ctx, getConfigClass(), oname);
       editor.setLocationRelativeTo(this);
       editor.setVisible(true);
       return;
 
     } else if (source == _clear) {
-      nvalue = null;
+      nvalue = getNullValue();
+
     } else {
       super.actionPerformed(event);
       return;
@@ -123,72 +412,81 @@ public class ConfigReferenceEditor extends PropertyEditor
     fireStateChanged();
   }
 
-  // documentation inherited from interface ChangeListener
-  public void stateChanged (ChangeEvent event)
-  {
-    fireStateChanged();
-  }
-
-  // documentation inherited from interface ConfigUpdateListener
-  public void configUpdated (ConfigEvent<ManagedConfig> event)
-  {
-    update();
-  }
-
-  @Override
-  public void addNotify ()
-  {
-    super.addNotify();
-    if (_listenee != null) {
-      update();
-    }
-  }
-
-  @Override
-  public void removeNotify ()
-  {
-    super.removeNotify();
-    if (_listenee != null) {
-      _listenee.removeListener(this);
-    }
-  }
-
   @Override
   public void update ()
   {
-    update((ConfigReference)_property.get(_object), false);
+    update(_property.get(_object), false);
   }
 
   @Override
   public String getEditedFilePath ()
   {
-    if (_ctx.getConfigManager().isResourceClass(getArgumentType())) {
-      ConfigReference<?> ref = (ConfigReference<?>)_property.get(_object);
-      if (ref != null) {
-        File fullfile = _ctx.getResourceManager().getResourceFile(ref.getName());
-        if (fullfile != null) {
-          return fullfile.getAbsolutePath();
-        }
+    Class<? extends ManagedConfig> clazz = getConfigClass();
+    String name = getConfigName(_property.get(_object));
+    if (clazz != null && name != null && _ctx.getConfigManager().isResourceClass(clazz)) {
+      File fullfile = _ctx.getResourceManager().getResourceFile(name);
+      if (fullfile != null) {
+        return fullfile.getAbsolutePath();
       }
     }
     return null;
   }
 
-  @Override
-  public String getComponentPath (Component comp, boolean mouse)
+  /**
+   * Returns the class of config we reference, or null if it can't be determined.
+   */
+  protected abstract Class<? extends ManagedConfig> getConfigClass ();
+
+  /**
+   * Returns the name of the config that a stored value references, or null for none.
+   */
+  protected abstract String getConfigName (Object value);
+
+  /**
+   * Returns the value to store for a reference to the named config.
+   */
+  protected abstract Object toValue (String name);
+
+  /**
+   * Returns the value to store for no reference.
+   */
+  protected Object getNullValue ()
   {
-    PropertyEditor editor = getNextChildComponent(PropertyEditor.class, comp);
-    return editor == null ? "" :
-      ("[\"" + editor.getProperty().getName().replace("\"", "\\\"") + "\"]" +
-       editor.getComponentPath(comp, mouse));
+    return null;
   }
 
   /**
-   * Get the type of the config reference.
+   * Returns an extra filter on what the chooser offers, or null for none.
    */
-  protected Class<?> getArgumentType ()
+  protected Predicate<? super ManagedConfig> getChooserFilter ()
   {
-    return _property.getArgumentType(ConfigReference.class);
+    return null;
+  }
+
+  /**
+   * Adds the panel holding the config buttons, plus anything that precedes them.
+   */
+  protected abstract void layoutButtons (JPanel cpanel);
+
+  /**
+   * Updates anything beyond the config buttons for the current value.
+   *
+   * @param config the referenced config, or null if there's none or it's missing.
+   * @param valid whether the config exists and meets the reference constraints.
+   * @param transfer whether to carry over values from a previously chosen config.
+   */
+  protected void updateDetails (
+    Object value, ManagedConfig config, boolean valid, boolean transfer)
+  {
+    // nothing by default
+  }
+
+  /**
+   * Validates a newly chosen config, possibly informing the user if it's no good.
+   */
+  protected boolean validateNewConfig (String name)
+  {
+    return true;
   }
 
   @Override
@@ -199,14 +497,11 @@ public class ConfigReferenceEditor extends PropertyEditor
       add(_name = new JLabel(" "));
       return;
     }
-
-    makeCollapsible(_ctx, getPropertyLabel(), false);
-
     JPanel cpanel = new JPanel();
-    _content.add(cpanel);
-    cpanel.add(new JLabel(_msgs.get("m.config") + ":"));
-    cpanel.add(_config = new JButton(" "));
     cpanel.setBackground(null);
+    layoutButtons(cpanel);
+    cpanel.add(_config = new JButton(" "));
+    _normalColor = _config.getForeground();
     _config.addActionListener(this);
     if (!(_noEdit || getMode().equals("compact"))) {
       cpanel.add(_edit = new JButton(_msgs.get("m.edit")));
@@ -216,177 +511,94 @@ public class ConfigReferenceEditor extends PropertyEditor
       cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
       _clear.addActionListener(this);
     }
-    _content.add(_arguments = GroupLayout.makeVBox(
-      GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
-    _arguments.setBackground(null);
   }
 
   /**
-   * Validate that the new value is good, possibly informing the user if not.
-   */
-  protected boolean validateNewValue (ConfigReference<?> value)
-  {
-    return true;
-  }
-
-  /**
-   * Updates the state of the interface based on the current value.
+   * Updates the interface for the specified value.
    *
-   * @param transfer if true, attempt to transfer values from the existing set of editors into
-   * the current arguments.
+   * @param transfer whether to carry over values from a previously chosen config.
    */
-  protected void update (ConfigReference<?> value, boolean transfer)
+  protected void update (Object value, boolean transfer)
   {
-    // make sure we're not listening to anything
-    if (_listenee != null) {
-      _listenee.removeListener(this);
-      _listenee = null;
-    }
-
+    String name = getConfigName(value);
     if (_property.isConstant()) {
-      _name.setText(value == null ? _msgs.get("m.null_value") : value.getName());
+      _name.setText(name == null ? _msgs.get("m.null_value") : name);
       return;
-    }
-
-    // update the button states
-    boolean enable = (value != null);
-    if (_edit != null) {
-      _edit.setEnabled(enable);
     }
     if (_clear != null) {
-      _clear.setEnabled(enable);
+      _clear.setEnabled(name != null);
     }
-    if (!enable) {
+    if (name == null) {
+      if (_edit != null) {
+        _edit.setEnabled(false);
+      }
       _config.setToolTipText(null);
       _config.setText(_msgs.get("m.null_value"));
-      _arguments.removeAll();
-      _config.setForeground(_property.nullable() ? _content.getForeground() : Color.red);
+      _config.setForeground(_property.nullable() ? _normalColor : Color.red);
+      updateDetails(null, null, false, transfer);
       return;
     }
-    String name = value.getName();
     _config.setToolTipText(name);
-    _config.setText(getButtonName(value));
-
-    // resolve the configuration reference
-    @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-        (Class<ManagedConfig>)getArgumentType();
-    ManagedConfig config = _ctx.getConfigManager().getRawConfig(clazz, name);
-    if (!(config instanceof ParameterizedConfig pconfig) ||
-        getProperty().isAnnotationPresent(NoDependency.class)) {
-      _arguments.removeAll();
-      value.getArguments().clear();
-      if (config == null) {
-        _config.setForeground(Color.red);
-      }
-      return;
+    _config.setText(getShortConfigName(name));
+    Class<? extends ManagedConfig> clazz = getConfigClass();
+    ManagedConfig config = (clazz == null)
+      ? null
+      : _ctx.getConfigManager().getRawConfig(clazz, name);
+    boolean valid = (config != null) && PropertyUtil.getRawConfigPredicate(
+        _property.getAnnotation(ReferenceConstraints.class)).apply(config);
+    _config.setForeground(valid ? _normalColor : Color.red);
+    if (_edit != null) {
+      _edit.setEnabled(config != null);
     }
-    if (!PropertyUtil.getRawConfigPredicate(
-          getProperty().getAnnotation(ReferenceConstraints.class)).apply(config)) {
-      _config.setForeground(Color.red);
-      return;
-    }
-    _config.setForeground(_content.getForeground());
-
-    // store the existing editors mapped by name in case we want to reuse their values
-    int ocount = _arguments.getComponentCount();
-    HashMap<String, PropertyEditor> oeditors = new HashMap<String, PropertyEditor>();
-    if (transfer && !_noTransfer) {
-      for (int ii = 0; ii < ocount; ii++) {
-        PropertyEditor editor = (PropertyEditor)_arguments.getComponent(ii);
-        oeditors.put(editor.getProperty().getName(), editor);
-      }
-    }
-
-    // scan through the parameters
-    int idx = 0;
-    Object nargs = value.getArguments();
-    for (Parameter parameter : pconfig.parameters) {
-      Property property = parameter.getArgumentProperty(pconfig);
-      if (property == null) {
-        continue;
-      }
-      PropertyEditor editor = null;
-      if (idx < ocount) {
-        // see if we can copy the argument to the new set and reuse the editor
-        PropertyEditor oeditor = (PropertyEditor)_arguments.getComponent(idx);
-        if (oeditor.getProperty().equals(property)) {
-          if (transfer) {
-            property.set(nargs, property.get(oeditor.getObject()));
-          }
-          editor = oeditor;
-        } else {
-          _arguments.remove(idx);
-        }
-      }
-      if (editor == null) {
-        editor = PropertyEditor.createEditor(_ctx, property, _lineage);
-        editor.addChangeListener(this);
-        _arguments.add(editor, idx);
-
-        // see if we can reuse the value from the previous editor
-        PropertyEditor oeditor = oeditors.get(parameter.name);
-        if (oeditor != null) {
-          Property oproperty = oeditor.getProperty();
-          if (property.getGenericType().equals(oproperty.getGenericType())) {
-            Object ovalue = oproperty.get(oeditor.getObject());
-            if (property.isLegalValue(ovalue)) {
-              property.set(nargs, ovalue);
-            }
-          }
-        }
-      }
-      editor.setObject(nargs);
-      idx++;
-    }
-
-    // remove the remaining editors
-    while (ocount > idx) {
-      _arguments.remove(--ocount);
-    }
-    // we may need to refresh the panel
-    SwingUtil.refresh(_arguments);
-
-    // clear out any arguments that don't correspond to parameters
-    for (Iterator<String> it = value.getArguments().keySet().iterator(); it.hasNext(); ) {
-      if (pconfig.getParameter(it.next()) == null) {
-        it.remove();
-      }
-    }
-
-    // listen for parameter changes
-    (_listenee = pconfig).addListener(this);
+    updateDetails(value, config, valid, transfer);
   }
 
-  protected String getButtonName (ConfigReference<?> ref)
+  /**
+   * Returns the chooser, creating it on first use, or null if we have no config class.
+   */
+  protected ConfigChooser getChooser ()
   {
-    String name = ref.getName();
-    int lastSlash = name.lastIndexOf('/');
-    if (lastSlash > 0) {
-      lastSlash = name.lastIndexOf('/', lastSlash - 1);
+    if (_chooser == null) {
+      ConfigManager cfgmgr = _ctx.getConfigManager();
+      Class<? extends ManagedConfig> clazz = getConfigClass();
+      if (clazz == null) {
+        return null;
+      }
+      _chooser = ConfigChooser.createInstance(_msgmgr, cfgmgr, clazz,
+          _property.getAnnotation(ReferenceConstraints.class));
+      // resource configs come from a file chooser, which takes no hidden constraints
+      if (!cfgmgr.isResourceClass(clazz)) {
+        Predicate<? super ManagedConfig> filter = _ctx.getChoosingFilter(clazz);
+        if (filter != null) {
+          _chooser.addHiddenConstraint(filter);
+        }
+        Predicate<? super ManagedConfig> ourFilter = getChooserFilter();
+        if (ourFilter != null) {
+          _chooser.addHiddenConstraint(ourFilter);
+        }
+        // a config being edited may not refer to itself
+        _chooser.addHiddenConstraint(cfg -> !(_object instanceof ManagedConfig ourCfg) ||
+          !Objects.equals(ourCfg.getName(), cfg.getName()) ||
+          (ourCfg.getConfigGroup() != cfg.getConfigGroup()));
+      }
     }
-    return name.substring(lastSlash + 1);
+    return _chooser;
   }
 
   /** The config button. */
   protected JButton _config;
 
-  /** The edit, and clear buttons. */
-  protected JButton _edit, _clear;
+  /** The config button's color when its config is valid. */
+  protected Color _normalColor;
 
-  /** Holds the argument panels. */
-  protected JPanel _arguments;
+  /** The edit and clear buttons. */
+  protected JButton _edit, _clear;
 
   /** The label for a constant config. */
   protected JLabel _name;
 
-  /** The config chooser. */
+  /** The config chooser, created when first needed. */
   protected ConfigChooser _chooser;
-
-  /** The config that we're listening to, if any. */
-  protected ParameterizedConfig _listenee;
-
-  /** Should we suppress transferring arguments? */
-  protected boolean _noTransfer;
 
   /** Should we omit the edit button? */
   protected static final boolean _noEdit = Boolean.getBoolean("com.threerings.tool.no_edit");

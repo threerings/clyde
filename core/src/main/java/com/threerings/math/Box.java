@@ -573,10 +573,8 @@ public final class Box
   @Override
   public boolean equals (Object other)
   {
-    if (!(other instanceof Box obox)) {
-      return false;
-    }
-    return _minExtent.equals(obox._minExtent) && _maxExtent.equals(obox._maxExtent);
+    return other instanceof Box obox &&
+      _minExtent.equals(obox._minExtent) && _maxExtent.equals(obox._maxExtent);
   }
 
   /**

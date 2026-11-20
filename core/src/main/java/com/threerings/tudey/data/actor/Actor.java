@@ -394,11 +394,8 @@ public class Actor extends DeepObject
   @Override
   public boolean equals (Object other)
   {
-    if (!super.equals(other)) {
-      return false;
-    }
-    Actor oactor = (Actor)other;
-    return _config.equals(oactor._config) &&
+    return super.equals(other) && other instanceof Actor oactor &&
+      _config.equals(oactor._config) &&
       _id == oactor._id &&
       _created == oactor._created &&
       _destroyed == oactor._destroyed &&

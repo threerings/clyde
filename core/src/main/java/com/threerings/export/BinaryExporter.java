@@ -589,10 +589,8 @@ public class BinaryExporter extends Exporter
     @Override
     public boolean equals (Object o)
     {
-      if (!(o instanceof FieldData that)) {
-        return false;
-      }
-      return this.name.equals(that.name) && this.clazz.equals(that.clazz);
+      return o instanceof FieldData that &&
+        this.name.equals(that.name) && this.clazz.equals(that.clazz);
     }
 
     @Override

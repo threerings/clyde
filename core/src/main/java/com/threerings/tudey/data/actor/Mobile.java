@@ -184,11 +184,7 @@ public class Mobile extends Actor
   @Override
   public boolean equals (Object other)
   {
-    if (!super.equals(other)) {
-      return false;
-    }
-    Mobile omobile = (Mobile)other;
-    return _direction == omobile._direction;
+    return super.equals(other) && _direction == ((Mobile)other)._direction;
   }
 
   @Override

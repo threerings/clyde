@@ -163,8 +163,8 @@ public class ClientArray
   @Override
   public boolean equals (Object other)
   {
-    ClientArray oarray = (ClientArray)other;
-    return size == oarray.size && type == oarray.type &&
+    return other instanceof ClientArray oarray &&
+      size == oarray.size && type == oarray.type &&
       normalized == oarray.normalized && stride == oarray.stride &&
       offset == oarray.offset && arrayBuffer == oarray.arrayBuffer &&
       floatArray == oarray.floatArray;

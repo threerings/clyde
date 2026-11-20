@@ -25,9 +25,6 @@
 
 package com.threerings.editor.swing.editors;
 
-import java.util.Iterator;
-import java.util.Map;
-
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,16 +39,13 @@ import javax.swing.JPopupMenu;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import com.google.common.collect.Maps;
-
-import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.Config;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.editor.util.MaskFlags;
 
 import static com.threerings.editor.Log.log;
 
@@ -63,40 +57,24 @@ public class MaskEditor extends PropertyEditor
 {
   /**
    * Retrieves the value of a flag from the configuration, or zero if not found.
+   *
+   * @deprecated use {@link MaskFlags#getFlag}, which doesn't load the editors.
    */
+  @Deprecated
   public static int getFlag (String mode, String flag)
   {
-    String[] flags = _modes.get(mode);
-    int idx = (flags == null) ? -1 : ListUtil.indexOf(flags, flag);
-    return (idx == -1) ? 0 : (1 << idx);
+    return MaskFlags.getFlag(mode, flag);
   }
 
   /**
-   * Turn the bits into a string of arbitrary format, for debugging. Do not try to reparse this.
+   * Turn the bits into a string of arbitrary format, for debugging.
    *
-   * @return {@code "<none>"}, or the names of the flags that are on, separated by comma and space.
-   * Leftover bits are also reported.
+   * @deprecated use {@link MaskFlags#toString}, which doesn't load the editors.
    */
+  @Deprecated
   public static String toString (String mode, int bits)
   {
-    if (bits == 0) {
-      return "<none>";
-    }
-    String[] flags = _modes.get(mode);
-    StringBuilder buf = new StringBuilder();
-    for (int ii = 0, nn = flags.length; bits != 0 && ii < nn; ii++) {
-      if ((bits & 1) == 1) {
-        if (buf.length() > 0) {
-          buf.append(", ");
-        }
-        buf.append(flags[ii]);
-      }
-      bits >>>= 1;
-    }
-    if (bits != 0) {
-      buf.append(" _leftover-bits-").append(bits << flags.length);
-    }
-    return buf.toString();
+    return MaskFlags.toString(mode, bits);
   }
 
   // documentation inherited from interface DocumentListener
@@ -192,7 +170,7 @@ public class MaskEditor extends PropertyEditor
     _button.addActionListener(this);
 
     String mode = getMode();
-    String[] names = _modes.get(mode);
+    String[] names = MaskFlags.getFlags(mode);
     if (names == null) {
       if (!StringUtil.isBlank(mode)) {
         log.warning("Unknown mask mode.", "mode", mode);
@@ -239,16 +217,4 @@ public class MaskEditor extends PropertyEditor
 
   /** The translated mode flags. */
   protected String[] _flags;
-
-  /** The names of the flags for each mode. */
-  protected static Map<String, String[]> _modes = Maps.newHashMap();
-
-  static {
-    // load the modes from the configuration
-    Config config = new Config("/rsrc/config/editor/mask");
-    for (Iterator<String> it = config.keys(); it.hasNext(); ) {
-      String key = it.next();
-      _modes.put(key, config.getValue(key, ArrayUtil.EMPTY_STRING));
-    }
-  }
 }

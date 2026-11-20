@@ -1,6 +1,4 @@
 //
-// $Id$
-//
 // Clyde library - tools for developing networked games
 // Copyright (C) 2005-2012 Three Rings Design, Inc.
 // http://code.google.com/p/clyde/
@@ -56,9 +54,11 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -70,6 +70,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -445,6 +446,11 @@ public class ConfigEditor extends BaseConfigEditor
           (null != panel.getEditorPanel().getObject())); // on folders, do a prefix match
     } else if (action.equals("validate_refs")) {
       validateReferences();
+    } else if (action.equals("lookup_config_id")) {
+      if (_idDialog == null) {
+        _idDialog = new ConfigIdDialog();
+      }
+      _idDialog.open();
     } else if (action.equals("resources")) {
       showFrame(new ResourceEditor(_runQueue, _msgmgr, _cfgmgr, _colorpos));
     } else if (action.equals("tree_mode")) {
@@ -720,6 +726,7 @@ public class ConfigEditor extends BaseConfigEditor
   protected void addToolsMenuItems (JMenu tools)
   {
     tools.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
+    tools.add(_lookupConfigId = createMenuItem("lookup_config_id", KeyEvent.VK_G, KeyEvent.VK_G));
   }
 
   @Override
@@ -794,6 +801,10 @@ public class ConfigEditor extends BaseConfigEditor
         _pane.setViewportView(_tree);
         _filterPanel.setTree(_tree);
         _paste.setEnabled(_clipclass == group.getConfigClass() && !_readOnly);
+        _lookupConfigId.setEnabled(group.hasIds());
+        if (_idDialog != null) {
+          _idDialog.groupChanged(group.hasIds());
+        }
         updateSelection();
       }
 
@@ -1203,16 +1214,22 @@ public class ConfigEditor extends BaseConfigEditor
       return _runQueue;
     }
 
-    // from EditorContext
+    @Override // from EditorContext
     public Predicate<? super ManagedConfig> getChoosingFilter (Class<? extends ManagedConfig> clazz)
     {
       return ConfigEditor.this.getChoosingFilter(clazz);
     }
 
-    // from EditorContext
+    @Override // from EditorContext
     public Predicate<Class<?>> getTypeFilter ()
     {
       return ConfigEditor.this.getTypeFilter();
+    }
+
+    @Override // from EditorContext
+    public Property getArgumentHint (Class<? extends ManagedConfig> clazz, String name)
+    {
+      return ConfigEditor.this.getArgumentHint(clazz, name);
     }
 
     // documentation inherited from interface ItemListener
@@ -1235,6 +1252,99 @@ public class ConfigEditor extends BaseConfigEditor
 
     /** The object editor panel. */
     protected BaseEditorPanel _epanel;
+  }
+
+  /**
+   * Selects a config by id in the current group. Stays open so that ids may be pasted in
+   * one after another.
+   */
+  protected class ConfigIdDialog extends JDialog
+  {
+    public ConfigIdDialog ()
+    {
+      super(ConfigEditor.this, _msgs.get("t.lookup_config_id"), false);
+
+      JPanel content = new JPanel(new BorderLayout(5, 5));
+      content.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      setContentPane(content);
+
+      JPanel row = GroupLayout.makeHStretchBox(5);
+      row.add(_field = new JTextField(12));
+      row.add(_go = new JButton(_msgs.get("b.go")), GroupLayout.FIXED);
+      _go.addActionListener(e -> lookup());
+      content.add(row, BorderLayout.NORTH);
+
+      content.add(_status = new JLabel(" "), BorderLayout.CENTER);
+
+      getRootPane().setDefaultButton(_go);
+      getRootPane().registerKeyboardAction(e -> setVisible(false),
+        KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+      pack();
+      // leave room for long config names in the status
+      setSize(Math.max(getWidth(), 450), getHeight());
+      setLocationRelativeTo(ConfigEditor.this);
+    }
+
+    /**
+     * Shows the dialog, ready for an id to be typed or pasted.
+     */
+    public void open ()
+    {
+      setVisible(true);
+      _field.selectAll();
+      _field.requestFocusInWindow();
+    }
+
+    /**
+     * Called when the current group changes, enabling lookups only in groups with ids.
+     */
+    public void groupChanged (boolean hasIds)
+    {
+      _field.setEnabled(hasIds);
+      _go.setEnabled(hasIds);
+      _status.setText(" ");
+    }
+
+    /**
+     * Looks up the entered id in the current group, clearing any filter and selecting the
+     * config if found.
+     */
+    protected void lookup ()
+    {
+      // select the text so that the next paste replaces it
+      _field.selectAll();
+      String text = _field.getText().trim();
+      if (text.isEmpty()) {
+        return;
+      }
+      int id;
+      try {
+        id = Integer.parseInt(text);
+      } catch (NumberFormatException nfe) {
+        _status.setText(_msgs.get("m.config_id_not_number", text));
+        return;
+      }
+      ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+      ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
+      ManagedConfig cfg = item.group.getRawConfig(id);
+      if (cfg == null) {
+        _status.setText(_msgs.get("m.config_id_not_found", text));
+        return;
+      }
+      panel._filterPanel.clearFilter();
+      item.select(cfg.getName());
+      _status.setText(text + ": " + cfg.getName());
+    }
+
+    /** The id entry field. */
+    protected JTextField _field;
+
+    /** The lookup button. */
+    protected JButton _go;
+
+    /** Reports the result of the last lookup. */
+    protected JLabel _status;
   }
 
   /**
@@ -1691,6 +1801,12 @@ public class ConfigEditor extends BaseConfigEditor
 
   /** The edit menu actions. */
   protected Action _undo, _redo, _cut, _copy, _paste, _delete, _findUses;
+
+  /** The config id lookup tool, enabled only for groups with ids. */
+  protected JMenuItem _lookupConfigId;
+
+  /** The config id lookup dialog, created on first use. */
+  protected ConfigIdDialog _idDialog;
 
   /** The tree mode toggle. */
   protected JCheckBoxMenuItem _treeMode;

@@ -69,7 +69,6 @@ import com.threerings.editor.swing.editors.BooleanEditor;
 import com.threerings.editor.swing.editors.ChoiceEditor;
 import com.threerings.editor.swing.editors.Color4fEditor;
 import com.threerings.editor.swing.editors.ColorizationEditor;
-import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.editor.swing.editors.ConfigReferencePanelArrayListEditor;
 import com.threerings.editor.swing.editors.ConfigTypeEditor;
@@ -118,9 +117,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
     if (name.length() > 0 && (clazz = _classesByName.get(name)) == null) {
       log.warning("Missing custom editor class [name=" + name + "].");
 
-    // if a String, and the @Reference annotation is present, it's a bare config reference.
-    } else if (type == String.class && property.isAnnotationPresent(Reference.class)) {
-      clazz = ConfigEditor.class;
+    // with the @Reference annotation, a String or int is a bare config reference: name or id
+    } else if (isBareReferenceType(type) && property.isAnnotationPresent(Reference.class)) {
+      clazz = ConfigReferenceEditor.ByAnnotation.class;
     }
     PropertyEditor editor;
     // then by type
@@ -148,6 +147,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
   }
 
   /**
+   * Whether a value of the type can be a bare config reference: a config name or id.
+   */
+  protected static boolean isBareReferenceType (Class<?> type)
+  {
+    return type == String.class || type == int.class || type == Integer.class;
+  }
+
+  /**
    * Returns the type of editor class to use to edit the specified array/list property.
    */
   public static Class<? extends PropertyEditor> getArrayListEditorType (Property property)
@@ -155,7 +162,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
     // use the table editor when the array components are
     // primitives (or similar, or arrays thereof)
     Class<?> ctype = property.getComponentType();
-    if (isTableCellType(ctype) ||
+    if (isBareReferenceType(ctype) && property.isAnnotationPresent(Reference.class)) {
+      return ConfigReferencePanelArrayListEditor.class; // each element edited as a reference
+    } else if (isTableCellType(ctype) ||
         (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
       return TableArrayListEditor.class;
     } else if (ctype.isEnum() || (ctype.isArray() && ctype.getComponentType().isEnum())) {
@@ -379,6 +388,18 @@ public abstract class PropertyEditor extends BasePropertyEditor
   }
 
   /**
+   * Shortens a config name to its last two path components, for a compact button label.
+   */
+  protected String getShortConfigName (String name)
+  {
+    int lastSlash = name.lastIndexOf('/');
+    if (lastSlash > 0) {
+      lastSlash = name.lastIndexOf('/', lastSlash - 1);
+    }
+    return name.substring(lastSlash + 1);
+  }
+
+  /**
    * Gets the mode string by walking up the lineage.
    */
   protected String getMode ()
@@ -514,7 +535,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
   static {
     registerEditorClass("choice", ChoiceEditor.class);
     registerEditorClass("colorization", ColorizationEditor.class);
-    registerEditorClass("config", ConfigEditor.class);
+    registerEditorClass("config", ConfigReferenceEditor.ByAnnotation.class);
     //registerEditorClass("configId", ConfigIdEditor.class);
     registerEditorClass("resource", ResourceEditor.class);
     registerEditorClass("table", TableArrayListEditor.class);
@@ -533,7 +554,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     registerEditorClass(Byte.class, NumberEditor.class);
     registerEditorClass(Byte.TYPE, NumberEditor.class);
     registerEditorClass(Color4f.class, Color4fEditor.class);
-    registerEditorClass(ConfigReference.class, ConfigReferenceEditor.class);
+    registerEditorClass(ConfigReference.class, ConfigReferenceEditor.ByType.class);
     registerEditorClass(Double.class, NumberEditor.class);
     registerEditorClass(Double.TYPE, NumberEditor.class);
     registerEditorClass(File.class, FileEditor.class);

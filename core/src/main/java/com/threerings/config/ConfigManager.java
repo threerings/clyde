@@ -447,6 +447,20 @@ public class ConfigManager
   }
 
   /**
+   * Get the <em>raw</em> config with the specified class/group and id, or null for none.
+   * Like {@link #getRawConfig(Class, String)}, this may return a DerivedConfig.
+   */
+  public ManagedConfig getRawConfig (Class<? extends ManagedConfig> clazz, int id)
+  {
+    if (id == 0) {
+      return null;
+    }
+    ConfigGroup<? extends ManagedConfig> group = getGroup(clazz);
+    ManagedConfig config = (group == null) ? null : group.getRawConfig(id);
+    return (config != null || _parent == null) ? config : _parent.getRawConfig(clazz, id);
+  }
+
+  /**
    * Attempts to fetch a resource config through the cache.
    */
   public ManagedConfig getResourceConfig (String name)

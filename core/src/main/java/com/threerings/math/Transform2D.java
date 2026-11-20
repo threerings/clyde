@@ -793,8 +793,7 @@ public final class Transform2D
   @Override
   public boolean equals (Object other)
   {
-    Transform2D otrans = (Transform2D)other;
-    if (!(other instanceof Transform2D && _type == otrans.getType())) {
+    if (!(other instanceof Transform2D otrans) || _type != otrans.getType()) {
       return false;
     }
     switch (_type) {

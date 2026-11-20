@@ -679,7 +679,7 @@ public class BinaryImporter extends Importer
     @Override
     public boolean equals (Object other)
     {
-      return ((ClassWrapper)other)._name.equals(_name);
+      return other instanceof ClassWrapper owrapper && owrapper._name.equals(_name);
     }
 
     /**

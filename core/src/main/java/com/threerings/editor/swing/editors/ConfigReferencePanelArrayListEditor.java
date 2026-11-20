@@ -25,6 +25,7 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
@@ -58,7 +59,8 @@ import com.threerings.config.ConfigReference;
 import static com.threerings.editor.Log.log;
 
 /**
- * An editor for Lists (or arrays) of config references.
+ * An editor for Lists (or arrays) of config references, including bare {@link
+ * com.threerings.config.Reference} names and ids.
  */
 public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
 {
@@ -129,17 +131,14 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
           }
         };
 
-      } else if (val instanceof Object[]) {
+      } else if (val.getClass().isArray()) { // may be primitive: an int[] of config ids
         prop = new IndexedProperty() {
           @Override protected Object getAtIndex (int idx) {
-            return getArray()[idx];
+            return Array.get(_property.get(_object), idx);
           }
           @Override protected void setAtIndex (int idx, Object value) {
-            getArray()[idx] = value;
+            Array.set(_property.get(_object), idx, value);
             fireStateChanged();
-          }
-          protected Object[] getArray () {
-            return (Object[])_property.get(_object);
           }
         };
 
@@ -148,7 +147,9 @@ public class ConfigReferencePanelArrayListEditor extends PanelArrayListEditor
       }
 
       _editor = PropertyEditor.createEditor(_ctx, prop, _lineage);
-      return _editor.getContent();
+      // a collapsible editor's content goes in our entry, but an inline one goes in whole
+      JPanel content = _editor.getContent();
+      return (content != null) ? content : _editor;
     }
 
     /** Our wrapped property editor. */

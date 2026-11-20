@@ -53,6 +53,7 @@ import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Reference;
 import com.threerings.config.ReferenceConstraints;
+import com.threerings.config.util.ReferenceUtil;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
@@ -444,44 +445,51 @@ public class PropertyUtil
       Reference refAnno = property.getAnnotation(Reference.class);
       String editor = annotation.editor();
       boolean cfg = editor.equals("config") || (refAnno != null);
-      if (cfg || property.getType().equals(ConfigReference.class)) {
-        Class<ManagedConfig> cclass;
-        ConfigReference<ManagedConfig> ref;
-        if (cfg) {
-          ConfigGroup<?> group = (refAnno != null)
-              ? cfgmgr.getGroup(refAnno.value()) // new way
-              : cfgmgr.getGroup(annotation.mode()); // old way
-          if (group == null) {
-            continue;
-          }
-          @SuppressWarnings("unchecked")
-          Class<ManagedConfig> mclass = (Class<ManagedConfig>)group.getConfigClass();
-          cclass = mclass;
-          ref = new ConfigReference<ManagedConfig>((String)value);
-        } else {
-          @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
-            (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
-          @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =
-            (ConfigReference<ManagedConfig>)value;
-          cclass = mclass;
-          ref = mref;
-        }
-        if (!refs.add(cclass, ref)) {
+      if (cfg) {
+        ConfigGroup<?> group = (refAnno != null)
+            ? cfgmgr.getGroup(refAnno.value()) // new way
+            : cfgmgr.getGroup(annotation.mode()); // old way
+        if (group == null) {
           continue;
         }
-        if (cfgmgr.isResourceClass(cclass)) {
-          paths.add(ref.getName());
+        @SuppressWarnings("unchecked")
+        Class<ManagedConfig> cclass = (Class<ManagedConfig>)group.getConfigClass();
+        for (String name : ReferenceUtil.getNames(cfgmgr, cclass, value)) {
+          getResources(cfgmgr, cclass, new ConfigReference<ManagedConfig>(name), paths, refs);
         }
-        ManagedConfig config = cfgmgr.getConfig(cclass, ref);
-        if (config != null) {
-          getResources(config.getConfigManager(), config, paths, refs);
-        }
+
+      } else if (property.getType().equals(ConfigReference.class)) {
+        @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+          (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+        @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
+          (ConfigReference<ManagedConfig>)value;
+        getResources(cfgmgr, cclass, ref, paths, refs);
+
       } else if (editor.equals("resource")) {
         paths.add((String)value);
 
       } else {
         getResources(cfgmgr, value, paths, refs);
       }
+    }
+  }
+
+  /**
+   * Finds the resources of a referenced config, if we haven't already.
+   */
+  protected static void getResources (
+    ConfigManager cfgmgr, Class<ManagedConfig> cclass, ConfigReference<ManagedConfig> ref,
+    Set<String> paths, ReferenceSet refs)
+  {
+    if (!refs.add(cclass, ref)) {
+      return;
+    }
+    if (cfgmgr.isResourceClass(cclass)) {
+      paths.add(ref.getName());
+    }
+    ManagedConfig config = cfgmgr.getConfig(cclass, ref);
+    if (config != null) {
+      getResources(config.getConfigManager(), config, paths, refs);
     }
   }
 
