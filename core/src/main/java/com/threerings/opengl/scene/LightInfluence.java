@@ -25,7 +25,11 @@
 
 package com.threerings.opengl.scene;
 
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
+
 import com.threerings.opengl.renderer.Light;
+import com.threerings.opengl.renderer.config.LightConfig;
 
 /**
  * Represents the influence of a light.
@@ -37,7 +41,38 @@ public class LightInfluence extends SceneInfluence
    */
   public LightInfluence (Light light)
   {
+    this(light, null, null);
+  }
+
+  /**
+   * Creates a new light influence that knows its copies (see {@link #isCopy}).
+   *
+   * @param worldTransform the light's world transform, live.
+   */
+  public LightInfluence (Light light, LightConfig config, Transform3D worldTransform)
+  {
     _light = light;
+    _config = config;
+    _worldTransform = worldTransform;
+  }
+
+  /**
+   * Is this a copy of the other's light over another area: a directional light of the same
+   * config, turned the same way, with other bounds? The lights themselves can't tell, as their
+   * directions are only set once they're drawn, after influences are gathered.
+   */
+  public boolean isCopy (LightInfluence other)
+  {
+    if (!(_config instanceof LightConfig.Directional dir) ||
+        !(other._config instanceof LightConfig.Directional odir) || _worldTransform == null ||
+        other._worldTransform == null || _bounds.equals(other._bounds)) {
+      return false;
+    }
+    // the cheap direction test first; the config compare is deep
+    _worldTransform.transformVector(dir.direction, _direction);
+    other._worldTransform.transformVector(odir.direction, _odirection);
+    return _direction.equals(_odirection) &&
+      (_config == other._config || _config.equals(other._config));
   }
 
   @Override
@@ -48,4 +83,13 @@ public class LightInfluence extends SceneInfluence
 
   /** The light object. */
   protected Light _light;
+
+  /** The light's config, if it can tell its copies. */
+  protected LightConfig _config;
+
+  /** The light's world transform, if it can tell its copies. */
+  protected Transform3D _worldTransform;
+
+  /** Hold this light's and the other's world directions while comparing. */
+  protected Vector3f _direction = new Vector3f(), _odirection = new Vector3f();
 }

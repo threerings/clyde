@@ -80,6 +80,7 @@ public class SceneInfluenceSet extends AbstractIdentityHashSet<SceneInfluence>
     Color4f closestAmbient = null;
     float cdist = Float.MAX_VALUE;
     ArrayList<Light> lights = new ArrayList<Light>();
+    ArrayList<LightInfluence> taken = null; // the lights taken that can tell their copies
     for (SceneInfluence influence : this) {
       Color4f ambient = influence.getAmbientLight();
       if (ambient != null) {
@@ -90,9 +91,21 @@ public class SceneInfluenceSet extends AbstractIdentityHashSet<SceneInfluence>
         }
       }
       Light light = influence.getLight();
-      if (light != null && lights.size() < MAX_LIGHTS) {
-        lights.add(light);
+      if (light == null || lights.size() == MAX_LIGHTS) {
+        continue;
       }
+      // copies over different bounds count once; stacked copies add. Where both meet, set
+      // order decides
+      if (influence instanceof LightInfluence linf) {
+        if (isCopy(linf, taken)) {
+          continue;
+        }
+        if (taken == null) {
+          taken = new ArrayList<LightInfluence>();
+        }
+        taken.add(linf);
+      }
+      lights.add(light);
     }
     if (closestAmbient == null) {
       return LightState.DISABLED;
@@ -206,6 +219,21 @@ public class SceneInfluenceSet extends AbstractIdentityHashSet<SceneInfluence>
       }
     }
     return true;
+  }
+
+  /**
+   * Is the light a copy of one of those taken (see {@link LightInfluence#isCopy})?
+   */
+  protected static boolean isCopy (LightInfluence influence, ArrayList<LightInfluence> taken)
+  {
+    if (taken != null) {
+      for (int ii = 0, nn = taken.size(); ii < nn; ii++) {
+        if (influence.isCopy(taken.get(ii))) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /** The maximum number of lights we allow in a set. */

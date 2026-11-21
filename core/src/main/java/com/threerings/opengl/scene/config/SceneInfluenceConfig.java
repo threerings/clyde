@@ -40,6 +40,7 @@ import com.threerings.expr.ExpressionDefinition;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.material.config.ProjectionConfig;
@@ -122,7 +123,8 @@ public abstract class SceneInfluenceConfig extends DeepObject
       }
       com.threerings.opengl.renderer.Light viewLight =
         light.createLight(ctx, scope, false, updaters);
-      return (shadow == null) ? new LightInfluence(viewLight) :
+      return (shadow == null) ? new LightInfluence(viewLight, light,
+          ScopeUtil.resolve(scope, "worldTransform", new Transform3D())) :
         shadow.createInfluence(ctx, scope, light, viewLight, updaters);
     }
   }
