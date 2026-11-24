@@ -35,8 +35,10 @@ import com.samskivert.util.Tuple;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Color4fExpression;
 import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.ExpressionDefinition;
+import com.threerings.expr.ObjectExpression.Evaluator;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
@@ -114,6 +116,20 @@ public abstract class SceneInfluenceConfig extends DeepObject
     @Editable(nullable=true)
     public ShadowConfig shadow;
 
+    /** What the light's colors are multiplied by each frame, so that they can change over time
+     * (with the clock, say, or a variable that game code eases); null to leave them as set. */
+    @Editable(nullable=true)
+    public Color4fExpression colorScale;
+
+    @Override
+    public void invalidate ()
+    {
+      super.invalidate();
+      if (colorScale != null) {
+        colorScale.invalidate();
+      }
+    }
+
     @Override
     protected SceneInfluence createInfluence (
       GlContext ctx, Scope scope, ArrayList<Updater> updaters)
@@ -123,9 +139,38 @@ public abstract class SceneInfluenceConfig extends DeepObject
       }
       com.threerings.opengl.renderer.Light viewLight =
         light.createLight(ctx, scope, false, updaters);
+      if (colorScale != null) {
+        updaters.add(createColorScaleUpdater(scope, viewLight));
+      }
       return (shadow == null) ? new LightInfluence(viewLight, light,
           ScopeUtil.resolve(scope, "worldTransform", new Transform3D())) :
         shadow.createInfluence(ctx, scope, light, viewLight, updaters);
+    }
+
+    /**
+     * Creates the updater that scales the light's configured colors by colorScale. It adds only
+     * the change since the last scale, as AmbientLightOffset does, so that both can adjust the
+     * same light.
+     */
+    protected Updater createColorScaleUpdater (
+      Scope scope, com.threerings.opengl.renderer.Light viewLight)
+    {
+      Evaluator<Color4f> evaluator = colorScale.createEvaluator(scope);
+      LightConfig.Colors colors = light.colors;
+      Color4f last = new Color4f(); // (white: createLight set the colors unscaled)
+      Color4f change = new Color4f(), scratch = new Color4f();
+      return () -> {
+        Color4f scale = evaluator.evaluate();
+        if (scale.equals(last)) {
+          return;
+        }
+        change.set(scale.r - last.r, scale.g - last.g, scale.b - last.b, 0f);
+        last.set(scale);
+        viewLight.ambient.addLocal(colors.ambient.mult(change, scratch));
+        viewLight.diffuse.addLocal(colors.diffuse.mult(change, scratch));
+        viewLight.specular.addLocal(colors.specular.mult(change, scratch));
+        viewLight.dirty = true;
+      };
     }
   }
 
