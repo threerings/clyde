@@ -129,9 +129,7 @@ public class MobileLogic extends ActorLogic
   @Override
   public ActorDelta getSnapshotDelta ()
   {
-    // A client already showing the actor is sent only deltas, yet the actor can go into stasis
-    // in view: a server stall longer than the stasis interval makes it look unseen. Unwoken, it
-    // would stand frozen in view, and once killed never tick on to remove itself.
+    // a client already showing the actor gets only deltas, and a long stall can put it to sleep
     wakeFromStasis();
     return super.getSnapshotDelta();
   }
@@ -205,7 +203,7 @@ public class MobileLogic extends ActorLogic
     }
     if (isDestroyed()) {
       // An actor destroyed before it ever woke (spawned and destroyed in one tick) is still
-      // sent once, on the way out. Waking it would leave a ticking ghost behind after
+      // sent on the way out. Waking it would leave a ticking ghost behind after
       // removal: invisible, but still running its behavior and attacks for several seconds.
       log.warning("Not waking destroyed actor from stasis.", "actor", _actor.getConfig(),
         "id", _actor.getId(), "where", _scenemgr.where());
