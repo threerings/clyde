@@ -34,6 +34,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
+import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActorAdvancer;
@@ -121,22 +122,18 @@ public class MobileLogic extends ActorLogic
   @Override
   public Actor getSnapshot ()
   {
-    // wake the actor up if it's in stasis
-    if (_inStasis) {
-      if (isDestroyed()) {
-        // An actor destroyed before it ever woke (spawned and destroyed in one tick) is still
-        // snapshotted once, on the way out. Waking it would leave a ticking ghost behind after
-        // removal: invisible, but still running its behavior and attacks for several seconds.
-        log.warning("Not waking destroyed actor from stasis.", "actor", _actor.getConfig(),
-          "id", _actor.getId(), "where", _scenemgr.where());
-      } else {
-        _scenemgr.addTickParticipant(this);
-        _inStasis = false;
-        _advancer.jump(_scenemgr.getTimestamp());
-        leftStasis();
-      }
-    }
+    wakeFromStasis();
     return super.getSnapshot();
+  }
+
+  @Override
+  public ActorDelta getSnapshotDelta ()
+  {
+    // A client already showing the actor is sent only deltas, yet the actor can go into stasis
+    // in view: a server stall longer than the stasis interval makes it look unseen. Unwoken, it
+    // would stand frozen in view, and once killed never tick on to remove itself.
+    wakeFromStasis();
+    return super.getSnapshotDelta();
   }
 
   @Override
@@ -196,6 +193,28 @@ public class MobileLogic extends ActorLogic
   protected ActorAdvancer createAdvancer ()
   {
     return _actor.createAdvancer(this, _actor.getCreated());
+  }
+
+  /**
+   * Wakes the actor up if it's in stasis, as it's being sent to a client.
+   */
+  protected void wakeFromStasis ()
+  {
+    if (!_inStasis) {
+      return;
+    }
+    if (isDestroyed()) {
+      // An actor destroyed before it ever woke (spawned and destroyed in one tick) is still
+      // sent once, on the way out. Waking it would leave a ticking ghost behind after
+      // removal: invisible, but still running its behavior and attacks for several seconds.
+      log.warning("Not waking destroyed actor from stasis.", "actor", _actor.getConfig(),
+        "id", _actor.getId(), "where", _scenemgr.where());
+      return;
+    }
+    _scenemgr.addTickParticipant(this);
+    _inStasis = false;
+    _advancer.jump(_scenemgr.getTimestamp());
+    leftStasis();
   }
 
   /**
