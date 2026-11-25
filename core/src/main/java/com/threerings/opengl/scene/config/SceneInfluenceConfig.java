@@ -121,6 +121,11 @@ public abstract class SceneInfluenceConfig extends DeepObject
     @Editable(nullable=true)
     public Color4fExpression colorScale;
 
+    /** Whether AmbientLightOffset's lightScale leaves this light be, as for the light the others
+     * are dimmed to set off. */
+    @Editable
+    public boolean ignoresLightScale;
+
     @Override
     public void invalidate ()
     {
@@ -139,6 +144,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
       }
       com.threerings.opengl.renderer.Light viewLight =
         light.createLight(ctx, scope, false, updaters);
+      viewLight.ignoresLightScale = ignoresLightScale;
       if (colorScale != null) {
         updaters.add(createColorScaleUpdater(scope, viewLight));
       }

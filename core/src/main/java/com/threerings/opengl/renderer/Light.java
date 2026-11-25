@@ -72,6 +72,10 @@ public class Light
   /** A hint as to whether or not this light should cast shadows. */
   public boolean castsShadows;
 
+  /** Whether AmbientLightOffset's lightScale passes this light over: it may be the light the
+   * others are dimmed to set off. */
+  public boolean ignoresLightScale;
+
   /**
    * Determines whether this light is "compatible" with the specified other.  Lights are
    * compatible if they have the same type (directional, point, spot) and hints.

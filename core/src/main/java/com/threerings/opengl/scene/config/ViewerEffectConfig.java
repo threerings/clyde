@@ -350,7 +350,8 @@ public abstract class ViewerEffectConfig extends DeepObject
     @Editable
     public Color4fExpression amount = new Color4fExpression.Constant();
 
-    /** What the lights' diffuse colors (as a sun's) are multiplied by at full amplitude. */
+    /** What the lights' diffuse colors (as a sun's) are multiplied by at full amplitude, all but
+     * those that ignore it (see Light#ignoresLightScale). */
     @Editable(min=0.0, step=0.01)
     public float lightScale = 1f;
 
@@ -446,17 +447,20 @@ public abstract class ViewerEffectConfig extends DeepObject
               }
             }
             float factor = (lightScale - 1f) * scale * blendEvaluator.evaluate();
-            for (int ii = 0; ii < lights.length; ii++) {
-              Light light = lights[ii];
-              Color4f last = _lastDiffuse[ii].set(light.diffuse.r * factor,
+            int count = 0;
+            for (Light light : lights) {
+              if (light.ignoresLightScale) {
+                continue;
+              }
+              Color4f last = _lastDiffuse[count].set(light.diffuse.r * factor,
                 light.diffuse.g * factor, light.diffuse.b * factor, 0f);
               light.diffuse.r += last.r;
               light.diffuse.g += last.g;
               light.diffuse.b += last.b;
               light.dirty = true;
-              _lastLights[ii] = light;
+              _lastLights[count++] = light;
             }
-            _lastLightCount = lights.length;
+            _lastLightCount = count;
           }
         }
         protected Color4f _lastAmount = new Color4f();
