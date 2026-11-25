@@ -630,6 +630,10 @@ public class PseudoKeys
 
   protected String getBaseDescKey (MessageBundle msgs, int baseKey)
   {
+    String padKey = getGamepadKey(baseKey);
+    if (padKey != null && msgs.exists(padKey)) {
+      return padKey;
+    }
     int idx;
     switch (getType(baseKey)) {
       case KEY_CONTROLLER_BUTTON:
@@ -807,11 +811,73 @@ public class PseudoKeys
     return (key >> 16) & 0xFF;
   }
 
+  /**
+   * Returns the translation key naming a gamepad control, such as "k.gamepad_right_trigger",
+   * or null if the key isn't one with a standard name. Games opt in by defining these keys in
+   * their bundle; otherwise the generic "m.controller_*" names are used.
+   *
+   * TODO: these names leave out the controller index, so all pads share them.
+   */
+  protected String getGamepadKey (int key)
+  {
+    String name = switch (getType(key)) {
+    case KEY_CONTROLLER_BUTTON -> getGamepadButtonKeyName(getControlIndex(key));
+    case KEY_CONTROLLER_AXIS_POSITIVE -> getGamepadAxisKeyName(getControlIndex(key), true);
+    case KEY_CONTROLLER_AXIS_NEGATIVE -> getGamepadAxisKeyName(getControlIndex(key), false);
+    default -> null;
+    };
+    return (name == null) ? null : "k.gamepad_" + name;
+  }
+
+  /**
+   * Returns the name a gamepad button takes in its translation key, or null for none.
+   * Keep in step with getGamepadButtonName.
+   */
+  protected String getGamepadButtonKeyName (int button)
+  {
+    return switch (button) {
+    case GLFW.GLFW_GAMEPAD_BUTTON_A -> "a";
+    case GLFW.GLFW_GAMEPAD_BUTTON_B -> "b";
+    case GLFW.GLFW_GAMEPAD_BUTTON_X -> "x";
+    case GLFW.GLFW_GAMEPAD_BUTTON_Y -> "y";
+    case GLFW.GLFW_GAMEPAD_BUTTON_LEFT_BUMPER  -> "left_bumper";
+    case GLFW.GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER -> "right_bumper";
+    case GLFW.GLFW_GAMEPAD_BUTTON_BACK         -> "back";
+    case GLFW.GLFW_GAMEPAD_BUTTON_START        -> "start";
+    case GLFW.GLFW_GAMEPAD_BUTTON_GUIDE        -> "guide";
+    case GLFW.GLFW_GAMEPAD_BUTTON_LEFT_THUMB   -> "left_stick_click";
+    case GLFW.GLFW_GAMEPAD_BUTTON_RIGHT_THUMB  -> "right_stick_click";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_UP      -> "dpad_up";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_RIGHT   -> "dpad_right";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_DOWN    -> "dpad_down";
+    case GLFW.GLFW_GAMEPAD_BUTTON_DPAD_LEFT    -> "dpad_left";
+    default -> null;
+    };
+  }
+
+  /**
+   * Returns the name one direction of a gamepad axis takes in its translation key, or null.
+   */
+  protected String getGamepadAxisKeyName (int axis, boolean positive)
+  {
+    // stick axes run from -1 (up, left) to 1 (down, right); triggers from -1 at rest to 1
+    return switch (axis) {
+    case GLFW.GLFW_GAMEPAD_AXIS_LEFT_X  -> positive ? "left_stick_right" : "left_stick_left";
+    case GLFW.GLFW_GAMEPAD_AXIS_LEFT_Y  -> positive ? "left_stick_down" : "left_stick_up";
+    case GLFW.GLFW_GAMEPAD_AXIS_RIGHT_X -> positive ? "right_stick_right" : "right_stick_left";
+    case GLFW.GLFW_GAMEPAD_AXIS_RIGHT_Y -> positive ? "right_stick_down" : "right_stick_up";
+    case GLFW.GLFW_GAMEPAD_AXIS_LEFT_TRIGGER  -> positive ? "left_trigger" : null;
+    case GLFW.GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER -> positive ? "right_trigger" : null;
+    default -> null;
+    };
+  }
+
   public String getGamepadButtonName (int button)
   {
     return getGamepadButtonName(button, false);
   }
 
+  // keep in step with getGamepadButtonKeyName
   private String getGamepadButtonName (int button, boolean playstation)
   {
     return switch (button) {
